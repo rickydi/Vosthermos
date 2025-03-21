@@ -1,0 +1,126 @@
+/* Ce fichier est uniquement destiné à résoudre un problème de service de fichiers CSS sur Netlify */
+/* Il contient les styles essentiels au cas où le fichier styles.css ne serait pas correctement servi */
+
+/* Styles de secours minimaux */
+html, body {
+    font-family: 'Montserrat', 'Arial', sans-serif;
+    color: #333;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+}
+
+.w {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* Menu et navigation */
+.nav-w {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    z-index: 100;
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+.logo-img {
+    height: 50px;
+}
+
+.menu-w {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 90;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 20px;
+    transform: translateY(-100%);
+    transition: transform 0.5s ease;
+}
+
+.menu-w.active {
+    transform: translateY(0);
+}
+
+.menu-nav-list {
+    list-style: none;
+    padding: 0;
+}
+
+.menu-nav-link {
+    color: white;
+    font-size: 24px;
+    text-decoration: none;
+    display: block;
+    margin: 15px 0;
+    transition: color 0.3s ease;
+}
+
+.menu-nav-link:hover {
+    color: #e30718;
+}
+
+/* Conteneur principal et sections */
+.home-roll-item {
+    width: 100%;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Styles pour les boutons */
+.explore-btn-w {
+    display: inline-flex;
+    background-color: #e30718;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-weight: bold;
+    cursor: pointer;
+    text-transform: uppercase;
+    margin-top: 20px;
+    transition: background-color 0.3s ease;
+}
+
+.explore-btn-w:hover {
+    background-color: #c60615;
+}
+
+/* Styles pour les services */
+.services-grid-horizontal {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.service-item {
+    flex: 1;
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 8px;
+    min-width: 200px;
+}
+
+/* Styles de secours pour le responsive */
+@media (max-width: 768px) {
+    .services-grid-horizontal {
+        flex-direction: column;
+    }
+    
+    .menu-nav-link {
+        font-size: 18px;
+    }
+}
