@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page non trouvée - Vosthermos</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #00353c;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .logo {
+            margin-bottom: 40px;
+            width: 150px;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: #e30718;
+        }
+        
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            max-width: 600px;
+        }
+        
+        .home-btn {
+            display: inline-block;
+            background-color: #e30718;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .home-btn:hover {
+            background-color: #c60615;
+            transform: translateY(-3px);
+        }
+    </style>
+</head>
+<body>
+    <img src="Vos-Thermos-Logo-petit.png" alt="Vosthermos Logo" class="logo">
+    <h1>404</h1>
+    <p>Oups ! La page que vous recherchez n'existe pas ou a été déplacée.</p>
+    <a href="/" class="home-btn">Retour à l'accueil</a>
+    
+    <script>
+        // Redirection automatique vers la page d'accueil après 5 secondes
+        setTimeout(function() {
+            window.location.href = '/';
+        }, 5000);
+    </script>
+</body>
+</html>
