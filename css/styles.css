@@ -1,7 +1,7 @@
 /* Styles principaux pour Vosthermos */
 :root {
     --primary-color: #ff3a2d; /* Rouge du logo plus lumineux */
-    --secondary-color: #00353c; /* Bleu foncé/turquoise du logo */
+    --secondary-color: #00353c; /* Bleu foncé/turquoise du logo - couleur originale conservée */
     --accent-color: #ffffff;
     --text-color: #333333;
     --light-gray: #f5f5f5;
@@ -315,7 +315,7 @@ img {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(to right, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.6));
+    background: linear-gradient(to right, rgba(0, 53, 60, 0.8), rgba(0, 53, 60, 0.6));
     z-index: 1;
 }
 
@@ -833,14 +833,14 @@ img {
 .value {
     text-align: center;
     flex: 1;
-    background-color: rgba(0, 0, 0, 0.3);
+    background-color: rgba(0, 0, 0, 0.5);
     border-radius: 10px;
     padding: 20px;
     transition: var(--transition);
 }
 
 .value:hover {
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.7);
     transform: translateY(-5px);
 }
 
@@ -881,14 +881,14 @@ img {
     display: flex;
     align-items: center;
     gap: 15px;
-    background-color: rgba(0, 0, 0, 0.3);
+    background-color: rgba(0, 0, 0, 0.5);
     padding: 15px;
     border-radius: 10px;
     transition: var(--transition);
 }
 
 .info-item:hover {
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.7);
     transform: translateY(-3px);
 }
 
@@ -918,7 +918,7 @@ img {
     margin-top: 20px;
     padding: 20px;
     border-top: 1px solid rgba(255, 255, 255, 0.2);
-    background-color: rgba(0, 0, 0, 0.3);
+    background-color: rgba(0, 0, 0, 0.5);
     border-radius: 10px;
 }
 
@@ -1091,13 +1091,4 @@ input:focus, select:focus, textarea:focus {
 
 @media (max-width: 768px) {
     .nav-w {
-        padding: 15px 20px;
-    }
-
-    .logo-img {
-        height: 60px;
-    }
-
-    .roll-cont-he {
-        font-size: 2rem;
-    }
+        padding:
