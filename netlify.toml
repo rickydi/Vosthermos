@@ -3,35 +3,25 @@
 [build]
   publish = "./"  # Dossier contenant les fichiers à déployer (racine du projet)
 
-# Redirection générale pour SPA (Single Page Application)
+# Redirection spécifique pour les pages dans le répertoire pages
 [[redirects]]
-  from = "/*"
-  to = "/index.html"
+  from = "/pages/*"
+  to = "/pages/:splat"
   status = 200
-  force = true  # Force la redirection même si le fichier existe
 
-# Redirection spécifique pour la page d'accueil (problème ordinateur vs mobile)
+# Redirection spécifique pour la page d'accueil
 [[redirects]]
   from = "/"
   to = "/index.html"
   status = 200
   force = true
 
-# Redirection pour assurer que l'accès direct aux pages fonctionne
+# Redirection générale pour SPA
 [[redirects]]
-  from = "/admin.html"
-  to = "/admin.html"
+  from = "/*"
+  to = "/index.html"
   status = 200
-
-[[redirects]]
-  from = "/login.html"
-  to = "/login.html"
-  status = 200
-
-[[redirects]]
-  from = "/admin-link.html"
-  to = "/admin-link.html"
-  status = 200
+  force = false  # Ne pas forcer la redirection si le fichier existe
 
 # En-têtes de sécurité
 [[headers]]
