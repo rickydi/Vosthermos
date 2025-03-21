@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vosthermos - Administration</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--secondary-color);
+            margin: 0;
+            padding: 0;
+            color: white;
+        }
+        
+        .admin-header {
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .admin-logo {
+            height: 60px;
+        }
+        
+        .logout-btn {
+            background-color: transparent;
+            color: white;
+            border: 2px solid var(--primary-color);
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: 'Montserrat', sans-serif;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .logout-btn:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-3px);
+        }
+        
+        .admin-content {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.2rem;
+        }
+        
+        .admin-section {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .image-preview-container {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .preview-box {
+            flex: 1;
+            min-width: 280px;
+        }
+        
+        .preview-box h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+        
+        .image-preview {
+            width: 100%;
+            height: 200px;
+            border-radius: 8px;
+            background-color: rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            position: relative;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .no-image {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: rgba(255, 255, 255, 0.5);
+            font-style: italic;
+        }
+        
+        .file-input-container {
+            margin-top: 20px;
+        }
+        
+        .file-input-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        .file-input {
+            display: block;
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-family: 'Montserrat', sans-serif;
+            cursor: pointer;
+        }
+        
+        .file-input::-webkit-file-upload-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-right: 15px;
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        .save-button {
+            display: block;
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: 'Montserrat', sans-serif;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .save-button:hover {
+            background-color: #c60615;
+            transform: translateY(-3px);
+        }
+        
+        .update-message {
+            background-color: rgba(46, 213, 115, 0.1);
+            color: #2ed573;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 15px;
+            text-align: center;
+            display: none;
+        }
+        
+        .update-message.error {
+            background-color: rgba(255, 71, 87, 0.1);
+            color: #ff4757;
+        }
+        
+        .admin-footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 50px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .image-preview-container {
+                flex-direction: column;
+            }
+            
+            .preview-box {
+                width: 100%;
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- En-tête de l'administration -->
+    <header class="admin-header">
+        <img src="Vos-Thermos-Logo-petit.png" alt="Vosthermos Logo" class="admin-logo">
+        <button id="logout-btn" class="logout-btn">
+            <i class="fas fa-sign-out-alt"></i> Déconnexion
+        </button>
+    </header>
+    
+    <!-- Contenu principal -->
+    <div class="admin-content">
+        <h1>Gestion des Images du Site</h1>
+        
+        <!-- Section 1: Accueil -->
+        <div class="admin-section">
+            <h2><i class="fas fa-home"></i> Image de la Section Accueil</h2>
+            <div class="image-preview-container">
+                <div class="preview-box">
+                    <h3>Image actuelle</h3>
+                    <div class="image-preview">
+                        <img id="current-image-accueil" src="shortbreeze_un_homme_habiller_professionel_qui_travail_a_repare_ccc02e18-73b8-4378-9c3d-70b94bc61a05.png" alt="Image actuelle de l'accueil">
+                    </div>
+                </div>
+                <div class="preview-box">
+                    <h3>Nouvelle image</h3>
+                    <div class="image-preview" id="new-preview-accueil">
+                        <div class="no-image">Aucune image sélectionnée</div>
+                    </div>
+                    <div class="file-input-container">
+                        <label for="image-accueil" class="file-input-label">Sélectionner une nouvelle image</label>
+                        <input type="file" id="image-accueil" name="image-accueil" class="file-input" accept="image/*">
+                    </div>
+                </div>
+            </div>
+            <button class="save-button" data-section="accueil">Enregistrer le changement</button>
+            <div class="update-message" id="message-accueil">Image mise à jour avec succès!</div>
+        </div>
+        
+        <!-- Section 2: Services -->
+        <div class="admin-section">
+            <h2><i class="fas fa-tools"></i> Image de la Section Services</h2>
+            <div class="image-preview-container">
+                <div class="preview-box">
+                    <h3>Image actuelle</h3>
+                    <div class="image-preview">
+                        <img id="current-image-services" src="WhatsApp-Image-2024-07-12-at-14.15.56_133ff3dc-e1725767270278.jpg" alt="Image actuelle des services">
+                    </div>
+                </div>
+                <div class="preview-box">
+                    <h3>Nouvelle image</h3>
+                    <div class="image-preview" id="new-preview-services">
+                        <div class="no-image">Aucune image sélectionnée</div>
+                    </div>
+                    <div class="file-input-container">
+                        <label for="image-services" class="file-input-label">Sélectionner une nouvelle image</label>
+                        <input type="file" id="image-services" name="image-services" class="file-input" accept="image/*">
+                    </div>
+                </div>
+            </div>
+            <button class="save-button" data-section="services">Enregistrer le changement</button>
+            <div class="update-message" id="message-services">Image mise à jour avec succès!</div>
+        </div>
+        
+        <!-- Section 3: Pourquoi nous -->
+        <div class="admin-section">
+            <h2><i class="fas fa-question-circle"></i> Image de la Section Pourquoi Nous</h2>
+            <div class="image-preview-container">
+                <div class="preview-box">
+                    <h3>Image actuelle</h3>
+                    <div class="image-preview">
+                        <img id="current-image-pourquoi" src="WhatsApp-Image-2024-09-06-at-13.48.48_3d91e432.jpg" alt="Image actuelle de pourquoi nous">
+                    </div>
+                </div>
+                <div class="preview-box">
+                    <h3>Nouvelle image</h3>
+                    <div class="image-preview" id="new-preview-pourquoi">
+                        <div class="no-image">Aucune image sélectionnée</div>
+                    </div>
+                    <div class="file-input-container">
+                        <label for="image-pourquoi" class="file-input-label">Sélectionner une nouvelle image</label>
+                        <input type="file" id="image-pourquoi" name="image-pourquoi" class="file-input" accept="image/*">
+                    </div>
+                </div>
+            </div>
+            <button class="save-button" data-section="pourquoi">Enregistrer le changement</button>
+            <div class="update-message" id="message-pourquoi">Image mise à jour avec succès!</div>
+        </div>
+        
+        <!-- Section 4: Galerie -->
+        <div class="admin-section">
+            <h2><i class="fas fa-images"></i> Image de la Section Galerie</h2>
+            <div class="image-preview-container">
+                <div class="preview-box">
+                    <h3>Image actuelle</h3>
+                    <div class="image-preview">
+                        <img id="current-image-galerie" src="WhatsApp-Image-2024-09-18-at-12.29.51_1677a930.jpg" alt="Image actuelle de la galerie">
+                    </div>
+                </div>
+                <div class="preview-box">
+                    <h3>Nouvelle image</h3>
+                    <div class="image-preview" id="new-preview-galerie">
+                        <div class="no-image">Aucune image sélectionnée</div>
+                    </div>
+                    <div class="file-input-container">
+                        <label for="image-galerie" class="file-input-label">Sélectionner une nouvelle image</label>
+                        <input type="file" id="image-galerie" name="image-galerie" class="file-input" accept="image/*">
+                    </div>
+                </div>
+            </div>
+            <button class="save-button" data-section="galerie">Enregistrer le changement</button>
+            <div class="update-message" id="message-galerie">Image mise à jour avec succès!</div>
+        </div>
+        
+        <!-- Section 5: À propos -->
+        <div class="admin-section">
+            <h2><i class="fas fa-info-circle"></i> Image de la Section À Propos</h2>
+            <div class="image-preview-container">
+                <div class="preview-box">
+                    <h3>Image actuelle</h3>
+                    <div class="image-preview">
+                        <img id="current-image-apropos" src="WhatsApp-Image-2024-09-06-at-16.30.03_1fa8c206.jpg" alt="Image actuelle à propos">
+                    </div>
+                </div>
+                <div class="preview-box">
+                    <h3>Nouvelle image</h3>
+                    <div class="image-preview" id="new-preview-apropos">
+                        <div class="no-image">Aucune image sélectionnée</div>
+                    </div>
+                    <div class="file-input-container">
+                        <label for="image-apropos" class="file-input-label">Sélectionner une nouvelle image</label>
+                        <input type="file" id="image-apropos" name="image-apropos" class="file-input" accept="image/*">
+                    </div>
+                </div>
+            </div>
+            <button class="save-button" data-section="apropos">Enregistrer le changement</button>
+            <div class="update-message" id="message-apropos">Image mise à jour avec succès!</div>
+        </div>
+        
+        <!-- Section 6: Background -->
+        <div class="admin-section">
+            <h2><i class="fas fa-image"></i> Image d'Arrière-Plan du Site</h2>
+            <div class="image-preview-container">
+                <div class="preview-box">
+                    <h3>Image actuelle</h3>
+                    <div class="image-preview">
+                        <img id="current-image-background" src="WhatsApp-Image-2024-08-14-at-20.46.18_f332cc9e.jpg" alt="Image actuelle d'arrière-plan">
+                    </div>
+                </div>
+                <div class="preview-box">
+                    <h3>Nouvelle image</h3>
+                    <div class="image-preview" id="new-preview-background">
+                        <div class="no-image">Aucune image sélectionnée</div>
+                    </div>
+                    <div class="file-input-container">
+                        <label for="image-background" class="file-input-label">Sélectionner une nouvelle image</label>
+                        <input type="file" id="image-background" name="image-background" class="file-input" accept="image/*">
+                    </div>
+                </div>
+            </div>
+            <button class="save-button" data-section="background">Enregistrer le changement</button>
+            <div class="update-message" id="message-background">Image mise à jour avec succès!</div>
+        </div>
+    </div>
+    
+    <footer class="admin-footer">
+        <p>&copy; 2025 Vosthermos. Tous droits réservés.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Vérifier l'authentification
+            if (!localStorage.getItem('adminAuth')) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Gérer la déconnexion
+            document.getElementById('logout-btn').addEventListener('click', function() {
+                localStorage.removeItem('adminAuth');
+                window.location.href = 'login.html';
+            });
+            
+            // Prévisualisation des images sélectionnées
+            setupImagePreviews();
+            
+            // Gérer les boutons de sauvegarde
+            setupSaveButtons();
+        });
+        
+        function setupImagePreviews() {
+            const fileInputs = document.querySelectorAll('.file-input');
+            
+            fileInputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    const section = this.id.split('-')[1];
+                    const previewContainer = document.getElementById(`new-preview-${section}`);
+                    
+                    if (this.files && this.files[0]) {
+                        const reader = new FileReader();
+                        
+                        reader.onload = function(e) {
+                            // Supprimer l'ancienne prévisualisation
+                            previewContainer.innerHTML = '';
+                            
+                            // Créer une nouvelle image
+                            const img = document.createElement('img');
+                            img.src = e.target.result;
+                            previewContainer.appendChild(img);
+                        }
+                        
+                        reader.readAsDataURL(this.files[0]);
+                    } else {
+                        // Remettre le message "Aucune image sélectionnée"
+                        previewContainer.innerHTML = '<div class="no-image">Aucune image sélectionnée</div>';
+                    }
+                });
+            });
+        }
+        
+        function setupSaveButtons() {
+            const saveButtons = document.querySelectorAll('.save-button');
+            
+            saveButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const section = this.dataset.section;
+                    const fileInput = document.getElementById(`image-${section}`);
+                    const messageElement = document.getElementById(`message-${section}`);
+                    
+                    if (fileInput.files && fileInput.files[0]) {
+                        // Dans une vraie implémentation, vous enverriez le fichier au serveur ici
+                        // Comme nous n'avons pas de back-end, nous simulons un succès
+                        
+                        // Mise à jour de l'aperçu actuel
+                        const currentImg = document.getElementById(`current-image-${section}`);
+                        const reader = new FileReader();
+                        
+                        reader.onload = function(e) {
+                            currentImg.src = e.target.result;
+                            
+                            // Dans un cas réel, nous stockerions le chemin du fichier dans localStorage
+                            localStorage.setItem(`image-${section}`, currentImg.src);
+                            
+                            // Mettre à jour également l'image dans le HTML principal (simulation)
+                            if (section === 'accueil') {
+                                localStorage.setItem('image-accueil-path', 'shortbreeze_un_homme_habiller_professionel_qui_travail_a_repare_ccc02e18-73b8-4378-9c3d-70b94bc61a05.png');
+                            }
+                            
+                            // Afficher le message de succès
+                            messageElement.classList.remove('error');
+                            messageElement.style.display = 'block';
+                            messageElement.textContent = 'Image mise à jour avec succès!';
+                            
+                            // Masquer le message après 3 secondes
+                            setTimeout(() => {
+                                messageElement.style.display = 'none';
+                            }, 3000);
+                            
+                            // Réinitialiser l'input file et la prévisualisation
+                            fileInput.value = '';
+                            const previewContainer = document.getElementById(`new-preview-${section}`);
+                            previewContainer.innerHTML = '<div class="no-image">Aucune image sélectionnée</div>';
+                        }
+                        
+                        reader.readAsDataURL(fileInput.files[0]);
+                    } else {
+                        // Afficher un message d'erreur
+                        messageElement.classList.add('error');
+                        messageElement.style.display = 'block';
+                        messageElement.textContent = 'Veuillez sélectionner une image.';
+                        
+                        // Masquer le message après 3 secondes
+                        setTimeout(() => {
+                            messageElement.style.display = 'none';
+                        }, 3000);
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>
