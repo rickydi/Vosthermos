@@ -1,2 +1,14 @@
-# Redirections pour le site Vosthermos
-/* /index.html 200
+# Redirections pour le site Vosthermos - Solution pour problème ordinateur/mobile
+
+# Redirection explicite pour la page d'accueil avec force
+/    /index.html    200!
+
+# Redirection explicite pour les pages spécifiques
+/admin.html        /admin.html        200
+/login.html        /login.html        200
+/admin-link.html   /admin-link.html   200
+/verify-images.html /verify-images.html 200
+/404.html          /404.html          200
+
+# Redirection générale pour toutes les autres URL
+/*    /index.html    200!

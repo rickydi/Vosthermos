@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vérification de déploiement - Vosthermos</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        h1 {
+            color: #00353c;
+            margin-bottom: 20px;
+        }
+        
+        .status-box {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-success {
+            background-color: #4caf50;
+        }
+        
+        .status-warning {
+            background-color: #ff9800;
+        }
+        
+        .status-error {
+            background-color: #f44336;
+        }
+        
+        .status-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .status-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        pre {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        
+        .device-info {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .actions {
+            margin-top: 30px;
+        }
+        
+        .button {
+            display: inline-block;
+            background-color: #e30718;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .button:hover {
+            background-color: #c60615;
+        }
+        
+        .navigation-section {
+            margin-top: 30px;
+        }
+        
+        .link-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .link-list li {
+            margin-bottom: 10px;
+        }
+        
+        .link-list a {
+            color: #e30718;
+            text-decoration: none;
+        }
+        
+        .link-list a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Vérification de déploiement Vosthermos</h1>
+    
+    <div class="status-box">
+        <div class="status-item">
+            <div class="status-title">
+                <span class="status-indicator status-success" id="page-status-indicator"></span>
+                <span>État de la page actuelle</span>
+            </div>
+            <p id="page-status-message">Cette page se charge correctement.</p>
+        </div>
+        
+        <div class="status-item">
+            <div class="status-title">
+                <span class="status-indicator" id="index-status-indicator"></span>
+                <span>Accès à la page d'accueil</span>
+            </div>
+            <p id="index-status-message">Vérification en cours...</p>
+        </div>
+        
+        <div class="status-item">
+            <div class="status-title">
+                <span class="status-indicator" id="config-status-indicator"></span>
+                <span>Configuration de redirection</span>
+            </div>
+            <p id="config-status-message">Vérification en cours...</p>
+            <pre id="config-status-details"></pre>
+        </div>
+        
+        <div class="status-item">
+            <div class="status-title">
+                <span class="status-indicator" id="image-status-indicator"></span>
+                <span>Chargement des images</span>
+            </div>
+            <p id="image-status-message">Vérification en cours...</p>
+        </div>
+        
+        <div class="device-info">
+            <p><strong>Informations sur l'appareil:</strong></p>
+            <p id="user-agent"></p>
+            <p id="screen-size"></p>
+            <p id="device-type"></p>
+            <p id="browser-info"></p>
+        </div>
+    </div>
+    
+    <div class="navigation-section">
+        <h2>Navigation de test</h2>
+        <p>Essayez d'accéder directement à ces pages pour vérifier le fonctionnement des redirections:</p>
+        <ul class="link-list">
+            <li><a href="/" target="_blank">Page d'accueil (racine)</a></li>
+            <li><a href="/index.html" target="_blank">Page d'accueil (index.html)</a></li>
+            <li><a href="/admin-link.html" target="_blank">Page d'administration</a></li>
+            <li><a href="/verify-images.html" target="_blank">Vérification des images</a></li>
+            <li><a href="/nonexistent-page" target="_blank">Page non existante (devrait rediriger vers 404)</a></li>
+        </ul>
+    </div>
+    
+    <div class="actions">
+        <a href="/" class="button">Retour à l'accueil</a>
+        <a href="javascript:location.reload(true)" class="button">Rafraîchir cette page</a>
+        <a href="verify-images.html" class="button">Vérifier les images</a>
+        <a href="javascript:clearCache()" class="button">Vider le cache</a>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Afficher les informations sur l'appareil
+            displayDeviceInfo();
+            
+            // Vérifier l'accès à la page d'accueil
+            checkIndexPage();
+            
+            // Vérifier la configuration de redirection
+            checkRedirects();
+            
+            // Vérifier le chargement des images
+            checkImages();
+        });
+        
+        function displayDeviceInfo() {
+            document.getElementById('user-agent').textContent = 'User Agent: ' + navigator.userAgent;
+            document.getElementById('screen-size').textContent = 'Taille d\'écran: ' + window.innerWidth + 'x' + window.innerHeight + ' (Viewport), ' + screen.width + 'x' + screen.height + ' (Écran)';
+            
+            // Détecter le type d'appareil
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            document.getElementById('device-type').textContent = 'Type d\'appareil: ' + (isMobile ? 'Mobile' : 'Ordinateur');
+            
+            // Détecter le navigateur
+            let browserInfo = 'Navigateur: ';
+            if (navigator.userAgent.indexOf('Chrome') > -1) browserInfo += 'Chrome';
+            else if (navigator.userAgent.indexOf('Firefox') > -1) browserInfo += 'Firefox';
+            else if (navigator.userAgent.indexOf('Safari') > -1) browserInfo += 'Safari';
+            else if (navigator.userAgent.indexOf('MSIE') > -1 || navigator.userAgent.indexOf('Trident') > -1) browserInfo += 'Internet Explorer';
+            else if (navigator.userAgent.indexOf('Edge') > -1) browserInfo += 'Edge';
+            else browserInfo += 'Inconnu';
+            
+            document.getElementById('browser-info').textContent = browserInfo;
+        }
+        
+        function checkIndexPage() {
+            const indicator = document.getElementById('index-status-indicator');
+            const message = document.getElementById('index-status-message');
+            
+            fetch('/', {
+                method: 'HEAD',
+                cache: 'no-store'
+            })
+            .then(response => {
+                if (response.ok) {
+                    indicator.className = 'status-indicator status-success';
+                    message.textContent = 'La page d\'accueil est accessible.';
+                } else {
+                    indicator.className = 'status-indicator status-error';
+                    message.textContent = 'Impossible d\'accéder à la page d\'accueil. Statut: ' + response.status;
+                }
+            })
+            .catch(error => {
+                indicator.className = 'status-indicator status-error';
+                message.textContent = 'Erreur lors de la vérification de la page d\'accueil: ' + error.message;
+            });
+        }
+        
+        function checkRedirects() {
+            const indicator = document.getElementById('config-status-indicator');
+            const message = document.getElementById('config-status-message');
+            const details = document.getElementById('config-status-details');
+            
+            // Vérifier si on peut charger le fichier _redirects
+            fetch('/_redirects')
+            .then(response => {
+                if (response.ok) {
+                    return response.text().then(text => {
+                        indicator.className = 'status-indicator status-success';
+                        message.textContent = 'Configuration de redirection trouvée.';
+                        details.textContent = text;
+                    });
+                } else {
+                    // Essayer de charger netlify.toml
+                    return fetch('/netlify.toml').then(response => {
+                        if (response.ok) {
+                            return response.text().then(text => {
+                                indicator.className = 'status-indicator status-success';
+                                message.textContent = 'Configuration Netlify trouvée.';
+                                details.textContent = text;
+                            });
+                        } else {
+                            indicator.className = 'status-indicator status-warning';
+                            message.textContent = 'Fichiers de configuration non accessibles directement.';
+                            details.textContent = 'Les fichiers _redirects et netlify.toml ne sont pas accessibles directement, ce qui est normal en production.';
+                        }
+                    });
+                }
+            })
+            .catch(error => {
+                indicator.className = 'status-indicator status-warning';
+                message.textContent = 'Impossible de vérifier les fichiers de configuration: ' + error.message;
+            });
+        }
+        
+        function checkImages() {
+            const indicator = document.getElementById('image-status-indicator');
+            const message = document.getElementById('image-status-message');
+            
+            // Liste des images à vérifier
+            const imagesToCheck = [
+                'images/Vos-Thermos-Logo-petit.png',
+                'images/WhatsApp-Image-2024-08-14-at-20.46.18_f332cc9e.jpg'
+            ];
+            
+            let loadedCount = 0;
+            let failedImages = [];
+            
+            imagesToCheck.forEach(imagePath => {
+                const img = new Image();
+                img.onload = () => {
+                    loadedCount++;
+                    checkResult();
+                };
+                img.onerror = () => {
+                    failedImages.push(imagePath);
+                    checkResult();
+                };
+                img.src = imagePath;
+            });
+            
+            function checkResult() {
+                if (loadedCount + failedImages.length === imagesToCheck.length) {
+                    if (failedImages.length === 0) {
+                        indicator.className = 'status-indicator status-success';
+                        message.textContent = 'Toutes les images ont été chargées avec succès.';
+                    } else {
+                        indicator.className = 'status-indicator status-error';
+                        message.textContent = `${failedImages.length} image(s) n'ont pas pu être chargées: ${failedImages.join(', ')}`;
+                    }
+                }
+            }
+        }
+        
+        function clearCache() {
+            if ('caches' in window) {
+                caches.keys()
+                    .then(keyList => Promise.all(keyList.map(key => caches.delete(key))))
+                    .then(() => {
+                        alert('Cache vidé avec succès. La page va être rafraîchie.');
+                        location.reload(true);
+                    })
+                    .catch(err => {
+                        alert('Erreur lors de la suppression du cache: ' + err);
+                    });
+            } else {
+                alert('API Cache non supportée par ce navigateur. Essayez de vider manuellement le cache de votre navigateur.');
+            }
+        }
+    </script>
+</body>
+</html>

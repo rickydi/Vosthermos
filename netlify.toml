@@ -3,10 +3,34 @@
 [build]
   publish = "./"  # Dossier contenant les fichiers à déployer (racine du projet)
 
-# Redirection pour SPA (Single Page Application)
+# Redirection générale pour SPA (Single Page Application)
 [[redirects]]
   from = "/*"
   to = "/index.html"
+  status = 200
+  force = true  # Force la redirection même si le fichier existe
+
+# Redirection spécifique pour la page d'accueil (problème ordinateur vs mobile)
+[[redirects]]
+  from = "/"
+  to = "/index.html"
+  status = 200
+  force = true
+
+# Redirection pour assurer que l'accès direct aux pages fonctionne
+[[redirects]]
+  from = "/admin.html"
+  to = "/admin.html"
+  status = 200
+
+[[redirects]]
+  from = "/login.html"
+  to = "/login.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin-link.html"
+  to = "/admin-link.html"
   status = 200
 
 # En-têtes de sécurité
@@ -17,3 +41,4 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+    Cache-Control = "public, max-age=0, must-revalidate"  # Évite les problèmes de cache
