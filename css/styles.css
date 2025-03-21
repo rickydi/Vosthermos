@@ -1,7 +1,7 @@
 /* Styles principaux pour Vosthermos */
 :root {
-    --primary-color: #ff3a2d; /* Rouge du logo plus lumineux */
-    --secondary-color: #00353c; /* Bleu foncé/turquoise du logo - couleur originale conservée */
+    --primary-color: #e30718; /* Rouge du logo */
+    --secondary-color: #00353c; /* Bleu foncé/turquoise du logo */
     --accent-color: #ffffff;
     --text-color: #333333;
     --light-gray: #f5f5f5;
@@ -89,12 +89,11 @@ img {
     left: 0;
     width: 100%;
     z-index: 1000;
-    padding: 20px 40px;
+    padding: 30px 40px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     transition: var(--transition);
-    background: rgba(0, 0, 0, 0.5);
 }
 
 .logo {
@@ -103,9 +102,8 @@ img {
 }
 
 .logo-img {
-    height: 70px;
+    height: 60px;
     transition: var(--transition);
-    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
 }
 
 .mobile-menu-btn {
@@ -315,7 +313,7 @@ img {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(to right, rgba(0, 53, 60, 0.8), rgba(0, 53, 60, 0.6));
+    background: linear-gradient(to right, rgba(0, 53, 60, 0.8), rgba(0, 53, 60, 0.4));
     z-index: 1;
 }
 
@@ -361,7 +359,6 @@ img {
     color: var(--primary-color);
     text-transform: uppercase;
     letter-spacing: 2px;
-    text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
 }
 
 .roll-cont-he {
@@ -370,12 +367,10 @@ img {
     line-height: 1.2;
     margin-bottom: 20px;
     color: white;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
 }
 
 .roll-cont-he span {
     color: var(--primary-color);
-    text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
 }
 
 /* Section d'informations callout */
@@ -405,7 +400,6 @@ img {
 
 .paragraph {
     color: white;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .text-span {
@@ -414,7 +408,6 @@ img {
     font-size: 0.9rem;
     display: block;
     margin-bottom: 5px;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
 }
 
 /* Bouton explorer */
@@ -444,7 +437,6 @@ img {
     color: white;
     padding: 0;
     overflow: hidden;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .explore-col {
@@ -516,10 +508,6 @@ img {
     transform: translateY(20px);
     transition: opacity 1s ease 0.3s, transform 1s ease 0.3s;
     color: white;
-    background-color: rgba(0, 0, 0, 0.3);
-    padding: 20px;
-    border-radius: 10px;
-    backdrop-filter: blur(5px);
 }
 
 .home-roll-item.active .awards-w {
@@ -532,7 +520,6 @@ img {
     font-weight: 700;
     margin: 10px 0;
     color: white;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .awards-w p {
@@ -544,7 +531,6 @@ img {
     color: gold;
     font-size: 1.2rem;
     margin: 20px 0 10px;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
 }
 
 /* Navigation avec points en bas */
@@ -559,13 +545,12 @@ img {
 }
 
 .nav-dot {
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     background-color: rgba(255, 255, 255, 0.3);
     cursor: pointer;
     transition: var(--transition);
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
 }
 
 .nav-dot.active {
@@ -608,7 +593,7 @@ img {
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(255, 255, 255, 0.1);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -616,7 +601,6 @@ img {
     transition: opacity 0.4s ease;
     pointer-events: none;
     z-index: 100;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
 }
 
 .cursor-w.active {
@@ -693,18 +677,16 @@ img {
 }
 
 .service-item {
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(255, 255, 255, 0.1);
     padding: 20px;
     border-radius: 10px;
     transition: var(--transition);
     flex: 1;
-    backdrop-filter: blur(5px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .service-item:hover {
     transform: translateY(-10px);
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
 .service-icon {
@@ -718,7 +700,6 @@ img {
     margin-bottom: 15px;
     font-size: 1.5rem;
     color: white;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .service-item h3 {
@@ -739,18 +720,16 @@ img {
 }
 
 .why-us-item {
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(255, 255, 255, 0.1);
     padding: 20px;
     border-radius: 10px;
     transition: var(--transition);
     flex: 1;
-    backdrop-filter: blur(5px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .why-us-item:hover {
     transform: translateY(-10px);
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
 .why-us-icon {
@@ -764,7 +743,6 @@ img {
     margin-bottom: 15px;
     font-size: 1.5rem;
     color: white;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .why-us-item h3 {
@@ -792,7 +770,6 @@ img {
     transition: var(--transition);
     flex: 1;
     aspect-ratio: 1/1;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
 .gallery-item img {
@@ -833,15 +810,6 @@ img {
 .value {
     text-align: center;
     flex: 1;
-    background-color: rgba(0, 0, 0, 0.5);
-    border-radius: 10px;
-    padding: 20px;
-    transition: var(--transition);
-}
-
-.value:hover {
-    background-color: rgba(0, 0, 0, 0.7);
-    transform: translateY(-5px);
 }
 
 .value-icon {
@@ -855,7 +823,6 @@ img {
     margin: 0 auto 15px;
     font-size: 1.5rem;
     color: white;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .value-text {
@@ -881,15 +848,6 @@ img {
     display: flex;
     align-items: center;
     gap: 15px;
-    background-color: rgba(0, 0, 0, 0.5);
-    padding: 15px;
-    border-radius: 10px;
-    transition: var(--transition);
-}
-
-.info-item:hover {
-    background-color: rgba(0, 0, 0, 0.7);
-    transform: translateY(-3px);
 }
 
 .info-icon {
@@ -902,7 +860,6 @@ img {
     justify-content: center;
     font-size: 1.2rem;
     color: white;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .info-content h3 {
@@ -916,10 +873,8 @@ img {
 
 .service-area {
     margin-top: 20px;
-    padding: 20px;
+    padding-top: 20px;
     border-top: 1px solid rgba(255, 255, 255, 0.2);
-    background-color: rgba(0, 0, 0, 0.5);
-    border-radius: 10px;
 }
 
 .service-area h3 {
@@ -934,11 +889,9 @@ img {
 /* Contact Form Horizontal */
 .contact-form-horizontal {
     flex: 0 0 65%;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(255, 255, 255, 0.1);
     padding: 30px;
     border-radius: 10px;
-    backdrop-filter: blur(5px);
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
 }
 
 .form-group {
@@ -976,7 +929,6 @@ input, select, textarea {
 input:focus, select:focus, textarea:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 10px rgba(255, 58, 45, 0.3);
 }
 
 .submit-btn {
@@ -990,13 +942,11 @@ input:focus, select:focus, textarea:focus {
     transition: var(--transition);
     text-transform: uppercase;
     letter-spacing: 1px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .submit-btn:hover {
-    background-color: #ff1e0d;
+    background-color: darken(var(--primary-color), 10%);
     transform: translateY(-3px);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
 }
 
 /* Footer Content */
@@ -1007,9 +957,8 @@ input:focus, select:focus, textarea:focus {
 }
 
 .footer-logo {
-    height: 70px;
+    height: 60px;
     margin: 0 auto 20px;
-    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
 }
 
 /* Préchargeur */
@@ -1019,7 +968,7 @@ input:focus, select:focus, textarea:focus {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: #000;
+    background-color: var(--secondary-color);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -1038,14 +987,13 @@ input:focus, select:focus, textarea:focus {
 }
 
 .preloader-logo {
-    height: 100px;
+    height: 80px;
     margin-bottom: 20px;
-    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.6));
 }
 
 /* Contact slide */
 .contact-slide {
-    background-color: #000;
+    background-color: var(--secondary-color);
 }
 
 /* Media Queries */
@@ -1091,4 +1039,37 @@ input:focus, select:focus, textarea:focus {
 
 @media (max-width: 768px) {
     .nav-w {
-        padding:
+        padding: 20px 20px;
+    }
+
+    .roll-cont-he {
+        font-size: 2rem;
+    }
+
+    .linecallout-list {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .service-item, .why-us-item, .gallery-item {
+        flex: 0 0 100%;
+    }
+
+    .about-values {
+        flex-direction: column;
+    }
+
+    .explore-btn-w {
+        width: 100%;
+    }
+
+    .cursor-box {
+        display: none;
+    }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+    .div-block-44 {
+        display: flex;
+    }
+}
