@@ -6,23 +6,259 @@
     <meta name="description" content="Vosthermos - Spécialiste en réparation et remplacement de portes et fenêtres, vitres thermos, moustiquaires et quincaillerie dans un rayon de 100km autour de Saint-François-Xavier.">
     <meta name="keywords" content="réparation portes, réparation fenêtres, vitre thermos, moustiquaire, porte-patio, fenêtre à battant, fenêtre à guillotine">
     <title>Vosthermos - Experts en réparation de portes et fenêtres</title>
-    <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="/css/serve-fix.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/serve-fix.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Styles critiques intégrés pour assurer le fonctionnement du site même si les CSS externes ne se chargent pas -->
+    <style>
+        :root {
+            --primary-color: #e30718;
+            --secondary-color: #00353c;
+            --accent-color: #ffffff;
+            --text-color: #333333;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Montserrat', 'Arial', sans-serif;
+            color: var(--text-color);
+            overflow-x: hidden;
+        }
+        
+        .w {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .logo-img {
+            height: 50px;
+        }
+        
+        .nav-w {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            z-index: 100;
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+        
+        .menu-w {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 90;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 20px;
+            transform: translateY(-100%);
+            transition: transform 0.5s ease;
+        }
+        
+        .menu-w.active {
+            transform: translateY(0);
+        }
+        
+        .menu-nav-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .menu-nav-link {
+            color: white;
+            font-size: 24px;
+            text-decoration: none;
+            display: block;
+            margin: 15px 0;
+            transition: color 0.3s ease;
+        }
+        
+        .menu-nav-link:hover {
+            color: var(--primary-color);
+        }
+        
+        .explore-btn-w {
+            display: inline-flex;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
+        }
+        
+        /* Styles essentiels pour l'affichage */
+        .home-roll-item {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .background-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.3;
+        }
+        
+        /* Images et contenus */
+        .image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .roll-img-w {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 50%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .abs.gg {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 60%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            padding: 0 5%;
+        }
+        
+        /* Styles de contenu */
+        .roll-cont-eyeb {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+        }
+        
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: white;
+        }
+        
+        p {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+        
+        /* Services et grilles */
+        .services-grid-horizontal {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .service-item {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .service-icon {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+        
+        .gallery-grid-horizontal {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .gallery-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            height: 150px;
+        }
+        
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .roll-img-w {
+                width: 100%;
+                height: 30%;
+            }
+            
+            .abs.gg {
+                width: 100%;
+                top: 30%;
+                right: 0;
+                height: 70%;
+            }
+            
+            .services-grid-horizontal {
+                flex-direction: column;
+            }
+            
+            .menu-nav-link {
+                font-size: 18px;
+            }
+            
+            h2 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="w">
         <!-- Image en arrière-plan -->
         <div class="background-container">
-            <img src="/images/WhatsApp-Image-2024-08-14-at-20.46.18_f332cc9e.jpg" alt="Arrière-plan" id="background-image">
+            <img src="images/WhatsApp-Image-2024-08-14-at-20.46.18_f332cc9e.jpg" alt="Arrière-plan" id="background-image">
         </div>
 
         <div class="pw h-screen home">
             <!-- Navigation -->
             <div class="nav-w">
                 <a href="/" class="logo">
-                    <img src="/images/Vos-Thermos-Logo-petit.png" alt="Vosthermos Logo" class="logo-img">
+                    <img src="images/Vos-Thermos-Logo-petit.png" alt="Vosthermos Logo" class="logo-img">
                 </a>
 
                 <div class="mobile-menu-btn">
@@ -68,7 +304,7 @@
                     <div data-roll="item" class="home-roll-item" id="accueil">
                         <div class="home-roll-c">
                             <div class="roll-img-w home">
-                                <img src="/images/shortbreeze_un_homme_habiller_professionel_qui_travail_a_repare_ccc02e18-73b8-4378-9c3d-70b94bc61a05.png" alt="Professionnel Vosthermos" class="image">
+                                <img src="images/shortbreeze_un_homme_habiller_professionel_qui_travail_a_repare_ccc02e18-73b8-4378-9c3d-70b94bc61a05.png" alt="Professionnel Vosthermos" class="image">
                             </div>
                             <div class="abs gg home">
                                 <div data-parallax="2" class="roll-content-w">
@@ -524,8 +760,8 @@
         </div>
     </div>
 
-    <script src="/js/script.js"></script>
-    <script src="/js/desktop-fix.js"></script>
+    <script src="js/script.js"></script>
+    <script src="js/desktop-fix.js"></script>
     
     <!-- Script pour charger les images depuis le localStorage (administration) -->
     <script>
