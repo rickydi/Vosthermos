@@ -3,10 +3,10 @@
     --primary-color: #e30718; /* Rouge du logo */
     --secondary-color: #003845; /* Bleu foncé/turquoise du logo */
     --accent-color: #ffffff;
-    --text-color: #333333;
-    --light-gray: #f5f5f5;
-    --gray: #dddddd;
-    --dark-gray: #666666;
+    --text-color: #e30718; /* Rouge pour le texte */
+    --light-gray: #ffffff; /* Remplacé par blanc comme demandé */
+    --gray: #ffffff;
+    --dark-gray: #ffffff;
     --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     --transition: all 0.3s ease;
 }
@@ -15,6 +15,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    color: white; /* Couleur par défaut pour tous les éléments */
 }
 
 html {
@@ -26,7 +27,7 @@ html {
 
 body {
     font-family: 'Montserrat', sans-serif;
-    color: var(--text-color);
+    color: white; /* Tous les textes en blanc par défaut */
     line-height: 1.6;
     overflow-x: hidden;
     height: 100%;
@@ -35,8 +36,12 @@ body {
 
 a {
     text-decoration: none;
-    color: inherit;
+    color: white; /* Force le texte des liens en blanc */
     transition: var(--transition);
+}
+
+a:hover {
+    color: var(--primary-color); /* Rouge au survol des liens */
 }
 
 ul {
@@ -455,7 +460,7 @@ img {
 .explore-col.last {
     width: 30%;
     background-color: white;
-    color: var(--secondary-color);
+    color: var(--primary-color); /* Changé à rouge */
 }
 
 .footagemenu-cta-tx {
@@ -523,7 +528,7 @@ img {
 
 .awards-w p {
     font-size: 0.9rem;
-    color: var(--light-gray);
+    color: white; /* Changé à blanc */
 }
 
 .stars {
@@ -684,7 +689,7 @@ img {
 }
 
 .service-item p {
-    color: var(--light-gray);
+    color: white;
     font-size: 0.9rem;
 }
 
@@ -727,7 +732,7 @@ img {
 }
 
 .why-us-item p {
-    color: var(--light-gray);
+    color: white;
     font-size: 0.9rem;
 }
 
@@ -844,7 +849,7 @@ img {
 }
 
 .info-content p, .info-content a {
-    color: var(--light-gray);
+    color: white;
 }
 
 .service-area {
@@ -859,7 +864,7 @@ img {
 }
 
 .service-area p {
-    color: var(--light-gray);
+    color: white;
 }
 
 /* Contact Form Horizontal */
@@ -921,7 +926,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 .submit-btn:hover {
-    background-color: darken(var(--primary-color), 10%);
+    background-color: var(--primary-color);
     transform: translateY(-3px);
 }
 
@@ -1048,4 +1053,28 @@ input:focus, select:focus, textarea:focus {
     .div-block-44 {
         display: flex;
     }
+}
+
+/* Règle générale pour forcer toutes les couleurs de texte */
+.text, h1, h2, h3, h4, h5, h6, p, span, div, a, button, input, select, textarea, label {
+    color: white !important;
+}
+
+/* Exceptions spécifiques pour les éléments rouges */
+.text-span, .roll-cont-eyeb, .menu-nav-link:hover, .menu-contact-info i {
+    color: var(--primary-color) !important;
+}
+
+.roll-cont-he span {
+    color: var(--primary-color) !important;
+}
+
+/* Force la couleur des input */
+input, textarea, select, option {
+    color: white !important;
+}
+
+/* Correction pour le texte de footer qui pourrait être noir */
+footer, .footer *, .footer-content * {
+    color: white !important;
 }
