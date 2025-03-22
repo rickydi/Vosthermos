@@ -1,0 +1,4 @@
+AuthType Basic
+AuthName "Zone d'administration Vosthermos"
+AuthUserFile c:/Users/info/Documents/GitHub/Vosthermos/admin/.htpasswd
+Require valid-user
