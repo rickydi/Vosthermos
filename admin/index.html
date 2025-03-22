@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vosthermos - Administration</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Montserrat', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #00353c;
+      color: white;
+    }
+    .intro {
+      text-align: center;
+      padding: 20px;
+      max-width: 600px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .intro img {
+      max-width: 200px;
+      margin-bottom: 20px;
+    }
+    h1 {
+      color: #e30718;
+    }
+    p {
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .loading {
+      font-size: 16px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="intro" id="loading-screen">
+    <img src="../images/Vos-Thermos-Logo-petit.png" alt="Vosthermos Logo">
+    <h1>Vosthermos - Administration</h1>
+    <p>Bienvenue dans l'interface d'administration. Vous pourrez gérer le contenu de votre site ici.</p>
+    <p class="loading">Chargement de l'interface d'administration...</p>
+  </div>
+
+  <!-- Chargement du script Netlify CMS -->
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <script src="https://unpkg.com/netlify-cms@^2.0.0/dist/netlify-cms.js"></script>
+  <script>
+    // Masquer l'écran de chargement une fois que le CMS est chargé
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        document.getElementById('loading-screen').style.display = 'none';
+      }, 1500);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+backend:
+  name: git-gateway
+  branch: main # Branche sur laquelle les changements seront poussés
+
+media_folder: "images" # Dossier où les médias uploadés seront stockés
+public_folder: "/images" # URL publique des médias
+
+# Contenu du site
+collections:
+  - name: "sections"
+    label: "Sections du site"
+    folder: "_sections"
+    create: false # Pas besoin de créer de nouvelles sections, seulement modifier les existantes
+    slug: "{{section}}"
+    editor:
+      preview: false
+    fields:
+      - { label: "Section", name: "section", widget: "hidden" }
+      - { label: "Titre", name: "title", widget: "string" }
+      - { label: "Image", name: "image", widget: "image", required: true, allow_multiple: false }
+      - { label: "Description", name: "description", widget: "text", required: false }
+
+  # Collection spécifique pour les images de chaque section
+  - name: "section_images"
+    label: "Images des sections"
+    files:
+      - label: "Image d'arrière-plan"
+        name: "background"
+        file: "_data/images/background.json"
+        fields:
+          - { label: "Image", name: "image", widget: "image", required: true, allow_multiple: false }
+      
+      - label: "Accueil"
+        name: "accueil"
+        file: "_data/images/accueil.json"
+        fields:
+          - { label: "Image", name: "image", widget: "image", required: true, allow_multiple: false }
+      
+      - label: "Services"
+        name: "services"
+        file: "_data/images/services.json"
+        fields:
+          - { label: "Image", name: "image", widget: "image", required: true, allow_multiple: false }
+      
+      - label: "Pourquoi nous"
+        name: "pourquoi-nous"
+        file: "_data/images/pourquoi-nous.json"
+        fields:
+          - { label: "Image", name: "image", widget: "image", required: true, allow_multiple: false }
+      
+      - label: "Galerie"
+        name: "galerie"
+        file: "_data/images/galerie.json"
+        fields:
+          - { label: "Image principale", name: "image", widget: "image", required: true, allow_multiple: false }
+          - label: "Images de la galerie"
+            name: "gallery_images"
+            widget: "list"
+            summary: "{{fields.alt}}"
+            fields:
+              - { label: "Image", name: "image", widget: "image", required: true }
+              - { label: "Description", name: "alt", widget: "string", required: true }
+      
+      - label: "À propos"
+        name: "a-propos"
+        file: "_data/images/a-propos.json"
+        fields:
+          - { label: "Image", name: "image", widget: "image", required: true, allow_multiple: false }
