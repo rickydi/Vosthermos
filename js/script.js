@@ -540,11 +540,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     targetImage.src = storedImageData;
                     
                     // Garantir que l'image est chargée correctement
-                    targetImage.onerror = function() {
-                        console.error(`Erreur de chargement de l'image pour ${section}`);
-                        // Restaurer l'image par défaut en cas d'erreur
-                        this.src = this.getAttribute('data-default-src') || this.src;
-                    };
+                targetImage.onerror = function() {
+                    console.error(`Erreur de chargement de l'image pour ${section}`);
+                    // Restaurer une image par défaut en cas d'erreur sans créer de boucle infinie
+                    if (!this.hasAttribute('data-error-handled')) {
+                        this.setAttribute('data-error-handled', 'true');
+                        
+                        // Utiliser l'image par défaut sécurisée pour éviter les requêtes infinies
+                        if (section === 'accueil') {
+                            this.src = "images/IMG-20250321-WA0016.jpg";
+                        } else {
+                            // Utiliser un attribut data-default-src s'il existe, ou une image de secours
+                            this.src = this.getAttribute('data-default-src') || "images/cropped-Vos-Thermos-Logo_Fond.jpg";
+                        }
+                    }
+                };
                 }
             }
         });
