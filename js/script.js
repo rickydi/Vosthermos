@@ -16,6 +16,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const navDotsContainer = document.querySelector('.navigation-dots');
     const menuNavLinks = document.querySelectorAll('.menu-nav-link');
     const preloader = document.querySelector('.preloader');
+    
+    // Charger les images depuis localStorage
+    loadImagesFromStorage();
 
     // Variables d'état
     let currentSlide = 0;
@@ -495,4 +498,77 @@ document.addEventListener('DOMContentLoaded', function() {
         revealElementsInView();
         handleScrollToTop();
     });
+    
+    // Fonction pour charger les images depuis localStorage
+    function loadImagesFromStorage() {
+        console.log("Chargement des images depuis localStorage...");
+        const sections = ['accueil', 'services', 'pourquoi', 'galerie', 'apropos', 'background'];
+        
+        sections.forEach(section => {
+            // Vérifier si une image est stockée pour cette section
+            const storedImageData = localStorage.getItem(`image-${section}`);
+            
+            if (storedImageData) {
+                console.log(`Image trouvée pour la section ${section}`);
+                // Identifier l'élément image à mettre à jour
+                let targetImage;
+                
+                switch(section) {
+                    case 'accueil':
+                        targetImage = document.querySelector('#accueil .roll-img-w img');
+                        break;
+                    case 'services':
+                        targetImage = document.querySelector('#services .roll-img-w img');
+                        break;
+                    case 'pourquoi':
+                        targetImage = document.querySelector('#pourquoi-nous .roll-img-w img');
+                        break;
+                    case 'galerie':
+                        targetImage = document.querySelector('#galerie .roll-img-w img');
+                        break;
+                    case 'apropos':
+                        targetImage = document.querySelector('#a-propos .roll-img-w img');
+                        break;
+                    case 'background':
+                        targetImage = document.querySelector('#background-image');
+                        break;
+                }
+                
+                // Mettre à jour l'image si l'élément a été trouvé
+                if (targetImage) {
+                    console.log(`Application de l'image pour ${section}`);
+                    targetImage.src = storedImageData;
+                    
+                    // Garantir que l'image est chargée correctement
+                    targetImage.onerror = function() {
+                        console.error(`Erreur de chargement de l'image pour ${section}`);
+                        // Restaurer l'image par défaut en cas d'erreur
+                        this.src = this.getAttribute('data-default-src') || this.src;
+                    };
+                }
+            }
+        });
+    }
+    
+    // Sauvegarder l'état des images quand elles sont modifiées
+    function saveImageToStorage(section, imageData) {
+        localStorage.setItem(`image-${section}`, imageData);
+        console.log(`Image sauvegardée pour la section ${section}`);
+    }
+    
+    // Exposer les fonctions de sauvegarde et chargement pour qu'elles soient accessibles aux autres scripts
+    window.vosthermosUtils = {
+        loadImagesFromStorage: loadImagesFromStorage,
+        saveImageToStorage: saveImageToStorage
+    };
+});
+
+// Réexécuter le chargement des images après un délai pour s'assurer que les autres scripts sont chargés
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        console.log("Rechargement des images après délai...");
+        if (window.vosthermosUtils && window.vosthermosUtils.loadImagesFromStorage) {
+            window.vosthermosUtils.loadImagesFromStorage();
+        }
+    }, 500);
 });
