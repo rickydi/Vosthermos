@@ -192,10 +192,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const homeRollItems = document.querySelectorAll('[data-roll="item"]');
         
         if (homeRollContainer) {
-            // Réinitialiser les listeners d'événements de défilement pour éviter les conflits
-            window.removeEventListener('wheel', handleWheel, { passive: false });
-            
-            // Ajouter un nouveau gestionnaire d'événements de défilement plus fiable
+            // Ajouter un nouveau gestionnaire d'événements de défilement fiable
             window.addEventListener('wheel', function(e) {
                 e.preventDefault();
                 
