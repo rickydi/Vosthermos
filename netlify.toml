@@ -1,50 +1,17 @@
-# Configuration Netlify pour Vosthermos
-
 [build]
-  publish = "./"  # Dossier contenant les fichiers à déployer (racine du projet)
+  publish = "."
+  command = ""
 
-# Redirection spécifique pour les pages dans le répertoire pages
 [[redirects]]
-  from = "/pages/*"
-  to = "/pages/:splat"
+  from = "/admin/*"
+  to = "/admin/index.html"
   status = 200
 
-# Redirection spécifique pour la page d'accueil
-[[redirects]]
-  from = "/"
-  to = "/index.html"
-  status = 200
-  force = true
+# Configuration Netlify Identity
+[template.environment]
+  NETLIFY_IDENTITY_ENABLE = "true"
 
-# Redirection générale pour SPA
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-  force = false  # Ne pas forcer la redirection si le fichier existe
-
-# En-têtes de sécurité
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "DENY"
-    X-XSS-Protection = "1; mode=block"
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    Cache-Control = "public, max-age=0, must-revalidate"  # Évite les problèmes de cache
-
-# Configuration des types MIME spécifiques
-[[headers]]
-  for = "*.css"
-  [headers.values]
-    Content-Type = "text/css"
-
-[[headers]]
-  for = "*.js"
-  [headers.values]
-    Content-Type = "application/javascript"
-
-[[headers]]
-  for = "*.html"
-  [headers.values]
-    Content-Type = "text/html; charset=utf-8"
+# Configuration Netlify CMS
+[backend]
+  name = "git-gateway"
+  branch = "main"
