@@ -107,8 +107,34 @@ img {
 }
 
 .logo-img {
-    height: 60px;
+    height: 100px; /* Logo plus grand par défaut */
+    max-width: 100%; /* Assure que le logo ne dépasse pas son conteneur */
     transition: var(--transition);
+}
+
+/* Logo responsive selon les différentes tailles d'écran */
+@media (max-width: 1200px) {
+    .logo-img {
+        height: 90px;
+    }
+}
+
+@media (max-width: 992px) {
+    .logo-img {
+        height: 80px;
+    }
+}
+
+@media (max-width: 768px) {
+    .logo-img {
+        height: 70px;
+    }
+}
+
+@media (max-width: 480px) {
+    .logo-img {
+        height: 60px;
+    }
 }
 
 .mobile-menu-btn {
@@ -938,8 +964,33 @@ input:focus, select:focus, textarea:focus {
 }
 
 .footer-logo {
-    height: 60px;
+    height: 100px; /* Logo plus grand dans le footer aussi */
     margin: 0 auto 20px;
+}
+
+/* Logo du footer responsive selon les différentes tailles d'écran */
+@media (max-width: 1200px) {
+    .footer-logo {
+        height: 90px;
+    }
+}
+
+@media (max-width: 992px) {
+    .footer-logo {
+        height: 80px;
+    }
+}
+
+@media (max-width: 768px) {
+    .footer-logo {
+        height: 70px;
+    }
+}
+
+@media (max-width: 480px) {
+    .footer-logo {
+        height: 60px;
+    }
 }
 
 /* Préchargeur */
@@ -968,8 +1019,21 @@ input:focus, select:focus, textarea:focus {
 }
 
 .preloader-logo {
-    height: 80px;
+    height: 120px; /* Logo plus grand dans le préchargeur */
     margin-bottom: 20px;
+}
+
+/* Logo du préchargeur responsive */
+@media (max-width: 768px) {
+    .preloader-logo {
+        height: 100px;
+    }
+}
+
+@media (max-width: 480px) {
+    .preloader-logo {
+        height: 80px;
+    }
 }
 
 /* Contact slide */
