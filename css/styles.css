@@ -399,6 +399,13 @@ img {
     transition: opacity 0.8s ease, transform 0.8s ease;
 }
 
+/* Style pour rendre le texte plus visible sans le fond vert */
+#accueil .roll-cont-item {
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    border-radius: 10px;
+}
+
 .home-roll-item.active .roll-cont-item {
     opacity: 1;
     transform: translateY(0);
