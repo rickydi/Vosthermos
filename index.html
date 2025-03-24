@@ -16,9 +16,13 @@
 </head>
 <body>
     <div class="w">
-        <!-- Image en arrière-plan -->
+        <!-- Vidéo en arrière-plan -->
         <div class="background-container">
-            <img src="images/WhatsApp-Image-2024-08-14-at-20.46.18_f332cc9e.jpg" alt="Arrière-plan" id="background-image">
+            <video autoplay muted loop playsinline id="background-video">
+                <source src="videos/0321(2).mp4" type="video/mp4">
+                <!-- Image de secours si la vidéo ne peut pas être lue -->
+                <img src="images/WhatsApp-Image-2024-08-14-at-20.46.18_f332cc9e.jpg" alt="Arrière-plan" id="background-image">
+            </video>
         </div>
 
         <div class="pw h-screen home">
