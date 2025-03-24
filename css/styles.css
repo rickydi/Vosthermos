@@ -110,7 +110,16 @@ img {
     justify-content: space-between;
     align-items: center;
     transition: var(--transition);
-    background: none; /* Supprimer tout arrière-plan */
+    background: transparent !important; /* Forcer aucun arrière-plan */
+    border: none !important; /* Forcer aucune bordure */
+    box-shadow: none !important; /* Forcer aucune ombre */
+}
+
+/* Désactive tout effet visuel qui pourrait apparaître au scroll */
+.nav-w:before, .nav-w:after {
+    display: none !important;
+    content: none !important;
+    background: none !important;
 }
 
 .logo {
