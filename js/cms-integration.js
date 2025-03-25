@@ -43,7 +43,7 @@ async function loadImagesFromCMS() {
  */
 async function loadSectionImage(sectionId, elementSelector) {
     try {
-        const response = await fetch(`/_data/images/${sectionId}.json?t=${new Date().getTime()}`);
+        const response = await fetch(`./_data/images/${sectionId}.json?t=${new Date().getTime()}`);
         
         if (!response.ok) {
             throw new Error(`Impossible de charger les données pour ${sectionId}`);
@@ -79,7 +79,7 @@ async function loadSectionImage(sectionId, elementSelector) {
  */
 async function loadGalleryImages() {
     try {
-        const response = await fetch(`/_data/images/galerie.json?t=${new Date().getTime()}`);
+        const response = await fetch(`./_data/images/galerie.json?t=${new Date().getTime()}`);
         
         if (!response.ok) {
             throw new Error("Impossible de charger les données de la galerie");
