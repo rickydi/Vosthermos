@@ -10,18 +10,15 @@
     <link rel="stylesheet" href="css/serve-fix.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Netlify Identity Widget -->
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 <body>
     <div class="w">
         <!-- Vidéo en arrière-plan -->
         <div class="background-container">
-            <video autoplay muted loop playsinline preload="auto" poster="images/WhatsApp-Image-2024-08-14-at-20.46.18_f332cc9e.jpg" id="background-video">
+            <video autoplay muted loop playsinline preload="auto" poster="images/accueil/bg-poster.jpg" id="background-video">
                 <source src="videos/vosthermos-background.mp4" type="video/mp4">
                 <!-- Image de secours si la vidéo ne peut pas être lue -->
-                <img src="images/WhatsApp-Image-2024-08-14-at-20.46.18_f332cc9e.jpg" alt="Arrière-plan" id="background-image">
+                <img src="images/accueil/bg-poster.jpg" alt="Arrière-plan" id="background-image">
             </video>
         </div>
 
@@ -45,12 +42,11 @@
                     <div class="menu-nav">
                         <ul class="menu-nav-list">
                             <li><a href="#accueil" data-index="0" class="menu-nav-link">Accueil</a></li>
-                            <li><a href="#services" data-index="1" class="menu-nav-link">Services</a></li>
-                            <li><a href="#pourquoi-nous" data-index="2" class="menu-nav-link">Pourquoi nous</a></li>
-                            <li><a href="#galerie" data-index="3" class="menu-nav-link">Galerie</a></li>
-                            <li><a href="#a-propos" data-index="4" class="menu-nav-link">À propos</a></li>
+                            <li><a href="#quincaillerie" data-index="1" class="menu-nav-link">Quincaillerie</a></li>
+                            <li><a href="#vitre-thermos" data-index="2" class="menu-nav-link">Vitre Thermos</a></li>
+                            <li><a href="#portes-bois" data-index="3" class="menu-nav-link">Portes en Bois</a></li>
+                            <li><a href="#moustiquaires" data-index="4" class="menu-nav-link">Moustiquaires</a></li>
                             <li><a href="#contact" data-index="5" class="menu-nav-link">Contact</a></li>
-                            <li><a href="/admin/" class="menu-nav-link">Administration</a></li>
                         </ul>
                     </div>
                     <div class="menu-info">
@@ -75,9 +71,10 @@
                     <div data-roll="item" class="home-roll-item" id="accueil">
                         <div class="home-roll-c">
                             <div class="roll-img-w home">
-                                <img src="images/WhatsApp-Image-2024-08-14-at-20.46.18_f332cc9e.jpg" alt="Professionnel Vosthermos" class="image">
+                                <!-- Laissé vide intentionnellement pour que la vidéo en arrière-plan soit visible -->
+                                <div class="empty-container"></div>
                             </div>
-                            <div class="abs home">
+                            <div class="abs gg home">
                                 <div data-parallax="2" class="roll-content-w">
                                     <div class="roll-cont-col">
                                         <div data-parallax="15" class="roll-cont-item">
@@ -106,20 +103,6 @@
                                                     </li>
                                                 </ul>
                                             </div>
-                                            <a href="#contact" class="explore-w">
-                                                <button class="explore-btn-w">
-                                                    <div class="explore-col">
-                                                        <div class="text-of-w">
-                                                            <div data-after="MAINTENANT" class="footagemenu-cta-tx">ESTIMATION GRATUITE</div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="explore-col last">
-                                                        <div class="text-of-w">
-                                                            <i class="fas fa-arrow-right"></i>
-                                                        </div>
-                                                    </div>
-                                                </button>
-                                            </a>
                                         </div>
                                     </div>
                                     <div class="roll-cont-col reviews">
@@ -146,238 +129,214 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Slide 2: Services -->
-                    <div data-roll="item" class="home-roll-item" id="services">
-                        <div class="home-roll-c">
-                            <div class="roll-img-w home">
-                                <img src="images/WhatsApp-Image-2024-07-12-at-14.15.56_133ff3dc-e1725767270278.jpg" alt="Services de réparation" class="image">
-                            </div>
-                            <div class="abs gg home">
-                                <div data-parallax="2" class="roll-content-w">
-                                    <div class="roll-cont-col">
-                                        <div data-parallax="15" class="roll-cont-item">
-                                            <div class="roll-cont-eyeb parish">Nos services</div>
-                                            <h2 class="roll-cont-he home">SOLUTIONS COMPLÈTES</h2>
-                                            <p>Nous offrons une gamme complète de services pour répondre à tous vos besoins en matière de portes et fenêtres, que ce soit pour des réparations, des remplacements ou des installations.</p>
-                                            <div class="services-grid-horizontal">
-                                                <div class="service-item">
-                                                    <div class="service-icon">
-                                                        <i class="fas fa-tools"></i>
-                                                    </div>
-                                                    <h3>Réparation</h3>
-                                                    <p>Réparation de portes et fenêtres à domicile avec estimation gratuite.</p>
-                                                </div>
-                                                <div class="service-item">
-                                                    <div class="service-icon">
-                                                        <i class="fas fa-window-restore"></i>
-                                                    </div>
-                                                    <h3>Vitre thermos</h3>
-                                                    <p>Remplacement avec garantie de 10 ans contre la buée.</p>
-                                                </div>
-                                                <div class="service-item">
-                                                    <div class="service-icon">
-                                                        <i class="fas fa-bug"></i>
-                                                    </div>
-                                                    <h3>Moustiquaires</h3>
-                                                    <p>Fabrication et réparation de tous modèles de moustiquaires.</p>
-                                                </div>
-                                            </div>
-                                            <a href="#contact" class="explore-w">
-                                                <button class="explore-btn-w">
-                                                    <div class="explore-col">
-                                                        <div class="text-of-w">
-                                                            <div data-after="SERVICE" class="footagemenu-cta-tx">DEMANDER UN</div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="explore-col last">
-                                                        <div class="text-of-w">
-                                                            <i class="fas fa-arrow-right"></i>
-                                                        </div>
-                                                    </div>
-                                                </button>
-                                            </a>
-                                        </div>
-                                    </div>
+                                
+                                <!-- Zone de bouton flottante -->
+                                <div class="button-zone">
+                                    <a href="#contact" class="explore-w">
+                                        <button class="explore-btn-w">
+                                            <span class="footagemenu-cta-tx">CONTACTEZ-NOUS</span>
+                                        </button>
+                                    </a>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Slide 3: Pourquoi nous choisir -->
-                    <div data-roll="item" class="home-roll-item" id="pourquoi-nous">
+                    <!-- Slide 2: Quincaillerie -->
+                    <div data-roll="item" class="home-roll-item" id="quincaillerie">
                         <div class="home-roll-c">
                             <div class="roll-img-w home">
-                                <img src="images/WhatsApp-Image-2024-09-06-at-13.48.48_3d91e432.jpg" alt="Notre travail" class="image">
+                                <img src="images/quincaillerie/quincaillerie-bg.jpg" alt="Quincaillerie pour portes et fenêtres" class="image">
                             </div>
                             <div class="abs gg home">
                                 <div data-parallax="2" class="roll-content-w">
                                     <div class="roll-cont-col">
                                         <div data-parallax="15" class="roll-cont-item">
-                                            <div class="roll-cont-eyeb parish">Pourquoi nous choisir</div>
-                                            <h2 class="roll-cont-he home">NOS AVANTAGES</h2>
-                                            <p>Nous nous distinguons par notre engagement envers la qualité, la rapidité de service et la satisfaction client. Notre équipe d'experts qualifiés veille à ce que chaque projet soit exécuté avec précision et professionnalisme.</p>
-                                            <div class="why-us-grid">
-                                                <div class="why-us-item">
-                                                    <div class="why-us-icon">
-                                                        <i class="fas fa-certificate"></i>
-                                                    </div>
-                                                    <h3>Qualité garantie</h3>
-                                                    <p>Matériaux de haute qualité et garantie sur tous nos travaux.</p>
-                                                </div>
-                                                <div class="why-us-item">
-                                                    <div class="why-us-icon">
-                                                        <i class="fas fa-bolt"></i>
-                                                    </div>
-                                                    <h3>Service rapide</h3>
-                                                    <p>Interventions rapides dans les plus brefs délais.</p>
-                                                </div>
-                                                <div class="why-us-item">
-                                                    <div class="why-us-icon">
-                                                        <i class="fas fa-dollar-sign"></i>
-                                                    </div>
-                                                    <h3>Prix compétitifs</h3>
-                                                    <p>Tarifs transparents avec estimation gratuite avant tous travaux.</p>
-                                                </div>
-                                            </div>
-                                            <a href="#galerie" class="explore-w">
-                                                <button class="explore-btn-w">
-                                                    <div class="explore-col">
-                                                        <div class="text-of-w">
-                                                            <div data-after="TRAVAUX" class="footagemenu-cta-tx">VOIR NOS</div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="explore-col last">
-                                                        <div class="text-of-w">
-                                                            <i class="fas fa-arrow-right"></i>
-                                                        </div>
-                                                    </div>
-                                                </button>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Slide 4: Galerie -->
-                    <div data-roll="item" class="home-roll-item" id="galerie">
-                        <div class="home-roll-c">
-                            <div class="roll-img-w home">
-                                <img src="images/WhatsApp-Image-2024-09-18-at-12.29.51_1677a930.jpg" alt="Réalisations" class="image">
-                            </div>
-                            <div class="abs gg home">
-                                <div data-parallax="2" class="roll-content-w">
-                                    <div class="roll-cont-col gallery-content">
-                                        <div data-parallax="15" class="roll-cont-item">
-                                            <div class="roll-cont-eyeb parish">Nos réalisations</div>
-                                            <h2 class="roll-cont-he home">GALERIE DE PROJETS</h2>
-                                            <p>Découvrez quelques-uns de nos projets récents. Chaque image témoigne de notre expertise et de notre engagement envers la qualité.</p>
+                                            <div class="roll-cont-eyeb parish"></div>
+                                            <h2 class="roll-cont-he home">REMPLACEMENT DE <span>QUINCAILLERIE</span></h2>
+                                            <p>Besoin de remplacer la quincaillerie de vos portes-patio ou fenêtres ? Notre équipe d'experts intervient rapidement pour fournir et installer les pièces adaptées à vos besoins. Nous offrons un service professionnel et une garantie de satisfaction pour tous vos problèmes de quincaillerie.</p>
                                             
                                             <div class="gallery-grid-horizontal">
                                                 <div class="gallery-item">
-                                                    <img src="images/WhatsApp-Image-2024-07-04-at-14.47.52_d3c4edaa.jpg" alt="Réparation fenêtre">
-                                                    <div class="gallery-overlay">Réparation de fenêtre</div>
+                                                    <img src="images/quincaillerie/reparation-1.jpg" alt="Remplacement quincaillerie">
                                                 </div>
                                                 <div class="gallery-item">
-                                                    <img src="images/WhatsApp-Image-2024-08-22-at-13.31.56_6c284fc7-e1725767164842.jpg" alt="Installation moustiquaire">
-                                                    <div class="gallery-overlay">Installation moustiquaire</div>
+                                                    <img src="images/quincaillerie/entretien-1.jpg" alt="Entretien quincaillerie">
                                                 </div>
                                                 <div class="gallery-item">
-                                                    <img src="images/WhatsApp-Image-2024-09-02-at-12.46.02_6be6c77b.jpg" alt="Remplacement vitre">
-                                                    <div class="gallery-overlay">Remplacement vitre</div>
+                                                    <img src="images/quincaillerie/detail-1.jpg" alt="Détail quincaillerie">
                                                 </div>
                                                 <div class="gallery-item">
-                                                    <img src="images/WhatsApp-Image-2024-09-05-at-15.27.12_ad008d3b.jpg" alt="Réparation porte">
-                                                    <div class="gallery-overlay">Réparation porte</div>
+                                                    <img src="images/quincaillerie/reparation-2.jpg" alt="Installation quincaillerie">
+                                                </div>
+                                                <div class="gallery-item">
+                                                    <img src="images/quincaillerie/entretien-2.jpg" alt="Qualité quincaillerie">
+                                                </div>
+                                                <div class="gallery-item">
+                                                    <img src="images/quincaillerie/detail-2.jpg" alt="Finition quincaillerie">
                                                 </div>
                                             </div>
-                                            
-                                            <a href="#contact" class="explore-w">
-                                                <button class="explore-btn-w">
-                                                    <div class="explore-col">
-                                                        <div class="text-of-w">
-                                                            <div data-after="MAINTENANT" class="footagemenu-cta-tx">DEMANDER UN DEVIS</div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="explore-col last">
-                                                        <div class="text-of-w">
-                                                            <i class="fas fa-arrow-right"></i>
-                                                        </div>
-                                                    </div>
-                                                </button>
-                                            </a>
                                         </div>
                                     </div>
+                                </div>
+                                
+                                <!-- Zone de bouton flottante -->
+                                <div class="button-zone">
+                                    <a href="#contact" class="explore-w">
+                                        <button class="explore-btn-w">
+                                            <span class="footagemenu-cta-tx">CONTACTEZ-NOUS</span>
+                                        </button>
+                                    </a>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Slide 5: À propos -->
-                    <div data-roll="item" class="home-roll-item" id="a-propos">
+                    <!-- Slide 3: Vitre Thermos -->
+                    <div data-roll="item" class="home-roll-item" id="vitre-thermos">
                         <div class="home-roll-c">
                             <div class="roll-img-w home">
-                                <img src="images/WhatsApp-Image-2024-09-06-at-16.30.03_1fa8c206.jpg" alt="À propos de nous" class="image">
+                                <img src="images/vitre-thermos/vitre-thermos-bg.jpg" alt="Remplacement vitre thermos" class="image">
                             </div>
                             <div class="abs gg home">
                                 <div data-parallax="2" class="roll-content-w">
                                     <div class="roll-cont-col">
                                         <div data-parallax="15" class="roll-cont-item">
-                                            <div class="roll-cont-eyeb parish">Notre entreprise</div>
-                                            <h2 class="roll-cont-he home">À PROPOS DE <span>VOSTHERMOS</span></h2>
-                                            <p>Vosthermos est une entreprise spécialisée dans la réparation et le remplacement de portes et fenêtres. Notre mission est d'offrir des services de qualité supérieure à nos clients résidentiels et commerciaux.</p>
-                                            <p>Nous mettons un point d'honneur à fournir un service rapide, professionnel et fiable, en utilisant des matériaux de qualité pour garantir la durabilité de nos interventions.</p>
-                                            <p>Notre équipe d'experts qualifiés intervient dans un rayon de 100km autour de Saint-François-Xavier pour répondre efficacement à tous vos besoins.</p>
+                                            <div class="roll-cont-eyeb parish"></div>
+                                            <h2 class="roll-cont-he home">REMPLACEMENT DE <span>VITRE THERMOS</span></h2>
+                                            <p>Vous constatez une perte d'efficacité thermique ou de la buée dans vos fenêtres ? Notre service spécialisé vous garantit un remplacement professionnel de vos vitres thermos. Nous offrons une garantie de 10 ans sur tous nos travaux, pour votre tranquillité d'esprit.</p>
                                             
-                                            <div class="about-values">
-                                                <div class="value">
-                                                    <div class="value-icon"><i class="fas fa-certificate"></i></div>
-                                                    <div class="value-text">Qualité</div>
+                                            <div class="gallery-grid-horizontal">
+                                                <div class="gallery-item">
+                                                    <img src="images/vitre-thermos/reparation-1.jpg" alt="Remplacement vitre thermos">
                                                 </div>
-                                                <div class="value">
-                                                    <div class="value-icon"><i class="fas fa-handshake"></i></div>
-                                                    <div class="value-text">Fiabilité</div>
+                                                <div class="gallery-item">
+                                                    <img src="images/vitre-thermos/entretien-1.jpg" alt="Entretien vitre thermos">
                                                 </div>
-                                                <div class="value">
-                                                    <div class="value-icon"><i class="fas fa-heart"></i></div>
-                                                    <div class="value-text">Satisfaction client</div>
+                                                <div class="gallery-item">
+                                                    <img src="images/vitre-thermos/detail-1.jpg" alt="Détail vitre thermos">
+                                                </div>
+                                                <div class="gallery-item">
+                                                    <img src="images/vitre-thermos/reparation-2.jpg" alt="Installation vitre thermos">
+                                                </div>
+                                                <div class="gallery-item">
+                                                    <img src="images/vitre-thermos/entretien-2.jpg" alt="Qualité vitre thermos">
+                                                </div>
+                                                <div class="gallery-item">
+                                                    <img src="images/vitre-thermos/detail-2.jpg" alt="Finition vitre thermos">
                                                 </div>
                                             </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Zone de bouton flottante -->
+                                <div class="button-zone">
+                                    <a href="#contact" class="explore-w">
+                                        <button class="explore-btn-w">
+                                            <span class="footagemenu-cta-tx">CONTACTEZ-NOUS</span>
+                                        </button>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slide 4: Portes en Bois -->
+                    <div data-roll="item" class="home-roll-item" id="portes-bois">
+                        <div class="home-roll-c">
+                            <div class="roll-img-w home">
+                                <img src="images/portes-bois/portes-bg.jpg" alt="Réparation de portes en bois" class="image">
+                            </div>
+                            <div class="abs gg home">
+                                <div data-parallax="2" class="roll-content-w">
+                                    <div class="roll-cont-col">
+                                        <div data-parallax="15" class="roll-cont-item">
+                                            <div class="roll-cont-eyeb parish"></div>
+                                            <h2 class="roll-cont-he home">RÉPARATION DE <span>PORTES EN BOIS</span></h2>
+                                            <p>Vous avez un besoin urgent ou non de faire réparer des portes ou fenêtres de votre demeure ou entreprise ? Laissez-nous le soin d'en faire une estimation gratuite au préalable avant de mener à terme l'exécution parfaite de ces travaux, si cela vous convient.</p>
                                             
-                                            <a href="#contact" class="explore-w">
-                                                <button class="explore-btn-w">
-                                                    <div class="explore-col">
-                                                        <div class="text-of-w">
-                                                            <div data-after="MAINTENANT" class="footagemenu-cta-tx">CONTACTEZ-NOUS</div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="explore-col last">
-                                                        <div class="text-of-w">
-                                                            <i class="fas fa-arrow-right"></i>
-                                                        </div>
-                                                    </div>
-                                                </button>
-                                            </a>
-                                        </div>
-                                    </div>
-                                    <div class="roll-cont-col reviews">
-                                        <div data-roll="reviews" class="awards-w">
-                                            <div class="stars">
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
+                                            <div class="gallery-grid-horizontal">
+                                                <div class="gallery-item">
+                                                    <img src="images/portes-bois/reparation-1.jpg" alt="Réparation porte en bois">
+                                                </div>
+                                                <div class="gallery-item">
+                                                    <img src="images/portes-bois/entretien-1.jpg" alt="Entretien porte bois">
+                                                </div>
+                                                <div class="gallery-item">
+                                                    <img src="images/portes-bois/detail-1.jpg" alt="Détail réparation">
+                                                </div>
+                                                <div class="gallery-item">
+                                                    <img src="images/portes-bois/reparation-2.jpg" alt="Exemple de réparation">
+                                                </div>
+                                                <div class="gallery-item">
+                                                    <img src="images/portes-bois/entretien-2.jpg" alt="Exemple d'entretien">
+                                                </div>
+                                                <div class="gallery-item">
+                                                    <img src="images/portes-bois/detail-2.jpg" alt="Détail de menuiserie">
+                                                </div>
                                             </div>
-                                            <p>Sophie L., Drummondville</p>
-                                            <h3>"Une porte-patio qui coulisse parfaitement après leur intervention."</h3>
                                         </div>
                                     </div>
+                                </div>
+                                
+                                <!-- Zone de bouton flottante -->
+                                <div class="button-zone">
+                                    <a href="#contact" class="explore-w">
+                                        <button class="explore-btn-w">
+                                            <span class="footagemenu-cta-tx">CONTACTEZ-NOUS</span>
+                                        </button>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slide 5: Moustiquaires -->
+                    <div data-roll="item" class="home-roll-item" id="moustiquaires">
+                        <div class="home-roll-c">
+                            <div class="roll-img-w home">
+                                <img src="images/moustiquaires/moustiquaire-bg.jpg" alt="Moustiquaires" class="image">
+                            </div>
+                            <div class="abs gg home">
+                                <div data-parallax="2" class="roll-content-w">
+                                    <div class="roll-cont-col">
+                                        <div data-parallax="15" class="roll-cont-item">
+                                            <div class="roll-cont-eyeb parish"></div>
+                                            <h2 class="roll-cont-he home">SERVICES <span>MOUSTIQUAIRES</span></h2>
+                                            <p>Besoin de profiter de l'air frais sans les insectes ? Notre atelier se charge de la fabrication sur mesure et de la réparation de tous types de moustiquaires pour vos fenêtres et portes. Qualité garantie et service rapide pour une étanchéité parfaite qui vous protège efficacement.</p>
+                                            
+                                            <div class="gallery-grid-horizontal">
+                                                <div class="gallery-item">
+                                                    <img src="images/moustiquaires/reparation-1.jpg" alt="Réparation moustiquaire">
+                                                </div>
+                                                <div class="gallery-item">
+                                                    <img src="images/moustiquaires/entretien-1.jpg" alt="Entretien moustiquaire">
+                                                </div>
+                                                <div class="gallery-item">
+                                                    <img src="images/moustiquaires/detail-1.jpg" alt="Détail moustiquaire">
+                                                </div>
+                                                <div class="gallery-item">
+                                                    <img src="images/moustiquaires/reparation-2.jpg" alt="Installation moustiquaire">
+                                                </div>
+                                                <div class="gallery-item">
+                                                    <img src="images/moustiquaires/entretien-2.jpg" alt="Moustiquaire sur mesure">
+                                                </div>
+                                                <div class="gallery-item">
+                                                    <img src="images/moustiquaires/detail-2.jpg" alt="Finition moustiquaire">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Zone de bouton flottante -->
+                                <div class="button-zone">
+                                    <a href="#contact" class="explore-w">
+                                        <button class="explore-btn-w">
+                                            <span class="footagemenu-cta-tx">CONTACTEZ-NOUS</span>
+                                        </button>
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -390,7 +349,7 @@
                                 <div data-parallax="2" class="roll-content-w">
                                     <div class="roll-cont-col full-width">
                                         <div data-parallax="15" class="roll-cont-item">
-                                            <div class="roll-cont-eyeb parish">Formulaire de contact</div>
+                                            <div class="roll-cont-eyeb parish"></div>
                                             <h2 class="roll-cont-he home">CONTACTEZ-NOUS</h2>
                                             <p>Complétez ce formulaire pour demander une estimation gratuite ou pour toute question concernant nos services.</p>
 
@@ -433,7 +392,7 @@
                                                 </div>
                                                 
                                                 <div class="contact-form-horizontal">
-                                                    <form id="contactForm">
+                                                    <form id="contactForm" action="send-email.php" method="POST">
                                                         <div class="form-group">
                                                             <label for="name">Nom complet</label>
                                                             <input type="text" id="name" name="name" required>
@@ -455,11 +414,10 @@
                                                             <label for="service">Service requis</label>
                                                             <select id="service" name="service" required>
                                                                 <option value="">Sélectionnez un service</option>
-                                                                <option value="reparation">Réparation de portes/fenêtres</option>
-                                                                <option value="vitre-thermos">Remplacement de vitre thermos</option>
-                                                                <option value="verre-brise">Remplacement de verre brisé</option>
-                                                                <option value="moustiquaire">Réparation/fabrication de moustiquaires</option>
                                                                 <option value="quincaillerie">Remplacement de quincaillerie</option>
+                                                                <option value="vitre-thermos">Remplacement de vitre thermos</option>
+                                                                <option value="portes-bois">Réparation de portes en bois</option>
+                                                                <option value="moustiquaire">Réparation/fabrication de moustiquaires</option>
                                                                 <option value="autre">Autre (précisez)</option>
                                                             </select>
                                                         </div>
@@ -532,8 +490,8 @@
     </div>
 
     <!-- Scripts JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="js/script.js"></script>
-    <script src="js/desktop-fix.js"></script>
-    <script src="js/cms-integration.js"></script>
+    <script src="js/email.js"></script>
 </body>
 </html>

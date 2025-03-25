@@ -4,8 +4,9 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Charger les images configurées dans le CMS
-    loadImagesFromCMS();
+    // CMS temporairement désactivé pour éviter les erreurs
+    console.log("Chargement CMS désactivé - Utilisation des images statiques");
+    // loadImagesFromCMS();
 });
 
 /**

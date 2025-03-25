@@ -83,8 +83,15 @@ img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    opacity: 0.2;
-    filter: blur(5px);
+    opacity: 0.8;
+    filter: blur(3px);
+}
+
+/* Container pour première section */
+.empty-container {
+    width: 100%;
+    height: 100%;
+    background: transparent;
 }
 
 #background-image {
@@ -368,7 +375,7 @@ img {
     z-index: 1;
 }
 
-/* Contenu des sections */
+/* Contenu des sections - Structure uniformisée */
 .roll-content-w {
     position: relative;
     width: 100%;
@@ -378,10 +385,15 @@ img {
     padding: 80px 5% 40px;
 }
 
+/* Structure uniformisée pour tous les contenus */
 .roll-cont-col {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start; /* Alignement uniforme en haut */
+    padding-top: 120px; /* Espace uniforme depuis le haut */
+}
+
+.roll-cont-col {
     width: 60%;
     max-width: 700px;
     gap: 30px;
@@ -399,11 +411,12 @@ img {
     transition: opacity 0.8s ease, transform 0.8s ease;
 }
 
-/* Style pour rendre le texte plus visible sans le fond vert */
+/* Uniformisation du style sur toutes les sections */
 #accueil .roll-cont-item {
-    background-color: rgba(0, 0, 0, 0.5);
+    /* Style identique à toutes les autres sections */
+    background-color: transparent;
     padding: 20px;
-    border-radius: 10px;
+    border-radius: 0;
 }
 
 .home-roll-item.active .roll-cont-item {
@@ -424,6 +437,7 @@ img {
     font-weight: 800;
     line-height: 1.2;
     margin-bottom: 20px;
+    margin-top: 20px; /* Espacement uniforme */
     color: white;
 }
 
@@ -468,13 +482,37 @@ img {
     margin-bottom: 5px;
 }
 
-/* Bouton explorer */
+/* Zone dédiée pour le bouton en bas de page */
+.button-zone {
+    position: absolute;
+    bottom: 50px; /* Remis à la position originale */
+    left: 0;
+    width: 100%;
+    height: 200px; /* Hauteur originale */
+    display: flex;
+    align-items: center;
+    z-index: 5;
+    pointer-events: none; /* Pour que les clics passent à travers la zone mais pas le bouton */
+}
+
+/* Button wrapper style */
 .explore-w {
     position: relative;
-    display: inline-block;
     opacity: 0;
     transform: translateY(20px);
     transition: opacity 1s ease 0.6s, transform 1s ease 0.6s;
+    margin-left: 100px; /* Distance depuis la gauche */
+    pointer-events: auto; /* Pour que le bouton soit cliquable */
+}
+
+/* Pour chaque section, ajustez la marge inférieure pour éviter le chevauchement avec la zone de bouton */
+.roll-cont-col {
+    padding-bottom: 140px; /* Conservé l'espace réduit */
+}
+
+/* Contrôle de la hauteur des sections textuelles */
+#vitre-thermos ul, #quincaillerie ul, #moustiquaires ul {
+    margin-bottom: 0 !important; /* Réduire l'espace sous les listes */
 }
 
 .home-roll-item.active .explore-w {
@@ -486,68 +524,102 @@ img {
     position: relative;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    width: 240px;
-    height: 60px;
-    background: none;
+    justify-content: center;
+    width: 300px;
+    height: 70px;
+    background: var(--primary-color);
     border: none;
+    border-radius: 50px;
     cursor: pointer;
     color: white;
-    padding: 0;
+    padding: 0 30px;
     overflow: hidden;
-}
-
-.explore-col {
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 20px;
-    transition: var(--transition);
-}
-
-.explore-col:first-child {
-    width: 70%;
-    background-color: var(--primary-color);
-}
-
-.explore-col.last {
-    width: 30%;
-    background-color: white;
-    color: var(--primary-color); /* Changé à rouge */
-}
-
-.footagemenu-cta-tx {
-    font-size: 0.9rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color: inherit;
+    box-shadow: 0 8px 25px rgba(227, 7, 24, 0.4);
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     position: relative;
+    z-index: 1;
 }
 
-.footagemenu-cta-tx::after {
-    content: attr(data-after);
+.explore-btn-w:before {
+    content: '';
     position: absolute;
     top: 0;
     left: 0;
-    opacity: 0;
-    transform: translateY(100%);
-    transition: var(--transition);
+    width: 100%;
+    height: 100%;
+    background-image: linear-gradient(45deg, #e30718, #ff3547);
+    z-index: -1;
+    border-radius: 50px;
 }
 
-.explore-btn-w:hover .footagemenu-cta-tx::after {
-    opacity: 1;
-    transform: translateY(0);
+.explore-btn-w:after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: -1;
 }
 
-.explore-btn-w:hover .footagemenu-cta-tx {
-    opacity: 0;
-    transform: translateY(-100%);
+.explore-btn-w:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 15px 30px rgba(227, 7, 24, 0.6);
+    letter-spacing: 1px;
 }
 
-.explore-btn-w:hover .fa-arrow-right {
-    transform: translateX(5px);
+.explore-btn-w:hover:after {
+    transform: translate(-50%, -50%) scale(25);
+}
+
+.explore-btn-w:active {
+    transform: translateY(-2px) scale(0.98);
+    box-shadow: 0 5px 15px rgba(227, 7, 24, 0.4);
+}
+
+.footagemenu-cta-tx {
+    font-size: 1.1rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: white;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+.footagemenu-cta-tx:after {
+    content: '→';
+    font-size: 1.3rem;
+    transition: transform 0.3s ease;
+    display: inline-block;
+}
+
+.explore-btn-w:hover .footagemenu-cta-tx:after {
+    transform: translateX(6px);
+}
+
+/* Ajout d'animation de pulsation pour le bouton */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(227, 7, 24, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 15px rgba(227, 7, 24, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(227, 7, 24, 0);
+    }
+}
+
+.home-roll-item.active .explore-btn-w {
+    animation: pulse 2s infinite;
 }
 
 /* Colonne de reviews */
@@ -627,19 +699,78 @@ img {
     pointer-events: none;
 }
 
+/* Zones de navigation latérales - réduites pour éviter les conflits */
 .pre-next-hb {
     position: absolute;
     top: 0;
     left: 0;
-    width: 15%;
+    width: 40px;
     height: 100%;
     cursor: pointer;
     pointer-events: auto;
+    z-index: 1;
+    background-color: transparent;
 }
 
 .pre-next-hb.bottom {
     left: auto;
     right: 0;
+}
+
+.cursor-box {
+    z-index: 10;
+}
+
+/* Alignement uniforme de tous les contenus */
+.roll-content-w {
+    padding: 80px 100px 40px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Toutes les colonnes ont le même alignement */
+.roll-cont-col {
+    max-width: 650px;
+}
+
+/* Grilles alignées uniformément */
+.services-grid-horizontal, 
+.why-us-grid, 
+.gallery-grid-horizontal, 
+.about-values,
+.contact-container-horizontal {
+    width: 100%;
+    margin: 30px 0;
+    padding: 0;
+}
+
+/* Tous les éléments d'interface alignés */
+.service-item, 
+.why-us-item, 
+.gallery-item,
+.roll-cont-item {
+    margin: 0;
+}
+
+/* Standardisation de la largeur des colonnes sur toutes les pages */
+.roll-cont-col, 
+.roll-cont-col.reviews {
+    padding-left: 0;
+}
+
+/* Ajustement uniforme pour toutes les sections */
+#accueil .roll-cont-item,
+#services .roll-cont-item,
+#pourquoi-nous .roll-cont-item,
+#galerie .roll-cont-item,
+#a-propos .roll-cont-item,
+#contact .roll-cont-item {
+    padding: 20px;
+}
+
+/* Compensation pour les points de navigation en bas */
+.navigation-dots {
+    bottom: 30px;
 }
 
 /* Curseur personnalisé pour la navigation - désactivé */
@@ -706,22 +837,24 @@ img {
 
 /* Services Grid Horizontal */
 .services-grid-horizontal {
-    display: flex;
-    gap: 20px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(1, 1fr);
+    gap: 15px;
     margin: 30px 0;
 }
 
 .service-item {
-    background-color: rgba(255, 255, 255, 0.1);
-    padding: 20px;
-    border-radius: 10px;
+    background-color: transparent;
+    padding: 10px;
+    border-radius: 0;
     transition: var(--transition);
     flex: 1;
 }
 
 .service-item:hover {
-    transform: translateY(-10px);
-    background-color: rgba(255, 255, 255, 0.2);
+    transform: none;
+    background-color: transparent;
 }
 
 .service-icon {
@@ -755,16 +888,16 @@ img {
 }
 
 .why-us-item {
-    background-color: rgba(255, 255, 255, 0.1);
-    padding: 20px;
-    border-radius: 10px;
+    background-color: transparent; /* Retiré le fond pour correspondre aux autres sections */
+    padding: 10px;
+    border-radius: 0;
     transition: var(--transition);
     flex: 1;
 }
 
 .why-us-item:hover {
-    transform: translateY(-10px);
-    background-color: rgba(255, 255, 255, 0.2);
+    transform: none; /* Désactivé l'effet de survol */
+    background-color: transparent;
 }
 
 .why-us-icon {
@@ -793,46 +926,81 @@ img {
 /* Gallery Grid Horizontal */
 .gallery-grid-horizontal {
     display: flex;
-    gap: 20px;
+    flex-wrap: wrap; /* Pour permettre 6 images sur 2 rangées */
+    gap: 15px;
     margin: 30px 0;
     width: 100%;
 }
 
 .gallery-item {
     position: relative;
-    overflow: hidden;
+    overflow: visible; /* Changé à visible pour permettre le débordement lors du zoom */
     border-radius: 10px;
     transition: var(--transition);
-    flex: 1;
+    flex: 1 1 calc(33.333% - 15px); /* 3 items par ligne */
+    min-width: calc(33.333% - 15px); /* Pour garantir 3 items par ligne */
     aspect-ratio: 1/1;
+    cursor: zoom-in; /* Curseur de zoom pour indiquer l'action */
+    margin-bottom: 15px;
 }
 
 .gallery-item img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: var(--transition);
+    border-radius: 10px;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Animation plus dynamique */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
+/* Suppression de l'overlay avec le texte comme demandé */
 .gallery-overlay {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    padding: 15px;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
-    color: white;
-    font-weight: 600;
-    transform: translateY(100%);
-    transition: var(--transition);
+    display: none;
 }
 
-.gallery-item:hover .gallery-overlay {
-    transform: translateY(0);
+/* Effet popup pour les images de toutes les sections */
+.gallery-item {
+    z-index: 1;
+    transition: z-index 0.01s step-end;
+}
+
+.gallery-item:hover {
+    z-index: 10; /* Passe au-dessus des autres éléments */
+    transition: z-index 0.01s step-start;
+}
+
+.gallery-item img {
+    transform-origin: center center;
 }
 
 .gallery-item:hover img {
-    transform: scale(1.1);
+    transform: scale(1.6); /* Agrandissement identique pour toutes les sections */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5); /* Ombre plus prononcée pour l'effet popup */
+}
+
+/* Style uniforme pour toutes les galeries à 6 images */
+.gallery-grid-horizontal {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 colonnes */
+    grid-template-rows: repeat(2, 1fr); /* 2 rangées */
+    gap: 15px;
+}
+
+.gallery-item {
+    flex: none;
+    width: auto;
+    margin: 0;
+    background-color: transparent;
+    border-radius: 0;
+    padding: 0;
+}
+
+/* Ajustements responsive pour la galerie */
+@media (max-width: 768px) {
+    .gallery-grid-horizontal {
+        grid-template-columns: repeat(2, 1fr); /* 2 colonnes sur mobile */
+        grid-template-rows: repeat(3, 1fr); /* 3 rangées sur mobile */
+    }
 }
 
 /* About Values */
@@ -959,6 +1127,12 @@ input, select, textarea {
     background-color: rgba(255, 255, 255, 0.1);
     color: white;
     font-family: 'Montserrat', sans-serif;
+}
+
+/* Style spécifique pour les options du menu déroulant */
+option {
+    background-color: var(--secondary-color);
+    color: white;
 }
 
 input:focus, select:focus, textarea:focus {
