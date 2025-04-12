@@ -1139,7 +1139,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
         overflow-y: auto;
     }
     #accueil .roll-content-w { 
-        padding: 80px 5% 140px; /* Augmentation SPÉCIFIQUE du padding haut pour l'accueil */
+        padding: 120px 5% 140px; /* Augmentation supplémentaire SPÉCIFIQUE du padding haut pour l'accueil */
     }
     .contact-title-form-group { gap: 15px; }
     .contact-title-group p {
