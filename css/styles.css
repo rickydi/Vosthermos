@@ -1139,12 +1139,19 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
         overflow-y: auto;
     }
     #accueil .roll-content-w { 
-        padding: 220px 5% 140px; /* Augmentation ENCORE PLUS importante du padding haut pour l'accueil */
+        padding: 280px 5% 140px; /* Augmentation MASSIVE du padding haut pour l'accueil */
     }
     
-    /* Décaler également vers le bas le contenu de la section accueil spécifiquement */
+    /* Décaler davantage vers le bas le contenu de la section accueil */
     #accueil .roll-cont-col {
-        padding-top: 60px; /* Padding supplémentaire augmenté pour pousser le contenu vers le bas */
+        padding-top: 80px; /* Padding supplémentaire très important pour pousser le contenu vers le bas */
+    }
+    
+    /* Style spécifique pour le sous-titre "Expert en réparation" */
+    #accueil .roll-cont-eyeb {
+        margin-top: 40px; /* Ajoute un espace supplémentaire avant le sous-titre */
+        position: relative; /* Pour le positionner correctement */
+        z-index: 5; /* S'assurer qu'il apparaît au-dessus des autres éléments */
     }
     .contact-title-form-group { gap: 15px; }
     .contact-title-group p {
