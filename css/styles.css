@@ -1139,7 +1139,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
         overflow-y: auto;
     }
     #accueil .roll-content-w { 
-        padding: 60px 5% 140px; /* Augmentation du padding haut et bas */
+        padding: 80px 5% 140px; /* Augmentation SPÉCIFIQUE du padding haut pour l'accueil */
     }
     .contact-title-form-group { gap: 15px; }
     .contact-title-group p {
@@ -1159,6 +1159,14 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
     .home-roll-item {
         min-height: 100vh;
         overflow-y: auto;
+    }
+    
+    /* Réduire taille texte rating */
+    .awards-w h3 {
+        font-size: 1.4rem; 
+    }
+    .awards-w p {
+        font-size: 0.8rem;
     }
 }
 
