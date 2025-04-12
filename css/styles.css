@@ -383,25 +383,30 @@ img {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    border-radius: 5px;
 }
 
 .linecallout-item .line {
-    background-color: rgba(255, 255, 255, 0.2);
-    height: 1px;
+    background-color: rgba(255, 255, 255, 0.3);
+    height: 2px;
     width: 100%;
 }
 
 .paragraph {
     color: white;
-    font-size: 0.9rem;
+    font-size: 1rem;
+    font-weight: 500;
 }
 
 .text-span {
     color: var(--primary-color);
-    font-weight: 600;
-    font-size: 0.8rem;
+    font-weight: 700;
+    font-size: 0.95rem;
     display: block;
     margin-bottom: 5px;
+    text-transform: uppercase;
 }
 
 /* Zone dédiée pour le bouton en bas à droite (retour à absolute) */
@@ -533,34 +538,37 @@ img {
 }
 
 .awards-w {
-    margin-bottom: 40px;
+    margin-bottom: 30px; /* Réduit */
+    margin-top: -30px; /* Déplace vers le haut pour ajuster la position */
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(20px) scale(0.8); /* Réduit de 20% */
     transition: opacity 1s ease 0.3s, transform 1s ease 0.3s;
     color: white;
+    transform-origin: left top; /* Point d'origine pour le scaling */
 }
 
 .home-roll-item.active .awards-w {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(0.8); /* Maintient la réduction de 20% */
 }
 
 .awards-w h3 {
-    font-size: 1.8rem;
+    font-size: 1.45rem; /* Réduit d'environ 20% par rapport à 1.8rem */
     font-weight: 700;
-    margin: 10px 0;
+    margin: 8px 0; /* Réduit */
     color: white;
 }
 
 .awards-w p {
-    font-size: 0.9rem;
+    font-size: 0.75rem; /* Réduit d'environ 20% par rapport à 0.9rem */
     color: white;
+    line-height: 1.3;
 }
 
 .stars {
     color: gold;
-    font-size: 1.2rem;
-    margin: 20px 0 10px;
+    font-size: 1rem; /* Réduit d'environ 20% par rapport à 1.2rem */
+    margin: 15px 0 8px; /* Réduit */
 }
 
 /* Navigation avec points en bas */
