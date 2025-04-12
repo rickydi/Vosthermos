@@ -57,13 +57,47 @@ document.addEventListener('DOMContentLoaded', function() {
     const prevHitbox = document.querySelector('[data-hitbox="PREV"]');
     const nextHitbox = document.querySelector('[data-hitbox="NEXT"]');
     
-    prevHitbox.addEventListener('click', function() {
-        navigateSlide(-1);
-    });
+    if (prevHitbox) {
+        prevHitbox.addEventListener('click', function() {
+            navigateSlide(-1);
+        });
+    }
     
-    nextHitbox.addEventListener('click', function() {
-        navigateSlide(1);
-    });
+    if (nextHitbox) {
+        nextHitbox.addEventListener('click', function() {
+            navigateSlide(1);
+        });
+    }
+    
+    // Navigation tactile pour mobile (swipe)
+    let touchStartX = 0;
+    let touchEndX = 0;
+    let minSwipeDistance = 50; // Distance minimale en pixels pour considérer qu'il s'agit d'un swipe
+    
+    document.addEventListener('touchstart', function(e) {
+        touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+    
+    document.addEventListener('touchend', function(e) {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    }, { passive: true });
+    
+    function handleSwipe() {
+        // Calculer la distance du swipe
+        const swipeDistance = touchEndX - touchStartX;
+        
+        // Si la distance est suffisante pour être considérée comme un swipe
+        if (Math.abs(swipeDistance) > minSwipeDistance) {
+            if (swipeDistance > 0) {
+                // Swipe vers la droite - page précédente
+                navigateSlide(-1);
+            } else {
+                // Swipe vers la gauche - page suivante
+                navigateSlide(1);
+            }
+        }
+    }
 
     // Variables pour le défilement horizontal
     const homeRollW = document.querySelector('.home-roll-w');
