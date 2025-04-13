@@ -1113,6 +1113,14 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
         line-height: 1.3;
         margin-bottom: 10px;
     }
+    
+    /* Correction titres en conflit avec header sur mobile */
+    #quincaillerie .roll-cont-he,
+    #vitre-thermos .roll-cont-he,
+    #portes-bois .roll-cont-he,
+    #moustiquaires .roll-cont-he {
+        margin-top: 100px; /* Augmenté pour éviter la superposition avec la barre de navigation */
+    }
     .roll-cont-eyeb {
         font-size: 0.9rem;
         margin-bottom: 5px;
