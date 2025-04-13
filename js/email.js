@@ -70,9 +70,9 @@ ${message}`;
             // Fonction pour gérer l'affichage du succès (appelée immédiatement)
             const handleSuccessDisplay = () => {
                 submitBtn.textContent = 'Envoyé avec succès!';
-                submitBtn.style.backgroundColor = '#28a745';
+                submitBtn.style.backgroundColor = 'rgba(102, 169, 130, 0.5)'; // Vert avec 50% de transparence
                 formStatus.textContent = 'Votre message a été envoyé. Nous vous contacterons bientôt.';
-                formStatus.style.color = '#28a745'; // Vert pour succès
+                formStatus.style.color = '#66a982'; // Garde la couleur du texte pleine pour la lisibilité
                 form.reset();
                 
                 // Réinitialiser le bouton après 5 secondes

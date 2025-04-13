@@ -112,39 +112,37 @@ img {
     left: 0;
     width: 100%;
     z-index: 1000;
-    padding: 30px 40px;
+    padding: 0 40px; /* Suppression complète du padding vertical */
     display: flex;
     justify-content: space-between;
     align-items: center;
     transition: var(--transition);
-    background: transparent !important;
+    background-color: var(--secondary-color) !important; /* Bande verte directement sur le header */
     border: none !important;
     box-shadow: none !important;
-}
-
-/* Désactive tout effet visuel qui pourrait apparaître au scroll */
-.nav-w:before, .nav-w:after {
-    display: none !important;
-    content: none !important;
-    background: none !important;
+    height: auto; /* Hauteur adaptée au contenu */
 }
 
 .logo {
     position: relative;
     z-index: 1010;
+    margin: 0; /* Reset margin */
+    padding: 0; /* Reset padding */
+    display: block; /* Ensure block display */
 }
 
 .logo-img {
-    height: 100px;
+    height: 105px; /* Taille réduite de 30% supplémentaires (150px * 0.7) */
     max-width: 100%;
     transition: var(--transition);
+    display: block; /* Ensure block display */
 }
 
-/* Logo responsive */
-@media (max-width: 1200px) { .logo-img { height: 90px; } }
+/* Logo responsive avec tailles proportionnelles réduites */
+@media (max-width: 1200px) { .logo-img { height: 95px; } }
 @media (max-width: 992px) { .logo-img { height: 80px; } }
-@media (max-width: 768px) { .logo-img { height: 70px; } }
-@media (max-width: 480px) { .logo-img { height: 60px; } }
+@media (max-width: 768px) { .logo-img { height: 65px; } }
+@media (max-width: 480px) { .logo-img { height: 50px; } }
 
 .mobile-menu-btn {
     position: relative;
@@ -265,14 +263,14 @@ img {
 .roll-img-w img { width: 100%; height: 100%; object-fit: cover; transition: transform 1s ease; }
 .home-roll-item.active .roll-img-w img { transform: scale(1); }
 
-/* Overlay gradient sur les images */
+/* Overlay gradient sur les images - opacité ajustée */
 .gg {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(to right, rgba(0, 56, 69, 0.8), rgba(0, 56, 69, 0.4));
+    background: linear-gradient(to right, rgba(0, 56, 69, 0.6), rgba(0, 56, 69, 0.3));
     z-index: 1;
 }
 
@@ -283,7 +281,7 @@ img {
     height: 100%;
     display: flex;
     z-index: 2;
-    padding: 80px 100px 180px; /* Augmentation du padding bas pour laisser plus d'espace au bouton */
+    padding: 120px 100px 180px; /* Augmentation du padding haut de 40px pour compenser la taille du header */
     overflow-y: auto; /* Permet le scroll */
     overflow-x: hidden;
     /* Masquer la scrollbar visuellement */
@@ -1003,7 +1001,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 /* Assurer que le contenu de contact utilise le scroll de .roll-content-w */
 #contact .roll-content-w {
     justify-content: flex-start; /* Aligner en haut */
-    padding-top: 100px; /* Augmenter le padding haut pour laisser de la place au header fixe */
+    padding-top: 150px; /* Padding haut augmenté significativement pour éviter la superposition avec l'en-tête */
     padding-bottom: 4vh; /* Padding bas basé sur vh */
     align-items: flex-start; /* Aligner en haut */
     flex-direction: column; /* Assurer l'empilement */

@@ -25,13 +25,16 @@ html, body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
-    z-index: 100;
-    background-color: rgba(0, 0, 0, 0.3);
+    padding: 0 40px; /* Suppression du padding vertical */
+    z-index: 1000;
+    background-color: #003845 !important; /* Couleur verte fixe */
+    height: auto; /* Hauteur adaptée au contenu */
 }
 
 .logo-img {
-    height: 50px;
+    height: 105px !important; /* Taille réduite de 30% supplémentaires */
+    max-width: 100%;
+    display: block;
 }
 
 .menu-w {
