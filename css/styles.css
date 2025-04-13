@@ -812,6 +812,14 @@ img {
     width: 100%;
 }
 
+/* Sur mobile, la map passe SOUS le formulaire */
+@media (max-width: 768px) {
+    .contact-title-form-group {
+        flex-direction: column-reverse;
+        gap: 15px;
+    }
+}
+
 .contact-title-group {
     flex: 1;
     min-width: 250px;
@@ -1211,6 +1219,12 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 /* Règle générale pour forcer toutes les couleurs de texte */
 .text, h1, h2, h3, h4, h5, h6, p, span, div, a, button, input, select, textarea, label {
     color: white !important;
+}
+
+/* Correction du conflit header/titre sur toutes les pages sauf accueil/contact */
+body:not(.home):not(.contact) h1,
+body:not(.home):not(.contact) h2.page-title {
+    padding-top: 120px;
 }
 
 /* Réduire légèrement la taille du texte des paragraphes principaux */
