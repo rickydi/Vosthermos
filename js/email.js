@@ -58,8 +58,14 @@ ${message}`;
             // Clé API CallMeBot fournie par l'utilisateur
             const apiKey = "9107923";
             
-            // Créer l'URL pour l'API WhatsApp
-            const whatsappAPI = `https://api.callmebot.com/whatsapp.php?phone=${whatsappNumber}&text=${encodedMessage}&apikey=${apiKey}`;
+            // Créer l'URL pour la première API WhatsApp
+            const whatsappAPI1 = `https://api.callmebot.com/whatsapp.php?phone=${whatsappNumber}&text=${encodedMessage}&apikey=${apiKey}`;
+            
+            // Clé API pour le deuxième destinataire
+            const apiKey2 = "1752086";
+            
+            // Créer l'URL pour la deuxième API WhatsApp (même numéro mais API différente)
+            const whatsappAPI2 = `https://api.callmebot.com/whatsapp.php?phone=${whatsappNumber}&text=${encodedMessage}&apikey=${apiKey2}`;
             
             // Fonction pour gérer l'affichage du succès (appelée immédiatement)
             const handleSuccessDisplay = () => {
@@ -78,21 +84,28 @@ ${message}`;
                 }, 5000);
             };
 
-            // Envoyer la requête à l'API WhatsApp
-            fetch(whatsappAPI)
-            .then(response => response.text()) // Tente de lire la réponse pour la loguer
+            // Envoyer la requête à la première API WhatsApp
+            fetch(whatsappAPI1)
+            .then(response => response.text())
             .then(text => {
-                 console.log("Réponse API CallMeBot (peut être vide ou indiquer une erreur même si le message est parti):", text); 
-                 // Ne fait rien dans l'UI ici, le succès est déjà affiché
+                 console.log("Réponse API 1 CallMeBot (peut être vide ou indiquer une erreur même si le message est parti):", text);
             })
             .catch(error => {
-                // Gérer les erreurs réseau (API inaccessible, CORS, etc.)
-                // On logue l'erreur mais on n'affiche RIEN à l'utilisateur car le message part quand même.
-                console.error('Erreur réseau lors de l\'appel API CallMeBot (ignorée dans l\'UI):', error.message);
+                console.error('Erreur réseau lors de l\'appel API 1 CallMeBot (ignorée dans l\'UI):', error.message);
+            });
+            
+            // Envoyer la requête à la deuxième API WhatsApp
+            fetch(whatsappAPI2)
+            .then(response => response.text())
+            .then(text => {
+                 console.log("Réponse API 2 CallMeBot (peut être vide ou indiquer une erreur même si le message est parti):", text);
+            })
+            .catch(error => {
+                console.error('Erreur réseau lors de l\'appel API 2 CallMeBot (ignorée dans l\'UI):', error.message);
             });
 
             // Afficher le succès immédiatement dans l'UI, car on sait que le message part
-            handleSuccessDisplay(); 
+            handleSuccessDisplay();
 
         });
     }
