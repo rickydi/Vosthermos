@@ -815,7 +815,7 @@ img {
 /* Sur mobile, la map passe SOUS le formulaire */
 @media (max-width: 768px) {
     .contact-title-form-group {
-        flex-direction: column-reverse;
+        flex-direction: column;
         gap: 15px;
     }
 }
