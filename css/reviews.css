@@ -1,0 +1,107 @@
+/* Styles simplifiés pour le carrousel vertical de témoignages - sans boîtes */
+
+/* Étoiles en jaune vif */
+.stars, .stars i, .fa-star {
+    color: #FFEA00 !important; /* Jaune plus intense pour s'assurer qu'il s'applique */
+    font-size: 1.1rem !important;
+    margin: 3px 0 !important;
+    display: block !important;
+}
+
+/* Force une couche supplémentaire pour les étoiles */
+.stars i.fas.fa-star {
+    color: #FFFF33 !important; /* Autre tonalité de jaune pour être sûr */
+    display: inline-block !important;
+}
+
+/* Conteneur parent - fixe la hauteur globale */
+.awards-w {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    opacity: 1 !important;
+    transform: none !important;
+    width: 100% !important;
+    height: 300px !important; /* Hauteur du conteneur visible */
+    overflow: hidden !important;
+    position: relative !important;
+}
+
+/* Conteneur du carrousel - défilement infini, sans bordures ni background */
+.reviews-container {
+    width: 100% !important;
+    height: auto !important; /* Auto pour permettre le dépassement */
+    position: relative !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    animation: scrollVert 15s linear infinite !important; /* Animation de défilement un peu plus lente */
+}
+
+/* Animation de défilement vertical */
+@keyframes scrollVert {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(-50%); /* Ne déplace que de la moitié (pour le groupe dupliqué) */
+    }
+}
+
+/* Groupe de commentaires */
+.reviews-group {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 15px !important; /* Espace entre les témoignages réduit */
+}
+
+/* Style des commentaires - sans boîtes ni bordures */
+.review-item {
+    padding: 4px 0 !important; /* Padding vertical réduit */
+    min-height: 65px !important; /* Hauteur minimale réduite */
+    flex-shrink: 0 !important; /* Empêche la compression */
+    margin-bottom: 8px !important;
+}
+
+/* Style des textes */
+.review-item p {
+    font-size: 0.85rem !important;
+    margin: 0 0 1px 0 !important; /* Marge réduite entre le nom et la citation */
+    opacity: 0.9 !important;
+}
+
+.review-item h3 {
+    font-size: 1.1rem !important;
+    line-height: 1.2 !important; /* Line-height réduit */
+    margin: 1px 0 !important; /* Marge réduite */
+}
+
+/* Style pour assurer que les étoiles et les textes sont proches */
+.review-item > * {
+    margin-top: 2px !important;
+    margin-bottom: 2px !important;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .awards-w {
+        height: 250px !important; /* Hauteur réduite sur mobile */
+    }
+    
+    .review-item {
+        min-height: 60px !important;
+    }
+    
+    .review-item h3 {
+        font-size: 0.95rem !important;
+    }
+    
+    .review-item p {
+        font-size: 0.8rem !important;
+    }
+}
+
+/* Pause l'animation au survol */
+.reviews-container:hover {
+    animation-play-state: paused !important;
+}

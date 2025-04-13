@@ -9,6 +9,22 @@
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/serve-fix.css">
     <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/reviews.css">
+    
+    <!-- Styles directs pour la rotation des commentaires -->
+    <style>
+        /* Ajustements pour les commentaires */
+        .stars { color: #ffff00 !important; }
+        /* Afficher uniquement les 3 premiers commentaires au départ */
+        .review-item { display: none !important; }
+        .review-item:nth-child(1),
+        .review-item:nth-child(2),
+        .review-item:nth-child(3) {
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+    </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -116,25 +132,133 @@
                                     </div>
                                     <div class="roll-cont-col reviews">
                                         <div data-roll="reviews" class="awards-w">
-                                            <div class="stars">
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
+                                            <div class="reviews-container" id="reviewsContainer">
+                                                <!-- Premier groupe de témoignages -->
+                                                <div class="reviews-group">
+                                                    <div class="review-item" data-review="1">
+                                                        <div class="stars">
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                        </div>
+                                                        <p>Marie T., Saint-Hyacinthe</p>
+                                                        <h3>"Service impeccable pour le remplacement de ma vitre thermos."</h3>
+                                                    </div>
+                                                    
+                                                    <div class="review-item" data-review="2">
+                                                        <div class="stars">
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                        </div>
+                                                        <p>Jean D., Granby</p>
+                                                        <h3>"Équipe professionnelle et prix raisonnable."</h3>
+                                                    </div>
+                                                    
+                                                    <div class="review-item" data-review="3">
+                                                        <div class="stars">
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                        </div>
+                                                        <p>Sophie L., Laval</p>
+                                                        <h3>"Très satisfaite de la réparation de ma porte-patio. Travail soigné et rapide."</h3>
+                                                    </div>
+                                                    
+                                                    <div class="review-item" data-review="4">
+                                                        <div class="stars">
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                        </div>
+                                                        <p>Michel B., Boucherville</p>
+                                                        <h3>"Excellent service, délais respectés et travail de qualité pour ma moustiquaire."</h3>
+                                                    </div>
+                                                    
+                                                    <div class="review-item" data-review="5">
+                                                        <div class="stars">
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                        </div>
+                                                        <p>Lucie R., Saint-Jean</p>
+                                                        <h3>"Je recommande vivement! Quincaillerie remplacée rapidement et à bon prix."</h3>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Duplication pour le défilement infini -->
+                                                <div class="reviews-group" aria-hidden="true">
+                                                    <div class="review-item">
+                                                        <div class="stars">
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                        </div>
+                                                        <p>Marie T., Saint-Hyacinthe</p>
+                                                        <h3>"Service impeccable pour le remplacement de ma vitre thermos."</h3>
+                                                    </div>
+                                                    
+                                                    <div class="review-item">
+                                                        <div class="stars">
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                        </div>
+                                                        <p>Jean D., Granby</p>
+                                                        <h3>"Équipe professionnelle et prix raisonnable."</h3>
+                                                    </div>
+                                                    
+                                                    <div class="review-item">
+                                                        <div class="stars">
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                        </div>
+                                                        <p>Sophie L., Laval</p>
+                                                        <h3>"Très satisfaite de la réparation de ma porte-patio. Travail soigné et rapide."</h3>
+                                                    </div>
+                                                    
+                                                    <div class="review-item">
+                                                        <div class="stars">
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                        </div>
+                                                        <p>Michel B., Boucherville</p>
+                                                        <h3>"Excellent service, délais respectés et travail de qualité pour ma moustiquaire."</h3>
+                                                    </div>
+                                                    
+                                                    <div class="review-item">
+                                                        <div class="stars">
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                            <i class="fas fa-star"></i>
+                                                        </div>
+                                                        <p>Lucie R., Saint-Jean</p>
+                                                        <h3>"Je recommande vivement! Quincaillerie remplacée rapidement et à bon prix."</h3>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <p>Marie T., Saint-Hyacinthe</p>
-                                            <h3>"Service impeccable pour le remplacement de ma vitre thermos."</h3>
-
-                                            <div class="stars">
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                            </div>
-                                            <p>Jean D., Granby</p>
-                                            <h3>"Équipe professionnelle et prix raisonnable."</h3>
                                         </div>
                                     </div>
                                 </div>
@@ -518,5 +642,6 @@
     <script src="js/script.js"></script>
     <script src="js/email.js"></script>
     <script src="js/language.js"></script>
+    <script src="js/reviews-animation.js"></script>
 </body>
 </html>
