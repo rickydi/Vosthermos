@@ -1,0 +1,62 @@
+/* Styles responsives et ajustements pour Vosthermos */
+
+/* Carte Google Maps - visible à côté du formulaire sur desktop, sous le formulaire sur mobile */
+.contact-form-map-container {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    width: 100%;
+}
+
+.contact-form-container {
+    flex: 1;
+    min-width: 300px;
+}
+
+.map-container {
+    flex: 0.8;
+    min-width: 250px;
+}
+
+@media (max-width: 768px) {
+    .contact-form-map-container {
+        flex-direction: column;
+    }
+    
+    .map-container {
+        margin-top: 20px;
+    }
+}
+
+/* Agrandissement de 20% des carrés d'informations sur la page d'accueil */
+.linecallout-item {
+    transform: scale(1.2); /* Agrandissement de 20% */
+    transform-origin: left top; /* Point d'origine pour l'agrandissement */
+    margin-bottom: 10px; /* Espace supplémentaire entre les items */
+    margin-right: 16px; /* Espace à droite pour éviter les chevauchements */
+}
+
+.linecallout-item .paragraph, 
+.linecallout-item .text-span {
+    font-size: 110%; /* Augmentation de la taille du texte de 10% */
+}
+
+/* Ajustement de l'espacement pour les écrans plus petits */
+@media (max-width: 992px) {
+    .linecallout-list {
+        margin-left: 0;
+        margin-right: 0;
+        gap: 24px;
+    }
+    
+    .linecallout-item {
+        transform-origin: center top; /* Centrer l'origine de la transformation sur petits écrans */
+    }
+}
+
+@media (max-width: 768px) {
+    .linecallout-item {
+        transform: scale(1.15); /* Légèrement plus petit sur mobile */
+        margin-right: 0; /* Pas besoin d'espace à droite en disposition verticale */
+    }
+}

@@ -8,6 +8,7 @@
     <title>Vosthermos - Experts en réparation de portes et fenêtres</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/serve-fix.css">
+    <link rel="stylesheet" href="css/responsive.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -33,6 +34,10 @@
                         <a href="https://www.facebook.com/profile.php?id=61562303553558" class="social-icon" style="color: white;"><i class="fab fa-facebook-f"></i></a>
                         <a href="http://instagram.com/vosthermos/" class="social-icon" style="color: white;"><i class="fab fa-instagram"></i></a>
                     </div>
+                    <!-- Bouton langue -->
+                    <button id="lang-toggle" style="background:none;border:none;cursor:pointer;margin-right:10px;color:white;font-weight:bold;font-size:16px;" aria-label="Switch language">
+                        <span id="lang-text">FR / EN</span>
+                    </button>
                     <div class="mobile-menu-btn">
                         <div class="menu-icon-line"></div>
                         <div class="menu-icon-line"></div>
@@ -46,12 +51,12 @@
                 <div class="mmenu-col large">
                     <div class="menu-nav">
                         <ul class="menu-nav-list">
-                            <li><a href="#accueil" data-index="0" class="menu-nav-link">Accueil</a></li>
-                            <li><a href="#quincaillerie" data-index="1" class="menu-nav-link">Quincaillerie</a></li>
-                            <li><a href="#vitre-thermos" data-index="2" class="menu-nav-link">Vitre Thermos</a></li>
-                            <li><a href="#portes-bois" data-index="3" class="menu-nav-link">Portes en Bois</a></li>
-                            <li><a href="#moustiquaires" data-index="4" class="menu-nav-link">Moustiquaires</a></li>
-                            <li><a href="#contact" data-index="5" class="menu-nav-link">Contact</a></li>
+                            <li><a href="#accueil" data-index="0" class="menu-nav-link" data-i18n="Accueil">Accueil</a></li>
+                            <li><a href="#quincaillerie" data-index="1" class="menu-nav-link" data-i18n="Quincaillerie">Quincaillerie</a></li>
+                            <li><a href="#vitre-thermos" data-index="2" class="menu-nav-link" data-i18n="Vitre Thermos">Vitre Thermos</a></li>
+                            <li><a href="#portes-bois" data-index="3" class="menu-nav-link" data-i18n="Portes en Bois">Portes en Bois</a></li>
+                            <li><a href="#moustiquaires" data-index="4" class="menu-nav-link" data-i18n="Moustiquaires">Moustiquaires</a></li>
+                            <li><a href="#contact" data-index="5" class="menu-nav-link" data-i18n="Contact">Contact</a></li>
                         </ul>
                     </div>
                     <div class="menu-info">
@@ -82,27 +87,27 @@
                                 <div data-parallax="2" class="roll-content-w">
                                     <div class="roll-cont-col">
                                         <div data-parallax="15" class="roll-cont-item">
-                                            <div class="roll-cont-eyeb parish">Experts en réparation</div>
-                                            <h2 class="roll-cont-he home">PORTES ET <span>FENÊTRES</span></h2>
-                                            <p>Service rapide et professionnel dans un rayon de 100km de Saint-François-Xavier pour tous vos besoins de réparation de portes et fenêtres.</p>
+                                            <div class="roll-cont-eyeb parish" data-i18n="Experts en réparation">Experts en réparation</div>
+                                            <h2 class="roll-cont-he home" data-i18n="PORTES ET FENÊTRES">PORTES ET <span>FENÊTRES</span></h2>
+                                            <p data-i18n="Service rapide et professionnel dans un rayon de 100km de Saint-François-Xavier pour tous vos besoins de réparation de portes et fenêtres.">Service rapide et professionnel dans un rayon de 100km de Saint-François-Xavier pour tous vos besoins de réparation de portes et fenêtres.</p>
                                             <div class="line-callout-w home">
                                                 <ul class="linecallout-list home">
                                                     <li class="linecallout-item home">
                                                         <div class="line top"></div>
-                                                        <div class="paragraph"><span class="text-span">Qualité</span></div>
-                                                        <div class="paragraph">Garantie</div>
+                                                        <div class="paragraph"><span class="text-span" data-i18n="Qualité">Qualité</span></div>
+                                                        <div class="paragraph" data-i18n="Garantie">Garantie</div>
                                                         <div class="line b-up"></div>
                                                     </li>
                                                     <li class="linecallout-item home">
                                                         <div class="line top"></div>
-                                                        <div class="paragraph"><span class="text-span">Service</span></div>
-                                                        <div class="paragraph">Rapide</div>
+                                                        <div class="paragraph"><span class="text-span" data-i18n="Service">Service</span></div>
+                                                        <div class="paragraph" data-i18n="Rapide">Rapide</div>
                                                         <div class="line b-up"></div>
                                                     </li>
                                                     <li class="linecallout-item home">
                                                         <div class="line top"></div>
-                                                        <div class="paragraph"><span class="text-span">Prix</span></div>
-                                                        <div class="paragraph">Compétitifs</div>
+                                                        <div class="paragraph"><span class="text-span" data-i18n="Prix">Prix</span></div>
+                                                        <div class="paragraph" data-i18n="Compétitifs">Compétitifs</div>
                                                         <div class="line b-up"></div>
                                                     </li>
                                                 </ul>
@@ -138,7 +143,7 @@
                             <div class="button-zone">
                                 <a href="#contact" class="explore-w">
                                     <button class="explore-btn-w">
-                                        <span class="footagemenu-cta-tx">CONTACTEZ-NOUS</span>
+                                        <span class="footagemenu-cta-tx" data-i18n="CONTACTEZ-NOUS">CONTACTEZ-NOUS</span>
                                     </button>
                                 </a>
                             </div>
@@ -156,8 +161,8 @@
                                     <div class="roll-cont-col">
                                         <div data-parallax="15" class="roll-cont-item">
                                             <div class="roll-cont-eyeb parish"></div>
-                                            <h2 class="roll-cont-he home">REMPLACEMENT DE <span>QUINCAILLERIE</span></h2>
-                                            <p>Besoin de remplacer la quincaillerie de vos portes-patio ou fenêtres ? Notre équipe d'experts intervient rapidement pour fournir et installer les pièces adaptées à vos besoins. Nous offrons un service professionnel et une garantie de satisfaction pour tous vos problèmes de quincaillerie.</p>
+                                            <h2 class="roll-cont-he home" data-i18n="REMPLACEMENT DE <span>QUINCAILLERIE</span>">REMPLACEMENT DE <span>QUINCAILLERIE</span></h2>
+                                            <p data-i18n="Besoin de remplacer la quincaillerie de vos portes-patio ou fenêtres ? Notre équipe d'experts intervient rapidement pour fournir et installer les pièces adaptées à vos besoins. Nous offrons un service professionnel et une garantie de satisfaction pour tous vos problèmes de quincaillerie.">Besoin de remplacer la quincaillerie de vos portes-patio ou fenêtres ? Notre équipe d'experts intervient rapidement pour fournir et installer les pièces adaptées à vos besoins. Nous offrons un service professionnel et une garantie de satisfaction pour tous vos problèmes de quincaillerie.</p>
                                             
                                             <div class="gallery-grid-horizontal">
                                                 <div class="gallery-item">
@@ -187,7 +192,7 @@
                             <div class="button-zone">
                                 <a href="#contact" class="explore-w">
                                     <button class="explore-btn-w">
-                                        <span class="footagemenu-cta-tx">CONTACTEZ-NOUS</span>
+                                        <span class="footagemenu-cta-tx" data-i18n="CONTACTEZ-NOUS">CONTACTEZ-NOUS</span>
                                     </button>
                                 </a>
                             </div>
@@ -205,8 +210,8 @@
                                     <div class="roll-cont-col">
                                         <div data-parallax="15" class="roll-cont-item">
                                             <div class="roll-cont-eyeb parish"></div>
-                                            <h2 class="roll-cont-he home">REMPLACEMENT DE <span>VITRE THERMOS</span></h2>
-                                            <p>Vous constatez une perte d'efficacité thermique ou de la buée dans vos fenêtres ? Notre service spécialisé vous garantit un remplacement professionnel de vos vitres thermos. Nous offrons une garantie de 10 ans sur tous nos travaux, pour votre tranquillité d'esprit.</p>
+                                            <h2 class="roll-cont-he home" data-i18n="REMPLACEMENT DE <span>VITRE THERMOS</span>">REMPLACEMENT DE <span>VITRE THERMOS</span></h2>
+                                            <p data-i18n="Vous constatez une perte d'efficacité thermique ou de la buée dans vos fenêtres ? Notre service spécialisé vous garantit un remplacement professionnel de vos vitres thermos. Nous offrons une garantie de 10 ans sur tous nos travaux, pour votre tranquillité d'esprit.">Vous constatez une perte d'efficacité thermique ou de la buée dans vos fenêtres ? Notre service spécialisé vous garantit un remplacement professionnel de vos vitres thermos. Nous offrons une garantie de 10 ans sur tous nos travaux, pour votre tranquillité d'esprit.</p>
                                             
                                             <div class="gallery-grid-horizontal">
                                                 <div class="gallery-item">
@@ -236,7 +241,7 @@
                             <div class="button-zone">
                                 <a href="#contact" class="explore-w">
                                     <button class="explore-btn-w">
-                                        <span class="footagemenu-cta-tx">CONTACTEZ-NOUS</span>
+                                        <span class="footagemenu-cta-tx" data-i18n="CONTACTEZ-NOUS">CONTACTEZ-NOUS</span>
                                     </button>
                                 </a>
                             </div>
@@ -254,8 +259,8 @@
                                     <div class="roll-cont-col">
                                         <div data-parallax="15" class="roll-cont-item">
                                             <div class="roll-cont-eyeb parish"></div>
-                                            <h2 class="roll-cont-he home">RÉPARATION DE <span>PORTES EN BOIS</span></h2>
-                                            <p>Vous avez un besoin urgent ou non de faire réparer des portes ou fenêtres de votre demeure ou entreprise ? Laissez-nous le soin d'en faire une estimation gratuite au préalable avant de mener à terme l'exécution parfaite de ces travaux, si cela vous convient.</p>
+                                            <h2 class="roll-cont-he home" data-i18n="RÉPARATION DE <span>PORTES EN BOIS</span>">RÉPARATION DE <span>PORTES EN BOIS</span></h2>
+                                            <p data-i18n="Vous avez un besoin urgent ou non de faire réparer des portes ou fenêtres de votre demeure ou entreprise ? Laissez-nous le soin d'en faire une estimation gratuite au préalable avant de mener à terme l'exécution parfaite de ces travaux, si cela vous convient.">Vous avez un besoin urgent ou non de faire réparer des portes ou fenêtres de votre demeure ou entreprise ? Laissez-nous le soin d'en faire une estimation gratuite au préalable avant de mener à terme l'exécution parfaite de ces travaux, si cela vous convient.</p>
                                             
                                             <div class="gallery-grid-horizontal">
                                                 <div class="gallery-item">
@@ -285,7 +290,7 @@
                             <div class="button-zone">
                                 <a href="#contact" class="explore-w">
                                     <button class="explore-btn-w">
-                                        <span class="footagemenu-cta-tx">CONTACTEZ-NOUS</span>
+                                        <span class="footagemenu-cta-tx" data-i18n="CONTACTEZ-NOUS">CONTACTEZ-NOUS</span>
                                     </button>
                                 </a>
                             </div>
@@ -303,8 +308,8 @@
                                     <div class="roll-cont-col">
                                         <div data-parallax="15" class="roll-cont-item">
                                             <div class="roll-cont-eyeb parish"></div>
-                                            <h2 class="roll-cont-he home">SERVICES <span>MOUSTIQUAIRES</span></h2>
-                                            <p>Besoin de profiter de l'air frais sans les insectes ? Notre atelier se charge de la fabrication sur mesure et de la réparation de tous types de moustiquaires pour vos fenêtres et portes. Qualité garantie et service rapide pour une étanchéité parfaite qui vous protège efficacement.</p>
+                                            <h2 class="roll-cont-he home" data-i18n="SERVICES <span>MOUSTIQUAIRES</span>">SERVICES <span>MOUSTIQUAIRES</span></h2>
+                                            <p data-i18n="Besoin de profiter de l'air frais sans les insectes ? Notre atelier se charge de la fabrication sur mesure et de la réparation de tous types de moustiquaires pour vos fenêtres et portes. Qualité garantie et service rapide pour une étanchéité parfaite qui vous protège efficacement.">Besoin de profiter de l'air frais sans les insectes ? Notre atelier se charge de la fabrication sur mesure et de la réparation de tous types de moustiquaires pour vos fenêtres et portes. Qualité garantie et service rapide pour une étanchéité parfaite qui vous protège efficacement.</p>
                                             
                                             <div class="gallery-grid-horizontal">
                                                 <div class="gallery-item">
@@ -334,7 +339,7 @@
                             <div class="button-zone">
                                 <a href="#contact" class="explore-w">
                                     <button class="explore-btn-w">
-                                        <span class="footagemenu-cta-tx">CONTACTEZ-NOUS</span>
+                                        <span class="footagemenu-cta-tx" data-i18n="CONTACTEZ-NOUS">CONTACTEZ-NOUS</span>
                                     </button>
                                 </a>
                             </div>
@@ -353,59 +358,63 @@
                                             <div class="contact-title-form-group">
                                                 <div class="contact-title-group">
                                                     <div class="roll-cont-eyeb parish"></div>
-                                                    <h2 class="roll-cont-he home">CONTACTEZ-NOUS</h2>
-                                                    <div style="margin: 16px 0;">
+                                                    <h2 class="roll-cont-he home" data-i18n="CONTACTEZ-NOUS">CONTACTEZ-NOUS</h2>
+                                                </div>
+                                                <div class="contact-form-map-container">
+                                                    <div class="contact-form-container contact-form-horizontal">
+                                                        <form id="contactForm">
+                                                            <div class="form-group">
+                                                                <label for="name" data-i18n="Nom complet">Nom complet</label>
+                                                                <input type="text" id="name" name="name" required>
+                                                            </div>
+                                                            
+                                                            <div class="form-row">
+                                                                <div class="form-group half">
+                                                                    <label for="email">Email</label>
+                                                                    <input type="email" id="email" name="email" required>
+                                                                </div>
+                                                                
+                                                                <div class="form-group half">
+                                                                    <label for="phone" data-i18n="Téléphone">Téléphone</label>
+                                                                    <input type="tel" id="phone" name="phone" required>
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <div class="form-group">
+                                                                <label for="service" data-i18n="Service requis">Service requis</label>
+                                                                <select id="service" name="service" required>
+                                                                    <option value="" data-i18n="Sélectionnez un service">Sélectionnez un service</option>
+                                                                    <option value="quincaillerie" data-i18n="Remplacement de quincaillerie">Remplacement de quincaillerie</option>
+                                                                    <option value="vitre-thermos" data-i18n="Remplacement de vitre thermos">Remplacement de vitre thermos</option>
+                                                                    <option value="portes-bois" data-i18n="Réparation de portes en bois">Réparation de portes en bois</option>
+                                                                    <option value="moustiquaire" data-i18n="Réparation/fabrication de moustiquaires">Réparation/fabrication de moustiquaires</option>
+                                                                    <option value="autre" data-i18n="Autre (précisez)">Autre (précisez)</option>
+                                                                </select>
+                                                            </div>
+                                                            
+                                                            <div class="form-group">
+                                                                <label for="message">Message</label>
+                                                                <textarea id="message" name="message" rows="4"></textarea> <!-- Attribut required retiré -->
+                                                            </div>
+                                                            
+                                                            <button type="button" id="submitButton" class="submit-btn" data-i18n="Envoyer la demande">Envoyer la demande</button>
+                                                            <div id="formStatus" class="form-status"></div> <!-- Élément ajouté pour le statut -->
+                                                        </form>
+                                                    </div>
+                                                    
+                                                    <!-- Carte Google Maps à côté du formulaire sur desktop, sous le formulaire sur mobile -->
+                                                    <div class="map-container">
                                                         <iframe
                                                             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d44818.60183345312!2d-73.45735594648!3d45.37106269649143!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4cc90fb925e4b0c3%3A0x18bb6483b7f0b8b0!2sDelson%2C%20QC!5e0!3m2!1sfr!2sca!4v1712977261056!5m2!1sfr!2sca"
                                                             width="100%"
-                                                            height="200"
-                                                            style="border:0; border-radius: 12px; filter: grayscale(1) brightness(1.1); pointer-events: none; box-shadow: 0 1px 6px #0001; display: block;"
+                                                            height="100%"
+                                                            style="border:0; border-radius: 12px; filter: grayscale(1) brightness(1.1); pointer-events: none; box-shadow: 0 1px 6px #0001; display: block; min-height: 200px;"
                                                             aria-hidden="true"
                                                             tabindex="-1"
                                                             loading="lazy"
                                                             referrerpolicy="no-referrer-when-downgrade">
                                                         </iframe>
                                                     </div>
-                                                </div>
-                                                <div class="contact-form-horizontal">
-                                                    <form id="contactForm">
-                                                        <div class="form-group">
-                                                            <label for="name">Nom complet</label>
-                                                            <input type="text" id="name" name="name" required>
-                                                        </div>
-                                                        
-                                                        <div class="form-row">
-                                                            <div class="form-group half">
-                                                                <label for="email">Email</label>
-                                                                <input type="email" id="email" name="email" required>
-                                                            </div>
-                                                            
-                                                            <div class="form-group half">
-                                                                <label for="phone">Téléphone</label>
-                                                                <input type="tel" id="phone" name="phone" required>
-                                                            </div>
-                                                        </div>
-                                                        
-                                                        <div class="form-group">
-                                                            <label for="service">Service requis</label>
-                                                            <select id="service" name="service" required>
-                                                                <option value="">Sélectionnez un service</option>
-                                                                <option value="quincaillerie">Remplacement de quincaillerie</option>
-                                                                <option value="vitre-thermos">Remplacement de vitre thermos</option>
-                                                                <option value="portes-bois">Réparation de portes en bois</option>
-                                                                <option value="moustiquaire">Réparation/fabrication de moustiquaires</option>
-                                                                <option value="autre">Autre (précisez)</option>
-                                                            </select>
-                                                        </div>
-                                                        
-                                                        <div class="form-group">
-                                                            <label for="message">Message</label>
-                                                            <textarea id="message" name="message" rows="4"></textarea> <!-- Attribut required retiré -->
-                                                        </div>
-                                                        
-                                                        <button type="button" id="submitButton" class="submit-btn">Envoyer la demande</button>
-                                                        <div id="formStatus" class="form-status"></div> <!-- Élément ajouté pour le statut -->
-                                                    </form>
                                                 </div>
                                             </div>
 
@@ -417,7 +426,7 @@
                                                             <i class="fas fa-map-marker-alt"></i>
                                                         </div>
                                                         <div class="info-content">
-                                                            <h3>Adresse</h3>
+                                                            <h3 data-i18n="Adresse">Adresse</h3>
                                                             <p>330 Chem. Saint-François-Xavier Delson Local 101</p>
                                                         </div>
                                                     </div>
@@ -427,7 +436,7 @@
                                                             <i class="fas fa-phone"></i>
                                                         </div>
                                                         <div class="info-content">
-                                                            <h3>Téléphone</h3>
+                                            <h3 data-i18n="Téléphone">Téléphone</h3>
                                                             <p><a href="tel:15148258411">1 514-825-8411</a></p> <!-- Lien tel: ajouté -->
                                                         </div>
                                                     </div>
@@ -437,7 +446,7 @@
                                                             <i class="fas fa-envelope"></i>
                                                         </div>
                                                         <div class="info-content">
-                                                            <h3>Email</h3>
+                                                            <h3 data-i18n="Email">Email</h3>
                                                             <p><a href="mailto:info@vosthermos.com">info@vosthermos.com</a></p>
                                                         </div>
                                                     </div>
@@ -448,7 +457,7 @@
                                             </div>
                                             
                                             <div class="footer-content">
-                                                <p>&copy; 2025 Vosthermos. Tous droits réservés.</p>
+                                                <p>&copy; 2025 Vosthermos. <span data-i18n="Tous droits réservés">Tous droits réservés</span>.</p>
                                     </div>
                                 </div>
                             </div>
@@ -471,7 +480,7 @@
                             <i class="fas fa-chevron-left"></i>
                         </div>
                         <div class="text-of-w">
-                            <div data-cursor="text" class="text-block-4">EXPLORER</div>
+                            <div data-cursor="text" class="text-block-4" data-i18n="EXPLORER">EXPLORER</div>
                         </div>
                         <div class="circle"></div>
                         <div class="arrow-of">
@@ -508,5 +517,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="js/script.js"></script>
     <script src="js/email.js"></script>
+    <script src="js/language.js"></script>
 </body>
 </html>
