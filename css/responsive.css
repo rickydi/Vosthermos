@@ -30,7 +30,7 @@
     
     /* Correction pour la page d'accueil - titre masqué par le header */
     #accueil .roll-cont-eyeb {
-        margin-top: 100px; /* Beaucoup plus d'espace au-dessus du titre */
+        margin-top: 150px; /* Encore plus d'espace au-dessus du titre pour éviter le header */
         padding-top: 30px; /* Plus de padding interne */
         font-size: 1.2rem; /* Plus grand pour meilleure visibilité */
         display: block; /* Assurer que c'est un bloc */
