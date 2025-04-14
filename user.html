@@ -145,19 +145,20 @@
   <script>
     const loginForm = document.getElementById('loginForm');
     const loginError = document.getElementById('loginError');
-    const userContent = document.getElementById('userContent');
-    const loginBox = document.getElementById('loginBox');
 
     loginForm.addEventListener('submit', function(e) {
       e.preventDefault();
       loginError.textContent = '';
       const pwd = document.getElementById('password').value.trim();
+      
       if (pwd === 'yesum') {
-        loginForm.style.display = 'none';
-        userContent.style.display = 'block';
+        // Stocker l'authentification dans la session
+        sessionStorage.setItem('authenticated', 'true');
+        
+        // Rediriger vers le tableau de bord
+        window.location.href = 'admin-dashboard.html';
       } else {
         loginError.textContent = 'Mot de passe incorrect.';
-        userContent.style.display = 'none';
       }
     });
   </script>

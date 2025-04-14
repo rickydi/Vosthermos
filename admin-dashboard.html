@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tableau de bord administrateur | Vosthermos</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    body {
+      background: var(--secondary-color, #003845);
+      min-height: 100vh;
+      padding: 0;
+      margin: 0;
+      font-family: 'Montserrat', sans-serif;
+    }
+    
+    .dashboard-container {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    
+    .dashboard-header {
+      background: rgba(0,0,0,0.3);
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .dashboard-title {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .dashboard-logo {
+      height: 40px;
+      width: auto;
+    }
+    
+    .dashboard-title h1 {
+      color: white;
+      font-size: 1.5rem;
+      margin: 0;
+    }
+    
+    .dashboard-actions {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+    
+    .logout-btn {
+      background: rgba(255,255,255,0.1);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    
+    .logout-btn:hover {
+      background: rgba(255,255,255,0.2);
+    }
+    
+    .return-btn {
+      background: var(--primary-color, #e30718);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    
+    .return-btn:hover {
+      background: #b00513;
+    }
+    
+    .dashboard-main {
+      display: flex;
+      flex: 1;
+    }
+    
+    .dashboard-sidebar {
+      width: 220px;
+      background: rgba(0,0,0,0.2);
+      padding: 20px 0;
+      border-right: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .sidebar-nav {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .sidebar-nav li {
+      margin-bottom: 2px;
+    }
+    
+    .sidebar-nav a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      color: rgba(255,255,255,0.8);
+      text-decoration: none;
+      transition: all 0.2s;
+      border-left: 3px solid transparent;
+    }
+    
+    .sidebar-nav a:hover,
+    .sidebar-nav a.active {
+      background: rgba(255,255,255,0.1);
+      color: white;
+      border-left-color: var(--primary-color, #e30718);
+    }
+    
+    .sidebar-nav i {
+      width: 20px;
+      text-align: center;
+    }
+    
+    .dashboard-content {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .dashboard-panel {
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .dashboard-panel h2 {
+      color: white;
+      font-size: 1.3rem;
+      margin-top: 0;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .clients-table {
+      width: 100%;
+      border-collapse: collapse;
+      color: white;
+    }
+    
+    .clients-table th,
+    .clients-table td {
+      text-align: left;
+      padding: 10px 15px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .clients-table th {
+      background: rgba(0,0,0,0.2);
+      font-weight: 600;
+      color: rgba(255,255,255,0.9);
+    }
+    
+    .clients-table tbody tr {
+      transition: background 0.2s;
+    }
+    
+    .clients-table tbody tr:hover {
+      background: rgba(255,255,255,0.05);
+    }
+    
+    .clients-table .date {
+      white-space: nowrap;
+      color: rgba(255,255,255,0.7);
+      font-size: 0.85rem;
+    }
+    
+    .clients-table .status {
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      display: inline-block;
+      text-align: center;
+      min-width: 80px;
+    }
+    
+    .status.new {
+      background: rgba(52, 152, 219, 0.3);
+      color: #74c2ff;
+    }
+    
+    .status.contacted {
+      background: rgba(241, 196, 15, 0.3);
+      color: #ffeb3b;
+    }
+    
+    .status.completed {
+      background: rgba(46, 204, 113, 0.3);
+      color: #69f0ae;
+    }
+    
+    .action-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: rgba(255,255,255,0.7);
+      transition: color 0.2s;
+    }
+    
+    .action-btn:hover {
+      color: white;
+    }
+    
+    .tab-panel {
+      display: none;
+    }
+    
+    .tab-panel.active {
+      display: block;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: rgba(255,255,255,0.6);
+    }
+    
+    .empty-state i {
+      font-size: 3rem;
+      margin-bottom: 15px;
+      opacity: 0.5;
+    }
+    
+    .empty-state p {
+      font-size: 1.1rem;
+      margin-bottom: 5px;
+    }
+    
+    .empty-state span {
+      font-size: 0.9rem;
+    }
+    
+    @media (max-width: 768px) {
+      .dashboard-main {
+        flex-direction: column;
+      }
+      
+      .dashboard-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding: 10px 0;
+      }
+      
+      .sidebar-nav {
+        display: flex;
+        overflow-x: auto;
+        padding: 0 10px;
+      }
+      
+      .sidebar-nav li {
+        margin-bottom: 0;
+        margin-right: 2px;
+      }
+      
+      .sidebar-nav a {
+        padding: 8px 15px;
+        border-left: none;
+        border-bottom: 3px solid transparent;
+        white-space: nowrap;
+      }
+      
+      .sidebar-nav a:hover,
+      .sidebar-nav a.active {
+        border-left-color: transparent;
+        border-bottom-color: var(--primary-color, #e30718);
+      }
+      
+      .dashboard-content {
+        padding: 15px;
+      }
+      
+      .clients-table th:nth-child(4),
+      .clients-table td:nth-child(4) {
+        display: none;
+      }
+      
+      .dashboard-title h1 {
+        font-size: 1.2rem;
+      }
+      
+      .logout-btn span,
+      .return-btn span {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <header class="dashboard-header">
+      <div class="dashboard-title">
+        <img src="images/Vos-Thermos-Logo-petit.png" alt="Vosthermos Logo" class="dashboard-logo">
+        <h1>Tableau de bord administrateur</h1>
+      </div>
+      <div class="dashboard-actions">
+        <a href="index.html" class="return-link">
+          <button class="return-btn">
+            <i class="fas fa-home"></i> <span>Accueil</span>
+          </button>
+        </a>
+        <button id="logoutBtn" class="logout-btn">
+          <i class="fas fa-sign-out-alt"></i> <span>Déconnexion</span>
+        </button>
+      </div>
+    </header>
+    
+    <div class="dashboard-main">
+      <nav class="dashboard-sidebar">
+        <ul class="sidebar-nav">
+          <li>
+            <a href="#clients" class="tab-link active" data-tab="clients-panel">
+              <i class="fas fa-users"></i> Clients
+            </a>
+          </li>
+          <li>
+            <a href="#stats" class="tab-link" data-tab="stats-panel">
+              <i class="fas fa-chart-bar"></i> Statistiques
+            </a>
+          </li>
+          <li>
+            <a href="#settings" class="tab-link" data-tab="settings-panel">
+              <i class="fas fa-cog"></i> Paramètres
+            </a>
+          </li>
+        </ul>
+      </nav>
+      
+      <main class="dashboard-content">
+        <div id="clients-panel" class="dashboard-panel tab-panel active">
+          <h2>Liste des clients</h2>
+          
+          <table class="clients-table">
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Contact</th>
+                <th>Service</th>
+                <th>Date</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Jean Dupont</td>
+                <td>
+                  <div>jean.dupont@example.com</div>
+                  <div>514-555-1234</div>
+                </td>
+                <td>Remplacement de vitre thermos</td>
+                <td class="date">11 avril 2025</td>
+                <td><span class="status new">Nouveau</span></td>
+                <td>
+                  <button class="action-btn" title="Afficher"><i class="fas fa-eye"></i></button>
+                  <button class="action-btn" title="Modifier"><i class="fas fa-edit"></i></button>
+                  <button class="action-btn" title="Supprimer"><i class="fas fa-trash"></i></button>
+                </td>
+              </tr>
+              <tr>
+                <td>Marie Tremblay</td>
+                <td>
+                  <div>marie.t@example.com</div>
+                  <div>438-555-6789</div>
+                </td>
+                <td>Réparation de portes en bois</td>
+                <td class="date">10 avril 2025</td>
+                <td><span class="status contacted">Contacté</span></td>
+                <td>
+                  <button class="action-btn" title="Afficher"><i class="fas fa-eye"></i></button>
+                  <button class="action-btn" title="Modifier"><i class="fas fa-edit"></i></button>
+                  <button class="action-btn" title="Supprimer"><i class="fas fa-trash"></i></button>
+                </td>
+              </tr>
+              <tr>
+                <td>Pierre Lavoie</td>
+                <td>
+                  <div>p.lavoie@example.com</div>
+                  <div>450-555-4321</div>
+                </td>
+                <td>Remplacement de quincaillerie</td>
+                <td class="date">7 avril 2025</td>
+                <td><span class="status completed">Complété</span></td>
+                <td>
+                  <button class="action-btn" title="Afficher"><i class="fas fa-eye"></i></button>
+                  <button class="action-btn" title="Modifier"><i class="fas fa-edit"></i></button>
+                  <button class="action-btn" title="Supprimer"><i class="fas fa-trash"></i></button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div id="stats-panel" class="dashboard-panel tab-panel">
+          <h2>Statistiques</h2>
+          <div class="empty-state">
+            <i class="fas fa-chart-bar"></i>
+            <p>Aucune statistique disponible pour le moment</p>
+            <span>Les données seront affichées une fois que nous aurons suffisamment d'informations</span>
+          </div>
+        </div>
+        
+        <div id="settings-panel" class="dashboard-panel tab-panel">
+          <h2>Paramètres</h2>
+          <div class="empty-state">
+            <i class="fas fa-cog"></i>
+            <p>Configuration du système</p>
+            <span>Cette section sera disponible prochainement</span>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Vérification de session
+      if (!sessionStorage.getItem('authenticated')) {
+        window.location.href = 'user.html';
+        return;
+      }
+      
+      // Navigation par onglets
+      const tabLinks = document.querySelectorAll('.tab-link');
+      const tabPanels = document.querySelectorAll('.tab-panel');
+      
+      tabLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+          e.preventDefault();
+          
+          // Désactiver tous les onglets et panneaux
+          tabLinks.forEach(l => l.classList.remove('active'));
+          tabPanels.forEach(p => p.classList.remove('active'));
+          
+          // Activer l'onglet cliqué et son panneau correspondant
+          this.classList.add('active');
+          const targetPanel = document.getElementById(this.dataset.tab);
+          if (targetPanel) {
+            targetPanel.classList.add('active');
+          }
+        });
+      });
+      
+      // Gestion de la déconnexion
+      document.getElementById('logoutBtn').addEventListener('click', function() {
+        sessionStorage.removeItem('authenticated');
+        window.location.href = 'user.html';
+      });
+    });
+  </script>
+</body>
+</html>
