@@ -30,8 +30,8 @@
     
     /* Correction pour la page d'accueil - titre masqué par le header */
     #accueil .roll-cont-eyeb {
-        margin-top: 150px; /* Encore plus d'espace au-dessus du titre pour éviter le header */
-        padding-top: 30px; /* Plus de padding interne */
+        margin-top: 75px; /* Espace réduit de moitié entre le header et le titre */
+        padding-top: 15px; /* Padding réduit pour un espacement plus compact */
         font-size: 1.2rem; /* Plus grand pour meilleure visibilité */
         display: block; /* Assurer que c'est un bloc */
         position: relative; /* Pour la position z-index */
@@ -53,9 +53,9 @@
         padding-top: 100px; /* Beaucoup plus de padding pour pousser tout le contenu vers le bas */
     }
     
-    /* Réduire l'espace entre les callout items et les reviews - encore moins agressivement */
+    /* Réduire l'espace entre les callout items et les reviews - ajustement minimal */
     #accueil .roll-cont-col.reviews {
-        margin-top: -45px; /* Valeur encore réduite de moitié */
+        margin-top: -22px; /* Valeur encore réduite de moitié */
         padding-top: 0; /* Supprime tout padding en haut */
         position: relative; /* Permet le chevauchement */
         z-index: 3; /* Assure que les reviews sont au-dessus d'autres éléments si nécessaire */

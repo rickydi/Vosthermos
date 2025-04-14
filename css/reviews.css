@@ -23,10 +23,10 @@
     bottom: auto !important;
 }
 
-/* Ajustement spécifique pour mobile uniquement - encore plus subtil */
+/* Ajustement spécifique pour mobile uniquement - ajustement minimal */
 @media (max-width: 768px) {
     .roll-cont-col.reviews {
-        margin-top: -12px !important; /* Marge négative encore plus réduite */
+        margin-top: -6px !important; /* Marge négative réduite au minimum */
     }
 }
 
