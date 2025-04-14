@@ -30,8 +30,8 @@
     
     /* Correction pour la page d'accueil - titre masqué par le header */
     #accueil .roll-cont-eyeb {
-        margin-top: 75px; /* Espace réduit de moitié entre le header et le titre */
-        padding-top: 15px; /* Padding réduit pour un espacement plus compact */
+        margin-top: 38px; /* Encore réduit de moitié */
+        padding-top: 8px; /* Padding réduit de moitié */
         font-size: 1.2rem; /* Plus grand pour meilleure visibilité */
         display: block; /* Assurer que c'est un bloc */
         position: relative; /* Pour la position z-index */
