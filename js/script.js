@@ -109,13 +109,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Navigation tactile pour mobile (swipe) - Version améliorée
+    // Navigation tactile pour mobile (swipe et scroll) - Version améliorée
     let touchStartX = 0;
     let touchEndX = 0;
-    let touchStartY = 0; // Ajout pour détecter les swipes verticaux vs horizontaux
+    let touchStartY = 0;
     let touchEndY = 0;
     let minSwipeDistance = 30; // Réduite pour plus de sensibilité
+    let minVerticalSwipeDistance = 40; // Distance minimum pour considérer un scroll vertical comme navigation
     let swipeInProgress = false;
+    let isMobile = window.innerWidth <= 768; // Détection de mobile par la largeur d'écran
+    
+    // Mise à jour de la détection mobile lors du redimensionnement
+    window.addEventListener('resize', function() {
+        isMobile = window.innerWidth <= 768;
+    });
     
     document.addEventListener('touchstart', function(e) {
         // Réinitialiser l'état
@@ -133,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }, { passive: false });
     
     document.addEventListener('touchmove', function(e) {
-        // Ajouter une gestion de l'événement touchmove pour des swipes plus réactifs
+        // Si une navigation est déjà en cours, ne rien faire
         if (swipeInProgress) return;
         
         const currentX = e.changedTouches[0].screenX;
@@ -142,7 +149,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const deltaX = currentX - touchStartX;
         const deltaY = currentY - touchStartY;
         
-        // Vérifier si c'est principalement un swipe horizontal (plus horizontal que vertical)
+        // Déterminer si l'élément courant permet le défilement vertical
+        const currentItem = homeRollItems[currentSlide];
+        const contentWrapper = currentItem.querySelector('.roll-content-w');
+        const isScrollable = contentWrapper && contentWrapper.scrollHeight > contentWrapper.clientHeight;
+        
+        // Vérifier si on est sur un élément scrollable et si on est à son début ou sa fin
+        const isAtTop = !contentWrapper || contentWrapper.scrollTop <= 10;
+        const isAtBottom = !contentWrapper || (contentWrapper.scrollHeight - contentWrapper.scrollTop <= contentWrapper.clientHeight + 10);
+        
+        // Traiter comme navigation si:
+        // 1. C'est un swipe horizontal significatif
         if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > minSwipeDistance) {
             swipeInProgress = true; // Empêcher des déclenchements multiples
             
@@ -155,6 +172,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log("Swipe mobile détecté: gauche (page suivante)");
                 navigateSlide(1);
             }
+        } 
+        // 2. C'est un scroll vertical significatif ET on est sur mobile ET (on est tout en haut en scrollant vers le haut OU tout en bas en scrollant vers le bas)
+        else if (isMobile && Math.abs(deltaY) > minVerticalSwipeDistance && Math.abs(deltaY) > Math.abs(deltaX)) {
+            // Si on est au début du contenu et qu'on tire vers le bas (pour aller à la page précédente)
+            if (deltaY > 0 && isAtTop) {
+                swipeInProgress = true;
+                console.log("Scroll vertical détecté: vers le bas (page précédente)");
+                navigateSlide(-1);
+                e.preventDefault(); // Empêcher le scroll standard
+            } 
+            // Si on est à la fin du contenu et qu'on tire vers le haut (pour aller à la page suivante)
+            else if (deltaY < 0 && isAtBottom) {
+                swipeInProgress = true;
+                console.log("Scroll vertical détecté: vers le haut (page suivante)");
+                navigateSlide(1);
+                e.preventDefault(); // Empêcher le scroll standard
+            }
+            // Sinon, laisser le scroll normal se faire
         }
     }, { passive: false });
     
@@ -181,6 +216,25 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 // Swipe vers la gauche - page suivante
                 console.log("Swipe mobile détecté (touchend): gauche");
+                navigateSlide(1);
+            }
+        }
+        // Vérifier pour la navigation verticale (uniquement sur mobile)
+        else if (isMobile && Math.abs(swipeDistanceY) > minVerticalSwipeDistance && Math.abs(swipeDistanceY) > Math.abs(swipeDistanceX)) {
+            const currentItem = homeRollItems[currentSlide];
+            const contentWrapper = currentItem.querySelector('.roll-content-w');
+            
+            // Vérifier si on est au début ou à la fin du contenu scrollable
+            const isAtTop = !contentWrapper || contentWrapper.scrollTop <= 10;
+            const isAtBottom = !contentWrapper || (contentWrapper.scrollHeight - contentWrapper.scrollTop <= contentWrapper.clientHeight + 10);
+            
+            if (swipeDistanceY > 0 && isAtTop) {
+                // Swipe vers le bas (en haut du contenu) - page précédente
+                console.log("Swipe vertical détecté (touchend): bas au début");
+                navigateSlide(-1);
+            } else if (swipeDistanceY < 0 && isAtBottom) {
+                // Swipe vers le haut (en bas du contenu) - page suivante
+                console.log("Swipe vertical détecté (touchend): haut à la fin");
                 navigateSlide(1);
             }
         }
