@@ -45,11 +45,43 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     menuLinks.forEach(link => {
-        link.addEventListener('click', function() {
+        link.addEventListener('click', function(e) {
+            // Empêcher le comportement par défaut
+            e.preventDefault();
+            
+            // Fermer le menu
             menuBtn.classList.remove('active');
             menuOverlay.classList.remove('active');
+            
+            // Récupérer l'index de la slide cible
             const index = parseInt(this.dataset.index);
-            scrollToSlide(index);
+            if (isNaN(index)) {
+                console.error("Index invalide dans le lien de menu");
+                return;
+            }
+            
+            console.log("Navigation depuis menu vers slide " + index);
+            
+            // Force l'arrêt de toute animation en cours
+            isAnimating = false;
+            window.isAnimating = false;
+            
+            // Réinitialiser les styles pour éviter tout conflit
+            homeRollW.style.transition = 'none';
+            void homeRollW.offsetWidth; // Force un reflow
+            
+            // Utiliser un délai plus long pour s'assurer que l'interface a bien fini de réagir
+            setTimeout(() => {
+                // Réinitialiser complètement les classes actives
+                document.querySelectorAll('.nav-dot').forEach(dot => dot.classList.remove('active'));
+                homeRollItems.forEach(item => item.classList.remove('active'));
+                
+                // Forcer un nouveau layout avant de déclencher la navigation
+                void document.body.offsetHeight;
+                
+                // Lancer la navigation vers la slide
+                scrollToSlide(index);
+            }, 100);
         });
     });
 
@@ -105,6 +137,9 @@ document.addEventListener('DOMContentLoaded', function() {
     let isAnimating = false;
     let startX, startScrollLeft;
     let isDragging = false;
+    
+    // Exposer isAnimating comme variable globale pour permettre la coordination avec desktop-fix.js
+    window.isAnimating = false;
 
     // Fonction pour naviguer entre les slides
     function navigateSlide(direction) {
@@ -163,31 +198,45 @@ document.addEventListener('DOMContentLoaded', function() {
     // Fonction pour effectuer la transition entre les slides
     function performSlideTransition(index) {
         console.log(`Navigation vers slide ${index}`); // Activer les logs pour debug
+        
+        // S'assurer que l'index est valide
+        if (index < 0 || index >= homeRollItems.length) {
+            console.error(`Index de slide invalide: ${index}`);
+            return;
+        }
+        
+        // Marquer comme en cours d'animation
         isAnimating = true;
+        window.isAnimating = true;
+        
+        // Mettre à jour l'index actuel
         currentSlide = index;
         
-        // Mettre à jour les classes actives
-        document.querySelectorAll('.nav-dot').forEach((dot, i) => {
-            if (i === index) {
-                dot.classList.add('active');
-            } else {
-                dot.classList.remove('active');
-            }
-        });
+        // Désactiver toutes les classes actives d'abord
+        document.querySelectorAll('.nav-dot').forEach(dot => dot.classList.remove('active'));
+        homeRollItems.forEach(item => item.classList.remove('active'));
         
-        homeRollItems.forEach((item, i) => {
-            if (i === index) {
-                item.classList.add('active');
-            } else {
-                item.classList.remove('active');
-            }
-        });
+        // Puis activer uniquement celle qui correspond à l'index
+        const dots = document.querySelectorAll('.nav-dot');
+        if (dots && dots[index]) {
+            dots[index].classList.add('active');
+        }
         
-        // Forcer le calcul correct de la largeur et force le recalcul du layout
-        // Parfois la largeur n'est pas correctement calculée au premier chargement
+        const targetSlide = homeRollItems[index];
+        if (targetSlide) {
+            targetSlide.classList.add('active');
+        }
+        
+        // Forcer le calcul correct de la largeur et forcer le recalcul du layout
         const slideWidth = window.innerWidth; 
         const targetTranslateX = -(slideWidth * index);
         console.log(`slideWidth = ${slideWidth}, targetTranslateX = ${targetTranslateX}`); 
+        
+        // Réinitialiser la transition pour éviter tout conflit
+        homeRollW.style.transition = 'none';
+        
+        // Forcer le navigateur à appliquer cette réinitialisation avant d'ajouter la transition
+        void homeRollW.offsetWidth; // Déclenche un reflow
         
         // Appliquer la transformation avec une animation
         homeRollW.style.transition = 'transform 1s cubic-bezier(0.16, 1, 0.3, 1)';
@@ -197,6 +246,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             console.log(`Navigation terminée vers slide ${index}`);
             isAnimating = false;
+            window.isAnimating = false;
         }, 1000);
     }
 
@@ -245,8 +295,28 @@ document.addEventListener('DOMContentLoaded', function() {
             // Obtenir l'index de la section de contact (généralement la dernière section)
             const contactIndex = Array.from(homeRollItems).length - 1;
             
-            // Faire défiler jusqu'à la section de contact
-            scrollToSlide(contactIndex);
+            console.log("Navigation vers contact depuis bouton");
+            
+            // Force l'arrêt de toute animation en cours
+            isAnimating = false;
+            window.isAnimating = false;
+            
+            // Réinitialiser les styles pour éviter tout conflit
+            homeRollW.style.transition = 'none';
+            void homeRollW.offsetWidth; // Force un reflow
+            
+            // Utiliser un délai pour s'assurer que l'interface a bien fini de réagir
+            setTimeout(() => {
+                // Réinitialiser complètement les classes actives
+                document.querySelectorAll('.nav-dot').forEach(dot => dot.classList.remove('active'));
+                homeRollItems.forEach(item => item.classList.remove('active'));
+                
+                // Forcer un nouveau layout avant de déclencher la navigation
+                void document.body.offsetHeight;
+                
+                // Faire défiler jusqu'à la section de contact
+                scrollToSlide(contactIndex);
+            }, 100);
         });
     });
 

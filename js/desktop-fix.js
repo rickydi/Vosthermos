@@ -233,9 +233,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function goToSlide(index) {
+        // Accéder à la variable isAnimating du script principal et la réinitialiser
+        // pour éviter les conflits de navigation
+        if (window.isAnimating !== undefined) {
+            window.isAnimating = false;
+        }
+        
+        console.log("Navigation desktop vers slide " + index);
+        
         const dots = document.querySelectorAll('.nav-dot');
         if (dots && dots[index]) {
-            dots[index].click();
+            // Petit délai pour s'assurer que l'animation précédente est terminée
+            setTimeout(() => {
+                dots[index].click();
+            }, 50);
         } else {
             // Navigation manuelle
             const slides = document.querySelectorAll('[data-roll="item"]');

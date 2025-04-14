@@ -11,18 +11,21 @@
     <link rel="stylesheet" href="css/responsive.css">
     <link rel="stylesheet" href="css/reviews.css">
     
-    <!-- Styles directs pour la rotation des commentaires -->
+    <!-- Styles directs pour les commentaires -->
     <style>
-        /* Ajustements pour les commentaires */
-        .stars { color: #ffff00 !important; }
-        /* Afficher uniquement les 3 premiers commentaires au départ */
-        .review-item { display: none !important; }
-        .review-item:nth-child(1),
-        .review-item:nth-child(2),
-        .review-item:nth-child(3) {
-            display: block !important;
-            opacity: 1 !important;
-            visibility: visible !important;
+        /* Forcer les étoiles jaunes */
+        .stars i.fas.fa-star { 
+            color: #FFFF00 !important; 
+            display: inline-block !important;
+        }
+        /* Rapprocher les textes */
+        .review-item p, .review-item h3 {
+            margin: 1px 0 !important;
+        }
+        /* Assurer que le défilement CSS fonctionne */
+        .reviews-container {
+            width: 100% !important;
+            animation: scrollVert 15s linear infinite !important;
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">

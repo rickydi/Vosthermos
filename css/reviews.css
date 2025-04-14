@@ -3,8 +3,8 @@
 /* Étoiles en jaune vif */
 .stars, .stars i, .fa-star {
     color: #FFEA00 !important; /* Jaune plus intense pour s'assurer qu'il s'applique */
-    font-size: 1.1rem !important;
-    margin: 3px 0 !important;
+    font-size: 1rem !important; /* Légèrement plus petit */
+    margin: 1px 0 !important; /* Marge réduite */
     display: block !important;
 }
 
@@ -14,15 +14,24 @@
     display: inline-block !important;
 }
 
-/* Conteneur parent - fixe la hauteur globale */
+/* Positionner les commentaires juste sous le titre h2 "PORTES ET FENÊTRES" */
+.roll-cont-col.reviews {
+    margin-top: 80px !important; /* Marge importante vers le bas */
+    position: relative !important;
+    z-index: 1 !important; /* En-dessous du titre */
+    top: auto !important; /* Position naturelle */
+    bottom: auto !important;
+}
+
+/* Conteneur parent - clairement sous le titre */
 .awards-w {
     display: block !important;
-    margin: 0 !important;
+    margin: 30px 0 0 0 !important; /* Marge importante en haut */
     padding: 0 !important;
     opacity: 1 !important;
-    transform: none !important;
+    transform: none !important; /* Pas de transformation */
     width: 100% !important;
-    height: 300px !important; /* Hauteur du conteneur visible */
+    height: 260px !important; /* Hauteur réduite pour éviter de monter trop haut */
     overflow: hidden !important;
     position: relative !important;
 }
@@ -63,23 +72,27 @@
     margin-bottom: 8px !important;
 }
 
-/* Style des textes */
+/* Style des textes - rapprochés davantage */
 .review-item p {
     font-size: 0.85rem !important;
-    margin: 0 0 1px 0 !important; /* Marge réduite entre le nom et la citation */
+    margin: 0 !important; /* Pas de marge */
     opacity: 0.9 !important;
 }
 
 .review-item h3 {
     font-size: 1.1rem !important;
-    line-height: 1.2 !important; /* Line-height réduit */
-    margin: 1px 0 !important; /* Marge réduite */
+    line-height: 1.15 !important; /* Line-height encore plus réduit */
+    margin: 0 0 2px 0 !important; /* Marge uniquement en bas du titre */
 }
 
-/* Style pour assurer que les étoiles et les textes sont proches */
+/* Rapprocher davantage les éléments */
+.stars {
+    margin-bottom: 1px !important;
+}
+
 .review-item > * {
-    margin-top: 2px !important;
-    margin-bottom: 2px !important;
+    margin-top: 0 !important;
+    margin-bottom: 1px !important;
 }
 
 /* Mobile */
