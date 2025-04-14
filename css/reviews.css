@@ -16,11 +16,18 @@
 
 /* Positionner les commentaires juste sous le titre h2 "PORTES ET FENÊTRES" */
 .roll-cont-col.reviews {
-    margin-top: 80px !important; /* Marge importante vers le bas */
+    margin-top: 10px !important; /* Marge très réduite */
     position: relative !important;
     z-index: 1 !important; /* En-dessous du titre */
     top: auto !important; /* Position naturelle */
     bottom: auto !important;
+}
+
+/* Ajustement spécifique pour mobile uniquement - encore plus subtil */
+@media (max-width: 768px) {
+    .roll-cont-col.reviews {
+        margin-top: -12px !important; /* Marge négative encore plus réduite */
+    }
 }
 
 /* Conteneur parent - clairement sous le titre */

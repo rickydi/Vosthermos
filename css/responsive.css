@@ -53,6 +53,47 @@
         padding-top: 100px; /* Beaucoup plus de padding pour pousser tout le contenu vers le bas */
     }
     
+    /* Réduire l'espace entre les callout items et les reviews - encore moins agressivement */
+    #accueil .roll-cont-col.reviews {
+        margin-top: -45px; /* Valeur encore réduite de moitié */
+        padding-top: 0; /* Supprime tout padding en haut */
+        position: relative; /* Permet le chevauchement */
+        z-index: 3; /* Assure que les reviews sont au-dessus d'autres éléments si nécessaire */
+    }
+    
+    /* Réduire la taille du contenu - mais très légèrement */
+    #accueil .roll-cont-col {
+        gap: 10px; /* Plus d'espace */
+    }
+    
+    /* Ajuster l'espace des éléments linecallout */
+    #accueil .line-callout-w {
+        margin-top: 10px; /* Réduire encore la marge du conteneur de callout */
+        margin-bottom: 0; /* Éliminer la marge inférieure */
+    }
+    
+    #accueil .linecallout-list {
+        gap: 3px; /* Réduire davantage l'espace entre les éléments */
+    }
+    
+    /* Réduire la taille des items linecallout sur mobile */
+    #accueil .linecallout-item {
+        margin-bottom: 2px; /* Presque pas d'espace entre les items */
+        padding: 5px; /* Réduire le padding interne */
+    }
+    
+    /* Compacter les textes dans les items */
+    #accueil .linecallout-item .paragraph {
+        margin: 0; /* Supprimer les marges */
+        line-height: 1.2; /* Réduire l'interligne */
+    }
+    
+    /* Ajuster les espaces entre les éléments de review */
+    #accueil .awards-w {
+        margin-top: 0; /* Supprimer la marge négative qui l'éloigne */
+        margin-bottom: 20px; /* Réduire la marge du bas */
+    }
+    
     /* S'assurer que le titre est toujours visible malgré le header */
     #accueil .roll-cont-item {
         margin-top: 50px; /* Marge supplémentaire pour descendre l'élément */
