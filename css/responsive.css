@@ -1,27 +1,5 @@
 /* Styles responsives et ajustements pour Vosthermos */
 
-/* Correction pour le logo - préserver le ratio sur tous les écrans */
-.logo-img {
-    max-width: 100%;
-    height: auto;
-    object-fit: contain;
-    width: auto;
-    max-height: 55px;
-}
-
-@media (max-width: 768px) {
-    .logo-img {
-        max-height: 40px;
-        width: auto;
-    }
-    
-    .logo {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-}
-
 /* Carte Google Maps - disposition conditionnelle */
 .contact-form-map-container {
     display: flex;
@@ -73,7 +51,7 @@
     
     /* Ajouter un espace entre les options */
     .lang-option[data-lang="fr"] {
-        margin-bottom: 10px !important;
+        margin-bottom: 5px !important; /* Réduit de moitié */
     }
     
     .dashboard-main {
