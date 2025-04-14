@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion utilisateur</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    body {
+      background: var(--secondary-color, #003845);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding: 20px;
+    }
+    .return-link {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 10;
+    }
+    .return-btn {
+      background: var(--primary-color, #e30718);
+      color: white;
+      border: none;
+      border-radius: 30px;
+      padding: 8px 16px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s, transform 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .return-btn:hover {
+      background: #b00513;
+      transform: translateY(-2px);
+    }
+    .return-btn i {
+      font-size: 0.9rem;
+    }
+    .login-container {
+      background: rgba(0,0,0,0.7);
+      border-radius: 12px;
+      box-shadow: 0 4px 24px #0005;
+      padding: 32px 24px 24px 24px;
+      max-width: 350px;
+      width: 100%;
+      text-align: center;
+    }
+    .login-container h1 {
+      color: var(--primary-color, #e30718);
+      font-size: 1.5rem;
+      margin-bottom: 18px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    .login-container label {
+      display: block;
+      margin-bottom: 8px;
+      color: #fff;
+      font-weight: 500;
+      text-align: left;
+    }
+    .login-container input[type="password"] {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 6px;
+      border: 1px solid #fff2;
+      background: #fff1;
+      color: #fff;
+      font-size: 1rem;
+      margin-bottom: 16px;
+      outline: none;
+      transition: border 0.2s;
+    }
+    .login-container input[type="password"]:focus {
+      border: 1.5px solid var(--primary-color, #e30718);
+      background: #fff2;
+    }
+    .login-container button {
+      width: 100%;
+      padding: 10px 0;
+      background: var(--primary-color, #e30718);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .login-container button:hover {
+      background: #b00513;
+    }
+    .login-container .error {
+      color: #ff4d4d;
+      margin-bottom: 10px;
+      font-size: 0.95rem;
+      min-height: 1.2em;
+    }
+    .login-container .success {
+      color: #28d77c;
+      margin-bottom: 10px;
+      font-size: 1.05rem;
+      min-height: 1.2em;
+    }
+    .user-content {
+      margin-top: 24px;
+      color: #fff;
+      font-size: 1.1rem;
+      background: #003845;
+      border-radius: 8px;
+      padding: 18px 10px;
+      box-shadow: 0 2px 8px #0002;
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="return-link">
+    <button type="button" class="return-btn">
+      <i class="fas fa-arrow-left"></i> Retour à l'accueil
+    </button>
+  </a>
+  
+  <div class="login-container" id="loginBox">
+    <h1>Connexion utilisateur</h1>
+    <form id="loginForm" autocomplete="off">
+      <div class="error" id="loginError"></div>
+      <label for="password">Mot de passe :</label>
+      <input type="password" id="password" name="password" required autocomplete="off" autofocus>
+      <button type="submit">Entrer</button>
+    </form>
+    <div class="user-content" id="userContent" style="display:none;">
+      <h2>Bienvenue !</h2>
+      <p>Vous êtes connecté à l'espace utilisateur.</p>
+    </div>
+  </div>
+  <script>
+    const loginForm = document.getElementById('loginForm');
+    const loginError = document.getElementById('loginError');
+    const userContent = document.getElementById('userContent');
+    const loginBox = document.getElementById('loginBox');
+
+    loginForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      loginError.textContent = '';
+      const pwd = document.getElementById('password').value.trim();
+      if (pwd === 'yesum') {
+        loginForm.style.display = 'none';
+        userContent.style.display = 'block';
+      } else {
+        loginError.textContent = 'Mot de passe incorrect.';
+        userContent.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>

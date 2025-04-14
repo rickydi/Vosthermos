@@ -53,6 +53,14 @@ document.addEventListener('DOMContentLoaded', function() {
             menuBtn.classList.remove('active');
             menuOverlay.classList.remove('active');
             
+            // Vérifier si c'est un lien externe comme le login
+            if (this.id === 'menu-login-link' || !this.hasAttribute('data-index')) {
+                console.log("Navigation vers lien externe: " + this.getAttribute('href'));
+                // Redirection vers la page externe
+                window.location.href = this.getAttribute('href');
+                return;
+            }
+            
             // Récupérer l'index de la slide cible
             const index = parseInt(this.dataset.index);
             if (isNaN(index)) {
