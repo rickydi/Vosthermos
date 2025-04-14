@@ -19,8 +19,42 @@
 }
 
 /* Uniquement sur mobile la carte passe en dessous du formulaire */
+/* Styles spécifiques pour le sélecteur de langue sur mobile */
 @media (max-width: 768px) {
-    .contact-form-map-container {
+    /* Augmenter l'espace pour les options de langue */
+    #language-selector {
+        position: relative;
+        margin-right: 10px;
+    }
+    
+    /* Rendre les options de langue plus grandes et faciles à toucher */
+    #lang-toggle {
+        padding: 0 !important;
+    }
+    
+    .lang-option {
+        padding: 8px 12px !important;
+        font-size: 1.1rem !important;
+        display: block !important;
+        border-radius: 4px;
+        transition: background 0.2s, color 0.2s;
+    }
+    
+    .lang-option.active {
+        color: #e30718 !important;
+        font-weight: bold !important;
+    }
+    
+    .lang-option:not(.active) {
+        opacity: 0.7;
+    }
+    
+    /* Ajouter un espace entre les options */
+    .lang-option[data-lang="fr"] {
+        margin-bottom: 10px !important;
+    }
+    
+    .dashboard-main {
         flex-direction: column;
     }
     

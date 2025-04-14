@@ -47,8 +47,20 @@ const translations = {
   fr: {} // Le français est la langue par défaut, donc pas besoin de mapping
 };
 
+// Fonction pour changer la langue dans la nouvelle interface (FR/EN superposés)
 function setLanguage(lang) {
   document.documentElement.lang = lang;
+  
+  // Mettre à jour les options de langue dans le sélecteur
+  const langOptions = document.querySelectorAll('.lang-option');
+  langOptions.forEach(option => {
+    if (option.getAttribute('data-lang') === lang) {
+      option.classList.add('active');
+    } else {
+      option.classList.remove('active');
+    }
+  });
+  
   // Parcourir tous les éléments à traduire
   document.querySelectorAll("[data-i18n]").forEach(el => {
     const key = el.getAttribute("data-i18n");
@@ -72,23 +84,33 @@ function setLanguage(lang) {
     document.getElementById("message")?.setAttribute("placeholder", "Message");
   }
 
-  // Mettre à jour le texte du bouton de langue
-  const langText = document.getElementById("lang-text");
-  if (langText) {
-    langText.textContent = "FR / EN";
-  }
+  // Sauvegarder la langue dans le localStorage
+  localStorage.setItem('vosthermosLang', lang);
 }
 
 // Initialisation
 document.addEventListener("DOMContentLoaded", () => {
-  let currentLang = "fr";
+  // Récupérer la langue sauvegardée ou utiliser le français par défaut
+  let currentLang = localStorage.getItem('vosthermosLang') || "fr";
+  
+  // Appliquer la langue au chargement
   setLanguage(currentLang);
 
-  const langBtn = document.getElementById("lang-toggle");
-  if (langBtn) {
-    langBtn.addEventListener("click", () => {
-      currentLang = currentLang === "fr" ? "en" : "fr";
-      setLanguage(currentLang);
+  // Nouveau sélecteur de langue avec options FR/EN superposées
+  const langToggle = document.getElementById("lang-toggle");
+  const langOptions = document.querySelectorAll('.lang-option');
+  
+  if (langToggle) {
+    // Gérer les clics sur les options individuelles
+    langOptions.forEach(option => {
+      option.addEventListener('click', function(e) {
+        e.stopPropagation(); // Empêcher la propagation au bouton parent
+        const newLang = this.getAttribute('data-lang');
+        if (newLang !== currentLang) {
+          currentLang = newLang;
+          setLanguage(currentLang);
+        }
+      });
     });
   }
 });

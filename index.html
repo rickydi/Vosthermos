@@ -69,21 +69,24 @@
                 <a href="/" class="logo">
                     <img src="images/cropped-Vos-Thermos-Logo_Fond.jpg" alt="Vosthermos Logo" class="logo-img">
                 </a>
-                <div style="display: flex; align-items: center; gap: 32px; margin-left: auto;">
-                    <div class="header-social-icons" style="display: flex; gap: 24px; align-items: center;">
-                        <a href="https://www.facebook.com/profile.php?id=61562303553558" class="social-icon" style="color: white;"><i class="fab fa-facebook-f"></i></a>
-                        <a href="http://instagram.com/vosthermos/" class="social-icon" style="color: white;"><i class="fab fa-instagram"></i></a>
+                    <div style="display: flex; align-items: center; gap: 32px; margin-left: auto;">
+                        <div class="header-social-icons" style="display: flex; gap: 24px; align-items: center;">
+                            <a href="https://www.facebook.com/profile.php?id=61562303553558" class="social-icon" style="color: white;"><i class="fab fa-facebook-f"></i></a>
+                            <a href="http://instagram.com/vosthermos/" class="social-icon" style="color: white;"><i class="fab fa-instagram"></i></a>
+                        </div>
+                        <!-- Bouton langue - Version mobile améliorée -->
+                        <div id="language-selector" style="position:relative;">
+                            <button id="lang-toggle" style="background:none;border:none;cursor:pointer;margin-right:10px;color:white;font-weight:bold;font-size:16px;display:flex;flex-direction:column;align-items:center;padding:0;" aria-label="Switch language">
+                                <span class="lang-option active" data-lang="fr" style="margin-bottom:3px;padding:5px;">FR</span>
+                                <span class="lang-option" data-lang="en" style="padding:5px;">EN</span>
+                            </button>
+                        </div>
+                        <div class="mobile-menu-btn">
+                            <div class="menu-icon-line"></div>
+                            <div class="menu-icon-line"></div>
+                            <div class="menu-icon-line"></div>
+                        </div>
                     </div>
-                    <!-- Bouton langue -->
-                    <button id="lang-toggle" style="background:none;border:none;cursor:pointer;margin-right:10px;color:white;font-weight:bold;font-size:16px;" aria-label="Switch language">
-                        <span id="lang-text">FR / EN</span>
-                    </button>
-                    <div class="mobile-menu-btn">
-                        <div class="menu-icon-line"></div>
-                        <div class="menu-icon-line"></div>
-                        <div class="menu-icon-line"></div>
-                    </div>
-                </div>
             </div>
 
             <!-- Menu overlay -->
