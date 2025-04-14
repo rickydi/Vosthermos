@@ -123,6 +123,20 @@ img {
     height: auto; /* Hauteur adaptée au contenu */
 }
 
+/* Réduire la hauteur du header sur mobile */
+@media (max-width: 768px) {
+    .nav-w {
+        padding: 5px 15px; /* Padding réduit */
+        max-height: 60px; /* Hauteur maximale fixée */
+    }
+    
+    /* S'assurer que le logo reste proportionné */
+    .nav-w .logo-img {
+        max-height: 50px;
+        width: auto;
+    }
+}
+
 .logo {
     position: relative;
     z-index: 1010;

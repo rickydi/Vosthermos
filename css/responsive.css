@@ -30,18 +30,32 @@
     
     /* Correction pour la page d'accueil - titre masqué par le header */
     #accueil .roll-cont-eyeb {
-        margin-top: 60px; /* Espace supplémentaire au-dessus du titre */
-        padding-top: 20px; /* Padding interne supplémentaire */
-        font-size: 1.1rem; /* Légèrement plus grand */
+        margin-top: 100px; /* Beaucoup plus d'espace au-dessus du titre */
+        padding-top: 30px; /* Plus de padding interne */
+        font-size: 1.2rem; /* Plus grand pour meilleure visibilité */
         display: block; /* Assurer que c'est un bloc */
         position: relative; /* Pour la position z-index */
-        z-index: 2; /* Au-dessus des éléments normaux */
+        z-index: 10; /* Valeur plus élevée pour être au-dessus de tout */
+        font-weight: 700; /* Plus épais */
+        letter-spacing: 3px; /* Plus d'espacement des lettres */
+        text-shadow: 0 2px 4px rgba(0,0,0,0.9); /* Ombre plus prononcée */
+        color: var(--primary-color) !important; /* Forcer le rouge */
     }
     
     /* Augmenter l'espace pour le contenu de la première page */
     #accueil .roll-content-w {
-        padding-top: 130px !important; /* Forcer le padding supérieur */
+        padding-top: 150px !important; /* Encore plus de padding supérieur */
         min-height: 100vh; /* S'assurer que le contenu remplit toute la hauteur */
+    }
+    
+    /* Ajustement spécifique pour #accueil .roll-cont-col */
+    #accueil .roll-cont-col {
+        padding-top: 100px; /* Beaucoup plus de padding pour pousser tout le contenu vers le bas */
+    }
+    
+    /* S'assurer que le titre est toujours visible malgré le header */
+    #accueil .roll-cont-item {
+        margin-top: 50px; /* Marge supplémentaire pour descendre l'élément */
     }
 }
 
