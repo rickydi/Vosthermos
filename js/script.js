@@ -101,31 +101,78 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Navigation tactile pour mobile (swipe)
+    // Navigation tactile pour mobile (swipe) - Version améliorée
     let touchStartX = 0;
     let touchEndX = 0;
-    let minSwipeDistance = 50; // Distance minimale en pixels pour considérer qu'il s'agit d'un swipe
+    let touchStartY = 0; // Ajout pour détecter les swipes verticaux vs horizontaux
+    let touchEndY = 0;
+    let minSwipeDistance = 30; // Réduite pour plus de sensibilité
+    let swipeInProgress = false;
     
     document.addEventListener('touchstart', function(e) {
-        touchStartX = e.changedTouches[0].screenX;
-    }, { passive: true });
-    
-    document.addEventListener('touchend', function(e) {
-        touchEndX = e.changedTouches[0].screenX;
-        handleSwipe();
-    }, { passive: true });
-    
-    function handleSwipe() {
-        // Calculer la distance du swipe
-        const swipeDistance = touchEndX - touchStartX;
+        // Réinitialiser l'état
+        swipeInProgress = false;
         
-        // Si la distance est suffisante pour être considérée comme un swipe
-        if (Math.abs(swipeDistance) > minSwipeDistance) {
-            if (swipeDistance > 0) {
+        // Stocker les coordonnées de départ
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+        
+        // Forcer l'arrêt de toute animation en cours pour un meilleur temps de réponse
+        if (isAnimating) {
+            isAnimating = false;
+            window.isAnimating = false;
+        }
+    }, { passive: false });
+    
+    document.addEventListener('touchmove', function(e) {
+        // Ajouter une gestion de l'événement touchmove pour des swipes plus réactifs
+        if (swipeInProgress) return;
+        
+        const currentX = e.changedTouches[0].screenX;
+        const currentY = e.changedTouches[0].screenY;
+        
+        const deltaX = currentX - touchStartX;
+        const deltaY = currentY - touchStartY;
+        
+        // Vérifier si c'est principalement un swipe horizontal (plus horizontal que vertical)
+        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > minSwipeDistance) {
+            swipeInProgress = true; // Empêcher des déclenchements multiples
+            
+            if (deltaX > 0) {
                 // Swipe vers la droite - page précédente
+                console.log("Swipe mobile détecté: droite (page précédente)");
                 navigateSlide(-1);
             } else {
                 // Swipe vers la gauche - page suivante
+                console.log("Swipe mobile détecté: gauche (page suivante)");
+                navigateSlide(1);
+            }
+        }
+    }, { passive: false });
+    
+    document.addEventListener('touchend', function(e) {
+        // Si le swipe n'a pas été traité pendant touchmove, le traiter ici
+        if (swipeInProgress) return; // Déjà traité
+        
+        touchEndX = e.changedTouches[0].screenX;
+        touchEndY = e.changedTouches[0].screenY;
+        handleSwipe();
+    }, { passive: false });
+    
+    function handleSwipe() {
+        // Calculer les distances
+        const swipeDistanceX = touchEndX - touchStartX;
+        const swipeDistanceY = touchEndY - touchStartY;
+        
+        // Vérifier si c'est principalement un swipe horizontal
+        if (Math.abs(swipeDistanceX) > Math.abs(swipeDistanceY) && Math.abs(swipeDistanceX) > minSwipeDistance) {
+            if (swipeDistanceX > 0) {
+                // Swipe vers la droite - page précédente
+                console.log("Swipe mobile détecté (touchend): droite");
+                navigateSlide(-1);
+            } else {
+                // Swipe vers la gauche - page suivante
+                console.log("Swipe mobile détecté (touchend): gauche");
                 navigateSlide(1);
             }
         }

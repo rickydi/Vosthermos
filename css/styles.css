@@ -1125,6 +1125,20 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
         font-size: 0.9rem;
         margin-bottom: 5px;
     }
+    
+    /* Correction spécifique pour le titre "Experts en réparation" sur la page d'accueil */
+    #accueil .roll-cont-eyeb {
+        font-size: 1.1rem; /* Plus grand pour meilleure visibilité */
+        color: var(--primary-color) !important; /* S'assurer qu'il est bien rouge */
+        font-weight: 600; /* Plus épais */
+        letter-spacing: 2px; /* Espacer les lettres */
+        text-shadow: 0 1px 3px rgba(0,0,0,0.8); /* Ombre portée pour lisibilité */
+    }
+    
+    /* Régler la disposition des éléments sur la page d'accueil pour mobile */
+    #accueil .roll-cont-col {
+        margin-top: 50px; /* Espace supplémentaire en haut */
+    }
     .roll-cont-col > .roll-cont-item > p {
         font-size: 0.85rem;
         line-height: 1.5;

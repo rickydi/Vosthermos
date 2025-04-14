@@ -27,6 +27,22 @@
     .map-container {
         margin-top: 20px;
     }
+    
+    /* Correction pour la page d'accueil - titre masqué par le header */
+    #accueil .roll-cont-eyeb {
+        margin-top: 60px; /* Espace supplémentaire au-dessus du titre */
+        padding-top: 20px; /* Padding interne supplémentaire */
+        font-size: 1.1rem; /* Légèrement plus grand */
+        display: block; /* Assurer que c'est un bloc */
+        position: relative; /* Pour la position z-index */
+        z-index: 2; /* Au-dessus des éléments normaux */
+    }
+    
+    /* Augmenter l'espace pour le contenu de la première page */
+    #accueil .roll-content-w {
+        padding-top: 130px !important; /* Forcer le padding supérieur */
+        min-height: 100vh; /* S'assurer que le contenu remplit toute la hauteur */
+    }
 }
 
 /* Agrandissement de 20% des carrés d'informations sur la page d'accueil */
