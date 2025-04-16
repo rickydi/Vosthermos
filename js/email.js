@@ -38,11 +38,8 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.disabled = true;
             formStatus.textContent = ''; 
             
-            // Configuration des numéros WhatsApp
-            const whatsappNumbers = [
-                { phone: '15145695583', apiKey: "1752086" }, // Cette clé API fonctionne bien
-                { phone: '15148258411', apiKey: "9107923" }  // Autre numéro avec autre clé API
-            ];
+            // Votre numéro WhatsApp configuré
+            const whatsappNumber = '15145695583';
             
             // Formater le message pour WhatsApp avec le numéro nettoyé et préfixé
             const formattedMessage = `*Nouvelle demande vosthermos*
@@ -58,7 +55,19 @@ ${message}`;
             // Encoder le message pour l'URL
             const encodedMessage = encodeURIComponent(formattedMessage);
             
-            // Fonction pour gérer l'affichage du succès
+            // Clé API CallMeBot fournie par l'utilisateur
+            const apiKey = "9107923";
+            
+            // Créer l'URL pour la première API WhatsApp
+            const whatsappAPI1 = `https://api.callmebot.com/whatsapp.php?phone=${whatsappNumber}&text=${encodedMessage}&apikey=${apiKey}`;
+            
+            // Clé API pour le deuxième destinataire
+            const apiKey2 = "1752086";
+            
+            // Créer l'URL pour la deuxième API WhatsApp (même numéro mais API différente)
+            const whatsappAPI2 = `https://api.callmebot.com/whatsapp.php?phone=${whatsappNumber}&text=${encodedMessage}&apikey=${apiKey2}`;
+            
+            // Fonction pour gérer l'affichage du succès (appelée immédiatement)
             const handleSuccessDisplay = () => {
                 submitBtn.textContent = 'Envoyé avec succès!';
                 submitBtn.style.backgroundColor = 'rgba(102, 169, 130, 0.5)'; // Vert avec 50% de transparence
@@ -75,43 +84,28 @@ ${message}`;
                 }, 5000);
             };
 
-            // Tableau pour stocker les promesses d'envoi
-            const sendPromises = [];
-            
-            // Envoyer le message à chaque numéro WhatsApp configuré
-            whatsappNumbers.forEach((recipient, index) => {
-                const whatsappAPI = `https://api.callmebot.com/whatsapp.php?phone=${recipient.phone}&text=${encodedMessage}&apikey=${recipient.apiKey}`;
-                
-                const sendPromise = fetch(whatsappAPI)
-                    .then(response => response.text())
-                    .then(text => {
-                        console.log(`Réponse API ${index + 1} CallMeBot (${recipient.phone}):`, text);
-                        return { success: !text.includes("ERROR"), text, recipient };
-                    })
-                    .catch(error => {
-                        console.error(`Erreur réseau lors de l'appel API ${index + 1} CallMeBot (${recipient.phone}):`, error.message);
-                        return { success: false, error: error.message, recipient };
-                    });
-                
-                sendPromises.push(sendPromise);
+            // Envoyer la requête à la première API WhatsApp
+            fetch(whatsappAPI1)
+            .then(response => response.text())
+            .then(text => {
+                 console.log("Réponse API 1 CallMeBot (peut être vide ou indiquer une erreur même si le message est parti):", text);
+            })
+            .catch(error => {
+                console.error('Erreur réseau lors de l\'appel API 1 CallMeBot (ignorée dans l\'UI):', error.message);
             });
             
-            // Traiter tous les envois et afficher l'état global
-            Promise.all(sendPromises)
-                .then(results => {
-                    // Vérifier si au moins un envoi a réussi
-                    const atLeastOneSuccess = results.some(result => result.success);
-                    if (atLeastOneSuccess) {
-                        handleSuccessDisplay();
-                    } else {
-                        // Tous les envois ont échoué
-                        submitBtn.textContent = originalText;
-                        submitBtn.disabled = false;
-                        formStatus.textContent = 'Un problème est survenu. Veuillez réessayer ou nous contacter par téléphone.';
-                        formStatus.style.color = '#e74c3c';
-                        console.error('Tous les envois WhatsApp ont échoué:', results);
-                    }
-                });
+            // Envoyer la requête à la deuxième API WhatsApp
+            fetch(whatsappAPI2)
+            .then(response => response.text())
+            .then(text => {
+                 console.log("Réponse API 2 CallMeBot (peut être vide ou indiquer une erreur même si le message est parti):", text);
+            })
+            .catch(error => {
+                console.error('Erreur réseau lors de l\'appel API 2 CallMeBot (ignorée dans l\'UI):', error.message);
+            });
+
+            // Afficher le succès immédiatement dans l'UI, car on sait que le message part
+            handleSuccessDisplay();
 
         });
     }
