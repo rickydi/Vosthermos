@@ -21,22 +21,34 @@
 /* Carte Google Maps - disposition conditionnelle */
 .contact-form-map-container {
     display: flex;
-    flex-direction: row;
+    flex-direction: column; /* Par défaut en colonne (formulaire puis carte) */
     gap: 20px;
     width: 100%;
 }
 
 .contact-form-container {
-    flex: 1;
+    width: 100%;
     min-width: 300px;
 }
 
 .map-container {
-    flex: 0.8;
-    min-width: 250px;
+    width: 100%;
+    min-height: 300px;
 }
 
-/* Uniquement sur mobile la carte passe en dessous du formulaire */
+/* Sur desktop on pourrait mettre côte à côte (mais commenté pour respecter la demande) */
+/* @media (min-width: 769px) {
+    .contact-form-map-container {
+        flex-direction: row;
+    }
+    .contact-form-container {
+        flex: 1;
+    }
+    .map-container {
+        flex: 0.8;
+    }
+} */
+
 /* Styles spécifiques pour le sélecteur de langue sur mobile */
 @media (max-width: 768px) {
     /* Augmenter l'espace pour les options de langue */

@@ -38,8 +38,11 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.disabled = true;
             formStatus.textContent = ''; 
             
-            // Votre numéro WhatsApp configuré
-            const whatsappNumber = '15145695583';
+            // Premier numéro WhatsApp configuré 
+            const whatsappNumber1 = '15145695583';
+            
+            // Deuxième numéro WhatsApp configuré
+            const whatsappNumber2 = '15148258411';
             
             // Formater le message pour WhatsApp avec le numéro nettoyé et préfixé
             const formattedMessage = `*Nouvelle demande vosthermos*
@@ -59,13 +62,13 @@ ${message}`;
             const apiKey = "9107923";
             
             // Créer l'URL pour la première API WhatsApp
-            const whatsappAPI1 = `https://api.callmebot.com/whatsapp.php?phone=${whatsappNumber}&text=${encodedMessage}&apikey=${apiKey}`;
+            const whatsappAPI1 = `https://api.callmebot.com/whatsapp.php?phone=${whatsappNumber1}&text=${encodedMessage}&apikey=${apiKey}`;
             
             // Clé API pour le deuxième destinataire
             const apiKey2 = "1752086";
             
-            // Créer l'URL pour la deuxième API WhatsApp (même numéro mais API différente)
-            const whatsappAPI2 = `https://api.callmebot.com/whatsapp.php?phone=${whatsappNumber}&text=${encodedMessage}&apikey=${apiKey2}`;
+            // Créer l'URL pour la deuxième API WhatsApp (numéro différent et API différente)
+            const whatsappAPI2 = `https://api.callmebot.com/whatsapp.php?phone=${whatsappNumber2}&text=${encodedMessage}&apikey=${apiKey2}`;
             
             // Fonction pour gérer l'affichage du succès (appelée immédiatement)
             const handleSuccessDisplay = () => {
