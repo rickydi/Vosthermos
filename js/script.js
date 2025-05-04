@@ -386,6 +386,26 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }, 200); // Délai court pour s'assurer que le DOM est prêt
     
+    // Ajouter un gestionnaire pour le logo qui mène à la section accueil
+    const logoLink = document.querySelector('.logo');
+    if (logoLink) {
+        logoLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Naviguer vers la première section (accueil)
+            console.log("Navigation vers accueil depuis logo");
+            isAnimating = false;
+            window.isAnimating = false;
+            homeRollW.style.transition = 'none';
+            void homeRollW.offsetWidth;
+            setTimeout(() => {
+                document.querySelectorAll('.nav-dot').forEach(dot => dot.classList.remove('active'));
+                homeRollItems.forEach(item => item.classList.remove('active'));
+                void document.body.offsetHeight;
+                scrollToSlide(0);
+            }, 100);
+        });
+    }
+
     // Gestion des boutons qui mènent à la section contact
     const contactButtons = document.querySelectorAll('.explore-btn-w');
     contactButtons.forEach(button => {
