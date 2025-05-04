@@ -298,15 +298,22 @@
     
     /* Ajuster le bouton Contact pour éviter le chevauchement avec les points de navigation */
     .button-zone {
-        position: fixed !important; /* Forcer la position fixe */
-        bottom: 20px !important; /* Assurer que le bouton reste en bas */
-        right: 0 !important; /* Aligner à droite */
-        width: 100% !important; /* Pleine largeur */
-        z-index: 1000 !important; /* S'assurer qu'il est au-dessus des autres éléments */
-        display: block !important; /* Forcer l'affichage */
-        opacity: 1 !important; /* Assurer la visibilité */
-        padding: 0 !important; /* Supprimer le padding */
-        visibility: visible !important; /* S'assurer qu'il est visible */
+        position: fixed !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        z-index: 99999 !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        opacity: 1 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: none !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+        min-height: 60px !important;
     }
     
     /* Créer une séparation claire entre les points de navigation et le bouton Contact */
