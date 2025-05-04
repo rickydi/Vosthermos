@@ -298,7 +298,15 @@
     
     /* Ajuster le bouton Contact pour éviter le chevauchement avec les points de navigation */
     .button-zone {
+        position: fixed !important; /* Forcer la position fixe */
         bottom: 20px !important; /* Assurer que le bouton reste en bas */
+        right: 0 !important; /* Aligner à droite */
+        width: 100% !important; /* Pleine largeur */
+        z-index: 1000 !important; /* S'assurer qu'il est au-dessus des autres éléments */
+        display: block !important; /* Forcer l'affichage */
+        opacity: 1 !important; /* Assurer la visibilité */
+        padding: 0 !important; /* Supprimer le padding */
+        visibility: visible !important; /* S'assurer qu'il est visible */
     }
     
     /* Créer une séparation claire entre les points de navigation et le bouton Contact */
@@ -460,14 +468,29 @@
         font-size: 1.08rem !important; /* Augmenté de 20% */
     }
     
-    /* Bouton contacter encore plus large pour le texte en français */
+    /* Bouton contacter encore plus visible pour mobile */
     .explore-btn-w {
-        padding: 12px 25px !important;
-        width: 240px !important; /* Largeur réduite pour s'adapter aux mobiles */
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
+        width: 240px !important; /* Largeur réduite pour s'adapter aux mobiles */
+        background-color: #f50b20 !important; /* Rouge vif */
+        color: white !important;
+        padding: 12px 25px !important;
+        font-weight: bold !important;
+        border-radius: 50px !important;
+        border: none !important;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important;
+        transition: transform 0.3s !important;
         gap: 10px !important;
+        transform: translateZ(0) !important; /* Force hardware acceleration */
+        -webkit-transform: translateZ(0) !important; /* Pour Safari */
+        will-change: transform !important; /* Optimisation performance */
+        cursor: pointer !important;
+    }
+    
+    .explore-btn-w:active {
+        transform: scale(0.97) !important;
     }
     
     /* Alignement strict sur une seule ligne, même sur mobile */
