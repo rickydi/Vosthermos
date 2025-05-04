@@ -51,8 +51,62 @@
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        #contact-button-fixed {
+            position: fixed;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100000;
+            border: none;
+            background-color: #f50b20;
+            color: white;
+            font-weight: bold;
+            padding: 15px 30px;
+            border-radius: 50px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            cursor: pointer;
+            font-size: 16px;
+            text-transform: uppercase;
+        }
+        
+        body.on-contact-page #contact-button-fixed {
+            display: none;
+        }
+    </style>
 </head>
 <body>
+    <button id="contact-button-fixed" onclick="goToContact()">Contactez-nous</button>
+    <script>
+        function goToContact() {
+            // Trouver tous les liens de navigation vers Contact et simuler un clic
+            const contactLinks = document.querySelectorAll('a[href="#contact"]');
+            if (contactLinks.length > 0) {
+                contactLinks[0].click();
+            } else {
+                // Fallback si aucun lien n'est trouvé
+                window.location.hash = '#contact';
+            }
+        }
+        
+        // Vérifier si on est sur la page de contact et masquer le bouton
+        function checkContactPage() {
+            const isContactPage = window.location.hash === '#contact' || 
+                                document.querySelector('#contact.home-roll-item.active');
+            if (isContactPage) {
+                document.body.classList.add('on-contact-page');
+            } else {
+                document.body.classList.remove('on-contact-page');
+            }
+        }
+        
+        // Surveiller les changements de hash dans l'URL
+        window.addEventListener('hashchange', checkContactPage);
+        
+        // Vérifier au chargement et régulièrement
+        window.addEventListener('DOMContentLoaded', checkContactPage);
+        setInterval(checkContactPage, 1000);
+    </script>
     <div class="w">
         <!-- Vidéo en arrière-plan -->
         <div class="background-container">
@@ -294,20 +348,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- Zone de bouton avec style direct pour s'assurer de la visibilité sur tous les appareils -->
-                            <div class="button-zone" style="position: fixed; bottom: 25px; left: 0; right: 0; width: 100%; z-index: 9999; display: block !important; visibility: visible !important; opacity: 1 !important;">
-                                <div class="mobile-contact-row" style="width: 100%; display: flex !important; justify-content: space-between; align-items: center; padding: 0 20px; background: transparent;">
-                                    <a href="#contact" style="display: block; width: auto; text-decoration: none;">
-                                        <button class="explore-btn-w" style="height: 50px; margin: 0; width: auto; min-width: 200px; background-color: #f50b20; color: white; font-weight: bold; border: none; border-radius: 50px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); padding: 0 25px;">
-                                            <span class="footagemenu-cta-tx" style="text-transform: uppercase; font-weight: bold; color: white !important; font-size: 16px;" data-i18n="CONTACTEZ-NOUS">CONTACTEZ-NOUS</span>
-                                        </button>
-                                    </a>
-                                    <div class="social-icons-fixed" style="display: flex; gap: 10px;">
-                                        <a href="https://www.facebook.com/profile.php?id=61562303553558" style="display: flex; justify-content: center; align-items: center; width: 48px; height: 48px; background-color: #f50b20; border-radius: 50%; color: white;" target="_blank"><i class="fab fa-facebook-f" style="font-size: 20px;"></i></a>
-                                        <a href="http://instagram.com/vosthermos/" style="display: flex; justify-content: center; align-items: center; width: 48px; height: 48px; background-color: #f50b20; border-radius: 50%; color: white;" target="_blank"><i class="fab fa-instagram" style="font-size: 20px;"></i></a>
-                                    </div>
-                                </div>
-                            </div>
+                            <!-- Suppression de la zone de bouton originale -->
                         </div>
                     </div>
 

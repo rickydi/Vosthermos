@@ -386,6 +386,30 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }, 200); // Délai court pour s'assurer que le DOM est prêt
     
+    // Afficher/Masquer le bouton global "Contactez-nous" selon la page
+    function updateGlobalContactBtn() {
+        const contactBtn = document.getElementById('global-contact-btn');
+        // Trouver la slide active
+        const activeSlide = document.querySelector('.home-roll-item.active');
+        if (!contactBtn || !activeSlide) return;
+        if (activeSlide.id === 'contact') {
+            contactBtn.style.display = 'none';
+        } else {
+            contactBtn.style.display = 'block';
+        }
+    }
+    // Mettre à jour à chaque navigation
+    document.addEventListener('DOMContentLoaded', updateGlobalContactBtn);
+    document.addEventListener('click', updateGlobalContactBtn);
+    document.addEventListener('touchend', updateGlobalContactBtn);
+    document.addEventListener('keydown', updateGlobalContactBtn);
+    // Après chaque scrollToSlide
+    const originalScrollToSlide = scrollToSlide;
+    scrollToSlide = function(index) {
+        originalScrollToSlide(index);
+        setTimeout(updateGlobalContactBtn, 300);
+    };
+
     // Ajouter un gestionnaire pour le logo qui mène à la section accueil
     const logoLink = document.querySelector('.logo');
     if (logoLink) {
