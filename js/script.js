@@ -182,13 +182,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 navigateSlide(-1);
                 e.preventDefault(); // Empêcher le scroll standard
             } 
-            // Si on est à la fin du contenu et qu'on tire vers le haut (pour aller à la page suivante)
-            else if (deltaY < 0 && isAtBottom) {
-                swipeInProgress = true;
-                console.log("Scroll vertical détecté: vers le haut (page suivante)");
-                navigateSlide(1);
-                e.preventDefault(); // Empêcher le scroll standard
-            }
+            // Suppression du comportement de navigation à la page suivante quand on est en bas
+            // Le défilement vertical normal est conservé
             // Sinon, laisser le scroll normal se faire
         }
     }, { passive: false });
@@ -232,11 +227,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Swipe vers le bas (en haut du contenu) - page précédente
                 console.log("Swipe vertical détecté (touchend): bas au début");
                 navigateSlide(-1);
-            } else if (swipeDistanceY < 0 && isAtBottom) {
-                // Swipe vers le haut (en bas du contenu) - page suivante
-                console.log("Swipe vertical détecté (touchend): haut à la fin");
-                navigateSlide(1);
             }
+            // Navigation supprimée lorsqu'on swipe vers le haut en bas de page
         }
     }
 
@@ -459,11 +451,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const isScrollingDown = e.deltaY > 0;
         const tolerance = 5;
         const isAtTop = contentWrapper.scrollTop <= tolerance;
-        const isAtBottom = contentWrapper.scrollHeight - contentWrapper.scrollTop <= contentWrapper.clientHeight + tolerance;
-
-        // Bloquer la navigation horizontale si on peut scroller verticalement
-        if ((isScrollingUp && !isAtTop) || (isScrollingDown && !isAtBottom)) {
-            allowHorizontalNav = false;
+        
+        // Modification: Ne jamais changer de page automatiquement en bas de page
+        // Bloquer la navigation horizontale dans une zone à défilement
+        if (isScrollingDown) {
+            allowHorizontalNav = false; // Toujours bloquer le défilement vers le bas
+        } else if (isScrollingUp && !isAtTop) {
+            allowHorizontalNav = false; // Bloquer le défilement vers le haut sauf en haut
         } else {
             e.preventDefault();
         }
@@ -565,30 +559,108 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 */
 
-    // Fonctionnalité Lightbox pour les galeries
+    // Fonctionnalité Lightbox pour les galeries avec navigation
     function setupLightbox() {
         const galleryItems = document.querySelectorAll('.gallery-item');
         if (galleryItems.length === 0) return; // Sortir si aucune galerie n'est trouvée
 
-        // Créer l'overlay de la lightbox une seule fois
+        // Créer l'overlay de la lightbox une seule fois avec des boutons de navigation
         const lightboxOverlay = document.createElement('div');
         lightboxOverlay.classList.add('lightbox-overlay');
         lightboxOverlay.innerHTML = `
             <div class="lightbox-content">
+                <button class="lightbox-nav lightbox-prev" aria-label="Image précédente">&#10094;</button>
                 <img src="" alt="Image agrandie" class="lightbox-image">
+                <button class="lightbox-nav lightbox-next" aria-label="Image suivante">&#10095;</button>
                 <button class="lightbox-close" aria-label="Fermer">&times;</button>
+                <div class="lightbox-counter">1 / 1</div>
             </div>
         `;
         document.body.appendChild(lightboxOverlay);
 
         const lightboxImage = lightboxOverlay.querySelector('.lightbox-image');
         const lightboxCloseBtn = lightboxOverlay.querySelector('.lightbox-close');
+        const lightboxPrevBtn = lightboxOverlay.querySelector('.lightbox-prev');
+        const lightboxNextBtn = lightboxOverlay.querySelector('.lightbox-next');
+        const lightboxCounter = lightboxOverlay.querySelector('.lightbox-counter');
 
-        // Fonction pour ouvrir la lightbox
-        function openLightbox(imgSrc) {
+        // Ajouter des styles CSS en ligne pour les boutons de navigation
+        const style = document.createElement('style');
+        style.textContent = `
+            .lightbox-nav {
+                position: absolute;
+                top: 50%;
+                transform: translateY(-50%);
+                background: rgba(0, 0, 0, 0.5);
+                color: white;
+                font-size: 24px;
+                border: none;
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: background 0.3s;
+                z-index: 10;
+            }
+            .lightbox-prev { left: 15px; }
+            .lightbox-next { right: 15px; }
+            .lightbox-nav:hover { background: rgba(0, 0, 0, 0.8); }
+            .lightbox-counter {
+                position: absolute;
+                bottom: 15px;
+                left: 50%;
+                transform: translateX(-50%);
+                color: white;
+                background: rgba(0, 0, 0, 0.5);
+                padding: 5px 10px;
+                border-radius: 15px;
+                font-size: 14px;
+            }
+            @media (max-width: 768px) {
+                .lightbox-nav {
+                    width: 36px;
+                    height: 36px;
+                    font-size: 20px;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Variables pour suivre l'état de la lightbox
+        let currentGallery = [];
+        let currentIndex = 0;
+
+        // Fonction pour ouvrir la lightbox avec une image spécifique
+        function openLightbox(imgSrc, gallery, index) {
+            currentGallery = gallery;
+            currentIndex = index;
+            
             lightboxImage.src = imgSrc;
+            updateCounter();
             lightboxOverlay.classList.add('visible');
             document.body.style.overflow = 'hidden'; // Empêcher le scroll du body
+        }
+
+        // Fonction pour mettre à jour le compteur d'images
+        function updateCounter() {
+            lightboxCounter.textContent = `${currentIndex + 1} / ${currentGallery.length}`;
+        }
+
+        // Fonction pour passer à l'image suivante
+        function nextImage() {
+            currentIndex = (currentIndex + 1) % currentGallery.length;
+            lightboxImage.src = currentGallery[currentIndex].src;
+            updateCounter();
+        }
+
+        // Fonction pour passer à l'image précédente
+        function prevImage() {
+            currentIndex = (currentIndex - 1 + currentGallery.length) % currentGallery.length;
+            lightboxImage.src = currentGallery[currentIndex].src;
+            updateCounter();
         }
 
         // Fonction pour fermer la lightbox
@@ -596,34 +668,107 @@ document.addEventListener('DOMContentLoaded', function() {
             lightboxOverlay.classList.remove('visible');
             document.body.style.overflow = ''; // Rétablir le scroll du body
             // Optionnel: Réinitialiser l'image source pour éviter un flash de l'ancienne image
-            setTimeout(() => { lightboxImage.src = ""; }, 300); 
+            setTimeout(() => { lightboxImage.src = ""; }, 300);
         }
 
-        // Ajouter les écouteurs d'événements
+        // Trouver toutes les galeries distinctes (groupées par parent)
+        const galleries = {};
         galleryItems.forEach(item => {
+            const parent = item.closest('.gallery-grid-horizontal');
+            if (!parent) return;
+            
             const img = item.querySelector('img');
-            if (img) {
-                item.addEventListener('click', (e) => {
-                    e.preventDefault(); // Empêche le comportement par défaut si l'item est un lien
-                    openLightbox(img.src);
-                });
+            if (!img) return;
+            
+            const parentId = parent.id || 'default-gallery';
+            if (!galleries[parentId]) {
+                galleries[parentId] = [];
             }
+            
+            galleries[parentId].push(img);
         });
 
-        // Fermer en cliquant n'importe où sur l'overlay (y compris l'image) ou sur le bouton de fermeture
+        // Ajouter les écouteurs d'événements pour chaque item de galerie
+        galleryItems.forEach(item => {
+            const parent = item.closest('.gallery-grid-horizontal');
+            if (!parent) return;
+            
+            const img = item.querySelector('img');
+            if (!img) return;
+            
+            const parentId = parent.id || 'default-gallery';
+            const gallery = galleries[parentId];
+            const index = gallery.indexOf(img);
+            
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                openLightbox(img.src, gallery, index);
+            });
+        });
+
+        // Écouteurs d'événements pour les boutons de navigation
+        lightboxNextBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            nextImage();
+        });
+
+        lightboxPrevBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            prevImage();
+        });
+
+        // Support du swipe sur mobile pour changer d'image
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        lightboxOverlay.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+        
+        lightboxOverlay.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, { passive: true });
+        
+        function handleSwipe() {
+            const minSwipeDistance = 50;
+            if (touchEndX < touchStartX - minSwipeDistance) {
+                // Swipe gauche = image suivante
+                nextImage();
+            } else if (touchEndX > touchStartX + minSwipeDistance) {
+                // Swipe droit = image précédente
+                prevImage();
+            }
+        }
+
+        // Cliquer sur l'image elle-même ne ferme pas la lightbox
+        lightboxImage.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        // Fermer en cliquant sur l'overlay (mais pas sur l'image ou les boutons)
         lightboxOverlay.addEventListener('click', (e) => {
-            // Ne pas fermer si le clic est spécifiquement sur le bouton de fermeture (il a son propre listener)
-            if (e.target !== lightboxCloseBtn) {
+            if (e.target === lightboxOverlay) {
                 closeLightbox();
             }
         });
-        // Le listener séparé pour le bouton close est toujours utile comme fallback ou si le clic sur l'overlay est empêché
-        lightboxCloseBtn.addEventListener('click', closeLightbox); 
+        
+        // Fermer avec le bouton de fermeture
+        lightboxCloseBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeLightbox();
+        });
 
-        // Fermer avec la touche Échap
+        // Navigation clavier
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && lightboxOverlay.classList.contains('visible')) {
+            if (!lightboxOverlay.classList.contains('visible')) return;
+            
+            if (e.key === 'Escape') {
                 closeLightbox();
+            } else if (e.key === 'ArrowRight' || e.key === 'Right') {
+                nextImage();
+            } else if (e.key === 'ArrowLeft' || e.key === 'Left') {
+                prevImage();
             }
         });
     }

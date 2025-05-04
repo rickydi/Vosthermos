@@ -1,4 +1,4 @@
-/* Styles responsives et ajustements pour Vosthermos */
+g/* Styles responsives et ajustements pour Vosthermos */
 
 /* Correction du logo déformé sur mobile */
 @media (max-width: 768px) {
@@ -162,6 +162,158 @@
     #accueil .roll-cont-item {
         margin-top: 50px; /* Marge supplémentaire pour descendre l'élément */
     }
+    
+    /* NOUVEAUX STYLES - Fonds colorés pour le texte */
+    .roll-cont-item {
+        background-color: rgba(0, 56, 69, 0.8) !important; /* Fond semi-transparent de la couleur secondaire */
+        padding: 15px !important;
+        border-radius: 8px !important;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
+        margin-bottom: 15px !important;
+    }
+    
+    /* Texte des titres plus lisible et 20% plus grand */
+    .roll-cont-he {
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8) !important;
+        font-size: 1.68rem !important; /* Augmenté de 20% par rapport à 1.4rem */
+        line-height: 1.4 !important;
+        margin-bottom: 15px !important;
+    }
+    
+    /* Titres des sections de services également agrandis */
+    .service-item h3, .why-us-item h3 {
+        font-size: 1.2rem !important; /* Augmenté de 20% */
+        margin-bottom: 8px !important;
+        font-weight: bold !important;
+    }
+    
+    /* Fond coloré pour les paragraphes principaux - 20% plus grand */
+    .roll-cont-col > .roll-cont-item > p {
+        font-size: 1.1rem !important; /* Augmenté de 20% par rapport à 0.9rem */
+        line-height: 1.5 !important;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+    }
+    
+    /* Augmentation globale de la taille du texte de 20% pour tous les éléments */
+    body {
+        font-size: 120% !important; /* Augmentation globale de 20% */
+    }
+    
+    /* Ajustement spécifique pour certains éléments */
+    .paragraph, p, .text-span, 
+    .service-item p, .why-us-item p, 
+    .info-content p, .info-content a,
+    .contact-title-group p {
+        font-size: 1.1rem !important; /* 20% plus grand */
+    }
+    
+    /* Amélioration des items de services */
+    .service-item, .why-us-item {
+        background-color: rgba(0, 56, 69, 0.7) !important;
+        padding: 12px !important;
+        border-radius: 8px !important;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2) !important;
+        margin-bottom: 10px !important;
+    }
+    
+    /* Réduction plus importante de la taille des images dans les galeries */
+    .gallery-grid-horizontal {
+        grid-template-columns: repeat(3, 1fr) !important; /* 3 colonnes pour plus de compacité */
+        gap: 5px !important; /* Espace très réduit entre les images */
+        margin: 10px 0 30px !important; /* Augmenter la marge en bas */
+    }
+    
+    .gallery-item {
+        max-height: 90px !important; /* Hauteur maximale réduite pour les vignettes */
+        aspect-ratio: 1/1 !important; /* Garder un ratio carré */
+    }
+    
+    .gallery-item img {
+        height: 100% !important;
+        width: 100% !important;
+        object-fit: cover !important;
+        border-radius: 4px !important;
+    }
+    
+    /* Fond uni et encadrement pour les galeries */
+    .gallery-grid-horizontal {
+        background-color: rgba(0, 56, 69, 0.5) !important;
+        padding: 10px !important;
+        border-radius: 8px !important;
+    }
+    
+    /* Éviter que les galeries soient aux points de changement de page */
+    /* Approche alternative pour la compatibilité navigateur */
+    #vitre-thermos .roll-content-w,
+    #quincaillerie .roll-content-w,
+    #portes-bois .roll-content-w,
+    #moustiquaires .roll-content-w {
+        padding-bottom: 120px !important; /* Espace très important en bas de chaque section */
+    }
+    
+    /* Ajouter du padding supplémentaire à toutes les galeries */
+    .gallery-grid-horizontal {
+        margin-top: 25px !important; /* Marge supérieure augmentée */
+        margin-bottom: 80px !important; /* Marge inférieure très augmentée */
+        padding-bottom: 20px !important; /* Padding supplémentaire en bas */
+    }
+    
+    /* Repositionner les boutons de navigation pour éviter qu'ils soient sur les galeries et le bouton Contact */
+    .navigation-dots {
+        bottom: 120px !important; /* Remonter davantage les points de navigation */
+    }
+    
+    /* Ajuster le bouton Contact pour éviter le chevauchement avec les points de navigation */
+    .button-zone {
+        bottom: 20px !important; /* Assurer que le bouton reste en bas */
+    }
+    
+    /* Créer une séparation claire entre les points de navigation et le bouton Contact */
+    .explore-btn-w {
+        margin-top: 40px !important;
+    }
+    
+    /* Amélioration de l'espacement entre les sections */
+    .roll-content-w {
+        padding-top: 120px !important;
+        padding-bottom: 50px !important;
+    }
+    
+    /* Réduire l'espace en haut des pages 2 à 5 (valeur optimisée à 80px) */
+    #vitre-thermos .roll-content-w,
+    #quincaillerie .roll-content-w,
+    #portes-bois .roll-content-w,
+    #moustiquaires .roll-content-w,
+    #contact .roll-content-w {
+        padding-top: 80px !important; /* Valeur ajustée à 80px comme demandé */
+    }
+    
+    /* Ajustement des titres pour les pages 2 à 5 */
+    #vitre-thermos .roll-cont-he,
+    #quincaillerie .roll-cont-he,
+    #portes-bois .roll-cont-he,
+    #moustiquaires .roll-cont-he {
+        margin-top: 0 !important;
+    }
+    
+    /* Annuler la marge supplémentaire appliquée précédemment */
+    #quincaillerie .roll-cont-he,
+    #vitre-thermos .roll-cont-he,
+    #portes-bois .roll-cont-he,
+    #moustiquaires .roll-cont-he {
+        margin-top: 0 !important; /* Supprimer la marge supplémentaire */
+    }
+    
+    /* Style amélioré pour les éléments callout */
+    .linecallout-item {
+        background-color: rgba(0, 56, 69, 0.9) !important;
+        padding: 10px !important;
+        border-radius: 6px !important;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3) !important;
+        transform: scale(1) !important; /* Réinitialiser la transformation pour éviter les débordements */
+        margin-bottom: 10px !important;
+        border-left: 3px solid var(--primary-color) !important;
+    }
 }
 
 /* Agrandissement de 20% des carrés d'informations sur la page d'accueil */
@@ -192,7 +344,95 @@
 
 @media (max-width: 768px) {
     .linecallout-item {
-        transform: scale(1.15); /* Légèrement plus petit sur mobile */
+        transform: scale(1) !important; /* Réinitialiser le scale pour éviter les débordements sur mobile */
         margin-right: 0; /* Pas besoin d'espace à droite en disposition verticale */
+        width: 100% !important; /* Utiliser toute la largeur disponible */
+    }
+    
+    /* NOUVELLES RÈGLES - Supprimer complètement les images d'arrière-plan sur mobile */
+    .home-roll-item .roll-img-w,
+    .roll-img-w,
+    #background-video,
+    #background-image {
+        display: none !important; /* Cacher complètement les images de fond */
+    }
+    
+    /* Appliquer un fond uni de couleur secondaire */
+    .home-roll-item,
+    .roll-img-w,
+    .background-container,
+    .w,
+    .home-roll-c {
+        background-color: var(--secondary-color) !important; /* Fond uni de couleur principale */
+    }
+    
+    /* Supprimer également les gradients qui étaient appliqués par-dessus les images */
+    .gg {
+        background: none !important;
+        background-color: var(--secondary-color) !important;
+    }
+    
+    /* Amélioration des boutons de navigation */
+    .nav-dot {
+        width: 14px !important;
+        height: 14px !important;
+        border: 2px solid rgba(255, 255, 255, 0.7) !important;
+    }
+    
+    .nav-dot.active {
+        transform: scale(1.3) !important;
+        box-shadow: 0 0 10px rgba(227, 7, 24, 0.8) !important;
+    }
+    
+    /* Amélioration de la lightbox pour voir les images en plein écran */
+    .lightbox-image {
+        max-width: calc(100vw - 40px) !important;
+        max-height: calc(100vh - 100px) !important;
+    }
+    
+    /* Ajout d'un fond pour le formulaire de contact */
+    .contact-form-horizontal {
+        background-color: rgba(0, 56, 69, 0.9) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    /* Amélioration du contraste et taille des champs du formulaire */
+    input, select, textarea {
+        background-color: rgba(0, 0, 0, 0.3) !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        font-size: 1.1rem !important; /* 20% plus grand */
+        padding: 12px !important; /* Plus grand pour meilleure interaction tactile */
+    }
+    
+    /* Labels également plus grands */
+    label {
+        font-size: 1.1rem !important;
+        margin-bottom: 8px !important;
+    }
+    
+    /* Bouton de soumission plus grand et plus visible */
+    .submit-btn {
+        font-size: 1.2rem !important;
+        padding: 12px 24px !important;
+        border-radius: 6px !important;
+        margin-top: 10px !important;
+    }
+    
+    /* Amélioration des avis clients */
+    .awards-w h3 {
+        font-size: 1.44rem !important; /* Augmenté de 20% */
+    }
+    
+    .awards-w p, .stars {
+        font-size: 1.08rem !important; /* Augmenté de 20% */
+    }
+    
+    /* Bouton contacter ajusté */
+    .explore-btn-w {
+        padding: 15px 25px !important; /* Padding légèrement réduit */
+    }
+    
+    .footagemenu-cta-tx {
+        font-size: 1.06rem !important; /* Réduit de 20% par rapport à 1.32rem */
     }
 }
