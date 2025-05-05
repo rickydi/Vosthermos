@@ -358,29 +358,22 @@
         min-height: 100vh !important;
     }
     
-    /* Réduire l'espace en haut des pages 2 à 5 (valeur optimisée à 80px) */
+    /* Augmenter l'espace en haut des pages 2 à 5 pour éviter contact avec le header */
     #vitre-thermos .roll-content-w,
     #quincaillerie .roll-content-w,
     #portes-bois .roll-content-w,
     #moustiquaires .roll-content-w,
     #contact .roll-content-w {
-        padding-top: 80px !important; /* Valeur ajustée à 80px comme demandé */
+        padding-top: 130px !important; /* Valeur augmentée pour éviter le contact avec le header */
     }
     
-    /* Ajustement des titres pour les pages 2 à 5 */
+    /* Ajout de marge pour les titres des pages de services */
     #vitre-thermos .roll-cont-he,
     #quincaillerie .roll-cont-he,
     #portes-bois .roll-cont-he,
     #moustiquaires .roll-cont-he {
-        margin-top: 0 !important;
-    }
-    
-    /* Annuler la marge supplémentaire appliquée précédemment */
-    #quincaillerie .roll-cont-he,
-    #vitre-thermos .roll-cont-he,
-    #portes-bois .roll-cont-he,
-    #moustiquaires .roll-cont-he {
-        margin-top: 0 !important; /* Supprimer la marge supplémentaire */
+        margin-top: 15px !important; /* Ajout d'une marge en haut */
+        padding-top: 15px !important; /* Ajout de padding en haut */
     }
     
     /* Style amélioré pour les éléments callout */
