@@ -214,6 +214,82 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // Correction directe pour les points de navigation sur grands écrans
+    function fixNavigationDots() {
+        console.log("Application du correctif pour les points de navigation sur grand écran");
+        
+        // Assure-toi que le conteneur de points peut recevoir des clics
+        const navDots = document.querySelector('.navigation-dots');
+        if (navDots) {
+            navDots.style.pointerEvents = 'auto';
+            
+            // Ajouter une fonction globale pour la navigation
+            window.goToPageByIndex = function(index) {
+                console.log("Navigation directe vers page " + index);
+                
+                // Reset animation flag
+                if (window.isAnimating !== undefined) {
+                    window.isAnimating = false;
+                }
+                
+                const dots = document.querySelectorAll('.nav-dot');
+                if (dots && dots[index]) {
+                    // Version directe et simple pour forcer le clic sur un point
+                    dots[index].click();
+                    
+                    // Si le clic ne fonctionne pas, force la navigation manuellement
+                    setTimeout(() => {
+                        const slides = document.querySelectorAll('[data-roll="item"]');
+                        const container = document.querySelector('[data-roll="container"]');
+                        
+                        if (slides && container) {
+                            // 1. Réinitialiser les classes actives
+                            slides.forEach((slide, i) => {
+                                if (i === index) {
+                                    slide.classList.add('active');
+                                } else {
+                                    slide.classList.remove('active');
+                                }
+                            });
+                            
+                            // 2. Mettre à jour les points de navigation
+                            dots.forEach((dot, i) => {
+                                if (i === index) {
+                                    dot.classList.add('active');
+                                } else {
+                                    dot.classList.remove('active');
+                                }
+                            });
+                            
+                            // 3. Déplacer le conteneur
+                            const slideWidth = window.innerWidth;
+                            container.style.transform = `translateX(-${index * slideWidth}px)`;
+                        }
+                    }, 10);
+                }
+            };
+            
+            // Ajouter manuellement des gestionnaires d'événements aux points de navigation
+            const dots = document.querySelectorAll('.nav-dot');
+            dots.forEach((dot, index) => {
+                dot.style.pointerEvents = 'auto';
+                dot.style.cursor = 'pointer';
+                
+                // Rendre les points de navigation cliquables directement
+                dot.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log("Clic direct sur point " + index);
+                    window.goToPageByIndex(index);
+                    return false;
+                };
+            });
+        }
+    }
+    
+    // Appliquer ce correctif après un court délai
+    setTimeout(fixNavigationDots, 500);
+    
     // Fonctions utilitaires
     function getCurrentSlide() {
         const activeSlide = document.querySelector('[data-roll="item"].active');
@@ -243,10 +319,46 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const dots = document.querySelectorAll('.nav-dot');
         if (dots && dots[index]) {
-            // Petit délai pour s'assurer que l'animation précédente est terminée
-            setTimeout(() => {
+            // Force l'activation directe de la fonction de navigation au lieu d'utiliser un clic
+            // Direct call to scrollToSlide instead of relying on click event
+            if (typeof window.scrollToSlide === 'function') {
+                window.scrollToSlide(index);
+            } else {
+                // Fallback à l'ancienne méthode si scrollToSlide n'est pas disponible
+                // S'assurer que le clic fonctionne en ajoutant un trigger manuel
                 dots[index].click();
-            }, 50);
+                
+                // Double assurance - navigation manuelle si le clic échoue
+                setTimeout(() => {
+                    const slides = document.querySelectorAll('[data-roll="item"]');
+                    const homeRollContainer = document.querySelector('[data-roll="container"]');
+                    
+                    if (slides && homeRollContainer) {
+                        // Mettre à jour les classes actives
+                        slides.forEach((item, i) => {
+                            if (i === index) {
+                                item.classList.add('active');
+                            } else {
+                                item.classList.remove('active');
+                            }
+                        });
+                        
+                        // Déplacer le conteneur
+                        const slideWidth = window.innerWidth;
+                        homeRollContainer.style.transition = 'transform 1s cubic-bezier(0.16, 1, 0.3, 1)';
+                        homeRollContainer.style.transform = `translateX(-${index * slideWidth}px)`;
+                        
+                        // Mise à jour des points aussi
+                        navDots.forEach((dot, i) => {
+                            if (i === index) {
+                                dot.classList.add('active');
+                            } else {
+                                dot.classList.remove('active');
+                            }
+                        });
+                    }
+                }, 50);
+            }
         } else {
             // Navigation manuelle
             const slides = document.querySelectorAll('[data-roll="item"]');

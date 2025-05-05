@@ -17,21 +17,118 @@ document.addEventListener('DOMContentLoaded', function() {
     // Délai de sécurité pour forcer le masquage même si l'événement load ne se déclenche pas
     setTimeout(hidePreloader, 2500);
 
-    // Navigation par points
+    // Navigation par points - VERSION AMÉLIORÉE avec correctifs pour tous les écrans
     const homeRollItems = document.querySelectorAll('.home-roll-item');
     const navDots = document.querySelector('.navigation-dots');
     
-    // Créer les points de navigation
-    homeRollItems.forEach((item, index) => {
-        const dot = document.createElement('div');
-        dot.classList.add('nav-dot');
-        if (index === 0) dot.classList.add('active');
-        dot.dataset.index = index;
-        navDots.appendChild(dot);
+    // Recréer les points de navigation comme des boutons HTML
+    navDots.innerHTML = ''; // Vider les points existants
+    
+    // Ajouter des styles spécifiques pour assurer les clics sur tous les appareils
+    const navStyle = document.createElement('style');
+    navStyle.textContent = `
+        /* Styles pour maximiser la cliquabilité des points de navigation */
+        .navigation-dots {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 9998;
+            padding: 10px 20px;
+            background-color: rgba(0, 0, 0, 0.4);
+            border-radius: 30px;
+            pointer-events: auto !important;
+        }
         
-        dot.addEventListener('click', function() {
-            scrollToSlide(index);
+        /* Points de navigation plus petits */
+        .nav-dot {
+            width: 12px !important;
+            height: 12px !important;
+            border-radius: 50% !important;
+            padding: 0 !important;
+            margin: 0 5px !important;
+            background-color: rgba(255, 255, 255, 0.8) !important;
+            border: 1px solid rgba(255, 255, 255, 0.6) !important;
+            cursor: pointer !important;
+            transition: background-color 0.2s ease, transform 0.2s ease !important;
+            position: relative !important;
+            z-index: 9999 !important;
+            pointer-events: all !important;
+            outline: none !important;
+            appearance: none !important;
+            -webkit-appearance: none !important;
+        }
+        
+        /* Effet visuel au survol */
+        .nav-dot:hover {
+            transform: scale(1.2) !important;
+            background-color: white !important;
+        }
+        
+        /* Style du point actif */
+        .nav-dot.active {
+            background-color: white !important;
+            transform: scale(1.1) !important;
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.6) !important;
+        }
+        
+        /* Style pour desktop spécifiquement */
+        @media (min-width: 1024px) {
+            .nav-dot {
+                width: 10px !important;
+                height: 10px !important;
+                box-shadow: 0 1px 4px rgba(0,0,0,0.3) !important;
+            }
+            .navigation-dots {
+                bottom: 50px !important;
+                padding: 10px 20px !important;
+            }
+        }
+    `;
+    document.head.appendChild(navStyle);
+    
+    // Rendre la fonction scrollToSlide accessible globalement
+    window.scrollToSlide = function(index) {
+        if (isAnimating || index === currentSlide) return;
+        
+        // S'assurer que la section contact est bien remontée avant tout changement de page
+        resetContactScrollIfNeeded(() => {
+            performSlideTransition(index);
         });
+    };
+    
+    homeRollItems.forEach((item, index) => {
+        const button = document.createElement('button');
+        button.classList.add('nav-dot');
+        if (index === 0) button.classList.add('active');
+        button.dataset.index = index;
+        button.setAttribute('type', 'button');
+        button.setAttribute('aria-label', `Aller à la section ${index + 1}`);
+        
+        // Gestionnaire d'événement optimisé qui fonctionne sur tous les écrans
+        button.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log(`Clic détecté sur point de navigation. Index: ${index}`);
+            
+            // Forcer la réinitialisation de l'animation
+            isAnimating = false;
+            window.isAnimating = false;
+            
+            // Appel direct de la fonction de navigation
+            window.scrollToSlide(index);
+            
+            // Double assurance - appel direct de performSlideTransition après un court délai
+            setTimeout(() => {
+                performSlideTransition(index);
+            }, 10);
+            
+            return false;
+        };
+        
+        navDots.appendChild(button);
     });
 
     // Menu mobile

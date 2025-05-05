@@ -573,30 +573,51 @@ img {
     margin: 15px 0 8px; /* Réduit */
 }
 
-/* Navigation avec points en bas */
+/* Navigation avec points en bas - Isolation maximale */
 .navigation-dots {
     position: fixed;
     bottom: 40px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: 10px;
-    z-index: 100;
+    gap: 15px;
+    z-index: 9998; /* Très haut, mais sous les boutons */
+    padding: 10px 20px;
+    background-color: rgba(0, 0, 0, 0.4);
+    border-radius: 30px;
+    pointer-events: auto; /* MODIFIÉ: Permettre les interactions avec le conteneur */
 }
 
+/* Styles pour les boutons de navigation (<button>) - Isolation maximale */
 .nav-dot {
-    width: 10px;
-    height: 10px;
+    width: 15px;
+    height: 15px;
     border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.7);
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 2px solid red !important; /* Bordure rouge visible pour débogage */
+    padding: 0;
+    margin: 0;
     cursor: pointer;
-    transition: var(--transition);
-    border: 1px solid rgba(0, 0, 0, 0.2);
+    transition: background-color 0.2s ease; /* Transition minimale */
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    position: relative;
+    z-index: 9999 !important; /* Z-index maximal */
+    pointer-events: all !important; /* Forcer la réception des clics */
+    transform: none !important; /* Aucune transformation */
+    box-shadow: none !important; /* Aucune ombre */
 }
 
 .nav-dot.active {
     background-color: var(--primary-color);
-    transform: scale(1.2);
+    /* Pas de scale ou shadow pour éviter interférence */
+}
+
+.nav-dot:hover:not(.active) {
+    background-color: white;
+    /* Pas de scale */
 }
 
 /* Navigation avec flèches */

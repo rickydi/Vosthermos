@@ -341,10 +341,21 @@
         margin-top: 40px !important;
     }
     
-    /* Amélioration de l'espacement entre les sections */
+/* Amélioration de l'espacement entre les sections */
     .roll-content-w {
         padding-top: 120px !important;
         padding-bottom: 50px !important;
+    }
+    
+    /* Styles responsive spécifiques aux pages de services (2-5) */
+    #quincaillerie .roll-content-w,
+    #vitre-thermos .roll-content-w,
+    #portes-bois .roll-content-w,
+    #moustiquaires .roll-content-w {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-height: 100vh !important;
     }
     
     /* Réduire l'espace en haut des pages 2 à 5 (valeur optimisée à 80px) */
@@ -410,6 +421,157 @@
     }
 }
 
+/* Styles responsifs spécifiques pour les écrans desktop (pages 2-5) */
+@media (min-width: 1200px) {
+    /* Ajustement du contenu pour les pages de services sur grands écrans - LARGEUR MAXIMALE */
+    #quincaillerie .roll-cont-item,
+    #vitre-thermos .roll-cont-item,
+    #portes-bois .roll-cont-item,
+    #moustiquaires .roll-cont-item {
+        max-width: 100% !important; /* Utiliser TOUTE la largeur disponible */
+        width: 100% !important; /* Forcer la largeur totale */
+        margin: 0 0 50px 0 !important; /* Supprimer les marges latérales */
+        padding: 20px 20px !important; /* Réduire le padding horizontal aussi */
+        box-sizing: border-box !important; /* S'assurer que le padding ne s'ajoute pas à la largeur */
+    }
+    
+    /* Titres plus grands et plus élégants sur desktop */
+    #quincaillerie .roll-cont-he,
+    #vitre-thermos .roll-cont-he,
+    #portes-bois .roll-cont-he,
+    #moustiquaires .roll-cont-he {
+        font-size: 2.4rem !important; /* Titres plus grands */
+        line-height: 1.2 !important;
+        margin-bottom: 25px !important;
+    }
+    
+    /* Paragraphes plus lisibles */
+    #quincaillerie .roll-cont-item p,
+    #vitre-thermos .roll-cont-item p,
+    #portes-bois .roll-cont-item p,
+    #moustiquaires .roll-cont-item p {
+        font-size: 1.2rem !important;
+        line-height: 1.8 !important; /* Plus d'espace entre les lignes */
+        max-width: 70ch; /* Encore plus limité pour une meilleure lisibilité */
+        margin: 0 auto 40px; /* Plus d'espace avant la galerie */
+        letter-spacing: 0.015em; /* Légèrement plus d'espace entre les lettres */
+    }
+    
+    /* Galeries d'images pleine largeur */
+    #quincaillerie .gallery-grid-horizontal,
+    #vitre-thermos .gallery-grid-horizontal,
+    #portes-bois .gallery-grid-horizontal,
+    #moustiquaires .gallery-grid-horizontal {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        justify-content: flex-start !important;
+        align-items: flex-start !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+        margin: 30px 0 30px -20px !important;
+        padding: 0 !important;
+        background-color: transparent !important;
+        border-radius: 0 !important;
+    }
+    #quincaillerie .gallery-item,
+    #vitre-thermos .gallery-item,
+    #portes-bois .gallery-item,
+    #moustiquaires .gallery-item {
+        flex: 0 1 calc(10% - 20px) !important;
+        min-width: 180px !important;
+        margin: 0 0 20px 20px !important;
+        height: 180px !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Images beaucoup plus grandes et mieux espacées */
+    #quincaillerie .gallery-item,
+    #vitre-thermos .gallery-item,
+    #portes-bois .gallery-item,
+    #moustiquaires .gallery-item {
+        height: 240px; /* Hauteur significativement augmentée */
+        border-radius: 12px; /* Coins plus arrondis */
+        overflow: hidden;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.25); /* Ombre plus prononcée */
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        margin: 5px; /* Marge supplémentaire autour de chaque image */
+    }
+    
+    /* Effet d'agrandissement au survol */
+    #quincaillerie .gallery-item:hover,
+    #vitre-thermos .gallery-item:hover,
+    #portes-bois .gallery-item:hover,
+    #moustiquaires .gallery-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    
+    /* Optimisation des images pour qu'elles remplissent bien leur conteneur */
+    #quincaillerie .gallery-item img,
+    #vitre-thermos .gallery-item img,
+    #portes-bois .gallery-item img,
+    #moustiquaires .gallery-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+}
+
+/* Ajustements pour les écrans moyens (tablettes et petits laptops) */
+@media (min-width: 769px) and (max-width: 1199px) {
+    /* Ajustement du contenu pour les pages de services sur écrans moyens */
+    #quincaillerie .roll-cont-item,
+    #vitre-thermos .roll-cont-item,
+    #portes-bois .roll-cont-item,
+    #moustiquaires .roll-cont-item {
+        max-width: 80%; /* Un peu plus large que sur grands écrans */
+        margin: 0 auto;
+        padding: 25px !important;
+    }
+    
+    /* Titres adaptés aux écrans moyens */
+    #quincaillerie .roll-cont-he,
+    #vitre-thermos .roll-cont-he,
+    #portes-bois .roll-cont-he,
+    #moustiquaires .roll-cont-he {
+        font-size: 2rem !important;
+        line-height: 1.3 !important;
+        margin-bottom: 20px !important;
+    }
+    
+    /* Paragraphes adaptés */
+    #quincaillerie .roll-cont-item p,
+    #vitre-thermos .roll-cont-item p,
+    #portes-bois .roll-cont-item p,
+    #moustiquaires .roll-cont-item p {
+        font-size: 1.1rem !important;
+        line-height: 1.5 !important;
+    }
+    
+    /* Galeries adaptées pour écrans moyens */
+    #quincaillerie .gallery-grid-horizontal,
+    #vitre-thermos .gallery-grid-horizontal,
+    #portes-bois .gallery-grid-horizontal,
+    #moustiquaires .gallery-grid-horizontal {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        max-width: 700px;
+        margin: 25px auto;
+    }
+    
+    /* Images adaptées */
+    #quincaillerie .gallery-item,
+    #vitre-thermos .gallery-item,
+    #portes-bois .gallery-item,
+    #moustiquaires .gallery-item {
+        height: 140px;
+        border-radius: 6px;
+    }
+}
+
 @media (max-width: 768px) {
     .linecallout-item {
         transform: scale(1) !important; /* Réinitialiser le scale pour éviter les débordements sur mobile */
@@ -440,16 +602,176 @@
         background-color: var(--secondary-color) !important;
     }
     
-    /* Amélioration des boutons de navigation */
+/* Styles pour rendre le menu compact et centré verticalement (mais pas trop serré) */
+.menu-w {
+    font-size: 72% !important; /* Réduction de 28% de la taille du texte */
+}
+
+.mmenu-col {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important; /* Centre verticalement le contenu */
+    padding: 8px !important; /* Padding légèrement plus élevé */
+    height: 100vh !important;
+    box-sizing: border-box !important;
+    gap: 4px !important; /* Un peu plus d'espace entre les sections */
+}
+
+.menu-nav {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    height: auto !important;
+}
+
+.menu-nav-list {
+    padding: 0 !important;
+    margin: 0 auto !important;
+    text-align: center !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important; /* Un peu d'espace entre les éléments */
+}
+
+.menu-nav-list li {
+    margin: 1px 0 !important; /* Ajouter une petite marge */
+    line-height: 1.05 !important; /* Ligne-hauteur un peu plus confortable */
+}
+
+.menu-nav-link {
+    padding: 2px 0 !important; /* Padding vertical légèrement plus grand */
+    line-height: 1.05 !important; /* Interligne un peu plus lisible */
+    display: block !important;
+    letter-spacing: normal !important; /* Espacement normal des lettres */
+}
+
+.menu-info {
+    margin-top: 4px !important; /* Plus d'espace avant les infos */
+    font-size: 82% !important;
+    text-align: center !important;
+}
+
+.menu-contact-info p {
+    margin: 1px 0 !important; /* Petit espace entre les lignes */
+    line-height: 1.1 !important;
+    padding: 0 !important;
+}
+
+.menu-social {
+    margin-top: 4px !important;
+    display: flex !important;
+    justify-content: center !important;
+    gap: 5px !important; /* Plus d'espace entre les icônes */
+}
+
+.menu-login-container {
+    margin-top: 4px !important;
+}
+
+/* Adaptation pour assurer que le menu est entièrement visible sur petit écran */
+@media (max-height: 600px) {
+    .mmenu-col {
+        padding: 5px !important;
+        max-height: 100vh !important;
+        overflow-y: auto !important;
+    }
+    
+    .menu-nav-list {
+        gap: 1px !important; /* Un peu d'espace */
+    }
+    
+    .menu-nav-list li {
+        margin: 1px 0 !important;
+        line-height: 1 !important; /* Hauteur de ligne standard */
+    }
+    
+    .menu-nav-link {
+        padding: 1px 0 !important;
+        margin: 0 !important;
+    }
+    
+    /* Moins de réduction pour les très petits écrans */
+    .menu-contact-info p {
+        margin: 1px 0 !important;
+        line-height: 1 !important;
+    }
+    
+    .menu-info, .menu-social, .menu-login-container {
+        margin-top: 2px !important;
+    }
+}
+
+/* Styles spécifiques pour le menu mobile (lorsque l'écran est petit) */
+@media (max-width: 480px) {
+    .menu-w {
+        font-size: 68% !important; /* Taille légèrement plus grande */
+    }
+    
+    .menu-nav-list {
+        gap: 1px !important; /* Un peu d'espace entre les éléments */
+    }
+    
+    .menu-nav-link {
+        padding: 1px 0 !important;
+    }
+    
+    .menu-contact-info, .menu-social, .menu-login-container {
+        transform: scale(0.95) !important; /* Moins de réduction */
+    }
+    
+    /* Icônes sociales légèrement plus grandes */
+    .menu-social .social-icon {
+        width: 28px !important;
+        height: 28px !important;
+        min-width: 28px !important;
+        min-height: 28px !important;
+    }
+}
+
+/* Amélioration des boutons de navigation - FIX GRANDES RÉSOLUTIONS */
     .nav-dot {
         width: 14px !important;
         height: 14px !important;
         border: 2px solid rgba(255, 255, 255, 0.7) !important;
+        cursor: pointer !important;
     }
     
     .nav-dot.active {
         transform: scale(1.3) !important;
         box-shadow: 0 0 10px rgba(227, 7, 24, 0.8) !important;
+    }
+    
+    /* Fix spécifique pour les grands écrans */
+    @media (min-width: 1024px) {
+        .navigation-dots {
+            pointer-events: auto !important;
+            z-index: 10000 !important;
+            padding: 10px 20px !important;
+            background-color: rgba(0, 0, 0, 0.4) !important;
+        }
+        
+        .nav-dot {
+            width: 10px !important;
+            height: 10px !important;
+            pointer-events: auto !important;
+            cursor: pointer !important;
+            z-index: 10001 !important;
+            position: relative !important;
+            border-color: rgba(255, 255, 255, 0.6) !important;
+            background-color: rgba(255, 255, 255, 0.8) !important;
+        }
+        
+        .nav-dot:hover {
+            transform: scale(1.3) !important;
+            background-color: white !important;
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.6) !important;
+        }
+        
+        .nav-dot.active {
+            background-color: white !important;
+            transform: scale(1.1) !important;
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.6) !important;
+        }
     }
     
     /* Amélioration de la lightbox pour voir les images en plein écran */

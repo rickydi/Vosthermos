@@ -168,8 +168,8 @@
             <!-- Navigation -->
             <div class="nav-w">
                 <div style="display: flex; width: 100%; justify-content: space-between; align-items: center;">
-                    <!-- Logo avec plus d'espace et centré - lien vers l'accueil -->
-                    <a href="#accueil" class="logo" style="flex: 1; display: flex; justify-content: center; margin: 10px 0;">
+                    <!-- Logo positionné à gauche - lien vers l'accueil -->
+                    <a href="#accueil" class="logo" style="flex: 1; display: flex; justify-content: flex-start; margin: 10px 0;">
                         <img src="images/cropped-Vos-Thermos-Logo_Fond.jpg" alt="Vosthermos Logo" class="logo-img" style="max-height: 120px; min-height: 80px;">
                     </a>
                     
@@ -209,13 +209,9 @@
                     </div>
                     <div class="menu-info">
                         <div class="menu-contact-info">
-                            <p><i class="fas fa-map-marker-alt"></i> 330 Chem. Saint-François-Xavier Delson Local 101</p>
+                            <p><i class="fas fa-map-marker-alt"></i> 330 Ch. St-François-Xavier, Local 101</p>
                             <p><i class="fas fa-phone"></i> <a href="tel:15148258411">1 514-825-8411</a></p> <!-- Lien tel: ajouté -->
                             <p><i class="fas fa-envelope"></i> <a href="mailto:info@vosthermos.com">info@vosthermos.com</a></p>
-                        </div>
-                        <div class="social-icons menu-social">
-<a href="https://www.facebook.com/profile.php?id=61562303553558" class="social-icon"><i class="fab fa-facebook-f"></i></a>
-<a href="http://instagram.com/vosthermos/" class="social-icon"><i class="fab fa-instagram"></i></a>
                         </div>
                     </div>
                 </div>
@@ -651,7 +647,7 @@
                                                         </div>
                                                         <div class="info-content">
                                                             <h3 data-i18n="Adresse">Adresse</h3>
-                                                            <p>330 Chem. Saint-François-Xavier Delson Local 101</p>
+                                                            <p>330 Ch. St-François-Xavier, Local 101</p>
                                                         </div>
                                                     </div>
                                                     
@@ -743,5 +739,111 @@
     <script src="js/email.js"></script>
     <script src="js/language.js"></script>
     <script src="js/reviews-animation.js"></script>
+    
+    <!-- Solution unique pour les points de navigation -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // D'abord, cacher les points originaux qui ne fonctionnent pas
+            const originalNav = document.querySelector('.navigation-dots');
+            if (originalNav) {
+                originalNav.style.display = 'none';
+            }
+            
+            // Fonction pour créer des boutons de navigation efficaces
+            function createSimpleNav() {
+                // Supprimer tout élément existant
+                const existingNav = document.getElementById('simple-nav-dots');
+                if (existingNav) {
+                    existingNav.remove();
+                }
+                
+                // Créer un nouveau conteneur pour les points
+                const nav = document.createElement('div');
+                nav.id = 'simple-nav-dots';
+                nav.style.cssText = `
+                    position: fixed;
+                    bottom: 100px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    display: flex;
+                    gap: 12px;
+                    padding: 10px 20px;
+                    background: rgba(0, 0, 0, 0.4);
+                    border-radius: 30px;
+                    z-index: 999999;
+                `;
+                
+                // Récupérer les slides et trouver celui qui est actif
+                const slides = document.querySelectorAll('.home-roll-item');
+                let activeIndex = 0;
+                
+                slides.forEach((slide, i) => {
+                    if (slide.classList.contains('active')) {
+                        activeIndex = i;
+                    }
+                });
+                
+                // Fonction de navigation simple et fiable
+                function navigate(index) {
+                    // Ne rien faire si on clique sur le slide actif
+                    if (index === activeIndex) return;
+                    
+                    // Mettre à jour les slides
+                    slides.forEach((slide, i) => {
+                        slide.classList.toggle('active', i === index);
+                    });
+                    
+                    // Mettre à jour les points
+                    nav.querySelectorAll('button').forEach((btn, i) => {
+                        btn.style.backgroundColor = i === index ? 'white' : 'rgba(255, 255, 255, 0.5)';
+                    });
+                    
+                    // Déplacer le conteneur
+                    const container = document.querySelector('.home-roll-w');
+                    if (container) {
+                        container.style.transition = 'transform 1s cubic-bezier(0.16, 1, 0.3, 1)';
+                        container.style.transform = `translateX(-${index * window.innerWidth}px)`;
+                    }
+                    
+                    // Mettre à jour l'index actif
+                    activeIndex = index;
+                }
+                
+                // Créer un point pour chaque slide
+                slides.forEach((_, index) => {
+                    const dot = document.createElement('button');
+                    dot.style.cssText = `
+                        width: 10px;
+                        height: 10px;
+                        border-radius: 50%;
+                        border: none;
+                        padding: 0;
+                        margin: 0;
+                        cursor: pointer;
+                        background-color: ${index === activeIndex ? 'white' : 'rgba(255, 255, 255, 0.5)'};
+                        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+                    `;
+                    
+                    // Gestionnaire d'événements simple
+                    dot.onclick = function() {
+                        navigate(index);
+                    };
+                    
+                    nav.appendChild(dot);
+                });
+                
+                // Ajouter à la page
+                document.body.appendChild(nav);
+            }
+            
+            // Appliquer la solution après un court délai
+            setTimeout(createSimpleNav, 500);
+            
+            // Recréer lors des redimensionnements
+            window.addEventListener('resize', function() {
+                setTimeout(createSimpleNav, 300);
+            });
+        });
+    </script>
 </body>
 </html>
