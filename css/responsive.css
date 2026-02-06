@@ -25,10 +25,10 @@
     .section { padding: 60px 0; }
     .container { padding: 0 20px; }
 
-    .header-inner { height: 68px; }
-    .logo-img { height: 52px; }
-    .mobile-menu { top: 68px; }
-    .hero { padding-top: 68px; }
+    .header-inner { height: 70px; }
+    .logo-img { height: 56px; }
+    .mobile-menu { top: 70px; }
+    .hero { padding-top: 70px; }
 
     .hero-split { grid-template-columns: 1fr; gap: 32px; padding: 40px 20px; }
     .hero-content { text-align: center; }
