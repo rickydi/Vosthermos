@@ -63,8 +63,12 @@ const translations = {
     "Soumission gratuite, service rapide et garanti. Notre equipe est prete a vous aider.": "Free quote, fast and guaranteed service. Our team is ready to help.",
     "Demander une soumission": "Request a quote",
 
+    // Hero Form
+    "Remplissez le formulaire et obtenez une estimation rapide pour vos travaux.": "Fill out the form and get a quick estimate for your project.",
+    "ou appelez-nous": "or call us",
+
     // Contact
-    "Demandez votre <span>soumission gratuite</span>": "Request your <span>free quote</span>",
+    "Nos <span>coordonnees</span>": "Our <span>contact info</span>",
     "Nom complet": "Full Name",
     "Telephone": "Phone",
     "Service requis": "Required service",

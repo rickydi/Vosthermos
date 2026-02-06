@@ -17,7 +17,7 @@
     <header class="header" id="header">
         <div class="container header-inner">
             <a href="/" class="logo">
-                <img src="images/cropped-Vos-Thermos-Logo_Fond.jpg" alt="Vosthermos Logo" class="logo-img">
+                <img src="images/Vos-Thermos-Logo_Blanc.png" alt="Vosthermos Logo" class="logo-img">
             </a>
             <nav class="nav-desktop" id="nav-desktop">
                 <a href="#services" data-i18n="Services">Services</a>
@@ -61,26 +61,62 @@
             </video>
             <div class="hero-overlay"></div>
         </div>
-        <div class="container hero-content">
-            <span class="hero-badge" data-i18n="Plus de 15 ans d'experience">Plus de 15 ans d'experience</span>
-            <h1 class="hero-title" data-i18n="Experts en reparation de <span>portes et fenetres</span>">Experts en reparation de <span>portes et fenetres</span></h1>
-            <p class="hero-desc" data-i18n="Service rapide et professionnel pour le remplacement de vitres thermos, la reparation de quincaillerie, de portes en bois et de moustiquaires. Nous desservons Montreal, la Rive-Sud et un rayon de 100km autour de Saint-Francois-Xavier.">Service rapide et professionnel pour le remplacement de vitres thermos, la reparation de quincaillerie, de portes en bois et de moustiquaires. Nous desservons Montreal, la Rive-Sud et un rayon de 100km autour de Saint-Francois-Xavier.</p>
-            <div class="hero-actions">
-                <a href="#contact" class="btn btn-primary" data-i18n="Demander une soumission gratuite">Demander une soumission gratuite</a>
-                <a href="tel:15148258411" class="btn btn-outline"><i class="fas fa-phone"></i> 514-825-8411</a>
+        <div class="container hero-split">
+            <div class="hero-content">
+                <span class="hero-badge" data-i18n="Plus de 15 ans d'experience">Plus de 15 ans d'experience</span>
+                <h1 class="hero-title" data-i18n="Experts en reparation de <span>portes et fenetres</span>">Experts en reparation de <span>portes et fenetres</span></h1>
+                <p class="hero-desc" data-i18n="Service rapide et professionnel pour le remplacement de vitres thermos, la reparation de quincaillerie, de portes en bois et de moustiquaires. Nous desservons Montreal, la Rive-Sud et un rayon de 100km autour de Saint-Francois-Xavier.">Service rapide et professionnel pour le remplacement de vitres thermos, la reparation de quincaillerie, de portes en bois et de moustiquaires. Nous desservons Montreal, la Rive-Sud et un rayon de 100km autour de Saint-Francois-Xavier.</p>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <strong>15+</strong>
+                        <span data-i18n="Annees d'experience">Annees d'experience</span>
+                    </div>
+                    <div class="stat">
+                        <strong>100km</strong>
+                        <span data-i18n="Rayon de service">Rayon de service</span>
+                    </div>
+                    <div class="stat">
+                        <strong>10 ans</strong>
+                        <span data-i18n="Garantie thermos">Garantie thermos</span>
+                    </div>
+                </div>
             </div>
-            <div class="hero-stats">
-                <div class="stat">
-                    <strong>15+</strong>
-                    <span data-i18n="Annees d'experience">Annees d'experience</span>
-                </div>
-                <div class="stat">
-                    <strong>100km</strong>
-                    <span data-i18n="Rayon de service">Rayon de service</span>
-                </div>
-                <div class="stat">
-                    <strong>10 ans</strong>
-                    <span data-i18n="Garantie thermos">Garantie thermos</span>
+            <div class="hero-form">
+                <div class="hero-form-card">
+                    <h2 data-i18n="Soumission gratuite">Soumission gratuite</h2>
+                    <p data-i18n="Remplissez le formulaire et obtenez une estimation rapide pour vos travaux.">Remplissez le formulaire et obtenez une estimation rapide pour vos travaux.</p>
+                    <form id="contactForm">
+                        <div class="form-group">
+                            <input type="text" id="name" name="name" placeholder="Nom complet" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <input type="email" id="email" name="email" placeholder="Email" required>
+                            </div>
+                            <div class="form-group">
+                                <input type="tel" id="phone" name="phone" placeholder="Telephone" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <select id="service" name="service" required>
+                                <option value="" data-i18n="Selectionnez un service">Selectionnez un service</option>
+                                <option value="quincaillerie" data-i18n="Remplacement de quincaillerie">Remplacement de quincaillerie</option>
+                                <option value="vitre-thermos" data-i18n="Remplacement de vitre thermos">Remplacement de vitre thermos</option>
+                                <option value="portes-bois" data-i18n="Reparation de portes en bois">Reparation de portes en bois</option>
+                                <option value="moustiquaire" data-i18n="Reparation/fabrication de moustiquaires">Reparation/fabrication de moustiquaires</option>
+                                <option value="autre" data-i18n="Autre (precisez)">Autre (precisez)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <textarea id="message" name="message" placeholder="Decrivez votre besoin..." rows="3"></textarea>
+                        </div>
+                        <button type="button" id="submitButton" class="btn btn-primary btn-block" data-i18n="Envoyer la demande">Envoyer la demande</button>
+                        <div id="formStatus" class="form-status"></div>
+                    </form>
+                    <div class="hero-form-phone">
+                        <span data-i18n="ou appelez-nous">ou appelez-nous</span>
+                        <a href="tel:15148258411"><i class="fas fa-phone"></i> 514-825-8411</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -273,76 +309,38 @@
         <div class="container">
             <div class="section-header">
                 <span class="section-tag" data-i18n="Contact">Contact</span>
-                <h2 class="section-title" data-i18n="Demandez votre <span>soumission gratuite</span>">Demandez votre <span>soumission gratuite</span></h2>
+                <h2 class="section-title" data-i18n="Nos <span>coordonnees</span>">Nos <span>coordonnees</span></h2>
             </div>
-            <div class="contact-layout">
-                <div class="contact-form-wrap">
-                    <form id="contactForm">
-                        <div class="form-group">
-                            <label for="name" data-i18n="Nom complet">Nom complet</label>
-                            <input type="text" id="name" name="name" placeholder="Nom complet" required>
+            <div class="contact-grid">
+                <div class="contact-info-card">
+                    <div class="contact-detail">
+                        <div class="contact-detail-icon"><i class="fas fa-map-marker-alt"></i></div>
+                        <div>
+                            <strong data-i18n="Adresse">Adresse</strong>
+                            <p>330 Ch. St-Francois-Xavier, Local 101<br>Saint-Francois-Xavier, QC</p>
                         </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="email">Email</label>
-                                <input type="email" id="email" name="email" placeholder="Email" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="phone" data-i18n="Telephone">Telephone</label>
-                                <input type="tel" id="phone" name="phone" placeholder="Telephone" required>
-                            </div>
+                    </div>
+                    <div class="contact-detail">
+                        <div class="contact-detail-icon"><i class="fas fa-phone"></i></div>
+                        <div>
+                            <strong data-i18n="Telephone">Telephone</strong>
+                            <p><a href="tel:15148258411">1 514-825-8411</a></p>
                         </div>
-                        <div class="form-group">
-                            <label for="service" data-i18n="Service requis">Service requis</label>
-                            <select id="service" name="service" required>
-                                <option value="" data-i18n="Selectionnez un service">Selectionnez un service</option>
-                                <option value="quincaillerie" data-i18n="Remplacement de quincaillerie">Remplacement de quincaillerie</option>
-                                <option value="vitre-thermos" data-i18n="Remplacement de vitre thermos">Remplacement de vitre thermos</option>
-                                <option value="portes-bois" data-i18n="Reparation de portes en bois">Reparation de portes en bois</option>
-                                <option value="moustiquaire" data-i18n="Reparation/fabrication de moustiquaires">Reparation/fabrication de moustiquaires</option>
-                                <option value="autre" data-i18n="Autre (precisez)">Autre (precisez)</option>
-                            </select>
+                    </div>
+                    <div class="contact-detail">
+                        <div class="contact-detail-icon"><i class="fas fa-envelope"></i></div>
+                        <div>
+                            <strong>Email</strong>
+                            <p><a href="mailto:info@vosthermos.com">info@vosthermos.com</a></p>
                         </div>
-                        <div class="form-group">
-                            <label for="message">Message</label>
-                            <textarea id="message" name="message" placeholder="Decrivez votre besoin..." rows="4"></textarea>
-                        </div>
-                        <button type="button" id="submitButton" class="btn btn-primary btn-block" data-i18n="Envoyer la demande">Envoyer la demande</button>
-                        <div id="formStatus" class="form-status"></div>
-                    </form>
+                    </div>
+                    <div class="contact-socials">
+                        <a href="https://www.facebook.com/profile.php?id=61562303553558" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="http://instagram.com/vosthermos/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    </div>
                 </div>
-                <div class="contact-info-side">
-                    <div class="contact-info-card">
-                        <h3 data-i18n="Nos coordonnees">Nos coordonnees</h3>
-                        <div class="contact-detail">
-                            <div class="contact-detail-icon"><i class="fas fa-map-marker-alt"></i></div>
-                            <div>
-                                <strong data-i18n="Adresse">Adresse</strong>
-                                <p>330 Ch. St-Francois-Xavier, Local 101<br>Saint-Francois-Xavier, QC</p>
-                            </div>
-                        </div>
-                        <div class="contact-detail">
-                            <div class="contact-detail-icon"><i class="fas fa-phone"></i></div>
-                            <div>
-                                <strong data-i18n="Telephone">Telephone</strong>
-                                <p><a href="tel:15148258411">1 514-825-8411</a></p>
-                            </div>
-                        </div>
-                        <div class="contact-detail">
-                            <div class="contact-detail-icon"><i class="fas fa-envelope"></i></div>
-                            <div>
-                                <strong>Email</strong>
-                                <p><a href="mailto:info@vosthermos.com">info@vosthermos.com</a></p>
-                            </div>
-                        </div>
-                        <div class="contact-socials">
-                            <a href="https://www.facebook.com/profile.php?id=61562303553558" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                            <a href="http://instagram.com/vosthermos/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                        </div>
-                    </div>
-                    <div class="contact-map">
-                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d44818.60183345312!2d-73.45735594648!3d45.37106269649143!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4cc90fb925e4b0c3%3A0x18bb6483b7f0b8b0!2sDelson%2C%20QC!5e0!3m2!1sfr!2sca!4v1712977261056!5m2!1sfr!2sca" width="100%" height="250" style="border:0;border-radius:12px;" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-                    </div>
+                <div class="contact-map">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d44818.60183345312!2d-73.45735594648!3d45.37106269649143!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4cc90fb925e4b0c3%3A0x18bb6483b7f0b8b0!2sDelson%2C%20QC!5e0!3m2!1sfr!2sca!4v1712977261056!5m2!1sfr!2sca" width="100%" height="350" style="border:0;border-radius:12px;" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                 </div>
             </div>
         </div>
@@ -353,7 +351,7 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-col">
-                    <img src="images/cropped-Vos-Thermos-Logo_Fond.jpg" alt="Vosthermos" class="footer-logo">
+                    <img src="images/Vos-Thermos-Logo_Blanc.png" alt="Vosthermos" class="footer-logo">
                     <p data-i18n="Experts en reparation de portes et fenetres depuis plus de 15 ans. Service professionnel et garanti.">Experts en reparation de portes et fenetres depuis plus de 15 ans. Service professionnel et garanti.</p>
                     <div class="footer-socials">
                         <a href="https://www.facebook.com/profile.php?id=61562303553558" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>

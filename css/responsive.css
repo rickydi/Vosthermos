@@ -8,12 +8,15 @@
     .btn-phone span { display: none; }
     .btn-phone { padding: 8px 12px; }
 
+    .hero-split { grid-template-columns: 1fr 380px; gap: 32px; }
+    .hero-title { font-size: 2.2rem; }
+
     .services-grid { grid-template-columns: repeat(2, 1fr); }
     .gallery-grid { grid-template-columns: repeat(3, 1fr); }
     .testimonials-grid { grid-template-columns: repeat(2, 1fr); }
     .sectors-grid { grid-template-columns: repeat(4, 1fr); }
     .footer-grid { grid-template-columns: repeat(2, 1fr); gap: 32px; }
-    .contact-layout { grid-template-columns: 1fr; }
+    .contact-grid { grid-template-columns: 1fr; }
     .city-content { grid-template-columns: 1fr; }
     .city-sidebar { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 }
@@ -23,13 +26,17 @@
     .container { padding: 0 20px; }
 
     .header-inner { height: 64px; }
-    .logo-img { height: 40px; }
+    .logo-img { height: 44px; }
     .mobile-menu { top: 64px; }
     .hero { padding-top: 64px; }
 
+    .hero-split { grid-template-columns: 1fr; gap: 32px; padding: 40px 20px; }
+    .hero-content { text-align: center; }
+    .hero-stats { justify-content: center; gap: 24px; flex-wrap: wrap; }
     .hero-title { font-size: 2rem; }
     .hero-desc { font-size: 0.95rem; }
-    .hero-stats { gap: 24px; flex-wrap: wrap; }
+    .hero-form-card { padding: 24px 20px; }
+    .hero-form-card h2 { font-size: 1.2rem; }
 
     .services-grid { grid-template-columns: 1fr; gap: 16px; }
     .service-card { padding: 24px 20px; }
@@ -48,9 +55,10 @@
 
     .section-cta h2 { font-size: 1.4rem; }
 
-    .contact-form-wrap { padding: 24px 20px; }
     .form-row { grid-template-columns: 1fr; gap: 0; }
     input, select, textarea { font-size: 16px; }
+
+    .contact-grid { grid-template-columns: 1fr; }
 
     .footer-grid { grid-template-columns: 1fr; gap: 24px; }
     .footer-bottom { flex-direction: column; gap: 8px; text-align: center; }
@@ -73,15 +81,15 @@
 }
 
 @media (max-width: 480px) {
-    .hero-content { padding: 40px 0; }
+    .hero-split { padding: 30px 16px; gap: 24px; }
     .hero-title { font-size: 1.6rem; }
     .hero-badge { font-size: 0.78rem; padding: 6px 14px; }
-    .hero-actions { flex-direction: column; }
-    .hero-actions .btn { width: 100%; }
-
     .hero-stats { flex-direction: column; gap: 16px; padding-top: 24px; }
     .stat { display: flex; align-items: center; gap: 12px; }
     .stat strong { font-size: 1.2rem; }
+
+    .hero-form-card { padding: 20px 16px; }
+    .hero-form-card .form-row { grid-template-columns: 1fr; gap: 0; }
 
     .section-title { font-size: 1.5rem; }
     .section-tag { font-size: 0.7rem; }
