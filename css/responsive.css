@@ -2,411 +2,95 @@
    VOSTHERMOS - Responsive Styles
    ============================================ */
 
-/* Large screens */
-@media (min-width: 1200px) {
-    .gallery {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 16px;
-    }
+@media (max-width: 1024px) {
+    .nav-desktop { display: none; }
+    .menu-toggle { display: flex; }
+    .btn-phone span { display: none; }
+    .btn-phone { padding: 8px 12px; }
 
-    .gallery-item {
-        border-radius: var(--radius-md);
-    }
+    .services-grid { grid-template-columns: repeat(2, 1fr); }
+    .gallery-grid { grid-template-columns: repeat(3, 1fr); }
+    .testimonials-grid { grid-template-columns: repeat(2, 1fr); }
+    .sectors-grid { grid-template-columns: repeat(4, 1fr); }
+    .footer-grid { grid-template-columns: repeat(2, 1fr); gap: 32px; }
+    .contact-layout { grid-template-columns: 1fr; }
+    .city-content { grid-template-columns: 1fr; }
+    .city-sidebar { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 }
 
-/* Tablet landscape */
-@media (max-width: 1200px) {
-    .slide-content {
-        padding: 90px 40px 80px;
-    }
-
-    .home-content {
-        gap: 40px;
-    }
-
-    .hero-title {
-        font-size: clamp(2rem, 4vw, 3rem);
-    }
-}
-
-/* Tablet portrait */
-@media (max-width: 992px) {
-    .site-header {
-        padding: 0 24px;
-    }
-
-    .header-inner {
-        height: 70px;
-    }
-
-    .logo-img {
-        height: 50px;
-    }
-
-    .slide-content {
-        padding: 80px 30px 100px;
-    }
-
-    .home-content {
-        flex-direction: column;
-        gap: 30px;
-        align-items: flex-start;
-    }
-
-    .home-text {
-        width: 100%;
-    }
-
-    .home-reviews {
-        flex: none;
-        max-width: 100%;
-        width: 100%;
-    }
-
-    .highlights {
-        flex-wrap: wrap;
-        gap: 12px;
-    }
-
-    .highlight-item {
-        flex: 1;
-        min-width: 120px;
-    }
-
-    .gallery {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-    }
-
-    .contact-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
-    }
-
-    .contact-map {
-        min-height: 250px;
-    }
-
-    .contact-info-bar {
-        flex-direction: column;
-        gap: 16px;
-    }
-
-    .contact-info-item {
-        min-width: auto;
-    }
-
-    .menu-link {
-        font-size: 1.6rem;
-    }
-
-    .nav-dots {
-        bottom: 80px;
-    }
-}
-
-/* Mobile */
 @media (max-width: 768px) {
-    .site-header {
-        padding: 0 16px;
-        background: var(--teal-dark);
-    }
+    .section { padding: 60px 0; }
+    .container { padding: 0 20px; }
 
-    .header-inner {
-        height: 60px;
-    }
+    .header-inner { height: 64px; }
+    .logo-img { height: 40px; }
+    .mobile-menu { top: 64px; }
+    .hero { padding-top: 64px; }
 
-    .logo-img {
-        height: 42px;
-    }
+    .hero-title { font-size: 2rem; }
+    .hero-desc { font-size: 0.95rem; }
+    .hero-stats { gap: 24px; flex-wrap: wrap; }
 
-    .header-right {
-        gap: 12px;
-    }
+    .services-grid { grid-template-columns: 1fr; gap: 16px; }
+    .service-card { padding: 24px 20px; }
 
-    .menu-toggle {
-        width: 36px;
-        height: 36px;
-        padding: 7px;
-    }
+    .steps-grid { grid-template-columns: 1fr; gap: 20px; }
+    .step-card { padding: 24px 16px; }
 
-    .lang-switch button {
-        font-size: 13px;
-    }
+    .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .gallery-tabs { gap: 6px; }
+    .gallery-tab { padding: 6px 14px; font-size: 0.8rem; }
 
-    .slide-content {
-        padding: 70px 20px 110px;
-    }
+    .testimonials-grid { grid-template-columns: 1fr; }
 
-    #accueil .slide-content {
-        padding-top: 80px;
-    }
+    .sectors-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .sector-card { font-size: 0.85rem; padding: 12px 14px; }
 
-    .hero-title {
-        font-size: 2rem;
-        margin-bottom: 16px;
-    }
+    .section-cta h2 { font-size: 1.4rem; }
 
-    .hero-desc {
-        font-size: 0.95rem;
-        margin-bottom: 24px;
-    }
+    .contact-form-wrap { padding: 24px 20px; }
+    .form-row { grid-template-columns: 1fr; gap: 0; }
+    input, select, textarea { font-size: 16px; }
 
-    .tag-line {
-        font-size: 0.8rem;
-        margin-bottom: 12px;
-    }
+    .footer-grid { grid-template-columns: 1fr; gap: 24px; }
+    .footer-bottom { flex-direction: column; gap: 8px; text-align: center; }
 
-    .highlights {
-        gap: 10px;
-    }
+    .fixed-cta { display: flex; }
+    .footer { padding-bottom: 80px; }
+    .section:last-of-type { padding-bottom: 100px; }
 
-    .highlight-item {
-        padding: 12px 14px;
-    }
-
-    .highlight-label {
-        font-size: 0.7rem;
-    }
-
-    .highlight-value {
-        font-size: 0.9rem;
-    }
-
-    .section-title {
-        font-size: 1.6rem;
-        margin-bottom: 16px;
-    }
-
-    .section-desc {
-        font-size: 0.9rem;
-        line-height: 1.6;
-        margin-bottom: 24px;
-    }
-
-    .gallery {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
-    }
-
-    .gallery-item {
-        border-radius: 6px;
-    }
-
-    .contact-form-wrap {
-        padding: 20px;
-    }
-
-    .form-row {
-        grid-template-columns: 1fr;
-        gap: 0;
-    }
-
-    input, select, textarea {
-        padding: 12px 14px;
-        font-size: 16px; /* Prevent iOS zoom */
-    }
-
-    .menu-link {
-        font-size: 1.4rem;
-        padding: 6px 0;
-    }
-
-    .menu-list {
-        gap: 4px;
-        margin-bottom: 30px;
-    }
-
-    .menu-footer {
-        gap: 16px;
-        padding-top: 20px;
-    }
-
-    .menu-contact-details {
-        font-size: 0.8rem;
-    }
-
-    /* Fixed contact bar */
-    .fixed-contact-bar {
-        bottom: 16px;
-        gap: 10px;
-    }
-
-    .btn-contact-fixed {
-        padding: 10px 20px;
-        font-size: 0.8rem;
-    }
-
-    .fixed-socials a {
-        width: 40px;
-        height: 40px;
-    }
-
-    .nav-dots {
-        bottom: 72px;
-    }
-
-    .nav-dot {
-        width: 8px;
-        height: 8px;
-    }
-
-    /* Hide background images on mobile for performance */
-    .slide-bg-img {
-        display: none;
-    }
-
-    #background-video {
-        display: none;
-    }
-
-    .slide-bg-overlay {
-        background: var(--teal-dark);
-    }
-
-    #accueil .slide-bg-overlay {
-        background: var(--teal-dark);
-    }
+    /* City pages */
+    .city-hero { padding: 90px 0 40px; }
+    .city-hero h1 { font-size: 1.6rem; }
+    .city-sidebar { grid-template-columns: 1fr; }
 
     /* Lightbox */
-    .lightbox-img-wrap {
-        max-width: calc(100vw - 40px);
-    }
-
-    .lightbox-nav {
-        width: 38px;
-        height: 38px;
-        font-size: 1rem;
-    }
-
+    .lightbox-img-wrap { max-width: calc(100vw - 32px); }
+    .lightbox-nav { width: 38px; height: 38px; }
     .lightbox-prev { left: 8px; }
     .lightbox-next { right: 8px; }
-
-    .lightbox-close {
-        top: 12px;
-        right: 12px;
-        width: 38px;
-        height: 38px;
-    }
+    .lightbox-close { top: 12px; right: 12px; width: 38px; height: 38px; }
 }
 
-/* Small mobile */
 @media (max-width: 480px) {
-    .slide-content {
-        padding: 65px 16px 110px;
-    }
+    .hero-content { padding: 40px 0; }
+    .hero-title { font-size: 1.6rem; }
+    .hero-badge { font-size: 0.78rem; padding: 6px 14px; }
+    .hero-actions { flex-direction: column; }
+    .hero-actions .btn { width: 100%; }
 
-    #accueil .slide-content {
-        padding-top: 75px;
-    }
+    .hero-stats { flex-direction: column; gap: 16px; padding-top: 24px; }
+    .stat { display: flex; align-items: center; gap: 12px; }
+    .stat strong { font-size: 1.2rem; }
 
-    .hero-title {
-        font-size: 1.7rem;
-    }
+    .section-title { font-size: 1.5rem; }
+    .section-tag { font-size: 0.7rem; }
 
-    .hero-desc {
-        font-size: 0.88rem;
-    }
+    .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+    .sectors-grid { grid-template-columns: 1fr 1fr; }
+    .cta-actions { flex-direction: column; align-items: center; }
+    .cta-actions .btn { width: 100%; max-width: 320px; }
 
-    .highlights {
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .highlight-item {
-        flex-direction: row;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .section-title {
-        font-size: 1.4rem;
-    }
-
-    .section-desc {
-        font-size: 0.85rem;
-    }
-
-    .gallery {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 6px;
-    }
-
-    .contact-form-wrap {
-        padding: 16px;
-    }
-
-    .menu-link {
-        font-size: 1.2rem;
-    }
-
-    .btn-contact-fixed {
-        padding: 10px 16px;
-        font-size: 0.75rem;
-    }
-
-    .fixed-socials a {
-        width: 36px;
-        height: 36px;
-        font-size: 0.85rem;
-    }
-}
-
-/* Landscape mobile */
-@media (max-height: 500px) and (orientation: landscape) {
-    .site-header {
-        padding: 0 20px;
-    }
-
-    .header-inner {
-        height: 50px;
-    }
-
-    .logo-img {
-        height: 35px;
-    }
-
-    .slide-content {
-        padding: 55px 24px 60px;
-    }
-
-    .hero-title {
-        font-size: 1.5rem;
-        margin-bottom: 8px;
-    }
-
-    .hero-desc {
-        font-size: 0.8rem;
-        margin-bottom: 12px;
-    }
-
-    .highlights {
-        gap: 8px;
-    }
-
-    .highlight-item {
-        padding: 8px 12px;
-    }
-
-    .section-title {
-        font-size: 1.3rem;
-        margin-bottom: 8px;
-    }
-
-    .section-desc {
-        font-size: 0.8rem;
-        margin-bottom: 16px;
-    }
-
-    .gallery {
-        gap: 6px;
-    }
-
-    .nav-dots {
-        bottom: 8px;
-    }
-
-    .fixed-contact-bar {
-        bottom: 8px;
-    }
+    .city-hero-actions { flex-direction: column; }
+    .city-hero-actions .btn { width: 100%; }
 }

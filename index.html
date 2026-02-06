@@ -3,363 +3,414 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Vosthermos - Specialiste en reparation et remplacement de portes et fenetres, vitres thermos, moustiquaires et quincaillerie dans un rayon de 100km autour de Saint-Francois-Xavier.">
-    <meta name="keywords" content="reparation portes, reparation fenetres, vitre thermos, moustiquaire, porte-patio, fenetre a battant, fenetre a guillotine">
-    <title>Vosthermos - Experts en reparation de portes et fenetres</title>
+    <meta name="description" content="Vosthermos - Experts en reparation de portes et fenetres, remplacement de vitres thermos, quincaillerie et moustiquaires. Service rapide dans un rayon de 100km de Saint-Francois-Xavier. Appelez 514-825-8411.">
+    <meta name="keywords" content="reparation portes, reparation fenetres, vitre thermos, moustiquaire, quincaillerie, porte-patio, Saint-Francois-Xavier, Montreal, Rive-Sud">
+    <title>Vosthermos | Experts en reparation de portes et fenetres</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/responsive.css">
-    <link rel="stylesheet" href="css/animations.css">
-    <link rel="stylesheet" href="css/reviews.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <!-- Header / Navigation -->
-    <header class="site-header">
-        <div class="header-inner">
-            <a href="#accueil" class="logo" id="logo-link">
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="container header-inner">
+            <a href="/" class="logo">
                 <img src="images/cropped-Vos-Thermos-Logo_Fond.jpg" alt="Vosthermos Logo" class="logo-img">
             </a>
-            <div class="header-right">
-                <div class="lang-switch" id="language-selector">
-                    <button id="lang-toggle" aria-label="Changer de langue">
-                        <span class="lang-option active" data-lang="fr">FR</span>
-                        <span class="lang-option" data-lang="en">EN</span>
-                    </button>
+            <nav class="nav-desktop" id="nav-desktop">
+                <a href="#services" data-i18n="Services">Services</a>
+                <a href="#comment-ca-marche" data-i18n="Comment ca marche">Comment ca marche</a>
+                <a href="#galerie" data-i18n="Galerie">Galerie</a>
+                <a href="#temoignages" data-i18n="Temoignages">Temoignages</a>
+                <a href="#secteurs" data-i18n="Secteurs desservis">Secteurs desservis</a>
+                <a href="#contact" data-i18n="Contact">Contact</a>
+            </nav>
+            <div class="header-actions">
+                <a href="tel:15148258411" class="btn-phone"><i class="fas fa-phone"></i> <span>514-825-8411</span></a>
+                <div class="lang-switch">
+                    <span class="lang-option active" data-lang="fr">FR</span>
+                    <span class="lang-option" data-lang="en">EN</span>
                 </div>
-                <button class="menu-toggle" id="menu-toggle" aria-label="Ouvrir le menu">
-                    <span class="menu-bar"></span>
-                    <span class="menu-bar"></span>
-                    <span class="menu-bar"></span>
+                <button class="menu-toggle" id="menu-toggle" aria-label="Menu">
+                    <span></span><span></span><span></span>
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- Menu Overlay -->
-    <nav class="menu-overlay" id="menu-overlay">
-        <div class="menu-overlay-inner">
-            <ul class="menu-list">
-                <li><a href="#accueil" class="menu-link" data-index="0" data-i18n="Accueil">Accueil</a></li>
-                <li><a href="#quincaillerie" class="menu-link" data-index="1" data-i18n="Quincaillerie">Quincaillerie</a></li>
-                <li><a href="#vitre-thermos" class="menu-link" data-index="2" data-i18n="Vitre Thermos">Vitre Thermos</a></li>
-                <li><a href="#portes-bois" class="menu-link" data-index="3" data-i18n="Portes en Bois">Portes en Bois</a></li>
-                <li><a href="#moustiquaires" class="menu-link" data-index="4" data-i18n="Moustiquaires">Moustiquaires</a></li>
-                <li><a href="#contact" class="menu-link" data-index="5" data-i18n="Contact">Contact</a></li>
-            </ul>
-            <div class="menu-footer">
-                <div class="menu-contact-details">
-                    <p><i class="fas fa-map-marker-alt"></i> 330 Ch. St-Francois-Xavier, Local 101</p>
-                    <p><i class="fas fa-phone"></i> <a href="tel:15148258411">1 514-825-8411</a></p>
-                    <p><i class="fas fa-envelope"></i> <a href="mailto:info@vosthermos.com">info@vosthermos.com</a></p>
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobile-menu">
+        <nav class="mobile-menu-nav">
+            <a href="#services" data-i18n="Services">Services</a>
+            <a href="#comment-ca-marche" data-i18n="Comment ca marche">Comment ca marche</a>
+            <a href="#galerie" data-i18n="Galerie">Galerie</a>
+            <a href="#temoignages" data-i18n="Temoignages">Temoignages</a>
+            <a href="#secteurs" data-i18n="Secteurs desservis">Secteurs desservis</a>
+            <a href="#contact" data-i18n="Contact">Contact</a>
+            <a href="tel:15148258411" class="mobile-phone"><i class="fas fa-phone"></i> 514-825-8411</a>
+        </nav>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="hero-bg">
+            <video autoplay muted loop playsinline poster="images/accueil/bg-poster.jpg" id="hero-video">
+                <source src="videos/vosthermos-background.mp4" type="video/mp4">
+            </video>
+            <div class="hero-overlay"></div>
+        </div>
+        <div class="container hero-content">
+            <span class="hero-badge" data-i18n="Plus de 15 ans d'experience">Plus de 15 ans d'experience</span>
+            <h1 class="hero-title" data-i18n="Experts en reparation de <span>portes et fenetres</span>">Experts en reparation de <span>portes et fenetres</span></h1>
+            <p class="hero-desc" data-i18n="Service rapide et professionnel pour le remplacement de vitres thermos, la reparation de quincaillerie, de portes en bois et de moustiquaires. Nous desservons Montreal, la Rive-Sud et un rayon de 100km autour de Saint-Francois-Xavier.">Service rapide et professionnel pour le remplacement de vitres thermos, la reparation de quincaillerie, de portes en bois et de moustiquaires. Nous desservons Montreal, la Rive-Sud et un rayon de 100km autour de Saint-Francois-Xavier.</p>
+            <div class="hero-actions">
+                <a href="#contact" class="btn btn-primary" data-i18n="Demander une soumission gratuite">Demander une soumission gratuite</a>
+                <a href="tel:15148258411" class="btn btn-outline"><i class="fas fa-phone"></i> 514-825-8411</a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat">
+                    <strong>15+</strong>
+                    <span data-i18n="Annees d'experience">Annees d'experience</span>
                 </div>
-                <div class="menu-socials">
-                    <a href="https://www.facebook.com/profile.php?id=61562303553558" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                    <a href="http://instagram.com/vosthermos/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                <div class="stat">
+                    <strong>100km</strong>
+                    <span data-i18n="Rayon de service">Rayon de service</span>
                 </div>
-                <div class="menu-login">
-                    <a href="user.html" id="menu-login-link">Login</a>
+                <div class="stat">
+                    <strong>10 ans</strong>
+                    <span data-i18n="Garantie thermos">Garantie thermos</span>
                 </div>
             </div>
         </div>
-    </nav>
+    </section>
 
-    <!-- Fixed Contact Bar -->
-    <div class="fixed-contact-bar" id="fixed-contact-bar">
-        <button class="btn-contact-fixed" id="btn-contact-fixed" data-i18n="Contactez-nous">Contactez-nous</button>
-        <div class="fixed-socials">
-            <a href="https://www.facebook.com/profile.php?id=61562303553558" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-            <a href="http://instagram.com/vosthermos/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+    <!-- Services Section -->
+    <section class="section section-light" id="services">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag" data-i18n="Nos services">Nos services</span>
+                <h2 class="section-title" data-i18n="Des solutions adaptees a <span>tous vos besoins</span>">Des solutions adaptees a <span>tous vos besoins</span></h2>
+                <p class="section-subtitle" data-i18n="Que ce soit pour une reparation urgente ou un projet planifie, notre equipe intervient rapidement avec un service professionnel et garanti.">Que ce soit pour une reparation urgente ou un projet planifie, notre equipe intervient rapidement avec un service professionnel et garanti.</p>
+            </div>
+            <div class="services-grid">
+                <a href="#contact" class="service-card">
+                    <div class="service-icon"><i class="fas fa-cogs"></i></div>
+                    <h3 data-i18n="Remplacement de quincaillerie">Remplacement de quincaillerie</h3>
+                    <p data-i18n="Remplacement professionnel de la quincaillerie de vos portes-patio et fenetres. Pieces adaptees et installation rapide.">Remplacement professionnel de la quincaillerie de vos portes-patio et fenetres. Pieces adaptees et installation rapide.</p>
+                    <span class="service-link" data-i18n="En savoir plus">En savoir plus <i class="fas fa-arrow-right"></i></span>
+                </a>
+                <a href="#contact" class="service-card">
+                    <div class="service-icon"><i class="fas fa-snowflake"></i></div>
+                    <h3 data-i18n="Remplacement de vitre thermos">Remplacement de vitre thermos</h3>
+                    <p data-i18n="Buee ou perte d'efficacite thermique? Remplacement professionnel avec garantie de 10 ans sur tous nos travaux.">Buee ou perte d'efficacite thermique? Remplacement professionnel avec garantie de 10 ans sur tous nos travaux.</p>
+                    <span class="service-link" data-i18n="En savoir plus">En savoir plus <i class="fas fa-arrow-right"></i></span>
+                </a>
+                <a href="#contact" class="service-card">
+                    <div class="service-icon"><i class="fas fa-door-open"></i></div>
+                    <h3 data-i18n="Reparation de portes en bois">Reparation de portes en bois</h3>
+                    <p data-i18n="Reparation et restauration de portes et fenetres en bois. Estimation gratuite et execution parfaite des travaux.">Reparation et restauration de portes et fenetres en bois. Estimation gratuite et execution parfaite des travaux.</p>
+                    <span class="service-link" data-i18n="En savoir plus">En savoir plus <i class="fas fa-arrow-right"></i></span>
+                </a>
+                <a href="#contact" class="service-card">
+                    <div class="service-icon"><i class="fas fa-border-all"></i></div>
+                    <h3 data-i18n="Moustiquaires sur mesure">Moustiquaires sur mesure</h3>
+                    <p data-i18n="Fabrication sur mesure et reparation de tous types de moustiquaires. Service rapide et etancheite parfaite garantie.">Fabrication sur mesure et reparation de tous types de moustiquaires. Service rapide et etancheite parfaite garantie.</p>
+                    <span class="service-link" data-i18n="En savoir plus">En savoir plus <i class="fas fa-arrow-right"></i></span>
+                </a>
+            </div>
         </div>
-    </div>
+    </section>
 
-    <!-- Main Slider -->
-    <main class="slider-viewport">
-        <div class="slider-track" id="slider-track">
-
-            <!-- Slide 1: Accueil -->
-            <section class="slide" id="accueil" data-index="0">
-                <div class="slide-bg">
-                    <video autoplay muted loop playsinline preload="auto" poster="images/accueil/bg-poster.jpg" id="background-video">
-                        <source src="videos/vosthermos-background.mp4" type="video/mp4">
-                    </video>
-                    <div class="slide-bg-overlay"></div>
+    <!-- How It Works Section -->
+    <section class="section section-dark" id="comment-ca-marche">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag" data-i18n="Comment ca marche">Comment ca marche</span>
+                <h2 class="section-title" data-i18n="Un processus <span>simple et rapide</span>">Un processus <span>simple et rapide</span></h2>
+            </div>
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3 data-i18n="Contactez-nous">Contactez-nous</h3>
+                    <p data-i18n="Appelez-nous ou remplissez notre formulaire en ligne. Decrivez votre besoin et nous vous repondrons rapidement.">Appelez-nous ou remplissez notre formulaire en ligne. Decrivez votre besoin et nous vous repondrons rapidement.</p>
                 </div>
-                <div class="slide-content">
-                    <div class="home-content">
-                        <div class="home-text">
-                            <span class="tag-line" data-i18n="Experts en reparation">Experts en reparation</span>
-                            <h1 class="hero-title" data-i18n="PORTES ET FENETRES">PORTES ET <span>FENETRES</span></h1>
-                            <p class="hero-desc" data-i18n="Service rapide et professionnel dans un rayon de 100km de Saint-Francois-Xavier pour tous vos besoins de reparation de portes et fenetres.">Service rapide et professionnel dans un rayon de 100km de Saint-Francois-Xavier pour tous vos besoins de reparation de portes et fenetres.</p>
-                            <div class="highlights">
-                                <div class="highlight-item">
-                                    <span class="highlight-label" data-i18n="Qualite">Qualite</span>
-                                    <span class="highlight-value" data-i18n="Garantie">Garantie</span>
-                                </div>
-                                <div class="highlight-item">
-                                    <span class="highlight-label" data-i18n="Service">Service</span>
-                                    <span class="highlight-value" data-i18n="Rapide">Rapide</span>
-                                </div>
-                                <div class="highlight-item">
-                                    <span class="highlight-label" data-i18n="Prix">Prix</span>
-                                    <span class="highlight-value" data-i18n="Competitifs">Competitifs</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="home-reviews">
-                            <div class="reviews-wrapper" id="reviewsContainer">
-                                <div class="reviews-track">
-                                    <div class="review-card">
-                                        <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-                                        <p class="review-author">Marie T., Saint-Hyacinthe</p>
-                                        <p class="review-text">"Service impeccable pour le remplacement de ma vitre thermos."</p>
-                                    </div>
-                                    <div class="review-card">
-                                        <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-                                        <p class="review-author">Jean D., Granby</p>
-                                        <p class="review-text">"Equipe professionnelle et prix raisonnable."</p>
-                                    </div>
-                                    <div class="review-card">
-                                        <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-                                        <p class="review-author">Sophie L., Laval</p>
-                                        <p class="review-text">"Tres satisfaite de la reparation de ma porte-patio. Travail soigne et rapide."</p>
-                                    </div>
-                                    <div class="review-card">
-                                        <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-                                        <p class="review-author">Michel B., Boucherville</p>
-                                        <p class="review-text">"Excellent service, delais respectes et travail de qualite pour ma moustiquaire."</p>
-                                    </div>
-                                    <div class="review-card">
-                                        <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-                                        <p class="review-author">Lucie R., Saint-Jean</p>
-                                        <p class="review-text">"Je recommande vivement! Quincaillerie remplacee rapidement et a bon prix."</p>
-                                    </div>
-                                </div>
-                                <!-- Duplicate for infinite scroll -->
-                                <div class="reviews-track" aria-hidden="true">
-                                    <div class="review-card">
-                                        <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-                                        <p class="review-author">Marie T., Saint-Hyacinthe</p>
-                                        <p class="review-text">"Service impeccable pour le remplacement de ma vitre thermos."</p>
-                                    </div>
-                                    <div class="review-card">
-                                        <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-                                        <p class="review-author">Jean D., Granby</p>
-                                        <p class="review-text">"Equipe professionnelle et prix raisonnable."</p>
-                                    </div>
-                                    <div class="review-card">
-                                        <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-                                        <p class="review-author">Sophie L., Laval</p>
-                                        <p class="review-text">"Tres satisfaite de la reparation de ma porte-patio. Travail soigne et rapide."</p>
-                                    </div>
-                                    <div class="review-card">
-                                        <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-                                        <p class="review-author">Michel B., Boucherville</p>
-                                        <p class="review-text">"Excellent service, delais respectes et travail de qualite pour ma moustiquaire."</p>
-                                    </div>
-                                    <div class="review-card">
-                                        <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-                                        <p class="review-author">Lucie R., Saint-Jean</p>
-                                        <p class="review-text">"Je recommande vivement! Quincaillerie remplacee rapidement et a bon prix."</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3 data-i18n="Estimation gratuite">Estimation gratuite</h3>
+                    <p data-i18n="Nous evaluons vos besoins et vous fournissons une soumission claire et detaillee, sans surprise ni frais caches.">Nous evaluons vos besoins et vous fournissons une soumission claire et detaillee, sans surprise ni frais caches.</p>
                 </div>
-            </section>
-
-            <!-- Slide 2: Quincaillerie -->
-            <section class="slide" id="quincaillerie" data-index="1">
-                <div class="slide-bg">
-                    <img src="images/quincaillerie/quincaillerie-bg.jpg" alt="Quincaillerie" class="slide-bg-img">
-                    <div class="slide-bg-overlay"></div>
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3 data-i18n="Intervention rapide">Intervention rapide</h3>
+                    <p data-i18n="Notre equipe intervient a votre domicile ou entreprise avec tout le materiel necessaire pour un travail de qualite.">Notre equipe intervient a votre domicile ou entreprise avec tout le materiel necessaire pour un travail de qualite.</p>
                 </div>
-                <div class="slide-content slide-content-scroll">
-                    <div class="service-section">
-                        <h2 class="section-title" data-i18n="REMPLACEMENT DE <span>QUINCAILLERIE</span>">REMPLACEMENT DE <span>QUINCAILLERIE</span></h2>
-                        <p class="section-desc" data-i18n="Besoin de remplacer la quincaillerie de vos portes-patio ou fenetres ? Notre equipe d'experts intervient rapidement pour fournir et installer les pieces adaptees a vos besoins. Nous offrons un service professionnel et une garantie de satisfaction pour tous vos problemes de quincaillerie.">Besoin de remplacer la quincaillerie de vos portes-patio ou fenetres ? Notre equipe d'experts intervient rapidement pour fournir et installer les pieces adaptees a vos besoins. Nous offrons un service professionnel et une garantie de satisfaction pour tous vos problemes de quincaillerie.</p>
-                        <div class="gallery">
-                            <div class="gallery-item"><img src="images/quincaillerie/reparation-1.jpg" alt="Remplacement quincaillerie"></div>
-                            <div class="gallery-item"><img src="images/quincaillerie/entretien-1.jpg" alt="Entretien quincaillerie"></div>
-                            <div class="gallery-item"><img src="images/quincaillerie/detail-1.jpg" alt="Detail quincaillerie"></div>
-                            <div class="gallery-item"><img src="images/quincaillerie/reparation-2.jpg" alt="Installation quincaillerie"></div>
-                            <div class="gallery-item"><img src="images/quincaillerie/entretien-2.jpg" alt="Qualite quincaillerie"></div>
-                            <div class="gallery-item"><img src="images/quincaillerie/detail-2.jpg" alt="Finition quincaillerie"></div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Slide 3: Vitre Thermos -->
-            <section class="slide" id="vitre-thermos" data-index="2">
-                <div class="slide-bg">
-                    <img src="images/vitre-thermos/vitre-thermos-bg.jpg" alt="Vitre Thermos" class="slide-bg-img">
-                    <div class="slide-bg-overlay"></div>
-                </div>
-                <div class="slide-content slide-content-scroll">
-                    <div class="service-section">
-                        <h2 class="section-title" data-i18n="REMPLACEMENT DE <span>VITRE THERMOS</span>">REMPLACEMENT DE <span>VITRE THERMOS</span></h2>
-                        <p class="section-desc" data-i18n="Vous constatez une perte d'efficacite thermique ou de la buee dans vos fenetres ? Notre service specialise vous garantit un remplacement professionnel de vos vitres thermos. Nous offrons une garantie de 10 ans sur tous nos travaux, pour votre tranquillite d'esprit.">Vous constatez une perte d'efficacite thermique ou de la buee dans vos fenetres ? Notre service specialise vous garantit un remplacement professionnel de vos vitres thermos. Nous offrons une garantie de 10 ans sur tous nos travaux, pour votre tranquillite d'esprit.</p>
-                        <div class="gallery">
-                            <div class="gallery-item"><img src="images/vitre-thermos/reparation-1.jpg" alt="Remplacement vitre thermos"></div>
-                            <div class="gallery-item"><img src="images/vitre-thermos/entretien-1.jpg" alt="Entretien vitre thermos"></div>
-                            <div class="gallery-item"><img src="images/vitre-thermos/detail-1.jpg" alt="Detail vitre thermos"></div>
-                            <div class="gallery-item"><img src="images/vitre-thermos/reparation-2.jpg" alt="Installation vitre thermos"></div>
-                            <div class="gallery-item"><img src="images/vitre-thermos/entretien-2.jpg" alt="Qualite vitre thermos"></div>
-                            <div class="gallery-item"><img src="images/vitre-thermos/detail-2.jpg" alt="Finition vitre thermos"></div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Slide 4: Portes en Bois -->
-            <section class="slide" id="portes-bois" data-index="3">
-                <div class="slide-bg">
-                    <img src="images/portes-bois/portes-bg.jpg" alt="Portes en bois" class="slide-bg-img">
-                    <div class="slide-bg-overlay"></div>
-                </div>
-                <div class="slide-content slide-content-scroll">
-                    <div class="service-section">
-                        <h2 class="section-title" data-i18n="REPARATION DE <span>PORTES EN BOIS</span>">REPARATION DE <span>PORTES EN BOIS</span></h2>
-                        <p class="section-desc" data-i18n="Vous avez un besoin urgent ou non de faire reparer des portes ou fenetres de votre demeure ou entreprise ? Laissez-nous le soin d'en faire une estimation gratuite au prealable avant de mener a terme l'execution parfaite de ces travaux, si cela vous convient.">Vous avez un besoin urgent ou non de faire reparer des portes ou fenetres de votre demeure ou entreprise ? Laissez-nous le soin d'en faire une estimation gratuite au prealable avant de mener a terme l'execution parfaite de ces travaux, si cela vous convient.</p>
-                        <div class="gallery">
-                            <div class="gallery-item"><img src="images/portes-bois/reparation-1.jpg" alt="Reparation porte en bois"></div>
-                            <div class="gallery-item"><img src="images/portes-bois/entretien-1.jpg" alt="Entretien porte bois"></div>
-                            <div class="gallery-item"><img src="images/portes-bois/detail-1.jpg" alt="Detail reparation"></div>
-                            <div class="gallery-item"><img src="images/portes-bois/reparation-2.jpg" alt="Exemple de reparation"></div>
-                            <div class="gallery-item"><img src="images/portes-bois/entretien-2.jpg" alt="Exemple d'entretien"></div>
-                            <div class="gallery-item"><img src="images/portes-bois/detail-2.jpg" alt="Detail de menuiserie"></div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Slide 5: Moustiquaires -->
-            <section class="slide" id="moustiquaires" data-index="4">
-                <div class="slide-bg">
-                    <img src="images/moustiquaires/moustiquaire-bg.jpg" alt="Moustiquaires" class="slide-bg-img">
-                    <div class="slide-bg-overlay"></div>
-                </div>
-                <div class="slide-content slide-content-scroll">
-                    <div class="service-section">
-                        <h2 class="section-title" data-i18n="SERVICES <span>MOUSTIQUAIRES</span>">SERVICES <span>MOUSTIQUAIRES</span></h2>
-                        <p class="section-desc" data-i18n="Besoin de profiter de l'air frais sans les insectes ? Notre atelier se charge de la fabrication sur mesure et de la reparation de tous types de moustiquaires pour vos fenetres et portes. Qualite garantie et service rapide pour une etancheite parfaite qui vous protege efficacement.">Besoin de profiter de l'air frais sans les insectes ? Notre atelier se charge de la fabrication sur mesure et de la reparation de tous types de moustiquaires pour vos fenetres et portes. Qualite garantie et service rapide pour une etancheite parfaite qui vous protege efficacement.</p>
-                        <div class="gallery">
-                            <div class="gallery-item"><img src="images/moustiquaires/reparation-1.jpg" alt="Reparation moustiquaire"></div>
-                            <div class="gallery-item"><img src="images/moustiquaires/entretien-1.jpg" alt="Entretien moustiquaire"></div>
-                            <div class="gallery-item"><img src="images/moustiquaires/detail-1.jpg" alt="Detail moustiquaire"></div>
-                            <div class="gallery-item"><img src="images/moustiquaires/reparation-2.jpg" alt="Installation moustiquaire"></div>
-                            <div class="gallery-item"><img src="images/moustiquaires/entretien-2.jpg" alt="Moustiquaire sur mesure"></div>
-                            <div class="gallery-item"><img src="images/moustiquaires/detail-2.jpg" alt="Finition moustiquaire"></div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Slide 6: Contact -->
-            <section class="slide" id="contact" data-index="5">
-                <div class="slide-bg">
-                    <div class="slide-bg-solid"></div>
-                </div>
-                <div class="slide-content slide-content-scroll">
-                    <div class="contact-section">
-                        <h2 class="section-title" data-i18n="CONTACTEZ-NOUS">CONTACTEZ-NOUS</h2>
-                        <div class="contact-grid">
-                            <div class="contact-form-wrap">
-                                <form id="contactForm">
-                                    <div class="form-group">
-                                        <label for="name" data-i18n="Nom complet">Nom complet</label>
-                                        <input type="text" id="name" name="name" required>
-                                    </div>
-                                    <div class="form-row">
-                                        <div class="form-group">
-                                            <label for="email">Email</label>
-                                            <input type="email" id="email" name="email" required>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="phone" data-i18n="Telephone">Telephone</label>
-                                            <input type="tel" id="phone" name="phone" required>
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="service" data-i18n="Service requis">Service requis</label>
-                                        <select id="service" name="service" required>
-                                            <option value="" data-i18n="Selectionnez un service">Selectionnez un service</option>
-                                            <option value="quincaillerie" data-i18n="Remplacement de quincaillerie">Remplacement de quincaillerie</option>
-                                            <option value="vitre-thermos" data-i18n="Remplacement de vitre thermos">Remplacement de vitre thermos</option>
-                                            <option value="portes-bois" data-i18n="Reparation de portes en bois">Reparation de portes en bois</option>
-                                            <option value="moustiquaire" data-i18n="Reparation/fabrication de moustiquaires">Reparation/fabrication de moustiquaires</option>
-                                            <option value="autre" data-i18n="Autre (precisez)">Autre (precisez)</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="message">Message</label>
-                                        <textarea id="message" name="message" rows="4"></textarea>
-                                    </div>
-                                    <button type="button" id="submitButton" class="btn-submit" data-i18n="Envoyer la demande">Envoyer la demande</button>
-                                    <div id="formStatus" class="form-status"></div>
-                                </form>
-                            </div>
-                            <div class="contact-map">
-                                <iframe
-                                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d44818.60183345312!2d-73.45735594648!3d45.37106269649143!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4cc90fb925e4b0c3%3A0x18bb6483b7f0b8b0!2sDelson%2C%20QC!5e0!3m2!1sfr!2sca!4v1712977261056!5m2!1sfr!2sca"
-                                    width="100%" height="100%"
-                                    style="border:0; border-radius: 12px;"
-                                    loading="lazy"
-                                    referrerpolicy="no-referrer-when-downgrade">
-                                </iframe>
-                            </div>
-                        </div>
-                        <div class="contact-info-bar">
-                            <div class="contact-info-item">
-                                <div class="contact-info-icon"><i class="fas fa-map-marker-alt"></i></div>
-                                <div>
-                                    <strong data-i18n="Adresse">Adresse</strong>
-                                    <p>330 Ch. St-Francois-Xavier, Local 101</p>
-                                </div>
-                            </div>
-                            <div class="contact-info-item">
-                                <div class="contact-info-icon"><i class="fas fa-phone"></i></div>
-                                <div>
-                                    <strong data-i18n="Telephone">Telephone</strong>
-                                    <p><a href="tel:15148258411">1 514-825-8411</a></p>
-                                </div>
-                            </div>
-                            <div class="contact-info-item">
-                                <div class="contact-info-icon"><i class="fas fa-envelope"></i></div>
-                                <div>
-                                    <strong data-i18n="Email">Email</strong>
-                                    <p><a href="mailto:info@vosthermos.com">info@vosthermos.com</a></p>
-                                </div>
-                            </div>
-                        </div>
-                        <footer class="site-footer">
-                            <p>&copy; 2025 Vosthermos. <span data-i18n="Tous droits reserves">Tous droits reserves</span>.</p>
-                        </footer>
-                    </div>
-                </div>
-            </section>
-
+            </div>
         </div>
-    </main>
+    </section>
 
-    <!-- Navigation Dots -->
-    <div class="nav-dots" id="nav-dots"></div>
+    <!-- Gallery Section -->
+    <section class="section section-light" id="galerie">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag" data-i18n="Nos realisations">Nos realisations</span>
+                <h2 class="section-title" data-i18n="Galerie de <span>nos travaux</span>">Galerie de <span>nos travaux</span></h2>
+            </div>
+            <div class="gallery-tabs">
+                <button class="gallery-tab active" data-filter="all" data-i18n="Tous">Tous</button>
+                <button class="gallery-tab" data-filter="quincaillerie" data-i18n="Quincaillerie">Quincaillerie</button>
+                <button class="gallery-tab" data-filter="thermos" data-i18n="Vitre Thermos">Vitre Thermos</button>
+                <button class="gallery-tab" data-filter="portes" data-i18n="Portes">Portes</button>
+                <button class="gallery-tab" data-filter="moustiquaires" data-i18n="Moustiquaires">Moustiquaires</button>
+            </div>
+            <div class="gallery-grid" id="gallery-grid">
+                <div class="gallery-item" data-category="quincaillerie"><img src="images/quincaillerie/reparation-1.jpg" alt="Remplacement quincaillerie"><div class="gallery-overlay"><i class="fas fa-search-plus"></i></div></div>
+                <div class="gallery-item" data-category="quincaillerie"><img src="images/quincaillerie/entretien-1.jpg" alt="Entretien quincaillerie"><div class="gallery-overlay"><i class="fas fa-search-plus"></i></div></div>
+                <div class="gallery-item" data-category="quincaillerie"><img src="images/quincaillerie/detail-1.jpg" alt="Detail quincaillerie"><div class="gallery-overlay"><i class="fas fa-search-plus"></i></div></div>
+                <div class="gallery-item" data-category="thermos"><img src="images/vitre-thermos/reparation-1.jpg" alt="Remplacement vitre thermos"><div class="gallery-overlay"><i class="fas fa-search-plus"></i></div></div>
+                <div class="gallery-item" data-category="thermos"><img src="images/vitre-thermos/entretien-1.jpg" alt="Entretien vitre thermos"><div class="gallery-overlay"><i class="fas fa-search-plus"></i></div></div>
+                <div class="gallery-item" data-category="thermos"><img src="images/vitre-thermos/detail-1.jpg" alt="Detail vitre thermos"><div class="gallery-overlay"><i class="fas fa-search-plus"></i></div></div>
+                <div class="gallery-item" data-category="portes"><img src="images/portes-bois/reparation-1.jpg" alt="Reparation porte en bois"><div class="gallery-overlay"><i class="fas fa-search-plus"></i></div></div>
+                <div class="gallery-item" data-category="portes"><img src="images/portes-bois/entretien-1.jpg" alt="Entretien porte bois"><div class="gallery-overlay"><i class="fas fa-search-plus"></i></div></div>
+                <div class="gallery-item" data-category="portes"><img src="images/portes-bois/detail-1.jpg" alt="Detail portes"><div class="gallery-overlay"><i class="fas fa-search-plus"></i></div></div>
+                <div class="gallery-item" data-category="moustiquaires"><img src="images/moustiquaires/reparation-1.jpg" alt="Reparation moustiquaire"><div class="gallery-overlay"><i class="fas fa-search-plus"></i></div></div>
+                <div class="gallery-item" data-category="moustiquaires"><img src="images/moustiquaires/entretien-1.jpg" alt="Entretien moustiquaire"><div class="gallery-overlay"><i class="fas fa-search-plus"></i></div></div>
+                <div class="gallery-item" data-category="moustiquaires"><img src="images/moustiquaires/detail-1.jpg" alt="Detail moustiquaire"><div class="gallery-overlay"><i class="fas fa-search-plus"></i></div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="section section-dark" id="temoignages">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag" data-i18n="Temoignages">Temoignages</span>
+                <h2 class="section-title" data-i18n="Ce que nos <span>clients disent</span>">Ce que nos <span>clients disent</span></h2>
+            </div>
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                    <p class="testimonial-text">"Service impeccable pour le remplacement de ma vitre thermos. Equipe ponctuelle et travail de qualite."</p>
+                    <div class="testimonial-author"><strong>Marie T.</strong><span>Saint-Hyacinthe</span></div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                    <p class="testimonial-text">"Equipe professionnelle et prix raisonnable. Je recommande pour tout projet de reparation de portes."</p>
+                    <div class="testimonial-author"><strong>Jean D.</strong><span>Granby</span></div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                    <p class="testimonial-text">"Tres satisfaite de la reparation de ma porte-patio. Travail soigne et rapide. Merci Vosthermos!"</p>
+                    <div class="testimonial-author"><strong>Sophie L.</strong><span>Laval</span></div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                    <p class="testimonial-text">"Excellent service! Delais respectes et travail de qualite pour ma moustiquaire sur mesure."</p>
+                    <div class="testimonial-author"><strong>Michel B.</strong><span>Boucherville</span></div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                    <p class="testimonial-text">"Quincaillerie remplacee rapidement et a bon prix. Service courtois et professionnel du debut a la fin."</p>
+                    <div class="testimonial-author"><strong>Lucie R.</strong><span>Saint-Jean-sur-Richelieu</span></div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                    <p class="testimonial-text">"Remplacement de vitre thermos fait en une journee. Resultat impeccable, plus de buee! Je recommande."</p>
+                    <div class="testimonial-author"><strong>Pierre G.</strong><span>Longueuil</span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sectors Section -->
+    <section class="section section-light" id="secteurs">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag" data-i18n="Secteurs desservis">Secteurs desservis</span>
+                <h2 class="section-title" data-i18n="Nous desservons <span>votre region</span>">Nous desservons <span>votre region</span></h2>
+                <p class="section-subtitle" data-i18n="Notre equipe se deplace dans un rayon de 100km autour de Saint-Francois-Xavier pour offrir nos services de reparation de portes et fenetres.">Notre equipe se deplace dans un rayon de 100km autour de Saint-Francois-Xavier pour offrir nos services de reparation de portes et fenetres.</p>
+            </div>
+            <div class="sectors-grid">
+                <a href="villes/montreal.html" class="sector-card"><i class="fas fa-map-marker-alt"></i> Montreal</a>
+                <a href="villes/laval.html" class="sector-card"><i class="fas fa-map-marker-alt"></i> Laval</a>
+                <a href="villes/longueuil.html" class="sector-card"><i class="fas fa-map-marker-alt"></i> Longueuil</a>
+                <a href="villes/brossard.html" class="sector-card"><i class="fas fa-map-marker-alt"></i> Brossard</a>
+                <a href="villes/boucherville.html" class="sector-card"><i class="fas fa-map-marker-alt"></i> Boucherville</a>
+                <a href="villes/saint-hyacinthe.html" class="sector-card"><i class="fas fa-map-marker-alt"></i> Saint-Hyacinthe</a>
+                <a href="villes/granby.html" class="sector-card"><i class="fas fa-map-marker-alt"></i> Granby</a>
+                <a href="villes/saint-jean-sur-richelieu.html" class="sector-card"><i class="fas fa-map-marker-alt"></i> Saint-Jean-sur-Richelieu</a>
+                <a href="villes/chambly.html" class="sector-card"><i class="fas fa-map-marker-alt"></i> Chambly</a>
+                <a href="villes/terrebonne.html" class="sector-card"><i class="fas fa-map-marker-alt"></i> Terrebonne</a>
+                <a href="villes/repentigny.html" class="sector-card"><i class="fas fa-map-marker-alt"></i> Repentigny</a>
+                <a href="villes/blainville.html" class="sector-card"><i class="fas fa-map-marker-alt"></i> Blainville</a>
+                <a href="villes/chateauguay.html" class="sector-card"><i class="fas fa-map-marker-alt"></i> Chateauguay</a>
+                <a href="villes/la-prairie.html" class="sector-card"><i class="fas fa-map-marker-alt"></i> La Prairie</a>
+                <a href="villes/sainte-julie.html" class="sector-card"><i class="fas fa-map-marker-alt"></i> Sainte-Julie</a>
+                <a href="villes/varennes.html" class="sector-card"><i class="fas fa-map-marker-alt"></i> Varennes</a>
+                <a href="villes/delson.html" class="sector-card"><i class="fas fa-map-marker-alt"></i> Delson</a>
+                <a href="villes/candiac.html" class="sector-card"><i class="fas fa-map-marker-alt"></i> Candiac</a>
+                <a href="villes/saint-bruno.html" class="sector-card"><i class="fas fa-map-marker-alt"></i> Saint-Bruno</a>
+                <a href="villes/mascouche.html" class="sector-card"><i class="fas fa-map-marker-alt"></i> Mascouche</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="section-cta">
+        <div class="container">
+            <h2 data-i18n="Besoin d'une reparation? Contactez-nous des maintenant!">Besoin d'une reparation? Contactez-nous des maintenant!</h2>
+            <p data-i18n="Soumission gratuite, service rapide et garanti. Notre equipe est prete a vous aider.">Soumission gratuite, service rapide et garanti. Notre equipe est prete a vous aider.</p>
+            <div class="cta-actions">
+                <a href="#contact" class="btn btn-primary btn-lg" data-i18n="Demander une soumission">Demander une soumission</a>
+                <a href="tel:15148258411" class="btn btn-white btn-lg"><i class="fas fa-phone"></i> 514-825-8411</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="section section-light" id="contact">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag" data-i18n="Contact">Contact</span>
+                <h2 class="section-title" data-i18n="Demandez votre <span>soumission gratuite</span>">Demandez votre <span>soumission gratuite</span></h2>
+            </div>
+            <div class="contact-layout">
+                <div class="contact-form-wrap">
+                    <form id="contactForm">
+                        <div class="form-group">
+                            <label for="name" data-i18n="Nom complet">Nom complet</label>
+                            <input type="text" id="name" name="name" placeholder="Nom complet" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email" placeholder="Email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone" data-i18n="Telephone">Telephone</label>
+                                <input type="tel" id="phone" name="phone" placeholder="Telephone" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="service" data-i18n="Service requis">Service requis</label>
+                            <select id="service" name="service" required>
+                                <option value="" data-i18n="Selectionnez un service">Selectionnez un service</option>
+                                <option value="quincaillerie" data-i18n="Remplacement de quincaillerie">Remplacement de quincaillerie</option>
+                                <option value="vitre-thermos" data-i18n="Remplacement de vitre thermos">Remplacement de vitre thermos</option>
+                                <option value="portes-bois" data-i18n="Reparation de portes en bois">Reparation de portes en bois</option>
+                                <option value="moustiquaire" data-i18n="Reparation/fabrication de moustiquaires">Reparation/fabrication de moustiquaires</option>
+                                <option value="autre" data-i18n="Autre (precisez)">Autre (precisez)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="message">Message</label>
+                            <textarea id="message" name="message" placeholder="Decrivez votre besoin..." rows="4"></textarea>
+                        </div>
+                        <button type="button" id="submitButton" class="btn btn-primary btn-block" data-i18n="Envoyer la demande">Envoyer la demande</button>
+                        <div id="formStatus" class="form-status"></div>
+                    </form>
+                </div>
+                <div class="contact-info-side">
+                    <div class="contact-info-card">
+                        <h3 data-i18n="Nos coordonnees">Nos coordonnees</h3>
+                        <div class="contact-detail">
+                            <div class="contact-detail-icon"><i class="fas fa-map-marker-alt"></i></div>
+                            <div>
+                                <strong data-i18n="Adresse">Adresse</strong>
+                                <p>330 Ch. St-Francois-Xavier, Local 101<br>Saint-Francois-Xavier, QC</p>
+                            </div>
+                        </div>
+                        <div class="contact-detail">
+                            <div class="contact-detail-icon"><i class="fas fa-phone"></i></div>
+                            <div>
+                                <strong data-i18n="Telephone">Telephone</strong>
+                                <p><a href="tel:15148258411">1 514-825-8411</a></p>
+                            </div>
+                        </div>
+                        <div class="contact-detail">
+                            <div class="contact-detail-icon"><i class="fas fa-envelope"></i></div>
+                            <div>
+                                <strong>Email</strong>
+                                <p><a href="mailto:info@vosthermos.com">info@vosthermos.com</a></p>
+                            </div>
+                        </div>
+                        <div class="contact-socials">
+                            <a href="https://www.facebook.com/profile.php?id=61562303553558" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                            <a href="http://instagram.com/vosthermos/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        </div>
+                    </div>
+                    <div class="contact-map">
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d44818.60183345312!2d-73.45735594648!3d45.37106269649143!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4cc90fb925e4b0c3%3A0x18bb6483b7f0b8b0!2sDelson%2C%20QC!5e0!3m2!1sfr!2sca!4v1712977261056!5m2!1sfr!2sca" width="100%" height="250" style="border:0;border-radius:12px;" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <img src="images/cropped-Vos-Thermos-Logo_Fond.jpg" alt="Vosthermos" class="footer-logo">
+                    <p data-i18n="Experts en reparation de portes et fenetres depuis plus de 15 ans. Service professionnel et garanti.">Experts en reparation de portes et fenetres depuis plus de 15 ans. Service professionnel et garanti.</p>
+                    <div class="footer-socials">
+                        <a href="https://www.facebook.com/profile.php?id=61562303553558" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="http://instagram.com/vosthermos/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h4 data-i18n="Services">Services</h4>
+                    <ul>
+                        <li><a href="#services" data-i18n="Remplacement de quincaillerie">Remplacement de quincaillerie</a></li>
+                        <li><a href="#services" data-i18n="Remplacement de vitre thermos">Remplacement de vitre thermos</a></li>
+                        <li><a href="#services" data-i18n="Reparation de portes en bois">Reparation de portes en bois</a></li>
+                        <li><a href="#services" data-i18n="Moustiquaires sur mesure">Moustiquaires sur mesure</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4 data-i18n="Secteurs populaires">Secteurs populaires</h4>
+                    <ul>
+                        <li><a href="villes/montreal.html">Montreal</a></li>
+                        <li><a href="villes/laval.html">Laval</a></li>
+                        <li><a href="villes/longueuil.html">Longueuil</a></li>
+                        <li><a href="villes/brossard.html">Brossard</a></li>
+                        <li><a href="villes/saint-hyacinthe.html">Saint-Hyacinthe</a></li>
+                        <li><a href="villes/granby.html">Granby</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4 data-i18n="Contact">Contact</h4>
+                    <ul class="footer-contact">
+                        <li><i class="fas fa-map-marker-alt"></i> 330 Ch. St-Francois-Xavier, Local 101</li>
+                        <li><i class="fas fa-phone"></i> <a href="tel:15148258411">514-825-8411</a></li>
+                        <li><i class="fas fa-envelope"></i> <a href="mailto:info@vosthermos.com">info@vosthermos.com</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Vosthermos. <span data-i18n="Tous droits reserves">Tous droits reserves</span>.</p>
+                <a href="user.html" class="footer-login">Login</a>
+            </div>
+        </div>
+    </footer>
 
     <!-- Lightbox -->
     <div class="lightbox" id="lightbox">
-        <button class="lightbox-nav lightbox-prev" aria-label="Precedent"><i class="fas fa-chevron-left"></i></button>
-        <div class="lightbox-img-wrap">
-            <img src="" alt="Image agrandie" class="lightbox-img" id="lightbox-img">
-        </div>
-        <button class="lightbox-nav lightbox-next" aria-label="Suivant"><i class="fas fa-chevron-right"></i></button>
         <button class="lightbox-close" aria-label="Fermer"><i class="fas fa-times"></i></button>
-        <div class="lightbox-counter" id="lightbox-counter">1 / 1</div>
+        <button class="lightbox-nav lightbox-prev" aria-label="Precedent"><i class="fas fa-chevron-left"></i></button>
+        <div class="lightbox-img-wrap"><img src="" alt="" class="lightbox-img" id="lightbox-img"></div>
+        <button class="lightbox-nav lightbox-next" aria-label="Suivant"><i class="fas fa-chevron-right"></i></button>
+        <div class="lightbox-counter" id="lightbox-counter"></div>
     </div>
 
-    <!-- Scripts -->
+    <!-- Fixed CTA Mobile -->
+    <div class="fixed-cta" id="fixed-cta">
+        <a href="tel:15148258411" class="fixed-cta-phone"><i class="fas fa-phone"></i></a>
+        <a href="#contact" class="fixed-cta-btn" data-i18n="Soumission gratuite">Soumission gratuite</a>
+    </div>
+
     <script src="js/script.js"></script>
     <script src="js/email.js"></script>
     <script src="js/language.js"></script>

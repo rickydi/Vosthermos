@@ -2,45 +2,86 @@
 
 const translations = {
   en: {
-    "Experts en reparation": "Repair Experts",
-    "PORTES ET FENETRES": "DOORS AND <span>WINDOWS</span>",
-    "Service rapide et professionnel dans un rayon de 100km de Saint-Francois-Xavier pour tous vos besoins de reparation de portes et fenetres.": "Fast and professional service within 100km of Saint-Francois-Xavier for all your door and window repair needs.",
-    "Qualite": "Quality",
-    "Garantie": "Warranty",
-    "Service": "Service",
-    "Rapide": "Fast",
-    "Prix": "Prices",
-    "Competitifs": "Competitive",
-    "Accueil": "Home",
+    // Navigation
+    "Services": "Services",
+    "Comment ca marche": "How it works",
+    "Galerie": "Gallery",
+    "Temoignages": "Testimonials",
+    "Secteurs desservis": "Service areas",
+    "Contact": "Contact",
+
+    // Hero
+    "Plus de 15 ans d'experience": "Over 15 years of experience",
+    "Experts en reparation de <span>portes et fenetres</span>": "Experts in <span>door and window</span> repair",
+    "Service rapide et professionnel pour le remplacement de vitres thermos, la reparation de quincaillerie, de portes en bois et de moustiquaires. Nous desservons Montreal, la Rive-Sud et un rayon de 100km autour de Saint-Francois-Xavier.": "Fast and professional service for thermo glass replacement, hardware repair, wooden doors and screens. We serve Montreal, the South Shore and a 100km radius around Saint-Francois-Xavier.",
+    "Demander une soumission gratuite": "Request a free quote",
+    "Annees d'experience": "Years of experience",
+    "Rayon de service": "Service radius",
+    "Garantie thermos": "Thermo warranty",
+
+    // Services
+    "Nos services": "Our services",
+    "Des solutions adaptees a <span>tous vos besoins</span>": "Solutions tailored to <span>all your needs</span>",
+    "Que ce soit pour une reparation urgente ou un projet planifie, notre equipe intervient rapidement avec un service professionnel et garanti.": "Whether for an urgent repair or a planned project, our team responds quickly with professional and guaranteed service.",
+    "Remplacement de quincaillerie": "Hardware replacement",
+    "Remplacement professionnel de la quincaillerie de vos portes-patio et fenetres. Pieces adaptees et installation rapide.": "Professional hardware replacement for your patio doors and windows. Custom parts and quick installation.",
+    "En savoir plus": "Learn more <i class=\"fas fa-arrow-right\"></i>",
+    "Remplacement de vitre thermos": "Thermo glass replacement",
+    "Buee ou perte d'efficacite thermique? Remplacement professionnel avec garantie de 10 ans sur tous nos travaux.": "Fog or loss of thermal efficiency? Professional replacement with a 10-year warranty on all our work.",
+    "Reparation de portes en bois": "Wooden door repair",
+    "Reparation et restauration de portes et fenetres en bois. Estimation gratuite et execution parfaite des travaux.": "Repair and restoration of wooden doors and windows. Free estimate and flawless work execution.",
+    "Moustiquaires sur mesure": "Custom screens",
+    "Fabrication sur mesure et reparation de tous types de moustiquaires. Service rapide et etancheite parfaite garantie.": "Custom fabrication and repair of all types of screens. Fast service and perfect sealing guaranteed.",
+
+    // How It Works
+    "Un processus <span>simple et rapide</span>": "A <span>simple and fast</span> process",
+    "Contactez-nous": "Contact us",
+    "Appelez-nous ou remplissez notre formulaire en ligne. Decrivez votre besoin et nous vous repondrons rapidement.": "Call us or fill out our online form. Describe your needs and we'll get back to you quickly.",
+    "Estimation gratuite": "Free estimate",
+    "Nous evaluons vos besoins et vous fournissons une soumission claire et detaillee, sans surprise ni frais caches.": "We assess your needs and provide a clear and detailed quote, with no surprises or hidden fees.",
+    "Intervention rapide": "Quick service",
+    "Notre equipe intervient a votre domicile ou entreprise avec tout le materiel necessaire pour un travail de qualite.": "Our team comes to your home or business with all the materials needed for quality work.",
+
+    // Gallery
+    "Nos realisations": "Our work",
+    "Galerie de <span>nos travaux</span>": "Gallery of <span>our work</span>",
+    "Tous": "All",
     "Quincaillerie": "Hardware",
     "Vitre Thermos": "Thermo Glass",
-    "Portes en Bois": "Wooden Doors",
+    "Portes": "Doors",
     "Moustiquaires": "Screens",
-    "Contact": "Contact",
-    "Contactez-nous": "Contact Us",
-    "REMPLACEMENT DE <span>QUINCAILLERIE</span>": "HARDWARE <span>REPLACEMENT</span>",
-    "Besoin de remplacer la quincaillerie de vos portes-patio ou fenetres ? Notre equipe d'experts intervient rapidement pour fournir et installer les pieces adaptees a vos besoins. Nous offrons un service professionnel et une garantie de satisfaction pour tous vos problemes de quincaillerie.": "Need to replace the hardware on your patio doors or windows? Our team of experts quickly provides and installs the right parts for your needs. We offer professional service and a satisfaction guarantee for all your hardware issues.",
-    "REMPLACEMENT DE <span>VITRE THERMOS</span>": "THERMO GLASS <span>REPLACEMENT</span>",
-    "Vous constatez une perte d'efficacite thermique ou de la buee dans vos fenetres ? Notre service specialise vous garantit un remplacement professionnel de vos vitres thermos. Nous offrons une garantie de 10 ans sur tous nos travaux, pour votre tranquillite d'esprit.": "Noticing fog or loss of thermal efficiency in your windows? Our specialized service guarantees professional replacement of your thermo glass. We offer a 10-year warranty on all our work for your peace of mind.",
-    "REPARATION DE <span>PORTES EN BOIS</span>": "WOODEN DOOR <span>REPAIR</span>",
-    "Vous avez un besoin urgent ou non de faire reparer des portes ou fenetres de votre demeure ou entreprise ? Laissez-nous le soin d'en faire une estimation gratuite au prealable avant de mener a terme l'execution parfaite de ces travaux, si cela vous convient.": "Need urgent or non-urgent repairs for your home or business doors and windows? Let us provide a free estimate before carrying out the perfect execution of the work, if you wish.",
-    "SERVICES <span>MOUSTIQUAIRES</span>": "<span>SCREEN</span> SERVICES",
-    "Besoin de profiter de l'air frais sans les insectes ? Notre atelier se charge de la fabrication sur mesure et de la reparation de tous types de moustiquaires pour vos fenetres et portes. Qualite garantie et service rapide pour une etancheite parfaite qui vous protege efficacement.": "Want to enjoy fresh air without insects? Our workshop custom-makes and repairs all types of screens for your windows and doors. Guaranteed quality and fast service for perfect sealing and effective protection.",
-    "CONTACTEZ-NOUS": "CONTACT US",
+
+    // Testimonials
+    "Ce que nos <span>clients disent</span>": "What our <span>clients say</span>",
+
+    // Sectors
+    "Nous desservons <span>votre region</span>": "We serve <span>your area</span>",
+    "Notre equipe se deplace dans un rayon de 100km autour de Saint-Francois-Xavier pour offrir nos services de reparation de portes et fenetres.": "Our team travels within a 100km radius of Saint-Francois-Xavier to offer our door and window repair services.",
+
+    // CTA
+    "Besoin d'une reparation? Contactez-nous des maintenant!": "Need a repair? Contact us now!",
+    "Soumission gratuite, service rapide et garanti. Notre equipe est prete a vous aider.": "Free quote, fast and guaranteed service. Our team is ready to help.",
+    "Demander une soumission": "Request a quote",
+
+    // Contact
+    "Demandez votre <span>soumission gratuite</span>": "Request your <span>free quote</span>",
     "Nom complet": "Full Name",
-    "Email": "Email",
     "Telephone": "Phone",
-    "Service requis": "Required Service",
+    "Service requis": "Required service",
     "Selectionnez un service": "Select a service",
-    "Remplacement de quincaillerie": "Hardware replacement",
-    "Remplacement de vitre thermos": "Thermo glass replacement",
-    "Reparation de portes en bois": "Wooden door repair",
     "Reparation/fabrication de moustiquaires": "Screen repair/fabrication",
     "Autre (precisez)": "Other (specify)",
-    "Message": "Message",
-    "Envoyer la demande": "Send Request",
+    "Envoyer la demande": "Send request",
+    "Nos coordonnees": "Our contact info",
     "Adresse": "Address",
-    "Tous droits reserves": "All rights reserved"
+
+    // Footer
+    "Experts en reparation de portes et fenetres depuis plus de 15 ans. Service professionnel et garanti.": "Door and window repair experts for over 15 years. Professional and guaranteed service.",
+    "Secteurs populaires": "Popular areas",
+    "Tous droits reserves": "All rights reserved",
+
+    // Fixed CTA
+    "Soumission gratuite": "Free quote"
   },
   fr: {}
 };
@@ -48,8 +89,8 @@ const translations = {
 function setLanguage(lang) {
   document.documentElement.lang = lang;
 
-  const langOptions = document.querySelectorAll('.lang-option');
-  langOptions.forEach(option => {
+  var langOptions = document.querySelectorAll('.lang-option');
+  langOptions.forEach(function (option) {
     if (option.getAttribute('data-lang') === lang) {
       option.classList.add('active');
     } else {
@@ -57,39 +98,47 @@ function setLanguage(lang) {
     }
   });
 
-  document.querySelectorAll("[data-i18n]").forEach(el => {
-    const key = el.getAttribute("data-i18n");
+  document.querySelectorAll("[data-i18n]").forEach(function (el) {
+    var key = el.getAttribute("data-i18n");
     if (lang === "en" && translations.en[key]) {
       el.innerHTML = translations.en[key];
-    } else if (lang === "fr" && translations.en[key]) {
+    } else if (lang === "fr") {
       el.innerHTML = key;
     }
   });
 
   if (lang === "en") {
-    document.getElementById("name")?.setAttribute("placeholder", "Full Name");
-    document.getElementById("email")?.setAttribute("placeholder", "Email");
-    document.getElementById("phone")?.setAttribute("placeholder", "Phone");
-    document.getElementById("message")?.setAttribute("placeholder", "Message");
+    var nameEl = document.getElementById("name");
+    var emailEl = document.getElementById("email");
+    var phoneEl = document.getElementById("phone");
+    var messageEl = document.getElementById("message");
+    if (nameEl) nameEl.setAttribute("placeholder", "Full Name");
+    if (emailEl) emailEl.setAttribute("placeholder", "Email");
+    if (phoneEl) phoneEl.setAttribute("placeholder", "Phone");
+    if (messageEl) messageEl.setAttribute("placeholder", "Describe your needs...");
   } else {
-    document.getElementById("name")?.setAttribute("placeholder", "Nom complet");
-    document.getElementById("email")?.setAttribute("placeholder", "Email");
-    document.getElementById("phone")?.setAttribute("placeholder", "Telephone");
-    document.getElementById("message")?.setAttribute("placeholder", "Message");
+    var nameEl = document.getElementById("name");
+    var emailEl = document.getElementById("email");
+    var phoneEl = document.getElementById("phone");
+    var messageEl = document.getElementById("message");
+    if (nameEl) nameEl.setAttribute("placeholder", "Nom complet");
+    if (emailEl) emailEl.setAttribute("placeholder", "Email");
+    if (phoneEl) phoneEl.setAttribute("placeholder", "Telephone");
+    if (messageEl) messageEl.setAttribute("placeholder", "Decrivez votre besoin...");
   }
 
   localStorage.setItem('vosthermosLang', lang);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  let currentLang = localStorage.getItem('vosthermosLang') || "fr";
+document.addEventListener("DOMContentLoaded", function () {
+  var currentLang = localStorage.getItem('vosthermosLang') || "fr";
   setLanguage(currentLang);
 
-  const langOptions = document.querySelectorAll('.lang-option');
-  langOptions.forEach(option => {
-    option.addEventListener('click', function(e) {
+  var langOptions = document.querySelectorAll('.lang-option');
+  langOptions.forEach(function (option) {
+    option.addEventListener('click', function (e) {
       e.stopPropagation();
-      const newLang = this.getAttribute('data-lang');
+      var newLang = this.getAttribute('data-lang');
       if (newLang !== currentLang) {
         currentLang = newLang;
         setLanguage(currentLang);
