@@ -1,127 +1,114 @@
-/* Styles simplifiés pour le carrousel vertical de témoignages - sans boîtes */
+/* ============================================
+   VOSTHERMOS - Reviews Carousel
+   ============================================ */
 
-/* Étoiles en jaune vif */
-.stars, .stars i, .fa-star {
-    color: #FFEA00 !important; /* Jaune plus intense pour s'assurer qu'il s'applique */
-    font-size: 1rem !important; /* Légèrement plus petit */
-    margin: 1px 0 !important; /* Marge réduite */
-    display: block !important;
+.reviews-wrapper {
+    width: 100%;
+    height: 280px;
+    overflow: hidden;
+    position: relative;
+    border-radius: var(--radius-md, 12px);
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Force une couche supplémentaire pour les étoiles */
-.stars i.fas.fa-star {
-    color: #FFFF33 !important; /* Autre tonalité de jaune pour être sûr */
-    display: inline-block !important;
+.reviews-wrapper::before,
+.reviews-wrapper::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 40px;
+    z-index: 2;
+    pointer-events: none;
 }
 
-/* Positionner les commentaires juste sous le titre h2 "PORTES ET FENÊTRES" */
-.roll-cont-col.reviews {
-    margin-top: 10px !important; /* Marge très réduite */
-    position: relative !important;
-    z-index: 1 !important; /* En-dessous du titre */
-    top: auto !important; /* Position naturelle */
-    bottom: auto !important;
+.reviews-wrapper::before {
+    top: 0;
+    background: linear-gradient(to bottom, rgba(0, 37, 48, 0.6), transparent);
 }
 
-/* Ajustement spécifique pour mobile uniquement - ajustement minimal */
-@media (max-width: 768px) {
-    .roll-cont-col.reviews {
-        margin-top: -6px !important; /* Marge négative réduite au minimum */
-    }
+.reviews-wrapper::after {
+    bottom: 0;
+    background: linear-gradient(to top, rgba(0, 37, 48, 0.6), transparent);
 }
 
-/* Conteneur parent - clairement sous le titre */
-.awards-w {
-    display: block !important;
-    margin: 30px 0 0 0 !important; /* Marge importante en haut */
-    padding: 0 !important;
-    opacity: 1 !important;
-    transform: none !important; /* Pas de transformation */
-    width: 100% !important;
-    height: 260px !important; /* Hauteur réduite pour éviter de monter trop haut */
-    overflow: hidden !important;
-    position: relative !important;
+.reviews-track {
+    animation: scrollReviews 20s linear infinite;
 }
 
-/* Conteneur du carrousel - défilement infini, sans bordures ni background */
-.reviews-container {
-    width: 100% !important;
-    height: auto !important; /* Auto pour permettre le dépassement */
-    position: relative !important;
-    overflow: hidden !important;
-    display: flex !important;
-    flex-direction: column !important;
-    animation: scrollVert 15s linear infinite !important; /* Animation de défilement un peu plus lente */
+.review-card {
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* Animation de défilement vertical */
-@keyframes scrollVert {
+.review-card:last-child {
+    border-bottom: none;
+}
+
+.stars {
+    display: flex;
+    gap: 3px;
+    margin-bottom: 6px;
+}
+
+.stars i {
+    color: #ffd700;
+    font-size: 0.85rem;
+}
+
+.review-author {
+    font-size: 0.75rem;
+    font-weight: 600;
+    opacity: 0.7;
+    margin-bottom: 4px;
+}
+
+.review-text {
+    font-size: 0.9rem;
+    font-style: italic;
+    line-height: 1.4;
+    opacity: 0.9;
+}
+
+@keyframes scrollReviews {
     0% {
         transform: translateY(0);
     }
     100% {
-        transform: translateY(-50%); /* Ne déplace que de la moitié (pour le groupe dupliqué) */
+        transform: translateY(-100%);
     }
 }
 
-/* Groupe de commentaires */
-.reviews-group {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 15px !important; /* Espace entre les témoignages réduit */
+/* Pause on hover */
+.reviews-wrapper:hover .reviews-track {
+    animation-play-state: paused;
 }
 
-/* Style des commentaires - sans boîtes ni bordures */
-.review-item {
-    padding: 4px 0 !important; /* Padding vertical réduit */
-    min-height: 65px !important; /* Hauteur minimale réduite */
-    flex-shrink: 0 !important; /* Empêche la compression */
-    margin-bottom: 8px !important;
+/* Responsive */
+@media (max-width: 992px) {
+    .reviews-wrapper {
+        height: 220px;
+    }
 }
 
-/* Style des textes - rapprochés davantage */
-.review-item p {
-    font-size: 0.85rem !important;
-    margin: 0 !important; /* Pas de marge */
-    opacity: 0.9 !important;
-}
-
-.review-item h3 {
-    font-size: 1.1rem !important;
-    line-height: 1.15 !important; /* Line-height encore plus réduit */
-    margin: 0 0 2px 0 !important; /* Marge uniquement en bas du titre */
-}
-
-/* Rapprocher davantage les éléments */
-.stars {
-    margin-bottom: 1px !important;
-}
-
-.review-item > * {
-    margin-top: 0 !important;
-    margin-bottom: 1px !important;
-}
-
-/* Mobile */
 @media (max-width: 768px) {
-    .awards-w {
-        height: 250px !important; /* Hauteur réduite sur mobile */
+    .reviews-wrapper {
+        height: 200px;
     }
-    
-    .review-item {
-        min-height: 60px !important;
+
+    .review-card {
+        padding: 12px 16px;
     }
-    
-    .review-item h3 {
-        font-size: 0.95rem !important;
-    }
-    
-    .review-item p {
-        font-size: 0.8rem !important;
+
+    .review-text {
+        font-size: 0.85rem;
     }
 }
 
-/* Pause l'animation au survol */
-.reviews-container:hover {
-    animation-play-state: paused !important;
+@media (max-width: 480px) {
+    .reviews-wrapper {
+        height: 180px;
+    }
 }

@@ -3,76 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Merci pour votre message - Vosthermos, spécialiste en réparation de portes et fenêtres">
-    <title>Merci pour votre message - Vosthermos</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/serve-fix.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="description" content="Merci pour votre message - Vosthermos">
+    <title>Merci - Vosthermos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        .thank-you-container {
-            height: 100vh;
-            width: 100%;
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            min-height: 100vh;
             display: flex;
-            flex-direction: column;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #002530 0%, #003845 50%, #002530 100%);
+            color: white;
+            padding: 24px;
+        }
+        .thank-you {
             text-align: center;
-            padding: 20px;
-            background: linear-gradient(to right, rgba(0, 56, 69, 0.9), rgba(0, 56, 69, 0.7));
+            max-width: 560px;
         }
-        
         .thank-you-logo {
-            max-width: 300px;
-            margin-bottom: 40px;
+            max-width: 240px;
+            margin: 0 auto 40px;
+            display: block;
         }
-        
-        .thank-you-title {
-            font-size: 2.5rem;
+        .thank-you h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
             margin-bottom: 20px;
-            color: white;
         }
-        
-        .thank-you-message {
-            font-size: 1.2rem;
-            max-width: 600px;
-            margin-bottom: 40px;
-            line-height: 1.6;
-            color: white;
+        .thank-you p {
+            font-size: 1.05rem;
+            line-height: 1.7;
+            opacity: 0.85;
+            margin-bottom: 36px;
         }
-        
-        .return-home-btn {
-            background-color: var(--primary-color);
+        .btn-home {
+            display: inline-block;
+            padding: 14px 36px;
+            background: #e30718;
             color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 50px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
+            font-weight: 700;
+            font-size: 0.9rem;
             text-transform: uppercase;
             letter-spacing: 1px;
-            box-shadow: 0 8px 25px rgba(227, 7, 24, 0.4);
+            border-radius: 50px;
             text-decoration: none;
-            display: inline-block;
+            box-shadow: 0 4px 20px rgba(227, 7, 24, 0.4);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        
-        .return-home-btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(227, 7, 24, 0.6);
+        .btn-home:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 28px rgba(227, 7, 24, 0.5);
         }
     </style>
 </head>
 <body>
-    <div class="thank-you-container">
+    <div class="thank-you">
         <img src="images/cropped-Vos-Thermos-Logo_Fond.jpg" alt="Vosthermos Logo" class="thank-you-logo">
-        <h1 class="thank-you-title">Merci pour votre message!</h1>
-        <p class="thank-you-message">
-            Nous avons bien reçu votre demande et nous vous répondrons dans les plus brefs délais.
-            Notre équipe s'engage à vous fournir un service de qualité pour tous vos besoins en réparation 
-            de portes et fenêtres.
-        </p>
-        <a href="index.html" class="return-home-btn">Retourner à l'accueil</a>
+        <h1>Merci pour votre message!</h1>
+        <p>Nous avons bien recu votre demande et nous vous repondrons dans les plus brefs delais. Notre equipe s'engage a vous fournir un service de qualite pour tous vos besoins en reparation de portes et fenetres.</p>
+        <a href="index.html" class="btn-home">Retourner a l'accueil</a>
     </div>
 </body>
 </html>
