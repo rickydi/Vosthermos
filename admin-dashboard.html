@@ -457,12 +457,12 @@
       <nav class="dashboard-sidebar">
         <ul class="sidebar-nav">
           <li>
-            <a href="#clients" class="tab-link active" data-tab="clients-panel">
-              <i class="fas fa-users"></i> Clients
+            <a href="#clients" class="tab-link" data-tab="clients-panel">
+              <i class="fas fa-users"></i> Soumissions
             </a>
           </li>
           <li>
-            <a href="#stats" class="tab-link" data-tab="stats-panel">
+            <a href="#stats" class="tab-link active" data-tab="stats-panel">
               <i class="fas fa-chart-bar"></i> Statistiques
             </a>
           </li>
@@ -475,71 +475,16 @@
       </nav>
       
       <main class="dashboard-content">
-        <div id="clients-panel" class="dashboard-panel tab-panel active">
-          <h2>Liste des clients</h2>
-          
-          <table class="clients-table">
-            <thead>
-              <tr>
-                <th>Nom</th>
-                <th>Contact</th>
-                <th>Service</th>
-                <th>Date</th>
-                <th>Statut</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Jean Dupont</td>
-                <td>
-                  <div>jean.dupont@example.com</div>
-                  <div>514-555-1234</div>
-                </td>
-                <td>Remplacement de vitre thermos</td>
-                <td class="date">11 avril 2025</td>
-                <td><span class="status new">Nouveau</span></td>
-                <td>
-                  <button class="action-btn" title="Afficher"><i class="fas fa-eye"></i></button>
-                  <button class="action-btn" title="Modifier"><i class="fas fa-edit"></i></button>
-                  <button class="action-btn" title="Supprimer"><i class="fas fa-trash"></i></button>
-                </td>
-              </tr>
-              <tr>
-                <td>Marie Tremblay</td>
-                <td>
-                  <div>marie.t@example.com</div>
-                  <div>438-555-6789</div>
-                </td>
-                <td>Réparation de portes en bois</td>
-                <td class="date">10 avril 2025</td>
-                <td><span class="status contacted">Contacté</span></td>
-                <td>
-                  <button class="action-btn" title="Afficher"><i class="fas fa-eye"></i></button>
-                  <button class="action-btn" title="Modifier"><i class="fas fa-edit"></i></button>
-                  <button class="action-btn" title="Supprimer"><i class="fas fa-trash"></i></button>
-                </td>
-              </tr>
-              <tr>
-                <td>Pierre Lavoie</td>
-                <td>
-                  <div>p.lavoie@example.com</div>
-                  <div>450-555-4321</div>
-                </td>
-                <td>Remplacement de quincaillerie</td>
-                <td class="date">7 avril 2025</td>
-                <td><span class="status completed">Complété</span></td>
-                <td>
-                  <button class="action-btn" title="Afficher"><i class="fas fa-eye"></i></button>
-                  <button class="action-btn" title="Modifier"><i class="fas fa-edit"></i></button>
-                  <button class="action-btn" title="Supprimer"><i class="fas fa-trash"></i></button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div id="clients-panel" class="dashboard-panel tab-panel">
+          <h2>Soumissions recues</h2>
+          <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <p>Les soumissions arrivent sur WhatsApp</p>
+            <span>Les messages du formulaire sont envoyes directement sur vos numeros WhatsApp (514-569-5583 et 514-825-8411).</span>
+          </div>
         </div>
         
-        <div id="stats-panel" class="dashboard-panel tab-panel">
+        <div id="stats-panel" class="dashboard-panel tab-panel active">
           <h2>Statistiques du site</h2>
 
           <div class="stats-cards">
