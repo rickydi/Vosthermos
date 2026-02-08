@@ -457,12 +457,12 @@
       <nav class="dashboard-sidebar">
         <ul class="sidebar-nav">
           <li>
-            <a href="#clients" class="tab-link" data-tab="clients-panel">
+            <a href="#clients" class="tab-link active" data-tab="clients-panel">
               <i class="fas fa-users"></i> Soumissions
             </a>
           </li>
           <li>
-            <a href="#stats" class="tab-link active" data-tab="stats-panel">
+            <a href="#stats" class="tab-link" data-tab="stats-panel">
               <i class="fas fa-chart-bar"></i> Statistiques
             </a>
           </li>
@@ -475,16 +475,31 @@
       </nav>
       
       <main class="dashboard-content">
-        <div id="clients-panel" class="dashboard-panel tab-panel">
-          <h2>Soumissions recues</h2>
-          <div class="empty-state">
+        <div id="clients-panel" class="dashboard-panel tab-panel active">
+          <h2>Soumissions recues <span id="submissions-count" style="font-size:0.8rem;color:rgba(255,255,255,0.5);font-weight:400;"></span></h2>
+          <div id="submissions-empty" class="empty-state" style="display:none;">
             <i class="fas fa-inbox"></i>
-            <p>Les soumissions arrivent sur WhatsApp</p>
-            <span>Les messages du formulaire sont envoyes directement sur vos numeros WhatsApp (514-569-5583 et 514-825-8411).</span>
+            <p>Aucune soumission pour le moment</p>
+            <span>Les soumissions du formulaire apparaitront ici automatiquement.</span>
+          </div>
+          <div id="submissions-table-wrap" style="display:none;overflow-x:auto;">
+            <table class="clients-table">
+              <thead>
+                <tr>
+                  <th>Nom</th>
+                  <th>Contact</th>
+                  <th>Service</th>
+                  <th>Date</th>
+                  <th>Statut</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="submissions-body"></tbody>
+            </table>
           </div>
         </div>
         
-        <div id="stats-panel" class="dashboard-panel tab-panel active">
+        <div id="stats-panel" class="dashboard-panel tab-panel">
           <h2>Statistiques du site</h2>
 
           <div class="stats-cards">
@@ -554,38 +569,132 @@
   
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Vérification de session
       if (!sessionStorage.getItem('authenticated')) {
         window.location.href = 'user.html';
         return;
       }
-      
+
       // Navigation par onglets
-      const tabLinks = document.querySelectorAll('.tab-link');
-      const tabPanels = document.querySelectorAll('.tab-panel');
-      
-      tabLinks.forEach(link => {
+      var tabLinks = document.querySelectorAll('.tab-link');
+      var tabPanels = document.querySelectorAll('.tab-panel');
+      tabLinks.forEach(function(link) {
         link.addEventListener('click', function(e) {
           e.preventDefault();
-          
-          // Désactiver tous les onglets et panneaux
-          tabLinks.forEach(l => l.classList.remove('active'));
-          tabPanels.forEach(p => p.classList.remove('active'));
-          
-          // Activer l'onglet cliqué et son panneau correspondant
+          tabLinks.forEach(function(l) { l.classList.remove('active'); });
+          tabPanels.forEach(function(p) { p.classList.remove('active'); });
           this.classList.add('active');
-          const targetPanel = document.getElementById(this.dataset.tab);
-          if (targetPanel) {
-            targetPanel.classList.add('active');
-          }
+          var target = document.getElementById(this.dataset.tab);
+          if (target) target.classList.add('active');
         });
       });
-      
-      // Gestion de la déconnexion
+
+      // Deconnexion
       document.getElementById('logoutBtn').addEventListener('click', function() {
         sessionStorage.removeItem('authenticated');
         window.location.href = 'user.html';
       });
+
+      // ===== CHARGER LES SOUMISSIONS =====
+      function getSubmissions() {
+        try {
+          return JSON.parse(localStorage.getItem('vosthermosSubmissions') || '[]');
+        } catch(e) { return []; }
+      }
+
+      function saveSubmissions(list) {
+        localStorage.setItem('vosthermosSubmissions', JSON.stringify(list));
+      }
+
+      function formatDate(iso) {
+        var d = new Date(iso);
+        var day = d.getDate();
+        var months = ['jan','fev','mars','avr','mai','juin','juil','aout','sept','oct','nov','dec'];
+        var month = months[d.getMonth()];
+        var year = d.getFullYear();
+        var h = d.getHours().toString().padStart(2,'0');
+        var m = d.getMinutes().toString().padStart(2,'0');
+        return day + ' ' + month + ' ' + year + ' ' + h + ':' + m;
+      }
+
+      function getServiceLabel(val) {
+        var labels = {
+          'quincaillerie': 'Quincaillerie',
+          'vitre-thermos': 'Vitre thermos',
+          'portes-bois': 'Portes en bois',
+          'moustiquaire': 'Moustiquaires',
+          'autre': 'Autre'
+        };
+        return labels[val] || val;
+      }
+
+      function getStatusLabel(s) {
+        if (s === 'contacted') return '<span class="status contacted">Contacte</span>';
+        if (s === 'completed') return '<span class="status completed">Complete</span>';
+        return '<span class="status new">Nouveau</span>';
+      }
+
+      function renderSubmissions() {
+        var subs = getSubmissions();
+        var tbody = document.getElementById('submissions-body');
+        var empty = document.getElementById('submissions-empty');
+        var tableWrap = document.getElementById('submissions-table-wrap');
+        var countEl = document.getElementById('submissions-count');
+
+        if (subs.length === 0) {
+          empty.style.display = 'block';
+          tableWrap.style.display = 'none';
+          countEl.textContent = '';
+          return;
+        }
+
+        empty.style.display = 'none';
+        tableWrap.style.display = 'block';
+        countEl.textContent = '(' + subs.length + ')';
+
+        tbody.innerHTML = '';
+        subs.forEach(function(sub, idx) {
+          var tr = document.createElement('tr');
+          tr.innerHTML =
+            '<td>' + (sub.name || '') + '</td>' +
+            '<td><div>' + (sub.email || '') + '</div><div>' + (sub.phone || '') + '</div></td>' +
+            '<td>' + getServiceLabel(sub.service) + (sub.message ? '<div style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-top:4px;">' + sub.message.substring(0,60) + (sub.message.length > 60 ? '...' : '') + '</div>' : '') + '</td>' +
+            '<td class="date">' + formatDate(sub.date) + '</td>' +
+            '<td>' + getStatusLabel(sub.status) + '</td>' +
+            '<td>' +
+              '<button class="action-btn status-btn" data-idx="' + idx + '" title="Changer statut"><i class="fas fa-exchange-alt"></i></button> ' +
+              '<button class="action-btn delete-btn" data-idx="' + idx + '" title="Supprimer"><i class="fas fa-trash"></i></button>' +
+            '</td>';
+          tbody.appendChild(tr);
+        });
+
+        // Status toggle
+        tbody.querySelectorAll('.status-btn').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var i = parseInt(this.dataset.idx);
+            var subs = getSubmissions();
+            if (!subs[i]) return;
+            var order = ['new','contacted','completed'];
+            var curr = order.indexOf(subs[i].status);
+            subs[i].status = order[(curr + 1) % 3];
+            saveSubmissions(subs);
+            renderSubmissions();
+          });
+        });
+
+        // Delete
+        tbody.querySelectorAll('.delete-btn').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var i = parseInt(this.dataset.idx);
+            if (!confirm('Supprimer cette soumission?')) return;
+            var subs = getSubmissions();
+            subs.splice(i, 1);
+            saveSubmissions(subs);
+            renderSubmissions();
+          });
+        });
+      }
+
+      renderSubmissions();
     });
   </script>
 </body>
