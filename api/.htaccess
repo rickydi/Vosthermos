@@ -1,0 +1,10 @@
+# Permettre l'acces a l'API PHP
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+</IfModule>
+
+# Bloquer l'acces aux fichiers sensibles
+<FilesMatch "\.(json|log)$">
+    Order Deny,Allow
+    Deny from all
+</FilesMatch>

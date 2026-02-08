@@ -1,4 +1,4 @@
-// Configuration du formulaire: Netlify Function + WhatsApp + Netlify Forms
+// Configuration du formulaire: PHP API + WhatsApp
 document.addEventListener('DOMContentLoaded', function() {
     var submitBtn = document.getElementById('submitButton');
     var formStatus = document.getElementById('formStatus');
@@ -32,8 +32,8 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.disabled = true;
             formStatus.textContent = '';
 
-            // ===== 1. SAUVEGARDER DANS NETLIFY BLOBS (serveur) =====
-            fetch('/.netlify/functions/submissions', {
+            // ===== 1. SAUVEGARDER SUR LE SERVEUR (PHP) =====
+            fetch('/api/submissions.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -47,18 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Sauvegarde serveur:', err.message);
             });
 
-            // ===== 2. BACKUP NETLIFY FORMS =====
-            var formData = new FormData(form);
-            formData.set('phone', cleanedPhone);
-            fetch('/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams(formData).toString()
-            }).catch(function(err) {
-                console.log('Netlify Forms:', err.message);
-            });
-
-            // ===== 3. WHATSAPP =====
+            // ===== 2. WHATSAPP =====
             var msg = '*Nouvelle demande vosthermos*\n\n*Nom:* ' + name + '\n*Email:* ' + email + '\n*Telephone:* ' + cleanedPhone + '\n*Service:* ' + service + '\n\n*Message:*\n' + message;
             var encoded = encodeURIComponent(msg);
 

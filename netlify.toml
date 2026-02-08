@@ -1,10 +1,6 @@
 [build]
   publish = "."
-  command = "npm install"
-
-[functions]
-  directory = "netlify/functions"
-  node_bundler = "esbuild"
+  command = ""
 
 [[redirects]]
   from = "/admin/*"
@@ -18,12 +14,3 @@
     "Content-Type" = "video/mp4"
     "Cache-Control" = "public, max-age=31536000"
     "Access-Control-Allow-Origin" = "*"
-
-# Configuration Netlify Identity
-[template.environment]
-  NETLIFY_IDENTITY_ENABLE = "true"
-
-# Configuration Netlify CMS
-[backend]
-  name = "git-gateway"
-  branch = "main"

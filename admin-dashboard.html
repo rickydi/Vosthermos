@@ -594,8 +594,9 @@
         window.location.href = 'user.html';
       });
 
-      // ===== API SOUMISSIONS (serveur Netlify) =====
-      var API = '/.netlify/functions/submissions';
+      // ===== API SOUMISSIONS (serveur PHP) =====
+      var API = '/api/submissions.php';
+      var AUTH_HEADERS = { 'Content-Type': 'application/json', 'Authorization': 'Bearer yesum' };
 
       function formatDate(iso) {
         var d = new Date(iso);
@@ -657,7 +658,7 @@
             var next = order[(curr + 1) % 3];
             fetch(API, {
               method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
+              headers: AUTH_HEADERS,
               body: JSON.stringify({ id: id, status: next })
             }).then(function() { loadSubmissions(); });
           });
@@ -669,7 +670,7 @@
             if (!confirm('Supprimer cette soumission?')) return;
             fetch(API, {
               method: 'DELETE',
-              headers: { 'Content-Type': 'application/json' },
+              headers: AUTH_HEADERS,
               body: JSON.stringify({ id: this.dataset.id })
             }).then(function() { loadSubmissions(); });
           });
@@ -681,7 +682,7 @@
         empty.style.display = 'block';
         empty.innerHTML = '<i class="fas fa-spinner fa-spin"></i><p>Chargement...</p>';
 
-        fetch(API)
+        fetch(API, { headers: AUTH_HEADERS })
           .then(function(r) { return r.json(); })
           .then(function(data) { renderSubmissions(data); })
           .catch(function(err) {

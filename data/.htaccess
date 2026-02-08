@@ -1,0 +1,3 @@
+# Bloquer l'acces direct aux fichiers de donnees
+Order Deny,Allow
+Deny from all
