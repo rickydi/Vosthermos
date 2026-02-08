@@ -256,6 +256,128 @@
       font-size: 0.9rem;
     }
     
+    .stats-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: all 0.2s;
+    }
+
+    .stat-card:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.2);
+    }
+
+    .stat-card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      background: rgba(227,7,24,0.15);
+      color: #e30718;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+
+    .stat-card-info {
+      flex: 1;
+    }
+
+    .stat-card-label {
+      display: block;
+      color: white;
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin-bottom: 2px;
+    }
+
+    .stat-card-value {
+      display: block;
+      color: rgba(255,255,255,0.6);
+      font-size: 0.82rem;
+    }
+
+    .stat-card-link {
+      color: #e30718;
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-decoration: none;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border: 1px solid rgba(227,7,24,0.3);
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .stat-card-link:hover {
+      background: rgba(227,7,24,0.1);
+      border-color: #e30718;
+    }
+
+    .stats-setup {
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      padding: 24px;
+      color: rgba(255,255,255,0.85);
+    }
+
+    .stats-setup h3 {
+      color: white;
+      font-size: 1rem;
+      margin: 0 0 12px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .stats-setup h3:not(:first-child) {
+      margin-top: 24px;
+    }
+
+    .stats-setup h3 i {
+      color: #e30718;
+    }
+
+    .stats-setup ol {
+      margin: 0;
+      padding-left: 20px;
+      line-height: 2;
+    }
+
+    .stats-setup a {
+      color: #74c2ff;
+      text-decoration: none;
+    }
+
+    .stats-setup a:hover {
+      text-decoration: underline;
+    }
+
+    .stats-setup code {
+      background: rgba(255,255,255,0.1);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.88rem;
+      color: #ffeb3b;
+    }
+
     @media (max-width: 768px) {
       .dashboard-main {
         flex-direction: column;
@@ -418,11 +540,58 @@
         </div>
         
         <div id="stats-panel" class="dashboard-panel tab-panel">
-          <h2>Statistiques</h2>
-          <div class="empty-state">
-            <i class="fas fa-chart-bar"></i>
-            <p>Aucune statistique disponible pour le moment</p>
-            <span>Les données seront affichées une fois que nous aurons suffisamment d'informations</span>
+          <h2>Statistiques du site</h2>
+
+          <div class="stats-cards">
+            <div class="stat-card">
+              <div class="stat-card-icon"><i class="fas fa-chart-line"></i></div>
+              <div class="stat-card-info">
+                <span class="stat-card-label">Google Analytics</span>
+                <span class="stat-card-value">Tableau de bord complet</span>
+              </div>
+              <a href="https://analytics.google.com" target="_blank" class="stat-card-link">
+                Ouvrir <i class="fas fa-external-link-alt"></i>
+              </a>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon"><i class="fas fa-search"></i></div>
+              <div class="stat-card-info">
+                <span class="stat-card-label">Google Search Console</span>
+                <span class="stat-card-value">Mots-cles et positions</span>
+              </div>
+              <a href="https://search.google.com/search-console" target="_blank" class="stat-card-link">
+                Ouvrir <i class="fas fa-external-link-alt"></i>
+              </a>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon"><i class="fab fa-google"></i></div>
+              <div class="stat-card-info">
+                <span class="stat-card-label">Google Business</span>
+                <span class="stat-card-value">Fiche Google Maps / Avis</span>
+              </div>
+              <a href="https://business.google.com" target="_blank" class="stat-card-link">
+                Ouvrir <i class="fas fa-external-link-alt"></i>
+              </a>
+            </div>
+          </div>
+
+          <div class="stats-setup">
+            <h3><i class="fas fa-info-circle"></i> Configuration Google Analytics</h3>
+            <ol>
+              <li>Va sur <a href="https://analytics.google.com" target="_blank">analytics.google.com</a></li>
+              <li>Connecte-toi avec ton compte Google (Gmail)</li>
+              <li>Cree une propriete pour <strong>vosthermos.com</strong></li>
+              <li>Copie ton ID de mesure (format: <code>G-XXXXXXXXXX</code>)</li>
+              <li>Remplace <code>G-XXXXXXXXXX</code> dans le code du site</li>
+              <li>Tu verras tes stats en temps reel!</li>
+            </ol>
+            <h3><i class="fas fa-info-circle"></i> Configuration Search Console</h3>
+            <ol>
+              <li>Va sur <a href="https://search.google.com/search-console" target="_blank">search.google.com/search-console</a></li>
+              <li>Ajoute ta propriete <strong>vosthermos.com</strong></li>
+              <li>Verifie avec la methode "Balise HTML" ou "DNS"</li>
+              <li>Soumets ton sitemap: <code>https://www.vosthermos.com/sitemap.xml</code></li>
+            </ol>
           </div>
         </div>
         
