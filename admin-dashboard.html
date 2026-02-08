@@ -677,17 +677,35 @@
         });
       }
 
+      var isLoading = false;
+
       function loadSubmissions() {
+        if (isLoading) return;
+        isLoading = true;
+
         var empty = document.getElementById('submissions-empty');
-        empty.style.display = 'block';
-        empty.innerHTML = '<i class="fas fa-spinner fa-spin"></i><p>Chargement...</p>';
+        var tableWrap = document.getElementById('submissions-table-wrap');
+
+        // Afficher chargement seulement si le tableau est vide
+        if (tableWrap.style.display === 'none' || !tableWrap.style.display) {
+          empty.style.display = 'block';
+          empty.innerHTML = '<i class="fas fa-spinner fa-spin"></i><p>Chargement...</p>';
+        }
 
         fetch(API, { headers: AUTH_HEADERS })
-          .then(function(r) { return r.json(); })
-          .then(function(data) { renderSubmissions(data); })
+          .then(function(r) {
+            if (!r.ok) throw new Error('Erreur serveur (' + r.status + ')');
+            return r.json();
+          })
+          .then(function(data) {
+            isLoading = false;
+            renderSubmissions(data);
+          })
           .catch(function(err) {
+            isLoading = false;
             empty.style.display = 'block';
-            empty.innerHTML = '<i class="fas fa-exclamation-triangle"></i><p>Erreur de chargement</p><span>' + err.message + '</span>';
+            tableWrap.style.display = 'none';
+            empty.innerHTML = '<i class="fas fa-exclamation-triangle"></i><p>Impossible de charger les soumissions</p><span>Le serveur PHP n\'est pas accessible. Verifiez que le site est bien sur WHC.</span>';
           });
       }
 
