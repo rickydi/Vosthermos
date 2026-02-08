@@ -1,16 +1,16 @@
-// Configuration du formulaire: WhatsApp + Netlify Forms + localStorage
+// Configuration du formulaire: Netlify Function + WhatsApp + Netlify Forms
 document.addEventListener('DOMContentLoaded', function() {
-    const submitBtn = document.getElementById('submitButton');
-    const formStatus = document.getElementById('formStatus');
-    const form = document.getElementById('contactForm');
+    var submitBtn = document.getElementById('submitButton');
+    var formStatus = document.getElementById('formStatus');
+    var form = document.getElementById('contactForm');
 
     if(submitBtn && form && formStatus) {
         submitBtn.addEventListener('click', function() {
-            const name = form.querySelector('#name').value;
-            const email = form.querySelector('#email').value;
-            let phone = form.querySelector('#phone').value;
-            const service = form.querySelector('#service').value;
-            const message = form.querySelector('#message').value;
+            var name = form.querySelector('#name').value;
+            var email = form.querySelector('#email').value;
+            var phone = form.querySelector('#phone').value;
+            var service = form.querySelector('#service').value;
+            var message = form.querySelector('#message').value;
 
             if (!name || !email || !phone || !service) {
                 alert('Veuillez remplir tous les champs obligatoires (Nom, Email, Telephone, Service).');
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // Nettoyer le telephone
-            let cleanedPhone = phone.replace(/\D/g, '');
+            var cleanedPhone = phone.replace(/\D/g, '');
             if (cleanedPhone.length === 10) {
                 cleanedPhone = '+1' + cleanedPhone;
             } else if (cleanedPhone.length === 11 && cleanedPhone.startsWith('1')) {
@@ -27,33 +27,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 cleanedPhone = '+1' + cleanedPhone;
             }
 
-            const originalText = submitBtn.textContent;
+            var originalText = submitBtn.textContent;
             submitBtn.textContent = 'Envoi en cours...';
             submitBtn.disabled = true;
             formStatus.textContent = '';
 
-            // ===== 1. SAUVEGARDER DANS LOCALSTORAGE =====
-            var submissions = [];
-            try {
-                submissions = JSON.parse(localStorage.getItem('vosthermosSubmissions') || '[]');
-            } catch(e) {
-                submissions = [];
-            }
-            submissions.unshift({
-                id: Date.now(),
-                name: name,
-                email: email,
-                phone: cleanedPhone,
-                service: service,
-                message: message,
-                date: new Date().toISOString(),
-                status: 'new'
+            // ===== 1. SAUVEGARDER DANS NETLIFY BLOBS (serveur) =====
+            fetch('/.netlify/functions/submissions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: name,
+                    email: email,
+                    phone: cleanedPhone,
+                    service: service,
+                    message: message
+                })
+            }).catch(function(err) {
+                console.log('Sauvegarde serveur:', err.message);
             });
-            // Garder max 200 soumissions
-            if (submissions.length > 200) submissions = submissions.slice(0, 200);
-            localStorage.setItem('vosthermosSubmissions', JSON.stringify(submissions));
 
-            // ===== 2. ENVOYER A NETLIFY FORMS =====
+            // ===== 2. BACKUP NETLIFY FORMS =====
             var formData = new FormData(form);
             formData.set('phone', cleanedPhone);
             fetch('/', {
@@ -61,17 +55,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: new URLSearchParams(formData).toString()
             }).catch(function(err) {
-                console.log('Netlify Forms (backup):', err.message);
+                console.log('Netlify Forms:', err.message);
             });
 
-            // ===== 3. ENVOYER SUR WHATSAPP =====
-            const formattedMessage = '*Nouvelle demande vosthermos*\n\n*Nom:* ' + name + '\n*Email:* ' + email + '\n*Telephone:* ' + cleanedPhone + '\n*Service:* ' + service + '\n\n*Message:*\n' + message;
-            const encodedMessage = encodeURIComponent(formattedMessage);
+            // ===== 3. WHATSAPP =====
+            var msg = '*Nouvelle demande vosthermos*\n\n*Nom:* ' + name + '\n*Email:* ' + email + '\n*Telephone:* ' + cleanedPhone + '\n*Service:* ' + service + '\n\n*Message:*\n' + message;
+            var encoded = encodeURIComponent(msg);
 
-            fetch('https://api.callmebot.com/whatsapp.php?phone=15145695583&text=' + encodedMessage + '&apikey=9107923')
+            fetch('https://api.callmebot.com/whatsapp.php?phone=15145695583&text=' + encoded + '&apikey=9107923')
                 .catch(function(e) { console.log('WhatsApp 1:', e.message); });
-
-            fetch('https://api.callmebot.com/whatsapp.php?phone=15148258411&text=' + encodedMessage + '&apikey=1752086')
+            fetch('https://api.callmebot.com/whatsapp.php?phone=15148258411&text=' + encoded + '&apikey=1752086')
                 .catch(function(e) { console.log('WhatsApp 2:', e.message); });
 
             // ===== SUCCES =====
