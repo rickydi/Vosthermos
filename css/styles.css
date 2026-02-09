@@ -254,35 +254,24 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
    HERO
    ============================================ */
 .hero {
-    position: relative;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    padding-top: 85px;
-    overflow: hidden;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-}
-
-.hero-split {
-    position: relative;
-    z-index: 1;
     display: grid;
-    grid-template-columns: 1fr 480px;
-    gap: 40px;
-    align-items: center;
-    padding: 40px 24px;
-    max-width: 1280px;
-    margin: 0 auto;
+    grid-template-columns: 1fr 1fr;
+    min-height: 100vh;
+    padding-top: 85px;
 }
 
-.hero-left {
-    display: flex;
-    flex-direction: column;
-    gap: 28px;
-}
-
+/* Left side - dark with text + form */
 .hero-content {
-    color: var(--teal-dark);
+    background: var(--teal-dark);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 48px 48px 48px 24px;
+}
+
+.hero-content-inner {
+    max-width: 560px;
+    width: 100%;
 }
 
 .hero-badge {
@@ -293,71 +282,45 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     font-size: 0.78rem;
     font-weight: 700;
     color: var(--white);
-    margin-bottom: 16px;
+    margin-bottom: 20px;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 
 .hero-title {
-    font-size: clamp(2rem, 4vw, 3rem);
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
     font-weight: 900;
     line-height: 1.1;
-    margin-bottom: 16px;
-    color: var(--teal-dark);
+    margin-bottom: 14px;
+    color: var(--white);
 }
 
 .hero-title span { color: var(--red); }
 
 .hero-desc {
-    font-size: 1rem;
-    line-height: 1.7;
-    color: var(--gray-600);
-    margin-bottom: 20px;
-}
-
-.hero-stats {
-    display: flex;
-    gap: 32px;
-    padding-top: 20px;
-    border-top: 2px solid var(--gray-200);
-}
-
-.stat strong {
-    display: block;
-    font-size: 1.6rem;
-    font-weight: 900;
-    color: var(--red);
-}
-
-.stat span {
-    font-size: 0.82rem;
-    color: var(--gray-600);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 24px;
 }
 
 /* Hero Form */
 .hero-form-card {
-    background: var(--white);
+    background: rgba(255,255,255,0.08);
     border-radius: var(--radius-lg);
-    padding: 28px 24px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-    border-top: 4px solid var(--red);
+    padding: 24px;
+    border: 1px solid rgba(255,255,255,0.12);
+    margin-bottom: 24px;
 }
 
 .hero-form-card h2 {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 800;
-    color: var(--teal-dark);
-    margin-bottom: 4px;
+    color: var(--white);
+    margin-bottom: 14px;
 }
 
-.hero-form-card > p {
-    font-size: 0.82rem;
-    color: var(--gray-600);
-    margin-bottom: 16px;
-    line-height: 1.5;
-}
-
-.hero-form-card .form-group { margin-bottom: 10px; }
+.hero-form-card .form-group { margin-bottom: 8px; }
 .hero-form-card .form-row { gap: 8px; }
 
 .hero-form-card input,
@@ -365,19 +328,35 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .hero-form-card textarea {
     padding: 10px 12px;
     font-size: 0.88rem;
-    background: var(--gray-50);
-    border: 1px solid var(--gray-200);
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
     border-radius: 8px;
+    color: var(--white);
+}
+
+.hero-form-card input::placeholder,
+.hero-form-card textarea::placeholder {
+    color: rgba(255,255,255,0.5);
+}
+
+.hero-form-card select {
+    color: rgba(255,255,255,0.7);
+}
+
+.hero-form-card select option {
+    background: var(--teal-dark);
+    color: var(--white);
 }
 
 .hero-form-card input:focus,
 .hero-form-card select:focus,
 .hero-form-card textarea:focus {
     border-color: var(--red);
-    background: var(--white);
+    background: rgba(255,255,255,0.15);
+    outline: none;
 }
 
-.hero-form-card textarea { min-height: 50px; }
+.hero-form-card textarea { min-height: 44px; resize: vertical; }
 
 .hero-form-card .btn-block {
     margin-top: 4px;
@@ -392,9 +371,9 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     gap: 8px;
     margin-top: 12px;
     padding-top: 12px;
-    border-top: 1px solid var(--gray-200);
+    border-top: 1px solid rgba(255,255,255,0.15);
     font-size: 0.82rem;
-    color: var(--gray-600);
+    color: rgba(255,255,255,0.6);
 }
 
 .hero-form-phone a {
@@ -406,22 +385,42 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     transition: color var(--transition);
 }
 
-.hero-form-phone a:hover { color: var(--red-dark); }
+.hero-form-phone a:hover { color: #ff4d5a; }
 
-/* Hero Image */
+/* Hero Stats */
+.hero-stats {
+    display: flex;
+    gap: 32px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.15);
+}
+
+.stat strong {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: var(--red);
+}
+
+.stat span {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.7);
+}
+
+/* Right side - image */
 .hero-image {
+    background: #f0f0f0;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
+    overflow: hidden;
 }
 
 .hero-image img {
     width: 100%;
-    max-height: 85vh;
-    object-fit: contain;
-    border-radius: var(--radius-lg);
-    filter: drop-shadow(0 20px 40px rgba(0,0,0,0.12));
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
 }
 
 /* ============================================
