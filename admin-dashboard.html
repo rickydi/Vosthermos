@@ -678,6 +678,8 @@
       }
 
       var isLoading = false;
+      var serverOk = true;
+      var refreshTimer = null;
 
       function loadSubmissions() {
         if (isLoading) return;
@@ -686,7 +688,7 @@
         var empty = document.getElementById('submissions-empty');
         var tableWrap = document.getElementById('submissions-table-wrap');
 
-        // Afficher chargement seulement si le tableau est vide
+        // Afficher chargement seulement au premier appel
         if (tableWrap.style.display === 'none' || !tableWrap.style.display) {
           empty.style.display = 'block';
           empty.innerHTML = '<i class="fas fa-spinner fa-spin"></i><p>Chargement...</p>';
@@ -699,20 +701,27 @@
           })
           .then(function(data) {
             isLoading = false;
+            serverOk = true;
             renderSubmissions(data);
           })
           .catch(function(err) {
             isLoading = false;
+            serverOk = false;
+            // Arreter le rafraichissement automatique si le serveur ne repond pas
+            if (refreshTimer) {
+              clearInterval(refreshTimer);
+              refreshTimer = null;
+            }
             empty.style.display = 'block';
             tableWrap.style.display = 'none';
-            empty.innerHTML = '<i class="fas fa-exclamation-triangle"></i><p>Impossible de charger les soumissions</p><span>Le serveur PHP n\'est pas accessible. Verifiez que le site est bien sur WHC.</span>';
+            empty.innerHTML = '<i class="fas fa-exclamation-triangle"></i><p>Impossible de charger les soumissions</p><span>Le serveur PHP n\'est pas accessible.<br>Cette fonctionnalite necessite un hebergement avec PHP (WHC).</span>';
           });
       }
 
       loadSubmissions();
 
-      // Rafraichir toutes les 30 secondes
-      setInterval(loadSubmissions, 30000);
+      // Rafraichir toutes les 30 secondes (s'arrete si le serveur ne repond pas)
+      refreshTimer = setInterval(loadSubmissions, 30000);
     });
   </script>
 </body>
