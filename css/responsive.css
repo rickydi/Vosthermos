@@ -29,25 +29,46 @@
     .logo-img { height: 56px; }
     .mobile-menu { top: 70px; }
 
-    /* Hero becomes single column on mobile */
+    /* Hero mobile: image petite en haut, formulaire visible tout de suite */
     .hero {
         grid-template-columns: 1fr;
         min-height: auto;
         padding-top: 70px;
     }
+
     .hero-image {
-        height: 300px;
+        height: 200px;
         order: -1;
     }
+
     .hero-content {
-        padding: 32px 20px;
+        padding: 24px 16px 32px;
         justify-content: flex-start;
     }
+
     .hero-content-inner { max-width: 100%; }
-    .hero-title { font-size: 1.7rem; }
-    .hero-desc { font-size: 0.9rem; }
-    .hero-stats { gap: 20px; flex-wrap: wrap; }
-    .hero-form-card { padding: 20px 16px; }
+
+    /* Titre plus compact sur mobile */
+    .hero-badge { font-size: 0.72rem; padding: 6px 14px; margin-bottom: 12px; }
+    .hero-title { font-size: 1.5rem; margin-bottom: 10px; }
+    .hero-desc { font-size: 0.85rem; margin-bottom: 16px; line-height: 1.5; }
+
+    /* Formulaire compact */
+    .hero-form-card { padding: 18px 14px; margin-bottom: 16px; }
+    .hero-form-card h2 { font-size: 1rem; margin-bottom: 10px; }
+    .hero-form-card .form-row { grid-template-columns: 1fr; gap: 0; }
+    .hero-form-card .form-group { margin-bottom: 6px; }
+    .hero-form-card input,
+    .hero-form-card select,
+    .hero-form-card textarea { padding: 9px 10px; font-size: 16px; }
+    .hero-form-card textarea { min-height: 36px; }
+    .hero-form-card .btn-block { padding: 11px; font-size: 0.9rem; }
+    .hero-form-phone { margin-top: 8px; padding-top: 8px; font-size: 0.8rem; }
+
+    /* Stats compact */
+    .hero-stats { gap: 16px; padding-top: 14px; flex-wrap: wrap; }
+    .stat strong { font-size: 1.3rem; }
+    .stat span { font-size: 0.75rem; }
 
     .services-grid { grid-template-columns: 1fr; gap: 16px; }
     .service-card { padding: 24px 20px; }
@@ -92,14 +113,13 @@
 }
 
 @media (max-width: 480px) {
-    .hero-image { height: 240px; }
-    .hero-content { padding: 24px 16px; }
-    .hero-title { font-size: 1.4rem; }
-    .hero-badge { font-size: 0.72rem; padding: 6px 14px; }
-    .hero-stats { flex-direction: column; gap: 12px; }
-    .stat { display: flex; align-items: center; gap: 12px; }
-    .stat strong { font-size: 1.2rem; }
-    .hero-form-card .form-row { grid-template-columns: 1fr; gap: 0; }
+    .hero-image { height: 160px; }
+    .hero-content { padding: 20px 14px 28px; }
+    .hero-title { font-size: 1.3rem; }
+    .hero-desc { display: none; }
+    .hero-stats { flex-direction: row; gap: 16px; }
+    .stat { text-align: center; }
+    .stat strong { font-size: 1.1rem; }
 
     .section-title { font-size: 1.5rem; }
     .section-tag { font-size: 0.7rem; }
