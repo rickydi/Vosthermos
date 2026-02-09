@@ -101,14 +101,22 @@
     .hero-form-card textarea {
         padding: 11px 12px;
         font-size: 16px;
-        background: var(--gray-50) !important;
-        border: 1px solid var(--gray-200) !important;
-        color: var(--teal-dark) !important;
+        background: #f5f5f5 !important;
+        border: 1px solid #ddd !important;
+        color: #1a1a1a !important;
+        -webkit-appearance: none;
+    }
+    .hero-form-card select {
+        color: #333 !important;
+        -webkit-appearance: menulist;
+        appearance: menulist;
+    }
+    .hero-form-card select option {
+        background: #fff !important;
+        color: #1a1a1a !important;
     }
     .hero-form-card input::placeholder,
-    .hero-form-card textarea::placeholder { color: var(--gray-400) !important; }
-    .hero-form-card select { color: var(--gray-600) !important; }
-    .hero-form-card select option { background: var(--white); color: var(--teal-dark); }
+    .hero-form-card textarea::placeholder { color: #999 !important; }
     .hero-form-card textarea { min-height: 40px; }
     .hero-form-card .btn-block { padding: 12px; font-size: 0.92rem; }
     .hero-form-phone { margin-top: 10px; padding-top: 10px; font-size: 0.82rem; }
