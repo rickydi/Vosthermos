@@ -21,19 +21,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ============================================
-    // HERO SLIDESHOW
-    // ============================================
-    var slides = document.querySelectorAll('.hero-slide');
-    if (slides.length > 1) {
-        var currentSlide = 0;
-        setInterval(function () {
-            slides[currentSlide].classList.remove('active');
-            currentSlide = (currentSlide + 1) % slides.length;
-            slides[currentSlide].classList.add('active');
-        }, 5000);
-    }
-
-    // ============================================
     // HEADER SCROLL EFFECT
     // ============================================
     var header = document.getElementById('header');
