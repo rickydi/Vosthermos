@@ -29,47 +29,97 @@
     .logo-img { height: 56px; }
     .mobile-menu { top: 70px; }
 
-    /* Hero mobile: image petite en haut, formulaire visible tout de suite */
+    /* ===== HERO MOBILE: image en fond + overlay + contenu par-dessus ===== */
     .hero {
-        grid-template-columns: 1fr;
+        display: block;
+        position: relative;
         min-height: auto;
         padding-top: 70px;
     }
 
+    /* Image devient le fond */
     .hero-image {
-        height: 200px;
-        order: -1;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 0;
     }
 
+    .hero-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: top center;
+    }
+
+    /* Overlay sombre pour lisibilite */
+    .hero-image::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+            to bottom,
+            rgba(0,37,48,0.7) 0%,
+            rgba(0,37,48,0.85) 40%,
+            rgba(0,37,48,0.95) 100%
+        );
+        z-index: 1;
+    }
+
+    /* Contenu par-dessus */
     .hero-content {
-        padding: 24px 16px 32px;
+        position: relative;
+        z-index: 2;
+        background: transparent;
+        padding: 28px 20px 32px;
         justify-content: flex-start;
     }
 
     .hero-content-inner { max-width: 100%; }
 
-    /* Titre plus compact sur mobile */
-    .hero-badge { font-size: 0.72rem; padding: 6px 14px; margin-bottom: 12px; }
-    .hero-title { font-size: 1.5rem; margin-bottom: 10px; }
-    .hero-desc { font-size: 0.85rem; margin-bottom: 16px; line-height: 1.5; }
+    /* Titre */
+    .hero-badge { font-size: 0.72rem; padding: 6px 14px; margin-bottom: 14px; }
+    .hero-title { font-size: 1.6rem; margin-bottom: 8px; }
+    .hero-desc { font-size: 0.88rem; margin-bottom: 20px; line-height: 1.5; color: rgba(255,255,255,0.85); }
 
-    /* Formulaire compact */
-    .hero-form-card { padding: 18px 14px; margin-bottom: 16px; }
-    .hero-form-card h2 { font-size: 1rem; margin-bottom: 10px; }
+    /* Formulaire blanc qui ressort bien */
+    .hero-form-card {
+        background: var(--white) !important;
+        border: none !important;
+        padding: 20px 18px;
+        margin-bottom: 20px;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .hero-form-card h2 { font-size: 1.05rem; margin-bottom: 12px; color: var(--teal-dark) !important; }
     .hero-form-card .form-row { grid-template-columns: 1fr; gap: 0; }
-    .hero-form-card .form-group { margin-bottom: 6px; }
+    .hero-form-card .form-group { margin-bottom: 8px; }
     .hero-form-card input,
     .hero-form-card select,
-    .hero-form-card textarea { padding: 9px 10px; font-size: 16px; }
-    .hero-form-card textarea { min-height: 36px; }
-    .hero-form-card .btn-block { padding: 11px; font-size: 0.9rem; }
-    .hero-form-phone { margin-top: 8px; padding-top: 8px; font-size: 0.8rem; }
+    .hero-form-card textarea {
+        padding: 11px 12px;
+        font-size: 16px;
+        background: var(--gray-50) !important;
+        border: 1px solid var(--gray-200) !important;
+        color: var(--teal-dark) !important;
+    }
+    .hero-form-card input::placeholder,
+    .hero-form-card textarea::placeholder { color: var(--gray-400) !important; }
+    .hero-form-card select { color: var(--gray-600) !important; }
+    .hero-form-card select option { background: var(--white); color: var(--teal-dark); }
+    .hero-form-card textarea { min-height: 40px; }
+    .hero-form-card .btn-block { padding: 12px; font-size: 0.92rem; }
+    .hero-form-phone { margin-top: 10px; padding-top: 10px; font-size: 0.82rem; }
+    .hero-form-phone span { color: var(--gray-500); }
 
-    /* Stats compact */
-    .hero-stats { gap: 16px; padding-top: 14px; flex-wrap: wrap; }
+    /* Stats */
+    .hero-stats { gap: 20px; padding-top: 16px; flex-wrap: wrap; justify-content: center; }
     .stat strong { font-size: 1.3rem; }
     .stat span { font-size: 0.75rem; }
 
+    /* ===== REST ===== */
     .services-grid { grid-template-columns: 1fr; gap: 16px; }
     .service-card { padding: 24px 20px; }
 
@@ -113,11 +163,11 @@
 }
 
 @media (max-width: 480px) {
-    .hero-image { height: 160px; }
-    .hero-content { padding: 20px 14px 28px; }
-    .hero-title { font-size: 1.3rem; }
+    .hero-title { font-size: 1.4rem; }
     .hero-desc { display: none; }
-    .hero-stats { flex-direction: row; gap: 16px; }
+    .hero-content { padding: 22px 16px 28px; }
+    .hero-form-card { padding: 16px 14px; }
+    .hero-stats { gap: 16px; }
     .stat { text-align: center; }
     .stat strong { font-size: 1.1rem; }
 
