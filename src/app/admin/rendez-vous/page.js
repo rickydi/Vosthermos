@@ -1,0 +1,462 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+
+const MONTHS_FR = [
+  "Janvier", "Fevrier", "Mars", "Avril", "Mai", "Juin",
+  "Juillet", "Aout", "Septembre", "Octobre", "Novembre", "Decembre",
+];
+
+const DAYS_FR = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+const DAYS_SHORT = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+
+const STATUS_CONFIG = {
+  pending: { label: "En attente", color: "bg-yellow-500/20 text-yellow-400", dot: "bg-yellow-400" },
+  confirmed: { label: "Confirme", color: "bg-green-500/20 text-green-400", dot: "bg-green-400" },
+  completed: { label: "Complete", color: "bg-blue-500/20 text-blue-400", dot: "bg-blue-400" },
+  cancelled: { label: "Annule", color: "bg-red-500/20 text-red-400", dot: "bg-red-400" },
+};
+
+const SERVICE_LABELS = {
+  quincaillerie: "Quincaillerie",
+  thermos: "Vitre thermos",
+  "portes-bois": "Portes en bois",
+  moustiquaires: "Moustiquaires",
+};
+
+function formatDate(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function getWeekDates(referenceDate) {
+  const date = new Date(referenceDate);
+  const day = date.getDay(); // 0=Sun
+  const diff = day === 0 ? -6 : 1 - day; // Monday of the week
+  const monday = new Date(date);
+  monday.setDate(date.getDate() + diff);
+
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    days.push(d);
+  }
+  return days;
+}
+
+export default function AdminAppointmentsPage() {
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [updating, setUpdating] = useState(false);
+
+  const weekDates = getWeekDates(currentDate);
+  const weekStart = weekDates[0];
+  const weekEnd = weekDates[6];
+
+  const fetchAppointments = useCallback(async () => {
+    setLoading(true);
+    try {
+      const from = formatDate(weekStart);
+      const to = formatDate(weekEnd);
+      const res = await fetch(`/api/admin/appointments?from=${from}&to=${to}`);
+      if (res.ok) {
+        const data = await res.json();
+        setAppointments(data);
+      }
+    } catch (err) {
+      console.error("Error fetching appointments:", err);
+    }
+    setLoading(false);
+  }, [weekStart.getTime(), weekEnd.getTime()]);
+
+  useEffect(() => {
+    fetchAppointments();
+  }, [fetchAppointments]);
+
+  function prevWeek() {
+    const d = new Date(currentDate);
+    d.setDate(d.getDate() - 7);
+    setCurrentDate(d);
+  }
+
+  function nextWeek() {
+    const d = new Date(currentDate);
+    d.setDate(d.getDate() + 7);
+    setCurrentDate(d);
+  }
+
+  function goToday() {
+    setCurrentDate(new Date());
+  }
+
+  async function updateStatus(id, newStatus) {
+    setUpdating(true);
+    try {
+      const res = await fetch(`/api/admin/appointments/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setAppointments((prev) =>
+          prev.map((a) => (a.id === id ? updated : a))
+        );
+        if (selectedAppointment?.id === id) {
+          setSelectedAppointment(updated);
+        }
+      }
+    } catch (err) {
+      console.error("Error updating status:", err);
+    }
+    setUpdating(false);
+  }
+
+  async function deleteAppointment(id) {
+    if (!confirm("Supprimer ce rendez-vous?")) return;
+    try {
+      const res = await fetch(`/api/admin/appointments/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setAppointments((prev) => prev.filter((a) => a.id !== id));
+        setSelectedAppointment(null);
+      }
+    } catch (err) {
+      console.error("Error deleting appointment:", err);
+    }
+  }
+
+  function getAppointmentsForDate(dateStr) {
+    return appointments.filter((a) => a.date.startsWith(dateStr));
+  }
+
+  // Stats
+  const totalWeek = appointments.length;
+  const pendingCount = appointments.filter((a) => a.status === "pending").length;
+  const confirmedCount = appointments.filter((a) => a.status === "confirmed").length;
+
+  const todayStr = formatDate(new Date());
+
+  return (
+    <div className="p-6 lg:p-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <h1 className="text-2xl font-extrabold admin-text">Rendez-vous</h1>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={goToday}
+            className="px-4 py-2 rounded-lg text-sm font-semibold admin-text-muted admin-hover admin-card transition-all"
+          >
+            Aujourd&apos;hui
+          </button>
+          <button
+            onClick={prevWeek}
+            className="w-9 h-9 rounded-lg flex items-center justify-center admin-text-muted admin-hover transition-colors"
+          >
+            <i className="fas fa-chevron-left"></i>
+          </button>
+          <button
+            onClick={nextWeek}
+            className="w-9 h-9 rounded-lg flex items-center justify-center admin-text-muted admin-hover transition-colors"
+          >
+            <i className="fas fa-chevron-right"></i>
+          </button>
+          <span className="admin-text font-semibold text-sm ml-2">
+            {weekStart.getDate()} {MONTHS_FR[weekStart.getMonth()]} - {weekEnd.getDate()}{" "}
+            {MONTHS_FR[weekEnd.getMonth()]} {weekEnd.getFullYear()}
+          </span>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div className="admin-card rounded-xl p-5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-[var(--color-red)]/10 flex items-center justify-center">
+              <i className="fas fa-calendar text-[var(--color-red)]"></i>
+            </div>
+            <div>
+              <p className="admin-text-muted text-xs uppercase tracking-wider font-semibold">
+                Cette semaine
+              </p>
+              <p className="admin-text text-xl font-extrabold">{totalWeek}</p>
+            </div>
+          </div>
+        </div>
+        <div className="admin-card rounded-xl p-5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-yellow-500/10 flex items-center justify-center">
+              <i className="fas fa-clock text-yellow-500"></i>
+            </div>
+            <div>
+              <p className="admin-text-muted text-xs uppercase tracking-wider font-semibold">
+                En attente
+              </p>
+              <p className="admin-text text-xl font-extrabold">{pendingCount}</p>
+            </div>
+          </div>
+        </div>
+        <div className="admin-card rounded-xl p-5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+              <i className="fas fa-check-circle text-green-500"></i>
+            </div>
+            <div>
+              <p className="admin-text-muted text-xs uppercase tracking-wider font-semibold">
+                Confirmes
+              </p>
+              <p className="admin-text text-xl font-extrabold">{confirmedCount}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Weekly calendar */}
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <i className="fas fa-spinner fa-spin text-2xl admin-text-muted"></i>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-7 gap-3">
+          {weekDates.map((date, i) => {
+            const dateStr = formatDate(date);
+            const dayAppointments = getAppointmentsForDate(dateStr);
+            const isToday = dateStr === todayStr;
+            const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+
+            return (
+              <div
+                key={dateStr}
+                className={`admin-card rounded-xl overflow-hidden ${
+                  isToday ? "ring-2 ring-[var(--color-red)]" : ""
+                } ${isWeekend ? "opacity-50" : ""}`}
+              >
+                {/* Day header */}
+                <div
+                  className={`px-4 py-3 admin-border border-b ${
+                    isToday ? "bg-[var(--color-red)]/10" : ""
+                  }`}
+                >
+                  <p className="admin-text-muted text-[10px] uppercase tracking-widest font-bold">
+                    {DAYS_SHORT[i]}
+                  </p>
+                  <p className={`text-lg font-extrabold ${isToday ? "text-[var(--color-red)]" : "admin-text"}`}>
+                    {date.getDate()}
+                  </p>
+                </div>
+
+                {/* Appointments */}
+                <div className="p-2 space-y-2 min-h-[120px]">
+                  {dayAppointments.length === 0 && !isWeekend && (
+                    <p className="text-center admin-text-muted text-[10px] py-4">Aucun</p>
+                  )}
+                  {dayAppointments.map((appt) => {
+                    const statusCfg = STATUS_CONFIG[appt.status] || STATUS_CONFIG.pending;
+                    return (
+                      <button
+                        key={appt.id}
+                        onClick={() => setSelectedAppointment(appt)}
+                        className="w-full text-left p-2.5 rounded-lg admin-hover transition-all group"
+                      >
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <span className={`w-1.5 h-1.5 rounded-full ${statusCfg.dot}`}></span>
+                          <span className="admin-text text-xs font-bold">{appt.timeSlot}</span>
+                        </div>
+                        <p className="admin-text text-xs font-semibold truncate">{appt.name}</p>
+                        <p className="admin-text-muted text-[10px] truncate">
+                          {SERVICE_LABELS[appt.serviceType] || appt.serviceType}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Detail modal */}
+      {selectedAppointment && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/60 z-50"
+            onClick={() => setSelectedAppointment(null)}
+          />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div
+              className="admin-card rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal header */}
+              <div className="flex items-center justify-between p-6 admin-border border-b">
+                <h3 className="admin-text text-lg font-extrabold">Details du rendez-vous</h3>
+                <button
+                  onClick={() => setSelectedAppointment(null)}
+                  className="admin-text-muted hover:text-[var(--color-red)] transition-colors"
+                >
+                  <i className="fas fa-times"></i>
+                </button>
+              </div>
+
+              {/* Modal body */}
+              <div className="p-6 space-y-5">
+                {/* Status badge */}
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${
+                      STATUS_CONFIG[selectedAppointment.status]?.color
+                    }`}
+                  >
+                    <span
+                      className={`w-2 h-2 rounded-full ${STATUS_CONFIG[selectedAppointment.status]?.dot}`}
+                    ></span>
+                    {STATUS_CONFIG[selectedAppointment.status]?.label}
+                  </span>
+                </div>
+
+                {/* Info rows */}
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <i className="fas fa-user admin-text-muted w-5 text-center mt-0.5"></i>
+                    <div>
+                      <p className="admin-text-muted text-[10px] uppercase tracking-wider font-semibold">
+                        Client
+                      </p>
+                      <p className="admin-text font-semibold">{selectedAppointment.name}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <i className="fas fa-phone admin-text-muted w-5 text-center mt-0.5"></i>
+                    <div>
+                      <p className="admin-text-muted text-[10px] uppercase tracking-wider font-semibold">
+                        Telephone
+                      </p>
+                      <a
+                        href={`tel:${selectedAppointment.phone}`}
+                        className="text-[var(--color-red)] font-semibold hover:underline"
+                      >
+                        {selectedAppointment.phone}
+                      </a>
+                    </div>
+                  </div>
+
+                  {selectedAppointment.email && (
+                    <div className="flex items-start gap-3">
+                      <i className="fas fa-envelope admin-text-muted w-5 text-center mt-0.5"></i>
+                      <div>
+                        <p className="admin-text-muted text-[10px] uppercase tracking-wider font-semibold">
+                          Courriel
+                        </p>
+                        <p className="admin-text text-sm">{selectedAppointment.email}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-start gap-3">
+                    <i className="fas fa-wrench admin-text-muted w-5 text-center mt-0.5"></i>
+                    <div>
+                      <p className="admin-text-muted text-[10px] uppercase tracking-wider font-semibold">
+                        Service
+                      </p>
+                      <p className="admin-text font-semibold">
+                        {SERVICE_LABELS[selectedAppointment.serviceType] ||
+                          selectedAppointment.serviceType}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <i className="fas fa-calendar admin-text-muted w-5 text-center mt-0.5"></i>
+                    <div>
+                      <p className="admin-text-muted text-[10px] uppercase tracking-wider font-semibold">
+                        Date et heure
+                      </p>
+                      <p className="admin-text font-semibold">
+                        {new Date(selectedAppointment.date).toLocaleDateString("fr-CA", {
+                          weekday: "long",
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}{" "}
+                        a {selectedAppointment.timeSlot}
+                      </p>
+                    </div>
+                  </div>
+
+                  {(selectedAppointment.address || selectedAppointment.city) && (
+                    <div className="flex items-start gap-3">
+                      <i className="fas fa-map-marker-alt admin-text-muted w-5 text-center mt-0.5"></i>
+                      <div>
+                        <p className="admin-text-muted text-[10px] uppercase tracking-wider font-semibold">
+                          Adresse
+                        </p>
+                        <p className="admin-text text-sm">
+                          {[selectedAppointment.address, selectedAppointment.city]
+                            .filter(Boolean)
+                            .join(", ")}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedAppointment.notes && (
+                    <div className="flex items-start gap-3">
+                      <i className="fas fa-sticky-note admin-text-muted w-5 text-center mt-0.5"></i>
+                      <div>
+                        <p className="admin-text-muted text-[10px] uppercase tracking-wider font-semibold">
+                          Notes
+                        </p>
+                        <p className="admin-text text-sm whitespace-pre-wrap">
+                          {selectedAppointment.notes}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Status actions */}
+                <div className="admin-border border-t pt-5">
+                  <p className="admin-text-muted text-[10px] uppercase tracking-wider font-bold mb-3">
+                    Changer le statut
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(STATUS_CONFIG).map(([status, cfg]) => (
+                      <button
+                        key={status}
+                        disabled={updating || selectedAppointment.status === status}
+                        onClick={() => updateStatus(selectedAppointment.id, status)}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                          selectedAppointment.status === status
+                            ? cfg.color + " cursor-default"
+                            : "admin-text-muted admin-hover"
+                        } disabled:opacity-50`}
+                      >
+                        {cfg.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Delete */}
+                <div className="admin-border border-t pt-5">
+                  <button
+                    onClick={() => deleteAppointment(selectedAppointment.id)}
+                    className="flex items-center gap-2 text-red-400 hover:text-red-300 text-sm font-semibold transition-colors"
+                  >
+                    <i className="fas fa-trash-alt"></i> Supprimer ce rendez-vous
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}

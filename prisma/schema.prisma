@@ -1,0 +1,243 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Category {
+  id       Int        @id @default(autoincrement())
+  name     String
+  nameEn   String?
+  slug     String     @unique
+  image    String?
+  order    Int        @default(0)
+  parentId Int?
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children   Category[]  @relation("CategoryTree")
+  products   Product[]
+  promotions Promotion[]
+
+  @@map("categories")
+}
+
+model Product {
+  id                    Int            @id @default(autoincrement())
+  sku                   String         @unique
+  name                  String
+  nameEn                String?
+  description           String?
+  descriptionEn         String?
+  detailedDescription   String?        @db.Text
+  detailedDescriptionEn String?        @db.Text
+  price                 Decimal        @db.Decimal(10, 2)
+  compareAtPrice      Decimal?       @db.Decimal(10, 2)
+  slug                String         @unique
+  availability        String         @default("InStock")
+  categoryId          Int?
+  category            Category?      @relation(fields: [categoryId], references: [id])
+  images              ProductImage[]
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  @@map("products")
+}
+
+model ProductImage {
+  id        Int     @id @default(autoincrement())
+  url       String
+  position  Int     @default(0)
+  productId Int
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+model Order {
+  id        Int      @id @default(autoincrement())
+  stripeId  String   @unique
+  email     String
+  name      String
+  phone     String?
+  address   String?
+  city      String?
+  province  String?
+  postalCode String?
+  total     Decimal  @db.Decimal(10, 2)
+  status    String   @default("pending")
+  items     Json
+  createdAt DateTime @default(now())
+
+  @@map("orders")
+}
+
+model AdminUser {
+  id           Int    @id @default(autoincrement())
+  email        String @unique
+  passwordHash String
+
+  @@map("admin_users")
+}
+
+model AnalyticsSession {
+  id         Int                @id @default(autoincrement())
+  visitorId  String
+  device     String?
+  browser    String?
+  referrer   String?
+  startedAt  DateTime           @default(now())
+  endedAt    DateTime?
+  pageViews  AnalyticsPageView[]
+
+  @@index([visitorId])
+  @@index([startedAt])
+  @@map("analytics_sessions")
+}
+
+model AnalyticsPageView {
+  id        Int              @id @default(autoincrement())
+  sessionId Int
+  session   AnalyticsSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  page      String
+  enteredAt DateTime         @default(now())
+  duration  Int              @default(0)
+
+  @@index([sessionId])
+  @@index([enteredAt])
+  @@map("analytics_page_views")
+}
+
+model AnalyticsDailyStat {
+  id                 Int      @id @default(autoincrement())
+  date               DateTime @unique @db.Date
+  visitors           Int      @default(0)
+  pageViews          Int      @default(0)
+  avgSessionDuration Int      @default(0)
+
+  @@map("analytics_daily_stats")
+}
+
+model AnalyticsFormEvent {
+  id              Int      @id @default(autoincrement())
+  sessionId       Int?
+  visitorId       String?
+  formType        String
+  action          String
+  fieldName       String?
+  fieldsCompleted Json?
+  fieldValues     Json?
+  page            String?
+  createdAt       DateTime @default(now())
+
+  @@index([formType])
+  @@index([createdAt])
+  @@map("analytics_form_events")
+}
+
+model ChatConversation {
+  id             String        @id @default(cuid())
+  clientName     String
+  clientPhone    String        @unique
+  clientEmail    String?
+  lastMessageAt  DateTime      @default(now())
+  lastNotifiedAt DateTime?
+  isArchived     Boolean       @default(false)
+  unreadCount    Int           @default(0)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  messages       ChatMessage[]
+
+  @@map("chat_conversations")
+}
+
+model ChatMessage {
+  id             String           @id @default(cuid())
+  conversationId String
+  conversation   ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderType     String
+  senderName     String
+  content        String           @db.Text
+  imageUrl       String?
+  createdAt      DateTime         @default(now())
+
+  @@index([conversationId])
+  @@map("chat_messages")
+}
+
+model ChatNotifyMember {
+  id              Int     @id @default(autoincrement())
+  name            String
+  phone           String
+  isActive        Boolean @default(true)
+  schedule        Json?
+
+  @@map("chat_notify_members")
+}
+
+model BlogNotifyMember {
+  id        Int     @id @default(autoincrement())
+  name      String
+  email     String
+  isActive  Boolean @default(true)
+
+  @@map("blog_notify_members")
+}
+
+model Promotion {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String?
+  type        String    @default("percent")
+  value       Decimal   @db.Decimal(10, 2)
+  categoryId  Int?
+  category    Category? @relation(fields: [categoryId], references: [id])
+  startDate   DateTime
+  endDate     DateTime
+  isActive    Boolean   @default(true)
+  bgColor     String    @default("#e30718")
+  createdAt   DateTime  @default(now())
+
+  @@map("promotions")
+}
+
+model BlogPost {
+  id          Int       @id @default(autoincrement())
+  title       String
+  slug        String    @unique
+  excerpt     String    @db.Text
+  content     String    @db.Text
+  coverImage  String?
+  category    String    @default("conseils")
+  tags        String[]  @default([])
+  status      String    @default("draft")
+  authorName  String    @default("Vosthermos")
+  aiGenerated Boolean   @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([status])
+  @@index([publishedAt])
+  @@map("blog_posts")
+}
+
+model Appointment {
+  id          Int      @id @default(autoincrement())
+  name        String
+  phone       String
+  email       String?
+  serviceType String
+  date        DateTime @db.Date
+  timeSlot    String
+  address     String?
+  city        String?
+  notes       String?  @db.Text
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
+
+  @@unique([date, timeSlot])
+  @@index([date])
+  @@index([status])
+  @@map("appointments")
+}

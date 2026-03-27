@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /checkout
+Disallow: /panier
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://www.vosthermos.com/sitemap.xml
