@@ -118,7 +118,7 @@ export default async function HomeEn() {
       />
 
       {/* Hero -- Shop catalogue */}
-      <section className="bg-[var(--color-background)] pt-[75px]">
+      <section className="bg-[var(--color-background)] pt-[80px]">
         <div className="max-w-[1200px] mx-auto px-6 pt-12 lg:pt-16 pb-12">
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-10">
             <div>

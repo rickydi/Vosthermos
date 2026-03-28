@@ -22,7 +22,7 @@ export default function GlossairePage() {
   };
 
   return (
-    <div className="pt-[75px]">
+    <div className="pt-[80px]">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(termSetJsonLd) }} />
 
       <div className="bg-[var(--color-teal-dark)] py-16">

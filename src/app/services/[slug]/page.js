@@ -137,7 +137,7 @@ export default async function ServicePage({ params }) {
       )}
 
       {/* Hero */}
-      <section className="bg-[var(--color-teal-dark)] pt-[75px]">
+      <section className="bg-[var(--color-teal-dark)] pt-[80px]">
         <div className="max-w-[1200px] mx-auto px-6 py-16 lg:py-20">
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-sm text-white/50 mb-4">

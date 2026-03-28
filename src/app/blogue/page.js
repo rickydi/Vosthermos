@@ -82,7 +82,7 @@ export default async function BloguePage({ searchParams }) {
   };
 
   return (
-    <div className="pt-[75px]">
+    <div className="pt-[80px]">
       {/* JSON-LD */}
       <script
         type="application/ld+json"

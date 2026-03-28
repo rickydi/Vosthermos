@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div className="pt-[75px] min-h-screen bg-[var(--color-background)]">
+    <div className="pt-[80px] min-h-screen bg-[var(--color-background)]">
       <div className="max-w-[800px] mx-auto px-6 py-20 text-center">
         <div className="w-24 h-24 rounded-full bg-[var(--color-red)]/10 flex items-center justify-center mx-auto mb-8">
           <i className="fas fa-search text-4xl text-[var(--color-red)]"></i>

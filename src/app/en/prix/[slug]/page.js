@@ -37,7 +37,7 @@ export default async function PricingDetailPage({ params }) {
   };
 
   return (
-    <div className="pt-[75px]">
+    <div className="pt-[80px]">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
 
       {/* Hero */}

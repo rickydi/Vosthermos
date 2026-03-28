@@ -83,71 +83,43 @@ export default function Header() {
         }`}
         style={{ backdropFilter: "blur(12px)" }}
       >
-        <div className="max-w-[1200px] mx-auto px-6 flex items-center justify-between h-[75px]">
+        <div className="max-w-[1400px] mx-auto px-6 flex items-center justify-between h-[80px]">
           <Link href={prefix || "/"} className="flex-shrink-0">
             <Image
               src="/images/Vos-Thermos-Logo_Blanc.png"
               alt="Vosthermos Logo"
-              width={220}
-              height={60}
-              className="h-14 md:h-16 w-auto brightness-110 drop-shadow-md"
+              width={250}
+              height={70}
+              className="h-16 md:h-[70px] w-auto brightness-110 drop-shadow-md"
               priority
             />
           </Link>
 
-          <nav className="hidden lg:flex items-center gap-5">
-            <Link href={isHome ? "#services" : `${prefix || ""}/#services`} className="text-white/80 hover:text-white text-sm font-medium transition-colors">{labels.services}</Link>
-            <Link
-              href={`${prefix}/boutique`}
-              className={`text-sm font-medium transition-colors ${
-                pathname.startsWith("/boutique") || pathname.startsWith("/produit") || pathname.startsWith("/en/boutique") || pathname.startsWith("/en/produit")
-                  ? "text-white"
-                  : "text-white/80 hover:text-white"
-              }`}
-            >
-              {labels.boutique}
-            </Link>
-            <Link
-              href={`${prefix}/blogue`}
-              className={`text-sm font-medium transition-colors ${
-                pathname.startsWith("/blogue") || pathname.startsWith("/en/blogue")
-                  ? "text-white"
-                  : "text-white/80 hover:text-white"
-              }`}
-            >
-              {labels.blogue}
-            </Link>
-            <Link
-              href={`${prefix}/opti-fenetre`}
-              className={`text-sm font-medium transition-colors ${
-                pathname.startsWith("/opti-fenetre") || pathname.startsWith("/en/opti-fenetre")
-                  ? "text-white"
-                  : "text-white/80 hover:text-white"
-              }`}
-            >
-              {labels.optiFenetre}
-            </Link>
-            <Link
-              href={`${prefix}/rendez-vous`}
-              className={`text-sm font-medium transition-colors ${
-                pathname.startsWith("/rendez-vous") || pathname.startsWith("/en/rendez-vous")
-                  ? "text-white"
-                  : "text-white/80 hover:text-white"
-              }`}
-            >
-              {labels.rendezvous}
-            </Link>
-            <Link
-              href={`${prefix}/realisations`}
-              className={`text-sm font-medium transition-colors ${
-                pathname.startsWith("/realisations") || pathname.startsWith("/en/realisations")
-                  ? "text-white"
-                  : "text-white/80 hover:text-white"
-              }`}
-            >
-              {labels.realisations}
-            </Link>
-            <Link href={isHome ? "#contact" : `${prefix || ""}/#contact`} className="text-white/80 hover:text-white text-sm font-medium transition-colors">{labels.contact}</Link>
+          <nav className="hidden lg:flex items-center gap-1">
+            {[
+              { href: isHome ? "#services" : `${prefix || ""}/#services`, label: labels.services, match: null },
+              { href: `${prefix}/boutique`, label: labels.boutique, match: ["/boutique", "/produit", "/en/boutique", "/en/produit"] },
+              { href: `${prefix}/blogue`, label: labels.blogue, match: ["/blogue", "/en/blogue"] },
+              { href: `${prefix}/opti-fenetre`, label: labels.optiFenetre, match: ["/opti-fenetre", "/en/opti-fenetre"] },
+              { href: `${prefix}/rendez-vous`, label: labels.rendezvous, match: ["/rendez-vous", "/en/rendez-vous"] },
+              { href: `${prefix}/realisations`, label: labels.realisations, match: ["/realisations", "/en/realisations"] },
+              { href: isHome ? "#contact" : `${prefix || ""}/#contact`, label: labels.contact, match: null },
+            ].map((item) => {
+              const isActive = item.match && item.match.some((m) => pathname.startsWith(m));
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className={`px-3 py-1.5 rounded-lg text-[13px] font-semibold transition-all ${
+                    isActive
+                      ? "bg-white/15 text-white"
+                      : "text-white/70 hover:text-white hover:bg-white/10"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
 
           <div className="flex items-center gap-4">
@@ -200,7 +172,7 @@ export default function Header() {
         className={`fixed inset-0 z-40 bg-[var(--color-teal-dark)] transition-transform duration-300 lg:hidden ${
           menuOpen ? "translate-x-0" : "translate-x-full"
         }`}
-        style={{ paddingTop: "75px" }}
+        style={{ paddingTop: "80px" }}
       >
         <nav className="flex flex-col items-center gap-5 pt-8 text-lg">
           <Link href={isHome ? "#services" : `${prefix || ""}/#services`} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.services}</Link>

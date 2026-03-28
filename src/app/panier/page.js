@@ -11,7 +11,7 @@ export default function PanierPage() {
 
   if (items.length === 0) {
     return (
-      <div className="pt-[75px]">
+      <div className="pt-[80px]">
         <div className="max-w-3xl mx-auto px-6 py-20 text-center">
           <i className="fas fa-shopping-cart text-5xl text-[var(--color-muted)] mb-6"></i>
           <h1 className="text-3xl font-extrabold mb-4">Votre panier est vide</h1>
@@ -30,7 +30,7 @@ export default function PanierPage() {
   }
 
   return (
-    <div className="pt-[75px]">
+    <div className="pt-[80px]">
       <div className="bg-[var(--color-teal-dark)] py-8">
         <div className="max-w-[1200px] mx-auto px-6">
           <h1 className="text-2xl font-extrabold text-white">Panier</h1>
