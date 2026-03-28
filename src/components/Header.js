@@ -88,9 +88,9 @@ export default function Header() {
             <Image
               src="/images/Vos-Thermos-Logo_Blanc.png"
               alt="Vosthermos Logo"
-              width={180}
-              height={50}
-              className="h-10 w-auto"
+              width={220}
+              height={60}
+              className="h-12 md:h-14 w-auto brightness-110 drop-shadow-md"
               priority
             />
           </Link>
