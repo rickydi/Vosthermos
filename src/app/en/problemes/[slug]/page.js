@@ -58,7 +58,7 @@ export default async function ProblemPage({ params }) {
   };
 
   return (
-    <div className="pt-[65px]">
+    <div className="pt-[75px]">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToJsonLd) }} />
 

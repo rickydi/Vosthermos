@@ -201,7 +201,7 @@ export default function FaqPage() {
       />
 
       {/* Hero */}
-      <section className="bg-[var(--color-teal-dark)] pt-[65px]">
+      <section className="bg-[var(--color-teal-dark)] pt-[75px]">
         <div className="max-w-[1200px] mx-auto px-6 py-16">
           {/* Breadcrumb */}
           <nav className="flex items-center gap-2 text-sm text-white/50 mb-6">

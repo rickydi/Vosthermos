@@ -88,7 +88,7 @@ export default async function BlogPageEn({ searchParams }) {
   };
 
   return (
-    <div className="pt-[65px]">
+    <div className="pt-[75px]">
       {/* JSON-LD */}
       <script
         type="application/ld+json"

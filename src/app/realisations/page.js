@@ -153,7 +153,7 @@ export default function RealisationsPage() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-[var(--color-teal-dark)] pt-[65px]">
+      <section className="bg-[var(--color-teal-dark)] pt-[75px]">
         <div className="max-w-[1200px] mx-auto px-6 pt-12 pb-16">
           <nav className="flex items-center gap-2 text-sm text-white/50 mb-8">
             <Link href="/" className="hover:text-white transition-colors">
