@@ -83,7 +83,7 @@ export default async function BoutiquePageEn() {
   };
 
   return (
-    <div className="pt-[85px]">
+    <div className="pt-[65px]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}

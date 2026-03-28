@@ -83,7 +83,7 @@ export default function Header() {
         }`}
         style={{ backdropFilter: "blur(12px)" }}
       >
-        <div className="max-w-[1200px] mx-auto px-6 flex items-center justify-between h-[85px]">
+        <div className="max-w-[1200px] mx-auto px-6 flex items-center justify-between h-[65px]">
           <Link href={prefix || "/"} className="flex-shrink-0">
             <Image
               src="/images/Vos-Thermos-Logo_Blanc.png"
@@ -200,7 +200,7 @@ export default function Header() {
         className={`fixed inset-0 z-40 bg-[var(--color-teal-dark)] transition-transform duration-300 lg:hidden ${
           menuOpen ? "translate-x-0" : "translate-x-full"
         }`}
-        style={{ paddingTop: "85px" }}
+        style={{ paddingTop: "65px" }}
       >
         <nav className="flex flex-col items-center gap-5 pt-8 text-lg">
           <Link href={isHome ? "#services" : `${prefix || ""}/#services`} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.services}</Link>

@@ -37,7 +37,7 @@ export default async function PricingDetailPage({ params }) {
   };
 
   return (
-    <div className="pt-[85px]">
+    <div className="pt-[65px]">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
 
       {/* Hero */}
@@ -187,7 +187,7 @@ export default async function PricingDetailPage({ params }) {
 
           {/* Sidebar */}
           <aside className="space-y-6">
-            <div className="bg-gray-50 rounded-2xl p-6 sticky top-[120px] space-y-6">
+            <div className="bg-gray-50 rounded-2xl p-6 sticky top-[100px] space-y-6">
               <div>
                 <h3 className="font-bold text-gray-900 mb-2">Soumission gratuite</h3>
                 <p className="text-gray-500 text-sm mb-4">

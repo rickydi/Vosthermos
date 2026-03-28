@@ -82,7 +82,7 @@ export default async function CategoryPageEn({ params, searchParams }) {
   }
 
   return (
-    <div className="pt-[85px]">
+    <div className="pt-[65px]">
       <div className="bg-[var(--color-teal-dark)] py-8">
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="flex items-center gap-2 text-sm text-white/50 mb-3">

@@ -95,7 +95,7 @@ export default async function ServiceCityPage({ params }) {
   };
 
   return (
-    <div className="pt-[85px]">
+    <div className="pt-[65px]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -235,7 +235,7 @@ export default async function ServiceCityPage({ params }) {
           {/* Sidebar */}
           <aside className="space-y-8">
             {/* CTA card */}
-            <div className="bg-gray-50 rounded-2xl p-6 sticky top-[120px]">
+            <div className="bg-gray-50 rounded-2xl p-6 sticky top-[100px]">
               <h3 className="font-bold text-gray-900 mb-2">Soumission gratuite</h3>
               <p className="text-gray-500 text-sm mb-4">
                 Obtenez une evaluation gratuite pour {service.shortTitle.toLowerCase()} a {city.name}.

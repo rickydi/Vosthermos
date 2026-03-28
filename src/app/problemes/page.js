@@ -10,7 +10,7 @@ export const metadata = {
 
 export default function ProblemesPage() {
   return (
-    <div className="pt-[85px]">
+    <div className="pt-[65px]">
       <div className="bg-[var(--color-teal-dark)] py-16">
         <div className="max-w-[1200px] mx-auto px-6 text-center">
           <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4">

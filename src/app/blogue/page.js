@@ -82,7 +82,7 @@ export default async function BloguePage({ searchParams }) {
   };
 
   return (
-    <div className="pt-[85px]">
+    <div className="pt-[65px]">
       {/* JSON-LD */}
       <script
         type="application/ld+json"
@@ -103,7 +103,7 @@ export default async function BloguePage({ searchParams }) {
       </div>
 
       {/* Category filters */}
-      <div className="bg-white border-b border-gray-100 sticky top-[85px] z-30">
+      <div className="bg-white border-b border-gray-100 sticky top-[65px] z-30">
         <div className="max-w-[1200px] mx-auto px-6 py-4 flex gap-2 overflow-x-auto">
           {categories.map((c) => {
             const isActive = cat === c.value || (!cat && c.value === "all");

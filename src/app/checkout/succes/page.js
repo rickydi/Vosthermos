@@ -12,7 +12,7 @@ export default function SuccessPage() {
   }, [clearCart]);
 
   return (
-    <div className="pt-[85px]">
+    <div className="pt-[65px]">
       <div className="max-w-2xl mx-auto px-6 py-20 text-center">
         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
           <i className="fas fa-check text-3xl text-green-600"></i>

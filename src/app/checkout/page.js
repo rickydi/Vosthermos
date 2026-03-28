@@ -55,7 +55,7 @@ export default function CheckoutPage() {
 
   if (items.length === 0) {
     return (
-      <div className="pt-[85px]">
+      <div className="pt-[65px]">
         <div className="max-w-3xl mx-auto px-6 py-20 text-center">
           <i className="fas fa-shopping-cart text-5xl text-[var(--color-muted)] mb-6"></i>
           <h1 className="text-3xl font-extrabold mb-4">Votre panier est vide</h1>
@@ -75,7 +75,7 @@ export default function CheckoutPage() {
   const grandTotal = total + tps + tvq;
 
   return (
-    <div className="pt-[85px]">
+    <div className="pt-[65px]">
       <div className="bg-[var(--color-teal-dark)] py-8">
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="flex items-center gap-2 text-sm text-white/50 mb-3">

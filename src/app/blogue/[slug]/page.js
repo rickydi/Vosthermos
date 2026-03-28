@@ -141,7 +141,7 @@ export default async function BlogPostPage({ params }) {
   };
 
   return (
-    <div className="pt-[85px]">
+    <div className="pt-[65px]">
       {/* JSON-LD */}
       <script
         type="application/ld+json"
@@ -205,7 +205,7 @@ export default async function BlogPostPage({ params }) {
           {/* Table of contents sidebar */}
           {headings.length > 2 && (
             <aside className="hidden lg:block w-64 flex-shrink-0">
-              <div className="sticky top-[120px]">
+              <div className="sticky top-[100px]">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-4">
                   Table des matieres
                 </h4>

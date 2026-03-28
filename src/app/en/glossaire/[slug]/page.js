@@ -57,7 +57,7 @@ export default async function GlossaryTermPage({ params }) {
   };
 
   return (
-    <div className="pt-[85px]">
+    <div className="pt-[65px]">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(definedTermJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(speakableJsonLd) }} />
 
@@ -137,7 +137,7 @@ export default async function GlossaryTermPage({ params }) {
 
           {/* Sidebar */}
           <aside className="space-y-6">
-            <div className="bg-gray-50 rounded-2xl p-6 sticky top-[120px] space-y-6">
+            <div className="bg-gray-50 rounded-2xl p-6 sticky top-[100px] space-y-6">
               <div>
                 <h3 className="font-bold text-gray-900 mb-2">Need help?</h3>
                 <p className="text-gray-500 text-xs mb-4">Our experts can explain and resolve your situation.</p>

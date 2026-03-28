@@ -57,7 +57,7 @@ export default function CalculateurPage() {
   }, [windows, patioDoors, entryDoors, selected]);
 
   return (
-    <div className="pt-[85px] min-h-screen bg-gray-50">
+    <div className="pt-[65px] min-h-screen bg-gray-50">
       {/* Hero */}
       <div className="bg-gradient-to-br from-[var(--color-teal-dark)] to-[var(--color-teal)] py-12">
         <div className="max-w-[800px] mx-auto px-6 text-center">

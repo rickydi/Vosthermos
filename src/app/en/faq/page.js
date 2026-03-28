@@ -189,7 +189,7 @@ export default function FaqPageEn() {
       />
 
       {/* Hero */}
-      <section className="bg-[var(--color-teal-dark)] pt-[85px]">
+      <section className="bg-[var(--color-teal-dark)] pt-[65px]">
         <div className="max-w-[1200px] mx-auto px-6 py-16">
           <nav className="flex items-center gap-2 text-sm text-white/50 mb-6">
             <Link href="/en" className="hover:text-white transition-colors">

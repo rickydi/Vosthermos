@@ -79,7 +79,7 @@ export default async function GlossaryTermPage({ params }) {
       />
 
       {/* Hero */}
-      <section className="bg-[var(--color-teal-dark)] pt-[85px]">
+      <section className="bg-[var(--color-teal-dark)] pt-[65px]">
         <div className="max-w-[1200px] mx-auto px-6 py-16 lg:py-20">
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-sm text-white/50 mb-4">
@@ -229,7 +229,7 @@ export default async function GlossaryTermPage({ params }) {
 
             {/* Sidebar */}
             <aside className="space-y-6">
-              <div className="bg-white rounded-2xl p-6 sticky top-[120px] space-y-6 shadow-sm border border-[var(--color-border)]">
+              <div className="bg-white rounded-2xl p-6 sticky top-[100px] space-y-6 shadow-sm border border-[var(--color-border)]">
                 <div>
                   <h3 className="font-bold mb-2">Besoin d&apos;aide?</h3>
                   <p className="text-[var(--color-muted)] text-xs mb-4">

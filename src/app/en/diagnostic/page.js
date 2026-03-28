@@ -113,7 +113,7 @@ export default function DiagnosticPage() {
         : [];
 
   return (
-    <div className="pt-[85px] min-h-screen bg-gray-50">
+    <div className="pt-[65px] min-h-screen bg-gray-50">
       {/* Hero */}
       <div className="bg-[var(--color-teal-dark)] py-12">
         <div className="max-w-[700px] mx-auto px-6 text-center">
