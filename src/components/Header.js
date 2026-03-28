@@ -154,7 +154,7 @@ export default function Header() {
             {/* Language switcher */}
             <Link
               href={getAlternateLangUrl()}
-              className="hidden sm:flex items-center gap-1 text-white/60 hover:text-white text-xs font-bold uppercase tracking-wider border border-white/20 hover:border-white/40 px-2.5 py-1.5 rounded-md transition-all"
+              className="flex items-center gap-1 text-white/60 hover:text-white text-xs font-bold uppercase tracking-wider border border-white/20 hover:border-white/40 px-2.5 py-1.5 rounded-md transition-all"
               title={labels.langTitle}
             >
               <i className="fas fa-globe text-[10px]"></i>
