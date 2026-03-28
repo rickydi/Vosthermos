@@ -153,7 +153,7 @@ function ChatBubbleInner() {
   if (!visible) return null;
 
   return (
-    <div className={`fixed bottom-4 right-4 md:bottom-6 md:right-6 rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden transition-all duration-500 ease-in-out ${isOpen ? "left-4 md:left-auto md:w-[520px]" : "w-[280px] md:w-[300px]"}`} style={{ animation: "chatAppear 0.8s ease-out" }}>
+    <div className={`fixed bottom-4 left-1/2 -translate-x-1/2 md:translate-x-0 md:left-auto md:right-6 md:bottom-6 rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden transition-all duration-500 ease-in-out ${isOpen ? "left-4 right-4 translate-x-0 md:left-auto md:right-6 md:w-[520px]" : "w-[280px] md:w-[300px]"}`} style={{ animation: "chatAppear 0.8s ease-out" }}>
       <style jsx global>{`
         @keyframes chatAppear { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
