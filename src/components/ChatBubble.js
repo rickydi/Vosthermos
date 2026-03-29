@@ -20,6 +20,7 @@ function ChatBubbleInner() {
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [mediaModal, setMediaModal] = useState(null);
   const [inputValue, setInputValue] = useState("");
   const [clientName, setClientName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
@@ -255,19 +256,18 @@ function ChatBubbleInner() {
                   <div className={`max-w-[80%] rounded-xl px-3 py-2 text-sm whitespace-pre-wrap break-words ${msg.senderType === "CLIENT" ? "bg-[var(--color-red)]/15 text-white" : "bg-white/8 text-white"}`}>
                     {msg.content}
                     {msg.imageUrl && (msg.imageUrl.match(/\.(mp4|mov|webm|avi|m4v)$/i) ? (
-                      <a href={msg.imageUrl} target="_blank" rel="noopener noreferrer" className="block mt-1">
+                      <button onClick={() => setMediaModal({ type: "video", url: msg.imageUrl })} className="block mt-1 w-full text-left">
                         <div className="relative bg-black/30 rounded-lg overflow-hidden">
-                          <video src={msg.imageUrl} preload="metadata" className="max-w-full rounded-lg" style={{ maxHeight: "200px" }} />
+                          <video src={msg.imageUrl} preload="metadata" className="max-w-full rounded-lg" style={{ maxHeight: "150px" }} />
                           <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
-                              <i className="fas fa-play text-[var(--color-teal-dark)] ml-1"></i>
+                            <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
+                              <i className="fas fa-play text-[var(--color-teal-dark)] ml-0.5 text-sm"></i>
                             </div>
                           </div>
                         </div>
-                        <span className="text-[10px] text-white/40 mt-1 block">Cliquez pour ouvrir la video</span>
-                      </a>
+                      </button>
                     ) : (
-                      <a href={msg.imageUrl} target="_blank" rel="noopener noreferrer"><img src={msg.imageUrl} alt="" className="max-w-full rounded-lg mt-1 cursor-pointer" loading="lazy" /></a>
+                      <button onClick={() => setMediaModal({ type: "image", url: msg.imageUrl })} className="block mt-1"><img src={msg.imageUrl} alt="" className="max-w-full rounded-lg cursor-pointer" loading="lazy" /></button>
                     ))}
                   </div>
                   <span className="text-[10px] text-white/30 mt-1">
@@ -306,6 +306,22 @@ function ChatBubbleInner() {
           </>
         )}
       </div>
+
+      {/* Media Modal */}
+      {mediaModal && (
+        <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4" onClick={() => setMediaModal(null)}>
+          <div className="relative max-w-[90vw] max-h-[85vh]" onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setMediaModal(null)} className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-white text-gray-900 flex items-center justify-center shadow-lg z-10 hover:bg-gray-100">
+              <i className="fas fa-times text-sm"></i>
+            </button>
+            {mediaModal.type === "video" ? (
+              <video src={mediaModal.url} controls autoPlay className="max-w-full max-h-[80vh] rounded-xl shadow-2xl" />
+            ) : (
+              <img src={mediaModal.url} alt="" className="max-w-full max-h-[80vh] rounded-xl shadow-2xl" />
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
