@@ -174,8 +174,8 @@ export default async function Home() {
       {/* Soumission + Image */}
       <section className="bg-[var(--color-teal-dark)] py-16">
         <div className="max-w-[1200px] mx-auto px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            <div className="bg-white/[0.06] backdrop-blur-md rounded-2xl p-8 border border-white/[0.08]">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+            <div className="bg-white/[0.06] backdrop-blur-md rounded-2xl p-8 border border-white/[0.08] flex flex-col justify-center">
               <div className="flex items-center gap-2 mb-1">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
@@ -187,13 +187,12 @@ export default async function Home() {
               <p className="text-white/50 text-sm mb-5">Soumission gratuite, reponse rapide.</p>
               <QuoteForm compact />
             </div>
-            <div className="hidden lg:block">
+            <div className="hidden lg:block relative rounded-2xl overflow-hidden shadow-2xl">
               <Image
                 src="/images/hero-technicien.jpg"
                 alt="Technicien Vosthermos installant une vitre thermos"
-                width={600}
-                height={500}
-                className="rounded-2xl object-cover shadow-2xl"
+                fill
+                className="object-cover"
               />
             </div>
           </div>
