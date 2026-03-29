@@ -47,8 +47,14 @@ export async function POST(request) {
       },
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/checkout/succes?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/checkout`,
-      // Add tax rates inline
-      invoice_creation: { enabled: false },
+      // Stripe generates and sends invoice/receipt to customer
+      invoice_creation: {
+        enabled: true,
+        invoice_data: {
+          description: "Commande Vosthermos — Pieces de portes et fenetres",
+          footer: "Vosthermos — 330 Ch. St-Francois-Xavier, Local 101 — RBQ: 5790-9498-01 — 514-825-8411",
+        },
+      },
     });
 
     return NextResponse.json({ url: session.url });
