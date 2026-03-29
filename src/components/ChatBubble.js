@@ -159,7 +159,21 @@ function ChatBubbleInner() {
   if (!visible) return null;
 
   return (
-    <div className={`fixed bottom-4 left-1/2 -translate-x-1/2 md:translate-x-0 md:left-auto md:right-6 md:bottom-6 rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden transition-all duration-500 ease-in-out ${isOpen ? "left-4 right-4 translate-x-0 md:left-auto md:right-6 md:w-[520px]" : "w-[280px] md:w-[300px]"}`} style={{ animation: "chatAppear 0.8s ease-out" }}>
+    <>
+      {/* Backdrop — grayscale overlay when chat is open */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/40 backdrop-grayscale transition-opacity duration-500"
+          onClick={() => setIsOpen(false)}
+          style={{ backdropFilter: "grayscale(100%) brightness(0.7)" }}
+        />
+      )}
+
+    <div className={`fixed z-50 rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-all duration-500 ease-in-out ${
+      isOpen
+        ? "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92vw] md:w-[520px] max-h-[80vh]"
+        : "bottom-4 left-1/2 -translate-x-1/2 md:translate-x-0 md:left-auto md:right-6 md:bottom-6 w-[280px] md:w-[300px]"
+    }`} style={!isOpen ? { animation: "chatAppear 0.8s ease-out" } : {}}>
       <style jsx global>{`
         @keyframes chatAppear { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
@@ -323,5 +337,6 @@ function ChatBubbleInner() {
         </div>
       )}
     </div>
+    </>
   );
 }
