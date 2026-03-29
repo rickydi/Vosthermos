@@ -366,12 +366,13 @@ export default async function Home() {
               { q: "Quel est le delai d'intervention?", a: "Notre equipe intervient generalement dans les jours suivant votre demande. Pour les urgences, nous faisons de notre mieux pour intervenir le plus rapidement possible." },
               { q: "Reparez-vous les portes en bois?", a: "Oui, nous offrons un service complet de reparation et restauration de portes et fenetres en bois incluant le poncage, le remplissage, la peinture et le remplacement de quincaillerie." },
             ].map((item, i) => (
-              <details key={i} className="group bg-[var(--color-background)] rounded-xl border border-[var(--color-border)] overflow-hidden">
-                <summary className="flex items-center justify-between px-6 py-4 cursor-pointer font-semibold hover:text-[var(--color-red)] transition-colors">
-                  {item.q}
-                  <i className="fas fa-chevron-down text-xs text-[var(--color-muted)] group-open:rotate-180 transition-transform"></i>
+              <details key={i} className="group bg-[var(--color-background)] rounded-xl border border-[var(--color-border)] overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                <summary className="flex items-center justify-between gap-4 px-6 py-5 cursor-pointer font-semibold text-left list-none hover:bg-gray-50 transition-colors [&::-webkit-details-marker]:hidden">
+                  <span>{item.q}</span>
+                  <i className="fas fa-plus text-sm text-[var(--color-red)] group-open:hidden flex-shrink-0"></i>
+                  <i className="fas fa-minus text-sm text-[var(--color-red)] hidden group-open:inline flex-shrink-0"></i>
                 </summary>
-                <div className="px-6 pb-4 text-sm text-[var(--color-muted)] leading-relaxed">
+                <div className="px-6 pb-5 text-sm text-[var(--color-muted)] leading-relaxed border-t border-[var(--color-border)]">
                   {item.a}
                 </div>
               </details>
