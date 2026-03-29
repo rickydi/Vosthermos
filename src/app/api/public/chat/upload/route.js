@@ -11,12 +11,12 @@ export async function POST(req) {
       return NextResponse.json({ error: "Fichier requis" }, { status: 400 });
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      return NextResponse.json({ error: "Fichier trop volumineux (max 5 MB)" }, { status: 400 });
+    if (file.size > 25 * 1024 * 1024) {
+      return NextResponse.json({ error: "Fichier trop volumineux (max 25 MB)" }, { status: 400 });
     }
 
-    if (!file.type.startsWith("image/")) {
-      return NextResponse.json({ error: "Images seulement" }, { status: 400 });
+    if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
+      return NextResponse.json({ error: "Images et videos seulement" }, { status: 400 });
     }
 
     const ext = file.name.split(".").pop() || "jpg";

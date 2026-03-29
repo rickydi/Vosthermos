@@ -133,6 +133,11 @@ function ChatBubbleInner() {
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file || !conversationId || uploading) return;
+    if (file.size > 25 * 1024 * 1024) {
+      alert("Fichier trop volumineux (max 25 MB)");
+      e.target.value = "";
+      return;
+    }
     e.target.value = "";
     setUploading(true);
     try {
@@ -249,7 +254,7 @@ function ChatBubbleInner() {
                   {msg.senderType === "ADMIN" && <span className="text-xs text-white/40 mb-1 font-medium">Vosthermos</span>}
                   <div className={`max-w-[80%] rounded-xl px-3 py-2 text-sm whitespace-pre-wrap break-words ${msg.senderType === "CLIENT" ? "bg-[var(--color-red)]/15 text-white" : "bg-white/8 text-white"}`}>
                     {msg.content}
-                    {msg.imageUrl && <img src={msg.imageUrl} alt="" className="max-w-full rounded-lg mt-1" loading="lazy" />}
+                    {msg.imageUrl && (msg.imageUrl.match(/\.(mp4|mov|webm|avi)$/i) ? <video src={msg.imageUrl} controls className="max-w-full rounded-lg mt-1" preload="metadata" /> : <img src={msg.imageUrl} alt="" className="max-w-full rounded-lg mt-1" loading="lazy" />)}
                   </div>
                   <span className="text-[10px] text-white/30 mt-1">
                     {new Date(msg.createdAt).toLocaleTimeString("fr-CA", { hour: "2-digit", minute: "2-digit" })}
@@ -260,11 +265,11 @@ function ChatBubbleInner() {
             </div>
             <div className="border-t border-white/10 p-3 shrink-0">
               <div className="flex items-end gap-2">
-                <label className="shrink-0 cursor-pointer text-white/40 hover:text-white transition-colors p-2 animate-[pulse_2s_ease-in-out_3]">
+                <label className="shrink-0 cursor-pointer text-white/40 hover:text-white transition-colors p-2 animate-[pulse_2s_ease-in-out_3]" title="Photo ou video (max 25 MB)">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                    <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>
                   </svg>
-                  <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
+                  <input type="file" accept="image/*,video/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
                 </label>
                 <textarea ref={textareaRef} rows={1} value={inputValue} onChange={handleTextareaInput} onKeyDown={handleKeyDown}
                   placeholder="Votre message..."
