@@ -169,9 +169,9 @@ function ChatBubbleInner() {
         />
       )}
 
-    <div className={`fixed z-50 rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-all duration-500 ease-in-out ${
+    <div className={`fixed z-50 rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-all duration-[800ms] ease-[cubic-bezier(0.4,0,0.2,1)] ${
       isOpen
-        ? "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92vw] md:w-[520px] max-h-[80vh]"
+        ? "top-[10vh] left-1/2 -translate-x-1/2 w-[95vw] md:w-[600px] max-h-[80vh]"
         : "bottom-4 left-1/2 -translate-x-1/2 md:translate-x-0 md:left-auto md:right-6 md:bottom-6 w-[280px] md:w-[300px]"
     }`} style={!isOpen ? { animation: "chatAppear 0.8s ease-out" } : {}}>
       <style jsx global>{`
