@@ -456,7 +456,7 @@ export default async function Home() {
             </div>
             <div className="rounded-xl overflow-hidden shadow-sm border border-[var(--color-border)]">
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d44818.60183345312!2d-73.45735594648!3d45.37106269649143!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4cc90fb925e4b0c3%3A0x18bb6483b7f0b8b0!2sDelson%2C%20QC!5e0!3m2!1sfr!2sca!4v1712977261056!5m2!1sfr!2sca"
+                src="https://maps.google.com/maps?q=330+Chemin+Saint-Francois-Xavier+Delson+QC+Canada&t=&z=15&ie=UTF8&iwloc=&output=embed"
                 width="100%"
                 height="100%"
                 style={{ border: 0, minHeight: "350px" }}
