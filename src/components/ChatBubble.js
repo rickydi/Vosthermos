@@ -160,25 +160,6 @@ function ChatBubbleInner() {
 
   return (
     <>
-      {/* Chat bubble button (closed state) */}
-      {!isOpen && (
-        <button
-          onClick={() => setIsOpen(true)}
-          className="fixed bottom-5 right-5 md:bottom-6 md:right-6 z-50 w-14 h-14 md:w-16 md:h-16 bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 animate-[chatAppear_0.8s_ease-out]"
-          aria-label="Ouvrir le chat"
-        >
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-white">
-            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="rgba(255,255,255,0.15)"/>
-            <circle cx="9" cy="12" r="1" fill="currentColor"/>
-            <circle cx="12" cy="12" r="1" fill="currentColor"/>
-            <circle cx="15" cy="12" r="1" fill="currentColor"/>
-          </svg>
-          <style jsx global>{`
-            @keyframes chatAppear { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
-          `}</style>
-        </button>
-      )}
-
       {/* Backdrop — grayscale overlay when chat is open */}
       {isOpen && (
         <div
@@ -188,21 +169,19 @@ function ChatBubbleInner() {
         />
       )}
 
-      {/* Chat window (open state) */}
-    {isOpen && (
     <div
       className="fixed z-50 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
       style={{
-        animation: "chatOpen 600ms cubic-bezier(0.32, 0.72, 0, 1) forwards",
-        left: "50%",
-        bottom: "10vh",
-        transform: "translateX(-50%)",
-        width: "min(95vw, 600px)",
-        maxHeight: "80vh",
+        transition: "all 600ms cubic-bezier(0.32, 0.72, 0, 1)",
+        right: isOpen ? "50%" : "16px",
+        bottom: isOpen ? "10vh" : "16px",
+        transform: isOpen ? "translateX(50%) scale(1)" : "translateX(0) scale(1)",
+        width: isOpen ? "min(95vw, 600px)" : "280px",
+        maxHeight: isOpen ? "80vh" : "500px",
       }}
     >
       <style jsx global>{`
-        @keyframes chatOpen { from { opacity: 0; transform: translateX(-50%) translateY(100px) scale(0.8); } to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } }
+        @keyframes chatAppear { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
 
       {/* Header */}
@@ -364,7 +343,6 @@ function ChatBubbleInner() {
         </div>
       )}
     </div>
-    )}
     </>
   );
 }
