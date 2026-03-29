@@ -39,9 +39,7 @@ export async function POST(request) {
       line_items: lineItems,
       automatic_tax: { enabled: false },
       // Quebec taxes
-      shipping_address_collection: {
-        allowed_countries: ["CA"],
-      },
+      // Address already collected on our checkout form
       metadata: {
         customerName: customer.name,
         customerPhone: customer.phone,
