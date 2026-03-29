@@ -169,14 +169,17 @@ function ChatBubbleInner() {
         />
       )}
 
-    <div className={`fixed z-50 rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-all duration-[800ms] ease-[cubic-bezier(0.4,0,0.2,1)] ${
-      isOpen
-        ? "top-[10vh] left-1/2 -translate-x-1/2 w-[95vw] md:w-[600px] max-h-[80vh]"
-        : "bottom-4 left-1/2 -translate-x-1/2 md:translate-x-0 md:left-auto md:right-6 md:bottom-6 w-[280px] md:w-[300px]"
-    }`} style={!isOpen ? { animation: "chatAppear 0.8s ease-out" } : {}}>
-      <style jsx global>{`
-        @keyframes chatAppear { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-      `}</style>
+    <div
+      className="fixed z-50 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+      style={{
+        transition: "all 600ms cubic-bezier(0.32, 0.72, 0, 1)",
+        left: "50%",
+        bottom: isOpen ? "10vh" : "16px",
+        transform: isOpen ? "translateX(-50%) scale(1)" : "translateX(-50%) scale(0.9)",
+        width: isOpen ? "min(95vw, 600px)" : "280px",
+        maxHeight: isOpen ? "80vh" : "500px",
+      }}
+    >
 
       {/* Header */}
       <div
