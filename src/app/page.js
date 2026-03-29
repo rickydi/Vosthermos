@@ -369,9 +369,9 @@ export default async function Home() {
               <details key={i} className="group bg-[var(--color-background)] rounded-xl border border-[var(--color-border)] overflow-hidden">
                 <summary className="flex items-center justify-between gap-4 px-6 py-5 cursor-pointer font-semibold text-left list-none hover:bg-gray-50 transition-colors [&::-webkit-details-marker]:hidden">
                   <span>{item.q}</span>
-                  <i className="fas fa-chevron-down text-xs text-[var(--color-muted)] group-open:rotate-180 transition-transform duration-300 flex-shrink-0"></i>
+                  <i className="fas fa-chevron-down text-xs text-[var(--color-muted)] group-open:rotate-180 transition-transform duration-[1500ms] flex-shrink-0"></i>
                 </summary>
-                <div className="grid grid-rows-[0fr] group-open:grid-rows-[1fr] transition-[grid-template-rows] duration-300">
+                <div className="grid grid-rows-[0fr] group-open:grid-rows-[1fr] transition-[grid-template-rows] duration-[1500ms] ease-[cubic-bezier(0.4,0,0.2,1)]">
                   <div className="overflow-hidden">
                     <div className="px-6 pb-5 text-sm text-[var(--color-muted)] leading-relaxed">
                       {item.a}
