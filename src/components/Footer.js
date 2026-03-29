@@ -82,9 +82,9 @@ export default function Footer() {
             <Image
               src="/images/Vos-Thermos-Logo_Blanc.png"
               alt="Vosthermos"
-              width={160}
-              height={45}
-              className="h-9 w-auto mb-4"
+              width={300}
+              height={85}
+              className="h-20 w-auto mb-6 brightness-110 drop-shadow-md"
             />
             <p className="text-white/60 text-sm leading-relaxed">
               {labels.tagline}
