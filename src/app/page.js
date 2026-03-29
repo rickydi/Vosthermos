@@ -10,6 +10,7 @@ import ProblemsSection from "@/components/ProblemsSection";
 import VideoSection from "@/components/VideoSection";
 import EcoSection from "@/components/EcoSection";
 import BeforeAfterSlider from "@/components/BeforeAfterSlider";
+import Accordion from "@/components/Accordion";
 import { getCategoryIcon } from "@/lib/category-icons";
 import { getActivePromotions } from "@/lib/promotions";
 
@@ -357,30 +358,14 @@ export default async function Home() {
               Vos <span className="text-[var(--color-red)]">questions</span>, nos reponses
             </h2>
           </div>
-          <div className="space-y-4">
-            {[
-              { q: "Quelle est la garantie sur les vitres thermos?", a: "Tous nos remplacements de vitres thermos sont couverts par une garantie de 10 ans. Cette garantie est transferable au prochain proprietaire en cas de vente de votre propriete." },
-              { q: "Quels secteurs desservez-vous?", a: "Nous desservons Montreal, Laval, Longueuil, Brossard, Saint-Hyacinthe, Granby, Terrebonne, Repentigny et toute la region dans un rayon de 100km autour de Saint-Francois-Xavier." },
-              { q: "Combien coute un remplacement de thermos?", a: "Le prix varie selon les dimensions et le type de verre. Nos remplacements commencent a partir de 150$ par unite installee. Contactez-nous pour une soumission gratuite et precise." },
-              { q: "Peut-on acheter des pieces en ligne?", a: "Oui! Notre boutique en ligne offre plus de 740 pieces de remplacement pour portes, fenetres et moustiquaires. Paiement securise par carte de credit et livraison rapide." },
-              { q: "Quel est le delai d'intervention?", a: "Notre equipe intervient generalement dans les jours suivant votre demande. Pour les urgences, nous faisons de notre mieux pour intervenir le plus rapidement possible." },
-              { q: "Reparez-vous les portes en bois?", a: "Oui, nous offrons un service complet de reparation et restauration de portes et fenetres en bois incluant le poncage, le remplissage, la peinture et le remplacement de quincaillerie." },
-            ].map((item, i) => (
-              <details key={i} className="group bg-[var(--color-background)] rounded-xl border border-[var(--color-border)] overflow-hidden">
-                <summary className="flex items-center justify-between gap-4 px-6 py-5 cursor-pointer font-semibold text-left list-none hover:bg-gray-50 transition-colors [&::-webkit-details-marker]:hidden">
-                  <span>{item.q}</span>
-                  <i className="fas fa-chevron-down text-xs text-[var(--color-muted)] group-open:rotate-180 transition-transform duration-[1500ms] flex-shrink-0"></i>
-                </summary>
-                <div className="grid grid-rows-[0fr] group-open:grid-rows-[1fr] transition-[grid-template-rows] duration-[1500ms] ease-[cubic-bezier(0.4,0,0.2,1)]">
-                  <div className="overflow-hidden">
-                    <div className="px-6 pb-5 text-sm text-[var(--color-muted)] leading-relaxed">
-                      {item.a}
-                    </div>
-                  </div>
-                </div>
-              </details>
-            ))}
-          </div>
+          <Accordion items={[
+            { q: "Quelle est la garantie sur les vitres thermos?", a: "Tous nos remplacements de vitres thermos sont couverts par une garantie de 10 ans. Cette garantie est transferable au prochain proprietaire en cas de vente de votre propriete." },
+            { q: "Quels secteurs desservez-vous?", a: "Nous desservons Montreal, Laval, Longueuil, Brossard, Saint-Hyacinthe, Granby, Terrebonne, Repentigny et toute la region dans un rayon de 100km autour de Saint-Francois-Xavier." },
+            { q: "Combien coute un remplacement de thermos?", a: "Le prix varie selon les dimensions et le type de verre. Nos remplacements commencent a partir de 150$ par unite installee. Contactez-nous pour une soumission gratuite et precise." },
+            { q: "Peut-on acheter des pieces en ligne?", a: "Oui! Notre boutique en ligne offre plus de 740 pieces de remplacement pour portes, fenetres et moustiquaires. Paiement securise par carte de credit et livraison rapide." },
+            { q: "Quel est le delai d'intervention?", a: "Notre equipe intervient generalement dans les jours suivant votre demande. Pour les urgences, nous faisons de notre mieux pour intervenir le plus rapidement possible." },
+            { q: "Reparez-vous les portes en bois?", a: "Oui, nous offrons un service complet de reparation et restauration de portes et fenetres en bois incluant le poncage, le remplissage, la peinture et le remplacement de quincaillerie." },
+          ]} />
           <div className="text-center mt-8">
             <Link href="/faq" className="text-[var(--color-teal)] font-semibold text-sm hover:text-[var(--color-red)] transition-colors">
               Voir toutes les questions <i className="fas fa-arrow-right ml-1"></i>
