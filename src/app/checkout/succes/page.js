@@ -1,15 +1,36 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useCart } from "@/components/CartContext";
 
 export default function SuccessPage() {
   const { clearCart } = useCart();
+  const searchParams = useSearchParams();
+  const sessionId = searchParams.get("session_id");
+  const [orderId, setOrderId] = useState(null);
+  const [confirmed, setConfirmed] = useState(false);
 
   useEffect(() => {
     clearCart();
   }, [clearCart]);
+
+  useEffect(() => {
+    if (!sessionId || confirmed) return;
+    setConfirmed(true);
+
+    fetch("/api/checkout/confirm", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.orderId) setOrderId(data.orderId);
+      })
+      .catch(() => {});
+  }, [sessionId, confirmed]);
 
   return (
     <div className="pt-[80px]">
@@ -18,11 +39,16 @@ export default function SuccessPage() {
           <i className="fas fa-check text-3xl text-green-600"></i>
         </div>
         <h1 className="text-3xl font-extrabold mb-4">Merci pour votre commande!</h1>
+        {orderId && (
+          <p className="text-[var(--color-teal)] font-bold text-lg mb-2">
+            Commande #{orderId}
+          </p>
+        )}
         <p className="text-[var(--color-muted)] text-lg mb-2">
           Votre paiement a ete traite avec succes.
         </p>
         <p className="text-[var(--color-muted)] mb-8">
-          Vous recevrez un courriel de confirmation sous peu.
+          Un courriel de confirmation a ete envoye.
           Notre equipe vous contactera pour organiser la livraison ou le ramassage.
         </p>
 
