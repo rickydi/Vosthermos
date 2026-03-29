@@ -15,11 +15,15 @@ export async function POST(req) {
       return NextResponse.json({ error: "Fichier trop volumineux (max 25 MB)" }, { status: 400 });
     }
 
-    if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
+    const ext = (file.name.split(".").pop() || "").toLowerCase();
+    const allowedImageExts = ["jpg", "jpeg", "png", "gif", "webp", "heic", "heif"];
+    const allowedVideoExts = ["mp4", "mov", "webm", "avi", "m4v", "mkv"];
+    const isImage = file.type.startsWith("image/") || allowedImageExts.includes(ext);
+    const isVideo = file.type.startsWith("video/") || allowedVideoExts.includes(ext);
+
+    if (!isImage && !isVideo) {
       return NextResponse.json({ error: "Images et videos seulement" }, { status: 400 });
     }
-
-    const ext = file.name.split(".").pop() || "jpg";
     const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
     const uploadDir = path.join(process.cwd(), "public", "uploads", "chat");
     await mkdir(uploadDir, { recursive: true });

@@ -254,7 +254,21 @@ function ChatBubbleInner() {
                   {msg.senderType === "ADMIN" && <span className="text-xs text-white/40 mb-1 font-medium">Vosthermos</span>}
                   <div className={`max-w-[80%] rounded-xl px-3 py-2 text-sm whitespace-pre-wrap break-words ${msg.senderType === "CLIENT" ? "bg-[var(--color-red)]/15 text-white" : "bg-white/8 text-white"}`}>
                     {msg.content}
-                    {msg.imageUrl && (msg.imageUrl.match(/\.(mp4|mov|webm|avi)$/i) ? <video src={msg.imageUrl} controls className="max-w-full rounded-lg mt-1" preload="metadata" /> : <img src={msg.imageUrl} alt="" className="max-w-full rounded-lg mt-1" loading="lazy" />)}
+                    {msg.imageUrl && (msg.imageUrl.match(/\.(mp4|mov|webm|avi|m4v)$/i) ? (
+                      <a href={msg.imageUrl} target="_blank" rel="noopener noreferrer" className="block mt-1">
+                        <div className="relative bg-black/30 rounded-lg overflow-hidden">
+                          <video src={msg.imageUrl} preload="metadata" className="max-w-full rounded-lg" style={{ maxHeight: "200px" }} />
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
+                              <i className="fas fa-play text-[var(--color-teal-dark)] ml-1"></i>
+                            </div>
+                          </div>
+                        </div>
+                        <span className="text-[10px] text-white/40 mt-1 block">Cliquez pour ouvrir la video</span>
+                      </a>
+                    ) : (
+                      <a href={msg.imageUrl} target="_blank" rel="noopener noreferrer"><img src={msg.imageUrl} alt="" className="max-w-full rounded-lg mt-1 cursor-pointer" loading="lazy" /></a>
+                    ))}
                   </div>
                   <span className="text-[10px] text-white/30 mt-1">
                     {new Date(msg.createdAt).toLocaleTimeString("fr-CA", { hour: "2-digit", minute: "2-digit" })}
