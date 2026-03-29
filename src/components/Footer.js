@@ -84,7 +84,7 @@ export default function Footer() {
               alt="Vosthermos"
               width={300}
               height={85}
-              className="h-20 w-auto mb-6 brightness-110 drop-shadow-md"
+              className="h-20 md:h-40 w-auto mb-6 brightness-110 drop-shadow-md"
             />
             <p className="text-white/60 text-sm leading-relaxed">
               {labels.tagline}
