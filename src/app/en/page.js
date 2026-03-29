@@ -338,34 +338,7 @@ export default async function HomeEn() {
       {/* Video */}
       <VideoSection />
 
-      {/* Before/After */}
-      <section className="section-dark py-20">
-        <div className="max-w-[1200px] mx-auto px-6">
-          <div className="text-center mb-14">
-            <span className="section-tag">Results</span>
-            <h2 className="text-3xl font-extrabold text-white">
-              Before and <span className="text-[var(--color-red)]">after</span> our work
-            </h2>
-            <p className="text-white/60 mt-3 max-w-2xl mx-auto">
-              Slide to compare. Our technicians bring your doors and windows back to life.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <BeforeAfterSlider
-              beforeSrc="/images/gallery/thermos-before.jpg"
-              afterSrc="/images/gallery/thermos-after.jpg"
-              beforeAlt="Foggy sealed unit before replacement"
-              afterAlt="Clear sealed unit after replacement"
-            />
-            <BeforeAfterSlider
-              beforeSrc="/images/gallery/quincaillerie-before.jpg"
-              afterSrc="/images/gallery/quincaillerie-after.jpg"
-              beforeAlt="Worn hardware before replacement"
-              afterAlt="New hardware after replacement"
-            />
-          </div>
-        </div>
-      </section>
+      {/* Before/After — hidden until real photos are available */}
 
       {/* Eco */}
       <EcoSection />

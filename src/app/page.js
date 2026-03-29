@@ -317,34 +317,7 @@ export default async function Home() {
       {/* Video section */}
       <VideoSection />
 
-      {/* Avant/Apres */}
-      <section className="section-dark py-20">
-        <div className="max-w-[1200px] mx-auto px-6">
-          <div className="text-center mb-14">
-            <span className="section-tag">Resultats</span>
-            <h2 className="text-3xl font-extrabold text-white">
-              Avant et <span className="text-[var(--color-red)]">apres</span> nos interventions
-            </h2>
-            <p className="text-white/60 mt-3 max-w-2xl mx-auto">
-              Glissez pour comparer. Nos techniciens redonnent vie a vos portes et fenetres.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <BeforeAfterSlider
-              beforeSrc="/images/gallery/thermos-before.jpg"
-              afterSrc="/images/gallery/thermos-after.jpg"
-              beforeAlt="Thermos embue avant remplacement"
-              afterAlt="Thermos clair apres remplacement"
-            />
-            <BeforeAfterSlider
-              beforeSrc="/images/gallery/quincaillerie-before.jpg"
-              afterSrc="/images/gallery/quincaillerie-after.jpg"
-              beforeAlt="Quincaillerie usee avant remplacement"
-              afterAlt="Quincaillerie neuve apres remplacement"
-            />
-          </div>
-        </div>
-      </section>
+      {/* Avant/Apres — caché en attendant de vraies photos */}
 
       {/* Eco-responsabilite */}
       <EcoSection />
