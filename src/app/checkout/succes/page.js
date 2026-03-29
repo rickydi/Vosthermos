@@ -10,6 +10,7 @@ export default function SuccessPage() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
   const [orderId, setOrderId] = useState(null);
+  const [customerEmail, setCustomerEmail] = useState(null);
   const [confirmed, setConfirmed] = useState(false);
 
   useEffect(() => {
@@ -28,6 +29,7 @@ export default function SuccessPage() {
       .then((res) => res.json())
       .then((data) => {
         if (data.orderId) setOrderId(data.orderId);
+        if (data.email) setCustomerEmail(data.email);
       })
       .catch(() => {});
   }, [sessionId, confirmed]);
@@ -47,8 +49,15 @@ export default function SuccessPage() {
         <p className="text-[var(--color-muted)] text-lg mb-2">
           Votre paiement a ete traite avec succes.
         </p>
+        {customerEmail && (
+          <div className="bg-green-50 border border-green-200 rounded-xl px-5 py-3 mb-4 inline-block">
+            <p className="text-green-700 text-sm">
+              <i className="fas fa-envelope mr-2"></i>
+              Confirmation et facture envoyees a <strong>{customerEmail}</strong>
+            </p>
+          </div>
+        )}
         <p className="text-[var(--color-muted)] mb-8">
-          Un courriel de confirmation a ete envoye.
           Notre equipe vous contactera pour organiser la livraison ou le ramassage.
         </p>
 

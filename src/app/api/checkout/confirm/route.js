@@ -141,7 +141,7 @@ export async function POST(request) {
       html: emailHtml.replace("Confirmation de commande", "NOUVELLE COMMANDE").replace("Bonjour " + (session.metadata?.customerName || ""), `<strong>Client:</strong> ${session.metadata?.customerName || ""}<br><strong>Tel:</strong> ${session.metadata?.customerPhone || ""}<br><strong>Email:</strong> ${session.customer_email || ""}<br><strong>Adresse:</strong> ${session.metadata?.customerAddress || ""}`),
     });
 
-    return NextResponse.json({ orderId: order.id, success: true });
+    return NextResponse.json({ orderId: order.id, email: session.customer_email, success: true });
   } catch (err) {
     console.error("Order confirm error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
