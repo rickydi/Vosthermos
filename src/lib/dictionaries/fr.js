@@ -34,7 +34,7 @@ const fr = {
     },
     thermos: {
       title: "Remplacement de vitre thermos",
-      desc: "Buee ou perte d'efficacite thermique? Remplacement professionnel avec garantie de 10 ans sur tous nos travaux.",
+      desc: "Buee ou perte d'efficacite thermique? Remplacement professionnel avec service professionnel garanti sur tous nos travaux.",
     },
     woodDoors: {
       title: "Reparation de portes en bois",
@@ -81,7 +81,7 @@ const fr = {
     freeQuote: "Soumission gratuite",
     callUs: "Appelez-nous",
     yearsExperience: "15+ ans d'experience",
-    warrantyYears: "Garantie 10 ans",
+    warrantyYears: "service garanti",
     allRightsReserved: "Tous droits reserves",
   },
 };

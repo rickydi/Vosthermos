@@ -36,7 +36,7 @@ const faqCategories = [
       {
         question: "What is the difference between defogging and sealed glass replacement?",
         answer:
-          "Defogging involves removing moisture trapped between the two panes of a sealed unit without replacing the unit itself. It's a temporary and less expensive solution, but doesn't fully restore the glass's insulating properties. Sealed glass replacement involves installing a brand new sealed unit that provides optimal thermal insulation and is covered by our 10-year warranty. We generally recommend replacement for a lasting result and better energy efficiency.",
+          "Defogging involves removing moisture trapped between the two panes of a sealed unit without replacing the unit itself. It's a temporary and less expensive solution, but doesn't fully restore the glass's insulating properties. Sealed glass replacement involves installing a brand new sealed unit that provides optimal thermal insulation and is covered by our professional guaranteed service. We generally recommend replacement for a lasting result and better energy efficiency.",
       },
       {
         question: "Do you repair all types of windows?",
@@ -95,7 +95,7 @@ const faqCategories = [
       {
         question: "What is your warranty duration?",
         answer:
-          "We offer a 10-year warranty on all sealed glass unit replacements, covering manufacturing defects and loss of seal integrity. For other services like hardware replacement and screen door manufacturing, the warranty varies by part type and work performed. Specific warranty details are always included in your written quote before work begins.",
+          "We offer a professional guaranteed service on all sealed glass unit replacements, covering manufacturing defects and loss of seal integrity. For other services like hardware replacement and screen door manufacturing, the warranty varies by part type and work performed. Specific warranty details are always included in your written quote before work begins.",
       },
       {
         question: "Is the warranty transferable?",

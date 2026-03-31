@@ -1,7 +1,7 @@
 export const metadata = {
   title: "Vosthermos | Door and Window Repair | Montreal, South Shore",
   description:
-    "Door and window repair experts for over 15 years. Sealed glass unit replacement with 10-year warranty, hardware, wooden doors, screen doors. Fast service Montreal, South Shore and 100km radius. Free quote 514-825-8411. Online parts store.",
+    "Door and window repair experts for over 15 years. Sealed glass unit replacement with professional guaranteed service, hardware, wooden doors, screen doors. Fast service Montreal, South Shore and 100km radius. Free quote 514-825-8411. Online parts store.",
   keywords:
     "door window repair, sealed glass unit, thermos glass replacement, hardware replacement, custom screen door, patio door, wooden door, window caulking, defogging, weatherstripping, door insert, door window parts shop, door window hardware online, Saint-Francois-Xavier, Montreal, South Shore, Laval, Longueuil, Brossard, Granby, Saint-Hyacinthe, Terrebonne, Repentigny",
   authors: [{ name: "Vosthermos" }],
@@ -42,7 +42,7 @@ const jsonLd = {
   name: "Vosthermos",
   legalName: "Vosthermos",
   description:
-    "Door and window repair experts for over 15 years. Sealed glass unit replacement with 10-year warranty, hardware, wooden doors and custom screen doors. Online store with 740+ parts.",
+    "Door and window repair experts for over 15 years. Sealed glass unit replacement with professional guaranteed service, hardware, wooden doors and custom screen doors. Online store with 740+ parts.",
   url: "https://www.vosthermos.com/en",
   telephone: "+15148258411",
   email: "info@vosthermos.com",

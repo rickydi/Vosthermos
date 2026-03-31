@@ -11,7 +11,7 @@ import Script from "next/script";
 export const metadata = {
   title: "Vosthermos | Reparation de portes et fenetres | Montreal, Rive-Sud",
   description:
-    "Experts en reparation de portes et fenetres depuis 15 ans. Remplacement de vitres thermos avec garantie 10 ans, quincaillerie, portes en bois, moustiquaires. Service rapide Montreal, Rive-Sud et rayon 100km. Soumission gratuite 514-825-8411. Boutique en ligne de pieces.",
+    "Experts en reparation de portes et fenetres depuis 15 ans. Remplacement de vitres thermos avec service garanti, quincaillerie, portes en bois, moustiquaires. Service rapide Montreal, Rive-Sud et rayon 100km. Soumission gratuite 514-825-8411. Boutique en ligne de pieces.",
   keywords:
     "reparation portes fenetres, vitre thermos, remplacement thermos, remplacement quincaillerie, moustiquaire sur mesure, porte-patio, porte en bois, calfeutrage fenetres, desembuage, coupe-froid, insertion porte, boutique pieces portes fenetres, quincaillerie porte fenetre en ligne, Saint-Francois-Xavier, Montreal, Rive-Sud, Laval, Longueuil, Brossard, Granby, Saint-Hyacinthe, Terrebonne, Repentigny",
   authors: [{ name: "Vosthermos" }],
@@ -59,7 +59,7 @@ const jsonLd = {
   name: "Vosthermos",
   legalName: "Vosthermos",
   description:
-    "Experts en reparation de portes et fenetres depuis 15 ans. Remplacement de vitres thermos avec garantie 10 ans, quincaillerie, portes en bois et moustiquaires sur mesure. Boutique en ligne de 740+ pieces.",
+    "Experts en reparation de portes et fenetres depuis 15 ans. Remplacement de vitres thermos avec service garanti, quincaillerie, portes en bois et moustiquaires sur mesure. Boutique en ligne de 740+ pieces.",
   url: "https://www.vosthermos.com",
   telephone: "+15148258411",
   email: "info@vosthermos.com",
@@ -143,7 +143,7 @@ const jsonLd = {
         name: "Remplacement de vitres thermos",
         itemListElement: [{
           "@type": "Offer",
-          itemOffered: { "@type": "Service", name: "Remplacement de vitre thermos", description: "Remplacement professionnel de vitres thermos embuees avec garantie 10 ans" },
+          itemOffered: { "@type": "Service", name: "Remplacement de vitre thermos", description: "Remplacement professionnel de vitres thermos embuees avec service garanti" },
         }],
       },
       {

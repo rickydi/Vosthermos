@@ -352,7 +352,7 @@ export default function CalculateurEconomiesPage() {
           </h2>
           <p className="text-white/80 mb-8">
             Contactez-nous pour une evaluation gratuite et un prix exact pour le
-            remplacement de vos vitres thermos. Garantie 10 ans incluse.
+            remplacement de vos vitres thermos. service garanti incluse.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link

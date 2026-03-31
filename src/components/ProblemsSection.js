@@ -6,7 +6,7 @@ const problems = [
     title: "Buee entre les vitres",
     description:
       "Vous voyez de la condensation ou un voile blanchatre entre vos vitres? C'est le signe que le scellant de votre thermos est brise. L'argon s'est echappe et l'humidite s'infiltre.",
-    solution: "Remplacement du thermos avec garantie 10 ans",
+    solution: "Remplacement du thermos avec service garanti",
     link: "/services/remplacement-vitre-thermos",
     color: "bg-blue-50 text-blue-600",
   },

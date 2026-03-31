@@ -99,7 +99,7 @@ export default function HeroSlider() {
             Tranquillite d&apos;esprit
           </span>
           <p className="text-white text-2xl font-extrabold leading-tight mb-2">
-            Garantie 10 ans
+            service garanti
           </p>
           <p className="text-white/50 text-sm mb-5 max-w-[280px]">
             Tous nos remplacements de vitres thermos sont garantis. Service professionnel et fiable.

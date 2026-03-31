@@ -86,10 +86,10 @@ export const SERVICES = [
     shortTitle: "Remplacement de vitre thermos",
     icon: "fas fa-snowflake",
     heroDescription:
-      "Vos vitres sont embuees, fissurees ou ont perdu leur efficacite thermique? Notre service de remplacement de vitres thermos (unites scellees) redonne a vos fenetres leur performance d'origine. Garantie 10 ans sur tous nos remplacements.",
-    metaTitle: "Remplacement de vitre thermos | Garantie 10 ans | Vosthermos",
+      "Vos vitres sont embuees, fissurees ou ont perdu leur efficacite thermique? Notre service de remplacement de vitres thermos (unites scellees) redonne a vos fenetres leur performance d'origine. service garanti sur tous nos remplacements.",
+    metaTitle: "Remplacement de vitre thermos | service garanti | Vosthermos",
     metaDescription:
-      "Remplacement professionnel de vitres thermos embuees ou fissurees. Garantie 10 ans, verre Low-E et argon. A partir de 150$/unite installee. Montreal et Rive-Sud. 514-825-8411.",
+      "Remplacement professionnel de vitres thermos embuees ou fissurees. service garanti, verre Low-E et argon. A partir de 150$/unite installee. Montreal et Rive-Sud. 514-825-8411.",
     sections: [
       {
         heading: "Qu'est-ce qu'une vitre thermos?",
@@ -109,7 +109,7 @@ export const SERVICES = [
         heading: "Notre processus de remplacement",
         paragraphs: [
           "Notre technicien se deplace chez vous pour prendre les mesures exactes de chaque thermos a remplacer. Les unites sont fabriquees sur mesure en usine selon vos specifications. Une fois pretes, nous procedons a l'installation sur place en moins d'une heure par fenetre.",
-          "Tous nos thermos de remplacement sont certifies Energy Star et couverts par notre garantie de 10 ans. Nous utilisons exclusivement du verre Low-E avec gaz argon pour une performance energetique optimale.",
+          "Tous nos thermos de remplacement sont certifies Energy Star et couverts par notre service professionnel garanti. Nous utilisons exclusivement du verre Low-E avec gaz argon pour une performance energetique optimale.",
         ],
       },
     ],
@@ -135,7 +135,7 @@ export const SERVICES = [
       {
         title: "Installation professionnelle",
         description:
-          "Notre equipe installe vos nouveaux thermos directement sur place, generalement en moins d'une heure par fenetre. Garantie 10 ans incluse.",
+          "Notre equipe installe vos nouveaux thermos directement sur place, generalement en moins d'une heure par fenetre. service garanti incluse.",
       },
     ],
     faq: [

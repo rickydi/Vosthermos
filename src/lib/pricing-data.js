@@ -36,7 +36,7 @@ export const PRICING = [
     faq: [
       { q: "Le thermos inclut-il l'installation?", a: "Oui, tous nos prix incluent la fabrication sur mesure, le deplacement et l'installation professionnelle." },
       { q: "Est-ce que ca vaut la peine vs remplacer la fenetre?", a: "Le remplacement du thermos coute 60 a 70% moins cher qu'une fenetre neuve, avec un resultat d'isolation equivalent. Si le cadre est en bon etat, c'est la meilleure option." },
-      { q: "Combien de temps dure un nouveau thermos?", a: "Un thermos de qualite dure entre 15 et 25 ans. Nos thermos sont fabriques au Quebec et garantis 10 ans." },
+      { q: "Combien de temps dure un nouveau thermos?", a: "Un thermos de qualite dure entre 15 et 25 ans. Nos thermos sont fabriques au Quebec et garantis par Vosthermos." },
       { q: "Y a-t-il un minimum de commande?", a: "Non, nous remplacons un seul thermos comme 50. Cependant, regrouper plusieurs remplacements permet d'economiser sur le deplacement." },
     ],
     savings: "Economie moyenne de 800$ a 1 200$ par fenetre vs le remplacement complet",

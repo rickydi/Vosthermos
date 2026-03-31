@@ -13,7 +13,7 @@ const SERVICES = [
     id: "thermos",
     icon: "fa-snowflake",
     title: "Remplacement de vitre thermos",
-    desc: "Vitres embuees ou brisees? Remplacement professionnel avec garantie 10 ans.",
+    desc: "Vitres embuees ou brisees? Remplacement professionnel avec service garanti.",
   },
   {
     id: "portes-bois",

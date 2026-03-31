@@ -30,7 +30,7 @@ const faqCategories = [
         question:
           "Quelle est la difference entre desembuage et remplacement de thermos?",
         answer:
-          "Le desembuage consiste a retirer l'humidite piegee entre les deux vitres d'un thermos sans remplacer l'unite scellee. C'est une solution temporaire et moins couteuse, mais qui ne restaure pas completement les proprietes isolantes du verre. Le remplacement de thermos, en revanche, implique l'installation d'une unite scellee neuve qui offre une isolation thermique optimale et est couvert par notre garantie de 10 ans. Nous recommandons generalement le remplacement pour un resultat durable et une meilleure efficacite energetique.",
+          "Le desembuage consiste a retirer l'humidite piegee entre les deux vitres d'un thermos sans remplacer l'unite scellee. C'est une solution temporaire et moins couteuse, mais qui ne restaure pas completement les proprietes isolantes du verre. Le remplacement de thermos, en revanche, implique l'installation d'une unite scellee neuve qui offre une isolation thermique optimale et est couvert par notre service professionnel garanti. Nous recommandons generalement le remplacement pour un resultat durable et une meilleure efficacite energetique.",
       },
       {
         question: "Reparez-vous tous les types de fenetres?",
@@ -91,7 +91,7 @@ const faqCategories = [
       {
         question: "Quelle est la duree de votre garantie?",
         answer:
-          "Nous offrons une garantie de 10 ans sur tous nos remplacements de vitres thermos, couvrant les defauts de fabrication et la perte d'etancheite de l'unite scellee. Pour les autres services comme le remplacement de quincaillerie et la fabrication de moustiquaires, la garantie varie selon le type de piece et de travail effectue. Les details specifiques de la garantie sont toujours inclus dans votre soumission ecrite avant le debut des travaux.",
+          "Nous offrons une service professionnel garanti sur tous nos remplacements de vitres thermos, couvrant les defauts de fabrication et la perte d'etancheite de l'unite scellee. Pour les autres services comme le remplacement de quincaillerie et la fabrication de moustiquaires, la garantie varie selon le type de piece et de travail effectue. Les details specifiques de la garantie sont toujours inclus dans votre soumission ecrite avant le debut des travaux.",
       },
       {
         question: "La garantie est-elle transferable?",
@@ -101,7 +101,7 @@ const faqCategories = [
       {
         question: "Que couvre exactement la garantie?",
         answer:
-          "Notre garantie de 10 ans sur les thermos couvre specifiquement : la condensation entre les vitres (perte du scellant), les defauts de fabrication du verre et les bris du a un vice de materiau. Elle ne couvre pas les bris accidentels, les dommages causes par des tiers, l'usure normale des composantes mecaniques ou les dommages lies a une mauvaise utilisation. Pour la quincaillerie, la garantie couvre les defauts de fabrication selon les termes du fabricant de la piece.",
+          "Notre service professionnel garanti sur les thermos couvre specifiquement : la condensation entre les vitres (perte du scellant), les defauts de fabrication du verre et les bris du a un vice de materiau. Elle ne couvre pas les bris accidentels, les dommages causes par des tiers, l'usure normale des composantes mecaniques ou les dommages lies a une mauvaise utilisation. Pour la quincaillerie, la garantie couvre les defauts de fabrication selon les termes du fabricant de la piece.",
       },
       {
         question: "Comment faire une reclamation de garantie?",

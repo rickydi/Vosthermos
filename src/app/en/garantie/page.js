@@ -1,9 +1,9 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "10-Year Warranty | Vosthermos",
+  title: "professional guaranteed service | Vosthermos",
   description:
-    "Vosthermos offers a 10-year warranty on sealed glass replacements, 5 years on workmanship and a transferable warranty to the next owner. Simple and fast claim process.",
+    "Vosthermos offers a professional guaranteed service on sealed glass replacements, 5 years on workmanship and a transferable warranty to the next owner. Simple and fast claim process.",
   alternates: {
     canonical: "https://www.vosthermos.com/en/garantie",
     languages: {
@@ -12,9 +12,9 @@ export const metadata = {
     },
   },
   openGraph: {
-    title: "10-Year Warranty | Vosthermos",
+    title: "professional guaranteed service | Vosthermos",
     description:
-      "10-year warranty on sealed glass, 5-year workmanship, transferable. Peace of mind guaranteed.",
+      "professional guaranteed service on sealed glass, 5-year workmanship, transferable. Peace of mind guaranteed.",
     url: "https://www.vosthermos.com/en/garantie",
     type: "website",
     locale: "en_CA",
@@ -137,7 +137,7 @@ const jsonLd = {
   "@type": "OfferWarranty",
   name: "Vosthermos Warranty",
   description:
-    "10-year warranty on sealed glass replacement, 5 years on workmanship, transferable to the next property owner.",
+    "professional guaranteed service on sealed glass replacement, 5 years on workmanship, transferable to the next property owner.",
   url: "https://www.vosthermos.com/en/garantie",
   warrantyScope: {
     "@type": "WarrantyScope",
@@ -369,7 +369,7 @@ export default function WarrantyPageEn() {
             Protect your investment with our warranty
           </h2>
           <p className="text-white/80 mb-8 max-w-2xl mx-auto">
-            Get a free quote and discover how our 10-year warranty protects you.
+            Get a free quote and discover how our professional guaranteed service protects you.
             Fast and professional service.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

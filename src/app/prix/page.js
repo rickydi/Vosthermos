@@ -3,7 +3,7 @@ import Link from "next/link";
 export const metadata = {
   title: "Prix remplacement de vitre thermos 2026 | Grille tarifaire | Vosthermos",
   description:
-    "Decouvrez nos prix pour le remplacement de vitre thermos, fenetre thermos et vitre thermos sur mesure. Prix au pied carre, grille tarifaire 2026 et soumission gratuite. Service professionnel avec garantie 10 ans.",
+    "Decouvrez nos prix pour le remplacement de vitre thermos, fenetre thermos et vitre thermos sur mesure. Prix au pied carre, grille tarifaire 2026 et soumission gratuite. Service professionnel avec service garanti.",
   alternates: {
     canonical: "https://www.vosthermos.com/prix",
   },
@@ -24,7 +24,7 @@ const pricingCards = [
     title: "Remplacement vitre thermos",
     price: "A partir de 150$/unite installee",
     description:
-      "Remplacement professionnel de vitre thermos sur mesure avec garantie 10 ans. Prix variable selon la dimension et le type de verre.",
+      "Remplacement professionnel de vitre thermos sur mesure avec service garanti. Prix variable selon la dimension et le type de verre.",
     slug: "remplacement-vitre-thermos",
   },
   {
@@ -125,7 +125,7 @@ const faqItems = [
   {
     question: "La garantie est-elle incluse dans le prix?",
     answer:
-      "Oui, chaque remplacement de vitre thermos inclut une garantie de 10 ans sans frais supplementaires. Cette garantie couvre les defauts de fabrication, la perte d'etancheite et la formation de buee entre les vitres.",
+      "Oui, chaque remplacement de vitre thermos inclut une service professionnel garanti sans frais supplementaires. Cette garantie couvre les defauts de fabrication, la perte d'etancheite et la formation de buee entre les vitres.",
   },
 ];
 
@@ -145,7 +145,7 @@ export default function PrixPage() {
     "@type": "Service",
     name: "Remplacement de vitre thermos",
     description:
-      "Service professionnel de remplacement de vitre thermos sur mesure au Quebec. Prix competitifs, garantie 10 ans, soumission gratuite.",
+      "Service professionnel de remplacement de vitre thermos sur mesure au Quebec. Prix competitifs, service garanti, soumission gratuite.",
     url: "https://www.vosthermos.com/prix",
     provider: {
       "@type": "LocalBusiness",
@@ -456,7 +456,7 @@ export default function PrixPage() {
                 {[
                   "Conserve le cadre existant",
                   "Installation en 30 minutes",
-                  "Garantie 10 ans",
+                  "service garanti",
                   "Economie de 60% et plus",
                   "Aucun dommage au mur",
                 ].map((item) => (
@@ -550,7 +550,7 @@ export default function PrixPage() {
             Obtenez votre soumission gratuite
           </h2>
           <p className="text-white/80 mb-8">
-            Prix competitifs, service rapide et garantie 10 ans. Contactez-nous
+            Prix competitifs, service rapide et service garanti. Contactez-nous
             pour connaitre le prix exact pour vos fenetres thermos.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

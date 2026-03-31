@@ -1,14 +1,14 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Garantie 10 ans | Vosthermos",
+  title: "service garanti | Vosthermos",
   description:
-    "Vosthermos offre une garantie de 10 ans sur le remplacement de vitres thermos, 5 ans sur la main-d'oeuvre et une garantie transferable au prochain proprietaire. Service de reclamation simple et rapide.",
+    "Vosthermos offre une service professionnel garanti sur le remplacement de vitres thermos, 5 ans sur la main-d'oeuvre et une garantie transferable au prochain proprietaire. Service de reclamation simple et rapide.",
   alternates: { canonical: "https://www.vosthermos.com/garantie" },
   openGraph: {
-    title: "Garantie 10 ans | Vosthermos",
+    title: "service garanti | Vosthermos",
     description:
-      "Garantie 10 ans sur les vitres thermos, 5 ans main-d'oeuvre, transferable. Tranquillite d'esprit assuree.",
+      "service garanti sur les vitres thermos, 5 ans main-d'oeuvre, transferable. Tranquillite d'esprit assuree.",
     url: "https://www.vosthermos.com/garantie",
     type: "website",
     locale: "fr_CA",
@@ -21,7 +21,7 @@ const jsonLd = {
   "@type": "OfferWarranty",
   name: "Garantie Vosthermos",
   description:
-    "Garantie de 10 ans sur le remplacement de vitres thermos, 5 ans sur la main-d'oeuvre, transferable au prochain proprietaire.",
+    "service professionnel garanti sur le remplacement de vitres thermos, 5 ans sur la main-d'oeuvre, transferable au prochain proprietaire.",
   url: "https://www.vosthermos.com/garantie",
   warrantyScope: {
     "@type": "WarrantyScope",

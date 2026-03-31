@@ -55,7 +55,7 @@ export default async function Home() {
       {
         "@type": "Question",
         name: "Quelle est la garantie sur les vitres thermos?",
-        acceptedAnswer: { "@type": "Answer", text: "Tous nos remplacements de vitres thermos sont couverts par une garantie de 10 ans." },
+        acceptedAnswer: { "@type": "Answer", text: "Tous nos remplacements de vitres thermos sont couverts par une service professionnel garanti." },
       },
       {
         "@type": "Question",
@@ -215,7 +215,7 @@ export default async function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               { icon: "fa-cogs", title: "Remplacement de quincaillerie", slug: "remplacement-quincaillerie", desc: "Remplacement professionnel de la quincaillerie de vos portes-patio et fenetres. Pieces adaptees et installation rapide." },
-              { icon: "fa-snowflake", title: "Remplacement de vitre thermos", slug: "remplacement-vitre-thermos", desc: "Buee ou perte d'efficacite thermique? Remplacement professionnel avec garantie de 10 ans sur tous nos travaux." },
+              { icon: "fa-snowflake", title: "Remplacement de vitre thermos", slug: "remplacement-vitre-thermos", desc: "Buee ou perte d'efficacite thermique? Remplacement professionnel avec service professionnel garanti sur tous nos travaux." },
               { icon: "fa-door-open", title: "Reparation de portes en bois", slug: "reparation-portes-bois", desc: "Reparation et restauration de portes et fenetres en bois. Estimation gratuite et execution parfaite des travaux." },
               { icon: "fa-border-all", title: "Moustiquaires sur mesure", slug: "moustiquaires-sur-mesure", desc: "Fabrication sur mesure et reparation de tous types de moustiquaires. Service rapide et etancheite parfaite garantie." },
             ].map((s) => (
@@ -359,7 +359,7 @@ export default async function Home() {
             </h2>
           </div>
           <Accordion items={[
-            { q: "Quelle est la garantie sur les vitres thermos?", a: "Tous nos remplacements de vitres thermos sont couverts par une garantie de 10 ans. Cette garantie est transferable au prochain proprietaire en cas de vente de votre propriete." },
+            { q: "Quelle est la garantie sur les vitres thermos?", a: "Tous nos remplacements de vitres thermos sont couverts par une service professionnel garanti. Cette garantie est transferable au prochain proprietaire en cas de vente de votre propriete." },
             { q: "Quels secteurs desservez-vous?", a: "Nous desservons Montreal, Laval, Longueuil, Brossard, Saint-Hyacinthe, Granby, Terrebonne, Repentigny et toute la region dans un rayon de 100km autour de Saint-Francois-Xavier." },
             { q: "Combien coute un remplacement de thermos?", a: "Le prix varie selon les dimensions et le type de verre. Nos remplacements commencent a partir de 150$ par unite installee. Contactez-nous pour une soumission gratuite et precise." },
             { q: "Peut-on acheter des pieces en ligne?", a: "Oui! Notre boutique en ligne offre plus de 740 pieces de remplacement pour portes, fenetres et moustiquaires. Paiement securise par carte de credit et livraison rapide." },

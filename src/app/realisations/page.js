@@ -229,7 +229,7 @@ export default function RealisationsPage() {
             &laquo;Nous avions 8 fenetres avec des thermos embues et on pensait
             devoir tout remplacer. Vosthermos nous a fait economiser des milliers
             de dollars en remplacant seulement les vitres thermos. Le resultat est
-            impeccable et la garantie de 10 ans nous rassure enormement.&raquo;
+            impeccable et la service professionnel garanti nous rassure enormement.&raquo;
           </blockquote>
           <div className="flex items-center justify-center gap-3">
             <div className="stars text-sm">

@@ -3,7 +3,7 @@ import Link from "next/link";
 export const metadata = {
   title: "Window Glass Replacement Pricing 2026 | Price Guide | Vosthermos",
   description:
-    "Discover our pricing for sealed glass unit replacement, custom thermos glass and window glass. Price per square foot, 2026 rate card and free quote. Professional service with 10-year warranty.",
+    "Discover our pricing for sealed glass unit replacement, custom thermos glass and window glass. Price per square foot, 2026 rate card and free quote. Professional service with professional guaranteed service.",
   alternates: {
     canonical: "https://www.vosthermos.com/en/prix",
     languages: {
@@ -28,7 +28,7 @@ const pricingCards = [
     title: "Sealed glass replacement",
     price: "Starting at $150/unit installed",
     description:
-      "Professional custom sealed glass unit replacement with a 10-year warranty. Price varies by size and glass type.",
+      "Professional custom sealed glass unit replacement with a professional guaranteed service. Price varies by size and glass type.",
     slug: "sealed-glass-replacement",
   },
   {
@@ -129,7 +129,7 @@ const faqItems = [
   {
     question: "Is the warranty included in the price?",
     answer:
-      "Yes, each sealed glass replacement includes a 10-year warranty at no additional cost. This warranty covers manufacturing defects, loss of airtightness and fog formation between the panes.",
+      "Yes, each sealed glass replacement includes a professional guaranteed service at no additional cost. This warranty covers manufacturing defects, loss of airtightness and fog formation between the panes.",
   },
 ];
 
@@ -149,7 +149,7 @@ export default function PricingPageEn() {
     "@type": "Service",
     name: "Sealed Glass Unit Replacement",
     description:
-      "Professional custom sealed glass unit replacement service in Quebec. Competitive pricing, 10-year warranty, free quote.",
+      "Professional custom sealed glass unit replacement service in Quebec. Competitive pricing, professional guaranteed service, free quote.",
     url: "https://www.vosthermos.com/en/prix",
     provider: {
       "@type": "LocalBusiness",
@@ -262,7 +262,7 @@ export default function PricingPageEn() {
           <p className="text-white/70 text-lg max-w-2xl leading-relaxed mb-8">
             Check our 2026 rate card for sealed glass replacement, custom
             thermos glass and all our repair services. Transparent pricing,
-            free quote and 10-year warranty included.
+            free quote and professional guaranteed service included.
           </p>
 
           {/* Trust badges */}
@@ -441,7 +441,7 @@ export default function PricingPageEn() {
                 {[
                   "Keeps existing frame",
                   "30-minute installation",
-                  "10-year warranty",
+                  "professional guaranteed service",
                   "60%+ savings",
                   "No wall damage",
                 ].map((item) => (
@@ -535,7 +535,7 @@ export default function PricingPageEn() {
             Get your free quote
           </h2>
           <p className="text-white/80 mb-8">
-            Competitive pricing, fast service and 10-year warranty. Contact us
+            Competitive pricing, fast service and professional guaranteed service. Contact us
             to find out the exact price for your sealed glass units.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

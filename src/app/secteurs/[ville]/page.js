@@ -13,7 +13,7 @@ export async function generateMetadata({ params }) {
   if (!city) return {};
   return {
     title: `Reparation de portes et fenetres a ${city.name} | Vosthermos`,
-    description: `Service de reparation de portes et fenetres a ${city.name}, ${city.region}. Remplacement de vitres thermos, quincaillerie, moustiquaires. Garantie 10 ans. Soumission gratuite 514-825-8411.`,
+    description: `Service de reparation de portes et fenetres a ${city.name}, ${city.region}. Remplacement de vitres thermos, quincaillerie, moustiquaires. service garanti. Soumission gratuite 514-825-8411.`,
     alternates: { canonical: `https://www.vosthermos.com/secteurs/${city.slug}` },
   };
 }
@@ -27,7 +27,7 @@ const services = [
   {
     icon: "fa-snowflake",
     title: "Remplacement de vitre thermos",
-    desc: "Buee ou perte d'efficacite thermique? Remplacement professionnel avec garantie de 10 ans sur tous nos travaux.",
+    desc: "Buee ou perte d'efficacite thermique? Remplacement professionnel avec service professionnel garanti sur tous nos travaux.",
   },
   {
     icon: "fa-door-open",
@@ -71,7 +71,7 @@ export default async function CityPage({ params }) {
       name: city.name,
       containedInPlace: { "@type": "AdministrativeArea", name: city.region },
     },
-    description: `Service professionnel de reparation de portes et fenetres a ${city.name}. Remplacement de vitres thermos avec garantie 10 ans, quincaillerie, portes en bois, moustiquaires sur mesure.`,
+    description: `Service professionnel de reparation de portes et fenetres a ${city.name}. Remplacement de vitres thermos avec service garanti, quincaillerie, portes en bois, moustiquaires sur mesure.`,
   };
 
   const faqJsonLd = city.faq && city.faq.length > 0 ? {
@@ -135,7 +135,7 @@ export default async function CityPage({ params }) {
             <span className="text-[var(--color-red)]">{city.name}</span>
           </h1>
           <p className="text-white/70 text-lg max-w-2xl leading-relaxed mb-8">
-            {city.description || `Vosthermos offre un service professionnel de reparation de portes et fenetres a ${city.name} et dans toute la region de ${city.region}. Remplacement de vitres thermos avec garantie 10 ans, quincaillerie, moustiquaires sur mesure et plus.`}
+            {city.description || `Vosthermos offre un service professionnel de reparation de portes et fenetres a ${city.name} et dans toute la region de ${city.region}. Remplacement de vitres thermos avec service garanti, quincaillerie, moustiquaires sur mesure et plus.`}
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <a
@@ -247,7 +247,7 @@ export default async function CityPage({ params }) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               { icon: "fa-award", title: "15+ ans d'experience", desc: `Notre equipe dessert ${city.name} et la region de ${city.region} avec professionnalisme depuis plus de 15 ans.` },
-              { icon: "fa-shield-alt", title: "Garantie 10 ans", desc: "Tous nos remplacements de vitres thermos sont couverts par une garantie de 10 ans pour votre tranquillite d'esprit." },
+              { icon: "fa-shield-alt", title: "service garanti", desc: "Tous nos remplacements de vitres thermos sont couverts par une service professionnel garanti pour votre tranquillite d'esprit." },
               { icon: "fa-truck", title: `Service a ${city.name}`, desc: `Nous nous deplacons a ${city.name} (a seulement ${city.distance} de nos bureaux) pour tous vos besoins en reparation.` },
             ].map((item) => (
               <div key={item.title} className="text-center">

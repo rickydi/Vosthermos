@@ -3,12 +3,12 @@ import Link from "next/link";
 export const metadata = {
   title: "Pourquoi choisir Vosthermos | Experts en reparation de portes et fenetres",
   description:
-    "Decouvrez pourquoi Vosthermos est le choix numero un pour la reparation de portes et fenetres au Quebec. 15+ ans d'experience, garantie 10 ans, 740+ pieces en inventaire, boutique en ligne unique et service rapide dans un rayon de 100km.",
+    "Decouvrez pourquoi Vosthermos est le choix numero un pour la reparation de portes et fenetres au Quebec. 15+ ans d'experience, service garanti, 740+ pieces en inventaire, boutique en ligne unique et service rapide dans un rayon de 100km.",
   alternates: { canonical: "https://www.vosthermos.com/pourquoi-vosthermos" },
   openGraph: {
     title: "Pourquoi choisir Vosthermos | Experts en reparation",
     description:
-      "15+ ans d'experience, garantie 10 ans, 740+ pieces en inventaire. Decouvrez ce qui fait de Vosthermos le leader en reparation de portes et fenetres au Quebec.",
+      "15+ ans d'experience, service garanti, 740+ pieces en inventaire. Decouvrez ce qui fait de Vosthermos le leader en reparation de portes et fenetres au Quebec.",
     url: "https://www.vosthermos.com/pourquoi-vosthermos",
     type: "website",
     locale: "fr_CA",
@@ -72,9 +72,9 @@ const differenciateurs = [
   },
   {
     icon: "fa-shield-alt",
-    title: "Garantie 10 ans sur thermos",
+    title: "service garanti sur thermos",
     description:
-      "Tous nos remplacements de vitres thermos sont couverts par une garantie de 10 ans, transferable au prochain proprietaire de votre residence.",
+      "Tous nos remplacements de vitres thermos sont couverts par une service professionnel garanti, transferable au prochain proprietaire de votre residence.",
   },
   {
     icon: "fa-boxes",

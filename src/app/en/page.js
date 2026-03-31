@@ -16,7 +16,7 @@ import { getActivePromotions } from "@/lib/promotions";
 export const metadata = {
   title: "Vosthermos | Door and Window Repair | Montreal, South Shore",
   description:
-    "Door and window repair experts for over 15 years. Sealed glass unit replacement with 10-year warranty, hardware, wooden doors, screen doors. Fast service Montreal, South Shore and 100km radius. Free quote 514-825-8411. Online parts store.",
+    "Door and window repair experts for over 15 years. Sealed glass unit replacement with professional guaranteed service, hardware, wooden doors, screen doors. Fast service Montreal, South Shore and 100km radius. Free quote 514-825-8411. Online parts store.",
   alternates: {
     canonical: "https://www.vosthermos.com/en/",
     languages: {
@@ -76,7 +76,7 @@ export default async function HomeEn() {
       {
         "@type": "Question",
         name: "What is the warranty on sealed glass units?",
-        acceptedAnswer: { "@type": "Answer", text: "All our sealed glass unit replacements are covered by a 10-year warranty." },
+        acceptedAnswer: { "@type": "Answer", text: "All our sealed glass unit replacements are covered by a professional guaranteed service." },
       },
       {
         "@type": "Question",
@@ -236,7 +236,7 @@ export default async function HomeEn() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               { icon: "fa-cogs", title: "Hardware Replacement", slug: "hardware-replacement", desc: "Professional replacement of hardware for your patio doors and windows. Adapted parts and quick installation." },
-              { icon: "fa-snowflake", title: "Sealed Glass Replacement", slug: "sealed-glass-replacement", desc: "Fog or loss of thermal efficiency? Professional replacement with a 10-year warranty on all our work." },
+              { icon: "fa-snowflake", title: "Sealed Glass Replacement", slug: "sealed-glass-replacement", desc: "Fog or loss of thermal efficiency? Professional replacement with a professional guaranteed service on all our work." },
               { icon: "fa-door-open", title: "Wooden Door Repair", slug: "wooden-door-repair", desc: "Repair and restoration of wooden doors and windows. Free estimate and flawless execution." },
               { icon: "fa-border-all", title: "Custom Screen Doors", slug: "custom-screen-doors", desc: "Custom manufacturing and repair of all types of screen doors. Fast service and guaranteed perfect seal." },
             ].map((s) => (
@@ -381,7 +381,7 @@ export default async function HomeEn() {
           </div>
           <div className="space-y-4">
             {[
-              { q: "What is the warranty on sealed glass units?", a: "All our sealed glass unit replacements are covered by a 10-year warranty. This warranty is transferable to the next owner if you sell your property." },
+              { q: "What is the warranty on sealed glass units?", a: "All our sealed glass unit replacements are covered by a professional guaranteed service. This warranty is transferable to the next owner if you sell your property." },
               { q: "What areas do you serve?", a: "We serve Montreal, Laval, Longueuil, Brossard, Saint-Hyacinthe, Granby, Terrebonne, Repentigny and the entire region within a 100km radius of Saint-Francois-Xavier." },
               { q: "How much does a sealed glass replacement cost?", a: "The price varies depending on dimensions and glass type. Our replacements start at $150 per installed unit. Contact us for a free and accurate quote." },
               { q: "Can I buy parts online?", a: "Yes! Our online store offers over 740 replacement parts for doors, windows and screen doors. Secure credit card payment and fast delivery." },

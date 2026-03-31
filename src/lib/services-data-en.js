@@ -88,10 +88,10 @@ export const SERVICES_EN = [
     shortTitle: "Sealed Glass Replacement",
     icon: "fas fa-snowflake",
     heroDescription:
-      "Are your windows foggy, cracked, or have they lost their thermal efficiency? Our sealed glass unit replacement service restores your windows to their original performance. 10-year warranty on all replacements.",
-    metaTitle: "Sealed Glass Unit Replacement | 10-Year Warranty | Vosthermos",
+      "Are your windows foggy, cracked, or have they lost their thermal efficiency? Our sealed glass unit replacement service restores your windows to their original performance. professional guaranteed service on all replacements.",
+    metaTitle: "Sealed Glass Unit Replacement | professional guaranteed service | Vosthermos",
     metaDescription:
-      "Professional foggy or cracked sealed glass replacement. 10-year warranty, Low-E glass and argon. Starting at $150/unit installed. Montreal and South Shore. 514-825-8411.",
+      "Professional foggy or cracked sealed glass replacement. professional guaranteed service, Low-E glass and argon. Starting at $150/unit installed. Montreal and South Shore. 514-825-8411.",
     sections: [
       {
         heading: "What is a sealed glass unit?",
@@ -111,7 +111,7 @@ export const SERVICES_EN = [
         heading: "Our replacement process",
         paragraphs: [
           "Our technician comes to your home to take exact measurements of each unit to be replaced. The units are custom-manufactured in the factory to your specifications. Once ready, we install them on-site in less than one hour per window.",
-          "All our replacement sealed units are Energy Star certified and covered by our 10-year warranty. We exclusively use Low-E glass with argon gas for optimal energy performance.",
+          "All our replacement sealed units are Energy Star certified and covered by our professional guaranteed service. We exclusively use Low-E glass with argon gas for optimal energy performance.",
         ],
       },
     ],
@@ -137,7 +137,7 @@ export const SERVICES_EN = [
       {
         title: "Professional installation",
         description:
-          "Our team installs your new sealed units directly on-site, usually in less than one hour per window. 10-year warranty included.",
+          "Our team installs your new sealed units directly on-site, usually in less than one hour per window. professional guaranteed service included.",
       },
     ],
     faq: [

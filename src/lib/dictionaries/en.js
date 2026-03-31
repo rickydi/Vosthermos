@@ -34,7 +34,7 @@ const en = {
     },
     thermos: {
       title: "Sealed glass unit replacement",
-      desc: "Fog or loss of thermal efficiency? Professional replacement with a 10-year warranty on all our work.",
+      desc: "Fog or loss of thermal efficiency? Professional replacement with a professional guaranteed service on all our work.",
     },
     woodDoors: {
       title: "Wooden door repair",
@@ -81,7 +81,7 @@ const en = {
     freeQuote: "Free quote",
     callUs: "Call us",
     yearsExperience: "15+ years experience",
-    warrantyYears: "10-year warranty",
+    warrantyYears: "professional guaranteed service",
     allRightsReserved: "All rights reserved",
   },
 };

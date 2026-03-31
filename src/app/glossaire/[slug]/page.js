@@ -270,7 +270,7 @@ export default async function GlossaryTermPage({ params }) {
             Obtenez votre soumission gratuite
           </h2>
           <p className="text-white/80 mb-8">
-            Prix competitifs, service rapide et garantie 10 ans. Contactez-nous
+            Prix competitifs, service rapide et service garanti. Contactez-nous
             pour tous vos besoins en portes et fenetres.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

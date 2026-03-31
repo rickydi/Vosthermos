@@ -242,7 +242,7 @@ export const CITIES = [
       { question: "Quel est le prix pour remplacer des vitres thermos à Blainville?", answer: "Un thermos standard à Blainville coûte entre 150$ et 350$. Les maisons construites entre 1990 et 2005, très courantes dans les secteurs Fontainebleau et Les Domaines, ont souvent des formats standards qui permettent des remplacements économiques." },
       { question: "Desservez-vous Blainville dans les Laurentides?", answer: "Oui, Blainville fait partie de notre zone de service régulière. Nous sommes à environ 45 minutes et nous regroupons régulièrement nos interventions dans le secteur des Basses-Laurentides pour un service efficace." },
       { question: "Les maisons des années 90 à Blainville ont-elles besoin de remplacements de thermos?", answer: "Oui, c'est le moment critique. Les thermos installés entre 1990 et 2005 atteignent maintenant 20 à 35 ans, soit la fin de leur durée de vie utile. Si vous remarquez de la buée entre les vitres, c'est le signe que le scellant a cédé et que le remplacement est nécessaire." },
-      { question: "Offrez-vous une garantie sur vos travaux à Blainville?", answer: "Oui, tous nos remplacements de thermos sont couverts par une garantie de 10 ans, peu importe votre localisation. Cette garantie couvre les défauts de fabrication et d'installation." },
+      { question: "Offrez-vous une garantie sur vos travaux à Blainville?", answer: "Oui, tous nos remplacements de thermos sont couverts par une service professionnel garanti, peu importe votre localisation. Cette garantie couvre les défauts de fabrication et d'installation." },
     ],
   },
   {
