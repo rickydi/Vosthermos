@@ -2,6 +2,7 @@ import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { getCategoryIcon } from "@/lib/category-icons";
 import { getActivePromotions } from "@/lib/promotions";
+import ProductSearchBar from "@/components/ProductSearchBar";
 
 export const metadata = {
   title: "Quincaillerie de portes et fenetres en ligne | 740+ pieces | Vosthermos",
@@ -92,6 +93,9 @@ export default async function BoutiquePage() {
           <p className="text-white/70 max-w-2xl mt-3 leading-relaxed">
             Trouvez la piece qu&apos;il vous faut parmi notre inventaire de {totalProducts}+ produits: poignees, mecanismes, rouleaux de porte-patio, coupe-froid, moustiquaires et plus. Compatible avec Novatech, Lepage, Fenplast, Jeld-Wen, Kohltech et autres manufacturiers.
           </p>
+          <div className="mt-6">
+            <ProductSearchBar />
+          </div>
           <div className="flex flex-wrap gap-3 mt-5">
             <span className="inline-flex items-center gap-2 bg-white/10 text-white/80 text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-full">
               <i className="fas fa-box-open"></i> {totalProducts}+ pieces en stock
