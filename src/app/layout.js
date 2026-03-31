@@ -43,6 +43,9 @@ export const metadata = {
     icon: "/images/Vos-Thermos-Logo-petit.png",
     apple: "/images/Vos-Thermos-Logo-petit.png",
   },
+  verification: {
+    google: "LNVLJOda6YGvqjLQb_ZnVDd5ikvAwqv2HzXWJQDxQxA",
+  },
   other: {
     "geo.region": "CA-QC",
     "geo.placename": "Saint-Francois-Xavier",
