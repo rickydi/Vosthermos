@@ -119,7 +119,7 @@ export default async function Home() {
                 <span className="text-[10px] text-[var(--color-muted)] uppercase tracking-wider">ans d&apos;exp.</span>
               </div>
               <div className="text-center">
-                <strong className="block text-2xl font-extrabold text-[var(--color-teal)]">10 ans</strong>
+                <strong className="block text-2xl font-extrabold text-[var(--color-teal)]">15+</strong>
                 <span className="text-[10px] text-[var(--color-muted)] uppercase tracking-wider">garantie</span>
               </div>
               <div className="text-center">

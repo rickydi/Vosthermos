@@ -314,7 +314,7 @@ export default function OptiFenetrePage() {
               },
               {
                 q: "Is there a warranty?",
-                a: "Yes, all work performed under the OPTI-FENETRE program is covered by our Vosthermos warranty. Sealed glass units are guaranteed for 10 years.",
+                a: "Yes, all work performed under the OPTI-FENETRE program is covered by our Vosthermos warranty. Sealed glass units are covered by our professional warranty.",
               },
             ].map((item, i) => (
               <details key={i} className="group border border-gray-100 rounded-xl overflow-hidden">

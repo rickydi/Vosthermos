@@ -28,7 +28,7 @@ export const PRICING = [
       rows: [
         { label: "Prix moyen (fenetre standard)", thermos: "200$ - 300$", complet: "800$ - 1 500$" },
         { label: "Delai d'installation", thermos: "1-2 heures", complet: "4-8 semaines" },
-        { label: "Garantie", thermos: "10 ans", complet: "Variable" },
+        { label: "Garantie", thermos: "Incluse", complet: "Variable" },
         { label: "Debris et travaux", thermos: "Aucun", complet: "Importants" },
         { label: "Resultat isolation", thermos: "Equivalent", complet: "Equivalent" },
       ],
@@ -249,7 +249,7 @@ export const PRICING = [
         { label: "Prix moyen", thermos: "100$ - 150$", complet: "200$ - 350$" },
         { label: "Duree de vie", thermos: "3-5 ans", complet: "15-25 ans" },
         { label: "Efficacite", thermos: "80-90%", complet: "100%" },
-        { label: "Garantie", thermos: "2-3 ans", complet: "10 ans" },
+        { label: "Garantie", thermos: "2-3 ans", complet: "Incluse" },
       ],
     },
     faq: [

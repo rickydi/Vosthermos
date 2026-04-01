@@ -74,8 +74,8 @@ export default function VideoSection({ videoId = null }) {
                       <span className="text-xs text-white/70">Pieces en inventaire</span>
                     </div>
                     <div>
-                      <strong className="block text-xl font-extrabold">10 ans</strong>
-                      <span className="text-xs text-white/70">Garantie thermos</span>
+                      <strong className="block text-xl font-extrabold">15+</strong>
+                      <span className="text-xs text-white/70">Service garanti</span>
                     </div>
                   </div>
                 </div>

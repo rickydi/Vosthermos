@@ -314,7 +314,7 @@ export default function OptiFenetrePage() {
               },
               {
                 q: "Y a-t-il une garantie?",
-                a: "Oui, tous les travaux effectues dans le cadre du programme OPTI-FENETRE sont couverts par notre garantie Vosthermos. Les vitres thermos sont garanties 10 ans.",
+                a: "Oui, tous les travaux effectues dans le cadre du programme OPTI-FENETRE sont couverts par notre garantie Vosthermos. Les vitres thermos sont garanties.",
               },
             ].map((item, i) => (
               <details key={i} className="group border border-gray-100 rounded-xl overflow-hidden">

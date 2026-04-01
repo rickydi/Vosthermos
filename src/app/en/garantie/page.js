@@ -24,7 +24,7 @@ export const metadata = {
 
 const guaranteeCards = [
   {
-    duration: "10 years",
+    duration: "professional warranty",
     label: "Sealed glass warranty",
     description:
       "Our sealed glass units are guaranteed against seal failure, condensation between panes and loss of energy efficiency.",
@@ -113,7 +113,7 @@ const faqItems = [
   {
     question: "What exactly does the warranty cover?",
     answer:
-      "Our warranty covers manufacturing and installation defects on sealed glass (10 years), workmanship (5 years), hardware installed by our team, custom screen doors and wooden door repairs. It does not cover damage caused by misuse, accidents or natural disasters.",
+      "Our warranty covers manufacturing and installation defects on sealed glass (professional warranty), workmanship (5 years), hardware installed by our team, custom screen doors and wooden door repairs. It does not cover damage caused by misuse, accidents or natural disasters.",
   },
   {
     question: "How do I make a claim?",
@@ -305,9 +305,9 @@ export default function WarrantyPageEn() {
                       Sealed glass
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <span className="inline-block bg-green-50 text-green-700 font-bold text-sm px-3 py-1 rounded-full">10 years</span>
+                      <span className="inline-block bg-green-50 text-green-700 font-bold text-sm px-3 py-1 rounded-full">professional warranty</span>
                     </td>
-                    <td className="px-6 py-4 text-center text-[var(--color-muted)] text-sm">5-10 years</td>
+                    <td className="px-6 py-4 text-center text-[var(--color-muted)] text-sm">5-professional warranty</td>
                   </tr>
                   <tr className="border-t border-[var(--color-border)] bg-[var(--color-background)]/50">
                     <td className="px-6 py-4 font-medium text-sm">

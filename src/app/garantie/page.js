@@ -37,7 +37,7 @@ const jsonLd = {
 
 const guaranteeCards = [
   {
-    duration: "10 ans",
+    duration: "Incluse",
     label: "Garantie sur les vitres thermos",
     description:
       "Nos vitres thermos sont garanties contre les bris de scellant, la buee entre les vitres et la perte d'efficacite energetique.",
@@ -126,7 +126,7 @@ const faqItems = [
   {
     question: "Que couvre la garantie exactement?",
     answer:
-      "Notre garantie couvre les defauts de fabrication et d'installation sur les vitres thermos (10 ans), la main-d'oeuvre (5 ans), la quincaillerie installee par nos soins, les moustiquaires sur mesure et les reparations de portes en bois. Elle ne couvre pas les dommages causes par une mauvaise utilisation, un accident ou une catastrophe naturelle.",
+      "Notre garantie couvre les defauts de fabrication et d'installation sur les vitres thermos (incluse), la main-d'oeuvre (5 ans), la quincaillerie installee par nos soins, les moustiquaires sur mesure et les reparations de portes en bois. Elle ne couvre pas les dommages causes par une mauvaise utilisation, un accident ou une catastrophe naturelle.",
   },
   {
     question: "Comment faire une reclamation?",
@@ -321,11 +321,11 @@ export default function GarantiePage() {
                     </td>
                     <td className="px-6 py-4 text-center">
                       <span className="inline-block bg-green-50 text-green-700 font-bold text-sm px-3 py-1 rounded-full">
-                        10 ans
+                        Incluse
                       </span>
                     </td>
                     <td className="px-6 py-4 text-center text-[var(--color-muted)] text-sm">
-                      5-10 ans
+                      5-Incluse
                     </td>
                   </tr>
                   <tr className="border-t border-[var(--color-border)] bg-[var(--color-background)]/50">
@@ -400,7 +400,7 @@ export default function GarantiePage() {
           </h2>
           <p className="text-white/80 mb-8 max-w-2xl mx-auto">
             Obtenez une soumission gratuite et decouvrez comment notre garantie
-            de 10 ans vous protege. Service rapide et professionnel.
+            sur nos travaux vous protege. Service rapide et professionnel.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link

@@ -289,7 +289,7 @@ export default function PrixPage() {
             </div>
             <div className="text-center">
               <strong className="block text-2xl font-extrabold text-[var(--color-red-light)]">
-                10 ans
+                Incluse
               </strong>
               <span className="text-[10px] text-white/50 uppercase tracking-wider">
                 garantie

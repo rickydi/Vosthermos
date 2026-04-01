@@ -483,7 +483,7 @@ export const SERVICES_EN = [
       {
         question: "How long does a defogging last?",
         answer:
-          "The intervention takes between 30 minutes and 2 hours per unit depending on the severity of the fog. The result is visible immediately after the intervention. The UV sealant reaches full adhesion in 24 hours. A well-done defogging can last 5 to 10 years before a new intervention is needed.",
+          "The intervention takes between 30 minutes and 2 hours per unit depending on the severity of the fog. The result is visible immediately after the intervention. The UV sealant reaches full adhesion in 24 hours. A well-done defogging can last 5 to professional warranty before a new intervention is needed.",
       },
     ],
     relatedServices: [

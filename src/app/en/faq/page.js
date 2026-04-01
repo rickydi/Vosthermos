@@ -105,7 +105,7 @@ const faqCategories = [
       {
         question: "What exactly does the warranty cover?",
         answer:
-          "Our 10-year sealed glass warranty specifically covers: condensation between panes (seal failure), glass manufacturing defects and breakage due to material defects. It does not cover accidental breakage, third-party damage, normal wear of mechanical components or damage from improper use. For hardware, the warranty covers manufacturing defects per the manufacturer's terms.",
+          "Our professional service warranty specifically covers: condensation between panes (seal failure), glass manufacturing defects and breakage due to material defects. It does not cover accidental breakage, third-party damage, normal wear of mechanical components or damage from improper use. For hardware, the warranty covers manufacturing defects per the manufacturer's terms.",
       },
       {
         question: "How do I make a warranty claim?",
