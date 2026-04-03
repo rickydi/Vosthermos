@@ -14,6 +14,12 @@ export default function ProductSearch({ categories }) {
   const [showImages, setShowImages] = useState(true);
 
   useEffect(() => {
+    fetch("/api/admin/settings?key=show_boutique_images")
+      .then((r) => r.json())
+      .then((d) => { if (d.value !== null) setShowImages(d.value === "true"); });
+  }, []);
+
+  useEffect(() => {
     fetchProducts();
   }, [page, categoryId]);
 
@@ -66,7 +72,15 @@ export default function ProductSearch({ categories }) {
         <button type="submit" className="bg-[var(--color-red)] text-white px-6 py-3 rounded-xl font-bold hover:bg-[var(--color-red-dark)] transition-all">
           Rechercher
         </button>
-        <button type="button" onClick={() => setShowImages(!showImages)}
+        <button type="button" onClick={() => {
+          const next = !showImages;
+          setShowImages(next);
+          fetch("/api/admin/settings", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ key: "show_boutique_images", value: String(next) }),
+          });
+        }}
           className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white/60 hover:text-white transition-colors shrink-0"
           title={showImages ? "Cacher les images" : "Afficher les images"}>
           <div className={`relative w-9 h-5 rounded-full transition-colors ${showImages ? "bg-green-500" : "bg-white/20"}`}>

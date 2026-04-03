@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-export default function ProductCard({ product, promo, locale }) {
+export default function ProductCard({ product, promo, locale, showImage = true }) {
   const productPath = locale === "en" ? `/en/produit/${product.slug}` : `/produit/${product.slug}`;
   const imgSrc = product.images?.[0]?.url || "/placeholder.jpg";
   const price = Number(product.price);
@@ -29,15 +29,17 @@ export default function ProductCard({ product, promo, locale }) {
           {promo.type === "percent" ? `-${promo.value}%` : `-${promo.value}$`}
         </div>
       )}
-      <div className="aspect-square relative bg-gray-50 overflow-hidden product-image-container">
-        <Image
-          src={imgSrc}
-          alt={`${product.name} - ${product.sku} | Vosthermos`}
-          fill
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"
-        />
-      </div>
+      {showImage && (
+        <div className="aspect-square relative bg-gray-50 overflow-hidden">
+          <Image
+            src={imgSrc}
+            alt={`${product.name} - ${product.sku} | Vosthermos`}
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"
+          />
+        </div>
+      )}
       <div className="p-4">
         <p className="text-xs text-[var(--color-muted)] font-mono mb-1">{product.sku}</p>
         <h3 className="text-sm font-medium line-clamp-2 mb-2 group-hover:text-[var(--color-teal)] transition-colors">
