@@ -11,6 +11,7 @@ export default function ProductSearch({ categories }) {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [showImages, setShowImages] = useState(true);
 
   useEffect(() => {
     fetchProducts();
@@ -65,6 +66,14 @@ export default function ProductSearch({ categories }) {
         <button type="submit" className="bg-[var(--color-red)] text-white px-6 py-3 rounded-xl font-bold hover:bg-[var(--color-red-dark)] transition-all">
           Rechercher
         </button>
+        <button type="button" onClick={() => setShowImages(!showImages)}
+          className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white/60 hover:text-white transition-colors shrink-0"
+          title={showImages ? "Cacher les images" : "Afficher les images"}>
+          <div className={`relative w-9 h-5 rounded-full transition-colors ${showImages ? "bg-green-500" : "bg-white/20"}`}>
+            <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${showImages ? "left-4" : "left-0.5"}`} />
+          </div>
+          <i className="fas fa-image text-sm"></i>
+        </button>
       </form>
 
       {/* Results */}
@@ -81,7 +90,7 @@ export default function ProductSearch({ categories }) {
             <table className="w-full">
               <thead>
                 <tr className="text-white/40 text-xs uppercase border-b border-white/5">
-                  <th className="text-left p-4">Image</th>
+                  {showImages && <th className="text-left p-4">Image</th>}
                   <th className="text-left p-4">SKU</th>
                   <th className="text-left p-4">Nom</th>
                   <th className="text-left p-4">Prix</th>
@@ -92,7 +101,7 @@ export default function ProductSearch({ categories }) {
               <tbody>
                 {products.map((p) => (
                   <tr key={p.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                    <td className="p-4">
+                    {showImages && <td className="p-4">
                       <div className="w-12 h-12 relative bg-white/10 rounded-lg overflow-hidden">
                         {p.images?.[0]?.url ? (
                           <Image src={p.images[0].url} alt={p.name} fill sizes="48px" className="object-contain p-1" />
@@ -102,7 +111,7 @@ export default function ProductSearch({ categories }) {
                           </div>
                         )}
                       </div>
-                    </td>
+                    </td>}
                     <td className="p-4 text-white font-mono text-sm">{p.sku}</td>
                     <td className="p-4 text-white/80 text-sm max-w-[300px] truncate">{p.name}</td>
                     <td className="p-4 text-white font-bold text-sm">{Number(p.price).toFixed(2)} $</td>
