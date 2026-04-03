@@ -5,6 +5,7 @@ import Link from "next/link";
 import { serializeProducts } from "@/lib/serialize";
 import { getCategoryIcon } from "@/lib/category-icons";
 import { getActivePromotions, getPromoForProduct } from "@/lib/promotions";
+import ImageToggle from "@/components/ImageToggle";
 
 export async function generateMetadata({ params }) {
   const { categorie } = await params;
@@ -164,10 +165,15 @@ export default async function CategoryPage({ params, searchParams }) {
             <span>/</span>
             <span className="text-white">{category.name}</span>
           </div>
-          <h1 className="text-2xl font-extrabold text-white">{category.name}</h1>
-          <p className="text-white/70 text-sm mt-1">
-            {totalProducts} piece{totalProducts > 1 ? "s" : ""} de {category.name.toLowerCase()} disponible{totalProducts > 1 ? "s" : ""} en ligne
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-extrabold text-white">{category.name}</h1>
+              <p className="text-white/70 text-sm mt-1">
+                {totalProducts} piece{totalProducts > 1 ? "s" : ""} de {category.name.toLowerCase()} disponible{totalProducts > 1 ? "s" : ""} en ligne
+              </p>
+            </div>
+            <ImageToggle />
+          </div>
         </div>
       </div>
 

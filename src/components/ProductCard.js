@@ -29,7 +29,7 @@ export default function ProductCard({ product, promo, locale }) {
           {promo.type === "percent" ? `-${promo.value}%` : `-${promo.value}$`}
         </div>
       )}
-      <div className="aspect-square relative bg-gray-50 overflow-hidden">
+      <div className="aspect-square relative bg-gray-50 overflow-hidden product-image-container">
         <Image
           src={imgSrc}
           alt={`${product.name} - ${product.sku} | Vosthermos`}
