@@ -129,29 +129,45 @@ export default function QuoteForm({ compact = false }) {
   }
 
   if (status === "success") {
-    const successContent = (
-      <div className="text-center py-4">
-        <div className="w-14 h-14 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4 animate-[fadeIn_0.5s_ease-out]">
-          <span className="text-green-400 text-3xl">&#10003;</span>
+    if (compact) {
+      return (
+        <div className="flex flex-col items-center gap-3 py-6">
+          <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center animate-[fadeIn_0.5s_ease-out]">
+            <span className="text-green-400 text-2xl">&#10003;</span>
+          </div>
+          <p className="text-white/70 text-sm text-center">
+            On s&apos;en occupe! Nous vous contacterons rapidement.
+          </p>
+          <a href="tel:15148258411" className="text-white/50 hover:text-white text-xs transition-colors">
+            <i className="fas fa-phone text-[10px] mr-1"></i>514-825-8411
+          </a>
+          <button
+            onClick={() => setStatus("")}
+            className="text-white/30 hover:text-white/60 text-[11px] underline transition-colors"
+          >
+            Envoyer une autre demande
+          </button>
         </div>
-        <h3 className="text-lg font-bold text-white mb-2">Demande envoyee!</h3>
-        <p className="text-white/50 text-sm mb-4">
-          Nous avons bien recu votre demande et vous contacterons rapidement.
-        </p>
-        <button
-          onClick={() => setStatus("")}
-          className="text-white/40 hover:text-white text-xs underline transition-colors"
-        >
-          Envoyer une autre demande
-        </button>
-      </div>
-    );
-
-    if (compact) return successContent;
+      );
+    }
 
     return (
       <div className="bg-white/[0.06] backdrop-blur-md rounded-xl p-6 border border-green-500/20">
-        {successContent}
+        <div className="text-center py-4">
+          <div className="w-14 h-14 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4 animate-[fadeIn_0.5s_ease-out]">
+            <span className="text-green-400 text-3xl">&#10003;</span>
+          </div>
+          <h3 className="text-lg font-bold text-white mb-2">Demande envoyee!</h3>
+          <p className="text-white/50 text-sm mb-4">
+            Nous avons bien recu votre demande et vous contacterons rapidement.
+          </p>
+          <button
+            onClick={() => setStatus("")}
+            className="text-white/40 hover:text-white text-xs underline transition-colors"
+          >
+            Envoyer une autre demande
+          </button>
+        </div>
         <div className="text-center mt-3">
           <span className="text-white/50 text-xs">ou appelez-nous </span>
           <a href="tel:15148258411" className="text-white font-semibold text-sm hover:text-[var(--color-red-light)]">
