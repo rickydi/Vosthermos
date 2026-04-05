@@ -206,7 +206,7 @@ export default function QuoteForm({ compact = false }) {
         <select required value={service}
           onFocus={() => trackFieldFocus("service")}
           onChange={(e) => { setService(e.target.value); trackFieldValue("service", e.target.value); }}
-          className={`${inputClass} [&>option]:text-gray-800`}>
+          className={`${inputClass} ${!service ? "text-gray-400" : "text-gray-900"}`}>
           <option value="">Selectionnez un service</option>
           <option value="quincaillerie">Quincaillerie</option>
           <option value="vitre-thermos">Vitre thermos</option>
