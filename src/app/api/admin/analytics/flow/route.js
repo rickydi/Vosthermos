@@ -8,7 +8,11 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const days = parseInt(searchParams.get("days") || "7");
     const since = new Date();
-    since.setDate(since.getDate() - days);
+    if (days === 0) {
+      since.setHours(0, 0, 0, 0);
+    } else {
+      since.setDate(since.getDate() - days);
+    }
 
     const sessions = await prisma.analyticsSession.findMany({
       where: { startedAt: { gte: since } },

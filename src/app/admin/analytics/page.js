@@ -50,6 +50,16 @@ export default function AdminAnalyticsPage() {
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-extrabold admin-text">Analytics</h1>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setDays(0)}
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+              days === 0
+                ? "bg-[var(--color-red)] text-white"
+                : "admin-card admin-text-muted border"
+            }`}
+          >
+            Aujourd'hui
+          </button>
           {[7, 30, 90].map((d) => (
             <button
               key={d}

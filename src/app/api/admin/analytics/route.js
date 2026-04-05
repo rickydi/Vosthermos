@@ -8,7 +8,11 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const days = parseInt(searchParams.get("days") || "7");
     const since = new Date();
-    since.setDate(since.getDate() - days);
+    if (days === 0) {
+      since.setHours(0, 0, 0, 0);
+    } else {
+      since.setDate(since.getDate() - days);
+    }
 
     // Total visitors (unique visitorIds)
     const sessions = await prisma.analyticsSession.findMany({
@@ -52,7 +56,8 @@ export async function GET(request) {
       dailyMap[day].pageViews += s.pageViews.length;
     }
     const daily = [];
-    for (let i = days - 1; i >= 0; i--) {
+    const loopDays = days === 0 ? 1 : days;
+    for (let i = loopDays - 1; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
       const key = d.toISOString().split("T")[0];
