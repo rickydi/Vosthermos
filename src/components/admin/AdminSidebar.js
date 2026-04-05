@@ -18,6 +18,7 @@ const navItems = [
   { href: "/admin/promotions", label: "Promotions", icon: "fa-tag" },
   { href: "/admin/blogue", label: "Blogue", icon: "fa-pen-nib" },
   { href: "/admin/rendez-vous", label: "Rendez-vous", icon: "fa-calendar-check" },
+  { href: "/admin/seo", label: "SEO", icon: "fa-search" },
   { href: "/admin/parametres", label: "Parametres", icon: "fa-cog" },
   { href: "/admin/utilisateurs", label: "Utilisateurs", icon: "fa-users" },
 ];

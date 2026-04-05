@@ -241,3 +241,17 @@ model Appointment {
   @@index([status])
   @@map("appointments")
 }
+
+model SeoRanking {
+  id        String   @id @default(cuid())
+  city      String
+  cityName  String
+  keyword   String
+  position  Int?
+  aiMention Boolean  @default(false)
+  url       String?
+  checkedAt DateTime @default(now())
+
+  @@index([city, checkedAt])
+  @@map("seo_rankings")
+}
