@@ -96,7 +96,7 @@ export async function GET(request) {
     }
     const topReferrers = Object.entries(referrers)
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
+      .slice(0, 15)
       .map(([source, count]) => ({ source, count }));
 
     // Recent visitors (last 20 unique)

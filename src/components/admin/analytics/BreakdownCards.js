@@ -40,13 +40,13 @@ export default function BreakdownCards({ devices, browsers, topReferrers }) {
       </div>
 
       {/* Referrers */}
-      <div className="admin-card rounded-xl p-6 border">
+      <div className="admin-card rounded-xl p-6 border md:col-span-3">
         <h2 className="admin-text-muted text-xs font-bold uppercase tracking-wider mb-4">SOURCES DE TRAFIC</h2>
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-3">
           {topReferrers.map((r) => (
             <div key={r.source} className="flex items-center justify-between">
-              <span className="admin-text text-sm truncate">{r.source}</span>
-              <span className="admin-text-muted text-sm font-bold">{r.count}</span>
+              <span className="admin-text text-sm">{r.source}</span>
+              <span className="admin-text-muted text-sm font-bold ml-3">{r.count}</span>
             </div>
           ))}
           {topReferrers.length === 0 && (
