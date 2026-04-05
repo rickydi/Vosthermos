@@ -43,12 +43,25 @@ export async function GET(request) {
       });
     }
 
-    // Set latest values from first history entry (already sorted desc)
+    // Use best position from last 24h (Google results fluctuate between scans)
+    const oneDayAgo = new Date();
+    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+
     for (const city of Object.values(cityMap)) {
       if (city.history.length > 0) {
-        city.latestPosition = city.history[0].position;
-        city.latestAi = city.history[0].aiMention;
-        // Use the latest URL if available
+        // Get entries from last 24h that have a position
+        const recent = city.history.filter(
+          (h) => h.position !== null && new Date(h.checkedAt) >= oneDayAgo
+        );
+        if (recent.length > 0) {
+          // Best (lowest) position in last 24h
+          city.latestPosition = Math.min(...recent.map((h) => h.position));
+        } else {
+          // Fallback: latest non-null position
+          const withPos = city.history.find((h) => h.position !== null);
+          city.latestPosition = withPos ? withPos.position : null;
+        }
+        city.latestAi = city.history.some((h) => h.aiMention);
         const withUrl = city.history.find((h) => h.url);
         if (withUrl) city.url = withUrl.url;
       }
