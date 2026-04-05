@@ -126,7 +126,7 @@ const valeurs = [
 const stats = [
   { value: "15+", label: "Ans d'experience" },
   { value: "740+", label: "Pieces en inventaire" },
-  { value: "20+", label: "Villes desservies" },
+  { value: "50+", label: "Villes desservies" },
   { value: "Incluse", label: "Service garanti" },
   { value: "4.9/5", label: "Etoiles Google" },
 ];
