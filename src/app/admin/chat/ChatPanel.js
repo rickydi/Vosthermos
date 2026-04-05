@@ -192,11 +192,9 @@ export default function ChatPanel({ initialConversationId }) {
                 <button onClick={toggleArchive} className="px-4 py-2 bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 rounded-lg text-xs font-semibold transition-colors">
                   {selected.isArchived ? "Desarchiver" : "Archiver"}
                 </button>
-                {selected.isArchived && (
-                  <button onClick={deleteConversation} className="px-4 py-2 bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded-lg text-xs font-semibold transition-colors">
-                    Supprimer
-                  </button>
-                )}
+                <button onClick={deleteConversation} className="px-4 py-2 bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded-lg text-xs font-semibold transition-colors">
+                  Supprimer
+                </button>
               </div>
             </div>
 
