@@ -102,9 +102,37 @@ export default async function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(howToJsonLd) }}
       />
 
+      {/* Soumission + Image */}
+      <section className="bg-[var(--color-teal-dark)] pt-[80px]">
+        <div className="max-w-[1200px] mx-auto px-6 pt-12 lg:pt-16 pb-16">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+            <div className="bg-white/[0.06] backdrop-blur-md rounded-2xl p-8 border border-white/[0.08] flex flex-col justify-center">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </span>
+                <span className="text-green-400 text-[10px] font-semibold uppercase tracking-wider">Service disponible</span>
+              </div>
+              <h2 className="text-white font-bold text-xl mb-1">Besoin d&apos;une reparation?</h2>
+              <p className="text-white/50 text-sm mb-5">Soumission gratuite, reponse rapide.</p>
+              <QuoteForm compact />
+            </div>
+            <div className="hidden lg:block relative rounded-2xl overflow-hidden shadow-2xl">
+              <Image
+                src="/images/hero-technicien.jpg"
+                alt="Technicien Vosthermos installant une vitre thermos"
+                fill
+                className="object-cover"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Hero — Boutique catalogue */}
-      <section className="bg-[var(--color-background)] pt-[80px]">
-        <div className="max-w-[1200px] mx-auto px-6 pt-12 lg:pt-16 pb-12">
+      <section className="bg-[var(--color-background)] py-16">
+        <div className="max-w-[1200px] mx-auto px-6">
           {/* Top row: heading + trust badges */}
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-10">
             <div>
@@ -174,34 +202,6 @@ export default async function Home() {
             >
               <i className="fas fa-phone text-xs"></i> 514-825-8411
             </a>
-          </div>
-        </div>
-      </section>
-
-      {/* Soumission + Image */}
-      <section className="bg-[var(--color-teal-dark)] py-16">
-        <div className="max-w-[1200px] mx-auto px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-            <div className="bg-white/[0.06] backdrop-blur-md rounded-2xl p-8 border border-white/[0.08] flex flex-col justify-center">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                </span>
-                <span className="text-green-400 text-[10px] font-semibold uppercase tracking-wider">Service disponible</span>
-              </div>
-              <h2 className="text-white font-bold text-xl mb-1">Besoin d&apos;une reparation?</h2>
-              <p className="text-white/50 text-sm mb-5">Soumission gratuite, reponse rapide.</p>
-              <QuoteForm compact />
-            </div>
-            <div className="hidden lg:block relative rounded-2xl overflow-hidden shadow-2xl">
-              <Image
-                src="/images/hero-technicien.jpg"
-                alt="Technicien Vosthermos installant une vitre thermos"
-                fill
-                className="object-cover"
-              />
-            </div>
           </div>
         </div>
       </section>
