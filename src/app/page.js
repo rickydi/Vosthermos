@@ -206,6 +206,19 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* Gallery */}
+      <section className="bg-[var(--color-background)] py-20" id="galerie">
+        <div className="max-w-[1200px] mx-auto px-6">
+          <div className="text-center mb-14">
+            <span className="section-tag">Nos realisations</span>
+            <h2 className="text-3xl font-extrabold">
+              Galerie de <span className="text-[var(--color-red)]">nos travaux</span>
+            </h2>
+          </div>
+          <Gallery />
+        </div>
+      </section>
+
       {/* Services */}
       <section className="bg-[var(--color-background)] py-20" id="services">
         <div className="max-w-[1200px] mx-auto px-6">
@@ -301,19 +314,6 @@ export default async function Home() {
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Gallery */}
-      <section className="bg-[var(--color-background)] py-20" id="galerie">
-        <div className="max-w-[1200px] mx-auto px-6">
-          <div className="text-center mb-14">
-            <span className="section-tag">Nos realisations</span>
-            <h2 className="text-3xl font-extrabold">
-              Galerie de <span className="text-[var(--color-red)]">nos travaux</span>
-            </h2>
-          </div>
-          <Gallery />
         </div>
       </section>
 
