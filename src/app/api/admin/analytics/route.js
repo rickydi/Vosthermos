@@ -71,39 +71,56 @@ export async function GET(request) {
       });
     }
 
-    // Device breakdown
-    const devices = {};
+    // Device breakdown (unique visitors per device)
+    const deviceVisitors = {};
     for (const s of sessions) {
       const d = s.device || "Inconnu";
-      devices[d] = (devices[d] || 0) + 1;
+      if (!deviceVisitors[d]) deviceVisitors[d] = new Set();
+      deviceVisitors[d].add(s.visitorId);
+    }
+    const devices = {};
+    for (const [d, visitors] of Object.entries(deviceVisitors)) {
+      devices[d] = visitors.size;
     }
 
-    // Browser breakdown
-    const browsers = {};
+    // Browser breakdown (unique visitors per browser)
+    const browserVisitors = {};
     for (const s of sessions) {
       const b = s.browser || "Inconnu";
-      browsers[b] = (browsers[b] || 0) + 1;
+      if (!browserVisitors[b]) browserVisitors[b] = new Set();
+      browserVisitors[b].add(s.visitorId);
+    }
+    const browsers = {};
+    for (const [b, visitors] of Object.entries(browserVisitors)) {
+      browsers[b] = visitors.size;
     }
 
-    // Referrers (include direct visits)
-    const referrers = {};
-    let directCount = 0;
+    // Referrers (unique visitors per source, include direct)
+    const referrerVisitors = {};
+    const directVisitors = new Set();
     for (const s of sessions) {
       if (s.referrer) {
         try {
           const host = new URL(s.referrer).hostname;
           if (host.includes("vosthermos")) {
-            directCount++;
+            directVisitors.add(s.visitorId);
           } else {
-            referrers[host] = (referrers[host] || 0) + 1;
+            if (!referrerVisitors[host]) referrerVisitors[host] = new Set();
+            referrerVisitors[host].add(s.visitorId);
           }
         } catch {
-          referrers[s.referrer] = (referrers[s.referrer] || 0) + 1;
+          if (!referrerVisitors[s.referrer]) referrerVisitors[s.referrer] = new Set();
+          referrerVisitors[s.referrer].add(s.visitorId);
         }
       } else {
-        directCount++;
+        directVisitors.add(s.visitorId);
       }
     }
+    const referrers = {};
+    for (const [r, visitors] of Object.entries(referrerVisitors)) {
+      referrers[r] = visitors.size;
+    }
+    const directCount = directVisitors.size;
     const topReferrers = Object.entries(referrers)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 15)
