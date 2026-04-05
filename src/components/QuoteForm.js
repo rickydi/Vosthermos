@@ -77,19 +77,51 @@ export default function QuoteForm({ compact = false }) {
         }
       }
 
-      const res = await fetch("/api/contact", {
+      // Create chat conversation
+      const cleanPhone = phone.replace(/\D/g, "");
+      const chatRes = await fetch("/api/public/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, phone, email, service, message, files: fileUrls }),
+        body: JSON.stringify({
+          clientName: name.trim(),
+          clientPhone: cleanPhone,
+          clientEmail: email.trim().toLowerCase(),
+        }),
       });
-      if (res.ok) {
-        trackSubmit();
-        setStatus("success");
-        setName(""); setPhone(""); setEmail(""); setService(""); setMessage(""); setFiles([]);
-        if (textareaRef.current) textareaRef.current.style.height = "auto";
-      } else {
-        setStatus("error");
+
+      if (!chatRes.ok) throw new Error("Erreur conversation");
+      const { id } = await chatRes.json();
+
+      // Build message content
+      const serviceLabels = {
+        quincaillerie: "Quincaillerie", "vitre-thermos": "Vitre thermos", "portes-bois": "Portes en bois",
+        moustiquaire: "Moustiquaires", calfeutrage: "Calfeutrage", "coupe-froid": "Coupe-froid",
+        desembuage: "Désembuage", "insertion-porte": "Insertion de porte", "opti-fenetre": "Programme OPTI-FENÊTRE", autre: "Autre",
+      };
+      let content = `[Soumission] Service: ${serviceLabels[service] || service}`;
+      if (message.trim()) content += `\n\n${message.trim()}`;
+
+      // Send message (text)
+      const msgRes = await fetch(`/api/public/chat/${id}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content }),
+      });
+      if (!msgRes.ok) throw new Error("Erreur message");
+
+      // Send file attachments as separate messages
+      for (const url of fileUrls) {
+        await fetch(`/api/public/chat/${id}/messages`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content: "", imageUrl: url }),
+        });
       }
+
+      trackSubmit();
+      setStatus("success");
+      setName(""); setPhone(""); setEmail(""); setService(""); setMessage(""); setFiles([]);
+      if (textareaRef.current) textareaRef.current.style.height = "auto";
     } catch {
       setStatus("error");
     }
