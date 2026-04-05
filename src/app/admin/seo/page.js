@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
-// ─── Position badge color ────────────────────────────────────────────
 function positionColor(pos) {
   if (pos === null || pos === undefined) return "bg-gray-500/20 text-gray-400";
   if (pos <= 3) return "bg-green-500/20 text-green-400";
@@ -12,47 +11,40 @@ function positionColor(pos) {
 }
 
 function positionLabel(pos) {
-  if (pos === null || pos === undefined) return "Non trouve";
+  if (pos === null || pos === undefined) return "—";
   return `#${pos}`;
 }
 
-// ─── Trend arrow ─────────────────────────────────────────────────────
 function TrendArrow({ history }) {
   if (!history || history.length < 2) return <span className="admin-text-muted">—</span>;
   const latest = history[0].position;
   const previous = history[1].position;
-
   if (latest === null && previous === null) return <span className="admin-text-muted">—</span>;
   if (latest === null) return <i className="fas fa-arrow-down text-red-400"></i>;
   if (previous === null) return <i className="fas fa-arrow-up text-green-400"></i>;
-
-  const diff = previous - latest; // positive = improved (lower position = better)
-  if (diff > 0) return <span className="text-green-400"><i className="fas fa-arrow-up"></i> +{diff}</span>;
-  if (diff < 0) return <span className="text-red-400"><i className="fas fa-arrow-down"></i> {diff}</span>;
+  const diff = previous - latest;
+  if (diff > 0) return <span className="text-green-400 font-bold"><i className="fas fa-arrow-up"></i> +{diff}</span>;
+  if (diff < 0) return <span className="text-red-400 font-bold"><i className="fas fa-arrow-down"></i> {diff}</span>;
   return <span className="admin-text-muted">=</span>;
 }
 
-// ─── SVG mini chart ──────────────────────────────────────────────────
 function PositionChart({ history }) {
   if (!history || history.length === 0) {
     return <p className="admin-text-muted text-sm text-center py-8">Aucune donnee disponible</p>;
   }
 
-  // Take last 10 checks, reversed so oldest first
   const data = history.slice(0, 10).reverse();
   const W = 600;
   const H = 200;
-  const padX = 60;
-  const padY = 30;
+  const padX = 50;
+  const padY = 25;
   const chartW = W - padX * 2;
   const chartH = H - padY * 2;
-
-  // Y axis: position 1 at top, 25 at bottom
   const maxPos = 25;
   const minPos = 1;
 
   function getY(pos) {
-    if (pos === null) return H - padY; // off the bottom
+    if (pos === null) return H - padY;
     const clamped = Math.min(Math.max(pos, minPos), maxPos);
     return padY + ((clamped - minPos) / (maxPos - minPos)) * chartH;
   }
@@ -62,7 +54,6 @@ function PositionChart({ history }) {
     return padX + (i / (data.length - 1)) * chartW;
   }
 
-  // Build path for non-null points
   const points = data
     .map((d, i) => (d.position !== null ? { x: getX(i), y: getY(d.position), pos: d.position } : null))
     .filter(Boolean);
@@ -74,79 +65,57 @@ function PositionChart({ history }) {
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxHeight: "220px" }}>
-      {/* Grid lines */}
-      {[1, 5, 10, 15, 20, 25].map((pos) => (
+      {[1, 5, 10, 15, 20].map((pos) => (
         <g key={pos}>
-          <line
-            x1={padX} y1={getY(pos)} x2={W - padX} y2={getY(pos)}
-            stroke="currentColor" strokeOpacity="0.1" strokeDasharray="4,4"
-          />
-          <text x={padX - 8} y={getY(pos) + 4} textAnchor="end" className="fill-current" style={{ fontSize: "11px", opacity: 0.5 }}>
+          <line x1={padX} y1={getY(pos)} x2={W - padX} y2={getY(pos)} stroke="#666" strokeOpacity="0.3" strokeDasharray="4,4" />
+          <text x={padX - 8} y={getY(pos) + 4} textAnchor="end" fill="#999" style={{ fontSize: "11px" }}>
             #{pos}
           </text>
         </g>
       ))}
 
-      {/* Line */}
       {pathD && (
-        <path d={pathD} fill="none" stroke="var(--color-red, #e30718)" strokeWidth="2.5" strokeLinejoin="round" />
+        <>
+          <path d={pathD} fill="none" stroke="#3b82f6" strokeWidth="3" strokeLinejoin="round" />
+          <path d={`${pathD} L ${points[points.length - 1].x} ${H - padY} L ${points[0].x} ${H - padY} Z`} fill="#3b82f6" fillOpacity="0.08" />
+        </>
       )}
 
-      {/* Points */}
       {data.map((d, i) => {
         if (d.position === null) return null;
+        const color = d.position <= 3 ? "#22c55e" : d.position <= 10 ? "#3b82f6" : d.position <= 20 ? "#f97316" : "#ef4444";
         return (
           <g key={i}>
-            <circle cx={getX(i)} cy={getY(d.position)} r="5" fill="var(--color-red, #e30718)" />
-            <text
-              x={getX(i)} y={getY(d.position) - 10}
-              textAnchor="middle" className="fill-current" style={{ fontSize: "10px", fontWeight: "bold" }}
-            >
+            <circle cx={getX(i)} cy={getY(d.position)} r="6" fill={color} />
+            <text x={getX(i)} y={getY(d.position) - 12} textAnchor="middle" fill={color} style={{ fontSize: "12px", fontWeight: "bold" }}>
               #{d.position}
             </text>
           </g>
         );
       })}
 
-      {/* Null positions marker */}
       {data.map((d, i) => {
         if (d.position !== null) return null;
-        return (
-          <g key={`null-${i}`}>
-            <text x={getX(i)} y={H - padY + 4} textAnchor="middle" style={{ fontSize: "10px", opacity: 0.4 }} className="fill-current">
-              N/A
-            </text>
-          </g>
-        );
+        return <text key={`null-${i}`} x={getX(i)} y={H - padY + 4} textAnchor="middle" fill="#666" style={{ fontSize: "10px" }}>N/A</text>;
       })}
 
-      {/* X axis dates */}
       {data.map((d, i) => {
         const date = new Date(d.checkedAt);
         const label = `${date.getDate()}/${date.getMonth() + 1}`;
-        return (
-          <text
-            key={`date-${i}`} x={getX(i)} y={H - 5}
-            textAnchor="middle" className="fill-current" style={{ fontSize: "10px", opacity: 0.5 }}
-          >
-            {label}
-          </text>
-        );
+        return <text key={`date-${i}`} x={getX(i)} y={H - 4} textAnchor="middle" fill="#999" style={{ fontSize: "10px" }}>{label}</text>;
       })}
     </svg>
   );
 }
 
-// ─── Main page ───────────────────────────────────────────────────────
 export default function AdminSeoPage() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);
   const [progress, setProgress] = useState(null);
   const [expandedCity, setExpandedCity] = useState(null);
-  const [sortBy, setSortBy] = useState("position"); // "position" | "name"
+  const [sortBy, setSortBy] = useState("position");
   const [sortDir, setSortDir] = useState("asc");
-  const abortRef = useRef(null);
 
   async function fetchData() {
     setLoading(true);
@@ -160,9 +129,7 @@ export default function AdminSeoPage() {
     setLoading(false);
   }
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   async function startCheck() {
     setChecking(true);
@@ -182,7 +149,6 @@ export default function AdminSeoPage() {
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split("\n");
         buffer = lines.pop() || "";
@@ -203,10 +169,7 @@ export default function AdminSeoPage() {
                 total: event.total,
                 city: event.city,
                 status: event.status,
-                results:
-                  event.status === "done"
-                    ? [...(prev?.results || []), event]
-                    : prev?.results || [],
+                results: event.status === "done" ? [...(prev?.results || []), event] : prev?.results || [],
               }));
             } catch {}
           }
@@ -215,48 +178,37 @@ export default function AdminSeoPage() {
     } catch (err) {
       console.error("Check error:", err);
     }
-
     setChecking(false);
     setProgress(null);
     fetchData();
   }
 
-  // ─── Summary stats ──────────────────────────────────────────────────
   const cities = data?.cities || [];
   const inTop3 = cities.filter((c) => c.latestPosition !== null && c.latestPosition <= 3).length;
   const inTop10 = cities.filter((c) => c.latestPosition !== null && c.latestPosition <= 10).length;
   const withPosition = cities.filter((c) => c.latestPosition !== null);
-  const avgPosition =
-    withPosition.length > 0
-      ? (withPosition.reduce((sum, c) => sum + c.latestPosition, 0) / withPosition.length).toFixed(1)
-      : "—";
+  const avgPosition = withPosition.length > 0
+    ? (withPosition.reduce((sum, c) => sum + c.latestPosition, 0) / withPosition.length).toFixed(1)
+    : "—";
   const aiMentions = cities.filter((c) => c.latestAi).length;
 
-  // ─── Sorting ────────────────────────────────────────────────────────
   const sortedCities = [...cities].sort((a, b) => {
-    if (sortBy === "name") {
-      return sortDir === "asc" ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
-    }
-    // Sort by position: nulls at the end
+    if (sortBy === "name") return sortDir === "asc" ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
     const posA = a.latestPosition ?? 999;
     const posB = b.latestPosition ?? 999;
     return sortDir === "asc" ? posA - posB : posB - posA;
   });
 
   function toggleSort(col) {
-    if (sortBy === col) {
-      setSortDir(sortDir === "asc" ? "desc" : "asc");
-    } else {
-      setSortBy(col);
-      setSortDir("asc");
-    }
+    if (sortBy === col) setSortDir(sortDir === "asc" ? "desc" : "asc");
+    else { setSortBy(col); setSortDir("asc"); }
   }
 
   if (loading || !data) {
     return (
       <div className="p-6 lg:p-8">
         <p className="admin-text-muted text-center py-20">
-          <i className="fas fa-spinner fa-spin mr-2"></i>Chargement des donnees SEO...
+          <i className="fas fa-spinner fa-spin mr-2"></i>Chargement...
         </p>
       </div>
     );
@@ -266,60 +218,37 @@ export default function AdminSeoPage() {
     <div className="p-6 lg:p-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-extrabold admin-text">Suivi SEO</h1>
-        <button
-          onClick={startCheck}
-          disabled={checking}
-          className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
-            checking
-              ? "bg-gray-500/30 text-gray-400 cursor-not-allowed"
-              : "bg-[var(--color-red)] text-white hover:opacity-90"
-          }`}
-        >
-          {checking ? (
-            <>
-              <i className="fas fa-spinner fa-spin mr-2"></i>Verification en cours...
-            </>
-          ) : (
-            <>
-              <i className="fas fa-sync-alt mr-2"></i>Rafraichir les positions
-            </>
-          )}
+        <div>
+          <h1 className="text-2xl font-extrabold admin-text">Suivi SEO</h1>
+          <p className="admin-text-muted text-sm mt-1">Mot cle: &quot;remplacement vitre thermos [ville]&quot;</p>
+        </div>
+        <button onClick={startCheck} disabled={checking}
+          className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${checking ? "bg-gray-500/30 text-gray-400 cursor-not-allowed" : "bg-[var(--color-red)] text-white hover:opacity-90"}`}>
+          {checking ? <><i className="fas fa-spinner fa-spin mr-2"></i>Verification...</> : <><i className="fas fa-sync-alt mr-2"></i>Rafraichir les positions</>}
         </button>
       </div>
 
-      {/* Progress bar */}
+      {/* Progress */}
       {checking && progress && (
         <div className="admin-card border rounded-2xl p-5 mb-8">
           <div className="flex items-center justify-between mb-3">
             <span className="admin-text text-sm font-bold">
-              Verification {progress.current}/{progress.total} — {progress.city}
+              {progress.current}/{progress.total} — {progress.city}
             </span>
-            <span className="admin-text-muted text-sm">
-              {Math.round((progress.current / progress.total) * 100)}%
-            </span>
+            <span className="admin-text-muted text-sm">{Math.round((progress.current / progress.total) * 100)}%</span>
           </div>
           <div className="w-full bg-gray-700/30 rounded-full h-3 overflow-hidden">
-            <div
-              className="h-full bg-[var(--color-red)] rounded-full transition-all duration-500"
-              style={{ width: `${(progress.current / progress.total) * 100}%` }}
-            ></div>
+            <div className="h-full bg-[var(--color-red)] rounded-full transition-all duration-500" style={{ width: `${(progress.current / progress.total) * 100}%` }}></div>
           </div>
-          {/* Live results */}
-          {progress.results && progress.results.length > 0 && (
-            <div className="mt-3 max-h-32 overflow-y-auto space-y-1">
-              {progress.results
-                .slice(-5)
-                .reverse()
-                .map((r, i) => (
-                  <div key={i} className="flex items-center gap-2 text-xs">
-                    <span className="admin-text-muted">{r.city}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${positionColor(r.position)}`}>
-                      {positionLabel(r.position)}
-                    </span>
-                    {r.aiMention && <i className="fas fa-robot text-green-400 text-xs"></i>}
-                  </div>
-                ))}
+          {progress.results?.length > 0 && (
+            <div className="mt-3 max-h-40 overflow-y-auto space-y-1.5">
+              {progress.results.slice(-8).reverse().map((r, i) => (
+                <div key={i} className="flex items-center gap-3 text-sm">
+                  <span className="admin-text w-40 truncate">{r.city}</span>
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${positionColor(r.position)}`}>{positionLabel(r.position)}</span>
+                  {r.aiMention && <span className="text-purple-400 text-xs font-bold"><i className="fas fa-robot mr-1"></i>IA</span>}
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -328,155 +257,109 @@ export default function AdminSeoPage() {
       {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="admin-card border rounded-2xl p-5">
-          <p className="admin-text-muted text-xs font-bold uppercase tracking-wider mb-1">Top 3</p>
+          <div className="flex items-center gap-2 mb-2">
+            <i className="fas fa-trophy text-green-400 text-xs"></i>
+            <p className="admin-text-muted text-xs font-bold uppercase tracking-wider">Top 3</p>
+          </div>
           <p className="text-3xl font-extrabold text-green-400">{inTop3}</p>
-          <p className="admin-text-muted text-xs mt-1">villes en position 1-3</p>
         </div>
         <div className="admin-card border rounded-2xl p-5">
-          <p className="admin-text-muted text-xs font-bold uppercase tracking-wider mb-1">Top 10</p>
+          <div className="flex items-center gap-2 mb-2">
+            <i className="fas fa-medal text-blue-400 text-xs"></i>
+            <p className="admin-text-muted text-xs font-bold uppercase tracking-wider">Top 10</p>
+          </div>
           <p className="text-3xl font-extrabold text-blue-400">{inTop10}</p>
-          <p className="admin-text-muted text-xs mt-1">villes en position 1-10</p>
         </div>
         <div className="admin-card border rounded-2xl p-5">
-          <p className="admin-text-muted text-xs font-bold uppercase tracking-wider mb-1">Position moyenne</p>
-          <p className="text-3xl font-extrabold admin-text">{avgPosition}</p>
-          <p className="admin-text-muted text-xs mt-1">sur les villes trouvees</p>
+          <div className="flex items-center gap-2 mb-2">
+            <i className="fas fa-chart-line text-orange-400 text-xs"></i>
+            <p className="admin-text-muted text-xs font-bold uppercase tracking-wider">Position moy.</p>
+          </div>
+          <p className="text-3xl font-extrabold text-orange-400">{avgPosition}</p>
         </div>
         <div className="admin-card border rounded-2xl p-5">
-          <p className="admin-text-muted text-xs font-bold uppercase tracking-wider mb-1">Mentions IA</p>
+          <div className="flex items-center gap-2 mb-2">
+            <i className="fas fa-robot text-purple-400 text-xs"></i>
+            <p className="admin-text-muted text-xs font-bold uppercase tracking-wider">Mentions IA</p>
+          </div>
           <p className="text-3xl font-extrabold text-purple-400">{aiMentions}</p>
-          <p className="admin-text-muted text-xs mt-1">villes avec mention AI Overview</p>
+          <p className="admin-text-muted text-xs mt-1">dans AI Overview Google</p>
         </div>
       </div>
 
-      {/* No data message */}
+      {/* No data */}
       {cities.length === 0 && (
         <div className="admin-card border rounded-2xl p-12 text-center">
-          <i className="fas fa-search text-4xl admin-text-muted mb-4"></i>
+          <i className="fas fa-search text-4xl admin-text-muted mb-4 block"></i>
           <p className="admin-text font-bold text-lg mb-2">Aucune donnee SEO</p>
-          <p className="admin-text-muted text-sm">
-            Cliquez sur "Rafraichir les positions" pour lancer la premiere verification.
-          </p>
+          <p className="admin-text-muted text-sm">Cliquez sur &quot;Rafraichir les positions&quot; pour lancer la premiere verification.</p>
         </div>
       )}
 
-      {/* Cities table */}
+      {/* Table */}
       {cities.length > 0 && (
         <div className="admin-card border rounded-2xl overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b" style={{ borderColor: "var(--admin-border)" }}>
-                <th
-                  className="text-left px-5 py-4 admin-text-muted text-xs font-bold uppercase tracking-wider cursor-pointer select-none"
-                  onClick={() => toggleSort("name")}
-                >
-                  Ville
-                  {sortBy === "name" && (
-                    <i className={`fas fa-caret-${sortDir === "asc" ? "up" : "down"} ml-1`}></i>
-                  )}
-                </th>
-                <th
-                  className="text-center px-5 py-4 admin-text-muted text-xs font-bold uppercase tracking-wider cursor-pointer select-none"
-                  onClick={() => toggleSort("position")}
-                >
-                  Position
-                  {sortBy === "position" && (
-                    <i className={`fas fa-caret-${sortDir === "asc" ? "up" : "down"} ml-1`}></i>
-                  )}
-                </th>
-                <th className="text-center px-5 py-4 admin-text-muted text-xs font-bold uppercase tracking-wider">
-                  Tendance
-                </th>
-                <th className="text-center px-5 py-4 admin-text-muted text-xs font-bold uppercase tracking-wider">
-                  IA
-                </th>
-                <th className="text-right px-5 py-4 admin-text-muted text-xs font-bold uppercase tracking-wider hidden lg:table-cell">
-                  Derniere verification
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortedCities.map((city) => {
-                const isExpanded = expandedCity === city.slug;
-                const lastCheck = city.history[0]?.checkedAt;
-                const lastDate = lastCheck
-                  ? new Date(lastCheck).toLocaleDateString("fr-CA", {
-                      day: "numeric",
-                      month: "short",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })
-                  : "—";
+          {/* Header row */}
+          <div className="grid grid-cols-12 gap-2 px-5 py-4 border-b" style={{ borderColor: "var(--admin-border)" }}>
+            <div className="col-span-4 admin-text-muted text-xs font-bold uppercase tracking-wider cursor-pointer select-none" onClick={() => toggleSort("name")}>
+              Ville {sortBy === "name" && <i className={`fas fa-caret-${sortDir === "asc" ? "up" : "down"} ml-1`}></i>}
+            </div>
+            <div className="col-span-2 text-center admin-text-muted text-xs font-bold uppercase tracking-wider cursor-pointer select-none" onClick={() => toggleSort("position")}>
+              Position {sortBy === "position" && <i className={`fas fa-caret-${sortDir === "asc" ? "up" : "down"} ml-1`}></i>}
+            </div>
+            <div className="col-span-2 text-center admin-text-muted text-xs font-bold uppercase tracking-wider">Tendance</div>
+            <div className="col-span-2 text-center admin-text-muted text-xs font-bold uppercase tracking-wider">AI Overview</div>
+            <div className="col-span-2 text-right admin-text-muted text-xs font-bold uppercase tracking-wider hidden lg:block">Verifie</div>
+          </div>
 
-                return (
-                  <tr key={city.slug} className="group">
-                    <td colSpan={5} className="p-0">
-                      {/* Row */}
-                      <div
-                        className="flex items-center cursor-pointer hover:bg-white/5 transition-colors"
-                        onClick={() => setExpandedCity(isExpanded ? null : city.slug)}
-                      >
-                        <div className="flex-1 px-5 py-4 admin-text text-sm font-medium flex items-center gap-2">
-                          <i
-                            className={`fas fa-chevron-right text-[10px] admin-text-muted transition-transform duration-300 ${
-                              isExpanded ? "rotate-90" : ""
-                            }`}
-                          ></i>
-                          {city.name}
-                        </div>
-                        <div className="px-5 py-4 text-center">
-                          <span
-                            className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${positionColor(city.latestPosition)}`}
-                          >
-                            {positionLabel(city.latestPosition)}
-                          </span>
-                        </div>
-                        <div className="px-5 py-4 text-center text-sm">
-                          <TrendArrow history={city.history} />
-                        </div>
-                        <div className="px-5 py-4 text-center">
-                          {city.latestAi ? (
-                            <i className="fas fa-check-circle text-green-400"></i>
-                          ) : (
-                            <span className="admin-text-muted">—</span>
-                          )}
-                        </div>
-                        <div className="px-5 py-4 text-right admin-text-muted text-xs hidden lg:block">
-                          {lastDate}
-                        </div>
-                      </div>
+          {/* Rows */}
+          {sortedCities.map((city) => {
+            const isExpanded = expandedCity === city.slug;
+            const lastCheck = city.history[0]?.checkedAt;
+            const lastDate = lastCheck
+              ? new Date(lastCheck).toLocaleDateString("fr-CA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+              : "—";
 
-                      {/* Expanded: history chart */}
-                      <div
-                        className="overflow-hidden transition-all duration-[1500ms] ease-in-out"
-                        style={{
-                          maxHeight: isExpanded ? "400px" : "0px",
-                          opacity: isExpanded ? 1 : 0,
-                        }}
-                      >
-                        <div className="px-5 pb-5 pt-2 border-t" style={{ borderColor: "var(--admin-border)" }}>
-                          <div className="flex items-center justify-between mb-3">
-                            <p className="admin-text text-sm font-bold">
-                              Historique des positions — {city.name}
-                            </p>
-                            <p className="admin-text-muted text-xs">
-                              Mot cle: <span className="font-mono">{city.keyword || `remplacement vitre thermos ${city.name}`}</span>
-                            </p>
-                          </div>
-                          {city.url && (
-                            <p className="admin-text-muted text-xs mb-3">
-                              URL: <span className="font-mono text-blue-400">{city.url}</span>
-                            </p>
-                          )}
-                          <PositionChart history={city.history} />
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+            return (
+              <div key={city.slug} className="border-b last:border-0" style={{ borderColor: "var(--admin-border)" }}>
+                <div className="grid grid-cols-12 gap-2 px-5 py-3.5 items-center cursor-pointer hover:bg-white/5 transition-colors" onClick={() => setExpandedCity(isExpanded ? null : city.slug)}>
+                  <div className="col-span-4 admin-text text-sm font-medium flex items-center gap-2">
+                    <i className={`fas fa-chevron-right text-[10px] admin-text-muted transition-transform duration-300 ${isExpanded ? "rotate-90" : ""}`}></i>
+                    {city.name}
+                  </div>
+                  <div className="col-span-2 text-center">
+                    <span className={`inline-block px-3 py-1 rounded-full text-sm font-extrabold ${positionColor(city.latestPosition)}`}>
+                      {positionLabel(city.latestPosition)}
+                    </span>
+                  </div>
+                  <div className="col-span-2 text-center text-sm">
+                    <TrendArrow history={city.history} />
+                  </div>
+                  <div className="col-span-2 text-center">
+                    {city.latestAi ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-500/20 text-purple-400 text-xs font-bold">
+                        <i className="fas fa-robot"></i> Oui
+                      </span>
+                    ) : (
+                      <span className="admin-text-muted text-xs">Non</span>
+                    )}
+                  </div>
+                  <div className="col-span-2 text-right admin-text-muted text-xs hidden lg:block">{lastDate}</div>
+                </div>
+
+                {/* Expanded chart */}
+                <div className="overflow-hidden transition-all duration-[1500ms] ease-in-out" style={{ maxHeight: isExpanded ? "400px" : "0px", opacity: isExpanded ? 1 : 0 }}>
+                  <div className="px-5 pb-5 pt-2 border-t" style={{ borderColor: "var(--admin-border)" }}>
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="admin-text text-sm font-bold">Historique — {city.name}</p>
+                      {city.url && <p className="text-blue-400 text-xs font-mono truncate max-w-[300px]">{city.url}</p>}
+                    </div>
+                    <PositionChart history={city.history} />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
