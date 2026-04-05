@@ -47,10 +47,13 @@ export async function GET(request) {
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
 
-    // Daily visitors
+    // Daily visitors (use Montreal timezone for day mapping)
+    function toMontrealDate(d) {
+      return new Date(d).toLocaleDateString("en-CA", { timeZone: "America/Montreal" });
+    }
     const dailyMap = {};
     for (const s of sessions) {
-      const day = new Date(s.startedAt).toISOString().split("T")[0];
+      const day = toMontrealDate(s.startedAt);
       if (!dailyMap[day]) dailyMap[day] = { visitors: new Set(), pageViews: 0 };
       dailyMap[day].visitors.add(s.visitorId);
       dailyMap[day].pageViews += s.pageViews.length;
@@ -60,7 +63,7 @@ export async function GET(request) {
     for (let i = loopDays - 1; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      const key = d.toISOString().split("T")[0];
+      const key = toMontrealDate(d);
       daily.push({
         date: key,
         visitors: dailyMap[key]?.visitors.size || 0,
@@ -82,22 +85,32 @@ export async function GET(request) {
       browsers[b] = (browsers[b] || 0) + 1;
     }
 
-    // Referrers
+    // Referrers (include direct visits)
     const referrers = {};
+    let directCount = 0;
     for (const s of sessions) {
       if (s.referrer) {
         try {
           const host = new URL(s.referrer).hostname;
-          referrers[host] = (referrers[host] || 0) + 1;
+          if (host.includes("vosthermos")) {
+            directCount++;
+          } else {
+            referrers[host] = (referrers[host] || 0) + 1;
+          }
         } catch {
           referrers[s.referrer] = (referrers[s.referrer] || 0) + 1;
         }
+      } else {
+        directCount++;
       }
     }
     const topReferrers = Object.entries(referrers)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 15)
       .map(([source, count]) => ({ source, count }));
+    if (directCount > 0) {
+      topReferrers.unshift({ source: "Direct / Aucun referrer", count: directCount });
+    }
 
     // Recent visitors (last 20 unique)
     const visitorMap = {};

@@ -27,7 +27,7 @@ export default function DailyChart({ daily }) {
           </div>
         </div>
         <p className="admin-text-muted text-xs text-center">
-          {new Date(today.date).toLocaleDateString("fr-CA", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+          {new Date(today.date + "T12:00:00").toLocaleDateString("fr-CA", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
         </p>
       </div>
     );
@@ -68,7 +68,7 @@ export default function DailyChart({ daily }) {
                   className="fill-current admin-text-muted"
                   style={{ fontSize: "9px" }}
                 >
-                  {new Date(d.date).toLocaleDateString("fr-CA", { day: "numeric", month: "short" }).replace(".", "")}
+                  {new Date(d.date + "T12:00:00").toLocaleDateString("fr-CA", { day: "numeric", month: "short" }).replace(".", "")}
                 </text>
               </g>
             );
