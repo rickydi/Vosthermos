@@ -5,8 +5,8 @@ import useFormTracking from "@/lib/useFormTracking";
 import { formatPhoneInput } from "@/lib/phone";
 
 const inputWrap = "relative";
-const inputClass = "w-full bg-white/[0.15] border border-white/[0.2] rounded-lg px-4 py-2.5 text-white placeholder-white/50 text-sm focus:outline-none focus:border-[var(--color-red)] transition-colors pr-10";
-const checkClass = "absolute right-3 top-1/2 -translate-y-1/2 text-green-400 text-sm pointer-events-none";
+const inputClass = "w-full bg-white border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:border-[var(--color-red)] transition-colors pr-10";
+const checkClass = "absolute right-3 top-1/2 -translate-y-1/2 text-green-500 text-sm pointer-events-none";
 
 export default function QuoteForm({ compact = false }) {
   const [status, setStatus] = useState("");
