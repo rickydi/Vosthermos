@@ -180,21 +180,13 @@ export default function RealisationsPage() {
       {/* Stats */}
       <section className="bg-white border-b border-[var(--color-border)]">
         <div className="max-w-[1200px] mx-auto px-6 py-10">
-          <div className="grid grid-cols-3 gap-6 text-center">
+          <div className="grid grid-cols-2 gap-6 text-center max-w-lg mx-auto">
             <div>
               <div className="text-3xl md:text-4xl font-extrabold text-[var(--color-teal)]">
                 500+
               </div>
               <div className="text-[var(--color-muted)] text-sm mt-1">
                 Projets completes
-              </div>
-            </div>
-            <div>
-              <div className="text-3xl md:text-4xl font-extrabold text-[var(--color-teal)]">
-                450+
-              </div>
-              <div className="text-[var(--color-muted)] text-sm mt-1">
-                Clients satisfaits
               </div>
             </div>
             <div>
