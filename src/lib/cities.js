@@ -421,12 +421,12 @@ export const CITIES = [
     neighborhoods: ["Vieux-Vaudreuil", "Dorion", "Valois", "Secteur de la Gare", "Domaine Cavagnal"],
     commonIssues: [
       "Dégradation accélérée des joints et cadres de fenêtres causée par l'humidité du fleuve et de la rivière des Outaouais",
-      "Thermos embuées dans les constructions résidentielles des années 2000-2010 des secteurs Dorion et Valois",
+      "Thermos embuées dans les développements du secteur Valois et le long du boulevard de la Cité-des-Jeunes construits entre 2000 et 2010",
       "Fenêtres patrimoniales à restaurer dans les maisons ancestrales du Vieux-Vaudreuil",
     ],
     faq: [
       { question: "Combien coûte un remplacement de thermos à Vaudreuil-Dorion?", answer: "Un thermos standard coûte entre 150$ et 350$ installé. Les maisons riveraines du Vieux-Vaudreuil peuvent nécessiter des formats sur mesure à coûts légèrement supérieurs. Soumission gratuite à domicile dans tout Vaudreuil-Dorion." },
-      { question: "Desservez-vous Vaudreuil-Dorion malgré la distance?", answer: "Oui, Vaudreuil-Dorion fait partie de notre zone de service régulière. Nous sommes à environ 40 minutes et nous regroupons nos interventions dans le secteur Vaudreuil-Soulanges pour un service efficace." },
+      { question: "Les maisons ancestrales du chemin de l'Anse à Vaudreuil peuvent-elles recevoir des thermos modernes?", answer: "Oui, nous adaptons des vitres thermos modernes aux cadres de fenêtres anciennes des maisons du chemin de l'Anse dans le Vieux-Vaudreuil. Nous préservons les moulures et le cachet patrimonial tout en améliorant significativement l'isolation thermique et acoustique." },
       { question: "L'humidité du fleuve affecte-t-elle les fenêtres à Vaudreuil-Dorion?", answer: "Oui, la proximité du fleuve Saint-Laurent et de la rivière des Outaouais crée un taux d'humidité élevé qui accélère la corrosion de la quincaillerie et la dégradation des joints d'étanchéité. Nous recommandons un entretien préventif régulier pour les propriétés riveraines." },
     ],
   },
@@ -440,13 +440,13 @@ export const CITIES = [
       "Salaberry-de-Valleyfield est une ville historique industrielle bordée par le lac Saint-François et le canal de Beauharnois. Le centre-ville et le secteur de la Grande-Île abritent un patrimoine bâti ouvrier des années 1920-1960 avec de nombreuses maisons aux fenêtres vieillissantes. Les quartiers résidentiels plus récents le long du boulevard Monseigneur-Langlois combinent bungalows et maisons de ville des années 1980-2000.",
     neighborhoods: ["Centre-ville", "Grande-Île", "Boulevard Monseigneur-Langlois", "Secteur du Lac", "Parc Delpha-Sauvé"],
     commonIssues: [
-      "Fenêtres vétustes dans les maisons ouvrières du centre-ville datant des années 1920-1960",
+      "Fenêtres à battant d'origine avec contre-fenêtres en bois dans les maisons ouvrières de la rue Victoria et du secteur Grande-Île",
       "Infiltrations d'air et condensation excessive dans les bungalows des années 80 près du lac Saint-François",
       "Quincaillerie corrodée par l'humidité du lac et du canal de Beauharnois",
     ],
     faq: [
-      { question: "Quel est le prix pour remplacer des thermos à Salaberry-de-Valleyfield?", answer: "Un thermos standard coûte entre 150$ et 350$ installé. Les maisons plus anciennes du centre-ville peuvent nécessiter des adaptations sur mesure. Nous offrons des soumissions gratuites dans tout Valleyfield." },
-      { question: "Vous déplacez-vous jusqu'à Valleyfield?", answer: "Oui, Salaberry-de-Valleyfield fait partie de notre territoire de service. Nous sommes à environ 55 minutes et nous planifions nos déplacements dans le secteur Vaudreuil-Soulanges pour regrouper les interventions." },
+      { question: "Quel est le prix pour remplacer des thermos à Salaberry-de-Valleyfield?", answer: "Un thermos standard coûte entre 125$ et 300$ installé. Les maisons ouvrières du centre-ville avec des fenêtres de petit format permettent souvent des remplacements économiques. Pour les adaptations sur mesure des formats anciens, comptez entre 275$ et 450$. Soumission gratuite dans tout Valleyfield." },
+      { question: "Les maisons ouvrières du centre-ville de Valleyfield valent-elles la peine d'être réparées?", answer: "Absolument. Les maisons ouvrières des années 1920-1960 du centre-ville et de la Grande-Île ont des cadres souvent encore en bon état structurel. Le remplacement des thermos et la réparation de quincaillerie coûtent une fraction du prix d'un remplacement complet de fenêtres, tout en redonnant confort et efficacité énergétique à ces propriétés au cachet unique." },
       { question: "Les maisons près du lac Saint-François ont-elles plus de problèmes de fenêtres?", answer: "Oui, l'humidité élevée du lac Saint-François accélère la dégradation des joints, la corrosion de la quincaillerie et la formation de buée dans les thermos. Un entretien préventif et des produits résistants à l'humidité sont recommandés pour ces propriétés." },
     ],
   },
@@ -460,14 +460,14 @@ export const CITIES = [
       "Île-Perrot est une municipalité insulaire située entre le lac des Deux-Montagnes et le lac Saint-Louis, offrant un cadre de vie riverain prisé. Le parc immobilier est majoritairement composé de bungalows et maisons unifamiliales des années 1970-1990, avec quelques développements récents. L'exposition aux vents du large et l'humidité lacustre imposent des contraintes particulières sur les fenêtres et portes.",
     neighborhoods: ["Pointe du Domaine", "Secteur du Golf", "Boulevard Perrot", "Windcrest", "Baie Brazeau"],
     commonIssues: [
-      "Thermos embuées dans les bungalows des années 70-90 exposés aux vents du lac",
+      "Thermos embuées dans les bungalows du secteur Windcrest et du boulevard Perrot construits dans les années 70-90",
       "Infiltrations d'air causées par les vents dominants sur les fenêtres côté lac",
       "Cadres de fenêtres endommagés par les cycles gel-dégel amplifiés par l'environnement insulaire",
     ],
     faq: [
       { question: "Combien coûte un remplacement de thermos à Île-Perrot?", answer: "Un thermos standard coûte entre 150$ et 350$ installé. Pour les fenêtres exposées aux vents du lac, nous recommandons des thermos à triple vitrage pour une meilleure isolation, ce qui peut augmenter le coût à 400$-500$." },
       { question: "Les vents du lac affectent-ils les fenêtres à Île-Perrot?", answer: "Oui, l'exposition aux vents dominants du lac des Deux-Montagnes et du lac Saint-Louis exerce une pression supplémentaire sur les joints et la quincaillerie. Les fenêtres côté lac se détériorent généralement plus vite et nécessitent un entretien plus fréquent." },
-      { question: "Desservez-vous Île-Perrot dans Vaudreuil-Soulanges?", answer: "Oui, Île-Perrot est à environ 35 minutes de nos bureaux. Nous intervenons régulièrement sur l'île et dans tout le secteur Vaudreuil-Soulanges." },
+      { question: "Les propriétés riveraines d'Île-Perrot nécessitent-elles des fenêtres spéciales?", answer: "Les maisons du boulevard Perrot et de la Pointe du Domaine, directement exposées aux vents du lac, bénéficient grandement de thermos à haut rendement (low-E avec argon ou triple vitrage). L'investissement supplémentaire se rentabilise rapidement en économies de chauffage vu l'exposition aux éléments." },
     ],
   },
   {
@@ -480,14 +480,14 @@ export const CITIES = [
       "Pincourt est une ville résidentielle paisible située sur l'île Perrot, bordée par le lac des Deux-Montagnes. La majorité des propriétés ont été construites entre 1975 et 2005, créant un parc immobilier homogène de maisons unifamiliales et de jumelés. Les résidents font face aux défis typiques des constructions de cette époque : thermos en fin de vie, quincaillerie usée et joints détériorés.",
     neighborhoods: ["Pincourt-Centre", "Secteur du Parc Olympique", "Boisé de Pincourt", "Cardinal-Léger", "Pointe à Brunet"],
     commonIssues: [
-      "Thermos en fin de vie dans les maisons construites entre 1975 et 1995",
+      "Thermos en fin de vie dans les maisons du secteur Cardinal-Léger et de la Pointe à Brunet construites entre 1975 et 1995",
       "Quincaillerie de fenêtres à manivelle grippée dans les constructions des années 80-90",
       "Portes d'entrée mal isolées causant des pertes de chaleur dans les propriétés de 30-40 ans",
     ],
     faq: [
       { question: "Quel est le prix d'un remplacement de thermos à Pincourt?", answer: "Un thermos standard coûte entre 150$ et 350$ installé. Les maisons de Pincourt ont généralement des formats de fenêtres standards, ce qui facilite un remplacement rapide et économique." },
       { question: "Les fenêtres à manivelle de Pincourt peuvent-elles être réparées?", answer: "Oui, nous réparons couramment les fenêtres à manivelle (à auvent ou à battant) des maisons des années 80-90. Le remplacement du mécanisme de manivelle, des charnières et des joints redonne une fonctionnalité complète sans avoir à changer la fenêtre entière." },
-      { question: "Desservez-vous Pincourt sur l'île Perrot?", answer: "Oui, Pincourt fait partie de notre zone de service régulière dans Vaudreuil-Soulanges. Nous sommes à environ 35 minutes et nous regroupons nos déplacements dans le secteur de l'île Perrot." },
+      { question: "Pourquoi tant de maisons à Pincourt ont-elles des fenêtres à manivelle problématiques?", answer: "Les constructions des années 1980-1995 à Pincourt utilisaient massivement des fenêtres à manivelle (à auvent ou à battant) dont les mécanismes d'ouverture ont une durée de vie de 20 à 30 ans. Le remplacement du mécanisme et des joints est beaucoup plus économique que de changer la fenêtre entière — comptez entre 75$ et 150$ par fenêtre pour la quincaillerie." },
     ],
   },
   {
@@ -500,14 +500,14 @@ export const CITIES = [
       "Notre-Dame-de-l'Île-Perrot est une municipalité résidentielle familiale sur l'île Perrot, reconnue pour ses rues boisées et son ambiance villageoise. Le parc immobilier se compose principalement de maisons unifamiliales construites entre 1985 et 2010, avec un mélange de bungalows et de maisons à étages. La proximité des lacs des Deux-Montagnes et Saint-Louis influence l'entretien des fenêtres et portes.",
     neighborhoods: ["Secteur du Village", "Domaine de l'Île", "Boulevard Don-Quichotte", "Parc-Nature", "Pointe du Moulin"],
     commonIssues: [
-      "Thermos embuées dans les maisons des années 1985-2000 nécessitant un remplacement",
+      "Thermos embuées dans les maisons familiales du boulevard Don-Quichotte et du Domaine de l'Île construites entre 1985 et 2000",
       "Moustiquaires endommagées sur les grandes fenêtres des propriétés familiales",
       "Joints d'étanchéité détériorés par les variations climatiques liées à l'environnement lacustre",
     ],
     faq: [
       { question: "Combien coûte la réparation de fenêtres à Notre-Dame-de-l'Île-Perrot?", answer: "Un thermos standard coûte entre 150$ et 350$ installé. Les maisons familiales typiques de Notre-Dame ont des formats de fenêtres courants qui permettent un remplacement efficace et abordable." },
       { question: "Réparez-vous les moustiquaires à Notre-Dame-de-l'Île-Perrot?", answer: "Oui, le remplacement et la réparation de moustiquaires font partie de nos services. Nous réparons les cadres, remplaçons les toiles et ajustons les systèmes de fixation pour toutes les tailles de fenêtres." },
-      { question: "Couvrez-vous Notre-Dame-de-l'Île-Perrot?", answer: "Oui, Notre-Dame-de-l'Île-Perrot est à environ 35 minutes de nos bureaux. Nous desservons régulièrement toute l'île Perrot et le secteur Vaudreuil-Soulanges." },
+      { question: "Les fenêtres des maisons près du parc historique de la Pointe-du-Moulin nécessitent-elles un entretien particulier?", answer: "Oui, les propriétés du secteur Pointe du Moulin et du boulevard Don-Quichotte côté lac sont particulièrement exposées aux vents lacustres. L'humidité du lac des Deux-Montagnes accélère l'usure des joints et de la quincaillerie. Nous recommandons une inspection aux 3-5 ans pour ces propriétés riveraines." },
     ],
   },
   {
@@ -520,14 +520,14 @@ export const CITIES = [
       "Saint-Lazare est une municipalité à caractère semi-rural reconnue pour ses grands terrains boisés et sa communauté équestre. Les propriétés sont majoritairement de grandes maisons unifamiliales construites entre 1990 et 2015 sur des terrains spacieux. Les constructions de cette période commencent à nécessiter leurs premiers remplacements de thermos et ajustements de quincaillerie.",
     neighborhoods: ["Secteur des Forêts", "Domaine des Cèdres", "Chanterel", "Saddlebrook", "Les Roulottes"],
     commonIssues: [
-      "Premiers remplacements de thermos dans les maisons des années 1995-2010",
+      "Premiers remplacements de thermos dans les maisons du secteur Chanterel et Saddlebrook construites entre 1995 et 2010",
       "Fenêtres surdimensionnées difficiles à entretenir dans les grandes propriétés",
       "Portes-patio à ajuster dans les maisons de 15-25 ans avec léger tassement de sol",
     ],
     faq: [
-      { question: "Quel est le coût pour remplacer des thermos à Saint-Lazare?", answer: "Un thermos standard coûte entre 150$ et 350$ installé. Les grandes propriétés de Saint-Lazare ont souvent des fenêtres surdimensionnées et des baies vitrées panoramiques qui nécessitent des thermos plus grands, pouvant aller de 400$ à 600$." },
+      { question: "Quel est le coût pour remplacer des thermos à Saint-Lazare?", answer: "Un thermos standard coûte entre 175$ et 400$ installé. Les grandes propriétés de Saint-Lazare ont souvent des fenêtres surdimensionnées et des baies vitrées panoramiques qui nécessitent des thermos plus grands, pouvant aller de 450$ à 650$. Le coût moyen par maison est plus élevé qu'en banlieue dense vu la taille des propriétés." },
       { question: "Pouvez-vous intervenir sur les grandes fenêtres des propriétés de Saint-Lazare?", answer: "Oui, nous avons l'expérience des fenêtres surdimensionnées typiques des grandes propriétés de Saint-Lazare. Nous utilisons des équipements adaptés pour la manipulation sécuritaire des grands formats de thermos." },
-      { question: "Desservez-vous Saint-Lazare malgré son éloignement?", answer: "Oui, Saint-Lazare est à environ 40 minutes de nos bureaux et fait partie de notre zone de service dans Vaudreuil-Soulanges. Nous planifions nos déplacements pour regrouper les interventions dans le secteur." },
+      { question: "Les grandes propriétés équestres de Saint-Lazare ont-elles des besoins particuliers en fenêtres?", answer: "Oui, les propriétés du secteur Saddlebrook et des Forêts sont souvent de grandes maisons avec des fenêtres surdimensionnées et des baies vitrées panoramiques donnant sur les terrains boisés. Ces grands formats nécessitent des thermos sur mesure et une manipulation spécialisée, mais le remplacement reste bien plus économique qu'un changement complet de fenêtres." },
     ],
   },
   {
@@ -540,14 +540,14 @@ export const CITIES = [
       "Beauharnois est une ville historique industrielle située le long du canal de Beauharnois et du lac Saint-Louis. Le centre-ville conserve un patrimoine bâti ouvrier des années 1930-1960 avec de nombreuses maisons à rénover. Les secteurs plus récents comme Maple Grove offrent des constructions résidentielles des années 1980-2000. La proximité du canal crée un environnement humide qui accélère la détérioration des composantes de fenêtres.",
     neighborhoods: ["Centre-ville", "Maple Grove", "Secteur du Canal", "Melocheville", "Saint-Étienne-de-Beauharnois"],
     commonIssues: [
-      "Fenêtres vétustes dans les maisons ouvrières du centre-ville datant des années 1930-1960",
+      "Fenêtres à guillotine et à battant d'origine dans les maisons ouvrières construites pour les travailleurs de la centrale de Beauharnois dans les années 1930-1960",
       "Quincaillerie corrodée par l'humidité du canal de Beauharnois",
       "Thermos embuées dans les constructions résidentielles des années 80-90 de Maple Grove",
     ],
     faq: [
-      { question: "Combien coûte un remplacement de thermos à Beauharnois?", answer: "Un thermos standard coûte entre 150$ et 350$ installé. Les maisons plus anciennes du centre-ville de Beauharnois peuvent nécessiter des adaptations sur mesure pour les formats de fenêtres non standards." },
+      { question: "Combien coûte un remplacement de thermos à Beauharnois?", answer: "Un thermos standard coûte entre 125$ et 300$ installé. Les maisons ouvrières du centre-ville ont souvent des fenêtres de petit format qui permettent des remplacements économiques. Pour les formats non standards des bâtiments plus anciens, comptez entre 275$ et 475$." },
       { question: "L'humidité du canal de Beauharnois affecte-t-elle les fenêtres?", answer: "Oui, la proximité du canal et du lac Saint-Louis crée un taux d'humidité élevé qui accélère la corrosion de la quincaillerie, la dégradation des joints et la formation de buée dans les thermos. Un entretien préventif régulier est fortement recommandé." },
-      { question: "Desservez-vous Beauharnois et Melocheville?", answer: "Oui, Beauharnois incluant le secteur de Melocheville fait partie de notre zone de service. Nous sommes à environ 35 minutes et couvrons l'ensemble de la MRC de Beauharnois-Salaberry." },
+      { question: "Peut-on moderniser les fenêtres des maisons ouvrières de Beauharnois sans perdre leur cachet?", answer: "Oui, les maisons ouvrières des années 1930-1960 du centre-ville de Beauharnois, construites à l'époque de la centrale hydroélectrique, ont souvent des cadres de fenêtres encore solides. Nous remplaçons uniquement les thermos et la quincaillerie usée, conservant le cadre d'origine et le caractère architectural de ces maisons à un coût bien inférieur au remplacement complet." },
     ],
   },
   {
@@ -560,13 +560,13 @@ export const CITIES = [
       "Saint-Jérôme, la Porte du Nord, est le pôle urbain principal des Laurentides avec un riche patrimoine bâti. Le centre-ville autour de la cathédrale et de la rivière du Nord abrite des bâtiments commerciaux et résidentiels du début du 20e siècle. Les secteurs Bellefeuille et Lafontaine ont connu une forte croissance résidentielle avec des maisons des années 1980 à aujourd'hui. La rigueur des hivers laurentiens impose des contraintes importantes sur les fenêtres.",
     neighborhoods: ["Centre-ville", "Bellefeuille", "Lafontaine", "Secteur de la Gare", "Parc Labelle"],
     commonIssues: [
-      "Thermos embuées dans les bungalows des années 80-90 des secteurs Bellefeuille et Lafontaine",
+      "Thermos embuées dans les bungalows le long du boulevard de La Salette à Bellefeuille et de la rue Melançon à Lafontaine, construits dans les années 80-90",
       "Infiltrations d'air et condensation excessive durant les hivers rigoureux des Laurentides",
       "Fenêtres à restaurer dans les bâtiments patrimoniaux du centre-ville historique",
     ],
     faq: [
       { question: "Combien coûte un remplacement de thermos à Saint-Jérôme?", answer: "Un thermos standard coûte entre 150$ et 350$ installé. Pour les propriétés du centre-ville historique nécessitant des formats sur mesure, les prix peuvent atteindre 400$ à 550$. Soumission gratuite à domicile." },
-      { question: "Desservez-vous Saint-Jérôme dans les Laurentides?", answer: "Oui, Saint-Jérôme fait partie de notre zone de service. Nous sommes à environ 50 minutes et nous regroupons nos interventions dans le secteur des Laurentides pour un service efficace." },
+      { question: "Pourquoi les bungalows de Bellefeuille et Lafontaine ont-ils autant de problèmes de thermos?", answer: "Les secteurs Bellefeuille et Lafontaine ont connu un boom de construction dans les années 1980-1995, avec des thermos de première et deuxième génération dont la durée de vie est maintenant atteinte. De plus, les hivers plus rigoureux des Laurentides (2 à 4 degrés de moins qu'à Montréal) imposent un stress thermique supérieur qui accélère la perte d'étanchéité du scellant." },
       { question: "Les hivers des Laurentides causent-ils plus de dommages aux fenêtres?", answer: "Oui, les températures plus froides des Laurentides accentuent les cycles de gel-dégel et la condensation, ce qui accélère la dégradation des thermos et des joints d'étanchéité. Des thermos à haut rendement avec gaz argon sont particulièrement recommandés dans cette région." },
     ],
   },
@@ -580,14 +580,14 @@ export const CITIES = [
       "Mirabel est une vaste municipalité des Laurentides qui a connu une explosion démographique depuis les années 2000, passant de 25 000 à plus de 60 000 habitants. Les secteurs comme le Domaine Vert Nord, Saint-Augustin et Saint-Janvier abritent de vastes développements de maisons neuves et semi-neuves. Les premières vagues de constructions (2000-2012) montrent maintenant leurs premiers signes d'usure de thermos et de quincaillerie.",
     neighborhoods: ["Domaine Vert Nord", "Saint-Janvier", "Saint-Augustin", "Domaine Vert Sud", "Secteur de la 15"],
     commonIssues: [
-      "Premiers remplacements de thermos dans les maisons construites entre 2000 et 2012",
-      "Défauts de quincaillerie d'entrée de gamme dans les constructions de volume",
-      "Portes-patio à ajuster dans les nouvelles constructions avec tassement de fondation",
+      "Premiers remplacements de thermos dans les développements du Domaine Vert Nord et de Saint-Janvier construits entre 2000 et 2012",
+      "Poignées cassées et mécanismes de verrouillage défaillants sur les fenêtres d'entrée de gamme des constructions de série",
+      "Portes-patio désalignées par le tassement de fondation dans les sols argileux typiques du secteur de la 15",
     ],
     faq: [
       { question: "Quel est le prix pour remplacer des thermos à Mirabel?", answer: "Un thermos standard coûte entre 150$ et 350$ installé. Les maisons récentes de Mirabel ont généralement des formats standards qui permettent un remplacement rapide et économique." },
       { question: "Les maisons neuves de Mirabel ont-elles déjà besoin de réparations?", answer: "Oui, les premières vagues de constructions (2000-2012) atteignent 14 à 26 ans. Les thermos commencent à montrer de la buée et la quincaillerie d'entrée de gamme, courante dans les constructions de volume, peut nécessiter des remplacements." },
-      { question: "Desservez-vous Mirabel dans les Laurentides?", answer: "Oui, Mirabel fait partie de notre zone de service régulière. Nous sommes à environ 45 minutes et nous regroupons nos interventions dans le secteur des Laurentides pour optimiser nos déplacements." },
+      { question: "Pourquoi la quincaillerie des maisons neuves de Mirabel s'use-t-elle si vite?", answer: "La croissance rapide de Mirabel a attiré beaucoup de constructeurs de volume (maisons de série) qui utilisaient parfois de la quincaillerie d'entrée de gamme pour réduire les coûts. Les poignées, mécanismes de verrouillage et charnières de ces fenêtres montrent des signes d'usure après seulement 10-15 ans. Nous remplaçons ces composantes par des pièces de qualité supérieure pour une durabilité accrue." },
     ],
   },
   {
@@ -600,14 +600,14 @@ export const CITIES = [
       "Boisbriand est une ville résidentielle des Laurentides connue pour son parc immobilier diversifié, allant des bungalows des années 1970 dans le secteur du Faubourg Boisbriand aux développements récents près de l'autoroute 15. La ville abrite aussi l'ancien site de l'usine GM, maintenant reconverti en quartier résidentiel. Les propriétaires des maisons plus anciennes font face à des remplacements massifs de thermos en fin de vie.",
     neighborhoods: ["Faubourg Boisbriand", "Secteur de la 640", "Place de la Gare", "Domaine des Mille-Îles", "Boisé de la Rivière"],
     commonIssues: [
-      "Thermos en fin de vie dans les bungalows des années 70-80 du Faubourg Boisbriand",
+      "Thermos en fin de vie dans les bungalows du Faubourg Boisbriand et du Domaine des Mille-Îles, construits lors du boom résidentiel des années 70-80",
       "Portes-patio à roulettes usées dans les propriétés de 30-40 ans",
       "Fenêtres à manivelle grippées nécessitant un remplacement de mécanisme",
     ],
     faq: [
       { question: "Combien coûte un remplacement de thermos à Boisbriand?", answer: "Un thermos standard coûte entre 150$ et 350$ installé. Les bungalows typiques de Boisbriand ont généralement des fenêtres de formats standards, ce qui permet un remplacement efficace et abordable." },
       { question: "Réparez-vous les portes-patio à Boisbriand?", answer: "Oui, la réparation de portes-patio est l'un de nos services les plus demandés. Nous remplaçons les roulettes, poignées, serrures et rails usés pour redonner un fonctionnement fluide à votre porte-patio." },
-      { question: "Boisbriand est-il dans votre zone de service?", answer: "Oui, Boisbriand est à environ 40 minutes de nos bureaux et fait partie de notre zone de service régulière dans les Laurentides. Nous y intervenons fréquemment." },
+      { question: "Les bungalows du Faubourg Boisbriand nécessitent-ils tous un remplacement de thermos?", answer: "Le Faubourg Boisbriand, développé principalement dans les années 1970-1985, abrite des bungalows dont les thermos d'origine ont largement dépassé leur durée de vie utile de 20-30 ans. Si vous voyez de la buée entre les vitres, le scellant a cédé et le gaz isolant s'est échappé. Nous remplaçons souvent 5 à 12 thermos par maison dans ce secteur, avec des économies de chauffage immédiates." },
     ],
   },
   {
@@ -620,14 +620,14 @@ export const CITIES = [
       "Sainte-Thérèse est une ville dynamique des Laurentides avec un centre-ville animé et un patrimoine bâti varié. Le Vieux-Sainte-Thérèse possède des maisons de caractère du début du 20e siècle, tandis que les secteurs résidentiels des années 1960-1980 forment le cœur du parc immobilier. La ville est aussi reconnue pour son cégep et ses commerces de la rue Turgeon, autour desquels gravitent des propriétés locatives nécessitant un entretien régulier des fenêtres.",
     neighborhoods: ["Vieux-Sainte-Thérèse", "Rue Turgeon", "Secteur du Cégep", "Ducharme", "Parc Richelieu"],
     commonIssues: [
-      "Thermos embuées dans les maisons des années 60-80 du cœur résidentiel",
-      "Fenêtres à restaurer dans les propriétés de caractère du Vieux-Sainte-Thérèse",
-      "Quincaillerie usée sur les fenêtres des immeubles locatifs du secteur commercial",
+      "Thermos embuées dans les maisons des rues Ducharme, Blainville et du secteur du Cégep, construites dans les années 60-80",
+      "Fenêtres en bois à restaurer dans les maisons de caractère du Vieux-Sainte-Thérèse le long de la rue Blainville Est",
+      "Quincaillerie usée et serrures défaillantes sur les fenêtres des immeubles locatifs de la rue Turgeon et du secteur du Cégep",
     ],
     faq: [
       { question: "Quel est le prix d'un remplacement de thermos à Sainte-Thérèse?", answer: "Un thermos standard coûte entre 150$ et 350$ installé. Les propriétés plus anciennes du Vieux-Sainte-Thérèse peuvent nécessiter des formats sur mesure à coûts légèrement supérieurs." },
       { question: "Réparez-vous les fenêtres des immeubles locatifs à Sainte-Thérèse?", answer: "Oui, nous offrons des services adaptés aux propriétaires d'immeubles locatifs : remplacement de thermos en lot, réparation de quincaillerie et entretien préventif. Des tarifs avantageux sont disponibles pour les projets multi-unités." },
-      { question: "Desservez-vous Sainte-Thérèse?", answer: "Oui, Sainte-Thérèse est à environ 40 minutes de nos bureaux. Nous couvrons toute la MRC de Thérèse-De Blainville incluant Sainte-Thérèse, Blainville, Boisbriand, Rosemère et Lorraine." },
+      { question: "Y a-t-il beaucoup de fenêtres à remplacer dans le secteur de la rue Turgeon?", answer: "Le secteur commercial de la rue Turgeon et les rues résidentielles adjacentes abritent de nombreux immeubles locatifs et propriétés des années 1950-1970 dont les fenêtres sont en fin de vie. Les propriétaires-bailleurs y font régulièrement appel à nos services pour des remplacements de thermos en lot, ce qui permet des tarifs avantageux par unité." },
     ],
   },
   {
@@ -640,14 +640,14 @@ export const CITIES = [
       "Rosemère est une municipalité résidentielle cossue des Laurentides, bordée par la rivière des Mille-Îles. La ville est reconnue pour ses rues boisées, ses grands terrains et ses propriétés haut de gamme. Le parc immobilier comprend des maisons des années 1960-1970 dans le secteur du Grand-Moulin et des propriétés de prestige le long de la rivière. Les propriétaires investissent généralement dans des réparations de qualité pour maintenir la valeur de leurs propriétés.",
     neighborhoods: ["Grand-Moulin", "Secteur Rivière", "Manoir des Trembles", "Tylee", "Sainte-Françoise"],
     commonIssues: [
-      "Thermos surdimensionnées à remplacer dans les propriétés haut de gamme riveraines",
+      "Thermos surdimensionnées à remplacer dans les propriétés de prestige du secteur Grand-Moulin et le long de la rivière des Mille-Îles",
       "Fenêtres en bois noble à restaurer dans les maisons de prestige des années 60-70",
       "Portes-patio de grande taille nécessitant un ajustement de quincaillerie spécialisée",
     ],
     faq: [
-      { question: "Combien coûte un remplacement de thermos à Rosemère?", answer: "Les prix varient de 175$ à 500$ selon les dimensions. Les propriétés haut de gamme de Rosemère ont souvent des fenêtres surdimensionnées et des baies vitrées panoramiques qui nécessitent des thermos plus grands." },
+      { question: "Combien coûte un remplacement de thermos à Rosemère?", answer: "Les prix varient de 200$ à 550$ selon les dimensions. Les propriétés cossues de Rosemère ont souvent des fenêtres surdimensionnées et des baies vitrées panoramiques donnant sur la rivière des Mille-Îles. Pour les fenêtres en bois noble, prévoyez un budget supérieur pour une restauration qui respecte le prestige de la propriété." },
       { question: "Restaurez-vous les fenêtres en bois des maisons de prestige de Rosemère?", answer: "Oui, nous avons l'expertise pour restaurer les fenêtres en bois noble des propriétés de prestige. Nous préservons le bois d'origine, remplaçons le thermos et restaurons les mécanismes pour maintenir le cachet de votre maison." },
-      { question: "Rosemère est-elle dans votre zone de service?", answer: "Oui, Rosemère est à environ 40 minutes de nos bureaux et fait partie de notre zone de service dans les Laurentides. Nous y intervenons régulièrement, notamment pour les propriétés riveraines de la rivière des Mille-Îles." },
+      { question: "Les maisons riveraines de la rivière des Mille-Îles à Rosemère ont-elles des problèmes particuliers?", answer: "Oui, les propriétés du secteur Grand-Moulin et le long de la rivière des Mille-Îles subissent un taux d'humidité plus élevé qui accélère la corrosion de la quincaillerie en métal et la dégradation des cadres en bois. Nous recommandons des inspections aux 3 ans et l'utilisation de quincaillerie en acier inoxydable pour ces propriétés riveraines haut de gamme." },
     ],
   },
   {
@@ -660,14 +660,14 @@ export const CITIES = [
       "Lorraine est une petite municipalité résidentielle huppée des Laurentides, reconnue pour ses rues sinueuses bordées d'arbres matures et ses propriétés unifamiliales de grande valeur. Les maisons, principalement construites entre 1975 et 2000, sont généralement de grands formats sur des terrains boisés. Les propriétaires de Lorraine privilégient des réparations de qualité supérieure pour maintenir le prestige de leurs propriétés.",
     neighborhoods: ["Secteur du Boisé", "Chemin de Lorraine", "Domaine des Chênes", "Secteur du Golf", "Montée Lesage"],
     commonIssues: [
-      "Remplacement de thermos surdimensionnées dans les grandes propriétés de prestige",
+      "Remplacement de thermos surdimensionnées dans les résidences du chemin de Lorraine et du Domaine des Chênes avec baies vitrées panoramiques",
       "Quincaillerie haut de gamme usée sur les portes-patio et fenêtres de grande taille",
       "Condensation et perte d'efficacité énergétique dans les maisons des années 75-90",
     ],
     faq: [
-      { question: "Quel est le coût de remplacement de thermos à Lorraine?", answer: "Les prix varient de 175$ à 550$ selon les dimensions. Les grandes propriétés de Lorraine ont souvent des fenêtres et baies vitrées surdimensionnées qui nécessitent des thermos plus grands et une manipulation spécialisée." },
+      { question: "Quel est le coût de remplacement de thermos à Lorraine?", answer: "Les prix varient de 200$ à 600$ selon les dimensions. Les résidences de prestige de Lorraine ont des fenêtres et baies vitrées surdimensionnées qui nécessitent des thermos sur mesure et une manipulation spécialisée avec ventouses. Le budget moyen par maison à Lorraine est supérieur à la moyenne régionale en raison de la taille des propriétés." },
       { question: "Offrez-vous des produits haut de gamme pour les propriétés de Lorraine?", answer: "Oui, nous proposons des thermos à haut rendement avec verre low-E, gaz argon et intercalaires Super Spacer pour une performance maximale. Ces produits conviennent parfaitement aux propriétés de prestige de Lorraine." },
-      { question: "Desservez-vous Lorraine?", answer: "Oui, Lorraine est à environ 40 minutes de nos bureaux. Nous couvrons toute la MRC de Thérèse-De Blainville et intervenons régulièrement à Lorraine pour l'entretien des fenêtres et portes." },
+      { question: "Comment entretenir les grandes baies vitrées des maisons de Lorraine en hiver?", answer: "Les grandes propriétés de Lorraine, avec leurs vastes surfaces vitrées donnant sur les terrains boisés, perdent beaucoup de chaleur si les thermos sont défaillants. Nous recommandons de vérifier annuellement l'absence de buée entre les vitres et de faire inspecter la quincaillerie. Le remplacement par des thermos low-E avec argon peut réduire les pertes thermiques de 40% sur les grandes baies vitrées." },
     ],
   },
   {
@@ -680,14 +680,14 @@ export const CITIES = [
       "Deux-Montagnes est une ville résidentielle située en bordure du lac des Deux-Montagnes, offrant un cadre de vie riverain accessible. Le parc immobilier est composé principalement de bungalows et de maisons à étages des années 1960-1990, avec quelques développements plus récents. La proximité du lac et l'exposition aux vents créent des conditions qui accélèrent la détérioration des composantes de fenêtres.",
     neighborhoods: ["Centre-ville", "Secteur de la Plage", "Grand-Moulin", "Olympia", "Domaine Deux-Montagnes"],
     commonIssues: [
-      "Thermos embuées dans les bungalows des années 60-80 du secteur résidentiel",
-      "Quincaillerie corrodée par l'humidité du lac des Deux-Montagnes",
+      "Thermos embuées dans les bungalows des rues du secteur Olympia et Grand-Moulin construits dans les années 60-80",
+      "Quincaillerie corrodée par les embruns et l'humidité constante du lac des Deux-Montagnes, surtout côté plage",
       "Infiltrations d'air par les joints détériorés sur les fenêtres exposées aux vents du lac",
     ],
     faq: [
       { question: "Combien coûte un remplacement de thermos à Deux-Montagnes?", answer: "Un thermos standard coûte entre 150$ et 350$ installé. Pour les propriétés riveraines du lac exposées aux vents, nous recommandons des thermos à haut rendement pour une meilleure isolation." },
       { question: "L'humidité du lac affecte-t-elle les fenêtres à Deux-Montagnes?", answer: "Oui, la proximité du lac des Deux-Montagnes crée un environnement plus humide qui accélère la corrosion de la quincaillerie et la dégradation des joints. Les propriétés côté lac nécessitent un entretien plus fréquent." },
-      { question: "Desservez-vous Deux-Montagnes?", answer: "Oui, Deux-Montagnes fait partie de notre zone de service dans les Laurentides. Nous sommes à environ 45 minutes et regroupons nos interventions dans le secteur pour un service efficace." },
+      { question: "Les fenêtres du secteur de la Plage à Deux-Montagnes s'usent-elles plus vite?", answer: "Oui, les propriétés du secteur de la Plage et d'Olympia, directement exposées au lac des Deux-Montagnes, subissent des conditions plus sévères : vents du large, embruns et humidité constante. La quincaillerie y corrode plus rapidement et les joints de thermos cèdent souvent 5 à 8 ans avant ceux des maisons situées plus à l'intérieur. Un entretien préventif aux 3 ans est fortement recommandé." },
     ],
   },
   {
@@ -700,14 +700,14 @@ export const CITIES = [
       "Saint-Eustache est une ville historique des Laurentides, connue pour la bataille de 1837 et son église patrimoniale. Le Vieux-Saint-Eustache conserve un patrimoine bâti remarquable le long de la rivière du Chêne, tandis que les vastes secteurs résidentiels des années 1970-1990 au sud de l'autoroute 640 forment le cœur du parc immobilier. La ville offre un mélange de besoins en restauration patrimoniale et en remplacement de thermos standards.",
     neighborhoods: ["Vieux-Saint-Eustache", "Secteur de la 640", "Grande-Côte", "Domaine des Érables", "Boulevard Arthur-Sauvé"],
     commonIssues: [
-      "Thermos en fin de vie dans les vastes secteurs résidentiels des années 70-90",
+      "Thermos en fin de vie dans les vastes développements le long du boulevard Arthur-Sauvé et de la Grande-Côte construits dans les années 70-90",
       "Fenêtres patrimoniales à restaurer dans les bâtiments historiques du Vieux-Saint-Eustache",
       "Portes d'entrée mal isolées dans les bungalows causant des pertes de chaleur importantes",
     ],
     faq: [
       { question: "Quel est le prix pour remplacer des thermos à Saint-Eustache?", answer: "Un thermos standard coûte entre 150$ et 350$ installé. Les propriétés patrimoniales du Vieux-Saint-Eustache peuvent nécessiter des formats sur mesure pour respecter le cachet historique." },
       { question: "Restaurez-vous les fenêtres des bâtiments patrimoniaux de Saint-Eustache?", answer: "Oui, nous avons l'expérience de la restauration de fenêtres dans les bâtiments patrimoniaux. Nous préservons l'apparence d'origine tout en intégrant des thermos modernes pour améliorer l'efficacité énergétique, dans le respect des normes patrimoniales." },
-      { question: "Desservez-vous Saint-Eustache dans les Laurentides?", answer: "Oui, Saint-Eustache fait partie de notre zone de service. Nous sommes à environ 45 minutes et couvrons l'ensemble de la MRC de Deux-Montagnes incluant Saint-Eustache, Deux-Montagnes et Sainte-Marthe-sur-le-Lac." },
+      { question: "L'église de Saint-Eustache a des fenêtres patrimoniales — travaillez-vous sur ce type de bâtiment?", answer: "Nous intervenons principalement sur les propriétés résidentielles, mais notre expertise en restauration de fenêtres anciennes s'applique aux maisons patrimoniales du Vieux-Saint-Eustache le long de la rivière du Chêne. Ces maisons du 19e siècle nécessitent un savoir-faire particulier pour remplacer les thermos tout en préservant les cadres et moulures d'époque." },
     ],
   },
   {
@@ -720,14 +720,14 @@ export const CITIES = [
       "Sainte-Marthe-sur-le-Lac est une ville résidentielle en bordure du lac des Deux-Montagnes, marquée par les inondations historiques de 2019 qui ont affecté des centaines de propriétés. De nombreux propriétaires ont dû reconstruire ou rénover après le bris de la digue, créant une demande importante pour le remplacement de fenêtres et portes endommagées. Le parc immobilier comprend des bungalows des années 1970-1990 et des constructions post-inondation.",
     neighborhoods: ["Secteur de la Digue", "Centre-ville", "Domaine Lakeshore", "Secteur du Parc", "Boulevard des Promenades"],
     commonIssues: [
-      "Remplacement de fenêtres et portes endommagées par les inondations de 2019",
-      "Thermos embuées dans les bungalows des années 70-90 du secteur résidentiel",
-      "Moisissures et dégradation de cadres causées par l'humidité résiduelle post-inondation",
+      "Remplacement de fenêtres et portes du secteur de la Digue endommagées par les inondations de 2019 et l'humidité résiduelle persistante",
+      "Thermos embuées dans les bungalows du boulevard des Promenades et du Domaine Lakeshore construits dans les années 70-90",
+      "Moisissures autour des cadres de fenêtres et quincaillerie corrodée dans les maisons du secteur de la Digue touchées par l'humidité résiduelle post-inondation",
     ],
     faq: [
       { question: "Combien coûte un remplacement de thermos à Sainte-Marthe-sur-le-Lac?", answer: "Un thermos standard coûte entre 150$ et 350$ installé. Pour les propriétés ayant subi des dommages d'eau, nous offrons des évaluations complètes pour identifier toutes les composantes à remplacer." },
       { question: "Pouvez-vous remplacer des fenêtres endommagées par les inondations?", answer: "Oui, nous avons accompagné plusieurs propriétaires de Sainte-Marthe après les inondations de 2019. Nous remplaçons les thermos, les cadres endommagés par l'eau, la quincaillerie corrodée et les joints détériorés." },
-      { question: "Desservez-vous Sainte-Marthe-sur-le-Lac?", answer: "Oui, Sainte-Marthe-sur-le-Lac fait partie de notre zone de service dans les Laurentides. Nous sommes à environ 45 minutes et intervenons régulièrement dans le secteur du lac des Deux-Montagnes." },
+      { question: "Les maisons reconstruites après les inondations de 2019 ont-elles aussi besoin d'entretien?", answer: "Les propriétés reconstruites ou rénovées après le bris de la digue en 2019 ont des fenêtres neuves, mais l'humidité résiduelle dans les fondations et les murs peut accélérer la condensation et la dégradation des joints. Nous recommandons une inspection préventive 3 à 5 ans après les travaux post-inondation pour détecter tout signe de détérioration prématurée." },
     ],
   },
   {
@@ -740,14 +740,14 @@ export const CITIES = [
       "L'Assomption est une ville historique de Lanaudière fondée en 1724, avec un centre-ville patrimonial remarquable le long de la rivière L'Assomption. Le Vieux-L'Assomption abrite des bâtiments datant du 18e et 19e siècle, incluant le collège classique et des maisons de pierre. Les secteurs résidentiels plus récents vers l'autoroute 40 offrent des constructions des années 1980-2010. Ce mélange crée des besoins variés en réparation de fenêtres.",
     neighborhoods: ["Vieux-L'Assomption", "Secteur du Collège", "Boulevard l'Ange-Gardien", "Domaine de l'Assomption", "Secteur de la 40"],
     commonIssues: [
-      "Fenêtres patrimoniales en bois à restaurer dans les bâtiments historiques du Vieux-L'Assomption",
+      "Fenêtres patrimoniales en bois à restaurer dans les bâtiments centenaires du Vieux-L'Assomption, notamment autour du collège classique et de la rue Saint-Étienne",
       "Thermos embuées dans les constructions résidentielles des années 1985-2005",
       "Quincaillerie grippée sur les fenêtres des maisons de 20 à 35 ans",
     ],
     faq: [
       { question: "Quel est le prix pour remplacer des thermos à L'Assomption?", answer: "Un thermos standard coûte entre 150$ et 350$ installé. Pour les bâtiments patrimoniaux du Vieux-L'Assomption, des travaux sur mesure peuvent être nécessaires à des coûts supérieurs pour respecter le cachet historique." },
       { question: "Restaurez-vous les fenêtres patrimoniales à L'Assomption?", answer: "Oui, nous avons l'expertise pour travailler sur les fenêtres des bâtiments patrimoniaux. Nous préservons les cadres d'origine en bois, remplaçons les thermos et restaurons la quincaillerie pour maintenir l'authenticité historique." },
-      { question: "Desservez-vous L'Assomption dans Lanaudière?", answer: "Oui, L'Assomption fait partie de notre zone de service régulière dans Lanaudière. Nous sommes à environ 40 minutes et regroupons nos interventions avec les villes voisines comme Repentigny et Mascouche." },
+      { question: "Les bâtiments du Vieux-L'Assomption autour du collège classique ont-ils des fenêtres récupérables?", answer: "Le Vieux-L'Assomption, fondé en 1724, abrite des maisons de pierre et de bois du 18e et 19e siècle dont les fenêtres en bois sont souvent encore structurellement saines malgré leur âge. Nous remplaçons les thermos et restaurons les cadres et la quincaillerie, ce qui revient à une fraction du coût d'un remplacement complet tout en préservant le patrimoine architectural de ce quartier historique remarquable." },
     ],
   },
   {
@@ -760,14 +760,14 @@ export const CITIES = [
       "Lavaltrie est une municipalité riveraine du fleuve Saint-Laurent dans Lanaudière, connue pour ses îles de Berthier à proximité et son caractère semi-rural. Le parc immobilier comprend un noyau villageois ancien le long de la route 138, des bungalows des années 1970-1990 et des développements résidentiels plus récents. La proximité du fleuve et l'exposition aux vents créent des conditions exigeantes pour les fenêtres et portes.",
     neighborhoods: ["Village de Lavaltrie", "Route 138", "Secteur du Fleuve", "Domaine des Berges", "Saint-Antoine"],
     commonIssues: [
-      "Infiltrations d'air causées par les vents du fleuve Saint-Laurent sur les fenêtres côté eau",
+      "Infiltrations d'air causées par les vents du fleuve sur les fenêtres des maisons de la route 138 et du Domaine des Berges, côté eau",
       "Thermos embuées dans les bungalows des années 70-90 du secteur résidentiel",
       "Cadres de fenêtres en bois détériorés par l'humidité du fleuve dans le vieux village",
     ],
     faq: [
       { question: "Combien coûte un remplacement de thermos à Lavaltrie?", answer: "Un thermos standard coûte entre 150$ et 350$ installé. Pour les propriétés riveraines du fleuve exposées aux vents, nous recommandons des thermos à haut rendement pour maximiser l'isolation." },
       { question: "Les vents du fleuve affectent-ils les fenêtres à Lavaltrie?", answer: "Oui, l'exposition au fleuve Saint-Laurent génère des vents importants qui exercent une pression sur les joints et la quincaillerie. Les fenêtres côté fleuve se détériorent plus rapidement et nécessitent un entretien plus fréquent." },
-      { question: "Desservez-vous Lavaltrie malgré la distance?", answer: "Oui, Lavaltrie fait partie de notre zone de service dans Lanaudière. Nous sommes à environ 50 minutes et planifions nos déplacements pour regrouper les interventions dans le secteur avec Repentigny, L'Assomption et Mascouche." },
+      { question: "Pourquoi les maisons du Vieux-Lavaltrie le long de la route 138 ont-elles autant de problèmes de fenêtres?", answer: "Le noyau villageois de Lavaltrie le long de la route 138 abrite des maisons datant du 19e siècle jusqu'aux années 1960, directement exposées aux vents du fleuve Saint-Laurent. La combinaison de l'âge des fenêtres, de l'humidité fluviale et du vent dominant crée des conditions parmi les plus exigeantes pour les composantes de fenêtres dans notre zone de service." },
     ],
   },
   {
@@ -780,13 +780,13 @@ export const CITIES = [
       "Saint-Constant est une ville en pleine croissance de la Rive-Sud, voisine immédiate de Delson. La ville offre un mélange de quartiers établis des années 1980-2000 autour du Vieux-Saint-Constant et de développements récents comme le secteur de la Route 132. Les premières générations de maisons nécessitent maintenant des remplacements de thermos et de quincaillerie, tandis que les constructions plus récentes requièrent surtout de l'entretien préventif.",
     neighborhoods: ["Vieux-Saint-Constant", "Secteur de la 132", "Domaine des Moissons", "Parc régional", "Secteur des Érables"],
     commonIssues: [
-      "Thermos embuées dans les maisons des années 85-2000 du cœur résidentiel",
-      "Portes-patio à roulettes usées dans les propriétés de 25 à 40 ans",
-      "Moustiquaires déchirées et cadres endommagés dans les maisons avec jeunes familles",
+      "Thermos embuées dans les maisons du Vieux-Saint-Constant et du secteur des Érables construites entre 1985 et 2000",
+      "Portes-patio à roulettes usées dans les propriétés du Domaine des Moissons et de la montée Saint-Régis",
+      "Moustiquaires déchirées et cadres endommagés dans les secteurs familiaux en pleine croissance",
     ],
     faq: [
       { question: "Combien coûte un remplacement de thermos à Saint-Constant?", answer: "Un thermos standard coûte entre 150$ et 350$ installé. Saint-Constant étant à seulement 15 minutes de nos bureaux, les frais de déplacement sont minimaux. Soumission gratuite et rapide." },
-      { question: "Êtes-vous proches de Saint-Constant?", answer: "Oui, Saint-Constant est l'une des villes les plus proches de nos bureaux à Delson, à seulement 15 minutes. Nous y intervenons très fréquemment et pouvons souvent offrir des rendez-vous rapides." },
+      { question: "Les maisons du Vieux-Saint-Constant ont-elles des besoins différents en fenêtres?", answer: "Oui, le secteur du Vieux-Saint-Constant autour de la montée Saint-Régis abrite des maisons plus anciennes (années 1960-1980) avec des fenêtres à guillotine et des cadres en bois qui nécessitent parfois de la restauration en plus du remplacement de thermos. Les développements plus récents du secteur de la 132 et du Domaine des Moissons ont surtout besoin de remplacements de thermos standards et d'ajustements de quincaillerie." },
       { question: "Les maisons des années 90 de Saint-Constant ont-elles besoin de nouveaux thermos?", answer: "Les maisons construites entre 1985 et 2000 à Saint-Constant atteignent maintenant 26 à 41 ans. La durée de vie d'un thermos étant de 20 à 30 ans, il est normal que la buée apparaisse et que les thermos doivent être remplacés." },
     ],
   },
@@ -800,14 +800,14 @@ export const CITIES = [
       "Sainte-Catherine est une ville résidentielle compacte de la Rive-Sud, située entre le fleuve Saint-Laurent et l'écluse de Sainte-Catherine sur la Voie maritime. La ville possède un parc immobilier principalement composé de bungalows et de maisons à étages des années 1970-1995. La proximité du fleuve et de la Voie maritime crée un environnement humide qui influence la durabilité des composantes de fenêtres.",
     neighborhoods: ["Secteur du Fleuve", "Boulevard Saint-Laurent", "Secteur de l'Écluse", "Parc de la Commune", "Domaine Catherine"],
     commonIssues: [
-      "Thermos embuées dans les bungalows des années 70-80 typiques de Sainte-Catherine",
+      "Thermos embuées dans les bungalows du boulevard Saint-Laurent et du secteur de l'Écluse construits dans les années 70-80",
       "Quincaillerie corrodée par l'humidité du fleuve et de la Voie maritime",
       "Joints d'étanchéité détériorés causant des infiltrations d'air dans les maisons de 30-50 ans",
     ],
     faq: [
       { question: "Quel est le prix pour remplacer des thermos à Sainte-Catherine?", answer: "Un thermos standard coûte entre 150$ et 350$ installé. Sainte-Catherine étant à seulement 15 minutes de nos bureaux à Delson, nous pouvons offrir un service rapide avec des frais de déplacement minimaux." },
       { question: "L'humidité du fleuve affecte-t-elle les fenêtres à Sainte-Catherine?", answer: "Oui, la proximité du fleuve Saint-Laurent et de la Voie maritime crée un taux d'humidité élevé qui accélère la corrosion de la quincaillerie et la dégradation des joints. Un entretien préventif régulier est recommandé." },
-      { question: "Desservez-vous Sainte-Catherine sur la Rive-Sud?", answer: "Oui, Sainte-Catherine est l'une de nos villes les plus proches, à seulement 15 minutes de Delson. Nous y intervenons très régulièrement et pouvons souvent fixer des rendez-vous dans les jours suivant votre appel." },
+      { question: "Les vibrations de la Voie maritime affectent-elles les fenêtres à Sainte-Catherine?", answer: "Les propriétés proches de l'écluse de Sainte-Catherine et de la Voie maritime du Saint-Laurent subissent des vibrations causées par le passage des navires de gros tonnage. Ces micro-vibrations peuvent accélérer la fatigue des joints d'étanchéité et le desserrage de la quincaillerie au fil des années. Nous ajustons et renforçons les composantes pour résister à ces conditions uniques." },
     ],
   },
   {
@@ -820,14 +820,14 @@ export const CITIES = [
       "Carignan est une municipalité à caractère semi-rural de la Montérégie, reconnue pour ses grands terrains, son aéroport et ses propriétés de prestige. Le parc immobilier comprend de grandes maisons unifamiliales sur des terrains boisés, avec des constructions principalement des années 1985-2015. Le caractère champêtre de Carignan attire des propriétaires exigeants qui investissent dans l'entretien de qualité de leurs propriétés.",
     neighborhoods: ["Secteur de l'Aéroport", "Chemin de Chambly", "Domaine des Patriotes", "Secteur du Mont-Saint-Bruno", "Route 112"],
     commonIssues: [
-      "Thermos surdimensionnées à remplacer dans les grandes propriétés de prestige",
-      "Fenêtres exposées aux éléments sur les propriétés avec terrains dégagés",
+      "Thermos surdimensionnées à remplacer dans les résidences de prestige du chemin de Chambly et du secteur du Mont-Saint-Bruno",
+      "Fenêtres exposées aux vents dominants sur les propriétés à terrains dégagés le long de la route 112",
       "Portes-patio de grande dimension nécessitant un ajustement de quincaillerie spécialisée",
     ],
     faq: [
-      { question: "Combien coûte un remplacement de thermos à Carignan?", answer: "Les prix varient de 175$ à 500$ selon les dimensions. Les grandes propriétés de Carignan ont souvent des fenêtres surdimensionnées et des baies vitrées panoramiques. Nous sommes à seulement 20 minutes pour une soumission gratuite." },
+      { question: "Combien coûte un remplacement de thermos à Carignan?", answer: "Les prix varient de 200$ à 550$ selon les dimensions. Les propriétés de prestige de Carignan ont souvent des fenêtres surdimensionnées et des baies vitrées panoramiques donnant sur les terrains boisés. Le budget moyen par maison est plus élevé qu'en banlieue standard en raison de la taille des résidences." },
       { question: "Pouvez-vous intervenir sur les grandes fenêtres des propriétés de Carignan?", answer: "Oui, nous avons l'expertise et l'équipement nécessaires pour manipuler et installer des thermos de grand format. Les propriétés spacieuses de Carignan nécessitent souvent ce type d'intervention spécialisée." },
-      { question: "Carignan est-il dans votre zone de service?", answer: "Oui, Carignan est à seulement 20 minutes de nos bureaux à Delson. C'est l'un de nos secteurs les plus proches et nous y intervenons très régulièrement." },
+      { question: "Les terrains dégagés de Carignan créent-ils des problèmes pour les fenêtres?", answer: "Oui, les grandes propriétés de Carignan sur des terrains ouverts et dégagés, notamment le long du chemin de Chambly et de la route 112, sont plus exposées aux vents que les maisons en milieu urbain dense. Cette exposition accélère l'usure des joints d'étanchéité et sollicite davantage la quincaillerie. Des thermos à haut rendement et une quincaillerie robuste sont recommandés." },
     ],
   },
   {
@@ -840,14 +840,14 @@ export const CITIES = [
       "Saint-Basile-le-Grand est une municipalité résidentielle paisible au pied du mont Saint-Bruno, reconnue pour ses rues boisées et sa qualité de vie familiale. Le parc immobilier est composé de maisons unifamiliales des années 1975-2005, avec un cœur villageois le long de la montée Robert et des développements plus récents. Les propriétaires accordent une grande importance à l'entretien de leurs maisons, créant une demande régulière pour les services de fenêtres et portes.",
     neighborhoods: ["Village", "Montée Robert", "Secteur du Ruisseau", "Domaine du Mont", "Secteur des Trembles"],
     commonIssues: [
-      "Thermos embuées dans les maisons des années 1975-1995 du cœur résidentiel",
-      "Fenêtres à manivelle avec mécanismes grippés dans les constructions des années 80-90",
-      "Condensation excessive sur les fenêtres lors des froids intenses au pied du mont Saint-Bruno",
+      "Thermos embuées dans les maisons de la montée Robert et du Village construites entre 1975 et 1995",
+      "Fenêtres à manivelle grippées dans les maisons du secteur des Trembles et du Domaine du Mont datant des années 80-90",
+      "Condensation excessive et givre intérieur lors des froids intenses dans les propriétés exposées au pied du mont Saint-Bruno",
     ],
     faq: [
       { question: "Quel est le prix d'un remplacement de thermos à Saint-Basile-le-Grand?", answer: "Un thermos standard coûte entre 150$ et 350$ installé. Les maisons typiques de Saint-Basile-le-Grand ont des formats de fenêtres courants qui permettent un remplacement efficace et abordable." },
       { question: "Les fenêtres à manivelle peuvent-elles être réparées plutôt que remplacées?", answer: "Oui, dans la majorité des cas nous pouvons remplacer uniquement le mécanisme de manivelle, les charnières et les joints sans changer la fenêtre entière. C'est une solution économique très populaire pour les maisons des années 80-90 de Saint-Basile." },
-      { question: "Desservez-vous Saint-Basile-le-Grand?", answer: "Oui, Saint-Basile-le-Grand est à seulement 20 minutes de nos bureaux à Delson. Nous y intervenons très fréquemment et offrons un service rapide." },
+      { question: "Le microclimat au pied du mont Saint-Bruno affecte-t-il les fenêtres à Saint-Basile?", answer: "Oui, les propriétés du Domaine du Mont et du secteur du Ruisseau, au pied du mont Saint-Bruno, sont exposées à un microclimat plus frais et humide créé par la montagne. Les nuits plus froides et la rosée matinale fréquente augmentent la condensation sur les fenêtres défaillantes. Des thermos à haut rendement avec gaz argon réduisent considérablement ce phénomène." },
     ],
   },
   {
@@ -860,14 +860,14 @@ export const CITIES = [
       "Beloeil est une ville résidentielle au pied du mont Saint-Hilaire, bordée par la rivière Richelieu. Le Vieux-Beloeil le long de la rue Richelieu possède un charme patrimonial avec des maisons de caractère, tandis que les secteurs résidentiels des années 1970-2000 forment le cœur du parc immobilier. La proximité de la rivière Richelieu crée un environnement humide qui influence la durabilité des fenêtres.",
     neighborhoods: ["Vieux-Beloeil", "Rue Richelieu", "Secteur de la Montagne", "Domaine Beloeil", "Boulevard Sir-Wilfrid-Laurier"],
     commonIssues: [
-      "Humidité de la rivière Richelieu causant la dégradation prématurée des cadres et joints",
-      "Thermos en fin de vie dans les maisons résidentielles des années 75-95",
+      "Humidité de la rivière Richelieu causant la dégradation prématurée des cadres en bois et joints des maisons de la rue Richelieu et du boulevard Sir-Wilfrid-Laurier",
+      "Thermos en fin de vie dans les maisons du secteur de la Montagne et du Domaine Beloeil construites entre 1975 et 1995",
       "Fenêtres de caractère à restaurer dans les propriétés patrimoniales du Vieux-Beloeil",
     ],
     faq: [
       { question: "Combien coûte un remplacement de thermos à Beloeil?", answer: "Un thermos standard coûte entre 150$ et 350$ installé. Les propriétés patrimoniales du Vieux-Beloeil peuvent nécessiter des formats sur mesure pour respecter le cachet architectural." },
       { question: "L'humidité de la rivière Richelieu affecte-t-elle les fenêtres à Beloeil?", answer: "Oui, la proximité de la rivière Richelieu augmente le taux d'humidité, ce qui accélère la corrosion de la quincaillerie et la dégradation des joints d'étanchéité. Nous recommandons un entretien préventif régulier pour les propriétés riveraines." },
-      { question: "Desservez-vous Beloeil en Montérégie?", answer: "Oui, Beloeil est à environ 25 minutes de nos bureaux et fait partie de notre zone de service régulière. Nous couvrons tout le secteur de la rivière Richelieu." },
+      { question: "Les maisons de la rue Richelieu à Beloeil valent-elles la peine d'être restaurées?", answer: "Les propriétés de caractère le long de la rue Richelieu dans le Vieux-Beloeil ont un cachet architectural unique qui justifie amplement une restauration de qualité. Nous remplaçons les thermos et restaurons les cadres en bois, les moulures et la quincaillerie d'époque. Le résultat améliore l'isolation tout en préservant la valeur patrimoniale de ces maisons recherchées." },
     ],
   },
   {
@@ -880,14 +880,14 @@ export const CITIES = [
       "Mont-Saint-Hilaire est une municipalité prestigieuse au pied de la montagne du même nom, réserve de la biosphère de l'UNESCO. La ville est reconnue pour ses propriétés haut de gamme, ses rues boisées et son environnement naturel exceptionnel. Le parc immobilier comprend des maisons de prestige des années 1970-2010, souvent avec de grandes fenêtres offrant des vues sur la montagne. Les propriétaires investissent dans des réparations de qualité.",
     neighborhoods: ["Village", "Secteur de la Montagne", "Domaine des Érables", "Chemin des Patriotes", "Rue Fortier"],
     commonIssues: [
-      "Thermos surdimensionnées à remplacer dans les propriétés avec vue sur la montagne",
+      "Thermos surdimensionnées à remplacer dans les résidences du chemin des Patriotes et de la rue Fortier avec vue panoramique sur le mont Saint-Hilaire",
       "Condensation et perte d'efficacité dans les fenêtres panoramiques des maisons haut de gamme",
       "Fenêtres en bois noble à restaurer dans les propriétés de prestige",
     ],
     faq: [
-      { question: "Combien coûte un remplacement de thermos à Mont-Saint-Hilaire?", answer: "Les prix varient de 175$ à 550$ selon les dimensions. Les propriétés de Mont-Saint-Hilaire ont souvent de grandes fenêtres panoramiques et des baies vitrées pour profiter de la vue sur la montagne, ce qui nécessite des thermos de grand format." },
+      { question: "Combien coûte un remplacement de thermos à Mont-Saint-Hilaire?", answer: "Les prix varient de 200$ à 600$ selon les dimensions. Les résidences haut de gamme de Mont-Saint-Hilaire ont souvent de grandes fenêtres panoramiques et des baies vitrées pour profiter de la vue sur la montagne, ce qui nécessite des thermos de grand format. Le budget moyen est plus élevé qu'en banlieue standard en raison du prestige et de la taille des propriétés." },
       { question: "Pouvez-vous remplacer les thermos des grandes fenêtres panoramiques?", answer: "Oui, nous sommes spécialisés dans le remplacement de thermos surdimensionnés. Nous utilisons des techniques de manipulation adaptées aux grands formats pour les propriétés de Mont-Saint-Hilaire avec vue sur la montagne." },
-      { question: "Mont-Saint-Hilaire est-il dans votre zone de service?", answer: "Oui, Mont-Saint-Hilaire est à environ 25 minutes de nos bureaux. Nous y intervenons régulièrement et couvrons tout le secteur du mont Saint-Hilaire incluant Beloeil et Otterburn Park." },
+      { question: "Comment maximiser la vue sur la montagne tout en restant bien isolé à Mont-Saint-Hilaire?", answer: "Les propriétés du secteur de la Montagne et du chemin des Patriotes sont prisées pour leur vue sur le mont Saint-Hilaire, réserve de la biosphère de l'UNESCO. Nous installons des thermos à haut rendement (low-E avec argon) qui maximisent la luminosité et la vue tout en offrant une isolation thermique supérieure. Le résultat : profiter du panorama sans sacrifier le confort ni la facture de chauffage." },
     ],
   },
   {
@@ -900,14 +900,14 @@ export const CITIES = [
       "Otterburn Park est une petite municipalité résidentielle nichée entre le mont Saint-Hilaire et la rivière Richelieu. La ville offre un cadre champêtre avec des rues bordées d'arbres matures et un parc immobilier composé principalement de bungalows et de cottages des années 1960-1990. Le caractère boisé de la ville et la proximité de la rivière créent un environnement humide qui peut affecter les fenêtres et portes.",
     neighborhoods: ["Secteur de la Rivière", "Chemin des Patriotes", "Mountain Road", "Secteur du Boisé", "Prince-Charles"],
     commonIssues: [
-      "Thermos embuées dans les bungalows et cottages des années 60-80",
+      "Thermos embuées dans les bungalows et cottages des rues Mountain Road et du chemin des Patriotes datant des années 60-80",
       "Cadres de fenêtres en bois gonflés par l'humidité de la rivière Richelieu et du milieu boisé",
       "Quincaillerie rouillée et mécanismes grippés sur les fenêtres vieillissantes",
     ],
     faq: [
       { question: "Quel est le prix pour remplacer des thermos à Otterburn Park?", answer: "Un thermos standard coûte entre 150$ et 350$ installé. Les bungalows et cottages typiques d'Otterburn Park ont généralement des formats de fenêtres standards, ce qui facilite un remplacement économique." },
       { question: "L'environnement boisé et humide d'Otterburn Park affecte-t-il les fenêtres?", answer: "Oui, la combinaison de la proximité de la rivière Richelieu et du couvert forestier crée un environnement plus humide qui accélère la dégradation des cadres en bois et des joints d'étanchéité. Un entretien préventif régulier est recommandé." },
-      { question: "Desservez-vous Otterburn Park?", answer: "Oui, Otterburn Park est à environ 25 minutes de nos bureaux. Nous couvrons tout le secteur du mont Saint-Hilaire et de la rivière Richelieu." },
+      { question: "Pourquoi les cadres de fenêtres en bois pourrissent-ils plus vite à Otterburn Park?", answer: "Otterburn Park est nichée dans un environnement très boisé entre le mont Saint-Hilaire et la rivière Richelieu. L'ombre des arbres matures empêche le séchage rapide des cadres après la pluie, et l'humidité de la rivière reste emprisonnée par le couvert forestier. Les cadres en bois des bungalows des rues Mountain Road et Prince-Charles sont particulièrement touchés. Nous pouvons restaurer ou remplacer les sections endommagées." },
     ],
   },
   {
@@ -920,14 +920,14 @@ export const CITIES = [
       "Marieville est une petite ville de la Montérégie au caractère semi-rural, située au bord de la rivière Richelieu. Le noyau villageois autour de la rue Sainte-Marie conserve un patrimoine bâti des 19e et 20e siècles, tandis que les développements résidentiels plus récents s'étendent vers la route 227. Le parc immobilier diversifié crée des besoins allant de la restauration patrimoniale au remplacement de thermos standards.",
     neighborhoods: ["Centre-ville", "Rue Sainte-Marie", "Secteur de la Rivière", "Route 227", "Domaine des Pins"],
     commonIssues: [
-      "Fenêtres vétustes dans les maisons patrimoniales du centre-ville historique",
-      "Thermos embuées dans les constructions résidentielles des années 80-2000",
+      "Fenêtres à battant et à guillotine vétustes dans les maisons patrimoniales de la rue Sainte-Marie et du secteur de l'église",
+      "Thermos embuées dans les constructions résidentielles de la route 227 et du Domaine des Pins datant des années 80-2000",
       "Infiltrations d'air dans les maisons plus anciennes avec joints d'étanchéité détériorés",
     ],
     faq: [
-      { question: "Combien coûte un remplacement de thermos à Marieville?", answer: "Un thermos standard coûte entre 150$ et 350$ installé. Les propriétés patrimoniales du centre-ville peuvent nécessiter des formats sur mesure. Soumission gratuite à domicile." },
+      { question: "Combien coûte un remplacement de thermos à Marieville?", answer: "Un thermos standard coûte entre 140$ et 325$ installé. Les propriétés patrimoniales du centre-ville peuvent nécessiter des formats sur mesure entre 300$ et 500$. Pour les maisons plus récentes du secteur de la route 227, les formats standards permettent des remplacements économiques. Soumission gratuite à domicile." },
       { question: "Restaurez-vous les fenêtres des maisons anciennes de Marieville?", answer: "Oui, nous avons l'expertise pour restaurer les fenêtres des maisons patrimoniales. Nous préservons les cadres d'origine, remplaçons les thermos et restaurons les mécanismes tout en respectant le cachet historique." },
-      { question: "Desservez-vous Marieville en Montérégie?", answer: "Oui, Marieville est à environ 30 minutes de nos bureaux à Delson. Nous couvrons l'ensemble de la Montérégie et intervenons régulièrement dans le secteur de Marieville et Richelieu." },
+      { question: "Les maisons de la rue Sainte-Marie ont-elles des fenêtres récupérables malgré leur âge?", answer: "Les maisons patrimoniales de la rue Sainte-Marie au centre-ville de Marieville ont souvent des cadres en bois encore structurellement sains malgré leur âge. Nous évaluons chaque cas individuellement : si le cadre est récupérable, nous remplaçons uniquement le thermos et la quincaillerie, ce qui revient à 40-60% moins cher qu'un remplacement complet de fenêtre tout en préservant le cachet d'époque." },
     ],
   },
   {
@@ -940,14 +940,14 @@ export const CITIES = [
       "Contrecœur est une municipalité riveraine du fleuve Saint-Laurent en Montérégie, avec un noyau villageois historique le long de la route Marie-Victorin et un secteur industriel portuaire. Le parc immobilier comprend des maisons patrimoniales du Vieux-Contrecœur, des bungalows des années 1970-1990 et des constructions plus récentes. L'exposition au fleuve et aux vents crée des conditions exigeantes pour les fenêtres et portes.",
     neighborhoods: ["Vieux-Contrecœur", "Route Marie-Victorin", "Secteur du Port", "Domaine de la Rive", "Parc Antoine-Pécaudy"],
     commonIssues: [
-      "Infiltrations d'air causées par les vents du fleuve Saint-Laurent",
-      "Fenêtres patrimoniales à restaurer dans les maisons historiques du Vieux-Contrecœur",
-      "Thermos embuées dans les bungalows des années 70-90 du secteur résidentiel",
+      "Infiltrations d'air causées par les vents du fleuve sur les maisons de la route Marie-Victorin exposées côté eau",
+      "Fenêtres patrimoniales en bois à restaurer dans les maisons historiques du Vieux-Contrecœur près du parc Antoine-Pécaudy",
+      "Thermos embuées et rails encrassés par la poussière portuaire dans les bungalows des années 70-90 du Domaine de la Rive",
     ],
     faq: [
       { question: "Quel est le prix pour remplacer des thermos à Contrecœur?", answer: "Un thermos standard coûte entre 150$ et 350$ installé. Pour les propriétés riveraines exposées aux vents du fleuve, nous recommandons des thermos à haut rendement pour une meilleure isolation." },
       { question: "Les vents du fleuve affectent-ils les fenêtres à Contrecœur?", answer: "Oui, l'exposition directe au fleuve Saint-Laurent génère des vents importants qui accélèrent la dégradation des joints et de la quincaillerie. Les fenêtres côté fleuve nécessitent un entretien plus fréquent." },
-      { question: "Desservez-vous Contrecœur en Montérégie?", answer: "Oui, Contrecœur fait partie de notre zone de service. Nous sommes à environ 35 minutes et regroupons nos interventions dans le secteur avec Varennes et Verchères pour un service efficace." },
+      { question: "Les activités portuaires de Contrecœur affectent-elles la durabilité des fenêtres?", answer: "Les propriétés proches du secteur du Port et de la route Marie-Victorin subissent une exposition combinée aux vents du fleuve, à la poussière industrielle et aux vibrations du trafic lourd portuaire. Ces conditions accélèrent l'encrassement des rails de fenêtres coulissantes et l'usure des joints d'étanchéité. Un nettoyage et un entretien préventif annuel prolongent significativement la durée de vie des composantes." },
     ],
   },
   {
@@ -960,14 +960,14 @@ export const CITIES = [
       "Saint-Amable est une municipalité résidentielle en croissance de la Montérégie, offrant un cadre semi-rural à proximité de Sainte-Julie et de Varennes. La ville a connu un développement important depuis les années 1990, avec de nombreuses maisons unifamiliales et jumelés. Les premières vagues de constructions commencent à nécessiter des remplacements de thermos et des ajustements de quincaillerie.",
     neighborhoods: ["Village", "Rue Principale", "Domaine des Érables", "Secteur du Parc", "Montée de la Mine"],
     commonIssues: [
-      "Premiers remplacements de thermos dans les maisons construites entre 1990 et 2005",
-      "Quincaillerie d'entrée de gamme à remplacer dans les constructions de volume",
-      "Portes d'entrée mal isolées dans les propriétés de 20 à 35 ans",
+      "Premiers remplacements de thermos dans les maisons du Domaine des Érables et de la Montée de la Mine construites entre 1990 et 2005",
+      "Quincaillerie d'entrée de gamme cassée ou grippée dans les constructions de série le long de la rue Principale",
+      "Portes d'entrée et portes-patio désalignées par le tassement des sols argileux dans les propriétés de 20 à 35 ans",
     ],
     faq: [
       { question: "Combien coûte un remplacement de thermos à Saint-Amable?", answer: "Un thermos standard coûte entre 150$ et 350$ installé. Les maisons typiques de Saint-Amable ont des formats de fenêtres standards qui permettent un remplacement rapide et économique." },
       { question: "Les maisons des années 90-2000 de Saint-Amable ont-elles besoin de nouveaux thermos?", answer: "Les maisons construites entre 1990 et 2005 atteignent maintenant 21 à 36 ans. La durée de vie d'un thermos étant de 20 à 30 ans, il est normal que la buée apparaisse. Un remplacement préventif améliore le confort et réduit la facture de chauffage." },
-      { question: "Saint-Amable est-il dans votre zone de service?", answer: "Oui, Saint-Amable est à seulement 20 minutes de nos bureaux à Delson. C'est l'un de nos secteurs les plus proches et nous y intervenons fréquemment." },
+      { question: "Les sols argileux de Saint-Amable causent-ils des problèmes aux fenêtres et portes?", answer: "Oui, Saint-Amable est située sur un sol argileux qui se contracte et gonfle selon les saisons. Ce mouvement du sol peut causer un léger tassement différentiel des fondations, ce qui désaligne les cadres de fenêtres et de portes. Nous corrigeons ces désalignements en ajustant la quincaillerie, les charnières et les points de fermeture pour retrouver un fonctionnement fluide et étanche." },
     ],
   },
   {
@@ -980,13 +980,13 @@ export const CITIES = [
       "Mercier est une municipalité résidentielle de la Montérégie située à proximité immédiate de Châteauguay et de Delson. La ville offre un cadre semi-rural avec un parc immobilier composé de maisons unifamiliales des années 1975-2010. Le boulevard Sainte-Marguerite constitue l'artère principale, autour de laquelle s'organisent les secteurs résidentiels. La proximité de nos bureaux permet un service particulièrement rapide.",
     neighborhoods: ["Centre de Mercier", "Boulevard Sainte-Marguerite", "Secteur du Parc", "Route 138", "Domaine du Ruisseau"],
     commonIssues: [
-      "Thermos embuées dans les maisons des années 1975-1995 du cœur résidentiel",
-      "Portes-patio à roulettes usées dans les propriétés de 25 à 40 ans",
-      "Moustiquaires endommagées nécessitant un remplacement de toile",
+      "Thermos embuées dans les maisons du boulevard Sainte-Marguerite et de la route 138 construites entre 1975 et 1995",
+      "Portes-patio à roulettes nylon usées dans les propriétés du Domaine du Ruisseau et du secteur du Parc",
+      "Moustiquaires déchirées et cadres de moustiquaires oxydés sur les fenêtres de 25 à 40 ans",
     ],
     faq: [
       { question: "Quel est le prix pour remplacer des thermos à Mercier?", answer: "Un thermos standard coûte entre 150$ et 350$ installé. Mercier étant à seulement 15 minutes de nos bureaux, les frais de déplacement sont minimaux. Soumission gratuite et rapide." },
-      { question: "Êtes-vous proches de Mercier?", answer: "Oui, Mercier est l'une des villes les plus proches de nos bureaux à Delson, à seulement 15 minutes de route. Nous pouvons souvent offrir des rendez-vous dans les jours suivant votre appel." },
+      { question: "Pourquoi les portes-patio des maisons de Mercier sont-elles souvent difficiles à ouvrir?", answer: "Les maisons des années 1975-1995 le long du boulevard Sainte-Marguerite et du secteur résidentiel de Mercier avaient des portes-patio avec des roulettes en nylon qui s'usent après 20-25 ans. Le rail s'encrasse aussi avec le temps. Nous remplaçons les roulettes, nettoyons ou remplaçons le rail et ajustons l'alignement — votre porte-patio glissera comme neuve pour une fraction du prix d'un remplacement." },
       { question: "Réparez-vous les portes-patio à Mercier?", answer: "Oui, nous remplaçons les roulettes, poignées, serrures et rails usés des portes-patio. C'est l'un de nos services les plus demandés pour les maisons de 25 à 40 ans comme celles qu'on retrouve à Mercier." },
     ],
   },
@@ -1005,9 +1005,9 @@ export const CITIES = [
       "Humidité de la rivière Richelieu causant la dégradation des cadres en bois",
     ],
     faq: [
-      { question: "Combien coûte un remplacement de thermos à McMasterville?", answer: "Un thermos standard coûte entre 150$ et 350$ installé. Les bungalows typiques de McMasterville ont des formats de fenêtres standards qui permettent un remplacement économique et rapide." },
+      { question: "Combien coûte un remplacement de thermos à McMasterville?", answer: "Un thermos standard coûte entre 140$ et 300$ installé. Les bungalows typiques de McMasterville, construits pour les travailleurs de l'ancienne poudrière, ont des formats de fenêtres modestes et standards qui permettent des remplacements très économiques. C'est souvent l'un des secteurs les plus abordables de notre zone de service." },
       { question: "Les vieilles maisons de McMasterville valent-elles la peine d'être réparées?", answer: "Oui, le remplacement des thermos et la réparation de quincaillerie redonnent une efficacité énergétique et un confort significatifs. C'est beaucoup plus économique que le remplacement complet des fenêtres et peut se rentabiliser en économies de chauffage." },
-      { question: "Desservez-vous McMasterville?", answer: "Oui, McMasterville est à environ 25 minutes de nos bureaux. Nous couvrons tout le secteur de la rivière Richelieu incluant Beloeil, Mont-Saint-Hilaire et Otterburn Park." },
+      { question: "Les bungalows d'anciens travailleurs de la CIL à McMasterville ont-ils des fenêtres particulières?", answer: "Les bungalows construits dans les années 1960-1980 pour les travailleurs de la poudrière CIL (aujourd'hui le site décontaminé) sont des maisons modestes avec des fenêtres de formats standards, souvent coulissantes ou à battant. Les thermos d'origine ont largement dépassé leur durée de vie. L'avantage : les formats standards permettent des remplacements rapides et économiques, entre 140$ et 300$ par thermos." },
     ],
   },
   {
@@ -1020,14 +1020,14 @@ export const CITIES = [
       "Richelieu est une petite municipalité de la Montérégie bordée par la rivière Richelieu, à mi-chemin entre Chambly et Saint-Jean-sur-Richelieu. Le noyau villageois le long de la rivière conserve des maisons de caractère, tandis que les développements résidentiels des années 1980-2000 offrent des propriétés plus récentes. La proximité de la rivière crée un environnement humide qui accélère la détérioration des composantes de fenêtres.",
     neighborhoods: ["Village", "Chemin des Patriotes", "Secteur de la Rivière", "Route 112", "Domaine Richelieu"],
     commonIssues: [
-      "Humidité de la rivière Richelieu causant la dégradation des cadres et joints d'étanchéité",
-      "Thermos embuées dans les constructions résidentielles des années 80-2000",
-      "Fenêtres de caractère à restaurer dans les maisons patrimoniales du village",
+      "Cadres de fenêtres en bois gonflés et difficiles à opérer dans les maisons du chemin des Patriotes exposées à l'humidité de la rivière",
+      "Thermos embuées dans les constructions résidentielles de la route 112 et du Domaine Richelieu datant des années 80-2000",
+      "Quincaillerie corrodée et joints pourris sur les fenêtres des maisons de caractère du noyau villageois",
     ],
     faq: [
       { question: "Quel est le prix d'un remplacement de thermos à Richelieu?", answer: "Un thermos standard coûte entre 150$ et 350$ installé. Soumission gratuite à domicile dans la municipalité de Richelieu et tout le secteur de la rivière Richelieu." },
       { question: "L'humidité de la rivière affecte-t-elle les fenêtres à Richelieu?", answer: "Oui, la proximité directe de la rivière Richelieu augmente significativement l'humidité ambiante, ce qui accélère la corrosion de la quincaillerie, le gonflement des cadres en bois et la dégradation des joints. Un entretien régulier est essentiel." },
-      { question: "Desservez-vous la municipalité de Richelieu?", answer: "Oui, Richelieu est à environ 30 minutes de nos bureaux. Nous couvrons tout le corridor de la rivière Richelieu, de Chambly à Saint-Jean-sur-Richelieu." },
+      { question: "Pourquoi les fenêtres du chemin des Patriotes à Richelieu gonflent-elles?", answer: "Les maisons de caractère le long du chemin des Patriotes à Richelieu sont directement exposées à l'humidité de la rivière Richelieu. Le bois des cadres absorbe cette humidité et gonfle, rendant les fenêtres difficiles à ouvrir ou fermer. Nous rabottons et ajustons les cadres, appliquons des traitements hydrofuges et remplaçons la quincaillerie corrodée pour un fonctionnement fluide et durable." },
     ],
   },
   {
@@ -1040,13 +1040,13 @@ export const CITIES = [
       "Saint-Philippe est une municipalité voisine immédiate de Delson, offrant un cadre semi-rural en pleine transformation résidentielle. La ville combine un noyau villageois traditionnel le long de la montée Saint-Claude avec de nouveaux développements résidentiels qui attirent de jeunes familles. La proximité de nos bureaux permet le service le plus rapide de notre zone de couverture.",
     neighborhoods: ["Village", "Montée Saint-Claude", "Secteur de la Route 104", "Domaine des Champs", "Rang Saint-André"],
     commonIssues: [
-      "Thermos embuées dans les maisons du noyau villageois datant des années 1975-2000",
-      "Quincaillerie d'entrée de gamme à remplacer dans les nouvelles constructions",
-      "Portes d'entrée à ajuster dans les maisons récentes avec léger tassement de fondation",
+      "Thermos embuées dans les maisons du noyau villageois de la montée Saint-Claude datant des années 1975-2000",
+      "Poignées cassées et mécanismes de verrouillage défaillants dans les nouvelles constructions du secteur des Champs et du rang Saint-André",
+      "Portes d'entrée désalignées par le tassement des fondations dans les sols agricoles fraîchement urbanisés de Saint-Philippe",
     ],
     faq: [
       { question: "Combien coûte un remplacement de thermos à Saint-Philippe?", answer: "Un thermos standard coûte entre 150$ et 350$ installé. Saint-Philippe étant à seulement 10 minutes de nos bureaux, c'est notre secteur le plus proche avec des frais de déplacement minimaux." },
-      { question: "Êtes-vous proches de Saint-Philippe?", answer: "Oui, Saint-Philippe est notre voisin immédiat, à seulement 10 minutes de nos bureaux à Delson. Nous pouvons souvent offrir un service le jour même ou le lendemain de votre appel." },
+      { question: "Les nouveaux développements résidentiels de Saint-Philippe ont-ils déjà besoin de réparations?", answer: "Saint-Philippe connaît une transformation résidentielle rapide avec de nouveaux quartiers qui poussent le long de la montée Saint-Claude et du rang Saint-André. Les constructions de 5 à 15 ans montrent parfois des défauts de quincaillerie d'entrée de gamme : poignées qui cassent, mécanismes de verrouillage défaillants et joints de porte mal ajustés. Nous corrigeons ces problèmes rapidement grâce à notre proximité (10 minutes)." },
       { question: "Les nouvelles constructions de Saint-Philippe ont-elles des problèmes de fenêtres?", answer: "Les constructions neuves utilisent parfois de la quincaillerie d'entrée de gamme qui peut montrer des signes d'usure après quelques années. De plus, le tassement normal des fondations peut causer un léger désalignement des portes et fenêtres." },
     ],
   },
@@ -1060,14 +1060,14 @@ export const CITIES = [
       "Verchères est une municipalité historique de la Montérégie, célèbre pour Madeleine de Verchères et son patrimoine du régime français. Le noyau villageois le long du fleuve Saint-Laurent conserve des maisons ancestrales et patrimoniales remarquables. Les secteurs résidentiels plus récents offrent des constructions des années 1980-2010. L'exposition au fleuve et les vents dominants imposent des contraintes importantes sur l'intégrité des fenêtres.",
     neighborhoods: ["Vieux-Verchères", "Route Marie-Victorin", "Secteur du Fleuve", "Domaine des Patriotes", "Rang de la Beauce"],
     commonIssues: [
-      "Fenêtres patrimoniales à restaurer dans les maisons ancestrales du Vieux-Verchères",
-      "Infiltrations d'air causées par les vents du fleuve Saint-Laurent",
-      "Thermos embuées dans les constructions résidentielles des années 85-2005",
+      "Fenêtres patrimoniales en bois à restaurer dans les maisons ancestrales du Vieux-Verchères le long de la route Marie-Victorin",
+      "Infiltrations d'air et quincaillerie corrodée par les vents dominants du fleuve Saint-Laurent sur les propriétés du Domaine des Patriotes côté eau",
+      "Thermos embuées dans les constructions du rang de la Beauce et du secteur résidentiel datant des années 85-2005",
     ],
     faq: [
       { question: "Combien coûte un remplacement de thermos à Verchères?", answer: "Un thermos standard coûte entre 150$ et 350$ installé. Pour les maisons patrimoniales du Vieux-Verchères, des travaux sur mesure peuvent être nécessaires pour respecter le cachet historique." },
       { question: "Restaurez-vous les fenêtres patrimoniales de Verchères?", answer: "Oui, nous avons l'expertise pour intervenir sur les fenêtres des bâtiments patrimoniaux. Nous préservons les cadres d'origine, remplaçons les thermos et restaurons la quincaillerie tout en respectant le caractère historique des propriétés du Vieux-Verchères." },
-      { question: "Desservez-vous Verchères en Montérégie?", answer: "Oui, Verchères est à environ 30 minutes de nos bureaux. Nous regroupons nos interventions dans le secteur avec Varennes et Contrecœur pour un service efficace le long du fleuve." },
+      { question: "Les maisons ancestrales du Vieux-Verchères nécessitent-elles des réparations spécialisées?", answer: "Oui, le Vieux-Verchères le long de la route Marie-Victorin abrite des maisons datant du régime français, célèbres pour leur lien avec l'histoire de Madeleine de Verchères. Ces maisons patrimoniales nécessitent un savoir-faire particulier : restauration de cadres en bois d'époque, remplacement de thermos adapté aux formats anciens et préservation des moulures d'origine. Nous avons l'expertise pour ce type d'intervention délicate." },
     ],
   },
 ];
