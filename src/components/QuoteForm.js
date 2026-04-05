@@ -128,6 +128,40 @@ export default function QuoteForm({ compact = false }) {
     setSending(false);
   }
 
+  if (status === "success") {
+    const successContent = (
+      <div className="text-center py-4">
+        <div className="w-14 h-14 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4 animate-[fadeIn_0.5s_ease-out]">
+          <span className="text-green-400 text-3xl">&#10003;</span>
+        </div>
+        <h3 className="text-lg font-bold text-white mb-2">Demande envoyee!</h3>
+        <p className="text-white/50 text-sm mb-4">
+          Nous avons bien recu votre demande et vous contacterons rapidement.
+        </p>
+        <button
+          onClick={() => setStatus("")}
+          className="text-white/40 hover:text-white text-xs underline transition-colors"
+        >
+          Envoyer une autre demande
+        </button>
+      </div>
+    );
+
+    if (compact) return successContent;
+
+    return (
+      <div className="bg-white/[0.06] backdrop-blur-md rounded-xl p-6 border border-green-500/20">
+        {successContent}
+        <div className="text-center mt-3">
+          <span className="text-white/50 text-xs">ou appelez-nous </span>
+          <a href="tel:15148258411" className="text-white font-semibold text-sm hover:text-[var(--color-red-light)]">
+            <i className="fas fa-phone text-xs"></i> 514-825-8411
+          </a>
+        </div>
+      </div>
+    );
+  }
+
   const formContent = (
     <form onSubmit={handleSubmit} className={compact ? "space-y-2.5 flex flex-col flex-1" : "space-y-3"}>
       <div className={inputWrap}>
@@ -207,9 +241,6 @@ export default function QuoteForm({ compact = false }) {
         className="w-full bg-[var(--color-red)] text-white py-2.5 rounded-full font-bold text-sm hover:bg-[var(--color-red-dark)] transition-all disabled:opacity-50 shadow-lg">
         {sending ? "Envoi..." : "Envoyer la demande"}
       </button>
-      {status === "success" && (
-        <p className="text-green-400 text-xs text-center">Merci! Nous vous contacterons bientot.</p>
-      )}
       {status === "error" && (
         <p className="text-red-400 text-xs text-center">Erreur. Appelez-nous au 514-825-8411.</p>
       )}
