@@ -97,9 +97,11 @@ export async function POST(request) {
   }
 
   let cityFilter = null;
+  let keywordBase = "remplacement vitre thermos";
   try {
     const body = await request.json();
     cityFilter = body.city || null;
+    if (body.keyword) keywordBase = body.keyword;
   } catch {}
 
   const citiesToCheck = cityFilter
@@ -117,7 +119,7 @@ export async function POST(request) {
 
       for (let i = 0; i < citiesToCheck.length; i++) {
         const city = citiesToCheck[i];
-        const keyword = `remplacement vitre thermos ${city.name}`;
+        const keyword = `${keywordBase} ${city.name}`;
 
         send({
           done: false,

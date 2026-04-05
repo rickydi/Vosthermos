@@ -12,8 +12,10 @@ export async function GET(request) {
     const since = new Date();
     since.setDate(since.getDate() - days);
 
+    const keywordFilter = searchParams.get("keyword");
     const where = { checkedAt: { gte: since } };
     if (cityFilter) where.city = cityFilter;
+    if (keywordFilter) where.keyword = { contains: keywordFilter };
 
     const rankings = await prisma.seoRanking.findMany({
       where,
