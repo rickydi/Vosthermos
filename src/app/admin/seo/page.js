@@ -202,7 +202,9 @@ export default function AdminSeoPage() {
   }
 
   const cities = data?.cities || [];
-  const inTop3 = cities.filter((c) => c.latestPosition !== null && c.latestPosition <= 3).length;
+  const inTop1 = cities.filter((c) => c.latestPosition === 1).length;
+  const inTop2 = cities.filter((c) => c.latestPosition === 2).length;
+  const inTop3 = cities.filter((c) => c.latestPosition === 3).length;
   const inTop10 = cities.filter((c) => c.latestPosition !== null && c.latestPosition <= 10).length;
   const withPosition = cities.filter((c) => c.latestPosition !== null);
   const avgPosition = withPosition.length > 0
@@ -307,33 +309,29 @@ export default function AdminSeoPage() {
 
       {/* Summary cards */}
       {!loading && cities.length > 0 && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="admin-card border rounded-2xl p-5">
-            <div className="flex items-center gap-2 mb-2">
-              <i className="fas fa-trophy text-green-400 text-xs"></i>
-              <p className="admin-text-muted text-xs font-bold uppercase tracking-wider">Top 3</p>
-            </div>
+        <div className="grid grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+          <div className="admin-card border rounded-2xl p-4">
+            <p className="admin-text-muted text-[10px] font-bold uppercase tracking-wider mb-1">#1 Premier</p>
+            <p className="text-3xl font-extrabold text-green-400">{inTop1}</p>
+          </div>
+          <div className="admin-card border rounded-2xl p-4">
+            <p className="admin-text-muted text-[10px] font-bold uppercase tracking-wider mb-1">#2 Deuxieme</p>
+            <p className="text-3xl font-extrabold text-green-400">{inTop2}</p>
+          </div>
+          <div className="admin-card border rounded-2xl p-4">
+            <p className="admin-text-muted text-[10px] font-bold uppercase tracking-wider mb-1">#3 Troisieme</p>
             <p className="text-3xl font-extrabold text-green-400">{inTop3}</p>
           </div>
-          <div className="admin-card border rounded-2xl p-5">
-            <div className="flex items-center gap-2 mb-2">
-              <i className="fas fa-medal text-blue-400 text-xs"></i>
-              <p className="admin-text-muted text-xs font-bold uppercase tracking-wider">Top 10</p>
-            </div>
+          <div className="admin-card border rounded-2xl p-4">
+            <p className="admin-text-muted text-[10px] font-bold uppercase tracking-wider mb-1">Top 10</p>
             <p className="text-3xl font-extrabold text-blue-400">{inTop10}</p>
           </div>
-          <div className="admin-card border rounded-2xl p-5">
-            <div className="flex items-center gap-2 mb-2">
-              <i className="fas fa-chart-line text-orange-400 text-xs"></i>
-              <p className="admin-text-muted text-xs font-bold uppercase tracking-wider">Position moy.</p>
-            </div>
+          <div className="admin-card border rounded-2xl p-4">
+            <p className="admin-text-muted text-[10px] font-bold uppercase tracking-wider mb-1">Pos. moyenne</p>
             <p className="text-3xl font-extrabold text-orange-400">{avgPosition}</p>
           </div>
-          <div className="admin-card border rounded-2xl p-5">
-            <div className="flex items-center gap-2 mb-2">
-              <i className="fas fa-robot text-purple-400 text-xs"></i>
-              <p className="admin-text-muted text-xs font-bold uppercase tracking-wider">Mentions IA</p>
-            </div>
+          <div className="admin-card border rounded-2xl p-4">
+            <p className="admin-text-muted text-[10px] font-bold uppercase tracking-wider mb-1">Mentions IA</p>
             <p className="text-3xl font-extrabold text-purple-400">{aiMentions}</p>
           </div>
         </div>
