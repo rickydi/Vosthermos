@@ -117,6 +117,10 @@ export async function POST(request) {
         );
       }
 
+      function ping() {
+        controller.enqueue(encoder.encode(`: ping\n\n`));
+      }
+
       for (let i = 0; i < citiesToCheck.length; i++) {
         const city = citiesToCheck[i];
         const keyword = `${keywordBase} ${city.name}`;
@@ -130,7 +134,10 @@ export async function POST(request) {
           status: "checking",
         });
 
+        // Ping to keep connection alive during API call
+        const pingInterval = setInterval(ping, 5000);
         const result = await checkRankingSerper(city.name);
+        clearInterval(pingInterval);
 
         try {
           await prisma.seoRanking.create({
@@ -159,9 +166,8 @@ export async function POST(request) {
           status: "done",
         });
 
-        // 1 second delay (API is rate-limited but more generous than scraping)
         if (i < citiesToCheck.length - 1) {
-          await sleep(1000);
+          await sleep(500);
         }
       }
 
