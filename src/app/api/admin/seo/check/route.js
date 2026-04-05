@@ -4,73 +4,47 @@ import { CITIES } from "@/lib/cities";
 
 export const dynamic = "force-dynamic";
 
-async function checkRankingSerper(cityName) {
-  const apiKey = process.env.SERPER_API_KEY;
-  if (!apiKey) return { position: null, aiMention: false, url: null, error: "No API key" };
+// In-memory scan state (survives across requests within same PM2 process)
+let scanState = { running: false, current: 0, total: 0, city: "", results: [], keyword: "" };
 
-  const query = `remplacement vitre thermos ${cityName}`;
+async function checkRankingSerper(cityName, keywordBase) {
+  const apiKey = process.env.SERPER_API_KEY;
+  if (!apiKey) return { position: null, aiMention: false, url: null };
+
+  const query = `${keywordBase} ${cityName}`;
 
   try {
     const res = await fetch("https://google.serper.dev/search", {
       method: "POST",
-      headers: {
-        "X-API-KEY": apiKey,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        q: query,
-        gl: "ca",
-        hl: "fr",
-        num: 20,
-      }),
+      headers: { "X-API-KEY": apiKey, "Content-Type": "application/json" },
+      body: JSON.stringify({ q: query, gl: "ca", hl: "fr", num: 20 }),
     });
 
-    if (!res.ok) {
-      const err = await res.text();
-      console.error(`Serper error for ${cityName}:`, err);
-      return { position: null, aiMention: false, url: null };
-    }
+    if (!res.ok) return { position: null, aiMention: false, url: null };
 
     const data = await res.json();
-
-    // Find organic position
     let position = null;
     let foundUrl = null;
-    const organic = data.organic || [];
 
-    for (let i = 0; i < organic.length; i++) {
-      const link = organic[i].link || "";
-      if (link.includes("vosthermos.com") || link.includes("vosthermos")) {
-        position = organic[i].position || i + 1;
-        foundUrl = link;
+    for (const o of data.organic || []) {
+      if ((o.link || "").includes("vosthermos")) {
+        position = o.position || null;
+        foundUrl = o.link;
         break;
       }
     }
 
-    // Check AI overview / answer box / knowledge graph for mention
     let aiMention = false;
-
-    // Check answerBox
-    if (data.answerBox) {
-      const abText = JSON.stringify(data.answerBox).toLowerCase();
-      if (abText.includes("vosthermos")) aiMention = true;
-    }
-
-    // Check knowledgeGraph
-    if (data.knowledgeGraph) {
-      const kgText = JSON.stringify(data.knowledgeGraph).toLowerCase();
-      if (kgText.includes("vosthermos")) aiMention = true;
-    }
-
-    // Check AI overview (if serper returns it)
-    if (data.aiOverview) {
-      const aiText = JSON.stringify(data.aiOverview).toLowerCase();
-      if (aiText.includes("vosthermos")) aiMention = true;
+    for (const key of ["answerBox", "knowledgeGraph", "aiOverview"]) {
+      if (data[key] && JSON.stringify(data[key]).toLowerCase().includes("vosthermos")) {
+        aiMention = true;
+        break;
+      }
     }
 
     return { position, aiMention, url: foundUrl };
   } catch (err) {
-    console.error(`Error checking ranking for ${cityName}:`, err.message);
+    console.error(`Error checking ${cityName}:`, err.message);
     return { position: null, aiMention: false, url: null };
   }
 }
@@ -79,6 +53,47 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+async function runScan(keywordBase, citiesToCheck) {
+  scanState = { running: true, current: 0, total: citiesToCheck.length, city: "", results: [], keyword: keywordBase };
+
+  for (let i = 0; i < citiesToCheck.length; i++) {
+    const city = citiesToCheck[i];
+    const keyword = `${keywordBase} ${city.name}`;
+
+    scanState.current = i + 1;
+    scanState.city = city.name;
+
+    const result = await checkRankingSerper(city.name, keywordBase);
+
+    try {
+      await prisma.seoRanking.create({
+        data: {
+          city: city.slug,
+          cityName: city.name,
+          keyword,
+          position: result.position,
+          aiMention: result.aiMention,
+          url: result.url,
+        },
+      });
+    } catch (dbErr) {
+      console.error(`DB error for ${city.name}:`, dbErr.message);
+    }
+
+    scanState.results.push({
+      city: city.name,
+      slug: city.slug,
+      position: result.position,
+      aiMention: result.aiMention,
+    });
+
+    if (i < citiesToCheck.length - 1) await sleep(500);
+  }
+
+  scanState.running = false;
+}
+
+// POST: start a scan
 export async function POST(request) {
   try {
     await requireAdmin();
@@ -90,97 +105,59 @@ export async function POST(request) {
   }
 
   if (!process.env.SERPER_API_KEY) {
-    return new Response(
-      JSON.stringify({ error: "SERPER_API_KEY manquant dans .env" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "SERPER_API_KEY manquant" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
-  let cityFilter = null;
+  if (scanState.running) {
+    return new Response(JSON.stringify({ error: "Scan deja en cours", state: scanState }), {
+      status: 409,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   let keywordBase = "remplacement vitre thermos";
+  let cityFilter = null;
   try {
     const body = await request.json();
-    cityFilter = body.city || null;
     if (body.keyword) keywordBase = body.keyword;
+    cityFilter = body.city || null;
   } catch {}
 
   const citiesToCheck = cityFilter
     ? CITIES.filter((c) => c.slug === cityFilter)
     : CITIES;
 
-  const encoder = new TextEncoder();
-  const stream = new ReadableStream({
-    async start(controller) {
-      function send(data) {
-        controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify(data)}\n\n`)
-        );
-      }
+  // Start scan in background (don't await)
+  runScan(keywordBase, citiesToCheck);
 
-      function ping() {
-        controller.enqueue(encoder.encode(`: ping\n\n`));
-      }
-
-      for (let i = 0; i < citiesToCheck.length; i++) {
-        const city = citiesToCheck[i];
-        const keyword = `${keywordBase} ${city.name}`;
-
-        send({
-          done: false,
-          current: i + 1,
-          total: citiesToCheck.length,
-          city: city.name,
-          slug: city.slug,
-          status: "checking",
-        });
-
-        // Ping to keep connection alive during API call
-        const pingInterval = setInterval(ping, 5000);
-        const result = await checkRankingSerper(city.name);
-        clearInterval(pingInterval);
-
-        try {
-          await prisma.seoRanking.create({
-            data: {
-              city: city.slug,
-              cityName: city.name,
-              keyword,
-              position: result.position,
-              aiMention: result.aiMention,
-              url: result.url,
-            },
-          });
-        } catch (dbErr) {
-          console.error(`DB error for ${city.name}:`, dbErr.message);
-        }
-
-        send({
-          done: false,
-          current: i + 1,
-          total: citiesToCheck.length,
-          city: city.name,
-          slug: city.slug,
-          position: result.position,
-          aiMention: result.aiMention,
-          url: result.url,
-          status: "done",
-        });
-
-        if (i < citiesToCheck.length - 1) {
-          await sleep(500);
-        }
-      }
-
-      send({ done: true });
-      controller.close();
-    },
+  return new Response(JSON.stringify({ started: true, total: citiesToCheck.length }), {
+    headers: { "Content-Type": "application/json" },
   });
+}
 
-  return new Response(stream, {
-    headers: {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
-      Connection: "keep-alive",
-    },
+// GET: check scan progress
+export async function GET() {
+  try {
+    await requireAdmin();
+  } catch {
+    return new Response(JSON.stringify({ error: "Non autorise" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  return new Response(JSON.stringify({
+    running: scanState.running,
+    current: scanState.current,
+    total: scanState.total,
+    city: scanState.city,
+    keyword: scanState.keyword,
+    results: scanState.results.slice(-10),
+    done: !scanState.running && scanState.total > 0,
+  }), {
+    headers: { "Content-Type": "application/json" },
   });
 }

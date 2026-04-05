@@ -159,47 +159,53 @@ export default function AdminSeoPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ keyword: activeKeyword }),
       });
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() || "";
-
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            try {
-              const event = JSON.parse(line.slice(6));
-              if (event.done) {
-                setChecking(false);
-                setProgress(null);
-                fetchData(activeKeyword);
-                return;
-              }
-              setProgress((prev) => ({
-                ...prev,
-                current: event.current,
-                total: event.total,
-                city: event.city,
-                status: event.status,
-                results: event.status === "done" ? [...(prev?.results || []), event] : prev?.results || [],
-              }));
-            } catch {}
-          }
-        }
+      const data = await res.json();
+      if (data.error) {
+        alert(data.error);
+        setChecking(false);
+        setProgress(null);
+        return;
       }
+      // Poll for progress
+      pollProgress();
     } catch (err) {
       console.error("Check error:", err);
+      setChecking(false);
+      setProgress(null);
     }
-    setChecking(false);
-    setProgress(null);
-    fetchData(activeKeyword);
   }
+
+  function pollProgress() {
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch("/api/admin/seo/check");
+        const state = await res.json();
+        setProgress({
+          current: state.current,
+          total: state.total,
+          city: state.city,
+          results: state.results || [],
+        });
+        if (!state.running) {
+          clearInterval(interval);
+          setChecking(false);
+          setProgress(null);
+          fetchData(activeKeyword);
+        }
+      } catch {}
+    }, 1500);
+  }
+
+  // Check if a scan is already running on page load
+  useEffect(() => {
+    fetch("/api/admin/seo/check").then(r => r.json()).then(state => {
+      if (state.running) {
+        setChecking(true);
+        setProgress({ current: state.current, total: state.total, city: state.city, results: state.results || [] });
+        pollProgress();
+      }
+    }).catch(() => {});
+  }, []);
 
   const cities = data?.cities || [];
   const inTop1 = cities.filter((c) => c.latestPosition === 1).length;
