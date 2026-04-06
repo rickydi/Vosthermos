@@ -83,7 +83,144 @@ function PositionChart({ history }) {
   );
 }
 
+// ─── GSC Tab ──────────────────────────────────────────────────────
+function GscTab() {
+  const [gscData, setGscData] = useState(null);
+  const [gscLoading, setGscLoading] = useState(true);
+  const [gscDays, setGscDays] = useState(28);
+  const [gscKeyword, setGscKeyword] = useState("");
+  const [expandedCity, setExpandedCity] = useState(null);
+
+  async function fetchGsc(days, keyword) {
+    setGscLoading(true);
+    try {
+      const params = new URLSearchParams({ days: String(days) });
+      if (keyword) params.set("keyword", keyword);
+      const res = await fetch(`/api/admin/seo/gsc?${params}`);
+      const d = await res.json();
+      if (d.error) console.error("GSC error:", d.error);
+      else setGscData(d);
+    } catch (err) {
+      console.error("GSC fetch error:", err);
+    }
+    setGscLoading(false);
+  }
+
+  useEffect(() => { fetchGsc(gscDays, gscKeyword); }, [gscDays, gscKeyword]);
+
+  if (gscLoading) return <p className="admin-text-muted text-center py-12"><i className="fas fa-spinner fa-spin mr-2"></i>Chargement Google Search Console...</p>;
+  if (!gscData) return <p className="admin-text-muted text-center py-12">Erreur de connexion a Google Search Console</p>;
+
+  const { summary, cities } = gscData;
+
+  return (
+    <div>
+      {/* Period + keyword filter */}
+      <div className="flex flex-wrap items-center gap-3 mb-6">
+        {[7, 14, 28, 90].map((d) => (
+          <button key={d} onClick={() => setGscDays(d)}
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${gscDays === d ? "bg-[var(--color-red)] text-white" : "admin-card admin-text-muted border"}`}>
+            {d}j
+          </button>
+        ))}
+        <input type="text" value={gscKeyword} onChange={(e) => setGscKeyword(e.target.value)} placeholder="Filtrer par mot cle..."
+          className="admin-input border rounded-lg px-4 py-2 text-sm flex-1 min-w-[200px]" />
+      </div>
+
+      <p className="admin-text-muted text-xs mb-4">Periode: {gscData.period.startDate} → {gscData.period.endDate} — Donnees reelles Google</p>
+
+      {/* Summary */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3 mb-6">
+        <div className="admin-card border rounded-2xl p-4">
+          <p className="admin-text-muted text-[10px] font-bold uppercase tracking-wider mb-1">#1</p>
+          <p className="text-2xl font-extrabold text-green-400">{summary.inTop1}</p>
+        </div>
+        <div className="admin-card border rounded-2xl p-4">
+          <p className="admin-text-muted text-[10px] font-bold uppercase tracking-wider mb-1">Top 3</p>
+          <p className="text-2xl font-extrabold text-green-400">{summary.inTop3}</p>
+        </div>
+        <div className="admin-card border rounded-2xl p-4">
+          <p className="admin-text-muted text-[10px] font-bold uppercase tracking-wider mb-1">Top 10</p>
+          <p className="text-2xl font-extrabold text-blue-400">{summary.inTop10}</p>
+        </div>
+        <div className="admin-card border rounded-2xl p-4">
+          <p className="admin-text-muted text-[10px] font-bold uppercase tracking-wider mb-1">Pos. moy.</p>
+          <p className="text-2xl font-extrabold text-orange-400">{summary.avgPosition ?? "—"}</p>
+        </div>
+        <div className="admin-card border rounded-2xl p-4">
+          <p className="admin-text-muted text-[10px] font-bold uppercase tracking-wider mb-1">Clics</p>
+          <p className="text-2xl font-extrabold text-purple-400">{summary.totalClicks}</p>
+        </div>
+        <div className="admin-card border rounded-2xl p-4">
+          <p className="admin-text-muted text-[10px] font-bold uppercase tracking-wider mb-1">Impressions</p>
+          <p className="text-2xl font-extrabold admin-text">{summary.totalImpressions.toLocaleString()}</p>
+        </div>
+        <div className="admin-card border rounded-2xl p-4">
+          <p className="admin-text-muted text-[10px] font-bold uppercase tracking-wider mb-1">Villes</p>
+          <p className="text-2xl font-extrabold admin-text">{summary.citiesWithData}</p>
+        </div>
+      </div>
+
+      {/* Cities table */}
+      <div className="admin-card border rounded-2xl overflow-hidden">
+        <div className="grid grid-cols-12 gap-2 px-5 py-4 border-b" style={{ borderColor: "var(--admin-border)" }}>
+          <div className="col-span-3 admin-text-muted text-xs font-bold uppercase tracking-wider">Ville</div>
+          <div className="col-span-1 text-center admin-text-muted text-xs font-bold uppercase tracking-wider">Pos.</div>
+          <div className="col-span-1 text-center admin-text-muted text-xs font-bold uppercase tracking-wider">Clics</div>
+          <div className="col-span-2 text-center admin-text-muted text-xs font-bold uppercase tracking-wider">Impr.</div>
+          <div className="col-span-5 admin-text-muted text-xs font-bold uppercase tracking-wider hidden lg:block">Meilleur mot cle</div>
+        </div>
+
+        {cities.map((city) => {
+          const isExpanded = expandedCity === city.slug;
+          return (
+            <div key={city.slug} className="border-b last:border-0" style={{ borderColor: "var(--admin-border)" }}>
+              <div className="grid grid-cols-12 gap-2 px-5 py-3 items-center cursor-pointer hover:bg-white/5 transition-colors" onClick={() => setExpandedCity(isExpanded ? null : city.slug)}>
+                <div className="col-span-3 admin-text text-sm font-medium flex items-center gap-2">
+                  <i className={`fas fa-chevron-right text-[10px] admin-text-muted transition-transform duration-300 ${isExpanded ? "rotate-90" : ""}`}></i>
+                  {city.name}
+                </div>
+                <div className="col-span-1 text-center">
+                  <span className={`inline-block px-2.5 py-0.5 rounded-full text-sm font-extrabold ${positionColor(city.bestPosition ? Math.round(city.bestPosition) : null)}`}>
+                    {city.bestPosition ? `#${city.bestPosition}` : "—"}
+                  </span>
+                </div>
+                <div className="col-span-1 text-center admin-text text-sm font-bold">{city.totalClicks || "—"}</div>
+                <div className="col-span-2 text-center admin-text-muted text-sm">{city.totalImpressions || "—"}</div>
+                <div className="col-span-5 admin-text-muted text-xs truncate hidden lg:block">{city.bestQuery || "—"}</div>
+              </div>
+
+              {/* Expanded: show all queries for this city */}
+              <div className="overflow-hidden transition-all duration-[1500ms] ease-in-out" style={{ maxHeight: isExpanded ? "600px" : "0px", opacity: isExpanded ? 1 : 0 }}>
+                <div className="px-5 pb-4 pt-2 border-t" style={{ borderColor: "var(--admin-border)" }}>
+                  <p className="admin-text text-sm font-bold mb-3">Requetes — {city.name}</p>
+                  {city.queries.length === 0 ? (
+                    <p className="admin-text-muted text-xs">Aucune donnee pour cette ville</p>
+                  ) : (
+                    <div className="space-y-1.5 max-h-[400px] overflow-y-auto">
+                      {city.queries.sort((a, b) => a.position - b.position).map((q, i) => (
+                        <div key={i} className="flex items-center gap-3 text-xs bg-white/5 rounded-lg px-3 py-2">
+                          <span className={`px-2 py-0.5 rounded-full font-bold ${positionColor(Math.round(q.position))}`}>#{q.position}</span>
+                          <span className="admin-text flex-1 truncate">{q.query}</span>
+                          <span className="text-purple-400 font-bold">{q.clicks}c</span>
+                          <span className="admin-text-muted">{q.impressions}i</span>
+                          <span className="admin-text-muted">{q.ctr}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminSeoPage() {
+  const [tab, setTab] = useState("gsc");
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);
@@ -255,11 +392,31 @@ export default function AdminSeoPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-extrabold admin-text">Suivi SEO</h1>
-        <button onClick={startCheck} disabled={checking || !activeKeyword}
-          className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${checking ? "bg-gray-500/30 text-gray-400 cursor-not-allowed" : "bg-[var(--color-red)] text-white hover:opacity-90"}`}>
-          {checking ? <><i className="fas fa-spinner fa-spin mr-2"></i>Verification...</> : <><i className="fas fa-sync-alt mr-2"></i>Rafraichir</>}
+        {tab === "serper" && (
+          <button onClick={startCheck} disabled={checking || !activeKeyword}
+            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${checking ? "bg-gray-500/30 text-gray-400 cursor-not-allowed" : "bg-[var(--color-red)] text-white hover:opacity-90"}`}>
+            {checking ? <><i className="fas fa-spinner fa-spin mr-2"></i>Verification...</> : <><i className="fas fa-sync-alt mr-2"></i>Rafraichir</>}
+          </button>
+        )}
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2 mb-6">
+        <button onClick={() => setTab("gsc")}
+          className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${tab === "gsc" ? "bg-[var(--color-red)] text-white" : "admin-card admin-text-muted border"}`}>
+          <i className="fab fa-google mr-2"></i>Google Search Console
+        </button>
+        <button onClick={() => setTab("serper")}
+          className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${tab === "serper" ? "bg-[var(--color-red)] text-white" : "admin-card admin-text-muted border"}`}>
+          <i className="fas fa-search mr-2"></i>Serper.dev (scan)
         </button>
       </div>
+
+      {/* GSC Tab */}
+      {tab === "gsc" && <GscTab />}
+
+      {/* Serper Tab */}
+      {tab === "serper" && <>
 
       {/* Keywords manager */}
       <div className="admin-card border rounded-2xl p-5 mb-6">
@@ -451,6 +608,8 @@ export default function AdminSeoPage() {
           })}
         </div>
       )}
+
+      </>}
     </div>
   );
 }
