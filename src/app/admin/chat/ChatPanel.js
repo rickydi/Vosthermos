@@ -101,11 +101,15 @@ export default function ChatPanel({ initialConversationId }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "generate", messages: msgs, clientName: selected.clientName }),
       });
-      if (res.ok) {
-        const { reply } = await res.json();
-        setNewMsg(reply);
+      const data = await res.json();
+      if (res.ok && data.reply) {
+        setNewMsg(data.reply);
+      } else {
+        console.error("AI generate error:", data);
       }
-    } catch {}
+    } catch (err) {
+      console.error("AI generate fetch error:", err);
+    }
     setGenerating(false);
   }
 
@@ -118,11 +122,15 @@ export default function ChatPanel({ initialConversationId }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "correct", text: newMsg }),
       });
-      if (res.ok) {
-        const { corrected } = await res.json();
-        setNewMsg(corrected);
+      const data = await res.json();
+      if (res.ok && data.corrected) {
+        setNewMsg(data.corrected);
+      } else {
+        console.error("AI correct error:", data);
       }
-    } catch {}
+    } catch (err) {
+      console.error("AI correct fetch error:", err);
+    }
     setCorrecting(false);
   }
 
