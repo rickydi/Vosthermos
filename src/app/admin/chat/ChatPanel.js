@@ -96,7 +96,7 @@ export default function ChatPanel({ initialConversationId }) {
     setGenerating(true);
     try {
       const msgs = selected.messages?.slice(-10).map((m) => `${m.senderType === "CLIENT" ? selected.clientName : "Vosthermos"}: ${m.content}`).join("\n") || "";
-      const res = await fetch("/api/admin/chat/ai", {
+      const res = await fetch("/api/admin/ai-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "generate", messages: msgs, clientName: selected.clientName }),
@@ -113,7 +113,7 @@ export default function ChatPanel({ initialConversationId }) {
     if (!newMsg.trim() || correcting) return;
     setCorrecting(true);
     try {
-      const res = await fetch("/api/admin/chat/ai", {
+      const res = await fetch("/api/admin/ai-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "correct", text: newMsg }),
