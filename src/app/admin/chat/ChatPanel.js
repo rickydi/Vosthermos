@@ -22,6 +22,8 @@ export default function ChatPanel({ initialConversationId }) {
   const [newMsg, setNewMsg] = useState("");
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [correcting, setCorrecting] = useState(false);
   const messagesEnd = useRef(null);
   const selectedIdRef = useRef(null);
 
@@ -87,6 +89,41 @@ export default function ChatPanel({ initialConversationId }) {
       await sendMessage(url);
     } catch {}
     finally { setUploading(false); }
+  }
+
+  async function generateReply() {
+    if (!selected || generating) return;
+    setGenerating(true);
+    try {
+      const msgs = selected.messages?.slice(-10).map((m) => `${m.senderType === "CLIENT" ? selected.clientName : "Vosthermos"}: ${m.content}`).join("\n") || "";
+      const res = await fetch("/api/admin/chat/ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "generate", messages: msgs, clientName: selected.clientName }),
+      });
+      if (res.ok) {
+        const { reply } = await res.json();
+        setNewMsg(reply);
+      }
+    } catch {}
+    setGenerating(false);
+  }
+
+  async function correctText() {
+    if (!newMsg.trim() || correcting) return;
+    setCorrecting(true);
+    try {
+      const res = await fetch("/api/admin/chat/ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "correct", text: newMsg }),
+      });
+      if (res.ok) {
+        const { corrected } = await res.json();
+        setNewMsg(corrected);
+      }
+    } catch {}
+    setCorrecting(false);
   }
 
   async function toggleArchive() {
@@ -222,6 +259,18 @@ export default function ChatPanel({ initialConversationId }) {
 
             {/* Input */}
             <div className="px-4 md:px-6 py-3 md:py-4 border-t admin-border">
+              <div className="flex gap-2 mb-2">
+                <button onClick={generateReply} disabled={generating || !selected}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-purple-500/15 text-purple-400 hover:bg-purple-500/25 disabled:opacity-30">
+                  <i className={`fas fa-magic ${generating ? "fa-spin" : ""}`}></i>
+                  {generating ? "Generation..." : "Generer une reponse"}
+                </button>
+                <button onClick={correctText} disabled={correcting || !newMsg.trim()}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-500/15 text-blue-400 hover:bg-blue-500/25 disabled:opacity-30">
+                  <i className={`fas fa-spell-check ${correcting ? "fa-spin" : ""}`}></i>
+                  {correcting ? "Correction..." : "Corriger texte"}
+                </button>
+              </div>
               <div className="flex gap-2 items-end">
                 <label className="shrink-0 cursor-pointer admin-text-muted hover:admin-text transition-colors p-2">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
