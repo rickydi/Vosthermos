@@ -20,6 +20,7 @@ export default function ChatPanel({ initialConversationId }) {
   const [selected, setSelected] = useState(null);
   const [filter, setFilter] = useState("all");
   const [newMsg, setNewMsg] = useState("");
+  const textareaRef = useRef(null);
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -50,6 +51,11 @@ export default function ChatPanel({ initialConversationId }) {
   }, []);
 
   useEffect(() => { messagesEnd.current?.scrollIntoView({ behavior: "smooth" }); }, [selected?.messages]);
+
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (el) { el.style.height = "auto"; el.style.height = Math.min(el.scrollHeight, 160) + "px"; }
+  }, [newMsg]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -318,7 +324,7 @@ export default function ChatPanel({ initialConversationId }) {
                   </svg>
                   <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
                 </label>
-                <textarea value={newMsg} onChange={(e) => { setNewMsg(e.target.value); e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 160) + "px"; }}
+                <textarea ref={textareaRef} value={newMsg} onChange={(e) => setNewMsg(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
                   placeholder="Ecrire un message..." rows={1}
                   className="flex-1 px-4 py-2.5 admin-input border rounded-xl text-sm focus:outline-none focus:border-[var(--color-red)] resize-none overflow-y-auto"
