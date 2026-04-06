@@ -92,6 +92,7 @@ export default function AdminSeoPage() {
   const [keywords, setKeywords] = useState([]);
   const [activeKeyword, setActiveKeyword] = useState("");
   const [newKeyword, setNewKeyword] = useState("");
+  const [refreshingCity, setRefreshingCity] = useState(null);
 
   // Load keywords
   useEffect(() => {
@@ -147,6 +148,23 @@ export default function AdminSeoPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ keywords: updated }),
     });
+  }
+
+  async function refreshCity(slug) {
+    setRefreshingCity(slug);
+    try {
+      await fetch("/api/admin/seo/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ keyword: activeKeyword, city: slug }),
+      });
+      // Wait for single city scan to complete
+      await new Promise((r) => setTimeout(r, 3000));
+      await fetchData(activeKeyword);
+    } catch (err) {
+      console.error("Refresh city error:", err);
+    }
+    setRefreshingCity(null);
   }
 
   async function startCheck() {
@@ -394,14 +412,34 @@ export default function AdminSeoPage() {
                       <span className="admin-text-muted text-xs">Non</span>
                     )}
                   </div>
-                  <div className="col-span-2 text-right admin-text-muted text-xs hidden lg:block">{lastDate}</div>
+                  <div className="col-span-2 text-right hidden lg:flex items-center justify-end gap-2">
+                    <span className="admin-text-muted text-xs">{lastDate}</span>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); refreshCity(city.slug); }}
+                      disabled={refreshingCity === city.slug || checking}
+                      className="w-6 h-6 rounded-md bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors disabled:opacity-30"
+                      title="Actualiser cette ville"
+                    >
+                      <i className={`fas fa-sync-alt text-[10px] admin-text-muted ${refreshingCity === city.slug ? "fa-spin" : ""}`}></i>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="overflow-hidden transition-all duration-[1500ms] ease-in-out" style={{ maxHeight: isExpanded ? "400px" : "0px", opacity: isExpanded ? 1 : 0 }}>
                   <div className="px-5 pb-5 pt-2 border-t" style={{ borderColor: "var(--admin-border)" }}>
                     <div className="flex items-center justify-between mb-3">
                       <p className="admin-text text-sm font-bold">Historique — {city.name}</p>
-                      {city.url && <p className="text-blue-400 text-xs font-mono truncate max-w-[300px]">{city.url}</p>}
+                      <div className="flex items-center gap-3">
+                        {city.url && <p className="text-blue-400 text-xs font-mono truncate max-w-[250px]">{city.url}</p>}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); refreshCity(city.slug); }}
+                          disabled={refreshingCity === city.slug || checking}
+                          className="px-3 py-1.5 rounded-lg bg-[var(--color-red)]/20 text-[var(--color-red)] text-xs font-bold hover:bg-[var(--color-red)]/30 transition-colors disabled:opacity-30 shrink-0"
+                        >
+                          <i className={`fas fa-sync-alt mr-1 ${refreshingCity === city.slug ? "fa-spin" : ""}`}></i>
+                          {refreshingCity === city.slug ? "Scan..." : "Actualiser"}
+                        </button>
+                      </div>
                     </div>
                     <PositionChart history={city.history} />
                   </div>
