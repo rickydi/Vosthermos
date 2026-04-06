@@ -32,8 +32,8 @@ function PositionChart({ history }) {
   if (!history || history.length === 0) {
     return <p className="admin-text-muted text-sm text-center py-8">Aucune donnee disponible</p>;
   }
-  const data = history.slice(0, 10).reverse();
-  const W = 600, H = 200, padX = 50, padY = 25;
+  const data = [...history].reverse();
+  const W = Math.max(600, data.length * 50), H = 200, padX = 50, padY = 25;
   const chartW = W - padX * 2, chartH = H - padY * 2;
   const maxPos = 25, minPos = 1;
 
@@ -50,7 +50,8 @@ function PositionChart({ history }) {
   let pathD = points.length > 1 ? points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ") : "";
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxHeight: "220px" }}>
+    <div className="overflow-x-auto">
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ minWidth: `${W}px`, height: "220px" }}>
       {[1, 5, 10, 15, 20].map((pos) => (
         <g key={pos}>
           <line x1={padX} y1={getY(pos)} x2={W - padX} y2={getY(pos)} stroke="#666" strokeOpacity="0.3" strokeDasharray="4,4" />
@@ -78,6 +79,7 @@ function PositionChart({ history }) {
         return <text key={`date-${i}`} x={getX(i)} y={H - 4} textAnchor="middle" fill="#999" style={{ fontSize: "10px" }}>{date.getDate()}/{date.getMonth() + 1}</text>;
       })}
     </svg>
+    </div>
   );
 }
 
