@@ -23,8 +23,10 @@ export const metadata = {
       en: "https://www.vosthermos.com/en/",
     },
   },
+  applicationName: "Vosthermos",
   openGraph: {
     type: "website",
+    siteName: "Vosthermos",
     url: "https://www.vosthermos.com/",
     title: "Vosthermos | Reparation de portes et fenetres | Montreal, Rive-Sud",
     description:
