@@ -65,6 +65,22 @@ export default async function sitemap() {
     }
   }
 
+  // Reparation portes et fenetres + city pages
+  const reparationCityPages = CITIES.map((city) => ({
+    url: `${BASE}/reparation-portes-et-fenetres/${city.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly",
+    priority: 0.8,
+  }));
+
+  // Calfeutrage + city pages
+  const calfeutrageCityPages = CITIES.map((city) => ({
+    url: `${BASE}/calfeutrage/${city.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly",
+    priority: 0.8,
+  }));
+
   // Category pages (parents + subcategories)
   const categories = await prisma.category.findMany({
     select: { slug: true },
@@ -160,5 +176,5 @@ export default async function sitemap() {
     })),
   ];
 
-  return [...staticPages, ...servicePages, ...cityPages, ...serviceCityPages, ...problemPages, ...pricingPages, ...glossaryPages, ...categoryPages, ...productPages, ...blogPages, ...enPages, ...enServicePages];
+  return [...staticPages, ...servicePages, ...cityPages, ...serviceCityPages, ...reparationCityPages, ...calfeutrageCityPages, ...problemPages, ...pricingPages, ...glossaryPages, ...categoryPages, ...productPages, ...blogPages, ...enPages, ...enServicePages];
 }
