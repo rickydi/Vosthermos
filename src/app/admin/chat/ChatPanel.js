@@ -318,10 +318,11 @@ export default function ChatPanel({ initialConversationId }) {
                   </svg>
                   <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
                 </label>
-                <textarea value={newMsg} onChange={(e) => setNewMsg(e.target.value)}
+                <textarea value={newMsg} onChange={(e) => { setNewMsg(e.target.value); e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 160) + "px"; }}
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
                   placeholder="Ecrire un message..." rows={1}
-                  className="flex-1 px-4 py-2.5 admin-input border rounded-xl text-sm focus:outline-none focus:border-[var(--color-red)] resize-none" />
+                  className="flex-1 px-4 py-2.5 admin-input border rounded-xl text-sm focus:outline-none focus:border-[var(--color-red)] resize-none overflow-y-auto"
+                  style={{ minHeight: "42px", maxHeight: "160px" }} />
                 <button onClick={() => sendMessage()} disabled={(sending || !newMsg.trim()) && !uploading}
                   className="px-4 md:px-6 bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors self-end py-2.5">
                   {sending || uploading ? "..." : "Envoyer"}
