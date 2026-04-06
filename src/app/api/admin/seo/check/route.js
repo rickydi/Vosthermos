@@ -63,9 +63,9 @@ async function runScan(keywordBase, citiesToCheck) {
     scanState.current = i + 1;
     scanState.city = city.name;
 
-    const result = await checkRankingSerper(city.name, keywordBase);
-
     try {
+      const result = await checkRankingSerper(city.name, keywordBase);
+
       await prisma.seoRanking.create({
         data: {
           city: city.slug,
@@ -76,18 +76,19 @@ async function runScan(keywordBase, citiesToCheck) {
           url: result.url,
         },
       });
-    } catch (dbErr) {
-      console.error(`DB error for ${city.name}:`, dbErr.message);
+
+      scanState.results.push({
+        city: city.name,
+        slug: city.slug,
+        position: result.position,
+        aiMention: result.aiMention,
+      });
+    } catch (err) {
+      console.error(`Scan error for ${city.name}:`, err.message);
+      scanState.results.push({ city: city.name, slug: city.slug, position: null, aiMention: false });
     }
 
-    scanState.results.push({
-      city: city.name,
-      slug: city.slug,
-      position: result.position,
-      aiMention: result.aiMention,
-    });
-
-    if (i < citiesToCheck.length - 1) await sleep(500);
+    if (i < citiesToCheck.length - 1) await sleep(1500);
   }
 
   scanState.running = false;
