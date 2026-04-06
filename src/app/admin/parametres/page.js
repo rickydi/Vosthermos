@@ -3,6 +3,7 @@
 import { useState } from "react";
 import NotifyMembersSection from "@/components/admin/NotifyMembersSection";
 import BlogNotifyMembersSection from "@/components/admin/BlogNotifyMembersSection";
+import ApiKeysSection from "@/components/admin/ApiKeysSection";
 
 export default function AdminSettingsPage() {
   const [form, setForm] = useState({
@@ -140,6 +141,11 @@ export default function AdminSettingsPage() {
       {/* Notifications Blog */}
       <div className="mt-8">
         <BlogNotifyMembersSection />
+      </div>
+
+      {/* Cles API */}
+      <div className="mt-8">
+        <ApiKeysSection />
       </div>
     </div>
   );

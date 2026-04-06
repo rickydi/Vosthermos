@@ -8,7 +8,12 @@ export const dynamic = "force-dynamic";
 let scanState = { running: false, current: 0, total: 0, city: "", results: [], keyword: "" };
 
 async function checkRankingSerper(cityName, keywordBase) {
-  const apiKey = process.env.SERPER_API_KEY;
+  // Read API key from site_settings first, fallback to env
+  let apiKey = process.env.SERPER_API_KEY;
+  try {
+    const rows = await prisma.$queryRawUnsafe(`SELECT value FROM site_settings WHERE key = 'api_key_serper'`);
+    if (rows[0]?.value) apiKey = rows[0].value;
+  } catch {}
   if (!apiKey) return { position: null, aiMention: false, url: null };
 
   const query = `${keywordBase} ${cityName}`;
@@ -105,7 +110,13 @@ export async function POST(request) {
     });
   }
 
-  if (!process.env.SERPER_API_KEY) {
+  // Check API key from site_settings first, then env
+  let hasSerperKey = !!process.env.SERPER_API_KEY;
+  try {
+    const rows = await prisma.$queryRawUnsafe(`SELECT value FROM site_settings WHERE key = 'api_key_serper'`);
+    if (rows[0]?.value) hasSerperKey = true;
+  } catch {}
+  if (!hasSerperKey) {
     return new Response(JSON.stringify({ error: "SERPER_API_KEY manquant" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },

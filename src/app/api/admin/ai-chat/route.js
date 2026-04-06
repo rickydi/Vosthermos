@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 
 export async function POST(request) {
@@ -8,7 +9,12 @@ export async function POST(request) {
     return NextResponse.json({ error: "Non autorise" }, { status: 401 });
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  // Read API key from site_settings first, fallback to env
+  let apiKey = process.env.ANTHROPIC_API_KEY;
+  try {
+    const rows = await prisma.$queryRawUnsafe(`SELECT value FROM site_settings WHERE key = 'api_key_anthropic'`);
+    if (rows[0]?.value) apiKey = rows[0].value;
+  } catch {}
   if (!apiKey) {
     return NextResponse.json({ error: "ANTHROPIC_API_KEY manquant" }, { status: 500 });
   }
