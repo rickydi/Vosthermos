@@ -65,8 +65,8 @@ export default function FlowDiagram({ days }) {
   }
 
   const maxCount = Math.max(entries[0]?.count || 1, flows[0]?.count || 1);
-  const fromPages = entries.map((e) => e.page);
-  const toPages = [...new Set(flows.map((f) => f.to))];
+  const fromPages = entries.slice(0, 10).map((e) => e.page);
+  const toPages = [...new Set(flows.map((f) => f.to))].slice(0, 10);
 
   const fromTotals = new Map();
   for (const e of entries) {
@@ -77,100 +77,73 @@ export default function FlowDiagram({ days }) {
     toTotals.set(f.to, (toTotals.get(f.to) || 0) + f.count);
   }
 
-  const nodeRadius = 16;
-  const nodeSpacing = 55;
   const nodeCount = Math.max(fromPages.length, toPages.length, 1);
-  const contentHeight = Math.max(nodeCount - 1, 1) * nodeSpacing;
-  const padY = 40;
-  const padLeft = 160;
-  const padRight = 160;
-  const svgWidth = 900;
-  const svgHeight = contentHeight + padY * 2;
-  const leftX = padLeft;
-  const rightX = svgWidth - padRight;
+  const rowH = 40;
+  const pad = 30;
+  const h = (nodeCount - 1) * rowH + pad * 2;
+  const w = 700;
+  const lx = 140;
+  const rx = w - 140;
 
   return (
     <div className="admin-card rounded-xl p-4 border">
       <h3 className="admin-text-muted text-xs uppercase tracking-wider mb-3">Flow de navigation</h3>
-      <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="w-full" style={{ display: "block" }}>
+      <svg viewBox={`0 0 ${w} ${h}`} className="w-full" style={{ display: "block" }}>
         <defs>
           {flows.map((f, i) => (
-            <marker
-              key={`arrow-${i}`}
-              id={`arrow-${i}`}
-              viewBox="0 0 10 6"
-              refX={10}
-              refY={3}
-              markerWidth={8}
-              markerHeight={6}
-              orient="auto"
-            >
-              <path d="M 0 0 L 10 3 L 0 6 Z" fill={getColor(f.from)} fillOpacity={0.7} />
+            <marker key={`a${i}`} id={`a${i}`} viewBox="0 0 10 6" refX={10} refY={3} markerWidth={8} markerHeight={6} orient="auto">
+              <path d="M0 0L10 3L0 6Z" fill={getColor(f.from)} fillOpacity={0.7} />
             </marker>
           ))}
         </defs>
 
-        {/* From nodes (left) */}
         {fromPages.map((page, i) => {
-          const y = padY + i * contentHeight / Math.max(fromPages.length - 1, 1);
-          const total = fromTotals.get(page) || 0;
+          const y = pad + i * rowH;
           return (
-            <g key={`from-${page}`}>
-              <circle cx={leftX} cy={y} r={nodeRadius} fill={getColor(page)} fillOpacity={0.2} stroke={getColor(page)} strokeWidth={2} />
-              <text x={leftX} y={y + 5} textAnchor="middle" fill="#ffffff" fontSize={11} fontWeight="bold">
-                {total}
-              </text>
-              <text x={10} y={y + 4} textAnchor="start" fill="#a0a0a0" fontSize={11}>
-                {getLabel(page)}
-              </text>
+            <g key={`f-${page}`}>
+              <circle cx={lx} cy={y} r={12} fill={getColor(page)} fillOpacity={0.2} stroke={getColor(page)} strokeWidth={1.5} />
+              <text x={lx} y={y + 4} textAnchor="middle" fill="#fff" fontSize={10} fontWeight="bold">{fromTotals.get(page) || 0}</text>
+              <text x={lx - 18} y={y + 4} textAnchor="end" fill="#9ca3af" fontSize={10}>{getLabel(page)}</text>
             </g>
           );
         })}
 
-        {/* To nodes (right) */}
         {toPages.map((page, i) => {
-          const y = padY + i * contentHeight / Math.max(toPages.length - 1, 1);
-          const total = toTotals.get(page) || 0;
+          const y = pad + i * rowH;
           return (
-            <g key={`to-${page}`}>
-              <circle cx={rightX} cy={y} r={nodeRadius} fill={getColor(page)} fillOpacity={0.2} stroke={getColor(page)} strokeWidth={2} />
-              <text x={rightX} y={y + 5} textAnchor="middle" fill="#ffffff" fontSize={11} fontWeight="bold">
-                {total}
-              </text>
-              <text x={svgWidth - 10} y={y + 4} textAnchor="end" fill="#a0a0a0" fontSize={11}>
-                {getLabel(page)}
-              </text>
+            <g key={`t-${page}`}>
+              <circle cx={rx} cy={y} r={12} fill={getColor(page)} fillOpacity={0.2} stroke={getColor(page)} strokeWidth={1.5} />
+              <text x={rx} y={y + 4} textAnchor="middle" fill="#fff" fontSize={10} fontWeight="bold">{toTotals.get(page) || 0}</text>
+              <text x={rx + 18} y={y + 4} textAnchor="start" fill="#9ca3af" fontSize={10}>{getLabel(page)}</text>
             </g>
           );
         })}
 
-        {/* Flow paths with animated arrows */}
         {flows.map((f, i) => {
-          const fromIdx = fromPages.indexOf(f.from);
-          const toIdx = toPages.indexOf(f.to);
-          const y1 = padY + fromIdx * contentHeight / Math.max(fromPages.length - 1, 1);
-          const y2 = padY + toIdx * contentHeight / Math.max(toPages.length - 1, 1);
-          const thickness = Math.max(1, (f.count / maxCount) * 8);
-          const midX = (leftX + rightX) / 2;
-          const pathD = `M ${leftX + nodeRadius + 2} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${rightX - nodeRadius - 2} ${y2}`;
-          const pathId = `flow-path-${i}`;
+          const fi = fromPages.indexOf(f.from);
+          const ti = toPages.indexOf(f.to);
+          if (fi === -1 || ti === -1) return null;
+          const y1 = pad + fi * rowH;
+          const y2 = pad + ti * rowH;
+          const t = Math.max(1, (f.count / maxCount) * 6);
+          const mx = (lx + rx) / 2;
+          const d = `M${lx + 14} ${y1}C${mx} ${y1},${mx} ${y2},${rx - 14} ${y2}`;
           const color = getColor(f.from);
-          const particleCount = Math.max(1, Math.round((f.count / maxCount) * 3));
-          const duration = 3;
+          const pc = Math.max(1, Math.round((f.count / maxCount) * 3));
 
           return (
             <g key={i}>
-              <path id={pathId} d={pathD} fill="none" stroke={color} strokeWidth={thickness} strokeOpacity={0.15} />
-              <path d={pathD} fill="none" stroke={color} strokeWidth={thickness} strokeOpacity={0.4} strokeDasharray={`${thickness * 3} ${thickness * 6}`}>
-                <animate attributeName="stroke-dashoffset" from={thickness * 9} to={0} dur={`${duration}s`} repeatCount="indefinite" />
+              <path d={d} fill="none" stroke={color} strokeWidth={t} strokeOpacity={0.15} />
+              <path d={d} fill="none" stroke={color} strokeWidth={t} strokeOpacity={0.4} strokeDasharray={`${t * 3} ${t * 6}`}>
+                <animate attributeName="stroke-dashoffset" from={t * 9} to={0} dur="3s" repeatCount="indefinite" />
               </path>
-              <path d={pathD} fill="none" stroke="transparent" strokeWidth={1} markerEnd={`url(#arrow-${i})`} />
-              {Array.from({ length: particleCount }).map((_, p) => (
-                <circle key={p} r={thickness * 0.6 + 1} fill={color} fillOpacity={0.8}>
-                  <animateMotion dur={`${duration}s`} begin={`${(p / particleCount) * duration}s`} repeatCount="indefinite" path={pathD} />
+              <path d={d} fill="none" stroke="transparent" strokeWidth={1} markerEnd={`url(#a${i})`} />
+              {Array.from({ length: pc }).map((_, p) => (
+                <circle key={p} r={t * 0.5 + 0.8} fill={color} fillOpacity={0.8}>
+                  <animateMotion dur="3s" begin={`${(p / pc) * 3}s`} repeatCount="indefinite" path={d} />
                 </circle>
               ))}
-              <path d={pathD} fill="none" stroke="transparent" strokeWidth={Math.max(thickness, 12)} style={{ cursor: "pointer" }}>
+              <path d={d} fill="none" stroke="transparent" strokeWidth={Math.max(t, 10)} style={{ cursor: "pointer" }}>
                 <title>{`${getLabel(f.from)} → ${getLabel(f.to)}: ${f.count}`}</title>
               </path>
             </g>
