@@ -78,13 +78,13 @@ export default function FlowDiagram({ days }) {
   }
 
   const nodeRadius = 16;
-  const svgPad = nodeRadius + 20;
+  const svgPad = 50;
   const nodeCount = Math.max(fromPages.length, toPages.length, 1);
   const contentHeight = Math.max(nodeCount - 1, 1) * 55;
-  const svgWidth = 800;
+  const svgWidth = 1100;
   const svgHeight = contentHeight + svgPad * 2;
-  const leftX = 180;
-  const rightX = svgWidth - 180;
+  const leftX = 250;
+  const rightX = svgWidth - 250;
 
 
   return (
