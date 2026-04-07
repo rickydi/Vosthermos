@@ -11,7 +11,7 @@ import BreakdownCards from "@/components/admin/analytics/BreakdownCards";
 
 export default function AdminAnalyticsPage() {
   const [data, setData] = useState(null);
-  const [days, setDays] = useState(7);
+  const [days, setDays] = useState(0);
   const [customDate, setCustomDate] = useState("");
   const [loading, setLoading] = useState(true);
 

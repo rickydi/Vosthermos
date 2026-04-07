@@ -11,7 +11,7 @@ export default function TopPages({ topPages, totalPageViews, formatDuration }) {
             <div key={p.page} className="flex items-center gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="admin-text text-sm font-mono truncate">{p.page}</span>
+                  <a href={p.page} target="_blank" rel="noopener noreferrer" className="admin-text text-sm font-mono truncate hover:text-blue-500 hover:underline transition-colors">{p.page}</a>
                   <div className="flex items-center gap-3 text-xs admin-text-muted flex-shrink-0 ml-2">
                     <span className="font-bold">{p.count}</span>
                     <span>{formatDuration(p.avgDuration)}</span>
