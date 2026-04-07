@@ -65,8 +65,8 @@ export default function FlowDiagram({ days }) {
   }
 
   const maxCount = Math.max(entries[0]?.count || 1, flows[0]?.count || 1);
-  const fromPages = entries.slice(0, 10).map((e) => e.page);
-  const toPages = [...new Set(flows.map((f) => f.to))].slice(0, 10);
+  const fromPages = entries.map((e) => e.page);
+  const toPages = [...new Set(flows.map((f) => f.to))];
 
   const fromTotals = new Map();
   for (const e of entries) {
@@ -78,7 +78,7 @@ export default function FlowDiagram({ days }) {
   }
 
   const nodeCount = Math.max(fromPages.length, toPages.length, 1);
-  const rowH = 40;
+  const rowH = 28;
   const pad = 30;
   const h = (nodeCount - 1) * rowH + pad * 2;
   const w = 700;
