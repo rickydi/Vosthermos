@@ -22,8 +22,12 @@ export async function GET(request) {
     });
 
     const flowMap = {};
+    const entryMap = {};
     for (const session of sessions) {
       const views = session.pageViews;
+      if (views.length > 0) {
+        entryMap[views[0].page] = (entryMap[views[0].page] || 0) + 1;
+      }
       for (let i = 0; i < views.length - 1; i++) {
         const from = views[i].page;
         const to = views[i + 1].page;
@@ -40,7 +44,11 @@ export async function GET(request) {
       .sort((a, b) => b.count - a.count)
       .slice(0, 15);
 
-    return NextResponse.json({ flows });
+    const entries = Object.entries(entryMap)
+      .map(([page, count]) => ({ page, count }))
+      .sort((a, b) => b.count - a.count);
+
+    return NextResponse.json({ flows, entries });
   } catch (err) {
     if (err.message === "Unauthorized") return NextResponse.json({ error: "Non autorise" }, { status: 401 });
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

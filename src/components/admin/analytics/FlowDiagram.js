@@ -43,16 +43,20 @@ function getLabel(page) {
 
 export default function FlowDiagram({ days }) {
   const [flows, setFlows] = useState([]);
+  const [entries, setEntries] = useState([]);
   const [scale, setScale] = useState(1);
 
   useEffect(() => {
     fetch(`/api/admin/analytics/flow?days=${days}`)
       .then((r) => r.json())
-      .then((d) => setFlows(d.flows || []))
+      .then((d) => {
+        setFlows(d.flows || []);
+        setEntries(d.entries || []);
+      })
       .catch(() => {});
   }, [days]);
 
-  if (flows.length === 0) {
+  if (entries.length === 0) {
     return (
       <div className="admin-card rounded-xl p-4 border">
         <h3 className="admin-text-muted text-xs uppercase tracking-wider mb-3">Flow de navigation</h3>
@@ -61,14 +65,16 @@ export default function FlowDiagram({ days }) {
     );
   }
 
-  const maxCount = flows[0].count;
-  const fromPages = [...new Set(flows.map((f) => f.from))];
+  const maxCount = Math.max(entries[0]?.count || 1, flows[0]?.count || 1);
+  const fromPages = entries.map((e) => e.page);
   const toPages = [...new Set(flows.map((f) => f.to))];
 
   const fromTotals = new Map();
+  for (const e of entries) {
+    fromTotals.set(e.page, e.count);
+  }
   const toTotals = new Map();
   for (const f of flows) {
-    fromTotals.set(f.from, (fromTotals.get(f.from) || 0) + f.count);
     toTotals.set(f.to, (toTotals.get(f.to) || 0) + f.count);
   }
 
