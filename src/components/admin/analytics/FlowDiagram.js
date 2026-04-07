@@ -78,20 +78,19 @@ export default function FlowDiagram({ days }) {
   }
 
   const nodeRadius = 16;
-  const svgPad = nodeRadius + 10;
-  const nodeCount = Math.max(fromPages.length, toPages.length);
+  const svgPad = nodeRadius + 20;
+  const nodeCount = Math.max(fromPages.length, toPages.length, 1);
   const contentHeight = Math.max(nodeCount - 1, 1) * 55;
-  const svgWidth = 700;
+  const svgWidth = 800;
   const svgHeight = contentHeight + svgPad * 2;
-  const leftX = 150;
-  const rightX = svgWidth - 150;
+  const leftX = 180;
+  const rightX = svgWidth - 180;
 
 
   return (
-    <div className="admin-card rounded-xl p-4 border">
+    <div className="admin-card rounded-xl p-4 border" style={{ overflow: "visible" }}>
       <h3 className="admin-text-muted text-xs uppercase tracking-wider mb-3">Flow de navigation</h3>
-      <div className="overflow-visible">
-        <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="w-full" style={{ display: "block" }}>
+      <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="w-full" style={{ display: "block", overflow: "visible" }}>
             <defs>
               {flows.map((f, i) => (
                 <marker
@@ -217,8 +216,7 @@ export default function FlowDiagram({ days }) {
                 </g>
               );
             })}
-        </svg>
-      </div>
+      </svg>
     </div>
   );
 }
