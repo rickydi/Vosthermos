@@ -44,7 +44,6 @@ function getLabel(page) {
 export default function FlowDiagram({ days }) {
   const [flows, setFlows] = useState([]);
   const [entries, setEntries] = useState([]);
-  const [scale, setScale] = useState(1);
 
   useEffect(() => {
     fetch(`/api/admin/analytics/flow?days=${days}`)
@@ -87,34 +86,12 @@ export default function FlowDiagram({ days }) {
   const leftX = 150;
   const rightX = svgWidth - 150;
 
-  const minScale = 0.5;
-  const maxScale = 2;
 
   return (
     <div className="admin-card rounded-xl p-4 border">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="admin-text-muted text-xs uppercase tracking-wider">Flow de navigation</h3>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setScale((s) => Math.max(minScale, +(s - 0.25).toFixed(2)))}
-            disabled={scale <= minScale}
-            className="w-7 h-7 rounded-lg admin-card border admin-text-muted hover:admin-text text-sm font-bold transition-colors flex items-center justify-center disabled:opacity-30"
-          >
-            −
-          </button>
-          <span className="admin-text-muted text-xs w-10 text-center">{Math.round(scale * 100)}%</span>
-          <button
-            onClick={() => setScale((s) => Math.min(maxScale, +(s + 0.25).toFixed(2)))}
-            disabled={scale >= maxScale}
-            className="w-7 h-7 rounded-lg admin-card border admin-text-muted hover:admin-text text-sm font-bold transition-colors flex items-center justify-center disabled:opacity-30"
-          >
-            +
-          </button>
-        </div>
-      </div>
-      <div className="overflow-x-hidden px-5">
-        <div style={{ transform: `scale(${scale})`, transformOrigin: "top center", transition: "transform 0.2s ease", marginBottom: scale > 1 ? `${(scale - 1) * 100}%` : 0 }}>
-          <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="w-full" style={{ display: "block" }}>
+      <h3 className="admin-text-muted text-xs uppercase tracking-wider mb-3">Flow de navigation</h3>
+      <div className="overflow-visible">
+        <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="w-full" style={{ display: "block" }}>
             <defs>
               {flows.map((f, i) => (
                 <marker
@@ -240,8 +217,7 @@ export default function FlowDiagram({ days }) {
                 </g>
               );
             })}
-          </svg>
-        </div>
+        </svg>
       </div>
     </div>
   );
