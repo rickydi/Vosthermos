@@ -232,7 +232,7 @@ export default function QuoteForm({ compact = false }) {
               <div key={opt.v}
                 onMouseEnter={() => trackHover("service", opt.v)}
                 onClick={() => { setService(opt.v); trackFieldValue("service", opt.v); setDropdownOpen(false); }}
-                className={`px-4 py-2 text-sm cursor-pointer transition-colors ${service === opt.v ? "bg-red-50 text-[var(--color-red)] font-semibold" : "text-gray-700 hover:bg-gray-50"}`}>
+                className={`px-4 py-2 text-sm cursor-pointer transition-colors ${service === opt.v ? "bg-red-50 text-[var(--color-red)] font-semibold" : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"}`}>
                 {opt.l}
               </div>
             ))}
