@@ -82,6 +82,7 @@ export default function RecentVisitors({ initialVisitors, formatDuration }) {
               <tr className="admin-text-muted text-[10px] uppercase tracking-wider">
                 <th className="text-left pb-3">Visiteur</th>
                 <th className="text-left pb-3">Appareil</th>
+                <th className="text-left pb-3">Lieu</th>
                 <th className="text-left pb-3">Navigateur</th>
                 <th className="text-right pb-3">Pages</th>
                 <th className="text-right pb-3">Duree</th>
@@ -102,6 +103,7 @@ export default function RecentVisitors({ initialVisitors, formatDuration }) {
                   <td className="py-2.5 text-xs">
                     {deviceEmoji(v.device)} {v.device}
                   </td>
+                  <td className="py-2.5 admin-text-muted text-xs">{v.city ? `${v.city}${v.region ? `, ${v.region}` : ""}` : "—"}</td>
                   <td className="py-2.5 admin-text-muted text-xs">{v.browser}</td>
                   <td className="py-2.5 text-right admin-text text-xs font-bold">{v.pages}</td>
                   <td className="py-2.5 text-right admin-text-muted text-xs">{formatDuration(v.duration)}</td>
@@ -117,7 +119,7 @@ export default function RecentVisitors({ initialVisitors, formatDuration }) {
               ))}
               {visitors.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center admin-text-muted text-sm">
+                  <td colSpan={7} className="py-8 text-center admin-text-muted text-sm">
                     Aucun visiteur
                   </td>
                 </tr>

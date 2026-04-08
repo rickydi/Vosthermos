@@ -86,6 +86,9 @@ model AnalyticsSession {
   device     String?
   browser    String?
   referrer   String?
+  city       String?
+  region     String?
+  country    String?
   startedAt  DateTime           @default(now())
   endedAt    DateTime?
   pageViews  AnalyticsPageView[]

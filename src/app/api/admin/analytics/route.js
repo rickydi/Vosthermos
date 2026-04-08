@@ -139,6 +139,8 @@ export async function GET(request) {
           device: s.device || "Inconnu",
           browser: s.browser || "Inconnu",
           referrer: s.referrer || null,
+          city: s.city || null,
+          region: s.region || null,
           pages: s.pageViews.length,
           duration,
           startedAt: s.startedAt,
