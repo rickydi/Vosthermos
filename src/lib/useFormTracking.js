@@ -28,7 +28,8 @@ export default function useFormTracking(formType) {
     };
 
     if (action === "abandon" && navigator.sendBeacon) {
-      navigator.sendBeacon("/api/analytics/form", JSON.stringify(payload));
+      const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
+      navigator.sendBeacon("/api/analytics/form", blob);
     } else {
       fetch("/api/analytics/form", {
         method: "POST",
