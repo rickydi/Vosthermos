@@ -18,7 +18,7 @@ export default function FormTimeline({ days: initialDays }) {
   const [focusedField, setFocusedField] = useState(null);
   const [progress, setProgress] = useState(0);
   const [speed, setSpeed] = useState(1);
-  const [replayDays, setReplayDays] = useState(initialDays);
+  const [replayDays, setReplayDays] = useState(7);
   const [customDate, setCustomDate] = useState("");
   const timerRef = useRef(null);
   const stepRef = useRef(0);

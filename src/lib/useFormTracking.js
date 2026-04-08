@@ -74,18 +74,22 @@ export default function useFormTracking(formType) {
 
   useEffect(() => {
     function handleAbandon() {
-      if (startedRef.current && !submittedRef.current) {
+      if (startedRef.current && !submittedRef.current && !sentRef.current) {
         send("abandon");
       }
     }
 
-    window.addEventListener("beforeunload", handleAbandon);
-    document.addEventListener("visibilitychange", () => {
+    // Only use visibilitychange - it fires reliably and sendBeacon works in it
+    function onVisChange() {
       if (document.visibilityState === "hidden") handleAbandon();
-    });
+    }
+
+    document.addEventListener("visibilitychange", onVisChange);
+    window.addEventListener("pagehide", handleAbandon);
 
     return () => {
-      window.removeEventListener("beforeunload", handleAbandon);
+      document.removeEventListener("visibilitychange", onVisChange);
+      window.removeEventListener("pagehide", handleAbandon);
     };
   }, [formType, pathname]);
 
