@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import useFormTracking from "@/lib/useFormTracking";
 import { formatPhoneInput } from "@/lib/phone";
 
@@ -20,7 +20,17 @@ export default function QuoteForm({ compact = false }) {
   const [uploading, setUploading] = useState(false);
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
-  const { trackFieldFocus, trackFieldValue, trackSubmit } = useFormTracking("soumission");
+  const { trackFieldFocus, trackFieldValue, trackHover, trackSubmit } = useFormTracking("soumission");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setDropdownOpen(false);
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const nameValid = name.trim().length >= 2;
   const phoneValid = phone.replace(/\D/g, "").length >= 10;
@@ -202,25 +212,32 @@ export default function QuoteForm({ compact = false }) {
           className={inputClass} />
         {emailValid && <span className={checkClass}>&#10003;</span>}
       </div>
-      <div className={inputWrap}>
-        <select required value={service}
-          onFocus={() => trackFieldFocus("service")}
-          onClick={() => trackFieldFocus("service")}
-          onBlur={() => { if (!service) trackFieldValue("service", ""); }}
-          onChange={(e) => { setService(e.target.value); trackFieldValue("service", e.target.value); }}
-          className={`${inputClass} ${!service ? "!text-gray-400" : "!text-gray-900"}`}>
-          <option value="">Selectionnez un service</option>
-          <option value="quincaillerie">Quincaillerie</option>
-          <option value="vitre-thermos">Vitre thermos</option>
-          <option value="portes-bois">Portes en bois</option>
-          <option value="moustiquaire">Moustiquaires</option>
-          <option value="calfeutrage">Calfeutrage</option>
-          <option value="coupe-froid">Coupe-froid</option>
-          <option value="desembuage">Desembuage</option>
-          <option value="insertion-porte">Insertion de porte</option>
-          <option value="opti-fenetre">Programme OPTI-FENETRE</option>
-          <option value="autre">Autre</option>
-        </select>
+      <div className={inputWrap} ref={dropdownRef}>
+        <input type="hidden" required value={service} />
+        <div
+          onClick={() => { setDropdownOpen(!dropdownOpen); trackFieldFocus("service"); }}
+          className={`${inputClass} cursor-pointer select-none ${!service ? "!text-gray-400" : "!text-gray-900"}`}>
+          {service ? { quincaillerie: "Quincaillerie", "vitre-thermos": "Vitre thermos", "portes-bois": "Portes en bois", moustiquaire: "Moustiquaires", calfeutrage: "Calfeutrage", "coupe-froid": "Coupe-froid", desembuage: "Desembuage", "insertion-porte": "Insertion de porte", "opti-fenetre": "Programme OPTI-FENETRE", autre: "Autre" }[service] : "Selectionnez un service"}
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"><i className={`fas fa-chevron-down transition-transform ${dropdownOpen ? "rotate-180" : ""}`} /></span>
+        </div>
+        {dropdownOpen && (
+          <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mt-1 z-20 py-1 max-h-52 overflow-y-auto">
+            {[
+              { v: "quincaillerie", l: "Quincaillerie" }, { v: "vitre-thermos", l: "Vitre thermos" },
+              { v: "portes-bois", l: "Portes en bois" }, { v: "moustiquaire", l: "Moustiquaires" },
+              { v: "calfeutrage", l: "Calfeutrage" }, { v: "coupe-froid", l: "Coupe-froid" },
+              { v: "desembuage", l: "Desembuage" }, { v: "insertion-porte", l: "Insertion de porte" },
+              { v: "opti-fenetre", l: "Programme OPTI-FENETRE" }, { v: "autre", l: "Autre" },
+            ].map((opt) => (
+              <div key={opt.v}
+                onMouseEnter={() => trackHover("service", opt.v)}
+                onClick={() => { setService(opt.v); trackFieldValue("service", opt.v); setDropdownOpen(false); }}
+                className={`px-4 py-2 text-sm cursor-pointer transition-colors ${service === opt.v ? "bg-red-50 text-[var(--color-red)] font-semibold" : "text-gray-700 hover:bg-gray-50"}`}>
+                {opt.l}
+              </div>
+            ))}
+          </div>
+        )}
         {serviceValid && <span className={checkClass}>&#10003;</span>}
       </div>
       <div className={inputWrap}>

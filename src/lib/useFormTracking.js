@@ -58,6 +58,10 @@ export default function useFormTracking(formType) {
     lastFieldRef.current = fieldName;
   }, [formType, pathname]);
 
+  const trackHover = useCallback((fieldName, value) => {
+    interactionsRef.current.push({ t: getMs(), a: "h", field: fieldName, val: value });
+  }, []);
+
   const trackFieldValue = useCallback((fieldName, value) => {
     lastFieldRef.current = fieldName;
     if (!fieldsCompletedRef.current.includes(fieldName)) {
@@ -104,5 +108,5 @@ export default function useFormTracking(formType) {
     sentRef.current = false;
   }, [pathname]);
 
-  return { trackFieldFocus, trackFieldValue, trackSubmit };
+  return { trackFieldFocus, trackFieldValue, trackHover, trackSubmit };
 }

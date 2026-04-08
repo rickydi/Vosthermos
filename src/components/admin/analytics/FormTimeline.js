@@ -18,6 +18,7 @@ export default function FormTimeline({ days: initialDays }) {
   const [focusedField, setFocusedField] = useState(null);
   const [progress, setProgress] = useState(0);
   const [speed, setSpeed] = useState(1);
+  const [hoveredOption, setHoveredOption] = useState(null);
   const [replayDays, setReplayDays] = useState(7);
   const [customDate, setCustomDate] = useState("");
   const timerRef = useRef(null);
@@ -68,8 +69,13 @@ export default function FormTimeline({ days: initialDays }) {
 
       if (ev.a === "f") {
         setFocusedField(ev.field);
+        setHoveredOption(null);
+      } else if (ev.a === "h") {
+        setFocusedField(ev.field);
+        setHoveredOption(ev.val);
       } else if (ev.a === "v") {
         setFocusedField(ev.field);
+        setHoveredOption(null);
         setFormState((prev) => ({ ...prev, [ev.field]: ev.val }));
       }
 
@@ -177,10 +183,18 @@ export default function FormTimeline({ days: initialDays }) {
               ))}
             </div>
             {!playing ? (
-              <button onClick={() => { setFormState({}); setFocusedField(null); playFromStep(activeReplay, 0); }}
-                className="w-7 h-7 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center hover:bg-blue-500/30 text-xs">
-                <i className="fas fa-play" />
-              </button>
+              <div className="flex items-center gap-1">
+                {stepRef.current > 0 && (
+                  <button onClick={() => playFromStep(activeReplay, stepRef.current)}
+                    className="w-7 h-7 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center hover:bg-green-500/30 text-xs" title="Reprendre">
+                    <i className="fas fa-play" />
+                  </button>
+                )}
+                <button onClick={() => { setFormState({}); setFocusedField(null); setHoveredOption(null); playFromStep(activeReplay, 0); }}
+                  className="w-7 h-7 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center hover:bg-blue-500/30 text-xs" title="Rejouer">
+                  <i className="fas fa-redo" />
+                </button>
+              </div>
             ) : (
               <button onClick={stopPlayback}
                 className="w-7 h-7 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center hover:bg-red-500/30 text-xs">
@@ -189,9 +203,29 @@ export default function FormTimeline({ days: initialDays }) {
             )}
           </div>
 
-          {/* Progress bar */}
-          <div className="w-full bg-white/5 rounded-full h-1 mb-4">
-            <div className="bg-blue-500 h-1 rounded-full transition-all" style={{ width: `${progress}%` }} />
+          {/* Progress bar - clickable */}
+          <div className="w-full bg-white/5 rounded-full h-2 mb-4 cursor-pointer relative"
+            onClick={(e) => {
+              if (!activeReplay?.interactions?.length) return;
+              const rect = e.currentTarget.getBoundingClientRect();
+              const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+              const targetStep = Math.floor(pct * activeReplay.interactions.length);
+              stopPlayback();
+              // Apply all state up to targetStep
+              const newState = {};
+              let newFocus = null;
+              for (let i = 0; i <= targetStep && i < activeReplay.interactions.length; i++) {
+                const ev = activeReplay.interactions[i];
+                if (ev.a === "f" || ev.a === "h") newFocus = ev.field;
+                if (ev.a === "v") { newFocus = ev.field; newState[ev.field] = ev.val; }
+              }
+              setFormState(newState);
+              setFocusedField(newFocus);
+              setProgress(Math.round((targetStep / activeReplay.interactions.length) * 100));
+              stepRef.current = targetStep;
+              setHoveredOption(null);
+            }}>
+            <div className="bg-blue-500 h-2 rounded-full transition-all" style={{ width: `${progress}%` }} />
           </div>
 
           {/* Simulated form */}
@@ -237,10 +271,13 @@ export default function FormTimeline({ days: initialDays }) {
                 </div>
                 {formState.service && <span className="absolute right-8 top-1/2 -translate-y-1/2 text-green-500 text-sm">&#10003;</span>}
                 {/* Dropdown simulation */}
-                {focusedField === "service" && !formState.service && playing && (
+                {focusedField === "service" && !formState.service && (
                   <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mt-1 z-10 py-1 animate-[fadeIn_0.2s_ease-out]">
                     {Object.entries(SERVICE_LABELS).map(([val, label]) => (
-                      <div key={val} className="px-4 py-1.5 text-sm text-gray-700 hover:bg-gray-50">{label}</div>
+                      <div key={val} className={`px-4 py-1.5 text-sm transition-colors ${hoveredOption === val ? "bg-blue-50 text-blue-700 font-medium" : "text-gray-700"}`}>
+                        {hoveredOption === val && <span className="inline-block w-1 h-1 bg-blue-500 rounded-full mr-2 align-middle" />}
+                        {label}
+                      </div>
                     ))}
                   </div>
                 )}
