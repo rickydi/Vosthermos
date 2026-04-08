@@ -78,8 +78,8 @@ export default function FlowDiagram({ days }) {
   }
 
   const nodeCount = Math.max(fromPages.length, toPages.length, 1);
-  const rowH = 28;
-  const pad = 30;
+  const rowH = 18;
+  const pad = 20;
   const h = (nodeCount - 1) * rowH + pad * 2;
   const w = 700;
   const lx = 140;
@@ -101,9 +101,9 @@ export default function FlowDiagram({ days }) {
           const y = pad + i * rowH;
           return (
             <g key={`f-${page}`}>
-              <circle cx={lx} cy={y} r={8} fill={getColor(page)} fillOpacity={0.2} stroke={getColor(page)} strokeWidth={1.2} />
-              <text x={lx} y={y + 3} textAnchor="middle" fill="#fff" fontSize={7} fontWeight="bold">{fromTotals.get(page) || 0}</text>
-              <text x={lx - 12} y={y + 3} textAnchor="end" fill="#9ca3af" fontSize={7}>{getLabel(page)}</text>
+              <circle cx={lx} cy={y} r={5} fill={getColor(page)} fillOpacity={0.2} stroke={getColor(page)} strokeWidth={1} />
+              <text x={lx} y={y + 2} textAnchor="middle" fill="#fff" fontSize={4.5} fontWeight="bold">{fromTotals.get(page) || 0}</text>
+              <text x={lx - 8} y={y + 2} textAnchor="end" fill="#9ca3af" fontSize={5}>{getLabel(page)}</text>
             </g>
           );
         })}
@@ -112,9 +112,9 @@ export default function FlowDiagram({ days }) {
           const y = pad + i * rowH;
           return (
             <g key={`t-${page}`}>
-              <circle cx={rx} cy={y} r={8} fill={getColor(page)} fillOpacity={0.2} stroke={getColor(page)} strokeWidth={1.2} />
-              <text x={rx} y={y + 3} textAnchor="middle" fill="#fff" fontSize={7} fontWeight="bold">{toTotals.get(page) || 0}</text>
-              <text x={rx + 12} y={y + 3} textAnchor="start" fill="#9ca3af" fontSize={7}>{getLabel(page)}</text>
+              <circle cx={rx} cy={y} r={5} fill={getColor(page)} fillOpacity={0.2} stroke={getColor(page)} strokeWidth={1} />
+              <text x={rx} y={y + 2} textAnchor="middle" fill="#fff" fontSize={4.5} fontWeight="bold">{toTotals.get(page) || 0}</text>
+              <text x={rx + 8} y={y + 2} textAnchor="start" fill="#9ca3af" fontSize={5}>{getLabel(page)}</text>
             </g>
           );
         })}
@@ -127,7 +127,7 @@ export default function FlowDiagram({ days }) {
           const y2 = pad + ti * rowH;
           const t = Math.max(1, (f.count / maxCount) * 6);
           const mx = (lx + rx) / 2;
-          const d = `M${lx + 10} ${y1}C${mx} ${y1},${mx} ${y2},${rx - 10} ${y2}`;
+          const d = `M${lx + 7} ${y1}C${mx} ${y1},${mx} ${y2},${rx - 7} ${y2}`;
           const color = getColor(f.from);
           const pc = Math.max(1, Math.round((f.count / maxCount) * 3));
 
