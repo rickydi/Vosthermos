@@ -4,5 +4,6 @@ Disallow: /checkout
 Disallow: /panier
 Disallow: /admin
 Disallow: /api/
+Disallow: /user
 
 Sitemap: https://www.vosthermos.com/sitemap.xml
