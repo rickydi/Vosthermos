@@ -7,6 +7,7 @@ import TopPages from "@/components/admin/analytics/TopPages";
 import RecentVisitors from "@/components/admin/analytics/RecentVisitors";
 import FlowDiagram from "@/components/admin/analytics/FlowDiagram";
 import FormAbandonment from "@/components/admin/analytics/FormAbandonment";
+import FormTimeline from "@/components/admin/analytics/FormTimeline";
 import BreakdownCards from "@/components/admin/analytics/BreakdownCards";
 
 export default function AdminAnalyticsPage() {
@@ -107,6 +108,11 @@ export default function AdminAnalyticsPage() {
       {/* Form abandonment */}
       <div className="mb-8">
         <FormAbandonment days={days} />
+      </div>
+
+      {/* Form timeline simulation */}
+      <div className="mb-8">
+        <FormTimeline days={days} />
       </div>
 
       {/* Breakdown cards */}

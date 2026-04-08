@@ -53,9 +53,37 @@ export async function GET(request) {
       return { starts, submits, abandons, completionRate, dropoffFields, recentAbandons };
     }
 
+    // Build session timelines grouped by visitorId
+    const timelineMap = {};
+    for (const e of events) {
+      if (!e.visitorId) continue;
+      const key = `${e.visitorId}_${e.formType}`;
+      if (!timelineMap[key]) {
+        timelineMap[key] = { visitorId: e.visitorId, formType: e.formType, events: [] };
+      }
+      timelineMap[key].events.push({
+        action: e.action,
+        fieldName: e.fieldName,
+        fieldValues: e.fieldValues,
+        fieldsCompleted: e.fieldsCompleted,
+        createdAt: e.createdAt,
+      });
+    }
+    // Sort events within each session and keep recent 20 sessions
+    const timelines = Object.values(timelineMap)
+      .map((t) => {
+        t.events.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+        t.startedAt = t.events[0]?.createdAt;
+        t.outcome = t.events.some((e) => e.action === "submit") ? "submit" : t.events.some((e) => e.action === "abandon") ? "abandon" : "in_progress";
+        return t;
+      })
+      .sort((a, b) => new Date(b.startedAt) - new Date(a.startedAt))
+      .slice(0, 20);
+
     return NextResponse.json({
       soumission: statsForForm("soumission"),
       contact: statsForForm("contact"),
+      timelines,
     });
   } catch (err) {
     if (err.message === "Unauthorized") return NextResponse.json({ error: "Non autorise" }, { status: 401 });

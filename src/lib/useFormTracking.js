@@ -40,6 +40,7 @@ export default function useFormTracking(formType) {
       startedRef.current = true;
       send("start", { fieldName });
     }
+    send("focus", { fieldName, extra: { timestamp: Date.now() } });
     lastFieldRef.current = fieldName;
   }, [formType, pathname]);
 
