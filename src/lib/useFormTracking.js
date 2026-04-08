@@ -12,8 +12,11 @@ export default function useFormTracking(formType) {
   const submittedRef = useRef(false);
   const interactionsRef = useRef([]);
   const startTimeRef = useRef(null);
+  const sentRef = useRef(false);
 
   function send(action, extra = {}) {
+    if ((action === "abandon" || action === "submit") && sentRef.current) return;
+    if (action === "abandon" || action === "submit") sentRef.current = true;
     const visitorId = typeof window !== "undefined" ? localStorage.getItem("vosthermos-vid") : null;
     const payload = {
       visitorId,
@@ -94,6 +97,7 @@ export default function useFormTracking(formType) {
     submittedRef.current = false;
     interactionsRef.current = [];
     startTimeRef.current = null;
+    sentRef.current = false;
   }, [pathname]);
 
   return { trackFieldFocus, trackFieldValue, trackSubmit };

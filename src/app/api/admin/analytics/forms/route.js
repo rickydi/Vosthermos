@@ -56,7 +56,7 @@ export async function GET(request) {
     // Build replays from abandon/submit events that have interactions
     const replays = events
       .filter((e) => (e.action === "abandon" || e.action === "submit") && e.fieldValues?._interactions)
-      .slice(0, 20)
+      .slice(0, 50)
       .map((e) => ({
         id: e.id,
         visitorId: e.visitorId,

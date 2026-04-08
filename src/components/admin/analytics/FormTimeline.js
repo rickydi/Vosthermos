@@ -9,7 +9,7 @@ const SERVICE_LABELS = {
   desembuage: "Desembuage", "insertion-porte": "Insertion de porte", "opti-fenetre": "Programme OPTI-FENETRE", autre: "Autre",
 };
 
-export default function FormTimeline({ days }) {
+export default function FormTimeline({ days: initialDays }) {
   const [replays, setReplays] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeReplay, setActiveReplay] = useState(null);
@@ -18,17 +18,19 @@ export default function FormTimeline({ days }) {
   const [focusedField, setFocusedField] = useState(null);
   const [progress, setProgress] = useState(0);
   const [speed, setSpeed] = useState(1);
+  const [replayDays, setReplayDays] = useState(initialDays);
+  const [customDate, setCustomDate] = useState("");
   const timerRef = useRef(null);
   const stepRef = useRef(0);
 
   useEffect(() => {
     setLoading(true);
-    fetch(`/api/admin/analytics/forms?days=${days}`)
+    fetch(`/api/admin/analytics/forms?days=${replayDays}`)
       .then((r) => r.json())
       .then((d) => setReplays(d.replays || []))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [days]);
+  }, [replayDays]);
 
   const stopPlayback = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -109,7 +111,21 @@ export default function FormTimeline({ days }) {
 
   return (
     <div className="admin-card rounded-xl p-6 border">
-      <h2 className="admin-text-muted text-xs font-bold uppercase tracking-wider mb-4">REPLAY FORMULAIRE</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="admin-text-muted text-xs font-bold uppercase tracking-wider">REPLAY FORMULAIRE</h2>
+        {!activeReplay && (
+          <div className="flex items-center gap-1">
+            {[{ k: 0, l: "Auj" }, { k: 7, l: "7j" }, { k: 30, l: "30j" }, { k: 90, l: "90j" }].map((d) => (
+              <button key={d.k} onClick={() => setReplayDays(d.k)}
+                className={`px-2 py-1 rounded text-[10px] font-bold transition-all ${replayDays === d.k ? "bg-[var(--color-red)] text-white" : "admin-text-muted hover:bg-white/5"}`}>
+                {d.l}
+              </button>
+            ))}
+            <input type="date" value={customDate} onChange={(e) => { setCustomDate(e.target.value); if (e.target.value) setReplayDays(1); }}
+              className="admin-input rounded text-[10px] px-1 py-0.5 w-28" />
+          </div>
+        )}
+      </div>
 
       {/* Replay list */}
       {!activeReplay && (
@@ -217,9 +233,17 @@ export default function FormTimeline({ days }) {
                   ) : (
                     <span className="text-gray-400">{FIELD_LABELS.service}</span>
                   )}
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"><i className="fas fa-chevron-down" /></span>
+                  <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs transition-transform ${focusedField === "service" && !formState.service ? "rotate-180" : ""}`}><i className="fas fa-chevron-down" /></span>
                 </div>
                 {formState.service && <span className="absolute right-8 top-1/2 -translate-y-1/2 text-green-500 text-sm">&#10003;</span>}
+                {/* Dropdown simulation */}
+                {focusedField === "service" && !formState.service && playing && (
+                  <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mt-1 z-10 py-1 animate-[fadeIn_0.2s_ease-out]">
+                    {Object.entries(SERVICE_LABELS).map(([val, label]) => (
+                      <div key={val} className="px-4 py-1.5 text-sm text-gray-700 hover:bg-gray-50">{label}</div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Message */}

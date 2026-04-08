@@ -194,7 +194,7 @@ export default function ChatPanel({ initialConversationId }) {
               className={`w-full text-left px-4 py-3 rounded-xl transition-colors ${selected?.id === c.id ? "bg-[var(--color-red)]/10 border border-[var(--color-red)]" : "admin-card border admin-hover"} ${c.isArchived ? "opacity-50" : ""}`}>
               <div className="flex items-center justify-between mb-1">
                 <span className="admin-text text-sm font-semibold truncate flex items-center gap-1.5">
-                  {c.lastSeenAt && (Date.now() - new Date(c.lastSeenAt).getTime()) < 60000 ? (
+                  {c.lastSeenAt && (Date.now() - new Date(c.lastSeenAt).getTime()) < 300000 ? (
                     <span className="relative flex h-2 w-2 shrink-0">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
@@ -249,7 +249,7 @@ export default function ChatPanel({ initialConversationId }) {
                   </div>
                   {(() => {
                     const conv = conversations.find((c) => c.id === selected.id);
-                    const isOnline = conv?.lastSeenAt && (Date.now() - new Date(conv.lastSeenAt).getTime()) < 60000;
+                    const isOnline = conv?.lastSeenAt && (Date.now() - new Date(conv.lastSeenAt).getTime()) < 300000;
                     return (
                       <div className="flex items-center gap-1.5 mt-0.5">
                         {isOnline ? (

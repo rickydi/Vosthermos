@@ -205,6 +205,8 @@ export default function QuoteForm({ compact = false }) {
       <div className={inputWrap}>
         <select required value={service}
           onFocus={() => trackFieldFocus("service")}
+          onClick={() => trackFieldFocus("service")}
+          onBlur={() => { if (!service) trackFieldValue("service", ""); }}
           onChange={(e) => { setService(e.target.value); trackFieldValue("service", e.target.value); }}
           className={`${inputClass} ${!service ? "!text-gray-400" : "!text-gray-900"}`}>
           <option value="">Selectionnez un service</option>
