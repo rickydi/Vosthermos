@@ -78,7 +78,7 @@ export default function FlowDiagram({ days }) {
   }
 
   const nodeCount = Math.max(fromPages.length, toPages.length, 1);
-  const rowH = 9;
+  const rowH = 14;
   const pad = 20;
   const h = (nodeCount - 1) * rowH + pad * 2;
   const w = 700;
