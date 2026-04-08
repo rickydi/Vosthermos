@@ -10,6 +10,8 @@ export default function useFormTracking(formType) {
   const fieldsCompletedRef = useRef([]);
   const fieldValuesRef = useRef({});
   const submittedRef = useRef(false);
+  const interactionsRef = useRef([]);
+  const startTimeRef = useRef(null);
 
   function send(action, extra = {}) {
     const visitorId = typeof window !== "undefined" ? localStorage.getItem("vosthermos-vid") : null;
@@ -21,6 +23,7 @@ export default function useFormTracking(formType) {
       fieldName: lastFieldRef.current,
       fieldsCompleted: fieldsCompletedRef.current,
       fieldValues: fieldValuesRef.current,
+      interactions: interactionsRef.current,
       ...extra,
     };
 
@@ -35,12 +38,19 @@ export default function useFormTracking(formType) {
     }
   }
 
+  function getMs() {
+    if (!startTimeRef.current) startTimeRef.current = Date.now();
+    return Date.now() - startTimeRef.current;
+  }
+
   const trackFieldFocus = useCallback((fieldName) => {
     if (!startedRef.current) {
       startedRef.current = true;
+      startTimeRef.current = Date.now();
+      interactionsRef.current = [];
       send("start", { fieldName });
     }
-    send("focus", { fieldName, extra: { timestamp: Date.now() } });
+    interactionsRef.current.push({ t: getMs(), a: "f", field: fieldName });
     lastFieldRef.current = fieldName;
   }, [formType, pathname]);
 
@@ -50,6 +60,7 @@ export default function useFormTracking(formType) {
       fieldsCompletedRef.current.push(fieldName);
     }
     fieldValuesRef.current = { ...fieldValuesRef.current, [fieldName]: value };
+    interactionsRef.current.push({ t: getMs(), a: "v", field: fieldName, val: value });
   }, []);
 
   const trackSubmit = useCallback(() => {
@@ -74,13 +85,14 @@ export default function useFormTracking(formType) {
     };
   }, [formType, pathname]);
 
-  // Reset on pathname change
   useEffect(() => {
     startedRef.current = false;
     lastFieldRef.current = null;
     fieldsCompletedRef.current = [];
     fieldValuesRef.current = {};
     submittedRef.current = false;
+    interactionsRef.current = [];
+    startTimeRef.current = null;
   }, [pathname]);
 
   return { trackFieldFocus, trackFieldValue, trackSubmit };
