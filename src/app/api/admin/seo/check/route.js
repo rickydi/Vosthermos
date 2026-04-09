@@ -228,14 +228,11 @@ async function debugSerper(cityName, keywordBase) {
     return {
       query,
       status: res.status,
+      apiKeyPrefix: apiKey?.slice(0, 8) + "...",
+      apiKeyLength: apiKey?.length,
+      fullResponse: data,
       organicCount: (data.organic || []).length,
-      organicAll: (data.organic || []).map(o => ({
-        pos: o.position,
-        title: o.title?.slice(0, 60),
-        link: o.link,
-      })),
       vosthermosFound: (data.organic || []).filter(o => (o.link || "").toLowerCase().includes("vosthermos")).map(o => ({ pos: o.position, link: o.link })),
-      hasLocalResults: !!data.localResults || !!data.places || !!data.placesResults,
       keys: Object.keys(data),
     };
   } catch (err) {
