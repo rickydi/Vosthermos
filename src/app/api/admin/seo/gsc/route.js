@@ -66,7 +66,7 @@ export async function GET(request) {
       }
 
       const response = await searchconsole.searchanalytics.query({
-        siteUrl: "https://vosthermos.com/",
+        siteUrl: "https://www.vosthermos.com/",
         requestBody: {
           startDate: formatDate(startDate),
           endDate: formatDate(endDate),
@@ -116,7 +116,7 @@ export async function GET(request) {
     }
 
     const response = await searchconsole.searchanalytics.query({
-      siteUrl: "https://vosthermos.com/",
+      siteUrl: "https://www.vosthermos.com/",
       requestBody: {
         startDate: formatDate(startDate),
         endDate: formatDate(endDate),
