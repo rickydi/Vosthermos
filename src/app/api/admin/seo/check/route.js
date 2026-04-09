@@ -206,6 +206,43 @@ async function runScan(keywordBase, citiesToCheck) {
   });
 }
 
+// ─── Debug: raw Serper response for a city ───────────────────────
+async function debugSerper(cityName, keywordBase) {
+  let apiKey = process.env.SERPER_API_KEY;
+  try {
+    const rows = await prisma.$queryRawUnsafe(
+      `SELECT value FROM site_settings WHERE key = 'api_key_serper'`
+    );
+    if (rows[0]?.value) apiKey = rows[0].value;
+  } catch {}
+  if (!apiKey) return { error: "no api key" };
+
+  const query = `${keywordBase} ${cityName}`;
+  try {
+    const res = await fetch("https://google.serper.dev/search", {
+      method: "POST",
+      headers: { "X-API-KEY": apiKey, "Content-Type": "application/json" },
+      body: JSON.stringify({ q: query, gl: "ca", hl: "fr", num: 100 }),
+    });
+    const data = await res.json();
+    return {
+      query,
+      status: res.status,
+      organicCount: (data.organic || []).length,
+      organicAll: (data.organic || []).map(o => ({
+        pos: o.position,
+        title: o.title?.slice(0, 60),
+        link: o.link,
+      })),
+      vosthermosFound: (data.organic || []).filter(o => (o.link || "").toLowerCase().includes("vosthermos")).map(o => ({ pos: o.position, link: o.link })),
+      hasLocalResults: !!data.localResults || !!data.places || !!data.placesResults,
+      keys: Object.keys(data),
+    };
+  } catch (err) {
+    return { error: err.message };
+  }
+}
+
 // ─── POST: start scan ──────────────────────────────────────────────
 export async function POST(request) {
   try {
@@ -263,13 +300,26 @@ export async function POST(request) {
   });
 }
 
-// ─── GET: scan progress ────────────────────────────────────────────
-export async function GET() {
+// ─── GET: scan progress OR debug ───────────────────────────────────
+export async function GET(request) {
   try {
     await requireAdmin();
   } catch {
     return new Response(JSON.stringify({ error: "Non autorise" }), {
       status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  // Debug mode: raw Serper response
+  const { searchParams } = new URL(request.url);
+  const debugCity = searchParams.get("debug_city");
+  if (debugCity) {
+    const kw = searchParams.get("keyword") || "remplacement vitre thermos";
+    const cityObj = CITIES.find(c => c.slug === debugCity);
+    if (!cityObj) return new Response(JSON.stringify({ error: "city not found" }), { status: 404 });
+    const result = await debugSerper(cityObj.name, kw);
+    return new Response(JSON.stringify(result, null, 2), {
       headers: { "Content-Type": "application/json" },
     });
   }
