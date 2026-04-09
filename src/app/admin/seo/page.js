@@ -544,6 +544,36 @@ export default function AdminSeoPage() {
     : "—";
   const aiMentions = cities.filter((c) => c.latestAi).length;
 
+  // Compute distinct scan runs (10-min buckets) across all cities
+  function bucketKey(checkedAt) {
+    const d = new Date(checkedAt);
+    d.setSeconds(0, 0);
+    d.setMinutes(Math.floor(d.getMinutes() / 10) * 10);
+    return d.getTime();
+  }
+  const bucketSet = new Set();
+  for (const c of cities) {
+    for (const h of c.history || []) {
+      bucketSet.add(bucketKey(h.checkedAt));
+    }
+  }
+  const scanRuns = Array.from(bucketSet)
+    .sort((a, b) => b - a) // most recent first
+    .slice(0, 8) // top 8 most recent scan runs
+    .map(ts => {
+      const d = new Date(ts);
+      return {
+        ts,
+        label: `${d.getDate()}/${d.getMonth() + 1}`,
+      };
+    });
+
+  // Get position for a specific city at a specific scan run
+  function getPositionAtRun(city, runTs) {
+    const match = (city.history || []).find(h => bucketKey(h.checkedAt) === runTs);
+    return match ? match.position : null;
+  }
+
   const sortedCities = [...cities].sort((a, b) => {
     if (sortBy === "name") return sortDir === "asc" ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
     const posA = a.latestPosition ?? 999;
@@ -700,52 +730,58 @@ export default function AdminSeoPage() {
 
       {/* Table */}
       {!loading && cities.length > 0 && (
-        <div className="admin-card border rounded-2xl overflow-hidden">
-          <div className="grid grid-cols-12 gap-2 px-5 py-4 border-b" style={{ borderColor: "var(--admin-border)" }}>
-            <div className="col-span-4 admin-text-muted text-xs font-bold uppercase tracking-wider cursor-pointer select-none" onClick={() => toggleSort("name")}>
-              Ville {sortBy === "name" && <i className={`fas fa-caret-${sortDir === "asc" ? "up" : "down"} ml-1`}></i>}
+        <div className="admin-card border rounded-2xl overflow-x-auto">
+          <div style={{ minWidth: "900px" }}>
+            <div className="flex items-center px-4 py-3 border-b gap-1" style={{ borderColor: "var(--admin-border)" }}>
+              <div className="w-[150px] shrink-0 admin-text-muted text-[10px] font-bold uppercase tracking-wider cursor-pointer select-none" onClick={() => toggleSort("name")}>
+                Ville {sortBy === "name" && <i className={`fas fa-caret-${sortDir === "asc" ? "up" : "down"} ml-1`}></i>}
+              </div>
+              {scanRuns.map((run) => (
+                <div key={run.ts} className="flex-1 text-center admin-text-muted text-[10px] font-bold uppercase tracking-wider">
+                  {run.label}
+                </div>
+              ))}
+              {scanRuns.length === 0 && (
+                <div className="flex-1 text-center admin-text-muted text-[10px] font-bold uppercase tracking-wider">
+                  Aucun scan
+                </div>
+              )}
+              <div className="w-[55px] text-center admin-text-muted text-[10px] font-bold uppercase tracking-wider">AI</div>
+              <div className="w-[70px] text-center admin-text-muted text-[10px] font-bold uppercase tracking-wider">Action</div>
             </div>
-            <div className="col-span-2 text-center admin-text-muted text-xs font-bold uppercase tracking-wider cursor-pointer select-none" onClick={() => toggleSort("position")}>
-              Position {sortBy === "position" && <i className={`fas fa-caret-${sortDir === "asc" ? "up" : "down"} ml-1`}></i>}
-            </div>
-            <div className="col-span-2 text-center admin-text-muted text-xs font-bold uppercase tracking-wider">Tendance</div>
-            <div className="col-span-2 text-center admin-text-muted text-xs font-bold uppercase tracking-wider">AI Overview</div>
-            <div className="col-span-2 text-right admin-text-muted text-xs font-bold uppercase tracking-wider hidden lg:block">Verifie</div>
-          </div>
 
           {sortedCities.map((city) => {
             const isExpanded = expandedCity === city.slug;
-            const lastCheck = city.history[0]?.checkedAt;
-            const lastDate = lastCheck
-              ? new Date(lastCheck).toLocaleDateString("fr-CA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
-              : "—";
 
             return (
               <div key={city.slug} className="border-b last:border-0" style={{ borderColor: "var(--admin-border)" }}>
-                <div className="grid grid-cols-12 gap-2 px-5 py-3.5 items-center cursor-pointer hover:bg-white/5 transition-colors" onClick={() => setExpandedCity(isExpanded ? null : city.slug)}>
-                  <div className="col-span-4 admin-text text-sm font-medium flex items-center gap-2">
-                    <i className={`fas fa-chevron-right text-[10px] admin-text-muted transition-transform duration-300 ${isExpanded ? "rotate-90" : ""}`}></i>
-                    {city.name}
+                <div className="flex items-center px-4 py-2.5 gap-1 cursor-pointer hover:bg-white/5 transition-colors" onClick={() => setExpandedCity(isExpanded ? null : city.slug)}>
+                  <div className="w-[150px] shrink-0 admin-text text-sm font-medium flex items-center gap-1.5">
+                    <i className={`fas fa-chevron-right text-[9px] admin-text-muted transition-transform duration-300 ${isExpanded ? "rotate-90" : ""}`}></i>
+                    <span className="truncate">{city.name}</span>
                   </div>
-                  <div className="col-span-2 text-center">
-                    <span className={`inline-block px-3 py-1 rounded-full text-sm font-extrabold ${positionColor(city.latestPosition)}`}>
-                      {positionLabel(city.latestPosition)}
-                    </span>
-                  </div>
-                  <div className="col-span-2 text-center text-sm"><TrendArrow history={city.history} /></div>
-                  <div className="col-span-2 text-center">
+                  {scanRuns.map((run) => {
+                    const pos = getPositionAtRun(city, run.ts);
+                    return (
+                      <div key={run.ts} className="flex-1 text-center">
+                        <span className={`inline-block px-1.5 py-0.5 rounded-full text-xs font-extrabold ${positionColor(pos)}`}>
+                          {pos !== null ? `#${pos}` : "—"}
+                        </span>
+                      </div>
+                    );
+                  })}
+                  <div className="w-[55px] text-center">
                     {city.latestAi ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-500/20 text-purple-400 text-xs font-bold"><i className="fas fa-robot"></i> Oui</span>
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-400 text-[10px] font-bold"><i className="fas fa-robot"></i></span>
                     ) : (
-                      <span className="admin-text-muted text-xs">Non</span>
+                      <span className="admin-text-muted text-xs">—</span>
                     )}
                   </div>
-                  <div className="col-span-2 text-right hidden lg:flex items-center justify-end gap-2">
-                    <span className="admin-text-muted text-xs">{lastDate}</span>
+                  <div className="w-[70px] text-center">
                     <button
                       onClick={(e) => { e.stopPropagation(); refreshCity(city.slug); }}
                       disabled={refreshingCity === city.slug || checking}
-                      className="w-6 h-6 rounded-md bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors disabled:opacity-30"
+                      className="w-6 h-6 rounded-md bg-white/5 hover:bg-white/10 inline-flex items-center justify-center transition-colors disabled:opacity-30"
                       title="Actualiser cette ville"
                     >
                       <i className={`fas fa-sync-alt text-[10px] admin-text-muted ${refreshingCity === city.slug ? "fa-spin" : ""}`}></i>
@@ -775,6 +811,7 @@ export default function AdminSeoPage() {
               </div>
             );
           })}
+          </div>
         </div>
       )}
 
