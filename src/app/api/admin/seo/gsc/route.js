@@ -36,9 +36,16 @@ export async function GET(request) {
   const days = parseInt(searchParams.get("days") || "28");
   const keyword = searchParams.get("keyword") || "";
   const city = searchParams.get("city") || "";
+  const debug = searchParams.get("debug") || "";
 
   try {
     const searchconsole = await getSearchConsoleClient();
+
+    // Debug: list all sites accessible by the service account
+    if (debug === "sites") {
+      const sites = await searchconsole.sites.list();
+      return NextResponse.json({ sites: sites.data.siteEntry || [] });
+    }
 
     const endDate = new Date();
     endDate.setDate(endDate.getDate() - 1);
