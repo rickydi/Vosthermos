@@ -63,7 +63,7 @@ export async function GET(request) {
         endDate: formatDate(endDate),
         dimensions: ["query", "page"],
         dimensionFilterGroups,
-        rowLimit: 5000,
+        rowLimit: 25000,
         type: "web",
       },
     });

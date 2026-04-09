@@ -267,9 +267,33 @@ function GscTab() {
                   <div className="w-[180px] shrink-0 admin-text-muted text-[10px] truncate">{city.bestQuery || "—"}</div>
                 </div>
 
-                {/* Expanded: queries */}
-                <div className="overflow-hidden transition-all duration-[1500ms] ease-in-out" style={{ maxHeight: isExpanded ? "600px" : "0px", opacity: isExpanded ? 1 : 0 }}>
-                  <div className="px-5 pb-4 pt-2 border-t" style={{ borderColor: "var(--admin-border)" }}>
+                {/* Expanded: positions + queries */}
+                <div className="overflow-hidden transition-all duration-[1500ms] ease-in-out" style={{ maxHeight: isExpanded ? "800px" : "0px", opacity: isExpanded ? 1 : 0 }}>
+                  <div className="px-5 pb-4 pt-3 border-t" style={{ borderColor: "var(--admin-border)" }}>
+                    {/* Position breakdown per period */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {PERIODS.map(p => {
+                        const pos = city.positions[p.label];
+                        return (
+                          <div key={p.label} className="admin-card border rounded-xl px-3 py-2 text-center min-w-[70px]">
+                            <p className="admin-text-muted text-[9px] font-bold uppercase tracking-wider mb-0.5">{p.label}</p>
+                            <span className={`text-lg font-extrabold ${pos != null ? (Math.round(pos) <= 3 ? "text-green-400" : Math.round(pos) <= 10 ? "text-blue-400" : Math.round(pos) <= 20 ? "text-orange-400" : "text-red-400") : "admin-text-muted"}`}>
+                              {pos != null ? `#${pos}` : "—"}
+                            </span>
+                          </div>
+                        );
+                      })}
+                      <div className="admin-card border rounded-xl px-3 py-2 text-center min-w-[70px]">
+                        <p className="admin-text-muted text-[9px] font-bold uppercase tracking-wider mb-0.5">Clics</p>
+                        <span className="text-lg font-extrabold text-purple-400">{city.totalClicks}</span>
+                      </div>
+                      <div className="admin-card border rounded-xl px-3 py-2 text-center min-w-[70px]">
+                        <p className="admin-text-muted text-[9px] font-bold uppercase tracking-wider mb-0.5">Impr.</p>
+                        <span className="text-lg font-extrabold admin-text">{city.totalImpressions}</span>
+                      </div>
+                    </div>
+
+                    {/* Queries list */}
                     <p className="admin-text text-sm font-bold mb-3">Requetes — {city.name}</p>
                     {city.queries.length === 0 ? (
                       <p className="admin-text-muted text-xs">Aucune donnee pour cette ville</p>
