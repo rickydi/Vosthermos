@@ -1,6 +1,19 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
+import { CITIES } from "@/lib/cities";
+
+function parsePopulation(str) {
+  if (!str) return 0;
+  const s = String(str).replace(/\s/g, "").toLowerCase();
+  const match = s.match(/(\d+(?:[.,]\d+)?)([mk])?/);
+  if (!match) return 0;
+  const num = parseFloat(match[1].replace(",", "."));
+  const unit = match[2];
+  if (unit === "m") return Math.round(num * 1_000_000);
+  if (unit === "k") return Math.round(num * 1_000);
+  return Math.round(num);
+}
 
 export async function GET(request) {
   try {
@@ -22,6 +35,12 @@ export async function GET(request) {
       orderBy: { checkedAt: "desc" },
     });
 
+    // Build population map from CITIES
+    const populationMap = {};
+    for (const c of CITIES) {
+      populationMap[c.slug] = parsePopulation(c.population);
+    }
+
     // Group by city
     const cityMap = {};
     for (const r of rankings) {
@@ -29,6 +48,7 @@ export async function GET(request) {
         cityMap[r.city] = {
           slug: r.city,
           name: r.cityName,
+          population: populationMap[r.city] || 0,
           keyword: r.keyword,
           url: r.url,
           latestPosition: null,

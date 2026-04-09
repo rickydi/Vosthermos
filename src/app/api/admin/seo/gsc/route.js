@@ -7,6 +7,19 @@ import fs from "fs";
 
 export const dynamic = "force-dynamic";
 
+// Parse "1.8M habitants" / "90 000 habitants" / "12 500 habitants" → number
+function parsePopulation(str) {
+  if (!str) return 0;
+  const s = String(str).replace(/\s/g, "").toLowerCase();
+  const match = s.match(/(\d+(?:[.,]\d+)?)([mk])?/);
+  if (!match) return 0;
+  const num = parseFloat(match[1].replace(",", "."));
+  const unit = match[2];
+  if (unit === "m") return Math.round(num * 1_000_000);
+  if (unit === "k") return Math.round(num * 1_000);
+  return Math.round(num);
+}
+
 async function getSearchConsoleClient() {
   const configPath = path.join(process.cwd(), "config", "google-service-account.json");
   if (!fs.existsSync(configPath)) {
@@ -152,6 +165,7 @@ export async function GET(request) {
       cityResults[c.slug] = {
         slug: c.slug,
         name: c.name,
+        population: parsePopulation(c.population),
         bestPosition: null,
         totalClicks: 0,
         totalImpressions: 0,
@@ -161,6 +175,7 @@ export async function GET(request) {
     cityResults["_general"] = {
       slug: "_general",
       name: "General (sans ville)",
+      population: 0,
       bestPosition: null,
       totalClicks: 0,
       totalImpressions: 0,

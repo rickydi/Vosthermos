@@ -100,6 +100,7 @@ function GscTab() {
   const [keyword, setKeyword] = useState("");
   const [expandedCities, setExpandedCities] = useState(new Set());
   const [cityQueries, setCityQueries] = useState({}); // { slug: { loading, queries } }
+  const [sortMode, setSortMode] = useState("position"); // position | alpha | population
 
   async function fetchAllPeriods(kw) {
     setLoading(true);
@@ -168,6 +169,7 @@ function GscTab() {
         cityMap[city.slug] = {
           slug: city.slug,
           name: city.name,
+          population: city.population || 0,
           positions: {},
           totalClicks: 0,
           totalImpressions: 0,
@@ -184,6 +186,13 @@ function GscTab() {
   });
 
   const mergedCities = Object.values(cityMap).sort((a, b) => {
+    if (sortMode === "alpha") {
+      return a.name.localeCompare(b.name, "fr");
+    }
+    if (sortMode === "population") {
+      return (b.population || 0) - (a.population || 0); // largest first
+    }
+    // default: by 28j position
     const posA = a.positions["28j"] ?? 999;
     const posB = b.positions["28j"] ?? 999;
     return posA - posB;
@@ -208,10 +217,16 @@ function GscTab() {
 
   return (
     <div>
-      {/* Keyword filter + expand all */}
+      {/* Keyword filter + sort + expand all */}
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <input type="text" value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="Filtrer par mot cle..."
           className="admin-input border rounded-lg px-4 py-2 text-sm flex-1 min-w-[200px]" />
+        <select value={sortMode} onChange={(e) => setSortMode(e.target.value)}
+          className="admin-input border rounded-lg px-4 py-2 text-sm cursor-pointer">
+          <option value="position">Trier: Position</option>
+          <option value="alpha">Trier: A → Z</option>
+          <option value="population">Trier: Population</option>
+        </select>
         <button onClick={toggleAll}
           className="px-4 py-2.5 rounded-xl text-sm font-bold admin-card admin-text-muted border hover:admin-text transition-all">
           <i className={`fas fa-${allExpanded ? "compress-alt" : "expand-alt"} mr-2`}></i>
@@ -579,7 +594,14 @@ export default function AdminSeoPage() {
   }
 
   const sortedCities = [...cities].sort((a, b) => {
-    if (sortBy === "name") return sortDir === "asc" ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
+    if (sortBy === "name" || sortBy === "alpha") {
+      return sortDir === "asc" ? a.name.localeCompare(b.name, "fr") : b.name.localeCompare(a.name, "fr");
+    }
+    if (sortBy === "population") {
+      const popA = a.population || 0;
+      const popB = b.population || 0;
+      return sortDir === "asc" ? popB - popA : popA - popB; // asc = largest first
+    }
     const posA = a.latestPosition ?? 999;
     const posB = b.latestPosition ?? 999;
     return sortDir === "asc" ? posA - posB : posB - posA;
@@ -729,6 +751,22 @@ export default function AdminSeoPage() {
           <i className="fas fa-search text-4xl admin-text-muted mb-4 block"></i>
           <p className="admin-text font-bold text-lg mb-2">Aucune donnee pour ce mot cle</p>
           <p className="admin-text-muted text-sm">Cliquez &quot;Rafraichir&quot; pour scanner &quot;{activeKeyword} [ville]&quot; sur les 53 villes.</p>
+        </div>
+      )}
+
+      {/* Sort dropdown */}
+      {!loading && cities.length > 0 && (
+        <div className="flex items-center gap-3 mb-3">
+          <label className="admin-text-muted text-xs font-bold">Trier par :</label>
+          <select
+            value={sortBy}
+            onChange={(e) => { setSortBy(e.target.value); setSortDir("asc"); }}
+            className="admin-input border rounded-lg px-3 py-1.5 text-sm cursor-pointer"
+          >
+            <option value="position">Position</option>
+            <option value="alpha">A → Z</option>
+            <option value="population">Population (plus gros → petit)</option>
+          </select>
         </div>
       )}
 
