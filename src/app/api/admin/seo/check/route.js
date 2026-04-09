@@ -51,7 +51,7 @@ async function checkRankingSerper(cityName, keywordBase) {
   if (!apiKey) return { position: null, aiMention: false, url: null };
 
   const query = `${keywordBase} ${cityName}`;
-  const MAX_PAGES = 5; // up to top 50 results
+  const MAX_PAGES = 2; // up to top 20 results
   let aiMention = false;
 
   try {
