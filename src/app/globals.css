@@ -85,6 +85,8 @@ body {
 [data-admin-theme="dark"] .admin-text-muted { color: rgba(255,255,255,0.4); }
 [data-admin-theme="dark"] .admin-border { border-color: rgba(255,255,255,0.05); }
 [data-admin-theme="dark"] .admin-input { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: #ffffff; }
+[data-admin-theme="dark"] select.admin-input option { background: #1f2937; color: #ffffff; }
+[data-admin-theme="light"] select.admin-input option { background: #ffffff; color: #1e293b; }
 [data-admin-theme="dark"] .admin-hover:hover { background: rgba(255,255,255,0.05); }
 [data-admin-theme="dark"] .admin-header { border-color: rgba(255,255,255,0.05); }
 
