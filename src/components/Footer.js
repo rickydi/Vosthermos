@@ -150,7 +150,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm text-white/60">
               {cities.map((c) => (
                 <li key={c.slug}>
-                  <Link href={`${p}/secteurs/${c.slug}`} className="hover:text-white transition-colors">
+                  <Link href={`${p}/reparation-portes-et-fenetres/${c.slug}`} className="hover:text-white transition-colors">
                     {c.name}
                   </Link>
                 </li>

@@ -61,7 +61,7 @@ export function CitiesLinksBlock({ cities, serviceSlug, serviceName }) {
         {cities.map((c) => (
           <Link
             key={c.slug}
-            href={serviceSlug ? `/services/${serviceSlug}/${c.slug}` : `/secteurs/${c.slug}`}
+            href={serviceSlug ? `/services/${serviceSlug}/${c.slug}` : `/reparation-portes-et-fenetres/${c.slug}`}
             className="bg-white px-3 py-1.5 rounded-full text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors border border-blue-100/50"
           >
             {c.name}

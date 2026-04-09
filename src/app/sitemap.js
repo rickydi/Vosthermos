@@ -44,14 +44,6 @@ export default async function sitemap() {
     priority: 0.9,
   }));
 
-  // City pages
-  const cityPages = CITIES.map((city) => ({
-    url: `${BASE}/secteurs/${city.slug}`,
-    lastModified: new Date(),
-    changeFrequency: "monthly",
-    priority: 0.7,
-  }));
-
   // Service + City pages (SEO)
   const serviceCityPages = [];
   for (const slug of SERVICE_SLUGS) {
@@ -176,5 +168,5 @@ export default async function sitemap() {
     })),
   ];
 
-  return [...staticPages, ...servicePages, ...cityPages, ...serviceCityPages, ...reparationCityPages, ...calfeutrageCityPages, ...problemPages, ...pricingPages, ...glossaryPages, ...categoryPages, ...productPages, ...blogPages, ...enPages, ...enServicePages];
+  return [...staticPages, ...servicePages, ...serviceCityPages, ...reparationCityPages, ...calfeutrageCityPages, ...problemPages, ...pricingPages, ...glossaryPages, ...categoryPages, ...productPages, ...blogPages, ...enPages, ...enServicePages];
 }

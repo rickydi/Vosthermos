@@ -1072,6 +1072,11 @@ export const CITIES = [
   },
 ];
 
+import { CITY_COORDS } from "./city-coords.js";
+
 export function getCity(slug) {
-  return CITIES.find((c) => c.slug === slug) || null;
+  const city = CITIES.find((c) => c.slug === slug);
+  if (!city) return null;
+  const coords = CITY_COORDS[slug];
+  return coords ? { ...city, coords } : city;
 }

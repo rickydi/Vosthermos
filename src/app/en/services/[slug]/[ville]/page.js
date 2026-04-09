@@ -275,7 +275,7 @@ export default async function ServiceCityPage({ params }) {
                   </Link>
                 ))}
                 <Link
-                  href={`/en/secteurs/${city.slug}`}
+                  href="/en"
                   className="block text-center text-[var(--color-teal)] text-sm font-medium mt-3 hover:underline"
                 >
                   All our services in {city.name} &rarr;

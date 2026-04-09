@@ -3,6 +3,7 @@ import Link from "next/link";
 import { SERVICES, getService } from "@/lib/services-data";
 import { CITIES, getCity } from "@/lib/cities";
 import { getServiceSeo } from "@/lib/seo-templates";
+import QuoteForm from "@/components/QuoteForm";
 
 export function generateStaticParams() {
   const params = [];
@@ -234,26 +235,26 @@ export default async function ServiceCityPage({ params }) {
 
           {/* Sidebar */}
           <aside className="space-y-8">
-            {/* CTA card */}
-            <div className="bg-gray-50 rounded-2xl p-6 sticky top-[100px]">
-              <h3 className="font-bold text-gray-900 mb-2">Soumission gratuite</h3>
-              <p className="text-gray-500 text-sm mb-4">
-                Obtenez une evaluation gratuite pour {service.shortTitle.toLowerCase()} a {city.name}.
+            {/* Quote form card (sticky) */}
+            <div className="bg-[var(--color-teal-dark)] rounded-2xl p-6 sticky top-[100px] shadow-xl border border-white/10">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </span>
+                <span className="text-green-400 text-[10px] font-semibold uppercase tracking-wider">Service disponible</span>
+              </div>
+              <h3 className="font-bold text-white text-lg mb-1">Soumission gratuite</h3>
+              <p className="text-white/50 text-xs mb-4">
+                {service.shortTitle} a {city.name} — reponse rapide.
               </p>
-              <a
-                href="tel:15148258411"
-                className="flex items-center justify-center gap-2 bg-[var(--color-red)] text-white font-bold px-6 py-3 rounded-xl hover:bg-[var(--color-red-light)] transition-colors w-full mb-3"
-              >
-                <i className="fas fa-phone"></i>
-                514-825-8411
-              </a>
-              <Link
-                href="/rendez-vous"
-                className="flex items-center justify-center gap-2 bg-[var(--color-teal)] text-white font-bold px-6 py-3 rounded-xl hover:bg-[var(--color-teal-dark)] transition-colors w-full"
-              >
-                <i className="fas fa-calendar-alt"></i>
-                Prendre rendez-vous
-              </Link>
+              <QuoteForm compact />
+              <div className="text-center mt-4 pt-4 border-t border-white/10">
+                <span className="text-white/50 text-xs">ou appelez </span>
+                <a href="tel:15148258411" className="text-white font-semibold text-sm hover:text-[var(--color-red-light)]">
+                  <i className="fas fa-phone text-xs"></i> 514-825-8411
+                </a>
+              </div>
             </div>
 
             {/* Other services in this city */}

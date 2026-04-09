@@ -359,7 +359,7 @@ export default async function HomeEn() {
             {["Montreal","Laval","Longueuil","Brossard","Boucherville","Saint-Hyacinthe","Granby","Saint-Jean-sur-Richelieu","Chambly","Terrebonne","Repentigny","Blainville","Chateauguay","La Prairie","Sainte-Julie","Varennes","Delson","Candiac","Saint-Bruno","Mascouche"].map((city) => (
               <Link
                 key={city}
-                href={`/secteurs/${city.toLowerCase().replace(/ /g, "-")}`}
+                href={`/reparation-portes-et-fenetres/${city.toLowerCase().replace(/ /g, "-")}`}
                 className="flex items-center gap-2 bg-white rounded-lg px-4 py-3 text-sm font-medium hover:shadow-md hover:bg-[var(--color-teal)] hover:text-white transition-all border border-[var(--color-border)]"
               >
                 <i className="fas fa-map-marker-alt text-[var(--color-red)] text-xs"></i>
