@@ -51,41 +51,47 @@ async function checkRankingSerper(cityName, keywordBase) {
   if (!apiKey) return { position: null, aiMention: false, url: null };
 
   const query = `${keywordBase} ${cityName}`;
+  const MAX_PAGES = 5; // up to top 50 results
+  let aiMention = false;
 
   try {
-    const res = await fetch("https://google.serper.dev/search", {
-      method: "POST",
-      headers: { "X-API-KEY": apiKey, "Content-Type": "application/json" },
-      body: JSON.stringify({ q: query, gl: "ca", hl: "fr", num: 100 }),
-    });
+    for (let page = 1; page <= MAX_PAGES; page++) {
+      const res = await fetch("https://google.serper.dev/search", {
+        method: "POST",
+        headers: { "X-API-KEY": apiKey, "Content-Type": "application/json" },
+        body: JSON.stringify({ q: query, gl: "ca", hl: "fr", page }),
+      });
 
-    if (!res.ok) {
-      const body = await res.text().catch(() => "");
-      console.error(`Serper HTTP ${res.status} for "${query}": ${body.slice(0, 200)}`);
-      return { position: null, aiMention: false, url: null, error: `HTTP ${res.status}` };
-    }
-
-    const data = await res.json();
-    let position = null;
-    let foundUrl = null;
-
-    for (const o of data.organic || []) {
-      if ((o.link || "").includes("vosthermos")) {
-        position = o.position || null;
-        foundUrl = o.link;
-        break;
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        console.error(`Serper HTTP ${res.status} for "${query}" page ${page}: ${body.slice(0, 200)}`);
+        return { position: null, aiMention, url: null, error: `HTTP ${res.status}` };
       }
-    }
 
-    let aiMention = false;
-    for (const key of ["answerBox", "knowledgeGraph", "aiOverview"]) {
-      if (data[key] && JSON.stringify(data[key]).toLowerCase().includes("vosthermos")) {
-        aiMention = true;
-        break;
+      const data = await res.json();
+
+      // Check AI overview on first page only
+      if (page === 1) {
+        for (const key of ["answerBox", "knowledgeGraph", "aiOverview"]) {
+          if (data[key] && JSON.stringify(data[key]).toLowerCase().includes("vosthermos")) {
+            aiMention = true;
+            break;
+          }
+        }
       }
+
+      // Look for vosthermos in this page
+      for (const o of data.organic || []) {
+        if ((o.link || "").includes("vosthermos")) {
+          return { position: o.position || null, aiMention, url: o.link };
+        }
+      }
+
+      // If this page has fewer than 10 results, no point paginating further
+      if ((data.organic || []).length < 10) break;
     }
 
-    return { position, aiMention, url: foundUrl };
+    return { position: null, aiMention, url: null };
   } catch (err) {
     console.error(`Error checking ${cityName}:`, err.message);
     return { position: null, aiMention: false, url: null, error: err.message };
