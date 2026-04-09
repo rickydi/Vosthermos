@@ -36,16 +36,9 @@ export async function GET(request) {
   const days = parseInt(searchParams.get("days") || "28");
   const keyword = searchParams.get("keyword") || "";
   const city = searchParams.get("city") || "";
-  const debug = searchParams.get("debug") || "";
 
   try {
     const searchconsole = await getSearchConsoleClient();
-
-    // Debug: list all sites accessible by the service account
-    if (debug === "sites") {
-      const sites = await searchconsole.sites.list();
-      return NextResponse.json({ sites: sites.data.siteEntry || [] });
-    }
 
     const endDate = new Date();
     endDate.setDate(endDate.getDate() - 1);
@@ -55,6 +48,9 @@ export async function GET(request) {
     const formatDate = (d) => d.toISOString().split("T")[0];
 
     // ─── Mode detail par ville ───────────────────────────────────
+    // Retourne 2 vues:
+    //   - pages: vue par page (inclut requetes anonymisees - donnees completes)
+    //   - queries: vue par requete (Google cache certaines requetes)
     if (city) {
       const dimensionFilterGroups = [{
         filters: [{ dimension: "page", operator: "contains", expression: `/${city}` }],
@@ -65,7 +61,21 @@ export async function GET(request) {
         });
       }
 
-      const response = await searchconsole.searchanalytics.query({
+      // Requete 1: vue par page (donnees completes incluant requetes anonymisees)
+      const pagesRes = await searchconsole.searchanalytics.query({
+        siteUrl: "https://www.vosthermos.com/",
+        requestBody: {
+          startDate: formatDate(startDate),
+          endDate: formatDate(endDate),
+          dimensions: ["page"],
+          dimensionFilterGroups,
+          rowLimit: 1000,
+          type: "web",
+        },
+      });
+
+      // Requete 2: vue par requete (peut etre incomplete - Google anonymise)
+      const queriesRes = await searchconsole.searchanalytics.query({
         siteUrl: "https://www.vosthermos.com/",
         requestBody: {
           startDate: formatDate(startDate),
@@ -77,8 +87,15 @@ export async function GET(request) {
         },
       });
 
-      const rows = response.data.rows || [];
-      const queries = rows.map(row => ({
+      const pages = (pagesRes.data.rows || []).map(row => ({
+        page: row.keys[0],
+        clicks: row.clicks,
+        impressions: row.impressions,
+        position: Math.round(row.position * 10) / 10,
+        ctr: Math.round(row.ctr * 1000) / 10,
+      })).sort((a, b) => a.position - b.position);
+
+      const queries = (queriesRes.data.rows || []).map(row => ({
         query: row.keys[0],
         page: row.keys[1],
         clicks: row.clicks,
@@ -87,11 +104,10 @@ export async function GET(request) {
         ctr: Math.round(row.ctr * 1000) / 10,
       }));
 
-      const totalClicks = rows.reduce((s, r) => s + r.clicks, 0);
-      const totalImpressions = rows.reduce((s, r) => s + r.impressions, 0);
-      const bestPosition = rows.length > 0
-        ? Math.round(Math.min(...rows.map(r => r.position)) * 10) / 10
-        : null;
+      // Totals viennent de la vue page (donnees completes)
+      const totalClicks = pages.reduce((s, p) => s + p.clicks, 0);
+      const totalImpressions = pages.reduce((s, p) => s + p.impressions, 0);
+      const bestPosition = pages.length > 0 ? pages[0].position : null;
 
       return NextResponse.json({
         source: "google-search-console",
@@ -101,6 +117,7 @@ export async function GET(request) {
         totalClicks,
         totalImpressions,
         bestPosition,
+        pages,
         queries,
       });
     }

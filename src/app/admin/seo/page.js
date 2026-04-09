@@ -86,7 +86,7 @@ function PositionChart({ history }) {
 // ─── GSC Tab ──────────────────────────────────────────────────────
 function GscTab() {
   const PERIODS = [
-    { days: 1, label: "1j" },
+    { days: 3, label: "3j" },
     { days: 7, label: "7j" },
     { days: 28, label: "28j" },
     { days: 90, label: "90j" },
@@ -122,17 +122,17 @@ function GscTab() {
 
   useEffect(() => { fetchAllPeriods(keyword); }, [keyword]);
 
-  // Fetch queries for a specific city on expand
+  // Fetch pages + queries for a specific city on expand
   async function fetchCityQueries(slug) {
-    if (cityQueries[slug]?.queries) return; // already loaded
-    setCityQueries(prev => ({ ...prev, [slug]: { loading: true, queries: [] } }));
+    if (cityQueries[slug]?.pages || cityQueries[slug]?.queries) return; // already loaded
+    setCityQueries(prev => ({ ...prev, [slug]: { loading: true, pages: [], queries: [] } }));
     try {
       const params = keyword ? `&keyword=${encodeURIComponent(keyword)}` : "";
       const res = await fetch(`/api/admin/seo/gsc?days=28&city=${slug}${params}`);
       const d = await res.json();
-      setCityQueries(prev => ({ ...prev, [slug]: { loading: false, queries: d.queries || [] } }));
+      setCityQueries(prev => ({ ...prev, [slug]: { loading: false, pages: d.pages || [], queries: d.queries || [] } }));
     } catch {
-      setCityQueries(prev => ({ ...prev, [slug]: { loading: false, queries: [] } }));
+      setCityQueries(prev => ({ ...prev, [slug]: { loading: false, pages: [], queries: [] } }));
     }
   }
 
@@ -219,7 +219,7 @@ function GscTab() {
         </button>
       </div>
 
-      <p className="admin-text-muted text-xs mb-4">Donnees reelles Google — Clics et impressions sur 28 jours</p>
+      <p className="admin-text-muted text-xs mb-4">Donnees reelles Google — Clics et impressions sur 28 jours. <span className="text-orange-400">Note: site nouveau, 90j/6m/1an peuvent etre identiques (manque d&apos;historique).</span></p>
 
       {/* Summary from 28j */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3 mb-6">
@@ -255,16 +255,16 @@ function GscTab() {
 
       {/* Cities table */}
       <div className="admin-card border rounded-2xl overflow-x-auto">
-        <div style={{ minWidth: "920px" }}>
+        <div style={{ minWidth: "1100px" }}>
           {/* Header */}
           <div className="flex items-center px-4 py-3 border-b gap-1" style={{ borderColor: "var(--admin-border)" }}>
             <div className="w-[150px] shrink-0 admin-text-muted text-[10px] font-bold uppercase tracking-wider">Ville</div>
             {PERIODS.map(p => (
               <div key={p.label} className="flex-1 text-center admin-text-muted text-[10px] font-bold uppercase tracking-wider">{p.label}</div>
             ))}
-            <div className="w-[50px] text-center admin-text-muted text-[10px] font-bold uppercase tracking-wider">Clics</div>
-            <div className="w-[50px] text-center admin-text-muted text-[10px] font-bold uppercase tracking-wider">Impr.</div>
-            <div className="w-[180px] shrink-0 admin-text-muted text-[10px] font-bold uppercase tracking-wider">Mot cle</div>
+            <div className="w-[55px] text-center admin-text-muted text-[10px] font-bold uppercase tracking-wider">Clics</div>
+            <div className="w-[55px] text-center admin-text-muted text-[10px] font-bold uppercase tracking-wider">Impr.</div>
+            <div className="w-[340px] shrink-0 admin-text-muted text-[10px] font-bold uppercase tracking-wider">Meilleure page</div>
           </div>
 
           {/* Rows */}
@@ -284,13 +284,13 @@ function GscTab() {
                       </span>
                     </div>
                   ))}
-                  <div className="w-[50px] text-center admin-text text-xs font-bold">{city.totalClicks}</div>
-                  <div className="w-[50px] text-center admin-text-muted text-xs">{city.totalImpressions}</div>
-                  <div className="w-[180px] shrink-0 admin-text-muted text-[10px] truncate">{city.bestPage ? city.bestPage.replace("https://vosthermos.com", "") : "—"}</div>
+                  <div className="w-[55px] text-center admin-text text-xs font-bold">{city.totalClicks}</div>
+                  <div className="w-[55px] text-center admin-text-muted text-xs">{city.totalImpressions}</div>
+                  <div className="w-[340px] shrink-0 admin-text-muted text-[10px] truncate" title={city.bestPage || ""}>{city.bestPage ? city.bestPage.replace("https://www.vosthermos.com", "").replace("https://vosthermos.com", "") : "—"}</div>
                 </div>
 
-                {/* Expanded: positions + queries */}
-                <div className="overflow-hidden transition-all duration-[1500ms] ease-in-out" style={{ maxHeight: isExpanded ? "800px" : "0px", opacity: isExpanded ? 1 : 0 }}>
+                {/* Expanded: positions + pages + queries */}
+                <div className="overflow-hidden transition-all duration-[1500ms] ease-in-out" style={{ maxHeight: isExpanded ? "1100px" : "0px", opacity: isExpanded ? 1 : 0 }}>
                   <div className="px-5 pb-4 pt-3 border-t" style={{ borderColor: "var(--admin-border)" }}>
                     {/* Position breakdown per period */}
                     <div className="flex flex-wrap gap-2 mb-4">
@@ -315,24 +315,49 @@ function GscTab() {
                       </div>
                     </div>
 
-                    {/* Queries list — loaded on demand per city */}
-                    <p className="admin-text text-sm font-bold mb-3">Requetes — {city.name}</p>
+                    {/* Pages + Queries — loaded on demand per city */}
                     {cityQueries[city.slug]?.loading ? (
-                      <p className="admin-text-muted text-xs"><i className="fas fa-spinner fa-spin mr-1"></i>Chargement des requetes...</p>
-                    ) : !cityQueries[city.slug]?.queries?.length ? (
-                      <p className="admin-text-muted text-xs">Aucune donnee pour cette ville</p>
+                      <p className="admin-text-muted text-xs"><i className="fas fa-spinner fa-spin mr-1"></i>Chargement...</p>
                     ) : (
-                      <div className="space-y-1.5 max-h-[400px] overflow-y-auto">
-                        {cityQueries[city.slug].queries.sort((a, b) => a.position - b.position).map((q, i) => (
-                          <div key={i} className="flex items-center gap-3 text-xs bg-white/5 rounded-lg px-3 py-2">
-                            <span className={`px-2 py-0.5 rounded-full font-bold ${positionColor(Math.round(q.position))}`}>#{q.position}</span>
-                            <span className="admin-text flex-1 truncate">{q.query}</span>
-                            <span className="text-purple-400 font-bold">{q.clicks}c</span>
-                            <span className="admin-text-muted">{q.impressions}i</span>
-                            <span className="admin-text-muted">{q.ctr}%</span>
+                      <>
+                        {/* Pages list (donnees completes) */}
+                        <p className="admin-text text-sm font-bold mb-2">Pages — {city.name}</p>
+                        {!cityQueries[city.slug]?.pages?.length ? (
+                          <p className="admin-text-muted text-xs mb-4">Aucune page indexee</p>
+                        ) : (
+                          <div className="space-y-1.5 mb-4 max-h-[200px] overflow-y-auto">
+                            {cityQueries[city.slug].pages.map((p, i) => (
+                              <div key={i} className="flex items-center gap-3 text-xs bg-white/5 rounded-lg px-3 py-2">
+                                <span className={`px-2 py-0.5 rounded-full font-bold ${positionColor(Math.round(p.position))}`}>#{p.position}</span>
+                                <span className="admin-text flex-1 truncate font-mono" title={p.page}>{p.page.replace("https://www.vosthermos.com", "")}</span>
+                                <span className="text-purple-400 font-bold">{p.clicks}c</span>
+                                <span className="admin-text-muted">{p.impressions}i</span>
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
+                        )}
+
+                        {/* Queries list (peut etre incomplet) */}
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="admin-text text-sm font-bold">Requetes — {city.name}</p>
+                          <p className="admin-text-muted text-[10px] italic">Google anonymise certaines requetes</p>
+                        </div>
+                        {!cityQueries[city.slug]?.queries?.length ? (
+                          <p className="admin-text-muted text-xs">Aucune requete revelee par Google</p>
+                        ) : (
+                          <div className="space-y-1.5 max-h-[300px] overflow-y-auto">
+                            {cityQueries[city.slug].queries.sort((a, b) => a.position - b.position).map((q, i) => (
+                              <div key={i} className="flex items-center gap-3 text-xs bg-white/5 rounded-lg px-3 py-2">
+                                <span className={`px-2 py-0.5 rounded-full font-bold ${positionColor(Math.round(q.position))}`}>#{q.position}</span>
+                                <span className="admin-text flex-1 truncate">{q.query}</span>
+                                <span className="text-purple-400 font-bold">{q.clicks}c</span>
+                                <span className="admin-text-muted">{q.impressions}i</span>
+                                <span className="admin-text-muted">{q.ctr}%</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
