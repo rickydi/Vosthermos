@@ -443,18 +443,56 @@ export default function AdminSeoPage() {
   async function refreshCity(slug) {
     setRefreshingCity(slug);
     try {
+      // Start a single-city scan
       await fetch("/api/admin/seo/check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ keyword: activeKeyword, city: slug }),
+        body: JSON.stringify({ action: "start", keyword: activeKeyword, city: slug }),
       });
-      // Wait for single city scan to complete
-      await new Promise((r) => setTimeout(r, 3000));
+      // Tick once to process it
+      await fetch("/api/admin/seo/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "tick" }),
+      });
       await fetchData(activeKeyword);
     } catch (err) {
       console.error("Refresh city error:", err);
     }
     setRefreshingCity(null);
+  }
+
+  // Run the tick loop: each POST processes one city, with 1.5s delay between
+  async function runTickLoop() {
+    let stopped = false;
+    while (!stopped) {
+      try {
+        const res = await fetch("/api/admin/seo/check", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "tick" }),
+        });
+        const state = await res.json();
+        setProgress(prev => ({
+          current: state.current || 0,
+          total: state.total || 53,
+          city: state.city || "",
+          results: [...(prev?.results || []), state.lastResult].filter(Boolean).slice(-15),
+        }));
+        if (state.done || !state.running) {
+          stopped = true;
+          break;
+        }
+        // 1.5s delay between cities (rate limiting)
+        await new Promise(r => setTimeout(r, 1500));
+      } catch (err) {
+        console.error("Tick error:", err);
+        stopped = true;
+      }
+    }
+    setChecking(false);
+    setProgress(null);
+    fetchData(activeKeyword);
   }
 
   async function startCheck() {
@@ -465,7 +503,7 @@ export default function AdminSeoPage() {
       const res = await fetch("/api/admin/seo/check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ keyword: activeKeyword }),
+        body: JSON.stringify({ action: "start", keyword: activeKeyword }),
       });
       const data = await res.json();
       if (data.error) {
@@ -474,8 +512,8 @@ export default function AdminSeoPage() {
         setProgress(null);
         return;
       }
-      // Poll for progress
-      pollProgress();
+      // Run tick loop (fire and forget, no await)
+      runTickLoop();
     } catch (err) {
       console.error("Check error:", err);
       setChecking(false);
@@ -483,34 +521,14 @@ export default function AdminSeoPage() {
     }
   }
 
-  function pollProgress() {
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch("/api/admin/seo/check");
-        const state = await res.json();
-        setProgress({
-          current: state.current,
-          total: state.total,
-          city: state.city,
-          results: state.results || [],
-        });
-        if (!state.running) {
-          clearInterval(interval);
-          setChecking(false);
-          setProgress(null);
-          fetchData(activeKeyword);
-        }
-      } catch {}
-    }, 1500);
-  }
-
-  // Check if a scan is already running on page load
+  // Check if a scan was left in progress (e.g. page reload during scan)
+  // Note: with tick-based, we don't auto-resume because the frontend drives it
   useEffect(() => {
     fetch("/api/admin/seo/check").then(r => r.json()).then(state => {
-      if (state.running) {
+      if (state.running && state.heartbeatAge !== null && state.heartbeatAge < 10) {
+        // Another tab is running it, don't interfere
         setChecking(true);
-        setProgress({ current: state.current, total: state.total, city: state.city, results: state.results || [] });
-        pollProgress();
+        setProgress({ current: state.current, total: state.total, city: state.city + " (autre onglet)", results: state.results || [] });
       }
     }).catch(() => {});
   }, []);

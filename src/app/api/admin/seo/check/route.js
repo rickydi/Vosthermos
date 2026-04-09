@@ -5,9 +5,9 @@ import { CITIES } from "@/lib/cities";
 export const dynamic = "force-dynamic";
 
 const SCAN_STATE_KEY = "seo_scan_state";
-const HEARTBEAT_TIMEOUT_MS = 60000; // 1 minute without update = scan dead
+const HEARTBEAT_TIMEOUT_MS = 30000; // 30s without tick = scan dead
 
-// ─── DB-backed scan state (survives PM2 restarts + cluster mode) ───
+// ─── DB-backed scan state ─────────────────────────────────────────
 async function readScanState() {
   try {
     const rows = await prisma.$queryRawUnsafe(
@@ -34,20 +34,8 @@ async function writeScanState(state) {
   }
 }
 
-async function isScanAlive() {
-  const state = await readScanState();
-  if (!state || !state.running) return false;
-  // Heartbeat check: if no update in HEARTBEAT_TIMEOUT_MS, scan is dead
-  if (Date.now() - (state.heartbeat || 0) > HEARTBEAT_TIMEOUT_MS) {
-    // Mark as dead
-    await writeScanState({ ...state, running: false });
-    return false;
-  }
-  return true;
-}
-
-// ─── Serper API call ───────────────────────────────────────────────
-async function checkRankingSerper(cityName, keywordBase) {
+// ─── Serper API call ──────────────────────────────────────────────
+async function getSerperKey() {
   let apiKey = process.env.SERPER_API_KEY;
   try {
     const rows = await prisma.$queryRawUnsafe(
@@ -55,6 +43,11 @@ async function checkRankingSerper(cityName, keywordBase) {
     );
     if (rows[0]?.value) apiKey = rows[0].value;
   } catch {}
+  return apiKey;
+}
+
+async function checkRankingSerper(cityName, keywordBase) {
+  const apiKey = await getSerperKey();
   if (!apiKey) return { position: null, aiMention: false, url: null };
 
   const query = `${keywordBase} ${cityName}`;
@@ -76,30 +69,11 @@ async function checkRankingSerper(cityName, keywordBase) {
     let position = null;
     let foundUrl = null;
 
-    // Check organic results
     for (const o of data.organic || []) {
       if ((o.link || "").includes("vosthermos")) {
         position = o.position || null;
         foundUrl = o.link;
         break;
-      }
-    }
-
-    // If not in organic, check localResults and placesResults (local pack)
-    if (position === null) {
-      for (const key of ["localResults", "placesResults", "places"]) {
-        const arr = data[key]?.places || data[key] || [];
-        if (Array.isArray(arr)) {
-          for (let i = 0; i < arr.length; i++) {
-            const item = arr[i];
-            if ((item.website || item.link || "").includes("vosthermos")) {
-              position = position || (100 + i + 1); // local pack positioned after organic
-              foundUrl = item.website || item.link;
-              break;
-            }
-          }
-        }
-        if (position !== null) break;
       }
     }
 
@@ -111,110 +85,16 @@ async function checkRankingSerper(cityName, keywordBase) {
       }
     }
 
-    return {
-      position,
-      aiMention,
-      url: foundUrl,
-      organicCount: (data.organic || []).length,
-    };
+    return { position, aiMention, url: foundUrl };
   } catch (err) {
     console.error(`Error checking ${cityName}:`, err.message);
     return { position: null, aiMention: false, url: null, error: err.message };
   }
 }
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-// ─── Background scan runner ────────────────────────────────────────
-async function runScan(keywordBase, citiesToCheck) {
-  const results = [];
-  await writeScanState({
-    running: true,
-    current: 0,
-    total: citiesToCheck.length,
-    city: "Demarrage...",
-    keyword: keywordBase,
-    results,
-    startedAt: Date.now(),
-  });
-
-  for (let i = 0; i < citiesToCheck.length; i++) {
-    const city = citiesToCheck[i];
-    const keyword = `${keywordBase} ${city.name}`;
-
-    // Update progress BEFORE the API call so heartbeat stays fresh
-    await writeScanState({
-      running: true,
-      current: i + 1,
-      total: citiesToCheck.length,
-      city: city.name,
-      keyword: keywordBase,
-      results: results.slice(-15),
-      startedAt: Date.now(),
-    });
-
-    try {
-      const result = await checkRankingSerper(city.name, keywordBase);
-
-      await prisma.seoRanking.create({
-        data: {
-          city: city.slug,
-          cityName: city.name,
-          keyword,
-          position: result.position,
-          aiMention: result.aiMention,
-          url: result.url,
-        },
-      });
-
-      results.push({
-        city: city.name,
-        slug: city.slug,
-        position: result.position,
-        aiMention: result.aiMention,
-      });
-    } catch (err) {
-      console.error(`Scan error for ${city.name}:`, err.message);
-      results.push({ city: city.name, slug: city.slug, position: null, aiMention: false });
-    }
-
-    // Update with new result + heartbeat
-    await writeScanState({
-      running: true,
-      current: i + 1,
-      total: citiesToCheck.length,
-      city: city.name,
-      keyword: keywordBase,
-      results: results.slice(-15),
-      startedAt: Date.now(),
-    });
-
-    if (i < citiesToCheck.length - 1) await sleep(1500);
-  }
-
-  // Mark as finished
-  await writeScanState({
-    running: false,
-    current: citiesToCheck.length,
-    total: citiesToCheck.length,
-    city: "Termine",
-    keyword: keywordBase,
-    results: results.slice(-15),
-    finishedAt: Date.now(),
-  });
-}
-
-// ─── Debug: raw Serper response for a city ───────────────────────
+// ─── Debug: raw Serper response ───────────────────────────────────
 async function debugSerper(cityName, keywordBase) {
-  let apiKey = process.env.SERPER_API_KEY;
-  try {
-    const rows = await prisma.$queryRawUnsafe(
-      `SELECT value FROM site_settings WHERE key = 'api_key_serper'`
-    );
-    if (rows[0]?.value) apiKey = rows[0].value;
-  } catch {}
+  const apiKey = await getSerperKey();
   if (!apiKey) return { error: "no api key" };
 
   const query = `${keywordBase} ${cityName}`;
@@ -229,98 +109,180 @@ async function debugSerper(cityName, keywordBase) {
       query,
       status: res.status,
       apiKeyPrefix: apiKey?.slice(0, 8) + "...",
-      apiKeyLength: apiKey?.length,
-      fullResponse: data,
       organicCount: (data.organic || []).length,
-      vosthermosFound: (data.organic || []).filter(o => (o.link || "").toLowerCase().includes("vosthermos")).map(o => ({ pos: o.position, link: o.link })),
-      keys: Object.keys(data),
+      vosthermosFound: (data.organic || [])
+        .filter(o => (o.link || "").toLowerCase().includes("vosthermos"))
+        .map(o => ({ pos: o.position, link: o.link })),
+      top5: (data.organic || []).slice(0, 5).map(o => ({
+        pos: o.position, title: o.title?.slice(0, 60), link: o.link,
+      })),
+      errorMessage: data.message,
     };
   } catch (err) {
     return { error: err.message };
   }
 }
 
-// ─── POST: start scan ──────────────────────────────────────────────
+// ─── POST: tick one city (frontend-driven scan) ───────────────────
+// - POST with { action: "start", keyword, city? } = initialize scan state
+// - POST with { action: "tick" } = process next city, return progress
+// - POST with { action: "stop" } = mark scan as stopped
 export async function POST(request) {
   try {
     await requireAdmin();
   } catch {
     return new Response(JSON.stringify({ error: "Non autorise" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
+      status: 401, headers: { "Content-Type": "application/json" },
     });
   }
 
-  let hasSerperKey = !!process.env.SERPER_API_KEY;
-  try {
-    const rows = await prisma.$queryRawUnsafe(
-      `SELECT value FROM site_settings WHERE key = 'api_key_serper'`
-    );
-    if (rows[0]?.value) hasSerperKey = true;
-  } catch {}
-  if (!hasSerperKey) {
-    return new Response(JSON.stringify({ error: "SERPER_API_KEY manquant" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
+  let body = {};
+  try { body = await request.json(); } catch {}
+  const action = body.action || "start"; // default backward-compat
+
+  // ─── Action: start ────
+  if (action === "start") {
+    const apiKey = await getSerperKey();
+    if (!apiKey) {
+      return new Response(JSON.stringify({ error: "SERPER_API_KEY manquant" }), {
+        status: 500, headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const keywordBase = body.keyword || "remplacement vitre thermos";
+    const cityFilter = body.city || null;
+    const citiesToCheck = cityFilter
+      ? CITIES.filter(c => c.slug === cityFilter)
+      : CITIES;
+
+    await writeScanState({
+      running: true,
+      current: 0,
+      total: citiesToCheck.length,
+      city: "Demarrage...",
+      keyword: keywordBase,
+      citySlugs: citiesToCheck.map(c => c.slug),
+      results: [],
+      startedAt: Date.now(),
     });
+
+    return new Response(JSON.stringify({
+      started: true, total: citiesToCheck.length,
+    }), { headers: { "Content-Type": "application/json" } });
   }
 
-  // Check if a scan is already running (with heartbeat validation)
-  if (await isScanAlive()) {
+  // ─── Action: tick ────
+  if (action === "tick") {
     const state = await readScanState();
-    return new Response(JSON.stringify({ error: "Scan deja en cours", state }), {
-      status: 409,
+    if (!state || !state.running) {
+      return new Response(JSON.stringify({
+        running: false, done: true, error: "no scan in progress",
+      }), { headers: { "Content-Type": "application/json" } });
+    }
+
+    if (state.current >= state.total) {
+      // Finished
+      await writeScanState({ ...state, running: false, city: "Termine" });
+      return new Response(JSON.stringify({
+        running: false, done: true, current: state.total, total: state.total,
+        results: state.results,
+      }), { headers: { "Content-Type": "application/json" } });
+    }
+
+    const slug = state.citySlugs[state.current];
+    const city = CITIES.find(c => c.slug === slug);
+    if (!city) {
+      // Skip unknown city
+      await writeScanState({ ...state, current: state.current + 1 });
+      return new Response(JSON.stringify({
+        running: true, current: state.current + 1, total: state.total,
+        city: slug, skipped: true,
+      }), { headers: { "Content-Type": "application/json" } });
+    }
+
+    // Process this city
+    const keyword = `${state.keyword} ${city.name}`;
+    let result = { position: null, aiMention: false, url: null };
+    try {
+      result = await checkRankingSerper(city.name, state.keyword);
+      await prisma.seoRanking.create({
+        data: {
+          city: city.slug,
+          cityName: city.name,
+          keyword,
+          position: result.position,
+          aiMention: result.aiMention,
+          url: result.url,
+        },
+      });
+    } catch (err) {
+      console.error(`Tick error for ${city.name}:`, err.message);
+    }
+
+    const newResults = [
+      ...state.results,
+      { city: city.name, slug: city.slug, position: result.position, aiMention: result.aiMention },
+    ];
+
+    await writeScanState({
+      ...state,
+      current: state.current + 1,
+      city: city.name,
+      results: newResults,
+    });
+
+    return new Response(JSON.stringify({
+      running: state.current + 1 < state.total,
+      done: state.current + 1 >= state.total,
+      current: state.current + 1,
+      total: state.total,
+      city: city.name,
+      lastResult: { city: city.name, slug: city.slug, position: result.position, aiMention: result.aiMention },
+    }), { headers: { "Content-Type": "application/json" } });
+  }
+
+  // ─── Action: stop ────
+  if (action === "stop") {
+    const state = await readScanState();
+    if (state) {
+      await writeScanState({ ...state, running: false, city: "Arrete" });
+    }
+    return new Response(JSON.stringify({ stopped: true }), {
       headers: { "Content-Type": "application/json" },
     });
   }
 
-  let keywordBase = "remplacement vitre thermos";
-  let cityFilter = null;
-  try {
-    const body = await request.json();
-    if (body.keyword) keywordBase = body.keyword;
-    cityFilter = body.city || null;
-  } catch {}
-
-  const citiesToCheck = cityFilter
-    ? CITIES.filter((c) => c.slug === cityFilter)
-    : CITIES;
-
-  // Start scan in background (don't await)
-  runScan(keywordBase, citiesToCheck).catch(err => {
-    console.error("runScan error:", err);
-    writeScanState({ running: false, error: err.message });
-  });
-
-  return new Response(JSON.stringify({ started: true, total: citiesToCheck.length }), {
-    headers: { "Content-Type": "application/json" },
+  return new Response(JSON.stringify({ error: "unknown action" }), {
+    status: 400, headers: { "Content-Type": "application/json" },
   });
 }
 
-// ─── GET: scan progress OR debug ───────────────────────────────────
+// ─── GET: scan progress OR debug ──────────────────────────────────
 export async function GET(request) {
   try {
     await requireAdmin();
   } catch {
     return new Response(JSON.stringify({ error: "Non autorise" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
+      status: 401, headers: { "Content-Type": "application/json" },
     });
   }
 
-  // Debug mode: raw Serper response
+  // Debug mode
   const { searchParams } = new URL(request.url);
   const debugCity = searchParams.get("debug_city");
   if (debugCity) {
     const kw = searchParams.get("keyword") || "remplacement vitre thermos";
     const cityObj = CITIES.find(c => c.slug === debugCity);
-    if (!cityObj) return new Response(JSON.stringify({ error: "city not found" }), { status: 404 });
+    if (!cityObj) {
+      return new Response(JSON.stringify({ error: "city not found" }), { status: 404 });
+    }
     const result = await debugSerper(cityObj.name, kw);
     return new Response(JSON.stringify(result, null, 2), {
       headers: { "Content-Type": "application/json" },
     });
   }
 
+  // Regular progress check
   const state = await readScanState();
   if (!state) {
     return new Response(JSON.stringify({
@@ -328,7 +290,7 @@ export async function GET(request) {
     }), { headers: { "Content-Type": "application/json" } });
   }
 
-  // Heartbeat check: if scan claims running but no update in 60s, mark dead
+  // Heartbeat check
   let running = state.running;
   if (running && Date.now() - (state.heartbeat || 0) > HEARTBEAT_TIMEOUT_MS) {
     running = false;
@@ -342,7 +304,7 @@ export async function GET(request) {
     city: state.city || "",
     keyword: state.keyword || "",
     results: state.results || [],
-    done: !running && (state.total || 0) > 0,
+    done: !running && (state.total || 0) > 0 && (state.current || 0) >= (state.total || 0),
     heartbeatAge: state.heartbeat ? Math.round((Date.now() - state.heartbeat) / 1000) : null,
   }), { headers: { "Content-Type": "application/json" } });
 }
