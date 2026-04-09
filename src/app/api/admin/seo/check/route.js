@@ -98,31 +98,46 @@ async function checkRankingSerper(cityName, keywordBase) {
   }
 }
 
-// ─── Debug: raw Serper response ───────────────────────────────────
+// ─── Debug: raw Serper response (same pagination as real scan) ──
 async function debugSerper(cityName, keywordBase) {
   const apiKey = await getSerperKey();
   if (!apiKey) return { error: "no api key" };
 
   const query = `${keywordBase} ${cityName}`;
+  const allResults = [];
+  let vosthermosFound = null;
+
   try {
-    const res = await fetch("https://google.serper.dev/search", {
-      method: "POST",
-      headers: { "X-API-KEY": apiKey, "Content-Type": "application/json" },
-      body: JSON.stringify({ q: query, gl: "ca", hl: "fr", num: 100 }),
-    });
-    const data = await res.json();
+    for (let page = 1; page <= 2; page++) {
+      const res = await fetch("https://google.serper.dev/search", {
+        method: "POST",
+        headers: { "X-API-KEY": apiKey, "Content-Type": "application/json" },
+        body: JSON.stringify({ q: query, gl: "ca", hl: "fr", page }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { query, status: res.status, error: data.message };
+      }
+      const organic = (data.organic || []).map(o => ({
+        page,
+        pos: o.position,
+        title: o.title?.slice(0, 60),
+        link: o.link,
+        isVosthermos: (o.link || "").toLowerCase().includes("vosthermos"),
+      }));
+      allResults.push(...organic);
+      if (!vosthermosFound) {
+        const vt = organic.find(o => o.isVosthermos);
+        if (vt) vosthermosFound = vt;
+      }
+      if (organic.length < 10) break;
+    }
+
     return {
       query,
-      status: res.status,
-      apiKeyPrefix: apiKey?.slice(0, 8) + "...",
-      organicCount: (data.organic || []).length,
-      vosthermosFound: (data.organic || [])
-        .filter(o => (o.link || "").toLowerCase().includes("vosthermos"))
-        .map(o => ({ pos: o.position, link: o.link })),
-      top5: (data.organic || []).slice(0, 5).map(o => ({
-        pos: o.position, title: o.title?.slice(0, 60), link: o.link,
-      })),
-      errorMessage: data.message,
+      totalResults: allResults.length,
+      vosthermosFound,
+      allResults,
     };
   } catch (err) {
     return { error: err.message };
