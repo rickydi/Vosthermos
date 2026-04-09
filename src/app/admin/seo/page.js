@@ -93,12 +93,13 @@ function GscTab() {
     { days: 180, label: "6m" },
     { days: 365, label: "1an" },
   ];
-  const PRIMARY = 2; // 28j for clicks/impressions/queries
+  const PRIMARY = 2; // 28j for clicks/impressions
 
   const [allData, setAllData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [keyword, setKeyword] = useState("");
   const [expandedCities, setExpandedCities] = useState(new Set());
+  const [cityQueries, setCityQueries] = useState({}); // { slug: { loading, queries } }
 
   async function fetchAllPeriods(kw) {
     setLoading(true);
@@ -121,11 +122,29 @@ function GscTab() {
 
   useEffect(() => { fetchAllPeriods(keyword); }, [keyword]);
 
+  // Fetch queries for a specific city on expand
+  async function fetchCityQueries(slug) {
+    if (cityQueries[slug]?.queries) return; // already loaded
+    setCityQueries(prev => ({ ...prev, [slug]: { loading: true, queries: [] } }));
+    try {
+      const params = keyword ? `&keyword=${encodeURIComponent(keyword)}` : "";
+      const res = await fetch(`/api/admin/seo/gsc?days=28&city=${slug}${params}`);
+      const d = await res.json();
+      setCityQueries(prev => ({ ...prev, [slug]: { loading: false, queries: d.queries || [] } }));
+    } catch {
+      setCityQueries(prev => ({ ...prev, [slug]: { loading: false, queries: [] } }));
+    }
+  }
+
   function toggleCity(slug) {
     setExpandedCities(prev => {
       const next = new Set(prev);
-      if (next.has(slug)) next.delete(slug);
-      else next.add(slug);
+      if (next.has(slug)) {
+        next.delete(slug);
+      } else {
+        next.add(slug);
+        fetchCityQueries(slug);
+      }
       return next;
     });
   }
@@ -152,16 +171,14 @@ function GscTab() {
           positions: {},
           totalClicks: 0,
           totalImpressions: 0,
-          queries: [],
-          bestQuery: null,
+          bestPage: null,
         };
       }
       cityMap[city.slug].positions[p.label] = city.bestPosition;
       if (i === PRIMARY) {
         cityMap[city.slug].totalClicks = city.totalClicks;
         cityMap[city.slug].totalImpressions = city.totalImpressions;
-        cityMap[city.slug].queries = city.queries || [];
-        cityMap[city.slug].bestQuery = city.bestQuery;
+        cityMap[city.slug].bestPage = city.bestPage;
       }
     }
   });
@@ -178,7 +195,12 @@ function GscTab() {
     if (allExpanded) {
       setExpandedCities(new Set());
     } else {
-      setExpandedCities(new Set(mergedCities.map(c => c.slug)));
+      const all = new Set(mergedCities.map(c => c.slug));
+      setExpandedCities(all);
+      // Fetch queries for all cities that haven't been loaded yet
+      for (const c of mergedCities) {
+        if (!cityQueries[c.slug]?.queries) fetchCityQueries(c.slug);
+      }
     }
   }
 
@@ -264,7 +286,7 @@ function GscTab() {
                   ))}
                   <div className="w-[50px] text-center admin-text text-xs font-bold">{city.totalClicks}</div>
                   <div className="w-[50px] text-center admin-text-muted text-xs">{city.totalImpressions}</div>
-                  <div className="w-[180px] shrink-0 admin-text-muted text-[10px] truncate">{city.bestQuery || "—"}</div>
+                  <div className="w-[180px] shrink-0 admin-text-muted text-[10px] truncate">{city.bestPage ? city.bestPage.replace("https://vosthermos.com", "") : "—"}</div>
                 </div>
 
                 {/* Expanded: positions + queries */}
@@ -293,13 +315,15 @@ function GscTab() {
                       </div>
                     </div>
 
-                    {/* Queries list */}
+                    {/* Queries list — loaded on demand per city */}
                     <p className="admin-text text-sm font-bold mb-3">Requetes — {city.name}</p>
-                    {city.queries.length === 0 ? (
+                    {cityQueries[city.slug]?.loading ? (
+                      <p className="admin-text-muted text-xs"><i className="fas fa-spinner fa-spin mr-1"></i>Chargement des requetes...</p>
+                    ) : !cityQueries[city.slug]?.queries?.length ? (
                       <p className="admin-text-muted text-xs">Aucune donnee pour cette ville</p>
                     ) : (
                       <div className="space-y-1.5 max-h-[400px] overflow-y-auto">
-                        {city.queries.sort((a, b) => a.position - b.position).map((q, i) => (
+                        {cityQueries[city.slug].queries.sort((a, b) => a.position - b.position).map((q, i) => (
                           <div key={i} className="flex items-center gap-3 text-xs bg-white/5 rounded-lg px-3 py-2">
                             <span className={`px-2 py-0.5 rounded-full font-bold ${positionColor(Math.round(q.position))}`}>#{q.position}</span>
                             <span className="admin-text flex-1 truncate">{q.query}</span>

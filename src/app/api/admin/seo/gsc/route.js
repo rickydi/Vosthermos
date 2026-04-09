@@ -8,7 +8,6 @@ import fs from "fs";
 export const dynamic = "force-dynamic";
 
 async function getSearchConsoleClient() {
-  // Try to load service account from config file
   const configPath = path.join(process.cwd(), "config", "google-service-account.json");
   if (!fs.existsSync(configPath)) {
     throw new Error("Fichier config/google-service-account.json introuvable");
@@ -22,7 +21,10 @@ async function getSearchConsoleClient() {
   return google.searchconsole({ version: "v1", auth });
 }
 
-// GET: fetch real ranking data from Google Search Console
+// GET /api/admin/seo/gsc
+// ?days=28           — period
+// ?keyword=thermos   — optional query filter
+// ?city=delson       — optional: returns query-level detail for that city only
 export async function GET(request) {
   try {
     await requireAdmin();
@@ -33,26 +35,76 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const days = parseInt(searchParams.get("days") || "28");
   const keyword = searchParams.get("keyword") || "";
+  const city = searchParams.get("city") || "";
 
   try {
     const searchconsole = await getSearchConsoleClient();
 
     const endDate = new Date();
-    endDate.setDate(endDate.getDate() - 1); // GSC data is delayed ~2 days
+    endDate.setDate(endDate.getDate() - 1);
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
     const formatDate = (d) => d.toISOString().split("T")[0];
 
-    // Query Search Console for all queries containing our keywords, grouped by query + page
+    // ─── Mode detail par ville ───────────────────────────────────
+    if (city) {
+      const dimensionFilterGroups = [{
+        filters: [{ dimension: "page", operator: "contains", expression: `/${city}` }],
+      }];
+      if (keyword) {
+        dimensionFilterGroups.push({
+          filters: [{ dimension: "query", operator: "contains", expression: keyword }],
+        });
+      }
+
+      const response = await searchconsole.searchanalytics.query({
+        siteUrl: "https://vosthermos.com/",
+        requestBody: {
+          startDate: formatDate(startDate),
+          endDate: formatDate(endDate),
+          dimensions: ["query", "page"],
+          dimensionFilterGroups,
+          rowLimit: 5000,
+          type: "web",
+        },
+      });
+
+      const rows = response.data.rows || [];
+      const queries = rows.map(row => ({
+        query: row.keys[0],
+        page: row.keys[1],
+        clicks: row.clicks,
+        impressions: row.impressions,
+        position: Math.round(row.position * 10) / 10,
+        ctr: Math.round(row.ctr * 1000) / 10,
+      }));
+
+      const totalClicks = rows.reduce((s, r) => s + r.clicks, 0);
+      const totalImpressions = rows.reduce((s, r) => s + r.impressions, 0);
+      const bestPosition = rows.length > 0
+        ? Math.round(Math.min(...rows.map(r => r.position)) * 10) / 10
+        : null;
+
+      return NextResponse.json({
+        source: "google-search-console",
+        mode: "city-detail",
+        city,
+        period: { startDate: formatDate(startDate), endDate: formatDate(endDate), days },
+        totalClicks,
+        totalImpressions,
+        bestPosition,
+        queries,
+      });
+    }
+
+    // ─── Mode overview (toutes les villes) ───────────────────────
+    // Dimension ["page"] seulement = ~200-300 lignes (1 par page URL)
+    // Beaucoup plus fiable que ["query", "page"] qui explose la limite
     const dimensionFilterGroups = [];
     if (keyword) {
       dimensionFilterGroups.push({
-        filters: [{
-          dimension: "query",
-          operator: "contains",
-          expression: keyword,
-        }],
+        filters: [{ dimension: "query", operator: "contains", expression: keyword }],
       });
     }
 
@@ -61,7 +113,7 @@ export async function GET(request) {
       requestBody: {
         startDate: formatDate(startDate),
         endDate: formatDate(endDate),
-        dimensions: ["query", "page"],
+        dimensions: ["page"],
         dimensionFilterGroups,
         rowLimit: 25000,
         type: "web",
@@ -70,101 +122,53 @@ export async function GET(request) {
 
     const rows = response.data.rows || [];
 
-    // Map city slugs to names for matching
-    const cityMap = {};
-    for (const city of CITIES) {
-      cityMap[city.slug] = city.name;
-      // Also match by city name in lowercase for query matching
-      cityMap[city.name.toLowerCase()] = city.name;
-    }
-
-    // Group results by city
+    // Initialize all cities
     const cityResults = {};
-    for (const city of CITIES) {
-      cityResults[city.slug] = {
-        slug: city.slug,
-        name: city.name,
-        queries: [],
+    for (const c of CITIES) {
+      cityResults[c.slug] = {
+        slug: c.slug,
+        name: c.name,
         bestPosition: null,
         totalClicks: 0,
         totalImpressions: 0,
-        avgPosition: null,
-        bestQuery: null,
         bestPage: null,
       };
     }
-    // Catch-all for queries not matching any city
     cityResults["_general"] = {
       slug: "_general",
       name: "General (sans ville)",
-      queries: [],
       bestPosition: null,
       totalClicks: 0,
       totalImpressions: 0,
-      avgPosition: null,
-      bestQuery: null,
       bestPage: null,
     };
 
     for (const row of rows) {
-      const query = row.keys[0].toLowerCase();
-      const page = row.keys[1];
+      const page = row.keys[0];
 
-      // Match to a city
       let matched = false;
-      for (const city of CITIES) {
-        const cityNameLower = city.name.toLowerCase();
-        if (query.includes(cityNameLower) || page.includes(`/${city.slug}`)) {
-          const c = cityResults[city.slug];
-          c.totalClicks += row.clicks;
-          c.totalImpressions += row.impressions;
-
-          c.queries.push({
-            query: row.keys[0],
-            page,
-            clicks: row.clicks,
-            impressions: row.impressions,
-            position: Math.round(row.position * 10) / 10,
-            ctr: Math.round(row.ctr * 1000) / 10,
-          });
-
-          if (c.bestPosition === null || row.position < c.bestPosition) {
-            c.bestPosition = Math.round(row.position * 10) / 10;
-            c.bestQuery = row.keys[0];
-            c.bestPage = page;
+      for (const c of CITIES) {
+        if (page.includes(`/${c.slug}`)) {
+          const cr = cityResults[c.slug];
+          cr.totalClicks += row.clicks;
+          cr.totalImpressions += row.impressions;
+          if (cr.bestPosition === null || row.position < cr.bestPosition) {
+            cr.bestPosition = Math.round(row.position * 10) / 10;
+            cr.bestPage = page;
           }
           matched = true;
           break;
         }
       }
 
-      // Unmatched rows go to general
       if (!matched) {
         const g = cityResults["_general"];
         g.totalClicks += row.clicks;
         g.totalImpressions += row.impressions;
-        g.queries.push({
-          query: row.keys[0],
-          page,
-          clicks: row.clicks,
-          impressions: row.impressions,
-          position: Math.round(row.position * 10) / 10,
-          ctr: Math.round(row.ctr * 1000) / 10,
-        });
         if (g.bestPosition === null || row.position < g.bestPosition) {
           g.bestPosition = Math.round(row.position * 10) / 10;
-          g.bestQuery = row.keys[0];
           g.bestPage = page;
         }
-      }
-    }
-
-    // Calculate avg position per city
-    for (const city of Object.values(cityResults)) {
-      if (city.queries.length > 0) {
-        const totalWeightedPos = city.queries.reduce((sum, q) => sum + q.position * q.impressions, 0);
-        const totalImpressions = city.queries.reduce((sum, q) => sum + q.impressions, 0);
-        city.avgPosition = totalImpressions > 0 ? Math.round((totalWeightedPos / totalImpressions) * 10) / 10 : null;
       }
     }
 
@@ -182,6 +186,7 @@ export async function GET(request) {
 
     return NextResponse.json({
       source: "google-search-console",
+      mode: "overview",
       period: { startDate: formatDate(startDate), endDate: formatDate(endDate), days },
       summary: { inTop1, inTop3, inTop10, totalClicks, totalImpressions, avgPosition, citiesWithData: withPosition.length },
       cities: cities.sort((a, b) => (a.bestPosition ?? 999) - (b.bestPosition ?? 999)),
