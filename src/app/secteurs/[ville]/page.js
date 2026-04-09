@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { CITIES, getCity } from "@/lib/cities";
+import { CITY_PAGE_SEO } from "@/lib/seo-templates";
 
 // Pre-generate all city pages at build time for SEO
 export function generateStaticParams() {
@@ -11,9 +12,10 @@ export async function generateMetadata({ params }) {
   const { ville } = await params;
   const city = getCity(ville);
   if (!city) return {};
+  const tpl = CITY_PAGE_SEO["secteurs"];
   return {
-    title: `Reparation de portes et fenetres a ${city.name} | Vosthermos`,
-    description: `Service de reparation de portes et fenetres a ${city.name}, ${city.region}. Remplacement de vitres thermos, quincaillerie, moustiquaires. service garanti. Soumission gratuite 514-825-8411.`,
+    title: tpl.title(city),
+    description: tpl.description(city),
     alternates: { canonical: `https://www.vosthermos.com/secteurs/${city.slug}` },
   };
 }

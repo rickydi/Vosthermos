@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { CITIES, getCity } from "@/lib/cities";
 import QuoteForm from "@/components/QuoteForm";
+import { CITY_PAGE_SEO } from "@/lib/seo-templates";
 
 export async function generateStaticParams() {
   return CITIES.map((c) => ({ ville: c.slug }));
@@ -11,9 +12,10 @@ export async function generateMetadata({ params }) {
   const { ville } = await params;
   const city = getCity(ville);
   if (!city) return {};
+  const tpl = CITY_PAGE_SEO["calfeutrage"];
   return {
-    title: `Calfeutrage de portes et fenetres a ${city.name} | Vosthermos`,
-    description: `Service professionnel de calfeutrage a ${city.name}, ${city.region}. Elimination des infiltrations d'air et d'eau, amelioration de l'isolation. Soumission gratuite 514-825-8411.`,
+    title: tpl.title(city),
+    description: tpl.description(city),
     alternates: { canonical: `https://www.vosthermos.com/calfeutrage/${city.slug}` },
   };
 }

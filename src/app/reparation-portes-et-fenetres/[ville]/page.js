@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { CITIES, getCity } from "@/lib/cities";
 import QuoteForm from "@/components/QuoteForm";
+import { CITY_PAGE_SEO } from "@/lib/seo-templates";
 
 export async function generateStaticParams() {
   return CITIES.map((c) => ({ ville: c.slug }));
@@ -11,10 +12,27 @@ export async function generateMetadata({ params }) {
   const { ville } = await params;
   const city = getCity(ville);
   if (!city) return {};
+  const tpl = CITY_PAGE_SEO["reparation-portes-et-fenetres"];
+  const title = tpl.title(city);
+  const description = tpl.description(city);
+  const url = `https://www.vosthermos.com/reparation-portes-et-fenetres/${city.slug}`;
   return {
-    title: `Reparation de portes et fenetres a ${city.name} | Vosthermos`,
-    description: `Expert en reparation de portes et fenetres a ${city.name}, ${city.region}. Service professionnel garanti : quincaillerie, vitres thermos, portes en bois, moustiquaires. Soumission gratuite 514-825-8411.`,
-    alternates: { canonical: `https://www.vosthermos.com/reparation-portes-et-fenetres/${city.slug}` },
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title,
+      description,
+      url,
+      type: "website",
+      locale: "fr_CA",
+      siteName: "Vosthermos",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
   };
 }
 
@@ -36,30 +54,81 @@ export default async function ReparationVillePage({ params }) {
 
   const otherCities = CITIES.filter((c) => c.slug !== city.slug).slice(0, 12);
 
+  const provider = {
+    "@type": "LocalBusiness",
+    "@id": "https://www.vosthermos.com/#business",
+    name: "Vosthermos",
+    telephone: "+15148258411",
+    email: "info@vosthermos.com",
+    url: "https://www.vosthermos.com",
+    image: "https://www.vosthermos.com/logo.png",
+    priceRange: "$$",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "330 Ch. St-Francois-Xavier, Local 101",
+      addressLocality: "Saint-Francois-Xavier",
+      addressRegion: "QC",
+      postalCode: "J0L 2P0",
+      addressCountry: "CA",
+    },
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: 45.5167,
+      longitude: -73.3833,
+    },
+    openingHoursSpecification: [
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        opens: "08:00",
+        closes: "17:00",
+      },
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: "Saturday",
+        opens: "09:00",
+        closes: "13:00",
+      },
+    ],
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: "4.9",
+      reviewCount: "87",
+      bestRating: "5",
+      worstRating: "1",
+    },
+  };
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Service",
     name: `Reparation de portes et fenetres a ${city.name}`,
     description: `Service complet de reparation de portes et fenetres a ${city.name}. Quincaillerie, vitres thermos, portes en bois, moustiquaires, calfeutrage, coupe-froid, desembuage et insertion de porte.`,
     url: `https://www.vosthermos.com/reparation-portes-et-fenetres/${city.slug}`,
-    provider: {
-      "@type": "LocalBusiness",
-      name: "Vosthermos",
-      telephone: "+15148258411",
-      email: "info@vosthermos.com",
-      url: "https://www.vosthermos.com",
-      address: {
-        "@type": "PostalAddress",
-        streetAddress: "330 Ch. St-Francois-Xavier, Local 101",
-        addressLocality: "Saint-Francois-Xavier",
-        addressRegion: "QC",
-        addressCountry: "CA",
-      },
-    },
+    provider,
     areaServed: {
       "@type": "City",
       name: city.name,
+      ...(city.coords && {
+        geo: {
+          "@type": "GeoCoordinates",
+          latitude: city.coords.lat,
+          longitude: city.coords.lng,
+        },
+      }),
       containedInPlace: { "@type": "AdministrativeArea", name: city.region },
+    },
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: `Services de reparation a ${city.name}`,
+      itemListElement: allServices.map((s) => ({
+        "@type": "Offer",
+        itemOffered: {
+          "@type": "Service",
+          name: s.title,
+          description: s.desc,
+        },
+      })),
     },
   };
 
@@ -113,36 +182,76 @@ export default async function ReparationVillePage({ params }) {
             <span>/</span>
             <span className="text-white">{city.name}</span>
           </nav>
-          <div className="flex flex-wrap items-center gap-3 mb-6">
-            <span className="inline-block bg-white/10 text-[var(--color-red-light)] text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full">
-              <i className="fas fa-map-marker-alt mr-1"></i> {city.region} &bull; a {city.distance} de nos bureaux
-            </span>
-            {city.population && (
-              <span className="inline-block bg-white/10 text-white/70 text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full">
-                <i className="fas fa-users mr-1"></i> {city.population}
-              </span>
-            )}
-          </div>
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-6">
-            Reparation de portes et fenetres a{" "}
-            <span className="text-[var(--color-red)]">{city.name}</span>
-          </h1>
-          <p className="text-white/70 text-lg max-w-2xl leading-relaxed mb-8">
-            Vosthermos est votre specialiste en reparation de portes et fenetres a {city.name}. Que ce soit pour un thermos embue, une quincaillerie defaillante ou un calfeutrage a refaire, notre equipe intervient rapidement avec un service garanti sur tous les travaux.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <a
-              href="tel:15148258411"
-              className="inline-flex items-center justify-center gap-2 bg-[var(--color-red)] text-white px-8 py-4 rounded-full font-bold hover:bg-[var(--color-red-dark)] transition-all shadow-lg"
-            >
-              <i className="fas fa-phone"></i> 514-825-8411
-            </a>
-            <Link
-              href="/rendez-vous"
-              className="inline-flex items-center justify-center gap-2 bg-transparent text-white border-2 border-white/30 px-8 py-4 rounded-full font-bold hover:border-white hover:bg-white/10 transition-all"
-            >
-              Soumission gratuite
-            </Link>
+          <div className="grid lg:grid-cols-[1.4fr_1fr] gap-10 items-start">
+            {/* Left: content */}
+            <div>
+              <div className="flex flex-wrap items-center gap-3 mb-6">
+                <span className="inline-block bg-white/10 text-[var(--color-red-light)] text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full">
+                  <i className="fas fa-map-marker-alt mr-1"></i> {city.region} &bull; a {city.distance} de nos bureaux
+                </span>
+                {city.population && (
+                  <span className="inline-block bg-white/10 text-white/70 text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full">
+                    <i className="fas fa-users mr-1"></i> {city.population}
+                  </span>
+                )}
+              </div>
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-6">
+                Reparation de portes et fenetres a{" "}
+                <span className="text-[var(--color-red)]">{city.name}</span>
+              </h1>
+              <p className="text-white/70 text-lg leading-relaxed mb-6">
+                Vosthermos est votre specialiste en reparation de portes et fenetres a {city.name}. Que ce soit pour un thermos embue, une quincaillerie defaillante ou un calfeutrage a refaire, notre equipe intervient rapidement avec un service garanti sur tous les travaux.
+              </p>
+
+              {/* Trust badges: Google rating + hours */}
+              <div className="flex flex-wrap items-center gap-5 mb-8 pb-6 border-b border-white/10">
+                <div className="flex items-center gap-2">
+                  <div className="flex text-yellow-400 text-sm">
+                    <i className="fas fa-star"></i>
+                    <i className="fas fa-star"></i>
+                    <i className="fas fa-star"></i>
+                    <i className="fas fa-star"></i>
+                    <i className="fas fa-star"></i>
+                  </div>
+                  <span className="text-white font-bold text-sm">4.9/5</span>
+                  <span className="text-white/60 text-xs">(87 avis Google)</span>
+                </div>
+                <div className="flex items-center gap-2 text-white/70 text-sm">
+                  <i className="fas fa-clock text-[var(--color-red-light)]"></i>
+                  <span>Lun-Ven 8h-17h &bull; Sam 9h-13h</span>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4">
+                <a
+                  href="tel:15148258411"
+                  className="inline-flex items-center justify-center gap-2 bg-[var(--color-red)] text-white px-8 py-4 rounded-full font-bold hover:bg-[var(--color-red-dark)] transition-all shadow-lg"
+                >
+                  <i className="fas fa-phone"></i> 514-825-8411
+                </a>
+                <a
+                  href="#quote-form"
+                  className="inline-flex items-center justify-center gap-2 bg-transparent text-white border-2 border-white/30 px-8 py-4 rounded-full font-bold hover:border-white hover:bg-white/10 transition-all"
+                >
+                  Soumission gratuite
+                </a>
+              </div>
+            </div>
+
+            {/* Right: QuoteForm inline */}
+            <div id="quote-form" className="bg-white/[0.06] backdrop-blur-md rounded-2xl p-6 border border-white/[0.08] shadow-xl">
+              <div className="mb-4">
+                <h2 className="text-white font-bold text-lg mb-1">Soumission gratuite a {city.name}</h2>
+                <p className="text-white/50 text-xs">Reponse sous 24 heures, sans engagement</p>
+              </div>
+              <QuoteForm compact />
+              <div className="text-center mt-4 pt-4 border-t border-white/10">
+                <span className="text-white/50 text-xs">ou appelez directement </span>
+                <a href="tel:15148258411" className="text-white font-semibold text-sm hover:text-[var(--color-red-light)]">
+                  <i className="fas fa-phone text-xs"></i> 514-825-8411
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -321,47 +430,48 @@ export default async function ReparationVillePage({ params }) {
         </div>
       </section>
 
-      {/* CTA + QuoteForm */}
-      <section className="bg-[var(--color-teal-dark)] py-20">
+      {/* CTA final */}
+      <section className="bg-[var(--color-teal-dark)] py-16">
         <div className="max-w-[1200px] mx-auto px-6">
-          <div className="grid lg:grid-cols-2 gap-12 items-start">
-            <div>
-              <span className="section-tag">Soumission gratuite</span>
-              <h2 className="text-3xl font-extrabold text-white mb-6">
-                Besoin d&apos;une reparation de portes ou fenetres a {city.name}?
-              </h2>
-              <p className="text-white/70 leading-relaxed mb-6">
-                Remplissez le formulaire et recevez une soumission gratuite sous 24 heures. Notre technicien se deplacera a {city.name} pour evaluer vos besoins et vous proposer la solution la plus economique.
-              </p>
-              <div className="space-y-4 text-white/80 text-sm">
-                <div className="flex items-center gap-3">
-                  <i className="fas fa-check-circle text-[var(--color-red)]"></i>
-                  Soumission 100% gratuite et sans engagement
-                </div>
-                <div className="flex items-center gap-3">
-                  <i className="fas fa-check-circle text-[var(--color-red)]"></i>
-                  Service rapide — evaluation dans les 48 heures
-                </div>
-                <div className="flex items-center gap-3">
-                  <i className="fas fa-check-circle text-[var(--color-red)]"></i>
-                  Tous les travaux sont garantis
-                </div>
-                <div className="flex items-center gap-3">
-                  <i className="fas fa-check-circle text-[var(--color-red)]"></i>
-                  Plus de 700 pieces en inventaire
-                </div>
-              </div>
-              <div className="mt-8">
-                <a
-                  href="tel:15148258411"
-                  className="inline-flex items-center gap-2 bg-[var(--color-red)] text-white px-8 py-4 rounded-full font-bold hover:bg-[var(--color-red-dark)] transition-all shadow-lg"
-                >
-                  <i className="fas fa-phone"></i> 514-825-8411
-                </a>
-              </div>
+          <div className="text-center max-w-3xl mx-auto">
+            <span className="section-tag">Soumission gratuite</span>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-6">
+              Besoin d&apos;une reparation de portes ou fenetres a {city.name}?
+            </h2>
+            <p className="text-white/70 leading-relaxed mb-8">
+              Soumission gratuite sous 24 heures. Notre technicien se deplacera a {city.name} pour evaluer vos besoins et vous proposer la solution la plus economique.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4 text-white/80 text-sm mb-8">
+              <span className="flex items-center gap-2">
+                <i className="fas fa-check-circle text-[var(--color-red-light)]"></i>
+                100% gratuite
+              </span>
+              <span className="flex items-center gap-2">
+                <i className="fas fa-check-circle text-[var(--color-red-light)]"></i>
+                Evaluation en 24-48h
+              </span>
+              <span className="flex items-center gap-2">
+                <i className="fas fa-check-circle text-[var(--color-red-light)]"></i>
+                Travaux garantis
+              </span>
+              <span className="flex items-center gap-2">
+                <i className="fas fa-check-circle text-[var(--color-red-light)]"></i>
+                740+ pieces en stock
+              </span>
             </div>
-            <div className="bg-white rounded-2xl p-6 shadow-lg">
-              <QuoteForm />
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <a
+                href="#quote-form"
+                className="inline-flex items-center justify-center gap-2 bg-[var(--color-red)] text-white px-8 py-4 rounded-full font-bold hover:bg-[var(--color-red-dark)] transition-all shadow-lg"
+              >
+                Demander une soumission
+              </a>
+              <a
+                href="tel:15148258411"
+                className="inline-flex items-center justify-center gap-2 bg-transparent text-white border-2 border-white/30 px-8 py-4 rounded-full font-bold hover:border-white hover:bg-white/10 transition-all"
+              >
+                <i className="fas fa-phone"></i> 514-825-8411
+              </a>
             </div>
           </div>
         </div>

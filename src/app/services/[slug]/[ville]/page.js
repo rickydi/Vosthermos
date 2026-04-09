@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { SERVICES, getService } from "@/lib/services-data";
 import { CITIES, getCity } from "@/lib/cities";
+import { getServiceSeo } from "@/lib/seo-templates";
 
 export function generateStaticParams() {
   const params = [];
@@ -19,8 +20,7 @@ export async function generateMetadata({ params }) {
   const city = getCity(ville);
   if (!service || !city) return {};
 
-  const title = `${service.shortTitle} a ${city.name} | Vosthermos`;
-  const description = `${service.shortTitle} a ${city.name}, ${city.region}. Service professionnel avec garantie. Soumission gratuite. 514-825-8411. Vosthermos dessert ${city.name} et les environs.`;
+  const { title, description } = getServiceSeo(slug, city, service.shortTitle);
 
   return {
     title,
@@ -275,7 +275,7 @@ export default async function ServiceCityPage({ params }) {
                   </Link>
                 ))}
                 <Link
-                  href={`/secteurs/${city.slug}`}
+                  href={`/reparation-portes-et-fenetres/${city.slug}`}
                   className="block text-center text-[var(--color-teal)] text-sm font-medium mt-3 hover:underline"
                 >
                   Tous nos services a {city.name} &rarr;
