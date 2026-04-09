@@ -116,28 +116,67 @@ export default async function ServiceCityPage({ params }) {
             <span>/</span>
             <span className="text-white/70">{city.name}</span>
           </div>
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-4">
-            {service.shortTitle} a {city.name}
-          </h1>
-          <p className="text-white/60 text-lg max-w-3xl mb-8">
-            Service professionnel de {service.shortTitle.toLowerCase()} a {city.name} et dans la region de {city.region}.
-            Nos experts se deplacent a {city.name} ({city.distance} de notre atelier) pour des travaux rapides et garantis.
-          </p>
-          <div className="flex flex-wrap gap-4">
-            <a
-              href="tel:15148258411"
-              className="inline-flex items-center gap-2 bg-[var(--color-red)] text-white font-bold px-6 py-3 rounded-xl hover:bg-[var(--color-red-light)] transition-colors"
-            >
-              <i className="fas fa-phone"></i>
-              514-825-8411
-            </a>
-            <Link
-              href="/rendez-vous"
-              className="inline-flex items-center gap-2 bg-white/10 text-white font-bold px-6 py-3 rounded-xl hover:bg-white/20 transition-colors"
-            >
-              <i className="fas fa-file-alt"></i>
-              Soumission gratuite
-            </Link>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+            {/* Left: content */}
+            <div className="flex flex-col justify-center">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-4">
+                {service.shortTitle} a {city.name}
+              </h1>
+              <p className="text-white/60 text-lg mb-6">
+                Service professionnel de {service.shortTitle.toLowerCase()} a {city.name} et dans la region de {city.region}.
+                Nos experts se deplacent a {city.name} ({city.distance} de notre atelier) pour des travaux rapides et garantis.
+              </p>
+              {/* Trust badges: Google rating + hours */}
+              <div className="flex flex-wrap items-center gap-5 mb-6">
+                <div className="flex items-center gap-2">
+                  <div className="flex text-yellow-400 text-sm">
+                    <i className="fas fa-star"></i>
+                    <i className="fas fa-star"></i>
+                    <i className="fas fa-star"></i>
+                    <i className="fas fa-star"></i>
+                    <i className="fas fa-star"></i>
+                  </div>
+                  <span className="text-white font-bold text-sm">4.9/5</span>
+                  <span className="text-white/60 text-xs">(87 avis Google)</span>
+                </div>
+                <div className="flex items-center gap-2 text-white/70 text-sm">
+                  <i className="fas fa-clock text-[var(--color-red-light)]"></i>
+                  <span>Lun-Ven 8h-17h &bull; Sam 9h-13h</span>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-4">
+                <a
+                  href="tel:15148258411"
+                  className="inline-flex items-center gap-2 bg-[var(--color-red)] text-white font-bold px-6 py-3 rounded-xl hover:bg-[var(--color-red-light)] transition-colors"
+                >
+                  <i className="fas fa-phone"></i>
+                  514-825-8411
+                </a>
+                <Link
+                  href="/rendez-vous"
+                  className="inline-flex items-center gap-2 bg-white/10 text-white font-bold px-6 py-3 rounded-xl hover:bg-white/20 transition-colors"
+                >
+                  <i className="fas fa-file-alt"></i>
+                  Soumission gratuite
+                </Link>
+              </div>
+            </div>
+
+            {/* Right: QuoteForm inline */}
+            <div className="bg-white/[0.06] backdrop-blur-md rounded-2xl p-8 border border-white/[0.08] flex flex-col justify-center">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </span>
+                <span className="text-green-400 text-[10px] font-semibold uppercase tracking-wider">Service disponible</span>
+              </div>
+              <h2 className="text-white font-bold text-xl mb-1">Soumission gratuite</h2>
+              <p className="text-white/50 text-sm mb-5">
+                {service.shortTitle} a {city.name} — reponse rapide.
+              </p>
+              <QuoteForm compact />
+            </div>
           </div>
         </div>
       </div>
@@ -235,26 +274,26 @@ export default async function ServiceCityPage({ params }) {
 
           {/* Sidebar */}
           <aside className="space-y-8">
-            {/* Quote form card (sticky) */}
-            <div className="bg-[var(--color-teal-dark)] rounded-2xl p-6 sticky top-[100px] shadow-xl border border-white/10">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                </span>
-                <span className="text-green-400 text-[10px] font-semibold uppercase tracking-wider">Service disponible</span>
-              </div>
-              <h3 className="font-bold text-white text-lg mb-1">Soumission gratuite</h3>
-              <p className="text-white/50 text-xs mb-4">
-                {service.shortTitle} a {city.name} — reponse rapide.
+            {/* CTA card (sticky) */}
+            <div className="bg-gray-50 rounded-2xl p-6 sticky top-[100px]">
+              <h3 className="font-bold text-gray-900 mb-2">Besoin d&apos;aide immediate?</h3>
+              <p className="text-gray-500 text-sm mb-4">
+                Appelez-nous pour {service.shortTitle.toLowerCase()} a {city.name}.
               </p>
-              <QuoteForm compact />
-              <div className="text-center mt-4 pt-4 border-t border-white/10">
-                <span className="text-white/50 text-xs">ou appelez </span>
-                <a href="tel:15148258411" className="text-white font-semibold text-sm hover:text-[var(--color-red-light)]">
-                  <i className="fas fa-phone text-xs"></i> 514-825-8411
-                </a>
-              </div>
+              <a
+                href="tel:15148258411"
+                className="flex items-center justify-center gap-2 bg-[var(--color-red)] text-white font-bold px-6 py-3 rounded-xl hover:bg-[var(--color-red-light)] transition-colors w-full mb-3"
+              >
+                <i className="fas fa-phone"></i>
+                514-825-8411
+              </a>
+              <Link
+                href="/rendez-vous"
+                className="flex items-center justify-center gap-2 bg-[var(--color-teal)] text-white font-bold px-6 py-3 rounded-xl hover:bg-[var(--color-teal-dark)] transition-colors w-full"
+              >
+                <i className="fas fa-calendar-alt"></i>
+                Prendre rendez-vous
+              </Link>
             </div>
 
             {/* Other services in this city */}
