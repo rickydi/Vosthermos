@@ -81,9 +81,12 @@ async function checkRankingSerper(cityName, keywordBase) {
       }
 
       // Look for vosthermos in this page
+      // Serper's `position` is page-relative (1-10 per page), so compute absolute
       for (const o of data.organic || []) {
         if ((o.link || "").includes("vosthermos")) {
-          return { position: o.position || null, aiMention, url: o.link };
+          const pagePos = o.position || 0;
+          const absolutePos = (page - 1) * 10 + pagePos;
+          return { position: absolutePos, aiMention, url: o.link };
         }
       }
 
