@@ -93,12 +93,25 @@ export async function GET(request) {
         bestPage: null,
       };
     }
+    // Catch-all for queries not matching any city
+    cityResults["_general"] = {
+      slug: "_general",
+      name: "General (sans ville)",
+      queries: [],
+      bestPosition: null,
+      totalClicks: 0,
+      totalImpressions: 0,
+      avgPosition: null,
+      bestQuery: null,
+      bestPage: null,
+    };
 
     for (const row of rows) {
       const query = row.keys[0].toLowerCase();
       const page = row.keys[1];
 
       // Match to a city
+      let matched = false;
       for (const city of CITIES) {
         const cityNameLower = city.name.toLowerCase();
         if (query.includes(cityNameLower) || page.includes(`/${city.slug}`)) {
@@ -120,7 +133,28 @@ export async function GET(request) {
             c.bestQuery = row.keys[0];
             c.bestPage = page;
           }
+          matched = true;
           break;
+        }
+      }
+
+      // Unmatched rows go to general
+      if (!matched) {
+        const g = cityResults["_general"];
+        g.totalClicks += row.clicks;
+        g.totalImpressions += row.impressions;
+        g.queries.push({
+          query: row.keys[0],
+          page,
+          clicks: row.clicks,
+          impressions: row.impressions,
+          position: Math.round(row.position * 10) / 10,
+          ctr: Math.round(row.ctr * 1000) / 10,
+        });
+        if (g.bestPosition === null || row.position < g.bestPosition) {
+          g.bestPosition = Math.round(row.position * 10) / 10;
+          g.bestQuery = row.keys[0];
+          g.bestPage = page;
         }
       }
     }

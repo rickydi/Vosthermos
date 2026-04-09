@@ -85,51 +85,121 @@ function PositionChart({ history }) {
 
 // ─── GSC Tab ──────────────────────────────────────────────────────
 function GscTab() {
-  const [gscData, setGscData] = useState(null);
-  const [gscLoading, setGscLoading] = useState(true);
-  const [gscDays, setGscDays] = useState(28);
-  const [gscKeyword, setGscKeyword] = useState("");
-  const [expandedCity, setExpandedCity] = useState(null);
+  const PERIODS = [
+    { days: 1, label: "1j" },
+    { days: 7, label: "7j" },
+    { days: 28, label: "28j" },
+    { days: 90, label: "90j" },
+    { days: 180, label: "6m" },
+    { days: 365, label: "1an" },
+  ];
+  const PRIMARY = 2; // 28j for clicks/impressions/queries
 
-  async function fetchGsc(days, keyword) {
-    setGscLoading(true);
+  const [allData, setAllData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [keyword, setKeyword] = useState("");
+  const [expandedCities, setExpandedCities] = useState(new Set());
+
+  async function fetchAllPeriods(kw) {
+    setLoading(true);
     try {
-      const params = new URLSearchParams({ days: String(days) });
-      if (keyword) params.set("keyword", keyword);
-      const res = await fetch(`/api/admin/seo/gsc?${params}`);
-      const d = await res.json();
-      if (d.error) console.error("GSC error:", d.error);
-      else setGscData(d);
+      const params = kw ? `&keyword=${encodeURIComponent(kw)}` : "";
+      const results = await Promise.all(
+        PERIODS.map(p =>
+          fetch(`/api/admin/seo/gsc?days=${p.days}${params}`)
+            .then(r => r.json())
+            .then(d => d.error ? null : d)
+            .catch(() => null)
+        )
+      );
+      setAllData(results);
     } catch (err) {
       console.error("GSC fetch error:", err);
     }
-    setGscLoading(false);
+    setLoading(false);
   }
 
-  useEffect(() => { fetchGsc(gscDays, gscKeyword); }, [gscDays, gscKeyword]);
+  useEffect(() => { fetchAllPeriods(keyword); }, [keyword]);
 
-  if (gscLoading) return <p className="admin-text-muted text-center py-12"><i className="fas fa-spinner fa-spin mr-2"></i>Chargement Google Search Console...</p>;
-  if (!gscData) return <p className="admin-text-muted text-center py-12">Erreur de connexion a Google Search Console</p>;
+  function toggleCity(slug) {
+    setExpandedCities(prev => {
+      const next = new Set(prev);
+      if (next.has(slug)) next.delete(slug);
+      else next.add(slug);
+      return next;
+    });
+  }
 
-  const { summary, cities } = gscData;
+  if (loading) {
+    return <p className="admin-text-muted text-center py-12"><i className="fas fa-spinner fa-spin mr-2"></i>Chargement Google Search Console...</p>;
+  }
+
+  const primaryData = allData?.[PRIMARY] || allData?.find(d => d) || null;
+  if (!primaryData) {
+    return <p className="admin-text-muted text-center py-12">Erreur de connexion a Google Search Console</p>;
+  }
+
+  // Merge cities across all periods
+  const cityMap = {};
+  PERIODS.forEach((p, i) => {
+    const data = allData?.[i];
+    if (!data) return;
+    for (const city of data.cities) {
+      if (!cityMap[city.slug]) {
+        cityMap[city.slug] = {
+          slug: city.slug,
+          name: city.name,
+          positions: {},
+          totalClicks: 0,
+          totalImpressions: 0,
+          queries: [],
+          bestQuery: null,
+        };
+      }
+      cityMap[city.slug].positions[p.label] = city.bestPosition;
+      if (i === PRIMARY) {
+        cityMap[city.slug].totalClicks = city.totalClicks;
+        cityMap[city.slug].totalImpressions = city.totalImpressions;
+        cityMap[city.slug].queries = city.queries || [];
+        cityMap[city.slug].bestQuery = city.bestQuery;
+      }
+    }
+  });
+
+  const mergedCities = Object.values(cityMap).sort((a, b) => {
+    const posA = a.positions["28j"] ?? 999;
+    const posB = b.positions["28j"] ?? 999;
+    return posA - posB;
+  });
+
+  const allExpanded = mergedCities.length > 0 && expandedCities.size >= mergedCities.length;
+
+  function toggleAll() {
+    if (allExpanded) {
+      setExpandedCities(new Set());
+    } else {
+      setExpandedCities(new Set(mergedCities.map(c => c.slug)));
+    }
+  }
+
+  const { summary } = primaryData;
 
   return (
     <div>
-      {/* Period + keyword filter */}
+      {/* Keyword filter + expand all */}
       <div className="flex flex-wrap items-center gap-3 mb-6">
-        {[7, 14, 28, 90].map((d) => (
-          <button key={d} onClick={() => setGscDays(d)}
-            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${gscDays === d ? "bg-[var(--color-red)] text-white" : "admin-card admin-text-muted border"}`}>
-            {d}j
-          </button>
-        ))}
-        <input type="text" value={gscKeyword} onChange={(e) => setGscKeyword(e.target.value)} placeholder="Filtrer par mot cle..."
+        <input type="text" value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="Filtrer par mot cle..."
           className="admin-input border rounded-lg px-4 py-2 text-sm flex-1 min-w-[200px]" />
+        <button onClick={toggleAll}
+          className="px-4 py-2.5 rounded-xl text-sm font-bold admin-card admin-text-muted border hover:admin-text transition-all">
+          <i className={`fas fa-${allExpanded ? "compress-alt" : "expand-alt"} mr-2`}></i>
+          {allExpanded ? "Fermer tout" : "Ouvrir tout"}
+        </button>
       </div>
 
-      <p className="admin-text-muted text-xs mb-4">Periode: {gscData.period.startDate} → {gscData.period.endDate} — Donnees reelles Google</p>
+      <p className="admin-text-muted text-xs mb-4">Donnees reelles Google — Clics et impressions sur 28 jours</p>
 
-      {/* Summary */}
+      {/* Summary from 28j */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3 mb-6">
         <div className="admin-card border rounded-2xl p-4">
           <p className="admin-text-muted text-[10px] font-bold uppercase tracking-wider mb-1">#1</p>
@@ -162,58 +232,66 @@ function GscTab() {
       </div>
 
       {/* Cities table */}
-      <div className="admin-card border rounded-2xl overflow-hidden">
-        <div className="grid grid-cols-12 gap-2 px-5 py-4 border-b" style={{ borderColor: "var(--admin-border)" }}>
-          <div className="col-span-3 admin-text-muted text-xs font-bold uppercase tracking-wider">Ville</div>
-          <div className="col-span-1 text-center admin-text-muted text-xs font-bold uppercase tracking-wider">Pos.</div>
-          <div className="col-span-1 text-center admin-text-muted text-xs font-bold uppercase tracking-wider">Clics</div>
-          <div className="col-span-2 text-center admin-text-muted text-xs font-bold uppercase tracking-wider">Impr.</div>
-          <div className="col-span-5 admin-text-muted text-xs font-bold uppercase tracking-wider hidden lg:block">Meilleur mot cle</div>
-        </div>
+      <div className="admin-card border rounded-2xl overflow-x-auto">
+        <div style={{ minWidth: "920px" }}>
+          {/* Header */}
+          <div className="flex items-center px-4 py-3 border-b gap-1" style={{ borderColor: "var(--admin-border)" }}>
+            <div className="w-[150px] shrink-0 admin-text-muted text-[10px] font-bold uppercase tracking-wider">Ville</div>
+            {PERIODS.map(p => (
+              <div key={p.label} className="flex-1 text-center admin-text-muted text-[10px] font-bold uppercase tracking-wider">{p.label}</div>
+            ))}
+            <div className="w-[50px] text-center admin-text-muted text-[10px] font-bold uppercase tracking-wider">Clics</div>
+            <div className="w-[50px] text-center admin-text-muted text-[10px] font-bold uppercase tracking-wider">Impr.</div>
+            <div className="w-[180px] shrink-0 admin-text-muted text-[10px] font-bold uppercase tracking-wider">Mot cle</div>
+          </div>
 
-        {cities.map((city) => {
-          const isExpanded = expandedCity === city.slug;
-          return (
-            <div key={city.slug} className="border-b last:border-0" style={{ borderColor: "var(--admin-border)" }}>
-              <div className="grid grid-cols-12 gap-2 px-5 py-3 items-center cursor-pointer hover:bg-white/5 transition-colors" onClick={() => setExpandedCity(isExpanded ? null : city.slug)}>
-                <div className="col-span-3 admin-text text-sm font-medium flex items-center gap-2">
-                  <i className={`fas fa-chevron-right text-[10px] admin-text-muted transition-transform duration-300 ${isExpanded ? "rotate-90" : ""}`}></i>
-                  {city.name}
-                </div>
-                <div className="col-span-1 text-center">
-                  <span className={`inline-block px-2.5 py-0.5 rounded-full text-sm font-extrabold ${positionColor(city.bestPosition ? Math.round(city.bestPosition) : null)}`}>
-                    {city.bestPosition ? `#${city.bestPosition}` : "—"}
-                  </span>
-                </div>
-                <div className="col-span-1 text-center admin-text text-sm font-bold">{city.totalClicks || "—"}</div>
-                <div className="col-span-2 text-center admin-text-muted text-sm">{city.totalImpressions || "—"}</div>
-                <div className="col-span-5 admin-text-muted text-xs truncate hidden lg:block">{city.bestQuery || "—"}</div>
-              </div>
-
-              {/* Expanded: show all queries for this city */}
-              <div className="overflow-hidden transition-all duration-[1500ms] ease-in-out" style={{ maxHeight: isExpanded ? "600px" : "0px", opacity: isExpanded ? 1 : 0 }}>
-                <div className="px-5 pb-4 pt-2 border-t" style={{ borderColor: "var(--admin-border)" }}>
-                  <p className="admin-text text-sm font-bold mb-3">Requetes — {city.name}</p>
-                  {city.queries.length === 0 ? (
-                    <p className="admin-text-muted text-xs">Aucune donnee pour cette ville</p>
-                  ) : (
-                    <div className="space-y-1.5 max-h-[400px] overflow-y-auto">
-                      {city.queries.sort((a, b) => a.position - b.position).map((q, i) => (
-                        <div key={i} className="flex items-center gap-3 text-xs bg-white/5 rounded-lg px-3 py-2">
-                          <span className={`px-2 py-0.5 rounded-full font-bold ${positionColor(Math.round(q.position))}`}>#{q.position}</span>
-                          <span className="admin-text flex-1 truncate">{q.query}</span>
-                          <span className="text-purple-400 font-bold">{q.clicks}c</span>
-                          <span className="admin-text-muted">{q.impressions}i</span>
-                          <span className="admin-text-muted">{q.ctr}%</span>
-                        </div>
-                      ))}
+          {/* Rows */}
+          {mergedCities.map((city) => {
+            const isExpanded = expandedCities.has(city.slug);
+            return (
+              <div key={city.slug} className="border-b last:border-0" style={{ borderColor: "var(--admin-border)" }}>
+                <div className="flex items-center px-4 py-2.5 gap-1 cursor-pointer hover:bg-white/5 transition-colors" onClick={() => toggleCity(city.slug)}>
+                  <div className="w-[150px] shrink-0 admin-text text-sm font-medium flex items-center gap-1.5">
+                    <i className={`fas fa-chevron-right text-[9px] admin-text-muted transition-transform duration-300 ${isExpanded ? "rotate-90" : ""}`}></i>
+                    <span className="truncate">{city.name}</span>
+                  </div>
+                  {PERIODS.map(p => (
+                    <div key={p.label} className="flex-1 text-center">
+                      <span className={`inline-block px-1.5 py-0.5 rounded-full text-xs font-extrabold ${positionColor(city.positions[p.label] != null ? Math.round(city.positions[p.label]) : null)}`}>
+                        {city.positions[p.label] != null ? `#${city.positions[p.label]}` : "—"}
+                      </span>
                     </div>
-                  )}
+                  ))}
+                  <div className="w-[50px] text-center admin-text text-xs font-bold">{city.totalClicks}</div>
+                  <div className="w-[50px] text-center admin-text-muted text-xs">{city.totalImpressions}</div>
+                  <div className="w-[180px] shrink-0 admin-text-muted text-[10px] truncate">{city.bestQuery || "—"}</div>
+                </div>
+
+                {/* Expanded: queries */}
+                <div className="overflow-hidden transition-all duration-[1500ms] ease-in-out" style={{ maxHeight: isExpanded ? "600px" : "0px", opacity: isExpanded ? 1 : 0 }}>
+                  <div className="px-5 pb-4 pt-2 border-t" style={{ borderColor: "var(--admin-border)" }}>
+                    <p className="admin-text text-sm font-bold mb-3">Requetes — {city.name}</p>
+                    {city.queries.length === 0 ? (
+                      <p className="admin-text-muted text-xs">Aucune donnee pour cette ville</p>
+                    ) : (
+                      <div className="space-y-1.5 max-h-[400px] overflow-y-auto">
+                        {city.queries.sort((a, b) => a.position - b.position).map((q, i) => (
+                          <div key={i} className="flex items-center gap-3 text-xs bg-white/5 rounded-lg px-3 py-2">
+                            <span className={`px-2 py-0.5 rounded-full font-bold ${positionColor(Math.round(q.position))}`}>#{q.position}</span>
+                            <span className="admin-text flex-1 truncate">{q.query}</span>
+                            <span className="text-purple-400 font-bold">{q.clicks}c</span>
+                            <span className="admin-text-muted">{q.impressions}i</span>
+                            <span className="admin-text-muted">{q.ctr}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );
