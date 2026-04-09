@@ -63,23 +63,43 @@ async function checkRankingSerper(cityName, keywordBase) {
     const res = await fetch("https://google.serper.dev/search", {
       method: "POST",
       headers: { "X-API-KEY": apiKey, "Content-Type": "application/json" },
-      body: JSON.stringify({ q: query, gl: "ca", hl: "fr", num: 20 }),
+      body: JSON.stringify({ q: query, gl: "ca", hl: "fr", num: 100 }),
     });
 
     if (!res.ok) {
-      console.error(`Serper HTTP ${res.status} for "${query}"`);
-      return { position: null, aiMention: false, url: null };
+      const body = await res.text().catch(() => "");
+      console.error(`Serper HTTP ${res.status} for "${query}": ${body.slice(0, 200)}`);
+      return { position: null, aiMention: false, url: null, error: `HTTP ${res.status}` };
     }
 
     const data = await res.json();
     let position = null;
     let foundUrl = null;
 
+    // Check organic results
     for (const o of data.organic || []) {
       if ((o.link || "").includes("vosthermos")) {
         position = o.position || null;
         foundUrl = o.link;
         break;
+      }
+    }
+
+    // If not in organic, check localResults and placesResults (local pack)
+    if (position === null) {
+      for (const key of ["localResults", "placesResults", "places"]) {
+        const arr = data[key]?.places || data[key] || [];
+        if (Array.isArray(arr)) {
+          for (let i = 0; i < arr.length; i++) {
+            const item = arr[i];
+            if ((item.website || item.link || "").includes("vosthermos")) {
+              position = position || (100 + i + 1); // local pack positioned after organic
+              foundUrl = item.website || item.link;
+              break;
+            }
+          }
+        }
+        if (position !== null) break;
       }
     }
 
@@ -91,10 +111,15 @@ async function checkRankingSerper(cityName, keywordBase) {
       }
     }
 
-    return { position, aiMention, url: foundUrl };
+    return {
+      position,
+      aiMention,
+      url: foundUrl,
+      organicCount: (data.organic || []).length,
+    };
   } catch (err) {
     console.error(`Error checking ${cityName}:`, err.message);
-    return { position: null, aiMention: false, url: null };
+    return { position: null, aiMention: false, url: null, error: err.message };
   }
 }
 
