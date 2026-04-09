@@ -9,9 +9,9 @@ import { CartProvider } from "@/components/CartContext";
 import Script from "next/script";
 
 export const metadata = {
-  title: "Vosthermos | Reparation de portes et fenetres | Montreal, Rive-Sud",
+  title: "Remplacement Thermos & Fenêtres dès 150$ • Vosthermos Montréal",
   description:
-    "Experts en reparation de portes et fenetres depuis 15 ans. Remplacement de vitres thermos avec service garanti, quincaillerie, portes en bois, moustiquaires. Service rapide Montreal, Rive-Sud et rayon 100km. Soumission gratuite 514-825-8411. Boutique en ligne de pieces.",
+    "Thermos embué? Porte qui bloque? Vosthermos remplace vos vitres thermos dès 150$ avec garantie 10 ans. ✓ 15 ans d'expérience ✓ Soumission gratuite 24h ✓ Rive-Sud, Montréal, Laval ☎ 514-825-8411",
   keywords:
     "reparation portes fenetres, vitre thermos, remplacement thermos, remplacement quincaillerie, moustiquaire sur mesure, porte-patio, porte en bois, calfeutrage fenetres, desembuage, coupe-froid, insertion porte, boutique pieces portes fenetres, quincaillerie porte fenetre en ligne, Saint-Francois-Xavier, Montreal, Rive-Sud, Laval, Longueuil, Brossard, Granby, Saint-Hyacinthe, Terrebonne, Repentigny",
   authors: [{ name: "Vosthermos" }],
@@ -28,17 +28,17 @@ export const metadata = {
     type: "website",
     siteName: "Vosthermos",
     url: "https://www.vosthermos.com/",
-    title: "Vosthermos | Reparation de portes et fenetres | Montreal, Rive-Sud",
+    title: "Remplacement Thermos & Fenêtres dès 150$ • Vosthermos",
     description:
-      "Experts en reparation de portes et fenetres depuis 15 ans. Boutique en ligne de pieces. Soumission gratuite.",
+      "Thermos embué? Vosthermos remplace vos vitres thermos dès 150$. Garantie 10 ans, soumission gratuite 24h. 15 ans d'expérience. Montréal, Rive-Sud, Laval ☎ 514-825-8411",
     images: [{ url: "https://www.vosthermos.com/images/Vos-Thermos-Logo.png" }],
     locale: "fr_CA",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Vosthermos | Reparation de portes et fenetres",
+    title: "Remplacement Thermos dès 150$ • Garantie 10 ans • Vosthermos",
     description:
-      "Experts en reparation de portes et fenetres depuis 15 ans. Soumission gratuite 514-825-8411.",
+      "Vosthermos - Experts en remplacement de thermos depuis 15 ans. Soumission gratuite 24h ☎ 514-825-8411",
     images: ["https://www.vosthermos.com/images/Vos-Thermos-Logo.png"],
   },
   icons: {

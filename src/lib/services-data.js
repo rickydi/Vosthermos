@@ -6,9 +6,9 @@ export const SERVICES = [
     icon: "fas fa-cogs",
     heroDescription:
       "Service professionnel de remplacement de quincaillerie pour portes-patio, fenetres et portes moustiquaires. Poignees, serrures, roulettes, manivelles, charnieres et plus. Pieces adaptees a tous les modeles avec installation rapide et garantie.",
-    metaTitle: "Remplacement de quincaillerie pour portes et fenetres | Vosthermos",
+    metaTitle: "Quincaillerie Portes & Fenêtres dès 4,99$ • Vosthermos",
     metaDescription:
-      "Remplacement professionnel de quincaillerie de portes et fenetres: poignees, serrures, roulettes, manivelles. Pieces a partir de 4.99$. Service rapide Montreal et Rive-Sud. 514-825-8411.",
+      "Poignée brisée, roulette usée? Vosthermos a 700+ pièces de quincaillerie en stock pour portes-patio et fenêtres. Installation pro, service rapide ☎ 514-825-8411",
     sections: [
       {
         heading: "Des pieces de qualite pour tous les modeles",
@@ -87,9 +87,9 @@ export const SERVICES = [
     icon: "fas fa-snowflake",
     heroDescription:
       "Vos vitres sont embuees, fissurees ou ont perdu leur efficacite thermique? Notre service de remplacement de vitres thermos (unites scellees) redonne a vos fenetres leur performance d'origine. service garanti sur tous nos remplacements.",
-    metaTitle: "Remplacement de vitre thermos | service garanti | Vosthermos",
+    metaTitle: "Remplacement Vitre Thermos dès 150$ • Garantie 10 ans",
     metaDescription:
-      "Remplacement professionnel de vitres thermos embuees ou fissurees. service garanti, verre Low-E et argon. A partir de 150$/unite installee. Montreal et Rive-Sud. 514-825-8411.",
+      "Thermos embué? Vosthermos remplace vos vitres thermos dès 150$. ✓ Garantie 10 ans ✓ Soumission gratuite 24h ✓ 15 ans d'expérience. Montréal, Rive-Sud ☎ 514-825-8411",
     sections: [
       {
         heading: "Qu'est-ce qu'une vitre thermos?",
@@ -173,9 +173,9 @@ export const SERVICES = [
     icon: "fas fa-door-open",
     heroDescription:
       "Service complet de reparation et restauration de portes et fenetres en bois. Sablage, remplissage, peinture, coupe-froid et remplacement de quincaillerie. Redonnez vie a vos portes en bois avec notre equipe d'experts.",
-    metaTitle: "Reparation de portes en bois | Restauration professionnelle | Vosthermos",
+    metaTitle: "Réparation Portes en Bois • Économisez 50% vs Neuve | Vosthermos",
     metaDescription:
-      "Reparation et restauration de portes en bois: sablage, peinture, coupe-froid, cadres. Consultation gratuite. Service professionnel Montreal et Rive-Sud. 514-825-8411.",
+      "Porte en bois gonflée, déformée, abîmée? Vosthermos répare au lieu de remplacer. Économisez 50%+ vs neuve. 15 ans d'expérience, service à domicile ☎ 514-825-8411",
     sections: [
       {
         heading: "Restauration professionnelle de portes en bois",
@@ -253,9 +253,9 @@ export const SERVICES = [
     icon: "fas fa-border-all",
     heroDescription:
       "Fabrication sur mesure et reparation de moustiquaires pour tous les types de fenetres et de portes. Moustiquaires coulissantes, retractables, a cadre fixe et pour portes-patio. Toile de qualite superieure et cadre en aluminium durable.",
-    metaTitle: "Moustiquaires sur mesure | Fabrication et reparation | Vosthermos",
+    metaTitle: "Moustiquaires sur Mesure • Fabrication 48h | Vosthermos",
     metaDescription:
-      "Moustiquaires sur mesure pour fenetres et portes-patio. Fabrication, reparation et remplacement de toile. A partir de 25$/unite. Montreal et Rive-Sud. 514-825-8411.",
+      "Moustiquaire déchirée ou brisée? Vosthermos fabrique vos moustiquaires sur mesure en 48h. Toutes dimensions, tous modèles de fenêtres et portes ☎ 514-825-8411",
     sections: [
       {
         heading: "Des moustiquaires fabriquees a vos mesures",
@@ -332,9 +332,9 @@ export const SERVICES = [
     icon: "fas fa-fill-drip",
     heroDescription:
       "Service professionnel de calfeutrage pour portes et fenetres. Empechons les infiltrations d'air et d'eau autour de vos ouvertures grace a des produits de scellement haut de gamme. Un calfeutrage de qualite est essentiel pour affronter les hivers quebecois et reduire vos couts de chauffage.",
-    metaTitle: "Calfeutrage de portes et fenetres | Service professionnel | Vosthermos",
+    metaTitle: "Calfeutrage Fenêtres & Portes • Étanchéité Garantie | Vosthermos",
     metaDescription:
-      "Calfeutrage professionnel de portes et fenetres. Scellant exterieur et interieur, prevention des infiltrations d'air et d'eau. A partir de 8$/pied lineaire. Montreal et Rive-Sud. 514-825-8411.",
+      "Courants d'air, infiltrations d'eau? Vosthermos calfeutre fenêtres et portes (intérieur/extérieur). Réduisez votre facture de chauffage. 15 ans d'expérience ☎ 514-825-8411",
     sections: [
       {
         heading: "Pourquoi le calfeutrage est essentiel au Quebec",
@@ -421,9 +421,9 @@ export const SERVICES = [
     icon: "fas fa-eye",
     heroDescription:
       "Alternative economique au remplacement complet de vos vitres thermos embuees. Notre service de desembuage nettoie l'interieur de vos unites scellees, injecte du gaz argon et rescelle le tout pour restaurer la clarte et l'efficacite de vos fenetres sans les remplacer.",
-    metaTitle: "Desembuage de vitres thermos | Alternative economique | Vosthermos",
+    metaTitle: "Désembuage Vitres Thermos dès 80$ • 50% Moins Cher | Vosthermos",
     metaDescription:
-      "Desembuage professionnel de vitres thermos embuees. Nettoyage interieur, injection d'argon et scellage. A partir de 65$/unite. Montreal et Rive-Sud. 514-825-8411.",
+      "Vitres thermos embuées? Alternative au remplacement: désembuage pro dès 80$ par vitre. Résultat durable, garanti. Économisez jusqu'à 50% ☎ 514-825-8411",
     sections: [
       {
         heading: "Comprendre les trois types de buee dans un thermos",
@@ -510,9 +510,9 @@ export const SERVICES = [
     icon: "fas fa-door-closed",
     heroDescription:
       "Changez l'apparence de votre porte d'entree sans la remplacer au complet. Notre service d'insertion et de remplacement de vitre de porte vous offre un vaste choix de modeles decoratifs pour transformer votre entree a une fraction du cout d'une nouvelle porte.",
-    metaTitle: "Insertion et remplacement de vitre de porte | Vosthermos",
+    metaTitle: "Insertion de Porte • Nouvelle Porte en 1 Jour | Vosthermos",
     metaDescription:
-      "Remplacement d'insertion decorative et vitre de porte d'entree. Novatech, Verre Select, Vitre-Art. A partir de 200$. Installation professionnelle Montreal et Rive-Sud. 514-825-8411.",
+      "Besoin d'une nouvelle porte sans refaire le cadre? Vosthermos installe l'insertion en 1 jour. Économies de 40% vs remplacement complet. Multiples modèles ☎ 514-825-8411",
     sections: [
       {
         heading: "Transformez votre porte d'entree avec une nouvelle insertion",
@@ -598,9 +598,9 @@ export const SERVICES = [
     icon: "fas fa-temperature-low",
     heroDescription:
       "Eliminez les courants d'air et reduisez vos couts de chauffage avec notre service de remplacement de coupe-froid pour portes et fenetres. Des joints neufs et compatibles avec votre modele pour un confort optimal et une etancheite retrouvee, meme par les froids les plus intenses.",
-    metaTitle: "Remplacement de coupe-froid pour portes et fenetres | Vosthermos",
+    metaTitle: "Coupe-froid Fenêtres & Portes • Fin des Courants d'air | Vosthermos",
     metaDescription:
-      "Remplacement professionnel de coupe-froid pour portes et fenetres. Balais de porte, joints de seuil, coupe-froid de fenetre. A partir de 5$/pied. Montreal et Rive-Sud. 514-825-8411.",
+      "Courants d'air, perte de chaleur? Vosthermos remplace vos coupe-froids usés pour une étanchéité parfaite. Économisez sur le chauffage. Service rapide ☎ 514-825-8411",
     sections: [
       {
         heading: "Le coupe-froid: votre allie contre les courants d'air",
