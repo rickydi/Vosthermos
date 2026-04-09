@@ -557,6 +557,7 @@ export default function AdminSeoPage() {
       bucketSet.add(bucketKey(h.checkedAt));
     }
   }
+  const MONTHS_FR = ["jan", "fev", "mars", "avril", "mai", "juin", "juil", "aout", "sept", "oct", "nov", "dec"];
   const scanRuns = Array.from(bucketSet)
     .sort((a, b) => b - a) // most recent first
     .slice(0, 8) // top 8 most recent scan runs
@@ -564,7 +565,7 @@ export default function AdminSeoPage() {
       const d = new Date(ts);
       return {
         ts,
-        label: `${d.getDate()}/${d.getMonth() + 1}`,
+        label: `${d.getDate()} ${MONTHS_FR[d.getMonth()]}`,
       };
     });
 
