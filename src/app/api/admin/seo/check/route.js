@@ -4,14 +4,55 @@ import { CITIES } from "@/lib/cities";
 
 export const dynamic = "force-dynamic";
 
-// In-memory scan state (survives across requests within same PM2 process)
-let scanState = { running: false, current: 0, total: 0, city: "", results: [], keyword: "" };
+const SCAN_STATE_KEY = "seo_scan_state";
+const HEARTBEAT_TIMEOUT_MS = 60000; // 1 minute without update = scan dead
 
+// ─── DB-backed scan state (survives PM2 restarts + cluster mode) ───
+async function readScanState() {
+  try {
+    const rows = await prisma.$queryRawUnsafe(
+      `SELECT value FROM site_settings WHERE key = $1`,
+      SCAN_STATE_KEY
+    );
+    if (!rows[0]?.value) return null;
+    return JSON.parse(rows[0].value);
+  } catch {
+    return null;
+  }
+}
+
+async function writeScanState(state) {
+  try {
+    const value = JSON.stringify({ ...state, heartbeat: Date.now() });
+    await prisma.$executeRawUnsafe(
+      `INSERT INTO site_settings (key, value) VALUES ($1, $2)
+       ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
+      SCAN_STATE_KEY, value
+    );
+  } catch (err) {
+    console.error("Failed to write scan state:", err.message);
+  }
+}
+
+async function isScanAlive() {
+  const state = await readScanState();
+  if (!state || !state.running) return false;
+  // Heartbeat check: if no update in HEARTBEAT_TIMEOUT_MS, scan is dead
+  if (Date.now() - (state.heartbeat || 0) > HEARTBEAT_TIMEOUT_MS) {
+    // Mark as dead
+    await writeScanState({ ...state, running: false });
+    return false;
+  }
+  return true;
+}
+
+// ─── Serper API call ───────────────────────────────────────────────
 async function checkRankingSerper(cityName, keywordBase) {
-  // Read API key from site_settings first, fallback to env
   let apiKey = process.env.SERPER_API_KEY;
   try {
-    const rows = await prisma.$queryRawUnsafe(`SELECT value FROM site_settings WHERE key = 'api_key_serper'`);
+    const rows = await prisma.$queryRawUnsafe(
+      `SELECT value FROM site_settings WHERE key = 'api_key_serper'`
+    );
     if (rows[0]?.value) apiKey = rows[0].value;
   } catch {}
   if (!apiKey) return { position: null, aiMention: false, url: null };
@@ -25,7 +66,10 @@ async function checkRankingSerper(cityName, keywordBase) {
       body: JSON.stringify({ q: query, gl: "ca", hl: "fr", num: 20 }),
     });
 
-    if (!res.ok) return { position: null, aiMention: false, url: null };
+    if (!res.ok) {
+      console.error(`Serper HTTP ${res.status} for "${query}"`);
+      return { position: null, aiMention: false, url: null };
+    }
 
     const data = await res.json();
     let position = null;
@@ -58,15 +102,33 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// ─── Background scan runner ────────────────────────────────────────
 async function runScan(keywordBase, citiesToCheck) {
-  scanState = { running: true, current: 0, total: citiesToCheck.length, city: "", results: [], keyword: keywordBase };
+  const results = [];
+  await writeScanState({
+    running: true,
+    current: 0,
+    total: citiesToCheck.length,
+    city: "Demarrage...",
+    keyword: keywordBase,
+    results,
+    startedAt: Date.now(),
+  });
 
   for (let i = 0; i < citiesToCheck.length; i++) {
     const city = citiesToCheck[i];
     const keyword = `${keywordBase} ${city.name}`;
 
-    scanState.current = i + 1;
-    scanState.city = city.name;
+    // Update progress BEFORE the API call so heartbeat stays fresh
+    await writeScanState({
+      running: true,
+      current: i + 1,
+      total: citiesToCheck.length,
+      city: city.name,
+      keyword: keywordBase,
+      results: results.slice(-15),
+      startedAt: Date.now(),
+    });
 
     try {
       const result = await checkRankingSerper(city.name, keywordBase);
@@ -82,7 +144,7 @@ async function runScan(keywordBase, citiesToCheck) {
         },
       });
 
-      scanState.results.push({
+      results.push({
         city: city.name,
         slug: city.slug,
         position: result.position,
@@ -90,16 +152,36 @@ async function runScan(keywordBase, citiesToCheck) {
       });
     } catch (err) {
       console.error(`Scan error for ${city.name}:`, err.message);
-      scanState.results.push({ city: city.name, slug: city.slug, position: null, aiMention: false });
+      results.push({ city: city.name, slug: city.slug, position: null, aiMention: false });
     }
+
+    // Update with new result + heartbeat
+    await writeScanState({
+      running: true,
+      current: i + 1,
+      total: citiesToCheck.length,
+      city: city.name,
+      keyword: keywordBase,
+      results: results.slice(-15),
+      startedAt: Date.now(),
+    });
 
     if (i < citiesToCheck.length - 1) await sleep(1500);
   }
 
-  scanState.running = false;
+  // Mark as finished
+  await writeScanState({
+    running: false,
+    current: citiesToCheck.length,
+    total: citiesToCheck.length,
+    city: "Termine",
+    keyword: keywordBase,
+    results: results.slice(-15),
+    finishedAt: Date.now(),
+  });
 }
 
-// POST: start a scan
+// ─── POST: start scan ──────────────────────────────────────────────
 export async function POST(request) {
   try {
     await requireAdmin();
@@ -110,10 +192,11 @@ export async function POST(request) {
     });
   }
 
-  // Check API key from site_settings first, then env
   let hasSerperKey = !!process.env.SERPER_API_KEY;
   try {
-    const rows = await prisma.$queryRawUnsafe(`SELECT value FROM site_settings WHERE key = 'api_key_serper'`);
+    const rows = await prisma.$queryRawUnsafe(
+      `SELECT value FROM site_settings WHERE key = 'api_key_serper'`
+    );
     if (rows[0]?.value) hasSerperKey = true;
   } catch {}
   if (!hasSerperKey) {
@@ -123,8 +206,10 @@ export async function POST(request) {
     });
   }
 
-  if (scanState.running) {
-    return new Response(JSON.stringify({ error: "Scan deja en cours", state: scanState }), {
+  // Check if a scan is already running (with heartbeat validation)
+  if (await isScanAlive()) {
+    const state = await readScanState();
+    return new Response(JSON.stringify({ error: "Scan deja en cours", state }), {
       status: 409,
       headers: { "Content-Type": "application/json" },
     });
@@ -143,14 +228,17 @@ export async function POST(request) {
     : CITIES;
 
   // Start scan in background (don't await)
-  runScan(keywordBase, citiesToCheck);
+  runScan(keywordBase, citiesToCheck).catch(err => {
+    console.error("runScan error:", err);
+    writeScanState({ running: false, error: err.message });
+  });
 
   return new Response(JSON.stringify({ started: true, total: citiesToCheck.length }), {
     headers: { "Content-Type": "application/json" },
   });
 }
 
-// GET: check scan progress
+// ─── GET: scan progress ────────────────────────────────────────────
 export async function GET() {
   try {
     await requireAdmin();
@@ -161,15 +249,28 @@ export async function GET() {
     });
   }
 
+  const state = await readScanState();
+  if (!state) {
+    return new Response(JSON.stringify({
+      running: false, current: 0, total: 0, city: "", results: [], done: false,
+    }), { headers: { "Content-Type": "application/json" } });
+  }
+
+  // Heartbeat check: if scan claims running but no update in 60s, mark dead
+  let running = state.running;
+  if (running && Date.now() - (state.heartbeat || 0) > HEARTBEAT_TIMEOUT_MS) {
+    running = false;
+    await writeScanState({ ...state, running: false });
+  }
+
   return new Response(JSON.stringify({
-    running: scanState.running,
-    current: scanState.current,
-    total: scanState.total,
-    city: scanState.city,
-    keyword: scanState.keyword,
-    results: scanState.results.slice(-10),
-    done: !scanState.running && scanState.total > 0,
-  }), {
-    headers: { "Content-Type": "application/json" },
-  });
+    running,
+    current: state.current || 0,
+    total: state.total || 0,
+    city: state.city || "",
+    keyword: state.keyword || "",
+    results: state.results || [],
+    done: !running && (state.total || 0) > 0,
+    heartbeatAge: state.heartbeat ? Math.round((Date.now() - state.heartbeat) / 1000) : null,
+  }), { headers: { "Content-Type": "application/json" } });
 }
