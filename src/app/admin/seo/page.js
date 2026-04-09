@@ -456,6 +456,8 @@ export default function AdminSeoPage() {
   }
 
   async function refreshCity(slug) {
+    // Save scroll position so we can restore it after the re-render
+    const savedScroll = window.scrollY;
     setRefreshingCity(slug);
     try {
       // Start a single-city scan
@@ -471,6 +473,10 @@ export default function AdminSeoPage() {
         body: JSON.stringify({ action: "tick" }),
       });
       await fetchData(activeKeyword);
+      // Restore scroll after React re-renders
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: savedScroll, behavior: "instant" });
+      });
     } catch (err) {
       console.error("Refresh city error:", err);
     }
