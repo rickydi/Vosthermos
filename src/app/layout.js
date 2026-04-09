@@ -107,35 +107,6 @@ const jsonLd = {
     "https://instagram.com/vosthermos/",
     "https://www.wikidata.org/wiki/Q_PLACEHOLDER", // Replace Q_PLACEHOLDER with actual Wikidata Q-number after creating entity
   ],
-  aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: "4.9",
-    reviewCount: "87",
-    bestRating: "5",
-  },
-  review: [
-    {
-      "@type": "Review",
-      reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5" },
-      author: { "@type": "Person", name: "Marie-Claude L." },
-      reviewBody: "Service impeccable! Remplacement de 4 thermos en une journee. L'equipe etait ponctuelle et professionnelle. Mes fenetres sont comme neuves.",
-      datePublished: "2025-11-15",
-    },
-    {
-      "@type": "Review",
-      reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5" },
-      author: { "@type": "Person", name: "Jean-Philippe D." },
-      reviewBody: "Excellent rapport qualite-prix pour le remplacement de quincaillerie de ma porte-patio. Le technicien a identifie la piece en 2 minutes. Tres satisfait.",
-      datePublished: "2025-12-03",
-    },
-    {
-      "@type": "Review",
-      reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5" },
-      author: { "@type": "Person", name: "Sylvie B." },
-      reviewBody: "La boutique en ligne est super pratique. J'ai commande des pieces de remplacement et tout etait conforme. Livraison rapide en plus!",
-      datePublished: "2026-01-22",
-    },
-  ],
   hasOfferCatalog: {
     "@type": "OfferCatalog",
     name: "Services de reparation de portes et fenetres",

@@ -91,12 +91,6 @@ const jsonLd = {
     "https://www.facebook.com/profile.php?id=61562303553558",
     "https://instagram.com/vosthermos/",
   ],
-  aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: "4.9",
-    reviewCount: "87",
-    bestRating: "5",
-  },
 };
 
 export default function EnLayout({ children }) {

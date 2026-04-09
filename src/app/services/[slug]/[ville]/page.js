@@ -126,23 +126,10 @@ export default async function ServiceCityPage({ params }) {
                 Service professionnel de {service.shortTitle.toLowerCase()} a {city.name} et dans la region de {city.region}.
                 Nos experts se deplacent a {city.name} ({city.distance} de notre atelier) pour des travaux rapides et garantis.
               </p>
-              {/* Trust badges: Google rating + hours */}
-              <div className="flex flex-wrap items-center gap-5 mb-6">
-                <div className="flex items-center gap-2">
-                  <div className="flex text-yellow-400 text-sm">
-                    <i className="fas fa-star"></i>
-                    <i className="fas fa-star"></i>
-                    <i className="fas fa-star"></i>
-                    <i className="fas fa-star"></i>
-                    <i className="fas fa-star"></i>
-                  </div>
-                  <span className="text-white font-bold text-sm">4.9/5</span>
-                  <span className="text-white/60 text-xs">(87 avis Google)</span>
-                </div>
-                <div className="flex items-center gap-2 text-white/70 text-sm">
-                  <i className="fas fa-clock text-[var(--color-red-light)]"></i>
-                  <span>Lun-Ven 8h-17h &bull; Sam 9h-13h</span>
-                </div>
+              {/* Trust badge: hours */}
+              <div className="flex items-center gap-2 text-white/70 text-sm mb-6">
+                <i className="fas fa-clock text-[var(--color-red-light)]"></i>
+                <span>Lun-Ven 8h-17h &bull; Sam 9h-13h</span>
               </div>
               <div className="flex flex-wrap gap-4">
                 <a

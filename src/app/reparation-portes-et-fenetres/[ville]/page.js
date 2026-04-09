@@ -90,13 +90,6 @@ export default async function ReparationVillePage({ params }) {
         closes: "13:00",
       },
     ],
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.9",
-      reviewCount: "87",
-      bestRating: "5",
-      worstRating: "1",
-    },
   };
 
   const jsonLd = {
@@ -203,23 +196,10 @@ export default async function ReparationVillePage({ params }) {
                 Vosthermos est votre specialiste en reparation de portes et fenetres a {city.name}. Que ce soit pour un thermos embue, une quincaillerie defaillante ou un calfeutrage a refaire, notre equipe intervient rapidement avec un service garanti sur tous les travaux.
               </p>
 
-              {/* Trust badges: Google rating + hours */}
-              <div className="flex flex-wrap items-center gap-5 mb-8 pb-6 border-b border-white/10">
-                <div className="flex items-center gap-2">
-                  <div className="flex text-yellow-400 text-sm">
-                    <i className="fas fa-star"></i>
-                    <i className="fas fa-star"></i>
-                    <i className="fas fa-star"></i>
-                    <i className="fas fa-star"></i>
-                    <i className="fas fa-star"></i>
-                  </div>
-                  <span className="text-white font-bold text-sm">4.9/5</span>
-                  <span className="text-white/60 text-xs">(87 avis Google)</span>
-                </div>
-                <div className="flex items-center gap-2 text-white/70 text-sm">
-                  <i className="fas fa-clock text-[var(--color-red-light)]"></i>
-                  <span>Lun-Ven 8h-17h &bull; Sam 9h-13h</span>
-                </div>
+              {/* Trust badge: hours */}
+              <div className="flex items-center gap-2 text-white/70 text-sm mb-8 pb-6 border-b border-white/10">
+                <i className="fas fa-clock text-[var(--color-red-light)]"></i>
+                <span>Lun-Ven 8h-17h &bull; Sam 9h-13h</span>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">

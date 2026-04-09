@@ -128,7 +128,6 @@ const stats = [
   { value: "740+", label: "Pieces en inventaire" },
   { value: "50+", label: "Villes desservies" },
   { value: "Incluse", label: "Service garanti" },
-  { value: "4.9/5", label: "Etoiles Google" },
 ];
 
 export default function PourquoiVosthermosPage() {
