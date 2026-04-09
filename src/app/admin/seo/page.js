@@ -563,9 +563,12 @@ export default function AdminSeoPage() {
     .slice(0, 8) // top 8 most recent scan runs
     .map(ts => {
       const d = new Date(ts);
+      const hh = String(d.getHours()).padStart(2, "0");
+      const mm = String(d.getMinutes()).padStart(2, "0");
       return {
         ts,
-        label: `${d.getDate()} ${MONTHS_FR[d.getMonth()]}`,
+        dateLabel: `${d.getDate()} ${MONTHS_FR[d.getMonth()]}`,
+        timeLabel: `${hh}h${mm}`,
       };
     });
 
@@ -733,22 +736,23 @@ export default function AdminSeoPage() {
       {!loading && cities.length > 0 && (
         <div className="admin-card border rounded-2xl overflow-x-auto">
           <div style={{ minWidth: "900px" }}>
-            <div className="flex items-center px-4 py-3 border-b gap-1" style={{ borderColor: "var(--admin-border)" }}>
-              <div className="w-[150px] shrink-0 admin-text-muted text-[10px] font-bold uppercase tracking-wider cursor-pointer select-none" onClick={() => toggleSort("name")}>
+            <div className="flex items-start px-3 py-3 border-b gap-0.5" style={{ borderColor: "var(--admin-border)" }}>
+              <div className="w-[150px] shrink-0 admin-text-muted text-[10px] font-bold uppercase tracking-wider cursor-pointer select-none self-center" onClick={() => toggleSort("name")}>
                 Ville {sortBy === "name" && <i className={`fas fa-caret-${sortDir === "asc" ? "up" : "down"} ml-1`}></i>}
               </div>
               {scanRuns.map((run) => (
-                <div key={run.ts} className="flex-1 text-center admin-text-muted text-[10px] font-bold uppercase tracking-wider">
-                  {run.label}
+                <div key={run.ts} className="flex-1 text-center admin-text-muted text-[10px] font-bold px-1">
+                  <div className="uppercase tracking-wider">{run.dateLabel}</div>
+                  <div className="admin-text-muted font-mono text-[9px] opacity-70 mt-0.5">{run.timeLabel}</div>
                 </div>
               ))}
               {scanRuns.length === 0 && (
-                <div className="flex-1 text-center admin-text-muted text-[10px] font-bold uppercase tracking-wider">
+                <div className="flex-1 text-center admin-text-muted text-[10px] font-bold uppercase tracking-wider self-center">
                   Aucun scan
                 </div>
               )}
-              <div className="w-[55px] text-center admin-text-muted text-[10px] font-bold uppercase tracking-wider">AI</div>
-              <div className="w-[70px] text-center admin-text-muted text-[10px] font-bold uppercase tracking-wider">Action</div>
+              <div className="w-[45px] text-center admin-text-muted text-[10px] font-bold uppercase tracking-wider self-center">AI</div>
+              <div className="w-[60px] text-center admin-text-muted text-[10px] font-bold uppercase tracking-wider self-center">Action</div>
             </div>
 
           {sortedCities.map((city) => {
@@ -756,7 +760,7 @@ export default function AdminSeoPage() {
 
             return (
               <div key={city.slug} className="border-b last:border-0" style={{ borderColor: "var(--admin-border)" }}>
-                <div className="flex items-center px-4 py-2.5 gap-1 cursor-pointer hover:bg-white/5 transition-colors" onClick={() => setExpandedCity(isExpanded ? null : city.slug)}>
+                <div className="flex items-center px-3 py-2.5 gap-0.5 cursor-pointer hover:bg-white/5 transition-colors" onClick={() => setExpandedCity(isExpanded ? null : city.slug)}>
                   <div className="w-[150px] shrink-0 admin-text text-sm font-medium flex items-center gap-1.5">
                     <i className={`fas fa-chevron-right text-[9px] admin-text-muted transition-transform duration-300 ${isExpanded ? "rotate-90" : ""}`}></i>
                     <span className="truncate">{city.name}</span>
@@ -764,21 +768,21 @@ export default function AdminSeoPage() {
                   {scanRuns.map((run) => {
                     const pos = getPositionAtRun(city, run.ts);
                     return (
-                      <div key={run.ts} className="flex-1 text-center">
+                      <div key={run.ts} className="flex-1 text-center px-1">
                         <span className={`inline-block px-1.5 py-0.5 rounded-full text-xs font-extrabold ${positionColor(pos)}`}>
                           {pos !== null ? `#${pos}` : "—"}
                         </span>
                       </div>
                     );
                   })}
-                  <div className="w-[55px] text-center">
+                  <div className="w-[45px] text-center">
                     {city.latestAi ? (
                       <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-400 text-[10px] font-bold"><i className="fas fa-robot"></i></span>
                     ) : (
                       <span className="admin-text-muted text-xs">—</span>
                     )}
                   </div>
-                  <div className="w-[70px] text-center">
+                  <div className="w-[60px] text-center">
                     <button
                       onClick={(e) => { e.stopPropagation(); refreshCity(city.slug); }}
                       disabled={refreshingCity === city.slug || checking}
