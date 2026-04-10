@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 
-const DEFAULT_LOCALE = "fr";
-
 export function middleware(request) {
   const { pathname } = request.nextUrl;
 
@@ -15,21 +13,11 @@ export function middleware(request) {
     }
   }
 
-  // Determine locale from URL path prefix
-  const isEnglish = pathname === "/en" || pathname.startsWith("/en/");
-  const locale = isEnglish ? "en" : DEFAULT_LOCALE;
-
-  // Set locale cookie for server components
-  const response = NextResponse.next();
-  response.cookies.set("locale", locale, {
-    path: "/",
-    maxAge: 60 * 60 * 24 * 365,
-    sameSite: "lax",
-  });
-
-  return response;
+  return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/en/:path*", "/"],
+  // Only run middleware on admin routes (locale detection now happens client-side
+  // via a small inline script in layout.js — this keeps all other pages cacheable as SSG)
+  matcher: ["/admin/:path*"],
 };

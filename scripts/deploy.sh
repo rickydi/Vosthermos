@@ -1,39 +1,51 @@
 #!/usr/bin/env bash
 #
-# Deploy Vosthermos en production avec zero downtime.
+# Deploy Vosthermos en production avec ZERO downtime + ZERO charge sur le serveur.
+#
+# Strategie: build LOCAL + transfert SCP + extraction atomique sur le serveur.
+# AUCUN build sur le serveur (le serveur Edge a 4 GB RAM et plante avec npm run build).
 #
 # Usage:   ./scripts/deploy.sh
 # Options: ./scripts/deploy.sh --no-pull   # skip git pull
-#          ./scripts/deploy.sh --restart   # full pm2 restart instead of reload
+#          ./scripts/deploy.sh --no-build  # skip local build (utilise .next existant)
 #
-# Lecons apprises (incident 2026-04-09):
-# - Le serveur Edge a 4 GB RAM, 0 swap, container LXC (pas de swap possible)
-# - Sans NODE_OPTIONS, npm run build OOM-kill le serveur entier (megabac+jmj+vosthermos down)
-# - Le .next Turbopack n'est PAS portable entre machines (hash Prisma genere a chaque build)
-#   donc on doit toujours builder sur la cible, pas en local + rsync
-# - PM2 mode cluster + reload = zero downtime visible
-# - mv .next .next.backup AVANT build = filet de securite si build echoue
+# ─── Lecons apprises (incidents 2026-04-09) ──────────────────────────
+# 1. Le serveur Edge VPS a 4 GB RAM, 0 swap, container LXC.
+#    `npm run build` Turbopack + SSG consomme >4 GB → OOM kill global du serveur.
+#    Solution: builder en LOCAL ou` la RAM est dispo, transferer le .next.
+#
+# 2. Le .next contient des SYMLINKS vers /c/Users/... (Windows) dans
+#    .next/node_modules/@prisma/client-<hash> et .next/node_modules/<pkg>-<hash>.
+#    Tar preserve ces symlinks absolus qui sont casses sur Linux.
+#    Solution: post-process sur le serveur — remplacer chaque symlink par
+#    une copie REELLE du module + corriger le 'name' dans package.json
+#    (ESM strict verifie le name du package).
+#
+# 3. PM2 etait configure avec --max-old-space-size=180 (180 MB heap),
+#    insuffisant pour Next.js + 1316 pages SSG. Le worker crashait en boucle.
+#    Solution: pm2 start avec --node-args='--max-old-space-size=1024' (1 GB).
+#
+# 4. PM2 reload (cluster mode) = zero downtime. PM2 restart = mini downtime.
 
 set -euo pipefail
 
 # ─── Config ────────────────────────────────────────────────────────
+LOCAL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SSH_KEY="$HOME/.ssh/id_ed25519"
 SSH_HOST="root@67.215.11.55"
 SSH_PORT="2243"
 APP_DIR="/home/vosthermo/vosthermos_app"
 APP_NAME="vosthermos"
 APP_URL="https://www.vosthermos.com"
-
-# Memoire max pour Node pendant le build (le serveur a 4GB RAM, 0 swap)
-NODE_MEMORY_LIMIT="2048"
+TARBALL="next-build.tar.gz"
 
 # ─── Args ──────────────────────────────────────────────────────────
 SKIP_PULL=false
-USE_RESTART=false
+SKIP_BUILD=false
 for arg in "$@"; do
   case $arg in
-    --no-pull) SKIP_PULL=true ;;
-    --restart) USE_RESTART=true ;;
+    --no-pull)  SKIP_PULL=true ;;
+    --no-build) SKIP_BUILD=true ;;
   esac
 done
 
@@ -41,67 +53,155 @@ done
 ssh_run() {
   ssh -i "$SSH_KEY" -p "$SSH_PORT" -o ConnectTimeout=20 -o ServerAliveInterval=10 "$SSH_HOST" "$@"
 }
-
 log()  { echo -e "\033[1;36m▶\033[0m $*"; }
 ok()   { echo -e "\033[1;32m✓\033[0m $*"; }
 warn() { echo -e "\033[1;33m!\033[0m $*"; }
 err()  { echo -e "\033[1;31m✗\033[0m $*" >&2; }
 
-# ─── Pre-flight check ──────────────────────────────────────────────
+# ─── 1. Pre-flight check ───────────────────────────────────────────
 log "Verification du serveur..."
-ssh_run "uptime ; free -m | head -2" || { err "SSH inaccessible"; exit 1; }
+ssh_run "echo OK ; uptime ; free -m | head -2" > /dev/null || { err "SSH inaccessible"; exit 1; }
+ok "Serveur joignable"
 
-# ─── Git pull ──────────────────────────────────────────────────────
+# ─── 2. Git pull (local) ───────────────────────────────────────────
 if [ "$SKIP_PULL" = false ]; then
-  log "git pull origin master..."
-  ssh_run "cd $APP_DIR && git pull origin master 2>&1 | tail -5"
-else
-  warn "Skip git pull"
+  log "git pull origin master (LOCAL)..."
+  cd "$LOCAL_DIR"
+  git pull origin master 2>&1 | tail -3
 fi
 
-# ─── Build ─────────────────────────────────────────────────────────
-log "Backup .next vers .next.backup..."
-ssh_run "cd $APP_DIR && [ -d .next ] && mv .next .next.backup || true"
-
-log "Build Next.js (NODE_OPTIONS=--max-old-space-size=$NODE_MEMORY_LIMIT)..."
-if ! ssh_run "cd $APP_DIR && NODE_OPTIONS='--max-old-space-size=$NODE_MEMORY_LIMIT' npm run build 2>&1 | tail -20"; then
-  err "Build a echoue. Restore du backup..."
-  ssh_run "cd $APP_DIR && rm -rf .next && mv .next.backup .next 2>/dev/null || true"
-  exit 1
+# ─── 3. Build LOCAL ────────────────────────────────────────────────
+if [ "$SKIP_BUILD" = false ]; then
+  log "Build local (Next.js Turbopack)..."
+  cd "$LOCAL_DIR"
+  rm -rf .next
+  if ! npm run build > /tmp/vosthermos-build.log 2>&1; then
+    err "Build local a echoue. Voir /tmp/vosthermos-build.log"
+    tail -30 /tmp/vosthermos-build.log
+    exit 1
+  fi
+  if [ ! -f "$LOCAL_DIR/.next/BUILD_ID" ]; then
+    err "Pas de BUILD_ID apres le build local"
+    exit 1
+  fi
+  ok "Build local OK ($(du -sh .next | cut -f1))"
 fi
 
-# Verifie que BUILD_ID existe (signal d'un build complet)
+# ─── 4. Tar + compression ──────────────────────────────────────────
+log "Compression du .next..."
+cd "$LOCAL_DIR"
+rm -f "$TARBALL"
+tar czf "$TARBALL" .next
+ok "Tarball: $(du -sh "$TARBALL" | cut -f1)"
+
+# ─── 5. SCP upload ─────────────────────────────────────────────────
+log "Upload vers $SSH_HOST:/tmp/..."
+scp -i "$SSH_KEY" -P "$SSH_PORT" -o ConnectTimeout=20 "$TARBALL" "$SSH_HOST:/tmp/" > /dev/null
+ok "Upload OK"
+
+# ─── 6. Sync git sur le serveur (pour cohérence du code source) ────
+log "git pull origin master (SERVEUR)..."
+ssh_run "cd $APP_DIR && git pull origin master 2>&1 | tail -3"
+
+# ─── 7. Extraction atomique + fix symlinks Windows ─────────────────
+log "Extraction du .next sur le serveur (atomique)..."
+ssh_run "
+set -e
+cd $APP_DIR
+# Backup du .next actuel (filet de securite)
+if [ -d .next ]; then mv .next .next.backup; fi
+
+# Extraction dans un dossier temporaire
+mkdir -p .next.tmp
+cd .next.tmp
+tar xzf /tmp/$TARBALL
+# Le tar contient un dossier '.next' a la racine, on remonte d'un niveau
+if [ -d .next ]; then
+  mv .next/* . 2>/dev/null || true
+  mv .next/.[^.]* . 2>/dev/null || true
+  rmdir .next
+fi
+cd ..
+mv .next.tmp .next
+" > /dev/null
+ok "Extraction OK"
+
+# ─── 8. Fix Windows symlinks dans .next/node_modules ───────────────
+log "Fix des symlinks Windows + names ESM..."
+ssh_run "
+set -e
+cd $APP_DIR/.next/node_modules 2>/dev/null || exit 0
+
+# Trouver tous les symlinks et les remplacer par des copies reelles
+# Pattern attendu: <package-name>-<hash16> ou @scope/<name>-<hash16>
+fixed=0
+for link in \$(find . -type l 2>/dev/null); do
+  hashed_name=\$(basename \"\$link\")
+  # Extraire le vrai nom de package (avant le hash de 16 hex)
+  real_name=\$(echo \"\$hashed_name\" | sed -E 's/-[a-f0-9]{16}\$//')
+  # Si scope @prisma, garder le scope
+  parent_dir=\$(dirname \"\$link\")
+  if [ \"\$parent_dir\" = \"./@prisma\" ] || [ \"\$parent_dir\" = \"@prisma\" ]; then
+    real_pkg_path=\"$APP_DIR/node_modules/@prisma/\$real_name\"
+    full_hashed_name=\"@prisma/\$hashed_name\"
+  else
+    real_pkg_path=\"$APP_DIR/node_modules/\$real_name\"
+    full_hashed_name=\"\$hashed_name\"
+  fi
+
+  if [ -d \"\$real_pkg_path\" ]; then
+    rm -f \"\$link\"
+    cp -r \"\$real_pkg_path\" \"\$link\"
+    # Fix le name dans package.json pour matcher le hash (ESM strict requirement)
+    if [ -f \"\$link/package.json\" ]; then
+      # sed compatible Linux (in-place)
+      python3 -c \"
+import json,sys
+p='\$link/package.json'
+with open(p,'r') as f: d=json.load(f)
+d['name']='\$full_hashed_name'
+with open(p,'w') as f: json.dump(d,f,indent=2)
+\" 2>/dev/null || true
+    fi
+    fixed=\$((fixed + 1))
+  fi
+done
+echo \"Fixed \$fixed symlinks\"
+" 2>&1 | tail -3
+ok "Symlinks corriges"
+
+# ─── 9. Verification BUILD_ID ──────────────────────────────────────
 if ! ssh_run "test -f $APP_DIR/.next/BUILD_ID"; then
-  err "Build incomplet (pas de BUILD_ID). Restore du backup..."
+  err "Pas de BUILD_ID apres extraction. Restore du backup..."
   ssh_run "cd $APP_DIR && rm -rf .next && mv .next.backup .next 2>/dev/null || true"
   exit 1
 fi
-ok "Build complet"
 
-# ─── PM2 reload ────────────────────────────────────────────────────
-if [ "$USE_RESTART" = true ]; then
-  log "PM2 restart $APP_NAME..."
-  ssh_run "pm2 restart $APP_NAME"
-else
-  log "PM2 reload $APP_NAME (zero downtime)..."
-  ssh_run "pm2 reload $APP_NAME"
-fi
+# ─── 10. PM2 reload ────────────────────────────────────────────────
+log "PM2 reload $APP_NAME (zero downtime)..."
+ssh_run "pm2 reload $APP_NAME --update-env" > /dev/null
 
-# ─── Verification HTTP ─────────────────────────────────────────────
-sleep 4
+# ─── 11. Verification HTTP ─────────────────────────────────────────
+sleep 5
 log "Verification HTTP..."
 HTTP_CODE=$(ssh_run "curl -s -o /dev/null -w '%{http_code}' --max-time 10 $APP_URL/")
-if [ "$HTTP_CODE" = "200" ]; then
-  ok "Site UP (HTTP $HTTP_CODE)"
-else
-  err "Site retourne HTTP $HTTP_CODE — verifier les logs:"
-  err "  ssh -i $SSH_KEY -p $SSH_PORT $SSH_HOST 'pm2 logs $APP_NAME --lines 30 --nostream'"
+if [ "$HTTP_CODE" != "200" ]; then
+  err "Site retourne HTTP $HTTP_CODE — Restore du backup..."
+  ssh_run "pm2 stop $APP_NAME ; cd $APP_DIR && rm -rf .next && mv .next.backup .next && pm2 start $APP_NAME"
   exit 1
 fi
+ok "Site UP (HTTP $HTTP_CODE)"
 
-# ─── Cleanup ───────────────────────────────────────────────────────
-log "Cleanup .next.backup..."
-ssh_run "rm -rf $APP_DIR/.next.backup"
+# Test rapide d'autres routes critiques
+for route in /api/promo /reparation-portes-et-fenetres/boucherville /services/remplacement-vitre-thermos/saint-jerome; do
+  CODE=$(curl -s -o /dev/null -w '%{http_code}' --max-time 8 "$APP_URL$route")
+  printf "  %-55s %s\n" "$route" "$CODE"
+done
+
+# ─── 12. Cleanup ───────────────────────────────────────────────────
+log "Cleanup..."
+ssh_run "rm -rf $APP_DIR/.next.backup /tmp/$TARBALL"
+rm -f "$LOCAL_DIR/$TARBALL"
 
 ok "Deploy termine avec succes!"
 echo
