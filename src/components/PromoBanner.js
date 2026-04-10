@@ -1,27 +1,31 @@
-import prisma from "@/lib/prisma";
-import { cookies } from "next/headers";
+"use client";
 
-export default async function PromoBanner() {
-  const now = new Date();
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
-  const promo = await prisma.promotion.findFirst({
-    where: {
-      isActive: true,
-      startDate: { lte: now },
-      endDate: { gte: now },
-    },
-    include: { category: true },
-    orderBy: { createdAt: "desc" },
-  });
+export default function PromoBanner() {
+  const pathname = usePathname();
+  const [promo, setPromo] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/promo", { next: { revalidate: 60 } })
+      .then((r) => r.json())
+      .then((data) => {
+        if (!cancelled) setPromo(data?.promo || null);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   if (!promo) return null;
 
-  const cookieStore = await cookies();
-  const locale = cookieStore.get("locale")?.value || "fr";
-  const prefix = locale === "en" ? "/en" : "";
-  const ctaLabel = locale === "en" ? "View products" : "Voir les produits";
+  const isEnglish = pathname === "/en" || pathname.startsWith("/en/");
+  const prefix = isEnglish ? "/en" : "";
+  const ctaLabel = isEnglish ? "View products" : "Voir les produits";
 
-  // Render a spacer + fixed banner so the header shifts down
   return (
     <>
       {/* Spacer to push content down */}
@@ -36,9 +40,9 @@ export default async function PromoBanner() {
         {promo.description && (
           <span className="font-normal ml-2 opacity-90 hidden sm:inline">— {promo.description}</span>
         )}
-        {promo.category && (
+        {promo.categorySlug && (
           <a
-            href={`${prefix}/boutique/${promo.category.slug}`}
+            href={`${prefix}/boutique/${promo.categorySlug}`}
             className="ml-3 underline underline-offset-2 font-bold hover:opacity-80"
           >
             {ctaLabel}

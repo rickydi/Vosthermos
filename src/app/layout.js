@@ -1,5 +1,4 @@
 import "./globals.css";
-import { cookies } from "next/headers";
 import Header from "@/components/Header";
 import ConditionalFooter from "@/components/ConditionalFooter";
 import PromoBanner from "@/components/PromoBanner";
@@ -169,13 +168,16 @@ const sitelinksJsonLd = {
   },
 };
 
-export default async function RootLayout({ children }) {
-  const cookieStore = await cookies();
-  const locale = cookieStore.get("locale")?.value || "fr";
-
+export default function RootLayout({ children }) {
   return (
-    <html lang={locale} className="h-full antialiased scroll-smooth">
+    <html lang="fr" className="h-full antialiased scroll-smooth">
       <head>
+        {/* Set lang="en" before React hydration when on /en/* — keeps the page statically cacheable */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var p=location.pathname;if(p==='/en'||p.indexOf('/en/')===0){document.documentElement.lang='en'}})();`,
+          }}
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

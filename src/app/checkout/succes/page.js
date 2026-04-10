@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useCart } from "@/components/CartContext";
 
-export default function SuccessPage() {
+function SuccessContent() {
   const { clearCart } = useCart();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
@@ -91,5 +91,13 @@ export default function SuccessPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={<div className="pt-[80px] py-20 text-center"><i className="fas fa-spinner fa-spin text-2xl text-[var(--color-teal)]"></i></div>}>
+      <SuccessContent />
+    </Suspense>
   );
 }
