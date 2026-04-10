@@ -25,8 +25,8 @@ const nextConfig = {
       },
       {
         source: "/secteurs",
-        destination: "/reparation-portes-et-fenetres",
-        permanent: true,
+        destination: "/services",
+        permanent: true, // 301
       },
     ];
   },

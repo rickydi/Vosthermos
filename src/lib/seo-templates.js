@@ -69,8 +69,4 @@ export const CITY_PAGE_SEO = {
     title: (c) => `Calfeutrage ${c.name} • Infiltrations Éliminées`,
     description: (c) => `Courants d'air, pluie, infiltrations à ${c.name}? Calfeutrage pro par Vosthermos. Intérieur/extérieur, tous matériaux. Soumission gratuite ☎ 514-825-8411`,
   },
-  "secteurs": {
-    title: (c) => `Vosthermos dessert ${c.name} • Portes et Fenêtres`,
-    description: (c) => `À ${c.name}? Vosthermos répare vos portes, fenêtres, thermos, quincaillerie. Service rapide dans votre secteur. Soumission gratuite ☎ 514-825-8411`,
-  },
 };
