@@ -309,9 +309,9 @@ export default function ChatPanel({ initialConversationId }) {
                     return line;
                   }).join("\n\n");
                   const text = header + msgs;
-                  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
-                }} className="px-4 py-2 bg-green-500/20 text-green-400 hover:bg-green-500/30 rounded-lg text-xs font-semibold transition-colors" title="Envoyer sur WhatsApp">
-                  <i className="fab fa-whatsapp mr-1"></i>WhatsApp
+                  window.open(`https://wa.me/15148258411?text=${encodeURIComponent(text)}`, "_blank");
+                }} className="px-4 py-2 bg-green-500/20 text-green-400 hover:bg-green-500/30 rounded-lg text-xs font-semibold transition-colors" title="Envoyer a Jason Gordon sur WhatsApp">
+                  <i className="fab fa-whatsapp mr-1"></i>Jason
                 </button>
                 <button onClick={toggleArchive} className="px-4 py-2 bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 rounded-lg text-xs font-semibold transition-colors">
                   {selected.isArchived ? "Desarchiver" : "Archiver"}
