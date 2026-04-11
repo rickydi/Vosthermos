@@ -26,7 +26,10 @@ export default function ChatPanel({ initialConversationId }) {
   const [generating, setGenerating] = useState(false);
   const [correcting, setCorrecting] = useState(false);
   const messagesEnd = useRef(null);
+  const messagesContainerRef = useRef(null);
   const selectedIdRef = useRef(null);
+  const prevMsgCountRef = useRef(0);
+  const isFirstOpenRef = useRef(false);
 
   const fetchConversations = useCallback(async () => {
     try {
@@ -36,21 +39,44 @@ export default function ChatPanel({ initialConversationId }) {
     } catch {}
   }, []);
 
-  const openConversation = useCallback(async (id) => {
+  const openConversation = useCallback(async (id, isNew = false) => {
     try {
       const res = await fetch(`/api/admin/chat/${id}`);
       const data = await res.json();
-      if (data && data.id) { setSelected(data); selectedIdRef.current = data.id; }
+      if (data && data.id) {
+        if (isNew) isFirstOpenRef.current = true;
+        setSelected(data);
+        selectedIdRef.current = data.id;
+      }
     } catch {}
   }, []);
 
   useEffect(() => {
     fetchConversations().then(() => {
-      if (initialConversationId) openConversation(initialConversationId);
+      if (initialConversationId) openConversation(initialConversationId, true);
     });
   }, []);
 
-  useEffect(() => { messagesEnd.current?.scrollIntoView({ behavior: "smooth" }); }, [selected?.messages]);
+  useEffect(() => {
+    const msgs = selected?.messages || [];
+    const count = msgs.length;
+    const hadNewMessage = count > prevMsgCountRef.current;
+    prevMsgCountRef.current = count;
+
+    // Scroll to bottom only when: first open, new message arrived, or user is already near bottom
+    if (isFirstOpenRef.current) {
+      isFirstOpenRef.current = false;
+      messagesEnd.current?.scrollIntoView();
+    } else if (hadNewMessage) {
+      const container = messagesContainerRef.current;
+      if (container) {
+        const distFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+        if (distFromBottom < 150) {
+          messagesEnd.current?.scrollIntoView({ behavior: "smooth" });
+        }
+      }
+    }
+  }, [selected?.messages]);
 
   useEffect(() => {
     const el = textareaRef.current;
@@ -190,7 +216,7 @@ export default function ChatPanel({ initialConversationId }) {
 
         <div className="flex-1 overflow-y-auto space-y-1">
           {filtered.map((c) => (
-            <button key={c.id} onClick={() => openConversation(c.id)}
+            <button key={c.id} onClick={() => openConversation(c.id, true)}
               className={`w-full text-left px-4 py-3 rounded-xl transition-colors ${selected?.id === c.id ? "bg-[var(--color-red)]/10 border border-[var(--color-red)]" : "admin-card border admin-hover"} ${c.isArchived ? "opacity-50" : ""}`}>
               <div className="flex items-center justify-between mb-1">
                 <span className="admin-text text-sm font-semibold truncate flex items-center gap-1.5">
@@ -272,6 +298,21 @@ export default function ChatPanel({ initialConversationId }) {
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
+                <button onClick={() => {
+                  if (!selected) return;
+                  const header = `*Chat Vosthermos*\n${selected.clientName}\nTel: ${formatPhone(selected.clientPhone)}${selected.clientEmail ? `\nEmail: ${selected.clientEmail}` : ""}\n${"─".repeat(20)}\n`;
+                  const msgs = (selected.messages || []).map((m) => {
+                    const who = m.senderType === "ADMIN" ? "Vosthermos" : selected.clientName;
+                    const date = new Date(m.createdAt).toLocaleString("fr-CA", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+                    let line = `[${date}] *${who}*: ${m.content || ""}`;
+                    if (m.imageUrl) line += `\n📷 https://www.vosthermos.com${m.imageUrl}`;
+                    return line;
+                  }).join("\n\n");
+                  const text = header + msgs;
+                  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+                }} className="px-4 py-2 bg-green-500/20 text-green-400 hover:bg-green-500/30 rounded-lg text-xs font-semibold transition-colors" title="Envoyer sur WhatsApp">
+                  <i className="fab fa-whatsapp mr-1"></i>WhatsApp
+                </button>
                 <button onClick={toggleArchive} className="px-4 py-2 bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 rounded-lg text-xs font-semibold transition-colors">
                   {selected.isArchived ? "Desarchiver" : "Archiver"}
                 </button>
@@ -282,7 +323,7 @@ export default function ChatPanel({ initialConversationId }) {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-4">
+            <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-4">
               {selected.messages?.map((msg) => {
                 const isAdmin = msg.senderType === "ADMIN";
                 return (
