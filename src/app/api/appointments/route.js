@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { upsertClientFromLead } from "@/lib/upsert-client";
 
 export async function GET(request) {
   try {
@@ -92,6 +93,16 @@ export async function POST(request) {
         city: city?.trim() || null,
         notes: notes?.trim() || null,
       },
+    });
+
+    await upsertClientFromLead({
+      name: name.trim(),
+      phone: phone.trim(),
+      email: email?.trim() || null,
+      address: address?.trim() || null,
+      city: city?.trim() || null,
+      notes: notes?.trim() || null,
+      source: `rendez-vous ${serviceType.trim()}`,
     });
 
     return NextResponse.json(appointment, { status: 201 });

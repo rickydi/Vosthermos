@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { upsertClientFromLead } from "@/lib/upsert-client";
 
 export async function POST(request) {
   try {
@@ -9,14 +10,13 @@ export async function POST(request) {
       return NextResponse.json({ error: "Champs requis manquants" }, { status: 400 });
     }
 
-    // For now, log the submission. Later: send email via nodemailer or API.
-    console.log("=== NOUVELLE SOUMISSION ===");
-    console.log(`Nom: ${name}`);
-    console.log(`Tel: ${phone}`);
-    console.log(`Email: ${email}`);
-    console.log(`Service: ${service}`);
-    console.log(`Message: ${message || "(aucun)"}`);
-    console.log("===========================");
+    await upsertClientFromLead({
+      name,
+      phone,
+      email,
+      notes: [service ? `Service: ${service}` : null, message || null].filter(Boolean).join("\n") || null,
+      source: "formulaire contact",
+    });
 
     return NextResponse.json({ success: true });
   } catch {

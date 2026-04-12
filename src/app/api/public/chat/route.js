@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { upsertClientFromLead } from "@/lib/upsert-client";
 
 export async function POST(req) {
   try {
@@ -28,12 +29,15 @@ export async function POST(req) {
         );
       }
 
+      await upsertClientFromLead({ name: clientName, phone: clientPhone, email: clientEmail, source: "chat" });
       return NextResponse.json({ id: existing.id });
     }
 
     const conversation = await prisma.chatConversation.create({
       data: { clientName, clientPhone, clientEmail },
     });
+
+    await upsertClientFromLead({ name: clientName, phone: clientPhone, email: clientEmail, source: "chat" });
 
     return NextResponse.json({ id: conversation.id });
   } catch (error) {

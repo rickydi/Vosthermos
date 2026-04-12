@@ -2,10 +2,27 @@
 
 import { useState, useEffect, useRef } from "react";
 
+const EMPTY_FORM = {
+  name: "",
+  company: "",
+  phone: "",
+  email: "",
+  address: "",
+  city: "",
+  province: "QC",
+  postalCode: "",
+  notes: "",
+};
+
 export default function ClientsPage() {
   const [clients, setClients] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [editId, setEditId] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
   const timer = useRef(null);
 
   function load(q = "") {
@@ -23,12 +40,128 @@ export default function ClientsPage() {
     timer.current = setTimeout(() => load(search), 300);
   }, [search]);
 
+  function resetForm() {
+    setForm(EMPTY_FORM);
+    setEditId(null);
+    setError("");
+  }
+
+  function openCreate() {
+    resetForm();
+    setShowForm(true);
+  }
+
+  function startEdit(client) {
+    setForm({
+      name: client.name || "",
+      company: client.company || "",
+      phone: client.phone || "",
+      email: client.email || "",
+      address: client.address || "",
+      city: client.city || "",
+      province: client.province || "QC",
+      postalCode: client.postalCode || "",
+      notes: client.notes || "",
+    });
+    setEditId(client.id);
+    setError("");
+    setShowForm(true);
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!form.name.trim()) {
+      setError("Le nom est requis");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    try {
+      const url = editId ? `/api/admin/clients/${editId}` : "/api/admin/clients";
+      const method = editId ? "PUT" : "POST";
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Erreur lors de l'enregistrement");
+      }
+      resetForm();
+      setShowForm(false);
+      load(search);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="admin-text text-2xl font-bold">Clients</h1>
-        <p className="admin-text-muted text-sm">{clients.length} clients</p>
+        <div className="flex items-center gap-3">
+          <p className="admin-text-muted text-sm">{clients.length} clients</p>
+          <button
+            onClick={() => (showForm ? (setShowForm(false), resetForm()) : openCreate())}
+            className="px-4 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium"
+          >
+            <i className="fas fa-plus mr-2"></i>Ajouter
+          </button>
+        </div>
       </div>
+
+      {showForm && (
+        <form onSubmit={handleSubmit} className="admin-card border rounded-xl p-6 mb-6 space-y-4">
+          <h2 className="admin-text font-bold">{editId ? "Modifier client" : "Nouveau client"}</h2>
+          <div className="grid md:grid-cols-2 gap-4">
+            <input required placeholder="Nom complet *" value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className="admin-input border rounded-lg px-4 py-2.5 text-sm" />
+            <input placeholder="Entreprise" value={form.company}
+              onChange={(e) => setForm({ ...form, company: e.target.value })}
+              className="admin-input border rounded-lg px-4 py-2.5 text-sm" />
+            <input placeholder="Telephone" value={form.phone}
+              onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              className="admin-input border rounded-lg px-4 py-2.5 text-sm" />
+            <input type="email" placeholder="Email" value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              className="admin-input border rounded-lg px-4 py-2.5 text-sm" />
+            <input placeholder="Adresse" value={form.address}
+              onChange={(e) => setForm({ ...form, address: e.target.value })}
+              className="admin-input border rounded-lg px-4 py-2.5 text-sm md:col-span-2" />
+            <input placeholder="Ville" value={form.city}
+              onChange={(e) => setForm({ ...form, city: e.target.value })}
+              className="admin-input border rounded-lg px-4 py-2.5 text-sm" />
+            <div className="grid grid-cols-2 gap-4">
+              <input placeholder="Province" value={form.province}
+                onChange={(e) => setForm({ ...form, province: e.target.value })}
+                className="admin-input border rounded-lg px-4 py-2.5 text-sm" />
+              <input placeholder="Code postal" value={form.postalCode}
+                onChange={(e) => setForm({ ...form, postalCode: e.target.value })}
+                className="admin-input border rounded-lg px-4 py-2.5 text-sm" />
+            </div>
+          </div>
+          <textarea placeholder="Notes" value={form.notes} rows={3}
+            onChange={(e) => setForm({ ...form, notes: e.target.value })}
+            className="admin-input border rounded-lg px-4 py-2.5 text-sm w-full" />
+
+          {error && <p className="text-sm text-red-500">{error}</p>}
+
+          <div className="flex gap-3">
+            <button type="submit" disabled={saving}
+              className="px-6 py-2.5 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium disabled:opacity-50">
+              {saving ? "..." : editId ? "Modifier" : "Creer"}
+            </button>
+            <button type="button" onClick={() => { setShowForm(false); resetForm(); }}
+              className="px-6 py-2.5 admin-text-muted admin-hover rounded-lg text-sm">
+              Annuler
+            </button>
+          </div>
+        </form>
+      )}
 
       <input
         type="text"
@@ -55,6 +188,7 @@ export default function ClientsPage() {
                 <th className="px-4 py-3">Telephone</th>
                 <th className="px-4 py-3">Ville</th>
                 <th className="px-4 py-3">Bons</th>
+                <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody>
@@ -68,6 +202,12 @@ export default function ClientsPage() {
                   <td className="px-4 py-3 admin-text-muted">{c.phone || "—"}</td>
                   <td className="px-4 py-3 admin-text-muted">{c.city || "—"}</td>
                   <td className="px-4 py-3 admin-text">{c._count?.workOrders || 0}</td>
+                  <td className="px-4 py-3 text-right">
+                    <button onClick={() => startEdit(c)}
+                      className="admin-text-muted hover:admin-text text-xs">
+                      <i className="fas fa-pen"></i>
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
