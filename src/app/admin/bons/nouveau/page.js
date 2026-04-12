@@ -76,6 +76,19 @@ export default function NouveauBonAdmin() {
     setItems((prev) => [...prev, { productId: null, description: "", quantity: 1, unitPrice: 0, itemType: "piece" }]);
   }
 
+  function addDiscount(mode) {
+    setItems((prev) => [...prev, {
+      productId: null,
+      description: mode === "percent" ? "Escompte" : "Reduction",
+      quantity: 1,
+      unitPrice: 0,
+      itemType: "discount",
+      discountMode: mode, // "percent" or "amount"
+      discountPercent: mode === "percent" ? 10 : 0,
+      discountAmount: mode === "amount" ? 0 : 0,
+    }]);
+  }
+
   function updateItem(idx, field, value) {
     setItems((prev) => prev.map((it, i) => i === idx ? { ...it, [field]: value } : it));
   }
@@ -84,7 +97,24 @@ export default function NouveauBonAdmin() {
     setItems((prev) => prev.filter((_, i) => i !== idx));
   }
 
-  const totalPieces = items.reduce((s, it) => s + Number(it.quantity) * Number(it.unitPrice), 0);
+  // Base subtotal = pieces only (no labor, no discounts) — used as the denominator for % discounts
+  const piecesSubtotalBase = items
+    .filter((it) => it.itemType !== "discount")
+    .reduce((s, it) => s + Number(it.quantity) * Number(it.unitPrice), 0);
+
+  // Compute effective unitPrice for each discount line based on current base
+  const itemsComputed = items.map((it) => {
+    if (it.itemType !== "discount") return it;
+    let amount = 0;
+    if (it.discountMode === "percent") {
+      amount = -((Number(it.discountPercent) || 0) / 100) * piecesSubtotalBase;
+    } else {
+      amount = -Math.abs(Number(it.discountAmount) || 0);
+    }
+    return { ...it, unitPrice: Math.round(amount * 100) / 100 };
+  });
+
+  const totalPieces = itemsComputed.reduce((s, it) => s + Number(it.quantity) * Number(it.unitPrice), 0);
   const totalLabor = Number(laborHours) * settings.labor_rate_per_hour;
   const subtotal = totalPieces + totalLabor;
   const tps = subtotal * settings.tps_rate;
@@ -110,7 +140,7 @@ export default function NouveauBonAdmin() {
           notes: notes || null,
           statut,
           laborHours,
-          items: items.map((it) => ({
+          items: itemsComputed.map((it) => ({
             productId: it.productId,
             description: it.description,
             quantity: Number(it.quantity),
@@ -241,40 +271,104 @@ export default function NouveauBonAdmin() {
             </button>
           </div>
 
-          {items.map((it, i) => (
-            <div key={i} className="border admin-border rounded-lg p-3">
-              <div className="flex items-start gap-3 mb-2">
-                <input
-                  value={it.description}
-                  onChange={(e) => updateItem(i, "description", e.target.value)}
-                  placeholder="Description..."
-                  className="admin-input border rounded px-2 py-1.5 text-sm flex-1"
-                />
-                <button type="button" onClick={() => removeItem(i)} className="text-red-500 text-sm">
-                  <i className="fas fa-trash"></i>
-                </button>
+          {items.map((it, i) => {
+            if (it.itemType === "discount") {
+              const computed = itemsComputed[i];
+              return (
+                <div key={i} className="border border-green-500/30 bg-green-500/5 rounded-lg p-3">
+                  <div className="flex items-start gap-3 mb-2">
+                    <i className="fas fa-tag text-green-500 mt-1.5"></i>
+                    <input
+                      value={it.description}
+                      onChange={(e) => updateItem(i, "description", e.target.value)}
+                      placeholder="Description de l'escompte..."
+                      className="admin-input border rounded px-2 py-1.5 text-sm flex-1"
+                    />
+                    <button type="button" onClick={() => removeItem(i)} className="text-red-500 text-sm">
+                      <i className="fas fa-trash"></i>
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm flex-wrap">
+                    <select
+                      value={it.discountMode}
+                      onChange={(e) => updateItem(i, "discountMode", e.target.value)}
+                      className="admin-input border rounded px-2 py-1 text-xs"
+                    >
+                      <option value="percent">Pourcentage</option>
+                      <option value="amount">Montant fixe</option>
+                    </select>
+                    {it.discountMode === "percent" ? (
+                      <>
+                        <input
+                          type="number" value={it.discountPercent} min="0" max="100" step="0.5"
+                          onChange={(e) => updateItem(i, "discountPercent", parseFloat(e.target.value) || 0)}
+                          className="admin-input border rounded px-2 py-1 text-sm w-20 text-center"
+                        />
+                        <span className="admin-text-muted text-xs">%</span>
+                        <span className="admin-text-muted text-xs">sur {piecesSubtotalBase.toFixed(2)}$</span>
+                      </>
+                    ) : (
+                      <>
+                        <input
+                          type="number" value={it.discountAmount} min="0" step="0.01"
+                          onChange={(e) => updateItem(i, "discountAmount", parseFloat(e.target.value) || 0)}
+                          className="admin-input border rounded px-2 py-1 text-sm w-24 text-right"
+                        />
+                        <span className="admin-text-muted text-xs">$</span>
+                      </>
+                    )}
+                    <span className="ml-auto font-bold text-green-600">
+                      {computed.unitPrice.toFixed(2)}$
+                    </span>
+                  </div>
+                </div>
+              );
+            }
+            return (
+              <div key={i} className="border admin-border rounded-lg p-3">
+                <div className="flex items-start gap-3 mb-2">
+                  <input
+                    value={it.description}
+                    onChange={(e) => updateItem(i, "description", e.target.value)}
+                    placeholder="Description..."
+                    className="admin-input border rounded px-2 py-1.5 text-sm flex-1"
+                  />
+                  <button type="button" onClick={() => removeItem(i)} className="text-red-500 text-sm">
+                    <i className="fas fa-trash"></i>
+                  </button>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                  <label className="admin-text-muted text-xs">Qte</label>
+                  <input type="number" value={it.quantity} min="0" step="1"
+                    onChange={(e) => updateItem(i, "quantity", parseFloat(e.target.value) || 0)}
+                    className="admin-input border rounded px-2 py-1 text-sm w-20 text-center" />
+                  <label className="admin-text-muted text-xs ml-2">Prix</label>
+                  <input type="number" value={it.unitPrice} min="0" step="0.01"
+                    onChange={(e) => updateItem(i, "unitPrice", parseFloat(e.target.value) || 0)}
+                    className="admin-input border rounded px-2 py-1 text-sm w-24 text-right" />
+                  <span className="admin-text-muted text-xs">$</span>
+                  <span className="ml-auto font-bold text-[var(--color-red)]">
+                    {(Number(it.quantity) * Number(it.unitPrice)).toFixed(2)}$
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center gap-3 text-sm">
-                <label className="admin-text-muted text-xs">Qte</label>
-                <input type="number" value={it.quantity} min="0" step="1"
-                  onChange={(e) => updateItem(i, "quantity", parseFloat(e.target.value) || 0)}
-                  className="admin-input border rounded px-2 py-1 text-sm w-20 text-center" />
-                <label className="admin-text-muted text-xs ml-2">Prix</label>
-                <input type="number" value={it.unitPrice} min="0" step="0.01"
-                  onChange={(e) => updateItem(i, "unitPrice", parseFloat(e.target.value) || 0)}
-                  className="admin-input border rounded px-2 py-1 text-sm w-24 text-right" />
-                <span className="admin-text-muted text-xs">$</span>
-                <span className="ml-auto font-bold text-[var(--color-red)]">
-                  {(Number(it.quantity) * Number(it.unitPrice)).toFixed(2)}$
-                </span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
 
-          <button type="button" onClick={addCustomItem}
-            className="w-full py-2.5 border-2 border-dashed admin-border rounded-lg admin-text-muted text-sm admin-hover">
-            <i className="fas fa-plus mr-2"></i>Ligne personnalisee
-          </button>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <button type="button" onClick={addCustomItem}
+              className="py-2.5 border-2 border-dashed admin-border rounded-lg admin-text-muted text-sm admin-hover">
+              <i className="fas fa-plus mr-2"></i>Ligne personnalisee
+            </button>
+            <button type="button" onClick={() => addDiscount("percent")}
+              className="py-2.5 border-2 border-dashed border-green-500/30 rounded-lg text-green-600 text-sm hover:bg-green-500/5">
+              <i className="fas fa-percent mr-2"></i>Escompte %
+            </button>
+            <button type="button" onClick={() => addDiscount("amount")}
+              className="py-2.5 border-2 border-dashed border-green-500/30 rounded-lg text-green-600 text-sm hover:bg-green-500/5">
+              <i className="fas fa-dollar-sign mr-2"></i>Reduction $
+            </button>
+          </div>
         </div>
 
         {/* Labor + Totals */}
