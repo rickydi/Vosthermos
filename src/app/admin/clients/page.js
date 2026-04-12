@@ -14,9 +14,19 @@ const EMPTY_FORM = {
   notes: "",
 };
 
+const SORT_OPTIONS = [
+  { value: "updated_desc", label: "Recemment modifie" },
+  { value: "created_desc", label: "Date d'ajout (recent)" },
+  { value: "created_asc", label: "Date d'ajout (ancien)" },
+  { value: "name_asc", label: "Nom (A-Z)" },
+  { value: "name_desc", label: "Nom (Z-A)" },
+  { value: "city_asc", label: "Ville (A-Z)" },
+];
+
 export default function ClientsPage() {
   const [clients, setClients] = useState([]);
   const [search, setSearch] = useState("");
+  const [sort, setSort] = useState("updated_desc");
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -25,20 +35,31 @@ export default function ClientsPage() {
   const [error, setError] = useState("");
   const timer = useRef(null);
 
-  function load(q = "") {
+  function load(q = "", sortValue = sort) {
     setLoading(true);
-    fetch(`/api/admin/clients?q=${encodeURIComponent(q)}`)
+    fetch(`/api/admin/clients?q=${encodeURIComponent(q)}&sort=${sortValue}`)
       .then((r) => r.json())
       .then((data) => { setClients(data.clients || []); setLoading(false); })
       .catch(() => setLoading(false));
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(search, sort); }, []);
 
   useEffect(() => {
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => load(search), 300);
-  }, [search]);
+    timer.current = setTimeout(() => load(search, sort), 300);
+  }, [search, sort]);
+
+  async function handleDelete(client) {
+    if (!confirm(`Supprimer le client "${client.name}"? Cette action est irreversible.`)) return;
+    const res = await fetch(`/api/admin/clients/${client.id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || "Erreur lors de la suppression (peut-etre des bons de travail lies?)");
+      return;
+    }
+    load(search, sort);
+  }
 
   function resetForm() {
     setForm(EMPTY_FORM);
@@ -163,13 +184,24 @@ export default function ClientsPage() {
         </form>
       )}
 
-      <input
-        type="text"
-        placeholder="Rechercher par nom, telephone, email..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="admin-input border rounded-xl px-4 py-3 text-sm w-full mb-6"
-      />
+      <div className="flex flex-col md:flex-row gap-3 mb-6">
+        <input
+          type="text"
+          placeholder="Rechercher par nom, telephone, email, ville..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="admin-input border rounded-xl px-4 py-3 text-sm flex-1"
+        />
+        <select
+          value={sort}
+          onChange={(e) => setSort(e.target.value)}
+          className="admin-input border rounded-xl px-4 py-3 text-sm md:w-64"
+        >
+          {SORT_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+      </div>
 
       {loading ? (
         <div className="text-center py-12 admin-text-muted"><i className="fas fa-spinner fa-spin text-2xl"></i></div>
@@ -202,10 +234,14 @@ export default function ClientsPage() {
                   <td className="px-4 py-3 admin-text-muted">{c.phone || "—"}</td>
                   <td className="px-4 py-3 admin-text-muted">{c.city || "—"}</td>
                   <td className="px-4 py-3 admin-text">{c._count?.workOrders || 0}</td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
                     <button onClick={() => startEdit(c)}
-                      className="admin-text-muted hover:admin-text text-xs">
+                      className="admin-text-muted hover:admin-text text-xs mr-4" title="Modifier">
                       <i className="fas fa-pen"></i>
+                    </button>
+                    <button onClick={() => handleDelete(c)}
+                      className="text-red-500 hover:text-red-600 text-xs" title="Supprimer">
+                      <i className="fas fa-trash"></i>
                     </button>
                   </td>
                 </tr>

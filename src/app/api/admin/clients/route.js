@@ -7,6 +7,7 @@ export async function GET(req) {
 
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q") || "";
+  const sort = searchParams.get("sort") || "updated_desc";
   const page = parseInt(searchParams.get("page") || "1");
   const limit = parseInt(searchParams.get("limit") || "50");
 
@@ -16,14 +17,26 @@ export async function GET(req) {
       { phone: { contains: q } },
       { email: { contains: q, mode: "insensitive" } },
       { company: { contains: q, mode: "insensitive" } },
+      { city: { contains: q, mode: "insensitive" } },
     ],
   } : {};
+
+  const orderByMap = {
+    updated_desc: { updatedAt: "desc" },
+    updated_asc: { updatedAt: "asc" },
+    created_desc: { createdAt: "desc" },
+    created_asc: { createdAt: "asc" },
+    name_asc: { name: "asc" },
+    name_desc: { name: "desc" },
+    city_asc: { city: "asc" },
+  };
+  const orderBy = orderByMap[sort] || orderByMap.updated_desc;
 
   const [clients, total] = await Promise.all([
     prisma.client.findMany({
       where,
       include: { _count: { select: { workOrders: true } } },
-      orderBy: { updatedAt: "desc" },
+      orderBy,
       skip: (page - 1) * limit,
       take: limit,
     }),

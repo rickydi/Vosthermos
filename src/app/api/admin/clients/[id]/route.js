@@ -56,6 +56,20 @@ export async function DELETE(_req, { params }) {
   try { await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
 
   const { id } = await params;
-  await prisma.client.delete({ where: { id: parseInt(id) } });
-  return NextResponse.json({ ok: true });
+  const clientId = parseInt(id);
+
+  const workOrdersCount = await prisma.workOrder.count({ where: { clientId } });
+  if (workOrdersCount > 0) {
+    return NextResponse.json(
+      { error: `Impossible de supprimer: ${workOrdersCount} bon(s) de travail lie(s) a ce client.` },
+      { status: 409 }
+    );
+  }
+
+  try {
+    await prisma.client.delete({ where: { id: clientId } });
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    return NextResponse.json({ error: err.message || "Erreur de suppression" }, { status: 500 });
+  }
 }
