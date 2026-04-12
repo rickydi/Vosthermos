@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import CatalogPicker from "@/components/admin/CatalogPicker";
 
 export default function NouveauBonAdmin() {
   const router = useRouter();
@@ -25,9 +26,7 @@ export default function NouveauBonAdmin() {
   const [statut, setStatut] = useState("draft");
 
   const [items, setItems] = useState([]);
-  const [productSearch, setProductSearch] = useState("");
-  const [productResults, setProductResults] = useState([]);
-  const prodTimer = useRef(null);
+  const [catalogOpen, setCatalogOpen] = useState(false);
 
   const [laborHours, setLaborHours] = useState(0);
   const [settings, setSettings] = useState({ labor_rate_per_hour: 85, tps_rate: 0.05, tvq_rate: 0.09975 });
@@ -62,27 +61,15 @@ export default function NouveauBonAdmin() {
     }, 300);
   }, [clientSearch, selectedClient]);
 
-  useEffect(() => {
-    if (productSearch.length < 2) { setProductResults([]); return; }
-    clearTimeout(prodTimer.current);
-    prodTimer.current = setTimeout(() => {
-      fetch(`/api/technician/products?q=${encodeURIComponent(productSearch)}`)
-        .then((r) => r.json())
-        .then((data) => { if (Array.isArray(data)) setProductResults(data); })
-        .catch(() => {});
-    }, 300);
-  }, [productSearch]);
-
   function addProduct(p) {
     setItems((prev) => [...prev, {
       productId: p.id,
       description: `${p.sku} — ${p.name}`,
       quantity: 1,
-      unitPrice: p.price,
+      unitPrice: Number(p.price),
       itemType: "piece",
     }]);
-    setProductSearch("");
-    setProductResults([]);
+    setCatalogOpen(false);
   }
 
   function addCustomItem() {
@@ -246,25 +233,13 @@ export default function NouveauBonAdmin() {
 
         {/* Items */}
         <div className="admin-card border rounded-xl p-6 space-y-4">
-          <h2 className="admin-text font-bold">Pieces utilisees</h2>
-          <input
-            type="text"
-            placeholder="Rechercher une piece (SKU ou nom)..."
-            value={productSearch}
-            onChange={(e) => setProductSearch(e.target.value)}
-            className="admin-input border rounded-lg px-4 py-2.5 text-sm w-full"
-          />
-          {productResults.length > 0 && (
-            <div className="border rounded-lg overflow-hidden admin-border max-h-48 overflow-y-auto">
-              {productResults.map((p) => (
-                <button type="button" key={p.id} onClick={() => addProduct(p)}
-                  className="w-full text-left px-4 py-2 border-b admin-border admin-hover last:border-b-0 flex justify-between text-sm">
-                  <span className="admin-text">{p.sku} — {p.name}</span>
-                  <span className="text-[var(--color-red)] font-bold">{p.price.toFixed(2)}$</span>
-                </button>
-              ))}
-            </div>
-          )}
+          <div className="flex items-center justify-between">
+            <h2 className="admin-text font-bold">Pieces utilisees</h2>
+            <button type="button" onClick={() => setCatalogOpen(true)}
+              className="px-4 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium">
+              <i className="fas fa-book-open mr-2"></i>Parcourir le catalogue
+            </button>
+          </div>
 
           {items.map((it, i) => (
             <div key={i} className="border admin-border rounded-lg p-3">
@@ -346,6 +321,8 @@ export default function NouveauBonAdmin() {
           </div>
         </div>
       </form>
+
+      <CatalogPicker open={catalogOpen} onClose={() => setCatalogOpen(false)} onPick={addProduct} />
     </div>
   );
 }
