@@ -149,7 +149,7 @@ const jsonLd = {
     { "@type": "Offer", itemOffered: { "@type": "Service", name: "Remplacement de quincaillerie" }, areaServed: { "@type": "State", name: "Quebec" } },
     { "@type": "Offer", itemOffered: { "@type": "Service", name: "Reparation de portes en bois" }, areaServed: { "@type": "State", name: "Quebec" } },
     { "@type": "Offer", itemOffered: { "@type": "Service", name: "Moustiquaires sur mesure" }, areaServed: { "@type": "State", name: "Quebec" } },
-    { "@type": "Offer", itemOffered: { "@type": "Product", name: "Pieces de remplacement pour portes et fenetres" }, availability: "https://schema.org/InStock", url: "https://www.vosthermos.com/boutique" },
+    { "@type": "Offer", itemOffered: { "@type": "Service", name: "Boutique de pieces pour portes et fenetres" }, areaServed: { "@type": "State", name: "Quebec" } },
   ],
 };
 
