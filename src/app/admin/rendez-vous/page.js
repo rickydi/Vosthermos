@@ -47,22 +47,39 @@ function getWeekDates(referenceDate) {
   return days;
 }
 
+function getMonthDates(year, month) {
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const startOffset = (firstDay.getDay() + 6) % 7; // Monday = 0
+  const days = [];
+  for (let i = -startOffset; i <= lastDay.getDate() + (6 - (lastDay.getDay() + 6) % 7) - 1; i++) {
+    const d = new Date(year, month, i + 1);
+    days.push(d);
+  }
+  return days;
+}
+
 export default function AdminAppointmentsPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [updating, setUpdating] = useState(false);
+  const [view, setView] = useState("week"); // "week" | "month"
 
   const weekDates = getWeekDates(currentDate);
   const weekStart = weekDates[0];
   const weekEnd = weekDates[6];
 
+  const monthDates = getMonthDates(currentDate.getFullYear(), currentDate.getMonth());
+  const monthStart = monthDates[0];
+  const monthEnd = monthDates[monthDates.length - 1];
+
   const fetchAppointments = useCallback(async () => {
     setLoading(true);
     try {
-      const from = formatDate(weekStart);
-      const to = formatDate(weekEnd);
+      const from = formatDate(view === "week" ? weekStart : monthStart);
+      const to = formatDate(view === "week" ? weekEnd : monthEnd);
       const res = await fetch(`/api/admin/appointments?from=${from}&to=${to}`);
       if (res.ok) {
         const data = await res.json();
@@ -72,21 +89,23 @@ export default function AdminAppointmentsPage() {
       console.error("Error fetching appointments:", err);
     }
     setLoading(false);
-  }, [weekStart.getTime(), weekEnd.getTime()]);
+  }, [view === "week" ? weekStart.getTime() : monthStart.getTime(), view === "week" ? weekEnd.getTime() : monthEnd.getTime(), view]);
 
   useEffect(() => {
     fetchAppointments();
   }, [fetchAppointments]);
 
-  function prevWeek() {
+  function prevPeriod() {
     const d = new Date(currentDate);
-    d.setDate(d.getDate() - 7);
+    if (view === "week") d.setDate(d.getDate() - 7);
+    else d.setMonth(d.getMonth() - 1);
     setCurrentDate(d);
   }
 
-  function nextWeek() {
+  function nextPeriod() {
     const d = new Date(currentDate);
-    d.setDate(d.getDate() + 7);
+    if (view === "week") d.setDate(d.getDate() + 7);
+    else d.setMonth(d.getMonth() + 1);
     setCurrentDate(d);
   }
 
@@ -146,28 +165,33 @@ export default function AdminAppointmentsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <h1 className="text-2xl font-extrabold admin-text">Rendez-vous</h1>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={goToday}
-            className="px-4 py-2 rounded-lg text-sm font-semibold admin-text-muted admin-hover admin-card transition-all"
-          >
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex gap-1 mr-2">
+            <button onClick={() => setView("week")}
+              className={`px-3 py-2 rounded-lg text-xs font-bold transition-colors ${view === "week" ? "bg-[var(--color-red)]/10 text-[var(--color-red)]" : "admin-text-muted admin-hover"}`}>
+              Semaine
+            </button>
+            <button onClick={() => setView("month")}
+              className={`px-3 py-2 rounded-lg text-xs font-bold transition-colors ${view === "month" ? "bg-[var(--color-red)]/10 text-[var(--color-red)]" : "admin-text-muted admin-hover"}`}>
+              Mois
+            </button>
+          </div>
+          <button onClick={goToday}
+            className="px-4 py-2 rounded-lg text-sm font-semibold admin-text-muted admin-hover admin-card transition-all">
             Aujourd&apos;hui
           </button>
-          <button
-            onClick={prevWeek}
-            className="w-9 h-9 rounded-lg flex items-center justify-center admin-text-muted admin-hover transition-colors"
-          >
+          <button onClick={prevPeriod}
+            className="w-9 h-9 rounded-lg flex items-center justify-center admin-text-muted admin-hover transition-colors">
             <i className="fas fa-chevron-left"></i>
           </button>
-          <button
-            onClick={nextWeek}
-            className="w-9 h-9 rounded-lg flex items-center justify-center admin-text-muted admin-hover transition-colors"
-          >
+          <button onClick={nextPeriod}
+            className="w-9 h-9 rounded-lg flex items-center justify-center admin-text-muted admin-hover transition-colors">
             <i className="fas fa-chevron-right"></i>
           </button>
           <span className="admin-text font-semibold text-sm ml-2">
-            {weekStart.getDate()} {MONTHS_FR[weekStart.getMonth()]} - {weekEnd.getDate()}{" "}
-            {MONTHS_FR[weekEnd.getMonth()]} {weekEnd.getFullYear()}
+            {view === "week"
+              ? `${weekStart.getDate()} ${MONTHS_FR[weekStart.getMonth()]} - ${weekEnd.getDate()} ${MONTHS_FR[weekEnd.getMonth()]} ${weekEnd.getFullYear()}`
+              : `${MONTHS_FR[currentDate.getMonth()]} ${currentDate.getFullYear()}`}
           </span>
         </div>
       </div>
@@ -215,12 +239,53 @@ export default function AdminAppointmentsPage() {
         </div>
       </div>
 
-      {/* Weekly calendar */}
+      {/* Calendar */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
           <i className="fas fa-spinner fa-spin text-2xl admin-text-muted"></i>
         </div>
+      ) : view === "month" ? (
+        /* Monthly view */
+        <div>
+          <div className="grid grid-cols-7 gap-px mb-px">
+            {DAYS_SHORT.map((d) => (
+              <div key={d} className="admin-text-muted text-[10px] font-bold uppercase tracking-widest text-center py-2">{d}</div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 gap-1">
+            {monthDates.map((date) => {
+              const dateStr = formatDate(date);
+              const dayAppts = getAppointmentsForDate(dateStr);
+              const isToday = dateStr === todayStr;
+              const isCurrentMonth = date.getMonth() === currentDate.getMonth();
+
+              return (
+                <div key={dateStr}
+                  className={`admin-card rounded-lg min-h-[90px] p-1.5 ${isToday ? "ring-2 ring-[var(--color-red)]" : ""} ${!isCurrentMonth ? "opacity-30" : ""}`}>
+                  <p className={`text-xs font-bold mb-1 ${isToday ? "text-[var(--color-red)]" : "admin-text-muted"}`}>
+                    {date.getDate()}
+                  </p>
+                  {dayAppts.slice(0, 3).map((appt) => {
+                    const statusCfg = STATUS_CONFIG[appt.status] || STATUS_CONFIG.pending;
+                    return (
+                      <button key={appt.id} onClick={() => setSelectedAppointment(appt)}
+                        className="w-full text-left mb-0.5 px-1.5 py-0.5 rounded text-[10px] truncate admin-hover flex items-center gap-1"
+                        style={{ background: `${statusCfg.dot === "bg-yellow-400" ? "rgba(234,179,8,0.15)" : statusCfg.dot === "bg-green-400" ? "rgba(34,197,94,0.15)" : statusCfg.dot === "bg-blue-400" ? "rgba(59,130,246,0.15)" : "rgba(239,68,68,0.15)"}` }}>
+                        <span className={`w-1 h-1 rounded-full ${statusCfg.dot} shrink-0`}></span>
+                        <span className="admin-text truncate">{appt.timeSlot} {appt.name}</span>
+                      </button>
+                    );
+                  })}
+                  {dayAppts.length > 3 && (
+                    <p className="admin-text-muted text-[9px] text-center">+{dayAppts.length - 3} de plus</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
       ) : (
+        /* Weekly view */
         <div className="grid grid-cols-1 lg:grid-cols-7 gap-3">
           {weekDates.map((date, i) => {
             const dateStr = formatDate(date);

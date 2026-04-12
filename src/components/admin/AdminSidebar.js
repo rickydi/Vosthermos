@@ -33,19 +33,27 @@ export default function AdminSidebar() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [unreadChat, setUnreadChat] = useState(0);
+  const [pendingRdv, setPendingRdv] = useState(0);
 
   useEffect(() => {
-    async function fetchUnread() {
+    async function fetchBadges() {
       try {
-        const res = await fetch("/api/admin/chat");
-        const data = await res.json();
-        if (Array.isArray(data)) {
-          setUnreadChat(data.reduce((sum, c) => sum + (c.unreadCount || 0), 0));
+        const [chatRes, rdvRes] = await Promise.all([
+          fetch("/api/admin/chat"),
+          fetch("/api/admin/appointments?status=pending"),
+        ]);
+        const chatData = await chatRes.json();
+        if (Array.isArray(chatData)) {
+          setUnreadChat(chatData.reduce((sum, c) => sum + (c.unreadCount || 0), 0));
+        }
+        const rdvData = await rdvRes.json();
+        if (Array.isArray(rdvData)) {
+          setPendingRdv(rdvData.length);
         }
       } catch {}
     }
-    fetchUnread();
-    const interval = setInterval(fetchUnread, 10000);
+    fetchBadges();
+    const interval = setInterval(fetchBadges, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -123,6 +131,12 @@ export default function AdminSidebar() {
                       <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500" />
                     </span>
                   )
+                )}
+                {item.href === "/admin/rendez-vous" && pendingRdv > 0 && (
+                  <span className="ml-auto flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse" />
+                    <span className="text-xs font-bold">{pendingRdv}</span>
+                  </span>
                 )}
               </Link>
             )
