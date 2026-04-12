@@ -1,8 +1,9 @@
 #!/bin/bash
-# Atomic-swap deploy for vosthermos
-# - Builds to .next.new while pm2 keeps serving the old .next
-# - Only swaps + reloads if build succeeded
-# - On failure, site stays up untouched
+# Deploy for vosthermos with rollback safety
+# - Stops pm2 to free RAM during build (VPS too small for concurrent build + run)
+# - Builds into .next.new
+# - On success: swap .next.new -> .next and start pm2
+# - On failure: keep old .next intact and restart pm2 (site comes back with previous build)
 
 set -e
 
@@ -12,22 +13,28 @@ LOCKFILE="/tmp/vost-deploy.lock"
 
 cd "$APP_DIR"
 
-# Prevent concurrent deploys
 exec 200>"$LOCKFILE"
 flock -n 200 || { echo "[deploy] another deploy is running"; exit 1; }
 
 echo "[deploy] git pull"
 git pull origin master
 
-echo "[deploy] cleaning old .next.new"
+echo "[deploy] cleaning any old .next.new"
 rm -rf .next.new
 
-echo "[deploy] building into .next.new (webpack, heap 1536MB)"
-NODE_OPTIONS="--max-old-space-size=1536" NEXT_DIST_DIR=".next.new" npm run build
+echo "[deploy] stopping pm2 $APP_NAME to free memory"
+pm2 stop "$APP_NAME" || true
 
-if [ ! -f .next.new/BUILD_ID ]; then
-  echo "[deploy] BUILD FAILED — no BUILD_ID found, pm2 untouched"
+echo "[deploy] building into .next.new (webpack, heap 1536MB)"
+set +e
+NODE_OPTIONS="--max-old-space-size=1536" NEXT_DIST_DIR=".next.new" npm run build
+BUILD_EXIT=$?
+set -e
+
+if [ $BUILD_EXIT -ne 0 ] || [ ! -f .next.new/BUILD_ID ]; then
+  echo "[deploy] BUILD FAILED (exit=$BUILD_EXIT) — restoring old build"
   rm -rf .next.new
+  pm2 start "$APP_NAME"
   exit 1
 fi
 
@@ -36,10 +43,10 @@ rm -rf .next.old
 [ -d .next ] && mv .next .next.old
 mv .next.new .next
 
-echo "[deploy] pm2 reload $APP_NAME"
-pm2 reload "$APP_NAME" --update-env
+echo "[deploy] starting pm2 $APP_NAME"
+pm2 start "$APP_NAME"
 
-echo "[deploy] cleanup old build"
+echo "[deploy] cleanup .next.old"
 rm -rf .next.old
 
 echo "[deploy] done"
