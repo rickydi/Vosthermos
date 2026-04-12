@@ -9,7 +9,7 @@ export async function PUT(request, { params }) {
     const body = await request.json();
     const { status } = body;
 
-    const validStatuses = ["pending", "confirmed", "completed", "cancelled"];
+    const validStatuses = ["pending", "waiting_client", "confirmed", "completed", "cancelled"];
     if (!status || !validStatuses.includes(status)) {
       return NextResponse.json(
         { error: `Statut invalide. Valeurs acceptees: ${validStatuses.join(", ")}` },
