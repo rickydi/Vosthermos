@@ -76,7 +76,7 @@ export async function GET(request) {
 
       // Requete 1: vue par page (donnees completes incluant requetes anonymisees)
       const pagesRes = await searchconsole.searchanalytics.query({
-        siteUrl: "https://vosthermos.com/",
+        siteUrl: "https://www.vosthermos.com/",
         requestBody: {
           startDate: formatDate(startDate),
           endDate: formatDate(endDate),
@@ -89,7 +89,7 @@ export async function GET(request) {
 
       // Requete 2: vue par requete (peut etre incomplete - Google anonymise)
       const queriesRes = await searchconsole.searchanalytics.query({
-        siteUrl: "https://vosthermos.com/",
+        siteUrl: "https://www.vosthermos.com/",
         requestBody: {
           startDate: formatDate(startDate),
           endDate: formatDate(endDate),
@@ -146,7 +146,7 @@ export async function GET(request) {
     }
 
     const response = await searchconsole.searchanalytics.query({
-      siteUrl: "https://vosthermos.com/",
+      siteUrl: "https://www.vosthermos.com/",
       requestBody: {
         startDate: formatDate(startDate),
         endDate: formatDate(endDate),
