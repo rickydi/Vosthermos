@@ -12,6 +12,7 @@ const DAYS_SHORT = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
 const STATUS_CONFIG = {
   pending: { label: "En attente", color: "bg-yellow-500/20 text-yellow-400", dot: "bg-yellow-400" },
+  waiting_client: { label: "Attend retour client", color: "bg-orange-500/20 text-orange-400", dot: "bg-orange-400" },
   confirmed: { label: "Confirme", color: "bg-green-500/20 text-green-400", dot: "bg-green-400" },
   completed: { label: "Complete", color: "bg-blue-500/20 text-blue-400", dot: "bg-blue-400" },
   cancelled: { label: "Annule", color: "bg-red-500/20 text-red-400", dot: "bg-red-400" },
