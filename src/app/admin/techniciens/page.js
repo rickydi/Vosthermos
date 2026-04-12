@@ -49,7 +49,7 @@ export default function TechniciensPage() {
   }
 
   return (
-    <div>
+    <div className="p-6 lg:p-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="admin-text text-2xl font-bold">Techniciens</h1>
         <button onClick={() => { setShowForm(!showForm); setEditId(null); setForm({ name: "", email: "", phone: "", pin: "" }); }}
