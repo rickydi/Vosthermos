@@ -3,104 +3,147 @@ import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { getTransporter } from "@/lib/mail";
 import { getWorkOrderSettings } from "@/lib/work-order-utils";
+import { generateInvoicePdf } from "@/lib/invoice-pdf";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.vosthermos.com";
+const LOGO_URL = `${SITE_URL}/images/Vos-Thermos-Logo_Blanc.png`;
 
-function renderInvoiceHtml(wo, settings) {
-  const fmt = (n) => `${Number(n || 0).toFixed(2)} $`;
+function fmt(n) { return `${Number(n || 0).toFixed(2)} $`; }
+
+function renderEmailHtml(wo) {
   const date = new Date(wo.date).toLocaleDateString("fr-CA", {
     day: "numeric", month: "long", year: "numeric",
   });
-
-  const itemsRows = (wo.items || []).map((it) => {
-    const isDiscount = it.itemType === "discount" || Number(it.unitPrice) < 0;
-    const color = isDiscount ? "#059669" : "#111";
-    return `
-      <tr>
-        <td style="padding:10px 8px;border-bottom:1px solid #eee;color:${color};">
-          ${it.description || ""}
-          ${it.product?.sku ? `<span style="color:#999;font-size:11px;"> (${it.product.sku})</span>` : ""}
-        </td>
-        <td style="padding:10px 8px;border-bottom:1px solid #eee;text-align:right;color:#555;">${Number(it.quantity).toFixed(0)}</td>
-        <td style="padding:10px 8px;border-bottom:1px solid #eee;text-align:right;color:${color};">${fmt(it.unitPrice)}</td>
-        <td style="padding:10px 8px;border-bottom:1px solid #eee;text-align:right;color:${color};font-weight:600;">${fmt(it.totalPrice)}</td>
-      </tr>
-    `;
-  }).join("");
-
-  return `
-  <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:720px;margin:0 auto;background:#fff;color:#111;">
-    <div style="background:#b91c1c;color:#fff;padding:24px;text-align:left;">
-      <h1 style="margin:0;font-size:24px;letter-spacing:.5px;">VOSTHERMOS</h1>
-      <p style="margin:4px 0 0;opacity:.85;font-size:13px;">Portes et fenetres — Reparation et remplacement</p>
-    </div>
-
-    <div style="padding:24px;">
-      <div style="display:flex;justify-content:space-between;margin-bottom:24px;">
-        <div style="flex:1;">
-          <p style="margin:0;font-size:11px;color:#999;font-weight:600;text-transform:uppercase;">Facturer a</p>
-          <p style="margin:4px 0 0;font-weight:700;font-size:15px;">${wo.client?.name || ""}</p>
-          ${wo.client?.company ? `<p style="margin:2px 0;color:#555;font-size:13px;">${wo.client.company}</p>` : ""}
-          ${wo.client?.address ? `<p style="margin:2px 0;color:#555;font-size:13px;">${wo.client.address}${wo.client?.city ? `, ${wo.client.city}` : ""}</p>` : ""}
-          ${wo.client?.phone ? `<p style="margin:2px 0;color:#555;font-size:13px;">${wo.client.phone}</p>` : ""}
-          ${wo.client?.email ? `<p style="margin:2px 0;color:#555;font-size:13px;">${wo.client.email}</p>` : ""}
-        </div>
-        <div style="text-align:right;">
-          <p style="margin:0;font-size:11px;color:#999;font-weight:600;text-transform:uppercase;">Facture</p>
-          <p style="margin:4px 0 0;font-weight:700;font-size:18px;color:#b91c1c;">${wo.number}</p>
-          <p style="margin:2px 0;color:#555;font-size:13px;">${date}</p>
-          ${wo.technician?.name ? `<p style="margin:2px 0;color:#555;font-size:12px;">Tech: ${wo.technician.name}</p>` : ""}
-        </div>
-      </div>
-
-      ${wo.description ? `
-        <div style="background:#f9fafb;border-left:3px solid #b91c1c;padding:12px 16px;margin-bottom:20px;border-radius:0 6px 6px 0;">
-          <p style="margin:0;font-size:11px;color:#999;font-weight:600;text-transform:uppercase;">Description du travail</p>
-          <p style="margin:6px 0 0;color:#333;font-size:13px;white-space:pre-wrap;">${wo.description}</p>
-        </div>
-      ` : ""}
-
-      <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px;">
-        <thead>
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Facture ${wo.number}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#111;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f3f4f6;padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+          <!-- Header -->
           <tr>
-            <th style="padding:10px 8px;text-align:left;border-bottom:2px solid #111;color:#999;font-size:11px;text-transform:uppercase;">Description</th>
-            <th style="padding:10px 8px;text-align:right;border-bottom:2px solid #111;color:#999;font-size:11px;text-transform:uppercase;width:60px;">Qte</th>
-            <th style="padding:10px 8px;text-align:right;border-bottom:2px solid #111;color:#999;font-size:11px;text-transform:uppercase;width:90px;">Prix</th>
-            <th style="padding:10px 8px;text-align:right;border-bottom:2px solid #111;color:#999;font-size:11px;text-transform:uppercase;width:100px;">Total</th>
+            <td style="background-color:#b91c1c;padding:32px 40px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td>
+                    <img src="${LOGO_URL}" alt="Vosthermos" height="60" style="display:block;border:0;outline:none;text-decoration:none;" />
+                  </td>
+                  <td align="right" style="color:#ffffff;">
+                    <div style="font-size:11px;letter-spacing:2px;opacity:.8;font-weight:600;">FACTURE</div>
+                    <div style="font-size:22px;font-weight:700;margin-top:4px;">${wo.number}</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
           </tr>
-        </thead>
-        <tbody>${itemsRows}</tbody>
-      </table>
 
-      <div style="margin-left:auto;width:300px;font-size:13px;">
-        <div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:#666;">Pieces</span><span>${fmt(wo.totalPieces)}</span></div>
-        <div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:#666;">Main d'oeuvre</span><span>${fmt(wo.totalLabor)}</span></div>
-        <div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid #e5e7eb;"><span style="color:#666;">Sous-total</span><span>${fmt(wo.subtotal)}</span></div>
-        <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;"><span style="color:#999;">TPS${settings.tps_number ? ` (${settings.tps_number})` : ""}</span><span style="color:#666;">${fmt(wo.tps)}</span></div>
-        <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;"><span style="color:#999;">TVQ${settings.tvq_number ? ` (${settings.tvq_number})` : ""}</span><span style="color:#666;">${fmt(wo.tvq)}</span></div>
-        <div style="display:flex;justify-content:space-between;padding:10px 0 4px;border-top:2px solid #111;font-size:16px;font-weight:700;"><span>Total</span><span style="color:#b91c1c;">${fmt(wo.total)}</span></div>
-      </div>
+          <!-- Greeting -->
+          <tr>
+            <td style="padding:40px 40px 20px;">
+              <h1 style="margin:0 0 12px;font-size:20px;font-weight:700;color:#111;">Bonjour ${wo.client?.name?.split(" ")[0] || ""},</h1>
+              <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#374151;">
+                Merci d'avoir choisi <strong>Vosthermos</strong> pour vos travaux. Vous trouverez ci-joint votre facture complete au format PDF.
+              </p>
+            </td>
+          </tr>
 
-      ${wo.signatureUrl ? `
-        <div style="margin-top:32px;border-top:1px solid #e5e7eb;padding-top:16px;">
-          <p style="margin:0;font-size:11px;color:#999;font-weight:600;text-transform:uppercase;">Signature du client</p>
-          <img src="${wo.signatureUrl}" alt="Signature" style="max-height:80px;margin-top:8px;" />
-        </div>
-      ` : ""}
+          <!-- Summary card -->
+          <tr>
+            <td style="padding:0 40px 24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f9fafb;border-radius:10px;padding:20px;">
+                <tr>
+                  <td>
+                    <div style="font-size:11px;color:#9ca3af;font-weight:600;letter-spacing:1px;">FACTURE</div>
+                    <div style="font-size:16px;color:#111;font-weight:600;margin-top:2px;">${wo.number}</div>
+                  </td>
+                  <td align="right">
+                    <div style="font-size:11px;color:#9ca3af;font-weight:600;letter-spacing:1px;">DATE</div>
+                    <div style="font-size:14px;color:#374151;margin-top:2px;">${date}</div>
+                  </td>
+                </tr>
+                <tr><td colspan="2" style="border-top:1px solid #e5e7eb;padding-top:14px;margin-top:14px;"></td></tr>
+                <tr>
+                  <td style="padding-top:14px;color:#6b7280;font-size:14px;">Sous-total</td>
+                  <td align="right" style="padding-top:14px;color:#111;font-size:14px;">${fmt(wo.subtotal)}</td>
+                </tr>
+                <tr>
+                  <td style="padding-top:4px;color:#9ca3af;font-size:12px;">TPS + TVQ</td>
+                  <td align="right" style="padding-top:4px;color:#6b7280;font-size:12px;">${fmt(Number(wo.tps) + Number(wo.tvq))}</td>
+                </tr>
+                <tr><td colspan="2" style="border-top:2px solid #111;padding-top:10px;"></td></tr>
+                <tr>
+                  <td style="padding-top:10px;color:#111;font-size:16px;font-weight:700;">Total</td>
+                  <td align="right" style="padding-top:10px;color:#b91c1c;font-size:20px;font-weight:700;">${fmt(wo.total)}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
 
-      ${settings.work_order_conditions ? `
-        <div style="margin-top:24px;padding-top:16px;border-top:1px solid #e5e7eb;">
-          <p style="margin:0;font-size:11px;color:#999;font-weight:600;text-transform:uppercase;">Conditions</p>
-          <p style="margin:6px 0 0;color:#555;font-size:11px;white-space:pre-wrap;">${settings.work_order_conditions}</p>
-        </div>
-      ` : ""}
-    </div>
+          <!-- PDF note -->
+          <tr>
+            <td style="padding:0 40px 32px;">
+              <div style="background-color:#fef2f2;border-left:3px solid #b91c1c;padding:14px 18px;border-radius:0 8px 8px 0;">
+                <div style="font-size:13px;color:#991b1b;font-weight:600;margin-bottom:4px;">Piece jointe</div>
+                <div style="font-size:13px;color:#555;">Facture-${wo.number}.pdf (detail complet des pieces et services)</div>
+              </div>
+            </td>
+          </tr>
 
-    <div style="background:#f9fafb;padding:16px;text-align:center;border-top:1px solid #e5e7eb;">
-      <p style="margin:0;color:#999;font-size:11px;">Merci de faire affaire avec Vosthermos — ${SITE_URL}</p>
-    </div>
-  </div>
-  `;
+          <!-- CTA -->
+          <tr>
+            <td style="padding:0 40px 32px;">
+              <p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:#6b7280;">
+                Des questions sur cette facture? Repondez simplement a ce courriel, nous sommes la pour vous aider.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color:#f9fafb;padding:24px 40px;border-top:1px solid #e5e7eb;text-align:center;">
+              <div style="font-size:12px;color:#9ca3af;line-height:1.6;">
+                <strong style="color:#111;">Vosthermos</strong> — Portes et fenetres<br>
+                Reparation et remplacement<br>
+                <a href="${SITE_URL}" style="color:#b91c1c;text-decoration:none;">vosthermos.com</a>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+function renderEmailText(wo) {
+  const date = new Date(wo.date).toLocaleDateString("fr-CA");
+  const name = wo.client?.name?.split(" ")[0] || "";
+  return `Bonjour ${name},
+
+Merci d'avoir choisi Vosthermos pour vos travaux.
+Vous trouverez ci-joint votre facture au format PDF.
+
+FACTURE ${wo.number}
+Date: ${date}
+
+Sous-total: ${fmt(wo.subtotal)}
+TPS + TVQ:  ${fmt(Number(wo.tps) + Number(wo.tvq))}
+TOTAL:      ${fmt(wo.total)}
+
+Des questions? Repondez simplement a ce courriel.
+
+---
+Vosthermos — Portes et fenetres
+Reparation et remplacement
+${SITE_URL}
+`;
 }
 
 export async function POST(req, { params }) {
@@ -131,7 +174,8 @@ export async function POST(req, { params }) {
   if (!to) return NextResponse.json({ error: "Adresse email manquante" }, { status: 400 });
 
   const settings = await getWorkOrderSettings();
-  const html = renderInvoiceHtml({
+
+  const serializedWo = {
     ...wo,
     totalPieces: Number(wo.totalPieces),
     totalLabor: Number(wo.totalLabor),
@@ -145,15 +189,36 @@ export async function POST(req, { params }) {
       unitPrice: Number(i.unitPrice),
       totalPrice: Number(i.totalPrice),
     })),
-  }, settings);
+  };
+
+  let pdfBuffer;
+  try {
+    pdfBuffer = await generateInvoicePdf(serializedWo, settings);
+  } catch (err) {
+    return NextResponse.json({ error: `Erreur generation PDF: ${err.message}` }, { status: 500 });
+  }
 
   try {
     const transporter = getTransporter();
+    const fromEmail = process.env.SMTP_USER;
     await transporter.sendMail({
-      from: `"Vosthermos" <${process.env.SMTP_USER}>`,
+      from: `"Vosthermos" <${fromEmail}>`,
       to,
+      replyTo: fromEmail,
       subject: `Facture ${wo.number} — Vosthermos`,
-      html,
+      text: renderEmailText(serializedWo),
+      html: renderEmailHtml(serializedWo),
+      headers: {
+        "X-Entity-Ref-ID": wo.number,
+        "List-Unsubscribe": `<mailto:${fromEmail}?subject=unsubscribe>`,
+      },
+      attachments: [
+        {
+          filename: `Facture-${wo.number}.pdf`,
+          content: pdfBuffer,
+          contentType: "application/pdf",
+        },
+      ],
     });
 
     await prisma.workOrder.update({

@@ -62,6 +62,16 @@ export default function BonDetailPage() {
 
   return (
     <div className="p-6 lg:p-8">
+      <style jsx global>{`
+        @media print {
+          @page { size: letter; margin: 0.4in; }
+          body { background: #fff !important; }
+          aside, .admin-header { display: none !important; }
+          main { padding: 0 !important; margin: 0 !important; }
+          .lg\\:ml-64 { margin-left: 0 !important; }
+          .print-container { padding: 0 !important; }
+        }
+      `}</style>
       {/* Top bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6 print:hidden">
         <div className="flex items-center gap-3">
@@ -92,21 +102,22 @@ export default function BonDetailPage() {
 
       {/* Email modal */}
       {showEmail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 print:hidden"
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm print:hidden"
           onClick={() => setShowEmail(false)}>
-          <div className="admin-card admin-border border rounded-xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
-            <h3 className="admin-text font-bold text-lg mb-4">Envoyer la facture par email</h3>
-            <label className="admin-text-muted text-xs mb-1 block">Destinataire</label>
+          <div className="bg-white text-gray-900 border border-gray-200 rounded-xl w-full max-w-md p-6 shadow-2xl dark:bg-gray-900 dark:text-white dark:border-gray-700"
+            onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-bold text-lg mb-4">Envoyer la facture par email</h3>
+            <label className="text-xs mb-1 block text-gray-500 dark:text-gray-400">Destinataire</label>
             <input
               type="email"
               value={emailTo}
               onChange={(e) => setEmailTo(e.target.value)}
-              className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full mb-4"
+              className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm w-full mb-4 focus:outline-none focus:ring-2 focus:ring-red-500"
               autoFocus
             />
             <div className="flex gap-3 justify-end">
               <button onClick={() => setShowEmail(false)}
-                className="px-4 py-2 admin-text-muted admin-hover rounded-lg text-sm">
+                className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-sm">
                 Annuler
               </button>
               <button onClick={sendEmail} disabled={sending}
@@ -118,19 +129,24 @@ export default function BonDetailPage() {
         </div>
       )}
 
-      {/* Invoice preview */}
-      <div className="bg-white text-black max-w-4xl mx-auto rounded-xl shadow-lg overflow-hidden print:shadow-none print:rounded-none print:max-w-none">
+      {/* Invoice preview — letter-size paper look */}
+      <div className="bg-white text-black mx-auto shadow-[0_10px_40px_rgba(0,0,0,0.25)] rounded-sm overflow-hidden print:shadow-none print:rounded-none"
+        style={{ width: "8.5in", maxWidth: "100%", minHeight: "11in" }}>
         {/* Header */}
-        <div className="bg-[var(--color-red)] text-white px-8 py-6">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-extrabold tracking-wide">VOSTHERMOS</h1>
-              <p className="text-xs opacity-85 mt-1">Portes et fenetres — Reparation et remplacement</p>
+        <div className="bg-[#b91c1c] text-white px-10 py-8">
+          <div className="flex items-start justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <img src="/images/Vos-Thermos-Logo_Blanc.png" alt="Vosthermos" className="h-20 w-auto" />
+              <div>
+                <p className="text-[10px] uppercase opacity-75 font-semibold tracking-widest">Portes et fenetres</p>
+                <p className="text-xs opacity-85">Reparation et remplacement</p>
+                <p className="text-xs opacity-85 mt-2">vosthermos.com</p>
+              </div>
             </div>
             <div className="text-right">
-              <p className="text-[10px] uppercase opacity-75 font-semibold">Facture</p>
-              <p className="text-xl font-bold">{wo.number}</p>
-              <p className="text-xs opacity-85">{dateLabel}</p>
+              <p className="text-[10px] uppercase opacity-75 font-semibold tracking-widest">Facture</p>
+              <p className="text-2xl font-bold mt-1">{wo.number}</p>
+              <p className="text-xs opacity-85 mt-1">{dateLabel}</p>
             </div>
           </div>
         </div>
