@@ -260,16 +260,32 @@ export default function AdminAppointmentsPage() {
                       <button
                         key={appt.id}
                         onClick={() => setSelectedAppointment(appt)}
-                        className="w-full text-left p-2.5 rounded-lg admin-hover transition-all group"
+                        className="w-full text-left p-2.5 rounded-lg admin-hover transition-all group border admin-border"
                       >
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <span className={`w-1.5 h-1.5 rounded-full ${statusCfg.dot}`}></span>
-                          <span className="admin-text text-xs font-bold">{appt.timeSlot}</span>
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className={`w-1.5 h-1.5 rounded-full ${statusCfg.dot}`}></span>
+                            <span className="admin-text text-xs font-bold">{appt.timeSlot}</span>
+                          </div>
+                          <span className={`text-[8px] font-bold uppercase px-1.5 py-0.5 rounded-full ${statusCfg.color}`}>
+                            {statusCfg.label}
+                          </span>
                         </div>
-                        <p className="admin-text text-xs font-semibold truncate">{appt.name}</p>
-                        <p className="admin-text-muted text-[10px] truncate">
+                        <p className="admin-text text-xs font-semibold">{appt.name}</p>
+                        <p className="text-[var(--color-red)] text-[10px] font-medium">
                           {SERVICE_LABELS[appt.serviceType] || appt.serviceType}
                         </p>
+                        {appt.phone && (
+                          <p className="admin-text-muted text-[10px]">
+                            <i className="fas fa-phone text-[8px] mr-1"></i>{appt.phone}
+                          </p>
+                        )}
+                        {(appt.address || appt.city) && (
+                          <p className="admin-text-muted text-[10px] truncate">
+                            <i className="fas fa-map-pin text-[8px] mr-1"></i>
+                            {[appt.address, appt.city].filter(Boolean).join(", ")}
+                          </p>
+                        )}
                       </button>
                     );
                   })}
@@ -443,13 +459,24 @@ export default function AdminAppointmentsPage() {
                   </div>
                 </div>
 
-                {/* Delete */}
-                <div className="admin-border border-t pt-5">
+                {/* WhatsApp Jason + Delete */}
+                <div className="admin-border border-t pt-5 flex items-center justify-between">
+                  <button
+                    onClick={() => {
+                      const a = selectedAppointment;
+                      const dateStr = new Date(a.date).toLocaleDateString("fr-CA", { weekday: "long", day: "numeric", month: "long" });
+                      const text = `*RDV Vosthermos*\n${a.name}\nTel: ${a.phone}\n${a.email ? `Email: ${a.email}\n` : ""}Service: ${SERVICE_LABELS[a.serviceType] || a.serviceType}\nDate: ${dateStr} a ${a.timeSlot}\n${a.address || ""}${a.city ? `, ${a.city}` : ""}\n${a.notes ? `\nNotes: ${a.notes}` : ""}`;
+                      window.open(`https://wa.me/15148258411?text=${encodeURIComponent(text)}`, "_blank");
+                    }}
+                    className="flex items-center gap-2 bg-green-500/20 text-green-400 hover:bg-green-500/30 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+                  >
+                    <i className="fab fa-whatsapp"></i> Jason
+                  </button>
                   <button
                     onClick={() => deleteAppointment(selectedAppointment.id)}
                     className="flex items-center gap-2 text-red-400 hover:text-red-300 text-sm font-semibold transition-colors"
                   >
-                    <i className="fas fa-trash-alt"></i> Supprimer ce rendez-vous
+                    <i className="fas fa-trash-alt"></i> Supprimer
                   </button>
                 </div>
               </div>
