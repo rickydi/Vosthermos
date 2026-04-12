@@ -33,8 +33,8 @@ export default function AnalyticsTracker() {
   const sessionIdRef = useRef(null);
   const pageEnteredRef = useRef(null);
 
-  // Skip admin pages
-  if (pathname.startsWith("/admin")) return null;
+  // Skip admin and terrain pages
+  if (pathname.startsWith("/admin") || pathname.startsWith("/terrain")) return null;
 
   useEffect(() => {
     // Start session

@@ -7,6 +7,8 @@ export default function PromoBanner() {
   const pathname = usePathname();
   const [promo, setPromo] = useState(null);
 
+  if (pathname.startsWith("/admin") || pathname.startsWith("/terrain")) return null;
+
   useEffect(() => {
     let cancelled = false;
     fetch("/api/promo", { next: { revalidate: 60 } })

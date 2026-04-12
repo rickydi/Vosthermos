@@ -25,8 +25,9 @@ export default function Header() {
   const isEnglish = pathname === "/en" || pathname.startsWith("/en/");
   const isHome = pathname === "/" || pathname === "/en";
   const isAdmin = pathname.startsWith("/admin");
+  const isTerrain = pathname.startsWith("/terrain");
 
-  if (isAdmin) return null;
+  if (isAdmin || isTerrain) return null;
 
   // Build the alternate language URL
   const getAlternateLangUrl = () => {
