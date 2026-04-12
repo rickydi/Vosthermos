@@ -514,11 +514,11 @@ export default function AdminAppointmentsPage() {
                         key={status}
                         disabled={updating || selectedAppointment.status === status}
                         onClick={() => updateStatus(selectedAppointment.id, status)}
-                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                        className={`px-4 py-2.5 rounded-lg text-xs font-bold transition-all ${
                           selectedAppointment.status === status
-                            ? cfg.color + " cursor-default"
-                            : "admin-text-muted admin-hover"
-                        } disabled:opacity-50`}
+                            ? cfg.color + " ring-2 ring-white/20"
+                            : cfg.color + " opacity-50 hover:opacity-100"
+                        } disabled:cursor-default`}
                       >
                         {cfg.label}
                       </button>
