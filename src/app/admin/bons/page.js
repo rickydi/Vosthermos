@@ -32,6 +32,10 @@ export default function BonsPage() {
           <h1 className="admin-text text-2xl font-bold">Bons de travail</h1>
           <p className="admin-text-muted text-sm">{workOrders.length} bons | Non-envoyes: {totalUnpaid.toFixed(2)}$</p>
         </div>
+        <Link href="/admin/bons/nouveau"
+          className="px-4 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium">
+          <i className="fas fa-plus mr-2"></i>Nouveau bon
+        </Link>
       </div>
 
       <div className="flex gap-2 mb-6">
