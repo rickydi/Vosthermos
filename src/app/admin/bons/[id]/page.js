@@ -61,19 +61,35 @@ export default function BonDetailPage() {
   const statusLabels = { draft: "Brouillon", completed: "Complete", sent: "Envoye" };
 
   return (
-    <div className="p-6 lg:p-8">
+    <div className="p-6 lg:p-8 invoice-wrapper">
       <style jsx global>{`
         @media print {
-          @page { size: letter; margin: 0.4in; }
-          body { background: #fff !important; }
-          aside, .admin-header { display: none !important; }
-          main { padding: 0 !important; margin: 0 !important; }
+          @page { size: letter; margin: 0; }
+          html, body {
+            background: #fff !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          aside, .admin-header, .no-print { display: none !important; }
+          main { padding: 0 !important; margin: 0 !important; overflow: visible !important; }
           .lg\\:ml-64 { margin-left: 0 !important; }
-          .print-container { padding: 0 !important; }
+          .invoice-wrapper { padding: 0 !important; }
+          .invoice-sheet {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-height: auto !important;
+            margin: 0 !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+          }
+          .invoice-sheet * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
         }
       `}</style>
       {/* Top bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6 print:hidden">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6 no-print print:hidden">
         <div className="flex items-center gap-3">
           <Link href="/admin/bons" className="admin-text-muted text-sm hover:admin-text">
             <i className="fas fa-arrow-left mr-2"></i>Retour
@@ -130,23 +146,23 @@ export default function BonDetailPage() {
       )}
 
       {/* Invoice preview — letter-size paper look */}
-      <div className="bg-white text-black mx-auto shadow-[0_10px_40px_rgba(0,0,0,0.25)] rounded-sm overflow-hidden print:shadow-none print:rounded-none"
+      <div className="invoice-sheet bg-white text-black mx-auto shadow-[0_10px_40px_rgba(0,0,0,0.25)] rounded-sm overflow-hidden"
         style={{ width: "8.5in", maxWidth: "100%", minHeight: "11in" }}>
-        {/* Header */}
-        <div className="bg-[#b91c1c] text-white px-10 py-8">
-          <div className="flex items-start justify-between gap-6">
-            <div className="flex items-center gap-4">
-              <img src="/images/Vos-Thermos-Logo_Blanc.png" alt="Vosthermos" className="h-20 w-auto" />
-              <div>
-                <p className="text-[10px] uppercase opacity-75 font-semibold tracking-widest">Portes et fenetres</p>
-                <p className="text-xs opacity-85">Reparation et remplacement</p>
-                <p className="text-xs opacity-85 mt-2">vosthermos.com</p>
-              </div>
-            </div>
+        {/* Header — simple red band with logo + invoice # */}
+        <div
+          className="text-white px-12 py-10"
+          style={{ background: "linear-gradient(135deg, #b91c1c 0%, #991b1b 100%)" }}
+        >
+          <div className="flex items-center justify-between gap-6">
+            <img
+              src="/images/Vos-Thermos-Logo_Blanc.png"
+              alt="Vosthermos"
+              className="h-24 w-auto"
+            />
             <div className="text-right">
-              <p className="text-[10px] uppercase opacity-75 font-semibold tracking-widest">Facture</p>
-              <p className="text-2xl font-bold mt-1">{wo.number}</p>
-              <p className="text-xs opacity-85 mt-1">{dateLabel}</p>
+              <p className="text-[11px] uppercase opacity-75 font-semibold tracking-[0.2em]">Facture</p>
+              <p className="text-3xl font-extrabold mt-2">{wo.number}</p>
+              <p className="text-xs opacity-80 mt-1">{dateLabel}</p>
             </div>
           </div>
         </div>

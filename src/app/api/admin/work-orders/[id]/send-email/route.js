@@ -28,15 +28,15 @@ function renderEmailHtml(wo) {
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
           <!-- Header -->
           <tr>
-            <td style="background-color:#b91c1c;padding:32px 40px;">
+            <td style="background:linear-gradient(135deg,#b91c1c 0%,#991b1b 100%);background-color:#b91c1c;padding:40px 40px;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td>
-                    <img src="${LOGO_URL}" alt="Vosthermos" height="60" style="display:block;border:0;outline:none;text-decoration:none;" />
+                  <td valign="middle">
+                    <img src="${LOGO_URL}" alt="Vosthermos" height="80" style="display:block;border:0;outline:none;text-decoration:none;height:80px;" />
                   </td>
-                  <td align="right" style="color:#ffffff;">
-                    <div style="font-size:11px;letter-spacing:2px;opacity:.8;font-weight:600;">FACTURE</div>
-                    <div style="font-size:22px;font-weight:700;margin-top:4px;">${wo.number}</div>
+                  <td align="right" valign="middle" style="color:#ffffff;">
+                    <div style="font-size:11px;letter-spacing:3px;opacity:.75;font-weight:600;">FACTURE</div>
+                    <div style="font-size:26px;font-weight:800;margin-top:6px;">${wo.number}</div>
                   </td>
                 </tr>
               </table>

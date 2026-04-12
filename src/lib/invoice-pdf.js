@@ -41,43 +41,41 @@ export async function generateInvoicePdf(wo, settings = {}) {
       const marginX = 40;
       const innerWidth = pageWidth - marginX * 2;
 
-      // ── Header (red bar with logo + invoice number) ──
-      doc.rect(0, 0, pageWidth, 110).fill(RED);
+      // ── Header — red band, tall, logo left + invoice right ──
+      const headerHeight = 140;
+      doc.rect(0, 0, pageWidth, headerHeight).fill(RED);
 
-      // Logo
+      // Logo (tall)
       try {
         const logoPath = path.join(process.cwd(), "public", "images", "Vos-Thermos-Logo_Blanc.png");
         if (fs.existsSync(logoPath)) {
-          doc.image(logoPath, marginX, 25, { height: 60 });
+          doc.image(logoPath, marginX, 25, { height: 90 });
         }
       } catch {}
 
-      // Company tagline
-      doc.fillColor("#ffffff").font("Helvetica").fontSize(9)
-        .text("PORTES ET FENETRES", marginX + 110, 40)
-        .font("Helvetica").fontSize(8)
-        .text("Reparation et remplacement", marginX + 110, 54)
-        .text("vosthermos.com", marginX + 110, 68);
-
       // Invoice number (right side)
-      doc.fillColor("#ffffff").font("Helvetica").fontSize(8)
-        .text("FACTURE", pageWidth - marginX - 140, 30, { width: 140, align: "right" });
-      doc.font("Helvetica-Bold").fontSize(20)
-        .text(wo.number, pageWidth - marginX - 140, 42, { width: 140, align: "right" });
-      doc.font("Helvetica").fontSize(9)
-        .text(fmtDate(wo.date), pageWidth - marginX - 140, 70, { width: 140, align: "right" });
+      const rightW = 160;
+      const rightX = pageWidth - marginX - rightW;
+      doc.fillColor("#ffffff").font("Helvetica").fontSize(9)
+        .text("FACTURE", rightX, 48, { width: rightW, align: "right", characterSpacing: 2 });
+      doc.font("Helvetica-Bold").fontSize(26)
+        .text(wo.number, rightX, 62, { width: rightW, align: "right" });
+      doc.font("Helvetica").fontSize(10)
+        .text(fmtDate(wo.date), rightX, 95, { width: rightW, align: "right" });
 
       // Reset y after header
-      doc.y = 140;
+      doc.y = headerHeight + 20;
       doc.x = marginX;
+
+      const bodyTop = headerHeight + 20;
 
       // ── Client block ──
       doc.fillColor(LIGHT_GRAY).font("Helvetica-Bold").fontSize(8)
-        .text("FACTURER A", marginX, 140);
+        .text("FACTURER A", marginX, bodyTop);
       doc.fillColor(DARK).font("Helvetica-Bold").fontSize(12)
-        .text(wo.client?.name || "", marginX, 154);
+        .text(wo.client?.name || "", marginX, bodyTop + 14);
 
-      let clientY = 170;
+      let clientY = bodyTop + 30;
       doc.fillColor(GRAY).font("Helvetica").fontSize(10);
       if (wo.client?.company) { doc.text(wo.client.company, marginX, clientY); clientY += 13; }
       if (wo.client?.address) {
@@ -90,8 +88,8 @@ export async function generateInvoicePdf(wo, settings = {}) {
 
       // Details right block
       doc.fillColor(LIGHT_GRAY).font("Helvetica-Bold").fontSize(8)
-        .text("DETAILS", pageWidth - marginX - 200, 140, { width: 200, align: "right" });
-      let detY = 154;
+        .text("DETAILS", pageWidth - marginX - 200, bodyTop, { width: 200, align: "right" });
+      let detY = bodyTop + 14;
       doc.fillColor(GRAY).font("Helvetica").fontSize(10);
       if (wo.technician?.name) {
         doc.text(`Technicien: ${wo.technician.name}`, pageWidth - marginX - 200, detY, { width: 200, align: "right" });
