@@ -146,6 +146,7 @@ model ChatConversation {
   clientEmail    String?
   lastMessageAt  DateTime      @default(now())
   lastNotifiedAt DateTime?
+  lastSeenAt     DateTime?
   isArchived     Boolean       @default(false)
   unreadCount    Int           @default(0)
   createdAt      DateTime      @default(now())
@@ -153,6 +154,13 @@ model ChatConversation {
   messages       ChatMessage[]
 
   @@map("chat_conversations")
+}
+
+model SiteSetting {
+  key   String @id
+  value String @db.Text
+
+  @@map("site_settings")
 }
 
 model ChatMessage {
