@@ -111,5 +111,17 @@ export default function AnalyticsTracker() {
     recordPageView();
   }, [pathname]);
 
+  // Chat presence: update lastSeenAt while client is on any page
+  useEffect(() => {
+    const chatId = localStorage.getItem("vosthermos-chat-id");
+    if (!chatId) return;
+    const ping = () => {
+      fetch(`/api/public/chat/${chatId}/ping`, { method: "POST" }).catch(() => {});
+    };
+    ping();
+    const interval = setInterval(ping, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   return null;
 }
