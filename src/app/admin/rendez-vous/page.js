@@ -326,7 +326,7 @@ export default function AdminAppointmentsPage() {
                       <button
                         key={appt.id}
                         onClick={() => setSelectedAppointment(appt)}
-                        className="w-full text-left p-2.5 rounded-lg admin-hover transition-all group border admin-border"
+                        className={`w-full text-left p-2.5 rounded-lg transition-all group border ${statusCfg.color} border-current/20`}
                       >
                         <div className="flex items-center justify-between mb-1">
                           <div className="flex items-center gap-1.5">
