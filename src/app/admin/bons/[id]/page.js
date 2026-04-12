@@ -2,118 +2,253 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 
 export default function BonDetailPage() {
   const { id } = useParams();
   const [wo, setWo] = useState(null);
+  const [sending, setSending] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [showEmail, setShowEmail] = useState(false);
+  const [emailTo, setEmailTo] = useState("");
 
   useEffect(() => {
     fetch(`/api/admin/work-orders/${id}`)
       .then((r) => r.json())
-      .then((data) => setWo(data))
+      .then((data) => { setWo(data); setEmailTo(data?.client?.email || ""); })
       .catch(() => {});
   }, [id]);
 
-  if (!wo) return <div className="text-center py-12 admin-text-muted"><i className="fas fa-spinner fa-spin text-2xl"></i></div>;
+  async function sendEmail() {
+    if (!emailTo.trim()) { setMsg("Adresse email requise"); return; }
+    setSending(true);
+    setMsg("");
+    try {
+      const res = await fetch(`/api/admin/work-orders/${id}/send-email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ to: emailTo.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erreur d'envoi");
+      setMsg(`Envoye a ${data.to}`);
+      setShowEmail(false);
+      // Refresh to show new statut
+      const refreshed = await fetch(`/api/admin/work-orders/${id}`).then((r) => r.json());
+      setWo(refreshed);
+    } catch (err) {
+      setMsg(err.message);
+    }
+    setSending(false);
+  }
+
+  if (!wo) return (
+    <div className="p-6 lg:p-8 text-center py-12 admin-text-muted">
+      <i className="fas fa-spinner fa-spin text-2xl"></i>
+    </div>
+  );
+
+  const fmt = (n) => `${Number(n || 0).toFixed(2)} $`;
+  const dateLabel = new Date(wo.date).toLocaleDateString("fr-CA", {
+    day: "numeric", month: "long", year: "numeric",
+  });
+
+  const statusColors = {
+    draft: "bg-yellow-500/20 text-yellow-400",
+    completed: "bg-green-500/20 text-green-400",
+    sent: "bg-blue-500/20 text-blue-400",
+  };
+  const statusLabels = { draft: "Brouillon", completed: "Complete", sent: "Envoye" };
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="admin-text text-2xl font-bold">Bon {wo.number}</h1>
-          <p className="admin-text-muted text-sm">{new Date(wo.date).toLocaleDateString("fr-CA", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</p>
+    <div className="p-6 lg:p-8">
+      {/* Top bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6 print:hidden">
+        <div className="flex items-center gap-3">
+          <Link href="/admin/bons" className="admin-text-muted text-sm hover:admin-text">
+            <i className="fas fa-arrow-left mr-2"></i>Retour
+          </Link>
+          <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${statusColors[wo.statut] || ""}`}>
+            {statusLabels[wo.statut] || wo.statut}
+          </span>
         </div>
-        <button onClick={() => window.print()} className="px-4 py-2 bg-[var(--color-teal)] text-white rounded-lg text-sm font-medium">
-          <i className="fas fa-print mr-2"></i>Imprimer
-        </button>
-      </div>
-
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Client + Tech info */}
-        <div className="admin-card border rounded-xl p-6">
-          <h3 className="admin-text-muted text-xs font-bold uppercase mb-3">Client</h3>
-          <p className="admin-text font-bold text-lg">{wo.client?.name}</p>
-          {wo.client?.company && <p className="admin-text-muted text-sm">{wo.client.company}</p>}
-          <p className="admin-text-muted text-sm">{wo.client?.address}{wo.client?.city ? `, ${wo.client.city}` : ""}</p>
-          <p className="admin-text-muted text-sm">{wo.client?.phone}</p>
-          {wo.client?.email && <p className="admin-text-muted text-sm">{wo.client.email}</p>}
-
-          <h3 className="admin-text-muted text-xs font-bold uppercase mt-6 mb-2">Technicien</h3>
-          <p className="admin-text">{wo.technician?.name || "Non assigne"}</p>
-
-          <h3 className="admin-text-muted text-xs font-bold uppercase mt-6 mb-2">Horaire</h3>
-          <p className="admin-text">{wo.heureArrivee || "—"} — {wo.heureDepart || "—"}</p>
-        </div>
-
-        {/* Items */}
-        <div className="lg:col-span-2 admin-card border rounded-xl p-6">
-          <h3 className="admin-text-muted text-xs font-bold uppercase mb-4">Pieces et services</h3>
-          <table className="w-full text-sm mb-4">
-            <thead>
-              <tr className="border-b admin-border admin-text-muted text-xs text-left">
-                <th className="pb-2">Description</th>
-                <th className="pb-2 text-right">Qte</th>
-                <th className="pb-2 text-right">Prix unit.</th>
-                <th className="pb-2 text-right">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {wo.items?.map((item) => (
-                <tr key={item.id} className="border-b admin-border">
-                  <td className="py-2 admin-text">
-                    {item.description}
-                    {item.product && <span className="admin-text-muted text-xs ml-2">({item.product.sku})</span>}
-                  </td>
-                  <td className="py-2 text-right admin-text-muted">{item.quantity}</td>
-                  <td className="py-2 text-right admin-text-muted">{item.unitPrice.toFixed(2)}$</td>
-                  <td className="py-2 text-right admin-text font-medium">{item.totalPrice.toFixed(2)}$</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          <div className="border-t admin-border pt-4 space-y-1 text-sm max-w-xs ml-auto">
-            <div className="flex justify-between"><span className="admin-text-muted">Pieces</span><span>{wo.totalPieces.toFixed(2)}$</span></div>
-            <div className="flex justify-between"><span className="admin-text-muted">Main d&apos;oeuvre</span><span>{wo.totalLabor.toFixed(2)}$</span></div>
-            <div className="flex justify-between border-t admin-border pt-1"><span className="admin-text-muted">Sous-total</span><span>{wo.subtotal.toFixed(2)}$</span></div>
-            <div className="flex justify-between text-xs"><span className="admin-text-muted">TPS</span><span>{wo.tps.toFixed(2)}$</span></div>
-            <div className="flex justify-between text-xs"><span className="admin-text-muted">TVQ</span><span>{wo.tvq.toFixed(2)}$</span></div>
-            <div className="flex justify-between text-lg font-bold border-t admin-border pt-2">
-              <span>Total</span><span className="text-[var(--color-red)]">{wo.total.toFixed(2)}$</span>
-            </div>
-          </div>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowEmail(true)}
+            className="px-4 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium">
+            <i className="fas fa-envelope mr-2"></i>Envoyer par email
+          </button>
+          <button onClick={() => window.print()}
+            className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-medium">
+            <i className="fas fa-print mr-2"></i>Imprimer
+          </button>
         </div>
       </div>
 
-      {/* Photos + Signature */}
-      <div className="grid lg:grid-cols-2 gap-6 mt-6">
-        {wo.photos?.length > 0 && (
-          <div className="admin-card border rounded-xl p-6">
-            <h3 className="admin-text-muted text-xs font-bold uppercase mb-3">Photos ({wo.photos.length})</h3>
-            <div className="grid grid-cols-3 gap-2">
-              {wo.photos.map((url, i) => (
-                <a key={i} href={url} target="_blank" rel="noopener noreferrer">
-                  <img src={url} alt="" className="w-full h-24 object-cover rounded-lg" />
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {wo.signatureUrl && (
-          <div className="admin-card border rounded-xl p-6">
-            <h3 className="admin-text-muted text-xs font-bold uppercase mb-3">Signature du client</h3>
-            <img src={wo.signatureUrl} alt="Signature" className="max-h-32 rounded-lg border admin-border" />
-          </div>
-        )}
-      </div>
-
-      {wo.description && (
-        <div className="admin-card border rounded-xl p-6 mt-6">
-          <h3 className="admin-text-muted text-xs font-bold uppercase mb-3">Description du travail</h3>
-          <p className="admin-text text-sm whitespace-pre-wrap">{wo.description}</p>
+      {msg && (
+        <div className="mb-4 px-4 py-3 admin-card border admin-border rounded-lg text-sm admin-text print:hidden">
+          {msg}
         </div>
       )}
+
+      {/* Email modal */}
+      {showEmail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 print:hidden"
+          onClick={() => setShowEmail(false)}>
+          <div className="admin-card admin-border border rounded-xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="admin-text font-bold text-lg mb-4">Envoyer la facture par email</h3>
+            <label className="admin-text-muted text-xs mb-1 block">Destinataire</label>
+            <input
+              type="email"
+              value={emailTo}
+              onChange={(e) => setEmailTo(e.target.value)}
+              className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full mb-4"
+              autoFocus
+            />
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setShowEmail(false)}
+                className="px-4 py-2 admin-text-muted admin-hover rounded-lg text-sm">
+                Annuler
+              </button>
+              <button onClick={sendEmail} disabled={sending}
+                className="px-4 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium disabled:opacity-50">
+                {sending ? "Envoi..." : "Envoyer"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Invoice preview */}
+      <div className="bg-white text-black max-w-4xl mx-auto rounded-xl shadow-lg overflow-hidden print:shadow-none print:rounded-none print:max-w-none">
+        {/* Header */}
+        <div className="bg-[var(--color-red)] text-white px-8 py-6">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-extrabold tracking-wide">VOSTHERMOS</h1>
+              <p className="text-xs opacity-85 mt-1">Portes et fenetres — Reparation et remplacement</p>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] uppercase opacity-75 font-semibold">Facture</p>
+              <p className="text-xl font-bold">{wo.number}</p>
+              <p className="text-xs opacity-85">{dateLabel}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className="p-8">
+          <div className="grid md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <p className="text-[10px] text-gray-400 uppercase font-semibold">Facturer a</p>
+              <p className="font-bold text-base text-gray-900 mt-1">{wo.client?.name}</p>
+              {wo.client?.company && <p className="text-sm text-gray-600">{wo.client.company}</p>}
+              {wo.client?.address && (
+                <p className="text-sm text-gray-600">{wo.client.address}{wo.client?.city ? `, ${wo.client.city}` : ""}</p>
+              )}
+              {wo.client?.postalCode && <p className="text-sm text-gray-600">{wo.client.postalCode}</p>}
+              {wo.client?.phone && <p className="text-sm text-gray-600">{wo.client.phone}</p>}
+              {wo.client?.email && <p className="text-sm text-gray-600">{wo.client.email}</p>}
+            </div>
+            <div className="md:text-right">
+              <p className="text-[10px] text-gray-400 uppercase font-semibold">Details</p>
+              {wo.technician?.name && (
+                <p className="text-sm text-gray-700 mt-1">Technicien: <span className="font-medium">{wo.technician.name}</span></p>
+              )}
+              {(wo.heureArrivee || wo.heureDepart) && (
+                <p className="text-sm text-gray-600">Horaire: {wo.heureArrivee || "—"} à {wo.heureDepart || "—"}</p>
+              )}
+            </div>
+          </div>
+
+          {wo.description && (
+            <div className="bg-gray-50 border-l-4 border-[var(--color-red)] px-4 py-3 mb-6 rounded-r">
+              <p className="text-[10px] text-gray-400 uppercase font-semibold">Description du travail</p>
+              <p className="text-sm text-gray-700 mt-1 whitespace-pre-wrap">{wo.description}</p>
+            </div>
+          )}
+
+          {/* Items table */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm mb-4 min-w-[500px]">
+              <thead>
+                <tr className="text-[10px] text-gray-400 uppercase font-semibold border-b-2 border-gray-900">
+                  <th className="text-left py-2 px-2">Description</th>
+                  <th className="text-right py-2 px-2 w-16">Qte</th>
+                  <th className="text-right py-2 px-2 w-24">Prix</th>
+                  <th className="text-right py-2 px-2 w-24">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {wo.items?.map((item) => {
+                  const isDiscount = item.itemType === "discount" || Number(item.unitPrice) < 0;
+                  const color = isDiscount ? "text-green-600" : "text-gray-900";
+                  return (
+                    <tr key={item.id} className="border-b border-gray-100">
+                      <td className={`py-2 px-2 ${color}`}>
+                        {item.description}
+                        {item.product?.sku && <span className="text-gray-400 text-xs ml-2">({item.product.sku})</span>}
+                      </td>
+                      <td className="py-2 px-2 text-right text-gray-600">{Number(item.quantity).toFixed(0)}</td>
+                      <td className={`py-2 px-2 text-right ${color}`}>{fmt(item.unitPrice)}</td>
+                      <td className={`py-2 px-2 text-right font-medium ${color}`}>{fmt(item.totalPrice)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Totals */}
+          <div className="flex justify-end">
+            <div className="w-full md:w-72 text-sm">
+              <div className="flex justify-between py-1 text-gray-600">
+                <span>Pieces</span><span>{fmt(wo.totalPieces)}</span>
+              </div>
+              <div className="flex justify-between py-1 text-gray-600">
+                <span>Main d&apos;oeuvre</span><span>{fmt(wo.totalLabor)}</span>
+              </div>
+              <div className="flex justify-between py-2 border-t border-gray-200 text-gray-700">
+                <span>Sous-total</span><span>{fmt(wo.subtotal)}</span>
+              </div>
+              <div className="flex justify-between py-1 text-xs text-gray-500">
+                <span>TPS</span><span>{fmt(wo.tps)}</span>
+              </div>
+              <div className="flex justify-between py-1 text-xs text-gray-500">
+                <span>TVQ</span><span>{fmt(wo.tvq)}</span>
+              </div>
+              <div className="flex justify-between py-2 border-t-2 border-gray-900 text-lg font-bold">
+                <span>Total</span><span className="text-[var(--color-red)]">{fmt(wo.total)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Signature */}
+          {wo.signatureUrl && (
+            <div className="mt-8 pt-4 border-t border-gray-200">
+              <p className="text-[10px] text-gray-400 uppercase font-semibold">Signature du client</p>
+              <img src={wo.signatureUrl} alt="Signature" className="max-h-20 mt-2" />
+            </div>
+          )}
+
+          {/* Photos (admin view only, not in print) */}
+          {wo.photos?.length > 0 && (
+            <div className="mt-8 pt-4 border-t border-gray-200 print:hidden">
+              <p className="text-[10px] text-gray-400 uppercase font-semibold mb-2">Photos ({wo.photos.length})</p>
+              <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
+                {wo.photos.map((url, i) => (
+                  <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                    <img src={url} alt="" className="w-full aspect-square object-cover rounded-lg" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="bg-gray-50 px-8 py-4 text-center text-xs text-gray-400 border-t border-gray-200">
+          Merci de faire affaire avec Vosthermos
+        </div>
+      </div>
     </div>
   );
 }

@@ -11,9 +11,9 @@ export default function AdminLayout({ children }) {
     <AdminThemeProvider>
       <div className="min-h-screen admin-bg flex">
         <AdminSidebar />
-        <div className="flex-1 lg:ml-64 min-h-screen flex flex-col">
+        <div className="flex-1 min-w-0 lg:ml-64 min-h-screen flex flex-col">
           <AdminHeader />
-          <main className="flex-1">
+          <main className="flex-1 min-w-0 overflow-x-hidden">
             {children}
           </main>
         </div>
