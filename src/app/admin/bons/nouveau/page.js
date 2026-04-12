@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import CatalogPicker from "@/components/admin/CatalogPicker";
+import ClientPicker from "@/components/admin/ClientPicker";
 
 export default function NouveauBonAdmin() {
   const router = useRouter();
@@ -13,6 +14,7 @@ export default function NouveauBonAdmin() {
   const [clientSearch, setClientSearch] = useState("");
   const [clientResults, setClientResults] = useState([]);
   const [selectedClient, setSelectedClient] = useState(null);
+  const [clientPickerOpen, setClientPickerOpen] = useState(false);
   const clientTimer = useRef(null);
 
   const [technicians, setTechnicians] = useState([]);
@@ -175,12 +177,20 @@ export default function NouveauBonAdmin() {
       <form onSubmit={handleSubmit} className="space-y-6 max-w-5xl">
         {/* Client */}
         <div className="admin-card border rounded-xl p-6">
-          <h2 className="admin-text font-bold mb-4">Client</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="admin-text font-bold">Client</h2>
+            {!selectedClient && (
+              <button type="button" onClick={() => setClientPickerOpen(true)}
+                className="px-4 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium">
+                <i className="fas fa-address-book mr-2"></i>Parcourir les clients
+              </button>
+            )}
+          </div>
           {!selectedClient ? (
             <>
               <input
                 type="text"
-                placeholder="Rechercher un client (nom, telephone, email)..."
+                placeholder="Rechercher par nom, telephone, email..."
                 value={clientSearch}
                 onChange={(e) => setClientSearch(e.target.value)}
                 className="admin-input border rounded-lg px-4 py-2.5 text-sm w-full"
@@ -417,6 +427,11 @@ export default function NouveauBonAdmin() {
       </form>
 
       <CatalogPicker open={catalogOpen} onClose={() => setCatalogOpen(false)} onPick={addProduct} />
+      <ClientPicker
+        open={clientPickerOpen}
+        onClose={() => setClientPickerOpen(false)}
+        onPick={(c) => { setSelectedClient(c); setClientPickerOpen(false); }}
+      />
     </div>
   );
 }
