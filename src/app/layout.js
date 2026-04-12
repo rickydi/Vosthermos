@@ -178,6 +178,7 @@ export default function RootLayout({ children }) {
             __html: `(function(){var p=location.pathname;if(p==='/en'||p.indexOf('/en/')===0){document.documentElement.lang='en'}})();`,
           }}
         />
+        <meta name="google-site-verification" content="LNVLJOda6YGvqjLQb_ZnVDd5ikvAwqv2HzXWJQDxQxA" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
