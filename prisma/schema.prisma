@@ -40,6 +40,7 @@ model Product {
   images              ProductImage[]
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
+  workOrderItems      WorkOrderItem[]
 
   @@map("products")
 }
@@ -257,4 +258,91 @@ model SeoRanking {
 
   @@index([city, checkedAt])
   @@map("seo_rankings")
+}
+
+// ─── Terrain: Bons de travail ────────────────────────────────────
+
+model Technician {
+  id         Int         @id @default(autoincrement())
+  name       String
+  email      String?     @unique
+  phone      String?
+  pin        String      // bcrypt hash du PIN 4 chiffres
+  isActive   Boolean     @default(true)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  workOrders WorkOrder[]
+
+  @@map("technicians")
+}
+
+model Client {
+  id             Int         @id @default(autoincrement())
+  name           String
+  company        String?
+  address        String?
+  city           String?
+  province       String      @default("QC")
+  postalCode     String?
+  phone          String?
+  email          String?     @unique
+  notes          String?     @db.Text
+  passwordHash   String?
+  portalToken    String?     @unique
+  isPortalActive Boolean     @default(false)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  workOrders     WorkOrder[]
+
+  @@index([phone])
+  @@map("clients")
+}
+
+model WorkOrder {
+  id            Int             @id @default(autoincrement())
+  number        String          @unique
+  clientId      Int
+  client        Client          @relation(fields: [clientId], references: [id])
+  technicianId  Int?
+  technician    Technician?     @relation(fields: [technicianId], references: [id])
+  date          DateTime        @db.Date
+  heureArrivee  String?
+  heureDepart   String?
+  description   String?         @db.Text
+  photos        String[]        @default([])
+  signatureUrl  String?
+  statut        String          @default("draft")
+  notes         String?         @db.Text
+  totalPieces   Decimal         @default(0) @db.Decimal(10, 2)
+  totalLabor    Decimal         @default(0) @db.Decimal(10, 2)
+  subtotal      Decimal         @default(0) @db.Decimal(10, 2)
+  tps           Decimal         @default(0) @db.Decimal(10, 2)
+  tvq           Decimal         @default(0) @db.Decimal(10, 2)
+  total         Decimal         @default(0) @db.Decimal(10, 2)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  items         WorkOrderItem[]
+
+  @@index([clientId])
+  @@index([technicianId])
+  @@index([statut])
+  @@index([date])
+  @@map("work_orders")
+}
+
+model WorkOrderItem {
+  id          Int        @id @default(autoincrement())
+  workOrderId Int
+  workOrder   WorkOrder  @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  productId   Int?
+  product     Product?   @relation(fields: [productId], references: [id], onDelete: SetNull)
+  description String
+  quantity    Decimal    @db.Decimal(10, 3)
+  unitPrice   Decimal    @db.Decimal(10, 2)
+  totalPrice  Decimal    @db.Decimal(10, 2)
+  itemType    String     @default("piece")
+  position    Int        @default(0)
+
+  @@index([workOrderId])
+  @@map("work_order_items")
 }

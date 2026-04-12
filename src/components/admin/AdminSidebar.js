@@ -19,6 +19,11 @@ const navItems = [
   { href: "/admin/blogue", label: "Blogue", icon: "fa-pen-nib" },
   { href: "/admin/rendez-vous", label: "Rendez-vous", icon: "fa-calendar-check" },
   { href: "/admin/seo", label: "SEO", icon: "fa-search" },
+  { section: "TERRAIN" },
+  { href: "/admin/bons", label: "Bons de travail", icon: "fa-clipboard-list" },
+  { href: "/admin/techniciens", label: "Techniciens", icon: "fa-hard-hat" },
+  { href: "/admin/clients", label: "Clients", icon: "fa-address-book" },
+  { section: "SYSTEME" },
   { href: "/admin/parametres", label: "Parametres", icon: "fa-cog" },
   { href: "/admin/utilisateurs", label: "Utilisateurs", icon: "fa-users" },
 ];

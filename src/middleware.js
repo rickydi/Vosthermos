@@ -13,11 +13,19 @@ export function middleware(request) {
     }
   }
 
+  // Protect terrain routes (except login)
+  if (pathname.startsWith("/terrain") && !pathname.startsWith("/terrain/login")) {
+    const token = request.cookies.get("vosthermos-tech-token")?.value;
+    if (!token) {
+      const loginUrl = new URL("/terrain/login", request.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  // Only run middleware on admin routes (locale detection now happens client-side
-  // via a small inline script in layout.js — this keeps all other pages cacheable as SSG)
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/terrain/:path*"],
 };

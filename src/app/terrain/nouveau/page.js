@@ -1,0 +1,544 @@
+"use client";
+
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import SignaturePad from "@/components/terrain/SignaturePad";
+
+const STEPS = ["Client", "Travail", "Pieces", "Signature"];
+
+export default function NouveauBon() {
+  const router = useRouter();
+  const [step, setStep] = useState(0);
+  const [saving, setSaving] = useState(false);
+
+  // Step 1: Client
+  const [clientId, setClientId] = useState(null);
+  const [clientSearch, setClientSearch] = useState("");
+  const [clientResults, setClientResults] = useState([]);
+  const [clientData, setClientData] = useState({ name: "", phone: "", email: "", address: "", city: "" });
+  const [isNewClient, setIsNewClient] = useState(false);
+
+  // Step 2: Travail
+  const [heureArrivee, setHeureArrivee] = useState(() => {
+    const now = new Date();
+    return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  });
+  const [heureDepart, setHeureDepart] = useState("");
+  const [description, setDescription] = useState("");
+  const [photos, setPhotos] = useState([]);
+  const [uploading, setUploading] = useState(false);
+
+  // Step 3: Pieces
+  const [items, setItems] = useState([]);
+  const [productSearch, setProductSearch] = useState("");
+  const [productResults, setProductResults] = useState([]);
+  const [laborHours, setLaborHours] = useState(0);
+  const [settings, setSettings] = useState({ labor_rate_per_hour: 85, tps_rate: 0.05, tvq_rate: 0.09975 });
+
+  // Step 4: Signature
+  const [signatureData, setSignatureData] = useState(null);
+
+  // Load settings
+  useEffect(() => {
+    fetch("/api/admin/settings")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data) {
+          setSettings({
+            labor_rate_per_hour: parseFloat(data.labor_rate_per_hour || 85),
+            tps_rate: parseFloat(data.tps_rate || 0.05),
+            tvq_rate: parseFloat(data.tvq_rate || 0.09975),
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // Client search debounce
+  const searchTimer = useRef(null);
+  useEffect(() => {
+    if (clientSearch.length < 2) { setClientResults([]); return; }
+    clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(() => {
+      fetch(`/api/technician/clients?q=${encodeURIComponent(clientSearch)}`)
+        .then((r) => r.json())
+        .then((data) => { if (Array.isArray(data)) setClientResults(data); })
+        .catch(() => {});
+    }, 300);
+  }, [clientSearch]);
+
+  // Product search debounce
+  const prodTimer = useRef(null);
+  useEffect(() => {
+    if (productSearch.length < 2) { setProductResults([]); return; }
+    clearTimeout(prodTimer.current);
+    prodTimer.current = setTimeout(() => {
+      fetch(`/api/technician/products?q=${encodeURIComponent(productSearch)}`)
+        .then((r) => r.json())
+        .then((data) => { if (Array.isArray(data)) setProductResults(data); })
+        .catch(() => {});
+    }, 300);
+  }, [productSearch]);
+
+  function selectClient(client) {
+    setClientId(client.id);
+    setClientData({ name: client.name, phone: client.phone || "", email: client.email || "", address: client.address || "", city: client.city || "" });
+    setClientSearch("");
+    setClientResults([]);
+    setIsNewClient(false);
+  }
+
+  function addProduct(product) {
+    setItems((prev) => [...prev, {
+      productId: product.id,
+      description: `${product.sku} — ${product.name}`,
+      quantity: 1,
+      unitPrice: product.price,
+      itemType: "piece",
+    }]);
+    setProductSearch("");
+    setProductResults([]);
+  }
+
+  function addCustomItem() {
+    setItems((prev) => [...prev, { productId: null, description: "", quantity: 1, unitPrice: 0, itemType: "piece" }]);
+  }
+
+  function updateItem(index, field, value) {
+    setItems((prev) => prev.map((item, i) => i === index ? { ...item, [field]: value } : item));
+  }
+
+  function removeItem(index) {
+    setItems((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  async function handlePhotoUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/public/chat/upload", { method: "POST", body: formData });
+      if (res.ok) {
+        const { url } = await res.json();
+        setPhotos((prev) => [...prev, url]);
+      }
+    } catch {}
+    setUploading(false);
+  }
+
+  // Totals calc
+  const totalPieces = items.reduce((sum, i) => sum + Number(i.quantity) * Number(i.unitPrice), 0);
+  const totalLabor = Number(laborHours) * settings.labor_rate_per_hour;
+  const subtotal = totalPieces + totalLabor;
+  const tps = subtotal * settings.tps_rate;
+  const tvq = subtotal * settings.tvq_rate;
+  const total = subtotal + tps + tvq;
+
+  async function handleSubmit(statut = "completed") {
+    setSaving(true);
+    try {
+      // Create client if new
+      let finalClientId = clientId;
+      if (isNewClient && !clientId) {
+        const cRes = await fetch("/api/technician/clients", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(clientData),
+        });
+        const newClient = await cRes.json();
+        finalClientId = newClient.id;
+      }
+
+      // Upload signature
+      let signatureUrl = null;
+      if (signatureData) {
+        const blob = await (await fetch(signatureData)).blob();
+        const formData = new FormData();
+        formData.append("file", blob, "signature.png");
+        const sRes = await fetch("/api/public/chat/upload", { method: "POST", body: formData });
+        if (sRes.ok) {
+          const { url } = await sRes.json();
+          signatureUrl = url;
+        }
+      }
+
+      const res = await fetch("/api/technician/work-orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clientId: finalClientId,
+          date: new Date().toISOString(),
+          heureArrivee,
+          heureDepart,
+          description,
+          photos,
+          signatureUrl,
+          laborHours,
+          statut,
+          items: items.map((i) => ({
+            productId: i.productId,
+            description: i.description,
+            quantity: i.quantity,
+            unitPrice: i.unitPrice,
+            itemType: i.itemType,
+          })),
+        }),
+      });
+
+      if (res.ok) {
+        router.push("/terrain");
+      }
+    } catch {}
+    setSaving(false);
+  }
+
+  const inputClass = "w-full bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 text-sm focus:outline-none focus:border-[var(--color-red)] transition-colors";
+
+  return (
+    <div className="min-h-dvh bg-[#0a0f1a] text-white">
+      {/* Header */}
+      <div className="px-4 py-4 flex items-center justify-between border-b border-white/10">
+        <button onClick={() => step > 0 ? setStep(step - 1) : router.push("/terrain")} className="text-white/60 text-sm">
+          <i className="fas fa-arrow-left mr-2"></i>
+          {step > 0 ? "Retour" : "Annuler"}
+        </button>
+        <h1 className="text-sm font-bold">Nouveau bon</h1>
+        <button
+          onClick={() => handleSubmit("draft")}
+          disabled={saving || !clientId && !isNewClient}
+          className="text-[var(--color-red)] text-sm font-medium disabled:opacity-30"
+        >
+          Brouillon
+        </button>
+      </div>
+
+      {/* Step indicators */}
+      <div className="px-4 py-3 flex gap-2">
+        {STEPS.map((label, i) => (
+          <button
+            key={i}
+            onClick={() => setStep(i)}
+            className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all ${
+              i === step ? "bg-[var(--color-red)] text-white" : i < step ? "bg-green-500/20 text-green-400" : "bg-white/5 text-white/30"
+            }`}
+          >
+            {i < step ? <i className="fas fa-check mr-1"></i> : null}
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Content */}
+      <div className="px-4 py-4">
+        {/* STEP 0: Client */}
+        {step === 0 && (
+          <div className="space-y-4">
+            {!isNewClient && !clientId && (
+              <>
+                <input
+                  type="text"
+                  placeholder="Rechercher un client (nom, tel, email)..."
+                  value={clientSearch}
+                  onChange={(e) => setClientSearch(e.target.value)}
+                  className={inputClass}
+                  autoFocus
+                />
+                {clientResults.length > 0 && (
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {clientResults.map((c) => (
+                      <button
+                        key={c.id}
+                        onClick={() => selectClient(c)}
+                        className="w-full text-left bg-white/5 rounded-xl p-3 border border-white/10 active:bg-white/10 transition-colors"
+                      >
+                        <p className="font-semibold text-sm">{c.name}</p>
+                        <p className="text-white/40 text-xs">{c.phone} {c.address ? `• ${c.address}` : ""}</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <button
+                  onClick={() => setIsNewClient(true)}
+                  className="w-full py-3 rounded-xl border-2 border-dashed border-white/20 text-white/50 text-sm font-medium active:bg-white/5"
+                >
+                  <i className="fas fa-plus mr-2"></i>Nouveau client
+                </button>
+              </>
+            )}
+
+            {(isNewClient || clientId) && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-sm font-bold text-white/70">
+                    {clientId ? "Client selectionne" : "Nouveau client"}
+                  </h2>
+                  <button onClick={() => { setClientId(null); setIsNewClient(false); setClientData({ name: "", phone: "", email: "", address: "", city: "" }); }} className="text-xs text-[var(--color-red)]">
+                    Changer
+                  </button>
+                </div>
+                <input placeholder="Nom complet *" value={clientData.name} onChange={(e) => setClientData({ ...clientData, name: e.target.value })} className={inputClass} readOnly={!!clientId} />
+                <input placeholder="Telephone" value={clientData.phone} onChange={(e) => setClientData({ ...clientData, phone: e.target.value })} className={inputClass} readOnly={!!clientId} />
+                <input placeholder="Email" value={clientData.email} onChange={(e) => setClientData({ ...clientData, email: e.target.value })} className={inputClass} readOnly={!!clientId} />
+                <input placeholder="Adresse" value={clientData.address} onChange={(e) => setClientData({ ...clientData, address: e.target.value })} className={inputClass} />
+                <input placeholder="Ville" value={clientData.city} onChange={(e) => setClientData({ ...clientData, city: e.target.value })} className={inputClass} />
+              </div>
+            )}
+
+            {(clientId || (isNewClient && clientData.name)) && (
+              <button onClick={() => setStep(1)} className="w-full py-4 rounded-xl bg-[var(--color-red)] text-white font-bold text-sm mt-4 active:bg-[var(--color-red-dark)] transition-colors">
+                Suivant <i className="fas fa-arrow-right ml-2"></i>
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* STEP 1: Travail + Temps + Photos */}
+        {step === 1 && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-white/40 text-xs mb-1 block">Heure arrivee</label>
+                <input type="time" value={heureArrivee} onChange={(e) => setHeureArrivee(e.target.value)} className={inputClass} />
+              </div>
+              <div>
+                <label className="text-white/40 text-xs mb-1 block">Heure depart</label>
+                <input type="time" value={heureDepart} onChange={(e) => setHeureDepart(e.target.value)} className={inputClass} />
+              </div>
+            </div>
+
+            {heureArrivee && heureDepart && (
+              <p className="text-white/50 text-xs">
+                Duree: {(() => {
+                  const [ah, am] = heureArrivee.split(":").map(Number);
+                  const [dh, dm] = heureDepart.split(":").map(Number);
+                  const mins = (dh * 60 + dm) - (ah * 60 + am);
+                  if (mins <= 0) return "—";
+                  const h = Math.floor(mins / 60);
+                  const m = mins % 60;
+                  return `${h}h${m > 0 ? String(m).padStart(2, "0") : ""}`;
+                })()}
+              </p>
+            )}
+
+            <div>
+              <label className="text-white/40 text-xs mb-1 block">Description du travail</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Decrivez le travail effectue..."
+                rows={4}
+                className={`${inputClass} resize-none`}
+              />
+            </div>
+
+            <div>
+              <label className="text-white/40 text-xs mb-2 block">Photos ({photos.length}/10)</label>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {photos.map((url, i) => (
+                  <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden">
+                    <img src={url} alt="" className="w-full h-full object-cover" />
+                    <button
+                      onClick={() => setPhotos((prev) => prev.filter((_, j) => j !== i))}
+                      className="absolute top-1 right-1 w-5 h-5 bg-red-500 rounded-full text-white text-[10px] flex items-center justify-center"
+                    >
+                      <i className="fas fa-times"></i>
+                    </button>
+                  </div>
+                ))}
+              </div>
+              {photos.length < 10 && (
+                <label className="flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-white/20 text-white/50 text-sm active:bg-white/5 cursor-pointer">
+                  <i className={`fas ${uploading ? "fa-spinner fa-spin" : "fa-camera"}`}></i>
+                  {uploading ? "Upload..." : "Prendre une photo"}
+                  <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
+                </label>
+              )}
+            </div>
+
+            <button onClick={() => setStep(2)} className="w-full py-4 rounded-xl bg-[var(--color-red)] text-white font-bold text-sm active:bg-[var(--color-red-dark)] transition-colors">
+              Suivant <i className="fas fa-arrow-right ml-2"></i>
+            </button>
+          </div>
+        )}
+
+        {/* STEP 2: Pieces + Main d'oeuvre */}
+        {step === 2 && (
+          <div className="space-y-4">
+            <h2 className="text-sm font-bold text-white/70">Pieces utilisees</h2>
+
+            <input
+              type="text"
+              placeholder="Rechercher une piece (nom ou SKU)..."
+              value={productSearch}
+              onChange={(e) => setProductSearch(e.target.value)}
+              className={inputClass}
+            />
+
+            {productResults.length > 0 && (
+              <div className="space-y-1 max-h-40 overflow-y-auto">
+                {productResults.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => addProduct(p)}
+                    className="w-full text-left bg-white/5 rounded-lg px-3 py-2 text-sm active:bg-white/10 flex justify-between"
+                  >
+                    <span className="truncate">{p.sku} — {p.name}</span>
+                    <span className="text-[var(--color-red)] font-bold shrink-0 ml-2">{p.price.toFixed(2)}$</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {items.map((item, i) => (
+              <div key={i} className="bg-white/5 rounded-xl p-3 border border-white/10">
+                <div className="flex items-start justify-between mb-2">
+                  {item.productId ? (
+                    <p className="text-sm flex-1">{item.description}</p>
+                  ) : (
+                    <input
+                      value={item.description}
+                      onChange={(e) => updateItem(i, "description", e.target.value)}
+                      placeholder="Description de la piece..."
+                      className="bg-transparent text-sm text-white flex-1 focus:outline-none"
+                    />
+                  )}
+                  <button onClick={() => removeItem(i)} className="text-red-400 text-xs ml-2 shrink-0">
+                    <i className="fas fa-trash"></i>
+                  </button>
+                </div>
+                <div className="flex gap-3 items-center">
+                  <div className="flex items-center gap-1">
+                    <label className="text-white/30 text-xs">Qte:</label>
+                    <input
+                      type="number"
+                      value={item.quantity}
+                      onChange={(e) => updateItem(i, "quantity", parseFloat(e.target.value) || 0)}
+                      className="w-16 bg-white/10 rounded-lg px-2 py-1 text-sm text-center"
+                      min="0" step="1"
+                    />
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <label className="text-white/30 text-xs">Prix:</label>
+                    <input
+                      type="number"
+                      value={item.unitPrice}
+                      onChange={(e) => updateItem(i, "unitPrice", parseFloat(e.target.value) || 0)}
+                      className="w-24 bg-white/10 rounded-lg px-2 py-1 text-sm text-right"
+                      min="0" step="0.01"
+                    />
+                    <span className="text-white/30 text-xs">$</span>
+                  </div>
+                  <span className="text-[var(--color-red)] font-bold text-sm ml-auto">
+                    {(Number(item.quantity) * Number(item.unitPrice)).toFixed(2)}$
+                  </span>
+                </div>
+              </div>
+            ))}
+
+            <button onClick={addCustomItem} className="w-full py-3 rounded-xl border-2 border-dashed border-white/20 text-white/50 text-sm active:bg-white/5">
+              <i className="fas fa-plus mr-2"></i>Ligne personnalisee
+            </button>
+
+            <div className="border-t border-white/10 pt-4">
+              <h2 className="text-sm font-bold text-white/70 mb-3">Main d&apos;oeuvre</h2>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 flex-1">
+                  <input
+                    type="number"
+                    value={laborHours}
+                    onChange={(e) => setLaborHours(parseFloat(e.target.value) || 0)}
+                    className="w-20 bg-white/10 rounded-lg px-3 py-2 text-sm text-center"
+                    min="0" step="0.25"
+                  />
+                  <span className="text-white/40 text-sm">heures x {settings.labor_rate_per_hour.toFixed(2)}$/h</span>
+                </div>
+                <span className="text-[var(--color-red)] font-bold">{totalLabor.toFixed(2)}$</span>
+              </div>
+            </div>
+
+            {/* Totals */}
+            <div className="bg-white/5 rounded-xl p-4 border border-white/10 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-white/50">Pieces</span>
+                <span>{totalPieces.toFixed(2)}$</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-white/50">Main d&apos;oeuvre</span>
+                <span>{totalLabor.toFixed(2)}$</span>
+              </div>
+              <div className="flex justify-between text-sm border-t border-white/10 pt-2">
+                <span className="text-white/50">Sous-total</span>
+                <span>{subtotal.toFixed(2)}$</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-white/30">TPS (5%)</span>
+                <span className="text-white/50">{tps.toFixed(2)}$</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-white/30">TVQ (9.975%)</span>
+                <span className="text-white/50">{tvq.toFixed(2)}$</span>
+              </div>
+              <div className="flex justify-between text-lg font-bold border-t border-white/10 pt-2">
+                <span>Total</span>
+                <span className="text-[var(--color-red)]">{total.toFixed(2)}$</span>
+              </div>
+            </div>
+
+            <button onClick={() => setStep(3)} className="w-full py-4 rounded-xl bg-[var(--color-red)] text-white font-bold text-sm active:bg-[var(--color-red-dark)] transition-colors">
+              Suivant — Signature <i className="fas fa-arrow-right ml-2"></i>
+            </button>
+          </div>
+        )}
+
+        {/* STEP 3: Recap + Signature */}
+        {step === 3 && (
+          <div className="space-y-4">
+            {/* Recap */}
+            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+              <h3 className="font-bold mb-2">{clientData.name}</h3>
+              <p className="text-white/40 text-sm">{clientData.address}{clientData.city ? `, ${clientData.city}` : ""}</p>
+              <p className="text-white/40 text-sm">{clientData.phone}</p>
+              <div className="border-t border-white/10 mt-3 pt-3">
+                <p className="text-sm text-white/50">{heureArrivee} - {heureDepart}</p>
+                {description && <p className="text-sm text-white/70 mt-1">{description}</p>}
+              </div>
+              <div className="border-t border-white/10 mt-3 pt-3 flex justify-between">
+                <span>{items.length} piece{items.length !== 1 ? "s" : ""} + {laborHours}h main d&apos;oeuvre</span>
+                <span className="text-[var(--color-red)] font-bold text-lg">{total.toFixed(2)}$</span>
+              </div>
+            </div>
+
+            {/* Signature */}
+            <h2 className="text-sm font-bold text-white/70">Signature du client</h2>
+            {signatureData ? (
+              <div className="text-center">
+                <img src={signatureData} alt="Signature" className="max-h-32 mx-auto rounded-lg border border-white/10 mb-3" />
+                <button onClick={() => setSignatureData(null)} className="text-[var(--color-red)] text-sm">
+                  Refaire la signature
+                </button>
+              </div>
+            ) : (
+              <SignaturePad onSave={setSignatureData} />
+            )}
+
+            {/* Submit */}
+            <button
+              onClick={() => handleSubmit("completed")}
+              disabled={saving || !signatureData}
+              className="w-full py-5 rounded-xl bg-green-600 text-white font-bold text-lg disabled:opacity-30 active:bg-green-700 transition-colors mt-4"
+            >
+              {saving ? (
+                <><i className="fas fa-spinner fa-spin mr-2"></i>Envoi en cours...</>
+              ) : (
+                <><i className="fas fa-check-circle mr-2"></i>Completer le bon</>
+              )}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

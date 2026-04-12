@@ -1,0 +1,95 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+
+export default function BonsPage() {
+  const [workOrders, setWorkOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("all");
+
+  useEffect(() => {
+    const params = filter !== "all" ? `?statut=${filter}` : "";
+    fetch(`/api/admin/work-orders${params}`)
+      .then((r) => r.json())
+      .then((data) => { setWorkOrders(data.workOrders || []); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [filter]);
+
+  const statusColors = {
+    draft: "bg-yellow-500/20 text-yellow-400",
+    completed: "bg-green-500/20 text-green-400",
+    sent: "bg-blue-500/20 text-blue-400",
+  };
+  const statusLabels = { draft: "Brouillon", completed: "Complete", sent: "Envoye" };
+
+  const totalUnpaid = workOrders.filter((w) => w.statut !== "sent").reduce((sum, w) => sum + w.total, 0);
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="admin-text text-2xl font-bold">Bons de travail</h1>
+          <p className="admin-text-muted text-sm">{workOrders.length} bons | Non-envoyes: {totalUnpaid.toFixed(2)}$</p>
+        </div>
+      </div>
+
+      <div className="flex gap-2 mb-6">
+        {[
+          { key: "all", label: "Tous" },
+          { key: "draft", label: "Brouillons" },
+          { key: "completed", label: "Completes" },
+          { key: "sent", label: "Envoyes" },
+        ].map((tab) => (
+          <button key={tab.key} onClick={() => setFilter(tab.key)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === tab.key ? "bg-[var(--color-red)]/10 text-[var(--color-red)]" : "admin-text-muted admin-hover"}`}>
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="text-center py-12 admin-text-muted"><i className="fas fa-spinner fa-spin text-2xl"></i></div>
+      ) : workOrders.length === 0 ? (
+        <div className="text-center py-12 admin-text-muted">
+          <i className="fas fa-clipboard-list text-4xl mb-3"></i>
+          <p>Aucun bon de travail</p>
+        </div>
+      ) : (
+        <div className="admin-card border rounded-xl overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b admin-border admin-text-muted text-xs text-left">
+                <th className="px-4 py-3">Numero</th>
+                <th className="px-4 py-3">Client</th>
+                <th className="px-4 py-3">Technicien</th>
+                <th className="px-4 py-3">Date</th>
+                <th className="px-4 py-3">Total</th>
+                <th className="px-4 py-3">Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              {workOrders.map((wo) => (
+                <tr key={wo.id} className="border-b admin-border admin-hover cursor-pointer" onClick={() => window.location.href = `/admin/bons/${wo.id}`}>
+                  <td className="px-4 py-3 font-mono text-xs">{wo.number}</td>
+                  <td className="px-4 py-3">
+                    <p className="admin-text font-medium">{wo.client?.name}</p>
+                    <p className="admin-text-muted text-xs">{wo.client?.phone}</p>
+                  </td>
+                  <td className="px-4 py-3 admin-text-muted">{wo.technician?.name || "—"}</td>
+                  <td className="px-4 py-3 admin-text-muted">{new Date(wo.date).toLocaleDateString("fr-CA")}</td>
+                  <td className="px-4 py-3 font-bold">{wo.total.toFixed(2)}$</td>
+                  <td className="px-4 py-3">
+                    <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${statusColors[wo.statut] || ""}`}>
+                      {statusLabels[wo.statut] || wo.statut}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
