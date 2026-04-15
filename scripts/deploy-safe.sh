@@ -25,9 +25,13 @@ rm -rf .next.new
 echo "[deploy] stopping pm2 $APP_NAME to free memory"
 pm2 stop "$APP_NAME" || true
 
-echo "[deploy] building into .next.new (webpack, heap 1536MB)"
+echo "[deploy] building into .next.new (webpack, heap 1536MB, 1 worker)"
 set +e
-NODE_OPTIONS="--max-old-space-size=1536" NEXT_DIST_DIR=".next.new" npm run build
+NODE_OPTIONS="--max-old-space-size=1536" \
+  NEXT_DIST_DIR=".next.new" \
+  NEXT_PRIVATE_WORKER_COUNT=1 \
+  UV_THREADPOOL_SIZE=2 \
+  npm run build
 BUILD_EXIT=$?
 set -e
 
