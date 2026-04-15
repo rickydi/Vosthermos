@@ -3,6 +3,7 @@ import { CITIES } from "@/lib/cities";
 import { PROBLEMS } from "@/lib/problems-data";
 import { PRICING } from "@/lib/pricing-data";
 import { GLOSSARY } from "@/lib/glossary-data";
+import { HOWTOS } from "@/lib/howto-data";
 
 const BASE = "https://www.vosthermos.com";
 
@@ -36,7 +37,16 @@ export default async function sitemap() {
     { url: `${BASE}/diagnostic`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.9 },
     { url: `${BASE}/calculateur`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.9 },
     { url: `${BASE}/calculateur-economies`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.9 },
+    { url: `${BASE}/guides`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
   ];
+
+  // HowTo guides (structured data for LLMs + Google rich results)
+  const howtoPages = HOWTOS.map((h) => ({
+    url: `${BASE}/guides/${h.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly",
+    priority: 0.8,
+  }));
 
   // Service pages
   const servicePages = SERVICE_SLUGS.map((slug) => ({
@@ -170,5 +180,5 @@ export default async function sitemap() {
     })),
   ];
 
-  return [...staticPages, ...servicePages, ...serviceCityPages, ...reparationCityPages, ...calfeutrageCityPages, ...problemPages, ...pricingPages, ...glossaryPages, ...categoryPages, ...productPages, ...blogPages, ...enPages, ...enServicePages];
+  return [...staticPages, ...howtoPages, ...servicePages, ...serviceCityPages, ...reparationCityPages, ...calfeutrageCityPages, ...problemPages, ...pricingPages, ...glossaryPages, ...categoryPages, ...productPages, ...blogPages, ...enPages, ...enServicePages];
 }

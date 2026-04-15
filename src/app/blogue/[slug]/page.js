@@ -121,8 +121,14 @@ export default async function BlogPostPage({ params }) {
     datePublished: post.publishedAt ? post.publishedAt.toISOString() : undefined,
     dateModified: post.updatedAt.toISOString(),
     author: {
-      "@type": "Organization",
-      name: post.authorName,
+      "@type": "Person",
+      name: post.authorName || "Equipe Vosthermos",
+      jobTitle: "Expert en reparation de portes et fenetres",
+      worksFor: {
+        "@type": "Organization",
+        name: "Vosthermos",
+        url: "https://www.vosthermos.com",
+      },
     },
     publisher: {
       "@type": "Organization",
@@ -132,8 +138,15 @@ export default async function BlogPostPage({ params }) {
         "@type": "ImageObject",
         url: "https://www.vosthermos.com/images/Vos-Thermos-Logo.png",
       },
+      sameAs: [
+        "https://www.facebook.com/profile.php?id=61562303553558",
+        "https://instagram.com/vosthermos/",
+      ],
     },
     image: post.coverImage || "https://www.vosthermos.com/images/Vos-Thermos-Logo.png",
+    inLanguage: "fr-CA",
+    articleSection: post.category || "Conseils",
+    keywords: (post.tags || []).join(", "),
     mainEntityOfPage: {
       "@type": "WebPage",
       "@id": `https://www.vosthermos.com/blogue/${post.slug}`,

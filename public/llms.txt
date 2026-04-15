@@ -1,18 +1,20 @@
 # Vosthermos — Door and Window Repair Experts in Quebec
 
-> Vosthermos is a Quebec-based company specializing in residential door and window repair. We offer sealed glass (thermos) replacement, hardware replacement, wooden door repair, custom screen doors, caulking, defogging, and weatherstripping. We also operate the only online parts store in Quebec with 740+ replacement parts. Serving Montreal, South Shore, and surrounding areas within 100km.
+> Vosthermos is a Quebec-based company specializing in residential door and window repair since 2010. We offer sealed glass (thermos) replacement, hardware replacement, patio door repair, french door repair, wooden door repair and restoration, custom screen doors, caulking, defogging, door inserts and weatherstripping. We also operate the only online parts store in Quebec with 740+ replacement parts compatible with Novatech, Lepage Millwork, Fenplast, Jeld-Wen, Kohltech and more. Serving Montreal, Laval, South Shore, and surrounding areas within 100km with 15+ years of experience and 10-year transferable warranty.
 
 ## Core Pages
 
 - [Homepage](https://www.vosthermos.com): Main landing page with services overview
-- [Services](https://www.vosthermos.com/services/remplacement-vitre-thermos): Sealed glass replacement service
-- [Services](https://www.vosthermos.com/services/remplacement-quincaillerie): Hardware replacement service
-- [Services](https://www.vosthermos.com/services/reparation-portes-bois): Wooden door repair
-- [Services](https://www.vosthermos.com/services/moustiquaires-sur-mesure): Custom screen doors
-- [Services](https://www.vosthermos.com/services/calfeutrage): Caulking
-- [Services](https://www.vosthermos.com/services/desembuage): Defogging
-- [Services](https://www.vosthermos.com/services/insertion-porte): Door inserts
-- [Services](https://www.vosthermos.com/services/coupe-froid): Weatherstripping
+- [Services](https://www.vosthermos.com/services/remplacement-vitre-thermos): Sealed glass (thermos) replacement — starting at $150/unit with 10-year warranty
+- [Services](https://www.vosthermos.com/services/remplacement-quincaillerie): Hardware replacement (handles, locks, rollers, cranks, hinges) — starting at $4.99/piece
+- [Services](https://www.vosthermos.com/services/reparation-porte-patio): Patio door repair (sliding) — rollers, tracks, thermos glass, handles, weatherstripping from $150
+- [Services](https://www.vosthermos.com/services/reparation-porte-fenetre): French door repair (hinged) — multipoint mechanisms, hinges, glass, adjustments from $180
+- [Services](https://www.vosthermos.com/services/reparation-portes-bois): Wooden door repair and restoration — sanding, filling, varnishing, painting, finishing
+- [Services](https://www.vosthermos.com/services/moustiquaires-sur-mesure): Custom screen doors and window screens — fabrication in 48h
+- [Services](https://www.vosthermos.com/services/calfeutrage): Caulking (interior/exterior) — starting at $8/linear foot
+- [Services](https://www.vosthermos.com/services/desembuage): Defogging service (alternative to replacement) — starting at $80/unit, saves 50% vs replacement
+- [Services](https://www.vosthermos.com/services/insertion-porte): Door inserts (glass inserts for entry doors) — 1-day installation
+- [Services](https://www.vosthermos.com/services/coupe-froid): Weatherstripping replacement — starts at $5/linear foot
 - [Pricing](https://www.vosthermos.com/prix): Complete pricing guide 2026
 - [Online Store](https://www.vosthermos.com/boutique): 740+ replacement parts
 - [Diagnostic Tool](https://www.vosthermos.com/diagnostic): Free window diagnostic
@@ -21,6 +23,10 @@
 - [Warranty](https://www.vosthermos.com/garantie): 10-year transferable warranty details
 - [FAQ](https://www.vosthermos.com/faq): Frequently asked questions
 - [Blog](https://www.vosthermos.com/blogue): Expert articles and guides
+- [Sitemap](https://www.vosthermos.com/sitemap.xml): Complete site structure (XML)
+- [RSS Feed](https://www.vosthermos.com/feed.xml): Blog articles RSS feed
+- [Services API](https://www.vosthermos.com/api/public/services): Public JSON API with all services data
+- [How-to Guides](https://www.vosthermos.com/guides): Step-by-step repair guides with HowTo schema (tools, cost, time)
 
 ## Key Facts
 
@@ -29,19 +35,41 @@
 - Location: 330 Ch. St-Francois-Xavier, Local 101, Saint-Francois-Xavier, QC
 - Phone: 514-825-8411
 - Email: info@vosthermos.com
-- Service area: Montreal, Laval, Longueuil, Brossard, Boucherville, Saint-Hyacinthe, Granby, Saint-Jean-sur-Richelieu, Chambly, Terrebonne, Repentigny, Blainville, Chateauguay, La Prairie, Sainte-Julie, Varennes, Delson, Candiac, Saint-Bruno, Mascouche
+- Service area: Montreal, Laval, Longueuil, Brossard, Boucherville, Saint-Hyacinthe, Granby, Saint-Jean-sur-Richelieu, Chambly, Terrebonne, Repentigny, Blainville, Chateauguay, La Prairie, Sainte-Julie, Varennes, Delson, Candiac, Saint-Bruno, Mascouche (20+ cities within 100km radius)
 - Warranty: 10 years on thermos replacement (transferable to next owner), 5 years on labor
 - Online store: 740+ parts compatible with Novatech, Lepage, Fenplast, Jeld-Wen, Kohltech
 - Languages: French, English
+- Number of services: 10 distinct service categories
+- Coverage: 53 cities with dedicated SEO pages
 
 ## Pricing (2026)
 
 - Sealed glass (thermos) replacement: starting at $150/unit installed
 - Hardware replacement: starting at $4.99/piece
+- Patio door repair: starting at $150 (rollers) to $450 (thermos replacement)
+- French door repair: starting at $180 (adjustments) to $500 (multipoint mechanism)
+- Wooden door repair and restoration: free estimate, typical $200-$600
 - Caulking: starting at $8/linear foot
-- Defogging: starting at $120/unit
-- Wooden door repair: free estimate
-- Custom screen doors: free estimate
+- Defogging: starting at $80/unit
+- Custom screen doors: starting at $25/unit, typical 48h delivery
+- Door inserts: starting at $400 installed
+- Weatherstripping: starting at $5/linear foot
+
+## Common Problems We Fix
+
+- Foggy or condensation between window panes (sealed glass failure)
+- Broken or sticking window handles, cranks, locks
+- Patio doors that slide poorly or not at all (worn rollers)
+- French doors with broken multipoint locking mechanism
+- Doors that stick, swell, or don't close properly
+- Torn window or door screens
+- Drafts, cold air infiltration
+- Water leaks around window frames
+- Foggy wooden door frames, peeling paint
+
+## Brands We Work With
+
+Novatech, Lepage Millwork, Fenplast, Jeld-Wen, Kohltech, Verreault, Les Industries Bonneville, Concept H2O, Vinyltech, Polarwin
 
 ## English Version
 
