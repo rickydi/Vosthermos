@@ -25,7 +25,9 @@ for (const p of PROBLEMS) {
 const SERVICE_KEYWORDS = [
   { keywords: ["remplacement de thermos", "remplacer le thermos", "remplacer un thermos"], url: "/services/remplacement-vitre-thermos", title: "Remplacement de thermos" },
   { keywords: ["remplacement de quincaillerie", "quincaillerie de porte", "quincaillerie de fenetre"], url: "/services/remplacement-quincaillerie", title: "Remplacement de quincaillerie" },
-  { keywords: ["reparation de porte en bois", "porte en bois", "fenetres en bois"], url: "/services/reparation-portes-bois", title: "Reparation de portes en bois" },
+  { keywords: ["reparation de porte en bois", "porte en bois", "fenetres en bois", "restauration de porte en bois"], url: "/services/reparation-portes-bois", title: "Reparation et restauration de portes en bois" },
+  { keywords: ["reparation de porte-patio", "reparation porte patio", "porte patio coincee", "roulette de porte patio", "vitre de porte patio"], url: "/services/reparation-porte-patio", title: "Reparation de porte-patio" },
+  { keywords: ["reparation de porte-fenetre", "reparation porte fenetre", "porte francaise", "mecanisme multipoint"], url: "/services/reparation-porte-fenetre", title: "Reparation de porte-fenetre" },
   { keywords: ["moustiquaire sur mesure", "moustiquaires sur mesure"], url: "/services/moustiquaires-sur-mesure", title: "Moustiquaires sur mesure" },
   { keywords: ["calfeutrage de fenetre", "calfeutrage exterieur", "refaire le calfeutrage"], url: "/services/calfeutrage", title: "Calfeutrage" },
   { keywords: ["programme opti-fenetre", "opti-fenetre"], url: "/opti-fenetre", title: "Programme OPTI-FENETRE" },

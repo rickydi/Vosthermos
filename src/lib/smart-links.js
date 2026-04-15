@@ -9,6 +9,8 @@ const SERVICE_TO_PROBLEMS = {
   "calfeutrage": ["infiltration-eau-fenetre", "moisissure-contour-fenetre", "calfeutrage-fenetre-craque", "scellant-fenetre-decolle", "fenetre-sous-sol-infiltration"],
   "coupe-froid": ["courant-air-fenetre", "fenetre-qui-siffle", "fenetre-givre-interieur", "coupe-froid-use", "porte-patio-laisse-passer-air", "fenetre-qui-forme-glace"],
   "reparation-portes-bois": ["porte-bois-qui-colle", "porte-entree-gonflee", "cadre-fenetre-pourri", "porte-bois-pourri-bas", "peinture-fenetre-ecaille", "porte-qui-grince", "porte-entree-difficile-fermer"],
+  "reparation-porte-patio": ["porte-patio-coince", "roulette-porte-patio-usee", "porte-patio-rail-use", "porte-patio-laisse-passer-air", "serrure-porte-patio-bloquee", "poignee-porte-patio-cassee"],
+  "reparation-porte-fenetre": ["porte-entree-difficile-fermer", "porte-qui-grince", "fenetre-ne-verrouille-plus"],
   "moustiquaires-sur-mesure": ["moustiquaire-dechiree", "moustiquaire-qui-tombe", "moustiquaire-cadre-tordu", "porte-moustiquaire-dechiree"],
   "desembuage": ["vitre-opaque-blanchatre", "fenetre-embuee", "vitre-thermos-embuee"],
   "insertion-porte": ["insertion-porte-embuee", "vitrage-porte-brise"],

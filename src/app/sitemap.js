@@ -10,6 +10,8 @@ const SERVICE_SLUGS = [
   "remplacement-quincaillerie",
   "remplacement-vitre-thermos",
   "reparation-portes-bois",
+  "reparation-porte-patio",
+  "reparation-porte-fenetre",
   "moustiquaires-sur-mesure",
   "calfeutrage",
   "desembuage",

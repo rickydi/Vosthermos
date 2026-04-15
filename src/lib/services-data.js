@@ -168,14 +168,14 @@ export const SERVICES = [
   },
   {
     slug: "reparation-portes-bois",
-    title: "Reparation de portes en bois",
-    shortTitle: "Reparation de portes en bois",
+    title: "Reparation et restauration de portes en bois",
+    shortTitle: "Reparation et restauration portes en bois",
     icon: "fas fa-door-open",
     heroDescription:
-      "Service complet de reparation et restauration de portes et fenetres en bois. Sablage, remplissage, peinture, coupe-froid et remplacement de quincaillerie. Redonnez vie a vos portes en bois avec notre equipe d'experts.",
-    metaTitle: "Réparation Portes en Bois • Économisez 50% vs Neuve | Vosthermos",
+      "Service complet de reparation et restauration de portes et fenetres en bois. Sablage, remplissage, vernissage, peinture, coupe-froid, remplacement de pieces et finition professionnelle. Redonnez vie a vos portes en bois sans les remplacer avec notre equipe d'experts specialises en restauration.",
+    metaTitle: "Réparation et Restauration Portes en Bois • Économisez 50% | Vosthermos",
     metaDescription:
-      "Porte en bois gonflée, déformée, abîmée? Vosthermos répare au lieu de remplacer. Économisez 50%+ vs neuve. 15 ans d'expérience, service à domicile ☎ 514-825-8411",
+      "Restauration et réparation de portes en bois: sablage, vernissage, peinture, remplissage. Économisez 50%+ vs neuve. 15 ans d'expérience, service à domicile ☎ 514-825-8411",
     sections: [
       {
         heading: "Restauration professionnelle de portes en bois",
@@ -679,6 +679,194 @@ export const SERVICES = [
       "reparation-portes-bois",
     ],
     startingPrice: "A partir de 5$/pied",
+  },
+  {
+    slug: "reparation-porte-patio",
+    title: "Reparation de porte-patio",
+    shortTitle: "Reparation porte-patio",
+    icon: "fas fa-grip-lines-vertical",
+    heroDescription:
+      "Votre porte-patio est difficile a ouvrir, ne glisse plus, a une vitre embuee ou une poignee brisee? Vosthermos repare tous les types de portes-patio coulissantes: remplacement de roulettes, ajustement du rail, remplacement de vitre thermos, coupe-froid, poignees et serrures. Service a domicile rapide partout a Montreal et sur la Rive-Sud.",
+    metaTitle: "Réparation Porte-Patio • Roulettes, Vitre, Poignée | Vosthermos",
+    metaDescription:
+      "Porte-patio bloquée, difficile à glisser? Remplacement de roulettes, rail, vitre thermos, coupe-froid. Service pro à domicile. 15 ans d'expérience ☎ 514-825-8411",
+    sections: [
+      {
+        heading: "Tous les problemes de porte-patio, une seule equipe",
+        paragraphs: [
+          "Une porte-patio qui glisse mal, qui sort de son rail ou dont la vitre est embuee n'est pas juste un inconvenient quotidien: c'est une perte d'efficacite energetique, un risque de securite et un probleme qui empire avec le temps. Chez Vosthermos, on repare chaque annee des centaines de portes-patio de toutes marques et de tous ages, de la plus simple a la plus complexe.",
+          "Nos techniciens se deplacent avec un inventaire complet de roulettes, rails, poignees, serrures, coupe-froid et vitres thermos en format porte-patio. Dans la majorite des cas, la reparation se fait le jour meme, sans avoir a commander de pieces. Que votre porte soit de marque Novatech, Lepage Millwork, Fenplast, Jeld-Wen ou autre, nous avons les pieces compatibles.",
+        ],
+      },
+      {
+        heading: "Remplacer une porte-patio complete? Rarement necessaire.",
+        paragraphs: [
+          "Beaucoup de proprietaires croient qu'une porte-patio qui glisse mal ou dont la vitre est embuee doit etre remplacee au complet. En realite, le cout d'une porte-patio neuve avec installation varie entre 2500$ et 6000$, alors que la majorite de nos reparations coutent entre 150$ et 600$. Dans plus de 90% des cas, une reparation cible restaure completement la fonction et l'etancheite de votre porte.",
+          "Le remplacement n'est vraiment necessaire que si le cadre est pourri, si la porte est gravement deformee ou si vous voulez ameliorer l'esthetique de votre maison. Dans les autres cas, remplacer les roulettes (60$-150$), le thermos (180$-400$) ou le coupe-froid (80$-200$) regle le probleme pour une fraction du prix.",
+        ],
+      },
+      {
+        heading: "Roulettes, rails et alignement: la reparation la plus courante",
+        paragraphs: [
+          "Une porte-patio qui devient de plus en plus difficile a glisser au fil des annees est presque toujours un probleme de roulettes usees ou de rail encrasse. Les roulettes originales d'une porte-patio sont souvent en plastique ou en acier standard qui s'usent apres 10-15 ans d'utilisation. Nos techniciens les remplacent par des roulettes en acier inoxydable a roulement a billes, beaucoup plus durables.",
+          "Dans certains cas, le rail lui-meme est bosse, plie ou a subi des dommages (meuble tombe dessus, chariots chantier, etc.). Nous pouvons redresser les rails legerement deformes ou, pour les cas plus severes, remplacer le rail complet en conservant la porte existante. L'alignement est verifie au niveau laser pour garantir un glissement parfait et une etancheite optimale.",
+        ],
+      },
+    ],
+    whatWeRepair: [
+      "Roulettes et chariots de porte-patio",
+      "Rails endommages ou bosseles",
+      "Vitres thermos embuees (porte-patio)",
+      "Poignees de porte-patio brisees",
+      "Serrures et loquets multipoints",
+      "Coupe-froid et joints d'etancheite",
+      "Moustiquaires de porte-patio",
+      "Alignement et ajustement du cadre",
+    ],
+    process: [
+      {
+        title: "Diagnostic a domicile",
+        description:
+          "Notre technicien se deplace chez vous pour identifier la cause exacte du probleme. Il apporte dans son camion un inventaire complet de roulettes, rails, poignees et autres pieces de porte-patio.",
+      },
+      {
+        title: "Reparation le jour meme",
+        description:
+          "Dans la majorite des cas, la reparation se fait sur place en 1 a 2 heures. Pour le remplacement de vitre thermos qui necessite une prise de mesures, un 2e rendez-vous est planifie apres la fabrication sur mesure.",
+      },
+      {
+        title: "Verification et garantie",
+        description:
+          "Nous verifions le glissement, l'etancheite et l'alignement de votre porte-patio avant de partir. Toutes nos reparations sont garanties et nous revenons sans frais en cas de probleme.",
+      },
+    ],
+    faq: [
+      {
+        question: "Ma porte-patio est tres difficile a glisser. C'est quoi le probleme?",
+        answer:
+          "Dans 90% des cas, ce sont les roulettes qui sont usees. Avec le temps, les roulettes en plastique d'origine se deforment et accrochent dans le rail. Le remplacement par des roulettes en acier inoxydable a roulement a billes regle le probleme et redonne un glissement fluide a votre porte. Cout typique: 60$ a 150$ selon le modele.",
+      },
+      {
+        question: "Combien coute une reparation de porte-patio?",
+        answer:
+          "Les reparations les plus courantes coutent entre 150$ et 600$. Remplacement de roulettes: 60$-200$. Remplacement de vitre thermos: 250$-450$. Remplacement de coupe-froid: 80$-200$. Ajustement de rail: 100$-300$. Une porte-patio neuve coute 2500$-6000$, donc la reparation est presque toujours la meilleure option.",
+      },
+      {
+        question: "La vitre de ma porte-patio est embuee. Faut-il remplacer la porte?",
+        answer:
+          "Non, absolument pas. Seul le thermos (unite scellee de verre) doit etre remplace, pas la porte au complet. Nos techniciens prennent les mesures exactes, commandent le nouveau thermos sur mesure et le remplacent en conservant le cadre existant. Cout typique: 250$-450$. Delai: 1 a 2 semaines pour la fabrication.",
+      },
+      {
+        question: "Ma porte-patio laisse passer l'air froid. Que faire?",
+        answer:
+          "C'est probablement le coupe-froid qui est use ou ecrase. Le coupe-froid en mousse ou en caoutchouc se deforme avec le temps et perd son efficacite. Nous remplacons tous les types de coupe-froid (brosse, caoutchouc, mousse, vinyle) adaptes a votre modele specifique. L'etancheite est testee apres installation.",
+      },
+      {
+        question: "Vous deplacez-vous a La Prairie, Longueuil, Brossard et la Rive-Sud?",
+        answer:
+          "Oui, nous couvrons toute la Rive-Sud (La Prairie, Longueuil, Brossard, Saint-Hubert, Candiac, Boucherville, Sainte-Julie, etc.), Montreal, Laval et la couronne nord. Le deplacement est gratuit pour la soumission. Contactez-nous pour planifier un rendez-vous le jour meme ou le lendemain.",
+      },
+    ],
+    relatedServices: [
+      "remplacement-quincaillerie",
+      "remplacement-vitre-thermos",
+      "coupe-froid",
+    ],
+    startingPrice: "A partir de 150$ (reparation standard)",
+  },
+  {
+    slug: "reparation-porte-fenetre",
+    title: "Reparation de porte-fenetre",
+    shortTitle: "Reparation porte-fenetre",
+    icon: "fas fa-door-closed",
+    heroDescription:
+      "Service specialise de reparation de portes-fenetres (portes francaises, portes a battant avec vitrage). Mecanismes multipoints, charnieres, poignees, coupe-froid, vitres thermos et ajustements de cadre. Experts en portes-fenetres Novatech, Fenplast, Lepage Millwork et autres marques quebecoises.",
+    metaTitle: "Réparation Porte-Fenêtre • Multipoint, Vitre, Charnières | Vosthermos",
+    metaDescription:
+      "Porte-fenêtre qui ferme mal, mécanisme multipoint brisé, vitre embuée? Vosthermos répare tous types de portes-fenêtres. Service à domicile ☎ 514-825-8411",
+    sections: [
+      {
+        heading: "Porte-fenetre vs porte-patio: on repare les deux",
+        paragraphs: [
+          "Une porte-fenetre (aussi appelee porte francaise) s'ouvre a battants avec des charnieres, contrairement a la porte-patio qui glisse sur un rail. Les problemes rencontres sont differents: mecanisme multipoint qui ne verrouille plus, charnieres qui s'affaissent, porte qui frotte sur le seuil, poignee qui ne tourne plus, vitres embuees.",
+          "Vosthermos repare tous les types de portes-fenetres: simple, double, avec ou sans moustiquaire integree, avec ou sans imposte. Nous sommes familiers avec toutes les marques vendues au Quebec et nos techniciens maitrisent les mecanismes multipoints complexes qui sont souvent la cause du probleme.",
+        ],
+      },
+      {
+        heading: "Le mecanisme multipoint: le coeur du probleme",
+        paragraphs: [
+          "La plupart des portes-fenetres modernes utilisent un systeme de verrouillage multipoint (generalement 3 a 5 points de fermeture) actionne par la poignee principale. Ce mecanisme est complexe et sensible: un mauvais alignement du cadre, une usure normale ou un bris d'une tige de transmission peut rendre la porte impossible a verrouiller correctement.",
+          "Nos techniciens diagnostiquent rapidement si le probleme vient du mecanisme lui-meme, des gaches (dans le cadre), de l'alignement de la porte ou des charnieres. Dans la plupart des cas, nous pouvons reparer ou remplacer le mecanisme multipoint sans avoir a changer la porte complete. Nous gardons en stock les mecanismes les plus courants des marques Roto, Maco, GU, Siegenia et Hoppe.",
+        ],
+      },
+      {
+        heading: "Charnieres affaissees, porte qui frotte",
+        paragraphs: [
+          "Une porte-fenetre qui s'affaisse avec le temps et qui frotte sur le seuil est un probleme courant, surtout pour les portes doubles. La cause est generalement une usure des charnieres (particulierement celle du haut qui supporte le plus de poids) ou un desajustement de la structure du cadre.",
+          "La reparation depend de l'ampleur du probleme. Un simple ajustement des charnieres existantes suffit souvent. Dans les cas plus severes, nous remplacons les charnieres par des modeles plus robustes (a roulement a billes) ou nous installons des charnieres reglables qui permettent d'ajuster la porte dans les 3 axes. Un remplacement complet de charnieres coute entre 120$ et 280$.",
+        ],
+      },
+    ],
+    whatWeRepair: [
+      "Mecanismes multipoints (Roto, Maco, GU, Hoppe)",
+      "Poignees et cylindres de serrure",
+      "Charnieres affaissees ou reglables",
+      "Vitres thermos embuees",
+      "Coupe-froid et seuils",
+      "Ajustement du cadre",
+      "Gaches et points de fermeture",
+      "Imposte (partie superieure vitree)",
+    ],
+    process: [
+      {
+        title: "Diagnostic sur place",
+        description:
+          "Le technicien examine le mecanisme, teste le verrouillage multipoint, verifie l'alignement et l'etat des charnieres. Il identifie la piece exacte a reparer ou a remplacer.",
+      },
+      {
+        title: "Reparation ciblee",
+        description:
+          "Nous remplacons ou ajustons uniquement la piece defectueuse: mecanisme, charniere, poignee, coupe-froid ou vitre. Les reparations simples se font en 1 a 2 heures sur place.",
+      },
+      {
+        title: "Test de verrouillage et d'etancheite",
+        description:
+          "Nous testons chaque point de verrouillage, verifions qu'il n'y a plus de courant d'air et que la porte ferme proprement. Garantie sur toutes les pieces et la main d'oeuvre.",
+      },
+    ],
+    faq: [
+      {
+        question: "Ma porte-fenetre ne se verrouille plus. Faut-il la remplacer?",
+        answer:
+          "Non, tres rarement. Dans 95% des cas, c'est le mecanisme multipoint qui est brise, deregle ou mal aligne. Le remplacement du mecanisme seul coute entre 200$ et 500$, alors qu'une porte-fenetre neuve coute 3000$-7000$. Nous diagnostiquons gratuitement et vous indiquons la meilleure option.",
+      },
+      {
+        question: "Quelle est la difference entre une porte-fenetre et une porte-patio?",
+        answer:
+          "Une porte-patio glisse sur un rail (une ou deux panneaux coulissants). Une porte-fenetre (ou porte francaise) s'ouvre a battants avec des charnieres, comme une porte normale mais avec des vitres. Les reparations sont differentes. Si vous n'etes pas sur du type, envoyez-nous une photo et on identifie.",
+      },
+      {
+        question: "Ma porte-fenetre frotte sur le seuil quand je l'ouvre. Pourquoi?",
+        answer:
+          "C'est presque toujours un affaissement des charnieres causes par le poids de la porte (le vitrage est lourd). Nous ajustons ou remplacons les charnieres, souvent par des modeles reglables qui permettent de corriger l'alignement dans les 3 axes. Cout typique: 150$-280$ pour un ensemble de charnieres plus robustes.",
+      },
+      {
+        question: "Remplacez-vous les vitres thermos des portes-fenetres?",
+        answer:
+          "Oui, exactement comme pour une fenetre ou une porte-patio. Nous prenons les mesures exactes, commandons le thermos sur mesure et l'installons en conservant le cadre existant. Cout typique: 250$-500$ selon la taille. Delai: 1 a 2 semaines pour la fabrication.",
+      },
+      {
+        question: "Travaillez-vous sur les portes-fenetres doubles (2 panneaux)?",
+        answer:
+          "Oui, nous reparons autant les portes-fenetres simples que doubles. Les portes doubles demandent plus d'expertise parce qu'il faut ajuster les deux panneaux pour qu'ils se rencontrent parfaitement au centre. Nos techniciens ont l'experience pour les doubles portes avec astragale (la barre verticale centrale).",
+      },
+    ],
+    relatedServices: [
+      "remplacement-quincaillerie",
+      "remplacement-vitre-thermos",
+      "calfeutrage",
+    ],
+    startingPrice: "A partir de 180$ (reparation standard)",
   },
 ];
 

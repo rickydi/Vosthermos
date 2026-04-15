@@ -18,8 +18,16 @@ export const CITY_SERVICE_SEO = {
     description: (c) => `Poignée, serrure, roulette brisée à ${c.name}? Vosthermos a 700+ pièces en stock. Installation pro, service rapide, garantie. ☎ 514-825-8411`,
   },
   "reparation-portes-bois": {
-    title: (c) => `Réparation Portes en Bois ${c.name} • Vosthermos`,
-    description: (c) => `Porte en bois gonflée ou abîmée à ${c.name}? Vosthermos répare au lieu de remplacer. Économisez 50%+. 15 ans d'expérience ☎ 514-825-8411`,
+    title: (c) => `Réparation & Restauration Portes en Bois ${c.name}`,
+    description: (c) => `Porte en bois abîmée à ${c.name}? Sablage, vernissage, peinture et réparation. Économisez 50%+. 15 ans d'expérience ☎ 514-825-8411`,
+  },
+  "reparation-porte-patio": {
+    title: (c) => `Réparation Porte-Patio ${c.name} • Roulettes, Vitre`,
+    description: (c) => `Porte-patio bloquée à ${c.name}? Roulettes, rails, vitre thermos, coupe-froid. Service à domicile dès 150$ ☎ 514-825-8411`,
+  },
+  "reparation-porte-fenetre": {
+    title: (c) => `Réparation Porte-Fenêtre ${c.name} • Multipoint, Vitre`,
+    description: (c) => `Porte-fenêtre qui ferme mal à ${c.name}? Mécanisme multipoint, charnières, vitre. Réparation dès 180$. 15 ans d'exp. ☎ 514-825-8411`,
   },
   "moustiquaires-sur-mesure": {
     title: (c) => `Moustiquaires sur Mesure ${c.name} • Fabrication 48h`,

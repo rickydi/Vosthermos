@@ -27,7 +27,9 @@ export default function Footer() {
         contact: "Contact",
         thermos: "Sealed glass replacement",
         hardware: "Hardware",
-        woodDoors: "Wooden doors",
+        woodDoors: "Wooden door repair",
+        patio: "Patio door repair",
+        frenchDoor: "French door repair",
         screens: "Screen doors",
         caulking: "Caulking",
         defogging: "Defogging",
@@ -54,7 +56,9 @@ export default function Footer() {
         contact: "Contact",
         thermos: "Remplacement de thermos",
         hardware: "Quincaillerie",
-        woodDoors: "Portes en bois",
+        woodDoors: "Reparation portes en bois",
+        patio: "Reparation porte-patio",
+        frenchDoor: "Reparation porte-fenetre",
         screens: "Moustiquaires",
         caulking: "Calfeutrage",
         defogging: "Desembuage",
@@ -117,6 +121,8 @@ export default function Footer() {
               <li><Link href={`${p}/services/remplacement-vitre-thermos`} className="hover:text-white transition-colors">{labels.thermos}</Link></li>
               <li><Link href={`${p}/services/remplacement-quincaillerie`} className="hover:text-white transition-colors">{labels.hardware}</Link></li>
               <li><Link href={`${p}/services/reparation-portes-bois`} className="hover:text-white transition-colors">{labels.woodDoors}</Link></li>
+              <li><Link href={`${p}/services/reparation-porte-patio`} className="hover:text-white transition-colors">{labels.patio}</Link></li>
+              <li><Link href={`${p}/services/reparation-porte-fenetre`} className="hover:text-white transition-colors">{labels.frenchDoor}</Link></li>
               <li><Link href={`${p}/services/moustiquaires-sur-mesure`} className="hover:text-white transition-colors">{labels.screens}</Link></li>
               <li><Link href={`${p}/services/calfeutrage`} className="hover:text-white transition-colors">{labels.caulking}</Link></li>
               <li><Link href={`${p}/services/desembuage`} className="hover:text-white transition-colors">{labels.defogging}</Link></li>

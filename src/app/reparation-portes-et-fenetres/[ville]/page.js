@@ -39,7 +39,9 @@ export async function generateMetadata({ params }) {
 const allServices = [
   { slug: "remplacement-quincaillerie", icon: "fas fa-cogs", title: "Quincaillerie de portes et fenetres", desc: "Remplacement de poignees, serrures, roulettes, manivelles et charnieres pour tous types de portes-patio et fenetres." },
   { slug: "remplacement-vitre-thermos", icon: "fas fa-snowflake", title: "Vitre thermos (unite scellee)", desc: "Remplacement de vitres thermos embuees ou fissurees. Verre Low-E et gaz argon pour une isolation optimale." },
-  { slug: "reparation-portes-bois", icon: "fas fa-door-open", title: "Portes en bois", desc: "Restauration, ajustement et reparation de portes et cadres en bois. Travail artisanal et finition soignee." },
+  { slug: "reparation-porte-patio", icon: "fas fa-grip-lines-vertical", title: "Reparation de porte-patio", desc: "Roulettes, rails, vitres thermos, poignees et coupe-froid. Reparation sur place de portes-patio coulissantes." },
+  { slug: "reparation-porte-fenetre", icon: "fas fa-door-closed", title: "Reparation de porte-fenetre", desc: "Mecanismes multipoints, charnieres, vitres embuees et ajustements. Experts en portes-fenetres a battant." },
+  { slug: "reparation-portes-bois", icon: "fas fa-door-open", title: "Portes en bois", desc: "Restauration, sablage, vernissage, ajustement et reparation de portes et cadres en bois. Travail artisanal." },
   { slug: "moustiquaires-sur-mesure", icon: "fas fa-border-all", title: "Moustiquaires sur mesure", desc: "Fabrication et reparation de moustiquaires pour fenetres et portes-patio. Toile de qualite et ajustement parfait." },
   { slug: "calfeutrage", icon: "fas fa-fill-drip", title: "Calfeutrage", desc: "Calfeutrage interieur et exterieur de portes et fenetres. Elimination des infiltrations d'air et amelioration de l'isolation." },
   { slug: "coupe-froid", icon: "fas fa-temperature-low", title: "Coupe-froid", desc: "Remplacement de coupe-froid uses pour bloquer les courants d'air et reduire vos couts de chauffage." },

@@ -231,11 +231,13 @@ export default async function Home() {
               Que ce soit pour une reparation urgente ou un projet planifie, notre equipe intervient rapidement avec un service professionnel et garanti.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
               { icon: "fa-cogs", title: "Remplacement de quincaillerie", slug: "remplacement-quincaillerie", desc: "Remplacement professionnel de la quincaillerie de vos portes-patio et fenetres. Pieces adaptees et installation rapide." },
               { icon: "fa-snowflake", title: "Remplacement de vitre thermos", slug: "remplacement-vitre-thermos", desc: "Buee ou perte d'efficacite thermique? Remplacement professionnel avec service professionnel garanti sur tous nos travaux." },
-              { icon: "fa-door-open", title: "Reparation de portes en bois", slug: "reparation-portes-bois", desc: "Reparation et restauration de portes et fenetres en bois. Estimation gratuite et execution parfaite des travaux." },
+              { icon: "fa-grip-lines-vertical", title: "Reparation de porte-patio", slug: "reparation-porte-patio", desc: "Roulettes, rails, vitre thermos, poignees et coupe-froid. Reparation sur place pour tous les modeles de portes-patio." },
+              { icon: "fa-door-closed", title: "Reparation de porte-fenetre", slug: "reparation-porte-fenetre", desc: "Mecanismes multipoints, charnieres, vitres embuees et ajustements. Experts en portes-fenetres toutes marques." },
+              { icon: "fa-door-open", title: "Reparation et restauration portes en bois", slug: "reparation-portes-bois", desc: "Sablage, remplissage, vernissage, peinture et finition professionnelle. Redonnez vie a vos portes en bois." },
               { icon: "fa-border-all", title: "Moustiquaires sur mesure", slug: "moustiquaires-sur-mesure", desc: "Fabrication sur mesure et reparation de tous types de moustiquaires. Service rapide et etancheite parfaite garantie." },
             ].map((s) => (
               <Link
