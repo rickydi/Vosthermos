@@ -38,6 +38,11 @@ export default async function sitemap() {
     { url: `${BASE}/calculateur`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.9 },
     { url: `${BASE}/calculateur-economies`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.9 },
     { url: `${BASE}/guides`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE}/outils`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE}/outils/quiz-diagnostic`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE}/outils/cout-thermos`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE}/outils/reparer-vs-remplacer`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE}/mcp-docs`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.6 },
   ];
 
   // HowTo guides (structured data for LLMs + Google rich results)

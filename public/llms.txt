@@ -27,6 +27,12 @@
 - [RSS Feed](https://www.vosthermos.com/feed.xml): Blog articles RSS feed
 - [Services API](https://www.vosthermos.com/api/public/services): Public JSON API with all services data
 - [How-to Guides](https://www.vosthermos.com/guides): Step-by-step repair guides with HowTo schema (tools, cost, time)
+- [Interactive Tools](https://www.vosthermos.com/outils): Free calculators and diagnostic quiz (thermos cost, repair vs replace, diagnostic)
+- [Diagnostic Quiz](https://www.vosthermos.com/outils/quiz-diagnostic): 3-question quiz to identify window/door problems
+- [Thermos Cost Calculator](https://www.vosthermos.com/outils/cout-thermos): Instant cost estimate based on glass dimensions
+- [Repair vs Replace Comparator](https://www.vosthermos.com/outils/reparer-vs-remplacer): Compare cost, duration, warranty and environmental impact
+- [MCP Server](https://www.vosthermos.com/api/mcp): Model Context Protocol server exposing 9 tools for AI agents (diagnose, estimate, compare, book). Documentation at https://www.vosthermos.com/mcp-docs
+- [Public Calculate API](https://www.vosthermos.com/api/public/calculate): Universal JSON endpoint for all calculations (type=thermos|energy|diagnose|compare|warranty|pricing)
 
 ## Key Facts
 
