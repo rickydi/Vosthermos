@@ -28,16 +28,39 @@ const nextConfig = {
   },
   async redirects() {
     return [
-      {
-        source: "/secteurs/:ville",
-        destination: "/reparation-portes-et-fenetres/:ville",
-        permanent: true, // 301
-      },
-      {
-        source: "/secteurs",
-        destination: "/services",
-        permanent: true, // 301
-      },
+      // ── Anciennes URLs (pre-refonte Next.js) — 301 pour recuperer le SEO ──
+      { source: "/secteurs/:ville", destination: "/reparation-portes-et-fenetres/:ville", permanent: true },
+      { source: "/secteurs", destination: "/services", permanent: true },
+
+      // Anciennes URLs villes avec extension .html (vieille structure)
+      { source: "/villes/:ville.html", destination: "/reparation-portes-et-fenetres/:ville", permanent: true },
+      { source: "/villes/:ville", destination: "/reparation-portes-et-fenetres/:ville", permanent: true },
+      { source: "/villes", destination: "/services", permanent: true },
+
+      // Blog singulier "blog" -> pluriel "blogue"
+      { source: "/blog", destination: "/blogue", permanent: true },
+      { source: "/blog/:slug*", destination: "/blogue/:slug*", permanent: true },
+
+      // EN: pages qui n'existent pas mais Google les demande (content FR dans path EN)
+      { source: "/en/blogue", destination: "/en", permanent: true },
+      { source: "/en/blogue/:slug*", destination: "/blogue/:slug*", permanent: true },
+      { source: "/en/secteurs/:ville", destination: "/en", permanent: true },
+      { source: "/en/secteurs", destination: "/en", permanent: true },
+      { source: "/en/villes/:ville.html", destination: "/en", permanent: true },
+      { source: "/en/villes/:ville", destination: "/en", permanent: true },
+      { source: "/en/carrieres", destination: "/carrieres", permanent: true },
+      { source: "/en/panier", destination: "/panier", permanent: true },
+      { source: "/en/rendez-vous", destination: "/rendez-vous", permanent: true },
+
+      // Slugs anglais -> francais (pas de version EN dediee)
+      { source: "/services/door-insert", destination: "/services/insertion-porte", permanent: true },
+      { source: "/services/wooden-door-repair", destination: "/services/reparation-portes-bois", permanent: true },
+      { source: "/services/sealed-glass-replacement", destination: "/services/remplacement-vitre-thermos", permanent: true },
+      { source: "/services/hardware-replacement", destination: "/services/remplacement-quincaillerie", permanent: true },
+      { source: "/services/custom-screen-doors", destination: "/services/moustiquaires-sur-mesure", permanent: true },
+      { source: "/services/caulking", destination: "/services/calfeutrage", permanent: true },
+      { source: "/services/defogging", destination: "/services/desembuage", permanent: true },
+      { source: "/services/weatherstripping", destination: "/services/coupe-froid", permanent: true },
     ];
   },
 };
