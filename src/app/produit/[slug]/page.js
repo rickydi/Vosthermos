@@ -106,13 +106,6 @@ export default async function ProductPage({ params }) {
         returnMethod: "https://schema.org/ReturnByMail",
       },
     },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.8",
-      reviewCount: "127",
-      bestRating: "5",
-      worstRating: "1",
-    },
   };
 
   // ImageObject JSON-LD (for Google Images rich results)
