@@ -85,11 +85,11 @@ export default function ContactPage() {
           <div className="bg-white rounded-xl p-8 shadow-sm border border-[var(--color-border)] mb-8">
             <h2 className="text-xl font-bold mb-4">Pour nous joindre</h2>
             <ul className="space-y-3 text-[var(--color-muted)]">
-              <li>4319 Bélanger Est, Montréal, QC H1T 1A8</li>
+              <li>330 Ch. St-François-Xavier, Local 101, Saint-François-Xavier, QC J0H 1S0</li>
               <li>
                 Téléphone:{" "}
-                <a href="tel:5145257111" className="text-[var(--color-primary)] font-medium hover:underline">
-                  (514) 525-7111
+                <a href="tel:+15148258411" className="text-[var(--color-primary)] font-medium hover:underline">
+                  514-825-8411
                 </a>
               </li>
               <li>

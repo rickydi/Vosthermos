@@ -5,7 +5,7 @@ const { PrismaPg } = require('@prisma/adapter-pg');
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
-// Subcategory definitions based on old 4319.ca site
+// Subcategory definitions based on historical product catalog
 // Each entry: parent slug -> array of { name, slug, keywords (matched against product name, case-insensitive) }
 const SUBCATEGORIES = {
   'fenetres-battant': [

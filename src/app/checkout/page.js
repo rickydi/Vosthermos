@@ -170,7 +170,7 @@ export default function CheckoutPage() {
                       <input
                         type="text" id="postalCode" name="postalCode" required
                         value={form.postalCode} onChange={handleChange}
-                        placeholder="H1T 1A8"
+                        placeholder="J0H 1S0"
                         className="w-full border border-[var(--color-border)] rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-teal)] uppercase"
                       />
                     </div>
