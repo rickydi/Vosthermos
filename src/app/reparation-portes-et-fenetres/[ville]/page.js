@@ -70,7 +70,7 @@ export default async function ReparationVillePage({ params }) {
       streetAddress: "330 Ch. St-Francois-Xavier, Local 101",
       addressLocality: "Saint-Francois-Xavier",
       addressRegion: "QC",
-      postalCode: "J0L 2P0",
+      postalCode: "J0H 1S0",
       addressCountry: "CA",
     },
     geo: {
