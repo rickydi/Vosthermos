@@ -5,24 +5,40 @@ import Link from "next/link";
 const OPTIONS = [
   {
     key: "a",
-    name: "Option A — Moderne Épuré",
-    desc: "Minimaliste, inspiré Stripe/Linear. Beaucoup d'espaces, noir/blanc + accent rouge, typo épurée. Sections B2B en cartes individuelles avec bordure colorée.",
-    vibe: "Tech moderne · Startup · Légère",
-    color: "from-neutral-100 to-white",
-  },
-  {
-    key: "b",
-    name: "Option B — Corporate Premium",
-    desc: "Classique pro, inspiré cabinets comptables. Bande rouge verticale gauche avec numéro, encadrements, zone signature physique, footer conditions.",
-    vibe: "Corporate · Traditionnel · Sérieux",
+    name: "A — Classic Rouge",
+    desc: "Accent rouge sur le côté, code d'unité en badge rouge plein, bloc total sur fond rouge pâle. La version originale d'Option A.",
+    vibe: "Warm · Reconnaissable · Marque",
     color: "from-red-50 to-white",
   },
   {
+    key: "a2",
+    name: "A2 — Mono Noir",
+    desc: "Minimaliste pur. Aucun fond rouge, code d'unité en texte mono-espace sur barre noire, total en noir avec ligne noire double au-dessus.",
+    vibe: "Minimal · Sobre · Éditorial",
+    color: "from-neutral-100 to-white",
+  },
+  {
+    key: "a3",
+    name: "A3 — Receipt Premium",
+    desc: "Code d'unité en badge rouge outlined (bordure, pas rempli). Total dans une boîte façon reçu (bordure pointillée) avec label 'Montant à payer'.",
+    vibe: "Comptable · Détaillé · Pro",
+    color: "from-neutral-50 via-red-50 to-white",
+  },
+  {
+    key: "b",
+    name: "B — Corporate (archive)",
+    desc: "Option précédente — bande rouge verticale, serif classique.",
+    vibe: "Archive",
+    color: "from-red-50 to-white",
+    archived: true,
+  },
+  {
     key: "c",
-    name: "Option C — Branded Thermos",
-    desc: "Audacieux. Dégradés rouge, icônes par catégorie, sections B2B en cards colorées, total avec accent visuel. Plus moderne et punchy.",
-    vibe: "Branded · Punchy · Mémorable",
+    name: "C — Branded (archive)",
+    desc: "Option précédente — hero gradient, icônes, cards colorées.",
+    vibe: "Archive",
     color: "from-orange-50 via-red-50 to-pink-50",
+    archived: true,
   },
 ];
 
@@ -32,13 +48,14 @@ export default function PreviewHub() {
       <Link href="/admin/bons" className="admin-text-muted text-sm hover:admin-text">
         <i className="fas fa-arrow-left mr-2"></i>Retour aux bons
       </Link>
-      <h1 className="admin-text text-3xl font-extrabold mt-3 mb-2">Aperçu factures — 3 options</h1>
+      <h1 className="admin-text text-3xl font-extrabold mt-3 mb-2">Aperçu factures — style Moderne Épuré</h1>
       <p className="admin-text-muted text-sm mb-8 max-w-2xl">
-        Les 3 maquettes utilisent des données factices d&apos;un bon Marronnier (3 unités, 6 items, 2 736,43 $). Clique pour voir chaque design plein écran. Choisis celui que tu aimes, je l&apos;implémente ensuite pour les vrais bons.
+        3 variantes du style que tu as choisi. Total à payer en format compact. Même données factices (Marronnier · 3 unités · 2 736,43 $). Clique pour voir plein écran.
       </p>
 
-      <div className="grid md:grid-cols-3 gap-5">
-        {OPTIONS.map((opt) => (
+      <h2 className="admin-text font-bold text-lg mb-3">Variantes actives</h2>
+      <div className="grid md:grid-cols-3 gap-5 mb-10">
+        {OPTIONS.filter((o) => !o.archived).map((opt) => (
           <Link key={opt.key} href={`/admin/bons/preview/${opt.key}`}
             className="group block rounded-2xl overflow-hidden border admin-border admin-card hover:shadow-xl transition-all hover:-translate-y-1">
             <div className={`h-40 bg-gradient-to-br ${opt.color} flex items-center justify-center relative`}>
@@ -59,13 +76,24 @@ export default function PreviewHub() {
               </div>
             </div>
             <div className="p-5">
-              <h2 className="admin-text font-extrabold text-lg mb-2">{opt.name}</h2>
+              <h3 className="admin-text font-extrabold text-lg mb-2">{opt.name}</h3>
               <p className="admin-text-muted text-xs mb-3">{opt.vibe}</p>
               <p className="admin-text text-sm leading-relaxed mb-4">{opt.desc}</p>
               <span className="text-[var(--color-red)] font-bold text-sm group-hover:underline">
                 Voir la maquette <i className="fas fa-arrow-right ml-1"></i>
               </span>
             </div>
+          </Link>
+        ))}
+      </div>
+
+      <h2 className="admin-text font-bold text-lg mb-3 opacity-50">Archives (B / C)</h2>
+      <div className="grid md:grid-cols-2 gap-4 opacity-60">
+        {OPTIONS.filter((o) => o.archived).map((opt) => (
+          <Link key={opt.key} href={`/admin/bons/preview/${opt.key}`}
+            className="block rounded-xl border admin-border admin-card p-4 hover:opacity-100 transition-opacity">
+            <h3 className="admin-text font-bold text-sm">{opt.name}</h3>
+            <p className="admin-text-muted text-xs mt-1">{opt.desc}</p>
           </Link>
         ))}
       </div>
