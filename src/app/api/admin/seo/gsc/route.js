@@ -4,10 +4,13 @@ import { google } from "googleapis";
 import { CITIES } from "@/lib/cities";
 import path from "path";
 import fs from "fs";
+import { withCache } from "@/lib/gsc-cache";
 
 export const dynamic = "force-dynamic";
 
-// Parse "1.8M habitants" / "90 000 habitants" / "12 500 habitants" → number
+const SITE_URL = "https://www.vosthermos.com/";
+const BRAND_TERM = "vosthermos";
+
 function parsePopulation(str) {
   if (!str) return 0;
   const s = String(str).replace(/\s/g, "").toLowerCase();
@@ -25,19 +28,39 @@ async function getSearchConsoleClient() {
   if (!fs.existsSync(configPath)) {
     throw new Error("Fichier config/google-service-account.json introuvable");
   }
-
   const auth = new google.auth.GoogleAuth({
     keyFile: configPath,
     scopes: ["https://www.googleapis.com/auth/webmasters.readonly"],
   });
-
   return google.searchconsole({ version: "v1", auth });
 }
 
-// GET /api/admin/seo/gsc
-// ?days=28           — period
-// ?keyword=thermos   — optional query filter
-// ?city=delson       — optional: returns query-level detail for that city only
+// Build dimensionFilterGroups based on optional keyword + device + branded + country + city
+function buildFilters({ keyword, device, branded, country, cityFilter }) {
+  const groups = [];
+
+  if (keyword) {
+    groups.push({ filters: [{ dimension: "query", operator: "contains", expression: keyword }] });
+  }
+  if (device && device !== "ALL") {
+    groups.push({ filters: [{ dimension: "device", operator: "equals", expression: device }] });
+  }
+  if (country) {
+    groups.push({ filters: [{ dimension: "country", operator: "equals", expression: country }] });
+  }
+  if (branded === "exclude") {
+    groups.push({ filters: [{ dimension: "query", operator: "notContains", expression: BRAND_TERM }] });
+  } else if (branded === "only") {
+    groups.push({ filters: [{ dimension: "query", operator: "contains", expression: BRAND_TERM }] });
+  }
+  if (cityFilter) {
+    groups.push({ filters: [{ dimension: "page", operator: "contains", expression: `/${cityFilter}` }] });
+  }
+  return groups;
+}
+
+function isoDate(d) { return d.toISOString().split("T")[0]; }
+
 export async function GET(request) {
   try {
     await requireAdmin();
@@ -49,6 +72,11 @@ export async function GET(request) {
   const days = parseInt(searchParams.get("days") || "28");
   const keyword = searchParams.get("keyword") || "";
   const city = searchParams.get("city") || "";
+  const device = (searchParams.get("device") || "ALL").toUpperCase(); // ALL|DESKTOP|MOBILE|TABLET
+  const branded = searchParams.get("branded") || "all"; // all|exclude|only
+  const country = searchParams.get("country") || "can";
+
+  const cacheParams = { days, keyword, city, device, branded, country };
 
   try {
     const searchconsole = await getSearchConsoleClient();
@@ -58,178 +86,178 @@ export async function GET(request) {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    const formatDate = (d) => d.toISOString().split("T")[0];
-
-    // ─── Mode detail par ville ───────────────────────────────────
-    // Retourne 2 vues:
-    //   - pages: vue par page (inclut requetes anonymisees - donnees completes)
-    //   - queries: vue par requete (Google cache certaines requetes)
+    // ─── Mode detail par ville ──────────────────────────────────
     if (city) {
-      const dimensionFilterGroups = [{
-        filters: [{ dimension: "page", operator: "contains", expression: `/${city}` }],
-      }];
-      if (keyword) {
-        dimensionFilterGroups.push({
-          filters: [{ dimension: "query", operator: "contains", expression: keyword }],
+      const scope = "city-detail";
+      const { fromCache, data } = await withCache(scope, cacheParams, async () => {
+        const filters = buildFilters({ keyword, device, branded, country, cityFilter: city });
+
+        const pagesRes = await searchconsole.searchanalytics.query({
+          siteUrl: SITE_URL,
+          requestBody: {
+            startDate: isoDate(startDate),
+            endDate: isoDate(endDate),
+            dimensions: ["page"],
+            dimensionFilterGroups: filters,
+            rowLimit: 1000,
+            type: "web",
+          },
         });
-      }
 
-      // Requete 1: vue par page (donnees completes incluant requetes anonymisees)
-      const pagesRes = await searchconsole.searchanalytics.query({
-        siteUrl: "https://www.vosthermos.com/",
+        const queriesRes = await searchconsole.searchanalytics.query({
+          siteUrl: SITE_URL,
+          requestBody: {
+            startDate: isoDate(startDate),
+            endDate: isoDate(endDate),
+            dimensions: ["query", "page"],
+            dimensionFilterGroups: filters,
+            rowLimit: 5000,
+            type: "web",
+          },
+        });
+
+        const pages = (pagesRes.data.rows || []).map((row) => ({
+          page: row.keys[0],
+          clicks: row.clicks,
+          impressions: row.impressions,
+          position: Math.round(row.position * 10) / 10,
+          ctr: Math.round(row.ctr * 1000) / 10,
+        })).sort((a, b) => a.position - b.position);
+
+        const queries = (queriesRes.data.rows || []).map((row) => ({
+          query: row.keys[0],
+          page: row.keys[1],
+          clicks: row.clicks,
+          impressions: row.impressions,
+          position: Math.round(row.position * 10) / 10,
+          ctr: Math.round(row.ctr * 1000) / 10,
+        }));
+
+        const totalClicks = pages.reduce((s, p) => s + p.clicks, 0);
+        const totalImpressions = pages.reduce((s, p) => s + p.impressions, 0);
+        const bestPosition = pages.length > 0 ? pages[0].position : null;
+        const ctr = totalImpressions > 0 ? Math.round((totalClicks / totalImpressions) * 1000) / 10 : 0;
+
+        return {
+          source: "google-search-console",
+          mode: "city-detail",
+          city,
+          period: { startDate: isoDate(startDate), endDate: isoDate(endDate), days },
+          filters: { device, branded, country },
+          totalClicks,
+          totalImpressions,
+          bestPosition,
+          ctr,
+          pages,
+          queries,
+        };
+      });
+
+      return NextResponse.json({ ...data, fromCache });
+    }
+
+    // ─── Mode overview (toutes les villes) ─────────────────────
+    const scope = "overview";
+    const { fromCache, data } = await withCache(scope, cacheParams, async () => {
+      const filters = buildFilters({ keyword, device, branded, country });
+
+      const response = await searchconsole.searchanalytics.query({
+        siteUrl: SITE_URL,
         requestBody: {
-          startDate: formatDate(startDate),
-          endDate: formatDate(endDate),
+          startDate: isoDate(startDate),
+          endDate: isoDate(endDate),
           dimensions: ["page"],
-          dimensionFilterGroups,
-          rowLimit: 1000,
+          dimensionFilterGroups: filters,
+          rowLimit: 25000,
           type: "web",
         },
       });
 
-      // Requete 2: vue par requete (peut etre incomplete - Google anonymise)
-      const queriesRes = await searchconsole.searchanalytics.query({
-        siteUrl: "https://www.vosthermos.com/",
-        requestBody: {
-          startDate: formatDate(startDate),
-          endDate: formatDate(endDate),
-          dimensions: ["query", "page"],
-          dimensionFilterGroups,
-          rowLimit: 5000,
-          type: "web",
-        },
-      });
+      const rows = response.data.rows || [];
 
-      const pages = (pagesRes.data.rows || []).map(row => ({
-        page: row.keys[0],
-        clicks: row.clicks,
-        impressions: row.impressions,
-        position: Math.round(row.position * 10) / 10,
-        ctr: Math.round(row.ctr * 1000) / 10,
-      })).sort((a, b) => a.position - b.position);
-
-      const queries = (queriesRes.data.rows || []).map(row => ({
-        query: row.keys[0],
-        page: row.keys[1],
-        clicks: row.clicks,
-        impressions: row.impressions,
-        position: Math.round(row.position * 10) / 10,
-        ctr: Math.round(row.ctr * 1000) / 10,
-      }));
-
-      // Totals viennent de la vue page (donnees completes)
-      const totalClicks = pages.reduce((s, p) => s + p.clicks, 0);
-      const totalImpressions = pages.reduce((s, p) => s + p.impressions, 0);
-      const bestPosition = pages.length > 0 ? pages[0].position : null;
-
-      return NextResponse.json({
-        source: "google-search-console",
-        mode: "city-detail",
-        city,
-        period: { startDate: formatDate(startDate), endDate: formatDate(endDate), days },
-        totalClicks,
-        totalImpressions,
-        bestPosition,
-        pages,
-        queries,
-      });
-    }
-
-    // ─── Mode overview (toutes les villes) ───────────────────────
-    // Dimension ["page"] seulement = ~200-300 lignes (1 par page URL)
-    // Beaucoup plus fiable que ["query", "page"] qui explose la limite
-    const dimensionFilterGroups = [];
-    if (keyword) {
-      dimensionFilterGroups.push({
-        filters: [{ dimension: "query", operator: "contains", expression: keyword }],
-      });
-    }
-
-    const response = await searchconsole.searchanalytics.query({
-      siteUrl: "https://www.vosthermos.com/",
-      requestBody: {
-        startDate: formatDate(startDate),
-        endDate: formatDate(endDate),
-        dimensions: ["page"],
-        dimensionFilterGroups,
-        rowLimit: 25000,
-        type: "web",
-      },
-    });
-
-    const rows = response.data.rows || [];
-
-    // Initialize all cities
-    const cityResults = {};
-    for (const c of CITIES) {
-      cityResults[c.slug] = {
-        slug: c.slug,
-        name: c.name,
-        population: parsePopulation(c.population),
-        bestPosition: null,
-        totalClicks: 0,
-        totalImpressions: 0,
-        bestPage: null,
-      };
-    }
-    cityResults["_general"] = {
-      slug: "_general",
-      name: "General (sans ville)",
-      population: 0,
-      bestPosition: null,
-      totalClicks: 0,
-      totalImpressions: 0,
-      bestPage: null,
-    };
-
-    for (const row of rows) {
-      const page = row.keys[0];
-
-      let matched = false;
+      const cityResults = {};
       for (const c of CITIES) {
-        if (page.includes(`/${c.slug}`)) {
-          const cr = cityResults[c.slug];
-          cr.totalClicks += row.clicks;
-          cr.totalImpressions += row.impressions;
-          if (cr.bestPosition === null || row.position < cr.bestPosition) {
-            cr.bestPosition = Math.round(row.position * 10) / 10;
-            cr.bestPage = page;
+        cityResults[c.slug] = {
+          slug: c.slug,
+          name: c.name,
+          population: parsePopulation(c.population),
+          bestPosition: null,
+          totalClicks: 0,
+          totalImpressions: 0,
+          ctr: 0,
+          bestPage: null,
+        };
+      }
+      cityResults["_general"] = {
+        slug: "_general", name: "General (sans ville)",
+        population: 0, bestPosition: null,
+        totalClicks: 0, totalImpressions: 0, ctr: 0, bestPage: null,
+      };
+
+      for (const row of rows) {
+        const page = row.keys[0];
+        let matched = false;
+        for (const c of CITIES) {
+          if (page.includes(`/${c.slug}`)) {
+            const cr = cityResults[c.slug];
+            cr.totalClicks += row.clicks;
+            cr.totalImpressions += row.impressions;
+            if (cr.bestPosition === null || row.position < cr.bestPosition) {
+              cr.bestPosition = Math.round(row.position * 10) / 10;
+              cr.bestPage = page;
+            }
+            matched = true;
+            break;
           }
-          matched = true;
-          break;
+        }
+        if (!matched) {
+          const g = cityResults["_general"];
+          g.totalClicks += row.clicks;
+          g.totalImpressions += row.impressions;
+          if (g.bestPosition === null || row.position < g.bestPosition) {
+            g.bestPosition = Math.round(row.position * 10) / 10;
+            g.bestPage = page;
+          }
         }
       }
 
-      if (!matched) {
-        const g = cityResults["_general"];
-        g.totalClicks += row.clicks;
-        g.totalImpressions += row.impressions;
-        if (g.bestPosition === null || row.position < g.bestPosition) {
-          g.bestPosition = Math.round(row.position * 10) / 10;
-          g.bestPage = page;
-        }
+      // Compute CTR per city
+      for (const c of Object.values(cityResults)) {
+        c.ctr = c.totalImpressions > 0
+          ? Math.round((c.totalClicks / c.totalImpressions) * 1000) / 10
+          : 0;
       }
-    }
 
-    // Summary stats
-    const cities = Object.values(cityResults);
-    const withPosition = cities.filter((c) => c.bestPosition !== null);
-    const inTop1 = withPosition.filter((c) => c.bestPosition <= 1.5).length;
-    const inTop3 = withPosition.filter((c) => c.bestPosition <= 3.5).length;
-    const inTop10 = withPosition.filter((c) => c.bestPosition <= 10.5).length;
-    const totalClicks = cities.reduce((s, c) => s + c.totalClicks, 0);
-    const totalImpressions = cities.reduce((s, c) => s + c.totalImpressions, 0);
-    const avgPosition = withPosition.length > 0
-      ? Math.round((withPosition.reduce((s, c) => s + c.bestPosition, 0) / withPosition.length) * 10) / 10
-      : null;
+      const cities = Object.values(cityResults);
+      const withPosition = cities.filter((c) => c.bestPosition !== null);
+      const inTop1 = withPosition.filter((c) => c.bestPosition <= 1.5).length;
+      const inTop3 = withPosition.filter((c) => c.bestPosition <= 3.5).length;
+      const inTop10 = withPosition.filter((c) => c.bestPosition <= 10.5).length;
+      const totalClicks = cities.reduce((s, c) => s + c.totalClicks, 0);
+      const totalImpressions = cities.reduce((s, c) => s + c.totalImpressions, 0);
+      const avgPosition = withPosition.length > 0
+        ? Math.round((withPosition.reduce((s, c) => s + c.bestPosition, 0) / withPosition.length) * 10) / 10
+        : null;
+      const globalCtr = totalImpressions > 0
+        ? Math.round((totalClicks / totalImpressions) * 1000) / 10
+        : 0;
 
-    return NextResponse.json({
-      source: "google-search-console",
-      mode: "overview",
-      period: { startDate: formatDate(startDate), endDate: formatDate(endDate), days },
-      summary: { inTop1, inTop3, inTop10, totalClicks, totalImpressions, avgPosition, citiesWithData: withPosition.length },
-      cities: cities.sort((a, b) => (a.bestPosition ?? 999) - (b.bestPosition ?? 999)),
+      return {
+        source: "google-search-console",
+        mode: "overview",
+        period: { startDate: isoDate(startDate), endDate: isoDate(endDate), days },
+        filters: { device, branded, country },
+        summary: {
+          inTop1, inTop3, inTop10,
+          totalClicks, totalImpressions,
+          avgPosition, ctr: globalCtr,
+          citiesWithData: withPosition.length,
+        },
+        cities: cities.sort((a, b) => (a.bestPosition ?? 999) - (b.bestPosition ?? 999)),
+      };
     });
+
+    return NextResponse.json({ ...data, fromCache });
   } catch (err) {
     console.error("GSC API error:", err.message);
     return NextResponse.json({ error: err.message || "Erreur Google Search Console" }, { status: 500 });
