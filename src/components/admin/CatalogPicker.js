@@ -59,9 +59,9 @@ export default function CatalogPicker({ open, onClose, onPick }) {
   const pages = Math.ceil(total / LIMIT);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="admin-card admin-border border rounded-xl w-full max-w-6xl h-[85vh] flex flex-col overflow-hidden"
+        className="admin-bg admin-border border rounded-xl w-full max-w-6xl h-[85vh] flex flex-col overflow-hidden shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
