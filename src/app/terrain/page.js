@@ -83,7 +83,16 @@ export default function TerrainDashboard() {
                 <p className="text-white/40 text-sm">{wo.client?.address}{wo.client?.city ? `, ${wo.client.city}` : ""}</p>
                 <div className="flex items-center justify-between mt-2">
                   <span className="text-white/40 text-xs">
-                    {wo.heureArrivee && `${wo.heureArrivee}`}{wo.heureDepart && ` - ${wo.heureDepart}`}
+                    {(() => {
+                      const fmtHM = (dt) => {
+                        if (!dt) return "";
+                        const d = new Date(dt);
+                        return isNaN(d.getTime()) ? "" : `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+                      };
+                      const a = fmtHM(wo.arrivalAt);
+                      const dp = fmtHM(wo.departureAt);
+                      return `${a}${dp ? ` - ${dp}` : ""}`;
+                    })()}
                   </span>
                   <span className="text-[var(--color-red)] font-bold">{wo.total.toFixed(2)}$</span>
                 </div>

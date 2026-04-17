@@ -15,10 +15,26 @@ export async function GET(_req, { params }) {
         orderBy: { position: "asc" },
         include: { product: { select: { id: true, sku: true, name: true } } },
       },
+      sections: {
+        orderBy: { position: "asc" },
+        include: {
+          items: {
+            orderBy: { position: "asc" },
+            include: { product: { select: { id: true, sku: true, name: true } } },
+          },
+        },
+      },
     },
   });
 
   if (!wo) return NextResponse.json({ error: "Non trouve" }, { status: 404 });
+
+  const ser = (i) => ({
+    ...i,
+    quantity: Number(i.quantity),
+    unitPrice: Number(i.unitPrice),
+    totalPrice: Number(i.totalPrice),
+  });
 
   return NextResponse.json({
     ...wo,
@@ -28,12 +44,8 @@ export async function GET(_req, { params }) {
     tps: Number(wo.tps),
     tvq: Number(wo.tvq),
     total: Number(wo.total),
-    items: wo.items.map((i) => ({
-      ...i,
-      quantity: Number(i.quantity),
-      unitPrice: Number(i.unitPrice),
-      totalPrice: Number(i.totalPrice),
-    })),
+    items: wo.items.map(ser),
+    sections: wo.sections.map((s) => ({ ...s, items: s.items.map(ser) })),
   });
 }
 

@@ -21,6 +21,7 @@ const navItems = [
   { href: "/admin/seo", label: "SEO", icon: "fa-search" },
   { section: "TERRAIN" },
   { href: "/admin/bons", label: "Bons de travail", icon: "fa-clipboard-list" },
+  { href: "/admin/services", label: "Services", icon: "fa-tools" },
   { href: "/admin/techniciens", label: "Techniciens", icon: "fa-hard-hat" },
   { href: "/admin/clients", label: "Clients", icon: "fa-address-book" },
   { section: "SYSTEME" },

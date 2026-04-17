@@ -21,6 +21,10 @@ export async function GET(req) {
     } : {},
     orderBy: { updatedAt: "desc" },
     take: 20,
+    select: {
+      id: true, name: true, type: true, phone: true, email: true,
+      company: true, address: true, city: true, province: true, postalCode: true,
+    },
   });
 
   return NextResponse.json(clients);
@@ -35,6 +39,7 @@ export async function POST(req) {
   const client = await prisma.client.create({
     data: {
       name: body.name,
+      type: body.type === "gestionnaire" ? "gestionnaire" : "particulier",
       company: body.company || null,
       address: body.address || null,
       city: body.city || null,

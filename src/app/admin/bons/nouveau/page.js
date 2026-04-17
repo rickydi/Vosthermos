@@ -26,6 +26,10 @@ export default function NouveauBonAdmin() {
   const [description, setDescription] = useState("");
   const [notes, setNotes] = useState("");
   const [statut, setStatut] = useState("draft");
+  const [interventionAddress, setInterventionAddress] = useState("");
+  const [interventionCity, setInterventionCity] = useState("");
+  const [interventionPostalCode, setInterventionPostalCode] = useState("");
+  const [visibleAuClient, setVisibleAuClient] = useState(true);
 
   const [items, setItems] = useState([]);
   const [catalogOpen, setCatalogOpen] = useState(false);
@@ -138,6 +142,10 @@ export default function NouveauBonAdmin() {
           date,
           heureArrivee: heureArrivee || null,
           heureDepart: heureDepart || null,
+          interventionAddress: interventionAddress || null,
+          interventionCity: interventionCity || null,
+          interventionPostalCode: interventionPostalCode || null,
+          visibleAuClient,
           description: description || null,
           notes: notes || null,
           statut,
@@ -260,6 +268,22 @@ export default function NouveauBonAdmin() {
             </select>
           </div>
           <div>
+            <label className="admin-text-muted text-xs mb-1 block">
+              Adresse d&apos;intervention <span className="opacity-60">(si differente du client)</span>
+            </label>
+            <div className="grid md:grid-cols-3 gap-3">
+              <input type="text" placeholder="Adresse" value={interventionAddress}
+                onChange={(e) => setInterventionAddress(e.target.value)}
+                className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full md:col-span-2" />
+              <input type="text" placeholder="Ville" value={interventionCity}
+                onChange={(e) => setInterventionCity(e.target.value)}
+                className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
+            </div>
+            <input type="text" placeholder="Code postal" value={interventionPostalCode}
+              onChange={(e) => setInterventionPostalCode(e.target.value)}
+              className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full mt-3 md:w-48" />
+          </div>
+          <div>
             <label className="admin-text-muted text-xs mb-1 block">Description du travail</label>
             <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3}
               className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
@@ -269,6 +293,12 @@ export default function NouveauBonAdmin() {
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
               className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
           </div>
+          <label className="flex items-center gap-2 text-sm admin-text cursor-pointer">
+            <input type="checkbox" checked={visibleAuClient}
+              onChange={(e) => setVisibleAuClient(e.target.checked)}
+              className="rounded" />
+            Visible dans le portail client
+          </label>
         </div>
 
         {/* Items */}

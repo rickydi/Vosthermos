@@ -1,9 +1,23 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireTech } from "@/lib/technician-auth";
-import { generateWorkOrderNumber, calcTotals, getWorkOrderSettings } from "@/lib/work-order-utils";
+import {
+  generateWorkOrderNumber,
+  calcTotals,
+  getWorkOrderSettings,
+  composeDateTime,
+  computeDurationMinutes,
+  flattenSectionsBody,
+  attachSectionsAndItems,
+} from "@/lib/work-order-utils";
 
 function serializeWO(wo) {
+  const serItem = (i) => ({
+    ...i,
+    quantity: Number(i.quantity),
+    unitPrice: Number(i.unitPrice),
+    totalPrice: Number(i.totalPrice),
+  });
   return {
     ...wo,
     totalPieces: Number(wo.totalPieces),
@@ -12,12 +26,8 @@ function serializeWO(wo) {
     tps: Number(wo.tps),
     tvq: Number(wo.tvq),
     total: Number(wo.total),
-    items: wo.items?.map((i) => ({
-      ...i,
-      quantity: Number(i.quantity),
-      unitPrice: Number(i.unitPrice),
-      totalPrice: Number(i.totalPrice),
-    })),
+    items: wo.items?.map(serItem),
+    sections: wo.sections?.map((s) => ({ ...s, items: s.items?.map(serItem) })),
   };
 }
 
@@ -40,8 +50,12 @@ export async function GET(req) {
   const workOrders = await prisma.workOrder.findMany({
     where,
     include: {
-      client: { select: { id: true, name: true, address: true, city: true, phone: true } },
+      client: { select: { id: true, name: true, type: true, address: true, city: true, phone: true } },
       items: { orderBy: { position: "asc" } },
+      sections: {
+        orderBy: { position: "asc" },
+        include: { items: { orderBy: { position: "asc" } } },
+      },
     },
     orderBy: { date: "desc" },
     take: 50,
@@ -58,44 +72,54 @@ export async function POST(req) {
   const number = await generateWorkOrderNumber();
   const settings = await getWorkOrderSettings();
 
-  const items = (body.items || []).map((item, i) => ({
-    productId: item.productId || null,
-    description: item.description,
-    quantity: item.quantity,
-    unitPrice: item.unitPrice,
-    totalPrice: Math.round(Number(item.quantity) * Number(item.unitPrice) * 100) / 100,
-    itemType: item.itemType || "piece",
-    position: i,
-  }));
-
+  const { flatItems, sections, allForCalc } = flattenSectionsBody(body);
   const laborHours = body.laborHours || 0;
   const totals = calcTotals(
-    items,
+    allForCalc,
     laborHours,
     settings.labor_rate_per_hour,
     settings.tps_rate,
     settings.tvq_rate
   );
 
-  const workOrder = await prisma.workOrder.create({
-    data: {
-      number,
-      clientId: body.clientId,
-      technicianId: session.id,
-      date: body.date ? new Date(body.date) : new Date(),
-      heureArrivee: body.heureArrivee || null,
-      heureDepart: body.heureDepart || null,
-      description: body.description || null,
-      photos: body.photos || [],
-      notes: body.notes || null,
-      statut: "draft",
-      ...totals,
-      items: { create: items },
-    },
-    include: {
-      client: true,
-      items: { orderBy: { position: "asc" } },
-    },
+  const woDate = body.date ? new Date(body.date) : new Date();
+  const arrivalAt = composeDateTime(woDate, body.heureArrivee);
+  const departureAt = composeDateTime(woDate, body.heureDepart);
+
+  const workOrder = await prisma.$transaction(async (tx) => {
+    const created = await tx.workOrder.create({
+      data: {
+        number,
+        clientId: body.clientId,
+        technicianId: session.id,
+        appointmentId: body.appointmentId ? parseInt(body.appointmentId) : null,
+        date: woDate,
+        arrivalAt,
+        departureAt,
+        durationMinutes: computeDurationMinutes(arrivalAt, departureAt),
+        interventionAddress: body.interventionAddress || null,
+        interventionCity: body.interventionCity || null,
+        interventionPostalCode: body.interventionPostalCode || null,
+        signatureUrl: body.signatureUrl || null,
+        description: body.description || null,
+        photos: body.photos || [],
+        notes: body.notes || null,
+        statut: body.statut || "draft",
+        ...totals,
+      },
+    });
+    await attachSectionsAndItems(tx, created.id, flatItems, sections);
+    return tx.workOrder.findUnique({
+      where: { id: created.id },
+      include: {
+        client: true,
+        items: { orderBy: { position: "asc" } },
+        sections: {
+          orderBy: { position: "asc" },
+          include: { items: { orderBy: { position: "asc" } } },
+        },
+      },
+    });
   });
 
   return NextResponse.json(serializeWO(workOrder));

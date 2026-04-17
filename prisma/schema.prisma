@@ -235,18 +235,19 @@ model BlogPost {
 }
 
 model Appointment {
-  id          Int      @id @default(autoincrement())
+  id          Int        @id @default(autoincrement())
   name        String
   phone       String
   email       String?
   serviceType String
-  date        DateTime @db.Date
+  date        DateTime   @db.Date
   timeSlot    String
   address     String?
   city        String?
-  notes       String?  @db.Text
-  status      String   @default("pending")
-  createdAt   DateTime @default(now())
+  notes       String?    @db.Text
+  status      String     @default("pending")
+  createdAt   DateTime   @default(now())
+  workOrder   WorkOrder?
 
   @@unique([date, timeSlot])
   @@index([date])
@@ -287,6 +288,7 @@ model Technician {
 model Client {
   id             Int         @id @default(autoincrement())
   name           String
+  type           String      @default("particulier") // "particulier" | "gestionnaire"
   company        String?
   address        String?
   city           String?
@@ -303,33 +305,42 @@ model Client {
   workOrders     WorkOrder[]
 
   @@index([phone])
+  @@index([type])
   @@map("clients")
 }
 
 model WorkOrder {
-  id            Int             @id @default(autoincrement())
-  number        String          @unique
-  clientId      Int
-  client        Client          @relation(fields: [clientId], references: [id])
-  technicianId  Int?
-  technician    Technician?     @relation(fields: [technicianId], references: [id])
-  date          DateTime        @db.Date
-  heureArrivee  String?
-  heureDepart   String?
-  description   String?         @db.Text
-  photos        String[]        @default([])
-  signatureUrl  String?
-  statut        String          @default("draft")
-  notes         String?         @db.Text
-  totalPieces   Decimal         @default(0) @db.Decimal(10, 2)
-  totalLabor    Decimal         @default(0) @db.Decimal(10, 2)
-  subtotal      Decimal         @default(0) @db.Decimal(10, 2)
-  tps           Decimal         @default(0) @db.Decimal(10, 2)
-  tvq           Decimal         @default(0) @db.Decimal(10, 2)
-  total         Decimal         @default(0) @db.Decimal(10, 2)
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  items         WorkOrderItem[]
+  id                     Int             @id @default(autoincrement())
+  number                 String          @unique
+  clientId               Int
+  client                 Client          @relation(fields: [clientId], references: [id])
+  technicianId           Int?
+  technician             Technician?     @relation(fields: [technicianId], references: [id])
+  appointmentId          Int?            @unique
+  appointment            Appointment?    @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  date                   DateTime        @db.Date
+  arrivalAt              DateTime?
+  departureAt            DateTime?
+  durationMinutes        Int?
+  interventionAddress    String?
+  interventionCity       String?
+  interventionPostalCode String?
+  description            String?         @db.Text
+  photos                 String[]        @default([])
+  signatureUrl           String?
+  statut                 String          @default("draft")
+  notes                  String?         @db.Text
+  visibleAuClient        Boolean         @default(true)
+  totalPieces            Decimal         @default(0) @db.Decimal(10, 2)
+  totalLabor             Decimal         @default(0) @db.Decimal(10, 2)
+  subtotal               Decimal         @default(0) @db.Decimal(10, 2)
+  tps                    Decimal         @default(0) @db.Decimal(10, 2)
+  tvq                    Decimal         @default(0) @db.Decimal(10, 2)
+  total                  Decimal         @default(0) @db.Decimal(10, 2)
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+  items                  WorkOrderItem[]
+  sections               WorkOrderSection[]
 
   @@index([clientId])
   @@index([technicianId])
@@ -338,19 +349,64 @@ model WorkOrder {
   @@map("work_orders")
 }
 
-model WorkOrderItem {
-  id          Int        @id @default(autoincrement())
+model Counter {
+  key   String @id
+  value Int    @default(0)
+
+  @@map("counters")
+}
+
+model WorkOrderSection {
+  id          Int             @id @default(autoincrement())
   workOrderId Int
-  workOrder   WorkOrder  @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
-  productId   Int?
-  product     Product?   @relation(fields: [productId], references: [id], onDelete: SetNull)
-  description String
-  quantity    Decimal    @db.Decimal(10, 3)
-  unitPrice   Decimal    @db.Decimal(10, 2)
-  totalPrice  Decimal    @db.Decimal(10, 2)
-  itemType    String     @default("piece")
-  position    Int        @default(0)
+  workOrder   WorkOrder       @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  unitCode    String
+  notes       String?         @db.Text
+  position    Int             @default(0)
+  createdAt   DateTime        @default(now())
+  items       WorkOrderItem[]
 
   @@index([workOrderId])
+  @@map("work_order_sections")
+}
+
+model WorkOrderItem {
+  id          Int               @id @default(autoincrement())
+  workOrderId Int
+  workOrder   WorkOrder         @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  sectionId   Int?
+  section     WorkOrderSection? @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+  productId   Int?
+  product     Product?          @relation(fields: [productId], references: [id], onDelete: SetNull)
+  serviceId   Int?
+  service     Service?          @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  description String
+  quantity    Decimal           @db.Decimal(10, 3)
+  unitPrice   Decimal           @db.Decimal(10, 2)
+  totalPrice  Decimal           @db.Decimal(10, 2)
+  itemType    String            @default("piece")
+  position    Int               @default(0)
+
+  @@index([workOrderId])
+  @@index([sectionId])
   @@map("work_order_items")
+}
+
+model Service {
+  id             Int             @id @default(autoincrement())
+  code           String          @unique
+  name           String
+  category       String          // thermo | installation | ajustement | quincaillerie | vitre | autre
+  price          Decimal         @db.Decimal(10, 2)
+  description    String?         @db.Text
+  isActive       Boolean         @default(true)
+  isPreset       Boolean         @default(false)
+  position       Int             @default(0)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  workOrderItems WorkOrderItem[]
+
+  @@index([category])
+  @@index([isActive])
+  @@map("services")
 }

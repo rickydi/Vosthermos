@@ -3,7 +3,6 @@ import prisma from "./prisma";
 export async function generateWorkOrderNumber() {
   const year = new Date().getFullYear();
 
-  // Get prefix from settings (default VOT)
   let prefix = "VOT";
   try {
     const rows = await prisma.$queryRawUnsafe(
@@ -12,21 +11,114 @@ export async function generateWorkOrderNumber() {
     if (rows[0]?.value) prefix = rows[0].value;
   } catch {}
 
-  // Find the last number for this year
-  const pattern = `${prefix}-${year}-%`;
+  const key = `workorder:${prefix}:${year}`;
+
+  // Atomic increment via ON CONFLICT — safe under concurrent inserts.
   const rows = await prisma.$queryRawUnsafe(
-    `SELECT number FROM work_orders WHERE number LIKE $1 ORDER BY number DESC LIMIT 1`,
-    pattern
+    `INSERT INTO counters ("key", "value") VALUES ($1, 1)
+     ON CONFLICT ("key") DO UPDATE SET "value" = counters."value" + 1
+     RETURNING "value"`,
+    key
   );
 
-  let nextNum = 1;
-  if (rows[0]?.number) {
-    const parts = rows[0].number.split("-");
-    const lastNum = parseInt(parts[parts.length - 1], 10);
-    if (!isNaN(lastNum)) nextNum = lastNum + 1;
+  const nextNum = rows[0]?.value ?? 1;
+  return `${prefix}-${year}-${String(nextNum).padStart(3, "0")}`;
+}
+
+// Compose a full DateTime from a base date + "HH:mm" string.
+// Returns null if either is missing/invalid.
+export function composeDateTime(baseDate, hhmm) {
+  if (!baseDate || !hhmm || typeof hhmm !== "string") return null;
+  const match = hhmm.match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return null;
+  const h = parseInt(match[1], 10);
+  const m = parseInt(match[2], 10);
+  if (h > 23 || m > 59) return null;
+  const d = baseDate instanceof Date ? new Date(baseDate) : new Date(baseDate);
+  d.setHours(h, m, 0, 0);
+  return d;
+}
+
+export function computeDurationMinutes(arrivalAt, departureAt) {
+  if (!arrivalAt || !departureAt) return null;
+  const a = arrivalAt instanceof Date ? arrivalAt : new Date(arrivalAt);
+  const d = departureAt instanceof Date ? departureAt : new Date(departureAt);
+  const mins = Math.floor((d.getTime() - a.getTime()) / 60000);
+  return mins > 0 ? mins : null;
+}
+
+// Format a DateTime as "HH:mm" in local time. Null-safe.
+export function formatHHmm(dt) {
+  if (!dt) return null;
+  const d = dt instanceof Date ? dt : new Date(dt);
+  if (isNaN(d.getTime())) return null;
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
+// Normalize an item from body to its DB shape (without FKs).
+export function normalizeItem(it, position) {
+  const quantity = Number(it.quantity) || 0;
+  const unitPrice = Number(it.unitPrice) || 0;
+  const totalPrice = Math.round(quantity * unitPrice * 100) / 100;
+  return {
+    productId: it.productId || null,
+    serviceId: it.serviceId || null,
+    description: it.description || "",
+    quantity,
+    unitPrice,
+    totalPrice,
+    itemType: it.itemType || "piece",
+    position,
+  };
+}
+
+// Given a body with optional `items` (flat) and `sections` ([{unitCode, items}]),
+// return the full flattened list for totals calc and metadata to rebuild after insert.
+export function flattenSectionsBody(body) {
+  const flatItems = Array.isArray(body.items) ? body.items : [];
+  const sections = Array.isArray(body.sections) ? body.sections : [];
+  const allForCalc = [...flatItems];
+  for (const s of sections) {
+    for (const it of (s.items || [])) allForCalc.push(it);
+  }
+  return { flatItems, sections, allForCalc };
+}
+
+// Create sections + their items + flat items in a transaction.
+// Returns the full WorkOrder with nested sections.items loaded.
+export async function attachSectionsAndItems(tx, workOrderId, flatItems, sections) {
+  // Flat (no section) items
+  if (flatItems.length > 0) {
+    await tx.workOrderItem.createMany({
+      data: flatItems.map((it, i) => ({
+        workOrderId,
+        sectionId: null,
+        ...normalizeItem(it, i),
+      })),
+    });
   }
 
-  return `${prefix}-${year}-${String(nextNum).padStart(3, "0")}`;
+  // Sections + their items
+  for (let sIdx = 0; sIdx < sections.length; sIdx++) {
+    const s = sections[sIdx];
+    const section = await tx.workOrderSection.create({
+      data: {
+        workOrderId,
+        unitCode: s.unitCode || `Unite ${sIdx + 1}`,
+        notes: s.notes || null,
+        position: sIdx,
+      },
+    });
+    if (Array.isArray(s.items) && s.items.length > 0) {
+      await tx.workOrderItem.createMany({
+        data: s.items.map((it, i) => ({
+          workOrderId,
+          sectionId: section.id,
+          ...normalizeItem(it, i),
+        })),
+      });
+    }
+  }
 }
 
 export function calcTotals(items, laborHours, laborRate, tpsRate, tvqRate) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Fragment, useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 
@@ -52,6 +52,19 @@ export default function BonDetailPage() {
   const dateLabel = new Date(wo.date).toLocaleDateString("fr-CA", {
     day: "numeric", month: "long", year: "numeric",
   });
+  const fmtHM = (dt) => {
+    if (!dt) return null;
+    const d = new Date(dt);
+    return isNaN(d.getTime()) ? null : `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  };
+  const arriveLabel = fmtHM(wo.arrivalAt);
+  const departLabel = fmtHM(wo.departureAt);
+  const durationLabel = wo.durationMinutes
+    ? `${Math.floor(wo.durationMinutes / 60)}h${(wo.durationMinutes % 60) ? String(wo.durationMinutes % 60).padStart(2, "0") : ""}`
+    : null;
+  const intervAddr = wo.interventionAddress || wo.client?.address;
+  const intervCity = wo.interventionCity || wo.client?.city;
+  const intervPostal = wo.interventionPostalCode || wo.client?.postalCode;
 
   const statusColors = {
     draft: "bg-yellow-500/20 text-yellow-400",
@@ -186,8 +199,16 @@ export default function BonDetailPage() {
               {wo.technician?.name && (
                 <p className="text-sm text-gray-700 mt-1">Technicien: <span className="font-medium">{wo.technician.name}</span></p>
               )}
-              {(wo.heureArrivee || wo.heureDepart) && (
-                <p className="text-sm text-gray-600">Horaire: {wo.heureArrivee || "—"} à {wo.heureDepart || "—"}</p>
+              {(arriveLabel || departLabel) && (
+                <p className="text-sm text-gray-600">
+                  Horaire: {arriveLabel || "—"} à {departLabel || "—"}
+                  {durationLabel ? ` (${durationLabel})` : ""}
+                </p>
+              )}
+              {(wo.interventionAddress || wo.interventionCity) && (
+                <p className="text-sm text-gray-600 mt-1">
+                  Lieu: {intervAddr}{intervCity ? `, ${intervCity}` : ""}{intervPostal ? ` ${intervPostal}` : ""}
+                </p>
               )}
             </div>
           </div>
@@ -200,35 +221,55 @@ export default function BonDetailPage() {
           )}
 
           {/* Items table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm mb-4 min-w-[500px]">
-              <thead>
-                <tr className="text-[10px] text-gray-400 uppercase font-semibold border-b-2 border-gray-900">
-                  <th className="text-left py-2 px-2">Description</th>
-                  <th className="text-right py-2 px-2 w-16">Qte</th>
-                  <th className="text-right py-2 px-2 w-24">Prix</th>
-                  <th className="text-right py-2 px-2 w-24">Total</th>
+          {(() => {
+            const renderItemRow = (item) => {
+              const isDiscount = item.itemType === "discount" || Number(item.unitPrice) < 0;
+              const color = isDiscount ? "text-green-600" : "text-gray-900";
+              return (
+                <tr key={item.id} className="border-b border-gray-100">
+                  <td className={`py-2 px-2 ${color}`}>
+                    {item.description}
+                    {item.product?.sku && <span className="text-gray-400 text-xs ml-2">({item.product.sku})</span>}
+                  </td>
+                  <td className="py-2 px-2 text-right text-gray-600">{Number(item.quantity).toFixed(0)}</td>
+                  <td className={`py-2 px-2 text-right ${color}`}>{fmt(item.unitPrice)}</td>
+                  <td className={`py-2 px-2 text-right font-medium ${color}`}>{fmt(item.totalPrice)}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {wo.items?.map((item) => {
-                  const isDiscount = item.itemType === "discount" || Number(item.unitPrice) < 0;
-                  const color = isDiscount ? "text-green-600" : "text-gray-900";
-                  return (
-                    <tr key={item.id} className="border-b border-gray-100">
-                      <td className={`py-2 px-2 ${color}`}>
-                        {item.description}
-                        {item.product?.sku && <span className="text-gray-400 text-xs ml-2">({item.product.sku})</span>}
-                      </td>
-                      <td className="py-2 px-2 text-right text-gray-600">{Number(item.quantity).toFixed(0)}</td>
-                      <td className={`py-2 px-2 text-right ${color}`}>{fmt(item.unitPrice)}</td>
-                      <td className={`py-2 px-2 text-right font-medium ${color}`}>{fmt(item.totalPrice)}</td>
+              );
+            };
+            const hasSections = wo.sections && wo.sections.length > 0;
+            return (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm mb-4 min-w-[500px]">
+                  <thead>
+                    <tr className="text-[10px] text-gray-400 uppercase font-semibold border-b-2 border-gray-900">
+                      <th className="text-left py-2 px-2">Description</th>
+                      <th className="text-right py-2 px-2 w-16">Qte</th>
+                      <th className="text-right py-2 px-2 w-24">Prix</th>
+                      <th className="text-right py-2 px-2 w-24">Total</th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                  </thead>
+                  <tbody>
+                    {wo.items?.map(renderItemRow)}
+                    {hasSections && wo.sections.map((sec) => {
+                      const secSub = (sec.items || []).reduce((sum, i) => sum + Number(i.totalPrice), 0);
+                      return (
+                        <Fragment key={`sec-${sec.id}`}>
+                          <tr className="bg-gray-50">
+                            <td colSpan={3} className="py-2 px-2 font-bold text-gray-800 text-xs uppercase tracking-wider">
+                              Unite {sec.unitCode}
+                            </td>
+                            <td className="py-2 px-2 text-right text-gray-700 text-xs font-bold">{fmt(secSub)}</td>
+                          </tr>
+                          {sec.items?.map(renderItemRow)}
+                        </Fragment>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            );
+          })()}
 
           {/* Totals */}
           <div className="flex justify-end">

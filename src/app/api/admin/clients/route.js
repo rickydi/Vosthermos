@@ -53,6 +53,7 @@ export async function POST(req) {
   const client = await prisma.client.create({
     data: {
       name: body.name,
+      type: body.type === "gestionnaire" ? "gestionnaire" : "particulier",
       company: body.company || null,
       address: body.address || null,
       city: body.city || null,

@@ -95,9 +95,31 @@ export async function generateInvoicePdf(wo, settings = {}) {
         doc.text(`Technicien: ${wo.technician.name}`, pageWidth - marginX - 200, detY, { width: 200, align: "right" });
         detY += 13;
       }
-      if (wo.heureArrivee || wo.heureDepart) {
-        doc.text(`${wo.heureArrivee || "—"} a ${wo.heureDepart || "—"}`, pageWidth - marginX - 200, detY, { width: 200, align: "right" });
+      const fmtHM = (dt) => {
+        if (!dt) return null;
+        const d = dt instanceof Date ? dt : new Date(dt);
+        return isNaN(d.getTime()) ? null : `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+      };
+      const arriveStr = fmtHM(wo.arrivalAt);
+      const departStr = fmtHM(wo.departureAt);
+      if (arriveStr || departStr) {
+        let line = `${arriveStr || "—"} a ${departStr || "—"}`;
+        if (wo.durationMinutes) {
+          const h = Math.floor(wo.durationMinutes / 60);
+          const m = wo.durationMinutes % 60;
+          line += ` (${h}h${m ? String(m).padStart(2, "0") : ""})`;
+        }
+        doc.text(line, pageWidth - marginX - 200, detY, { width: 200, align: "right" });
         detY += 13;
+      }
+      const intervAddr = wo.interventionAddress || wo.client?.address;
+      const intervCity = wo.interventionCity || wo.client?.city;
+      if (wo.interventionAddress || wo.interventionCity) {
+        const lieu = `${intervAddr || ""}${intervCity ? `, ${intervCity}` : ""}`.trim();
+        if (lieu) {
+          doc.text(`Lieu: ${lieu}`, pageWidth - marginX - 200, detY, { width: 200, align: "right" });
+          detY += 13;
+        }
       }
 
       doc.y = Math.max(clientY, detY) + 12;
@@ -137,7 +159,7 @@ export async function generateInvoicePdf(wo, settings = {}) {
       let rowY = tableTop + 22;
       const greenDiscount = "#059669";
 
-      for (const item of wo.items || []) {
+      const renderItemRow = (item) => {
         const isDiscount = item.itemType === "discount" || Number(item.unitPrice) < 0;
         const color = isDiscount ? greenDiscount : DARK;
         const qty = Number(item.quantity || 0);
@@ -155,6 +177,24 @@ export async function generateInvoicePdf(wo, settings = {}) {
         const lineHeight = Math.max(descHeight, 14) + 6;
         rowY += lineHeight;
         doc.moveTo(marginX, rowY - 2).lineTo(pageWidth - marginX, rowY - 2).strokeColor(BORDER).lineWidth(0.5).stroke();
+      };
+
+      // Flat items first
+      for (const item of wo.items || []) renderItemRow(item);
+
+      // Sections with unit headers
+      for (const sec of wo.sections || []) {
+        const secSub = (sec.items || []).reduce((sum, i) => sum + Number(i.totalPrice || 0), 0);
+        // Section header
+        rowY += 4;
+        doc.rect(marginX, rowY - 2, innerWidth, 18).fill("#f3f4f6");
+        doc.fillColor(DARK).font("Helvetica-Bold").fontSize(9)
+          .text(`UNITE ${sec.unitCode}`, col.desc, rowY + 2);
+        doc.fillColor(DARK).font("Helvetica-Bold").fontSize(9)
+          .text(fmt(secSub), col.total, rowY + 2, { width: 60, align: "right" });
+        rowY += 22;
+
+        for (const item of sec.items || []) renderItemRow(item);
       }
 
       // ── Totals ──

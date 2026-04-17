@@ -38,6 +38,7 @@ export async function PUT(req, { params }) {
     where: { id: parseInt(id) },
     data: {
       name: body.name,
+      type: body.type === "gestionnaire" ? "gestionnaire" : "particulier",
       company: body.company || null,
       address: body.address || null,
       city: body.city || null,

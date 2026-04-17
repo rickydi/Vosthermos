@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 
 const EMPTY_FORM = {
   name: "",
+  type: "particulier",
   company: "",
   phone: "",
   email: "",
@@ -75,6 +76,7 @@ export default function ClientsPage() {
   function startEdit(client) {
     setForm({
       name: client.name || "",
+      type: client.type || "particulier",
       company: client.company || "",
       phone: client.phone || "",
       email: client.email || "",
@@ -137,6 +139,26 @@ export default function ClientsPage() {
       {showForm && (
         <form onSubmit={handleSubmit} className="admin-card border rounded-xl p-6 mb-6 space-y-4">
           <h2 className="admin-text font-bold">{editId ? "Modifier client" : "Nouveau client"}</h2>
+          <div className="flex gap-2">
+            <button type="button" onClick={() => setForm({ ...form, type: "particulier" })}
+              className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                form.type === "particulier" ? "bg-[var(--color-red)] text-white" : "admin-card border admin-border admin-text"
+              }`}>
+              <i className="fas fa-user mr-2"></i>Particulier
+            </button>
+            <button type="button" onClick={() => setForm({ ...form, type: "gestionnaire" })}
+              className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                form.type === "gestionnaire" ? "bg-[var(--color-red)] text-white" : "admin-card border admin-border admin-text"
+              }`}>
+              <i className="fas fa-building mr-2"></i>Gestionnaire / B2B
+            </button>
+          </div>
+          {form.type === "gestionnaire" && (
+            <p className="text-xs admin-text-muted -mt-2">
+              <i className="fas fa-info-circle mr-1"></i>
+              Les bons de travail pour ce client pourront etre organises par unite (ex: F-0411, E-0510).
+            </p>
+          )}
           <div className="grid md:grid-cols-2 gap-4">
             <input required placeholder="Nom complet *" value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -227,7 +249,14 @@ export default function ClientsPage() {
               {clients.map((c) => (
                 <tr key={c.id} className="border-b admin-border admin-hover">
                   <td className="px-4 py-3">
-                    <p className="admin-text font-medium">{c.name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="admin-text font-medium">{c.name}</p>
+                      {c.type === "gestionnaire" && (
+                        <span className="text-[10px] uppercase bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">
+                          B2B
+                        </span>
+                      )}
+                    </div>
                     {c.email && <p className="admin-text-muted text-xs">{c.email}</p>}
                   </td>
                   <td className="px-4 py-3 admin-text-muted">{c.company || "—"}</td>

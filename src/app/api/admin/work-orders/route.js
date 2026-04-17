@@ -1,7 +1,15 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
-import { generateWorkOrderNumber, calcTotals, getWorkOrderSettings } from "@/lib/work-order-utils";
+import {
+  generateWorkOrderNumber,
+  calcTotals,
+  getWorkOrderSettings,
+  composeDateTime,
+  computeDurationMinutes,
+  flattenSectionsBody,
+  attachSectionsAndItems,
+} from "@/lib/work-order-utils";
 
 export async function GET(req) {
   try { await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
@@ -62,41 +70,54 @@ export async function POST(req) {
   const number = await generateWorkOrderNumber();
   const settings = await getWorkOrderSettings();
 
-  const items = (body.items || []).map((item, i) => ({
-    productId: item.productId || null,
-    description: item.description || "",
-    quantity: Number(item.quantity) || 0,
-    unitPrice: Number(item.unitPrice) || 0,
-    totalPrice: Math.round(Number(item.quantity || 0) * Number(item.unitPrice || 0) * 100) / 100,
-    itemType: item.itemType || "piece",
-    position: i,
-  }));
-
+  const { flatItems, sections, allForCalc } = flattenSectionsBody(body);
   const laborHours = Number(body.laborHours) || 0;
   const totals = calcTotals(
-    items,
+    allForCalc,
     laborHours,
     settings.labor_rate_per_hour,
     settings.tps_rate,
     settings.tvq_rate
   );
 
-  const workOrder = await prisma.workOrder.create({
-    data: {
-      number,
-      clientId: parseInt(body.clientId),
-      technicianId: body.technicianId ? parseInt(body.technicianId) : null,
-      date: body.date ? new Date(body.date) : new Date(),
-      heureArrivee: body.heureArrivee || null,
-      heureDepart: body.heureDepart || null,
-      description: body.description || null,
-      photos: body.photos || [],
-      notes: body.notes || null,
-      statut: body.statut || "draft",
-      ...totals,
-      items: { create: items },
-    },
-    include: { client: true, items: true },
+  const woDate = body.date ? new Date(body.date) : new Date();
+  const arrivalAt = composeDateTime(woDate, body.heureArrivee);
+  const departureAt = composeDateTime(woDate, body.heureDepart);
+
+  const workOrder = await prisma.$transaction(async (tx) => {
+    const created = await tx.workOrder.create({
+      data: {
+        number,
+        clientId: parseInt(body.clientId),
+        technicianId: body.technicianId ? parseInt(body.technicianId) : null,
+        appointmentId: body.appointmentId ? parseInt(body.appointmentId) : null,
+        date: woDate,
+        arrivalAt,
+        departureAt,
+        durationMinutes: computeDurationMinutes(arrivalAt, departureAt),
+        interventionAddress: body.interventionAddress || null,
+        interventionCity: body.interventionCity || null,
+        interventionPostalCode: body.interventionPostalCode || null,
+        description: body.description || null,
+        photos: body.photos || [],
+        notes: body.notes || null,
+        statut: body.statut || "draft",
+        visibleAuClient: body.visibleAuClient ?? true,
+        ...totals,
+      },
+    });
+    await attachSectionsAndItems(tx, created.id, flatItems, sections);
+    return tx.workOrder.findUnique({
+      where: { id: created.id },
+      include: {
+        client: true,
+        items: { orderBy: { position: "asc" } },
+        sections: {
+          orderBy: { position: "asc" },
+          include: { items: { orderBy: { position: "asc" } } },
+        },
+      },
+    });
   });
 
   return NextResponse.json({

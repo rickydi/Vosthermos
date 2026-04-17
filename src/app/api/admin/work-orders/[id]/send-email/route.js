@@ -165,6 +165,15 @@ export async function POST(req, { params }) {
         orderBy: { position: "asc" },
         include: { product: { select: { sku: true, name: true } } },
       },
+      sections: {
+        orderBy: { position: "asc" },
+        include: {
+          items: {
+            orderBy: { position: "asc" },
+            include: { product: { select: { sku: true, name: true } } },
+          },
+        },
+      },
     },
   });
 
@@ -175,6 +184,12 @@ export async function POST(req, { params }) {
 
   const settings = await getWorkOrderSettings();
 
+  const serItem = (i) => ({
+    ...i,
+    quantity: Number(i.quantity),
+    unitPrice: Number(i.unitPrice),
+    totalPrice: Number(i.totalPrice),
+  });
   const serializedWo = {
     ...wo,
     totalPieces: Number(wo.totalPieces),
@@ -183,11 +198,10 @@ export async function POST(req, { params }) {
     tps: Number(wo.tps),
     tvq: Number(wo.tvq),
     total: Number(wo.total),
-    items: wo.items.map((i) => ({
-      ...i,
-      quantity: Number(i.quantity),
-      unitPrice: Number(i.unitPrice),
-      totalPrice: Number(i.totalPrice),
+    items: wo.items.map(serItem),
+    sections: (wo.sections || []).map((s) => ({
+      ...s,
+      items: (s.items || []).map(serItem),
     })),
   };
 
