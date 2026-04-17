@@ -286,27 +286,44 @@ model Technician {
 }
 
 model Client {
-  id             Int         @id @default(autoincrement())
+  id             Int          @id @default(autoincrement())
   name           String
-  type           String      @default("particulier") // "particulier" | "gestionnaire"
+  type           String       @default("particulier") // "particulier" | "gestionnaire"
   company        String?
   address        String?
   city           String?
-  province       String      @default("QC")
+  province       String       @default("QC")
   postalCode     String?
   phone          String?
-  email          String?     @unique
-  notes          String?     @db.Text
+  email          String?      @unique
+  notes          String?      @db.Text
   passwordHash   String?
-  portalToken    String?     @unique
-  isPortalActive Boolean     @default(false)
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  portalToken    String?      @unique
+  isPortalActive Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
   workOrders     WorkOrder[]
+  units          ClientUnit[]
 
   @@index([phone])
   @@index([type])
   @@map("clients")
+}
+
+model ClientUnit {
+  id          Int      @id @default(autoincrement())
+  clientId    Int
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  code        String
+  description String?
+  notes       String?  @db.Text
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([clientId, code])
+  @@index([clientId, isActive])
+  @@map("client_units")
 }
 
 model WorkOrder {

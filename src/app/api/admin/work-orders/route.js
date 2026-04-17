@@ -106,7 +106,7 @@ export async function POST(req) {
         ...totals,
       },
     });
-    await attachSectionsAndItems(tx, created.id, flatItems, sections);
+    await attachSectionsAndItems(tx, created.id, parseInt(body.clientId), flatItems, sections);
     return tx.workOrder.findUnique({
       where: { id: created.id },
       include: {

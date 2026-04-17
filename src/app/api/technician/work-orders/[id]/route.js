@@ -118,7 +118,7 @@ export async function PUT(req, { params }) {
       },
     });
 
-    await attachSectionsAndItems(tx, updated.id, flatItems, sections);
+    await attachSectionsAndItems(tx, updated.id, body.clientId || existing.clientId, flatItems, sections);
 
     return tx.workOrder.findUnique({
       where: { id: woId },

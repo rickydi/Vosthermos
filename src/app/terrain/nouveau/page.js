@@ -52,6 +52,9 @@ export default function NouveauBon() {
   const [services, setServices] = useState([]);
   const [settings, setSettings] = useState({ labor_rate_per_hour: 85, tps_rate: 0.05, tvq_rate: 0.09975 });
 
+  // Known units for the current gestionnaire client
+  const [knownUnits, setKnownUnits] = useState([]); // [{id, code, description}]
+
   // Step 4: Signature
   const [signatureData, setSignatureData] = useState(null);
 
@@ -116,6 +119,14 @@ export default function NouveauBon() {
     setClientSearch("");
     setClientResults([]);
     setIsNewClient(false);
+    if (client.type === "gestionnaire") {
+      fetch(`/api/technician/clients/${client.id}/units`)
+        .then((r) => r.json())
+        .then((data) => setKnownUnits(Array.isArray(data) ? data : []))
+        .catch(() => setKnownUnits([]));
+    } else {
+      setKnownUnits([]);
+    }
   }
 
   // ─── Flat items (particulier) ─────────────────────────────────
@@ -147,6 +158,17 @@ export default function NouveauBon() {
     const newSec = { unitCode: code, items: [] };
     setSections((prev) => [...prev, newSec]);
     setNewUnitCode("");
+    setEditingIdx(sections.length);
+  }
+  function addSectionFromKnown(unit) {
+    // Skip if already in current visit
+    if (sections.some((s) => s.unitCode === unit.code)) {
+      const idx = sections.findIndex((s) => s.unitCode === unit.code);
+      setEditingIdx(idx);
+      return;
+    }
+    const newSec = { unitCode: unit.code, items: [] };
+    setSections((prev) => [...prev, newSec]);
     setEditingIdx(sections.length);
   }
   function removeSection(idx) {
@@ -613,8 +635,36 @@ export default function NouveauBon() {
               );
             })}
 
+            {/* Known units for this client */}
+            {knownUnits.length > 0 && (
+              <div>
+                <p className="text-white/40 text-xs mb-2">
+                  Unites connues ({knownUnits.length}) — tape pour ajouter
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {knownUnits.map((u) => {
+                    const already = sections.some((s) => s.unitCode === u.code);
+                    return (
+                      <button key={u.id}
+                        onClick={() => addSectionFromKnown(u)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-colors ${
+                          already
+                            ? "bg-green-500/20 text-green-400 border border-green-500/40"
+                            : "bg-white/5 text-white border border-white/10 active:bg-white/10"
+                        }`}
+                        title={u.description || ""}>
+                        {already && <i className="fas fa-check text-[9px] mr-1"></i>}
+                        {u.code}
+                        {u.description && <span className="opacity-50 ml-1 font-sans">· {u.description.slice(0, 15)}</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="flex gap-2">
-              <input type="text" placeholder="Code d'unite (ex: F-0411)"
+              <input type="text" placeholder="Nouveau code (ex: F-0411)"
                 value={newUnitCode}
                 onChange={(e) => setNewUnitCode(e.target.value.toUpperCase())}
                 onKeyDown={(e) => e.key === "Enter" && addSection()}
@@ -624,6 +674,11 @@ export default function NouveauBon() {
                 <i className="fas fa-plus"></i>
               </button>
             </div>
+            {knownUnits.length === 0 && sections.length === 0 && (
+              <p className="text-white/40 text-xs italic">
+                Aucune unite enregistree pour ce client. Celle que tu saisis sera memorisee pour les prochaines visites.
+              </p>
+            )}
 
             <div className="border-t border-white/10 pt-4">
               <h2 className="text-sm font-bold text-white/70 mb-3">Main d&apos;oeuvre (visite)</h2>

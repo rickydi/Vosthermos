@@ -36,6 +36,15 @@ export default function ClientsPage() {
   const [error, setError] = useState("");
   const timer = useRef(null);
 
+  // Units (only relevant when editing a gestionnaire)
+  const [units, setUnits] = useState([]);
+  const [unitCode, setUnitCode] = useState("");
+  const [unitDesc, setUnitDesc] = useState("");
+  const [unitError, setUnitError] = useState("");
+  const [editingUnitId, setEditingUnitId] = useState(null);
+  const [editUnitCode, setEditUnitCode] = useState("");
+  const [editUnitDesc, setEditUnitDesc] = useState("");
+
   function load(q = "", sortValue = sort) {
     setLoading(true);
     fetch(`/api/admin/clients?q=${encodeURIComponent(q)}&sort=${sortValue}`)
@@ -89,6 +98,64 @@ export default function ClientsPage() {
     setEditId(client.id);
     setError("");
     setShowForm(true);
+    // Load units if gestionnaire
+    if (client.type === "gestionnaire") loadUnits(client.id);
+    else setUnits([]);
+  }
+
+  async function loadUnits(clientId) {
+    try {
+      const res = await fetch(`/api/admin/clients/${clientId}/units`);
+      const data = await res.json();
+      setUnits(Array.isArray(data) ? data : []);
+    } catch { setUnits([]); }
+  }
+
+  async function addUnit() {
+    if (!editId || !unitCode.trim()) return;
+    setUnitError("");
+    try {
+      const res = await fetch(`/api/admin/clients/${editId}/units`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: unitCode.trim(), description: unitDesc.trim() || null }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setUnitError(d.error || "Erreur");
+        return;
+      }
+      setUnitCode("");
+      setUnitDesc("");
+      loadUnits(editId);
+    } catch (err) { setUnitError(err.message); }
+  }
+
+  function startEditUnit(u) {
+    setEditingUnitId(u.id);
+    setEditUnitCode(u.code);
+    setEditUnitDesc(u.description || "");
+  }
+
+  async function saveUnit(id) {
+    try {
+      await fetch(`/api/admin/clients/${editId}/units/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: editUnitCode.trim(), description: editUnitDesc.trim() || null }),
+      });
+      setEditingUnitId(null);
+      loadUnits(editId);
+    } catch {}
+  }
+
+  async function toggleUnitActive(u) {
+    await fetch(`/api/admin/clients/${editId}/units/${u.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isActive: !u.isActive }),
+    });
+    loadUnits(editId);
   }
 
   async function handleSubmit(e) {
@@ -190,6 +257,68 @@ export default function ClientsPage() {
           <textarea placeholder="Notes" value={form.notes} rows={3}
             onChange={(e) => setForm({ ...form, notes: e.target.value })}
             className="admin-input border rounded-lg px-4 py-2.5 text-sm w-full" />
+
+          {editId && form.type === "gestionnaire" && (
+            <div className="border-t admin-border pt-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="admin-text font-bold text-sm">
+                  <i className="fas fa-building mr-2"></i>Unites ({units.filter(u => u.isActive).length} actives)
+                </h3>
+                <p className="admin-text-muted text-[10px]">Nouvelles unites ajoutees automatiquement quand le tech saisit un code.</p>
+              </div>
+
+              {units.length === 0 ? (
+                <p className="admin-text-muted text-xs italic">Aucune unite pour ce client. Ajoute-en ci-dessous ou attends que le tech en saisisse sur le terrain.</p>
+              ) : (
+                <div className="space-y-1 max-h-60 overflow-y-auto">
+                  {units.map((u) => (
+                    <div key={u.id} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${u.isActive ? "bg-white/5" : "bg-white/5 opacity-50"}`}>
+                      {editingUnitId === u.id ? (
+                        <>
+                          <input value={editUnitCode} onChange={(e) => setEditUnitCode(e.target.value)}
+                            className="admin-input border rounded px-2 py-1 text-xs w-24 font-mono" />
+                          <input value={editUnitDesc} onChange={(e) => setEditUnitDesc(e.target.value)}
+                            placeholder="Description"
+                            className="admin-input border rounded px-2 py-1 text-xs flex-1" />
+                          <button type="button" onClick={() => saveUnit(u.id)}
+                            className="text-green-400 text-xs px-2"><i className="fas fa-check"></i></button>
+                          <button type="button" onClick={() => setEditingUnitId(null)}
+                            className="admin-text-muted text-xs px-2"><i className="fas fa-times"></i></button>
+                        </>
+                      ) : (
+                        <>
+                          <span className="font-mono font-bold admin-text w-24">{u.code}</span>
+                          <span className="admin-text-muted flex-1 truncate">{u.description || <em className="opacity-50">—</em>}</span>
+                          {!u.isActive && <span className="text-[10px] admin-text-muted italic">desactivee</span>}
+                          <button type="button" onClick={() => startEditUnit(u)}
+                            className="admin-text-muted text-xs px-2 hover:admin-text"><i className="fas fa-pen"></i></button>
+                          <button type="button" onClick={() => toggleUnitActive(u)}
+                            className={`text-xs px-2 ${u.isActive ? "text-orange-400" : "text-green-400"}`}
+                            title={u.isActive ? "Desactiver" : "Reactiver"}>
+                            <i className={`fas ${u.isActive ? "fa-eye-slash" : "fa-eye"}`}></i>
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <input value={unitCode} onChange={(e) => setUnitCode(e.target.value.toUpperCase())}
+                  placeholder="Code (ex: F-0411)" className="admin-input border rounded-lg px-3 py-2 text-sm w-32 font-mono"
+                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addUnit())} />
+                <input value={unitDesc} onChange={(e) => setUnitDesc(e.target.value)}
+                  placeholder="Description (optionnel)" className="admin-input border rounded-lg px-3 py-2 text-sm flex-1"
+                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addUnit())} />
+                <button type="button" onClick={addUnit} disabled={!unitCode.trim()}
+                  className="px-4 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium disabled:opacity-30">
+                  <i className="fas fa-plus"></i>
+                </button>
+              </div>
+              {unitError && <p className="text-xs text-red-500">{unitError}</p>}
+            </div>
+          )}
 
           {error && <p className="text-sm text-red-500">{error}</p>}
 

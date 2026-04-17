@@ -85,8 +85,9 @@ export function flattenSectionsBody(body) {
 }
 
 // Create sections + their items + flat items in a transaction.
+// Also upserts a ClientUnit for each unitCode (auto-learn from usage).
 // Returns the full WorkOrder with nested sections.items loaded.
-export async function attachSectionsAndItems(tx, workOrderId, flatItems, sections) {
+export async function attachSectionsAndItems(tx, workOrderId, clientId, flatItems, sections) {
   // Flat (no section) items
   if (flatItems.length > 0) {
     await tx.workOrderItem.createMany({
@@ -98,13 +99,23 @@ export async function attachSectionsAndItems(tx, workOrderId, flatItems, section
     });
   }
 
-  // Sections + their items
+  // Sections + their items + auto-learn ClientUnit
   for (let sIdx = 0; sIdx < sections.length; sIdx++) {
     const s = sections[sIdx];
+    const unitCode = (s.unitCode || `Unite ${sIdx + 1}`).trim();
+
+    if (clientId) {
+      await tx.clientUnit.upsert({
+        where: { clientId_code: { clientId, code: unitCode } },
+        create: { clientId, code: unitCode },
+        update: {}, // no-op: just ensure it exists
+      });
+    }
+
     const section = await tx.workOrderSection.create({
       data: {
         workOrderId,
-        unitCode: s.unitCode || `Unite ${sIdx + 1}`,
+        unitCode,
         notes: s.notes || null,
         position: sIdx,
       },
