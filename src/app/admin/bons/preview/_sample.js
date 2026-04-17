@@ -39,7 +39,7 @@ export const SAMPLE_WO = {
       ],
     },
   ],
-  description: "Tournee trimestrielle — remplacement thermos F-0411 et C-1111, ajustement porte balcon E-0510.",
+  description: "",
   laborHours: 2,
   laborRate: 85,
 };
