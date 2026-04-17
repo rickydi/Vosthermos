@@ -162,8 +162,26 @@ export default function NouveauBon() {
 
   // ─── Sections (gestionnaire) ──────────────────────────────────
   function addSection() {
-    const code = newUnitCode.trim();
+    const code = newUnitCode.trim().toUpperCase();
     if (!code) return;
+
+    // Deja dans la visite courante ? -> focus sur la section existante
+    const existingIdx = sections.findIndex((s) => s.unitCode === code);
+    if (existingIdx !== -1) {
+      setEditingIdx(existingIdx);
+      setNewUnitCode("");
+      return;
+    }
+
+    // Deja connue chez le client ? -> utiliser la version canonique + description
+    const known = knownUnits.find((u) => u.code === code);
+    if (known) {
+      addSectionFromKnown(known);
+      setNewUnitCode("");
+      return;
+    }
+
+    // Nouveau code -> ajoute la section (la ClientUnit sera upsert au submit)
     const newSec = { unitCode: code, items: [] };
     setSections((prev) => [...prev, newSec]);
     setNewUnitCode("");

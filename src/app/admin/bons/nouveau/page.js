@@ -114,12 +114,47 @@ export default function NouveauBonAdmin() {
   }
 
   // ─── Sections (B2B) ─────────────────────────────────────────
-  function addSection() {
-    const code = newUnitCode.trim();
-    if (!code) return;
-    if (sections.some((s) => s.unitCode === code)) return;
-    setSections((prev) => [...prev, { unitCode: code, items: [] }]);
-    setNewUnitCode("");
+  async function addSection() {
+    const code = newUnitCode.trim().toUpperCase();
+    if (!code || !selectedClient) return;
+
+    // 1. Deja dans le bon courant ?
+    if (sections.some((s) => s.unitCode === code)) {
+      setError(`Unite ${code} deja ajoutee a ce bon.`);
+      return;
+    }
+
+    // 2. Deja connue chez le client ? -> utiliser la version canonique
+    const existing = knownUnits.find((u) => u.code === code);
+    if (existing) {
+      setSections((prev) => [...prev, { unitCode: existing.code, items: [] }]);
+      setNewUnitCode("");
+      setError("");
+      return;
+    }
+
+    // 3. Nouvelle unite -> persister immediatement chez le client
+    try {
+      const res = await fetch(`/api/admin/clients/${selectedClient.id}/units`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      if (res.ok || res.status === 409) {
+        setSections((prev) => [...prev, { unitCode: code, items: [] }]);
+        setNewUnitCode("");
+        setError("");
+        // Rafraichir la liste des unites connues
+        const r = await fetch(`/api/admin/clients/${selectedClient.id}/units`);
+        const data = await r.json();
+        if (Array.isArray(data)) setKnownUnits(data.filter((u) => u.isActive));
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setError(err.error || "Erreur lors de l'ajout de l'unite");
+      }
+    } catch (e) {
+      setError(e.message);
+    }
   }
   function addSectionFromKnown(u) {
     if (sections.some((s) => s.unitCode === u.code)) return;
