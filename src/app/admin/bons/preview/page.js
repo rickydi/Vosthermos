@@ -19,10 +19,24 @@ const OPTIONS = [
   },
   {
     key: "a3",
-    name: "A3 — Receipt Premium",
+    name: "A3 — Receipt Premium (1 page)",
     desc: "Code d'unité en badge rouge outlined (bordure, pas rempli). Total dans une boîte façon reçu (bordure pointillée) avec label 'Montant à payer'.",
     vibe: "Comptable · Détaillé · Pro",
     color: "from-neutral-50 via-red-50 to-white",
+  },
+  {
+    key: "a3-2p",
+    name: "A3 — 2 pages (9 unités)",
+    desc: "Même design A3 mais avec un bon plus chargé : 9 unités, ~20 items. Teste le comportement sur ~2 pages imprimées.",
+    vibe: "Multi-page · Test mise en page",
+    color: "from-amber-50 via-red-50 to-white",
+  },
+  {
+    key: "a3-3p",
+    name: "A3 — 3 pages (18 unités)",
+    desc: "Même design A3 avec bon très chargé : 18 unités (toutes celles de Marronnier), ~35 items. Teste le pire cas d'impression.",
+    vibe: "Multi-page max · Cas Marronnier complet",
+    color: "from-red-100 via-orange-50 to-white",
   },
   {
     key: "b",
@@ -54,7 +68,7 @@ export default function PreviewHub() {
       </p>
 
       <h2 className="admin-text font-bold text-lg mb-3">Variantes actives</h2>
-      <div className="grid md:grid-cols-3 gap-5 mb-10">
+      <div className="grid md:grid-cols-3 lg:grid-cols-3 gap-5 mb-10">
         {OPTIONS.filter((o) => !o.archived).map((opt) => (
           <Link key={opt.key} href={`/admin/bons/preview/${opt.key}`}
             className="group block rounded-2xl overflow-hidden border admin-border admin-card hover:shadow-xl transition-all hover:-translate-y-1">
