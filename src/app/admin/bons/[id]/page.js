@@ -112,6 +112,10 @@ export default function BonDetailPage() {
           </span>
         </div>
         <div className="flex items-center gap-2">
+          <Link href={`/admin/bons/nouveau?edit=${id}`}
+            className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-medium hover:bg-white/5 transition-colors">
+            <i className="fas fa-pen mr-2"></i>Modifier
+          </Link>
           <button onClick={() => setShowEmail(true)}
             className="px-4 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium">
             <i className="fas fa-envelope mr-2"></i>Envoyer par email

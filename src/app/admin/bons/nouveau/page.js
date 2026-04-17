@@ -1,15 +1,26 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState, useEffect, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import CatalogPicker from "@/components/admin/CatalogPicker";
 import ClientPicker from "@/components/admin/ClientPicker";
 
-export default function NouveauBonAdmin() {
+export default function NouveauBonPage() {
+  return (
+    <Suspense fallback={<div className="p-6 lg:p-8 admin-text-muted"><i className="fas fa-spinner fa-spin mr-2"></i>Chargement...</div>}>
+      <NouveauBonAdmin />
+    </Suspense>
+  );
+}
+
+function NouveauBonAdmin() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get("edit");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [loadingEdit, setLoadingEdit] = useState(!!editId);
 
   const [clientSearch, setClientSearch] = useState("");
   const [clientResults, setClientResults] = useState([]);
@@ -72,14 +83,71 @@ export default function NouveauBonAdmin() {
   useEffect(() => {
     if (!selectedClient?.id || selectedClient.type !== "gestionnaire") {
       setKnownUnits([]);
-      setSections([]);
+      if (!editId) setSections([]);
       return;
     }
     fetch(`/api/admin/clients/${selectedClient.id}/units`)
       .then((r) => r.json())
       .then((d) => setKnownUnits(Array.isArray(d) ? d.filter((u) => u.isActive) : []))
       .catch(() => setKnownUnits([]));
-  }, [selectedClient]);
+  }, [selectedClient, editId]);
+
+  // Load existing bon when ?edit=<id>
+  useEffect(() => {
+    if (!editId) return;
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/admin/work-orders/${editId}`);
+        if (!res.ok) throw new Error("Bon introuvable");
+        const wo = await res.json();
+        setSelectedClient(wo.client);
+        setTechnicianId(wo.technicianId ? String(wo.technicianId) : "");
+        setDate(new Date(wo.date).toISOString().slice(0, 10));
+        const fmtHM = (dt) => {
+          if (!dt) return "";
+          const d = new Date(dt);
+          return isNaN(d.getTime()) ? "" : `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+        };
+        setHeureArrivee(fmtHM(wo.arrivalAt));
+        setHeureDepart(fmtHM(wo.departureAt));
+        setDescription(wo.description || "");
+        setNotes(wo.notes || "");
+        setStatut(wo.statut || "draft");
+        setInterventionAddress(wo.interventionAddress || "");
+        setInterventionCity(wo.interventionCity || "");
+        setInterventionPostalCode(wo.interventionPostalCode || "");
+        setVisibleAuClient(wo.visibleAuClient ?? true);
+        setItems(Array.isArray(wo.items) ? wo.items.map((it) => ({
+          productId: it.productId,
+          serviceId: it.serviceId,
+          description: it.description,
+          quantity: Number(it.quantity),
+          unitPrice: Number(it.unitPrice),
+          itemType: it.itemType || "piece",
+        })) : []);
+        setSections(Array.isArray(wo.sections) ? wo.sections.map((s) => ({
+          unitCode: s.unitCode,
+          items: (s.items || []).map((it) => ({
+            productId: it.productId,
+            serviceId: it.serviceId,
+            description: it.description,
+            quantity: Number(it.quantity),
+            unitPrice: Number(it.unitPrice),
+            itemType: it.itemType || "piece",
+          })),
+        })) : []);
+        // Reverse-compute laborHours from totalLabor
+        const rate = settings.labor_rate_per_hour || 85;
+        setLaborHours(rate > 0 ? Math.round((Number(wo.totalLabor) / rate) * 100) / 100 : 0);
+      } catch (err) {
+        setError(err.message || "Erreur chargement");
+      } finally {
+        setLoadingEdit(false);
+      }
+    }, 0);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editId]);
 
   useEffect(() => {
     if (clientSearch.length < 2 || selectedClient) { setClientResults([]); return; }
@@ -284,8 +352,10 @@ export default function NouveauBonAdmin() {
           })),
         }));
       }
-      const res = await fetch("/api/admin/work-orders", {
-        method: "POST",
+      const url = editId ? `/api/admin/work-orders/${editId}` : "/api/admin/work-orders";
+      const method = editId ? "PUT" : "POST";
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
@@ -308,11 +378,21 @@ export default function NouveauBonAdmin() {
           <Link href="/admin/bons" className="admin-text-muted text-sm hover:admin-text">
             <i className="fas fa-arrow-left mr-2"></i>Retour aux bons
           </Link>
-          <h1 className="admin-text text-2xl font-bold mt-2">Nouveau bon de travail</h1>
+          <h1 className="admin-text text-2xl font-bold mt-2">
+            {editId ? "Modifier le bon de travail" : "Nouveau bon de travail"}
+          </h1>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6 max-w-5xl">
+      {loadingEdit && (
+        <div className="admin-card border rounded-xl p-6 mb-6 max-w-5xl">
+          <p className="admin-text-muted text-sm text-center">
+            <i className="fas fa-spinner fa-spin mr-2"></i>Chargement du bon #{editId}...
+          </p>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className={`space-y-6 max-w-5xl ${loadingEdit ? "opacity-40 pointer-events-none" : ""}`}>
         {/* Client */}
         <div className="admin-card border rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
@@ -723,7 +803,7 @@ export default function NouveauBonAdmin() {
             {error && <p className="text-sm text-red-500 md:ml-auto">{error}</p>}
             <button type="submit" disabled={saving || !selectedClient}
               className="md:ml-auto px-6 py-3 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium disabled:opacity-50">
-              {saving ? "Creation..." : "Creer le bon"}
+              {saving ? (editId ? "Enregistrement..." : "Creation...") : (editId ? "Enregistrer les modifications" : "Creer le bon")}
             </button>
           </div>
         </div>
