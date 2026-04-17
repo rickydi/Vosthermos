@@ -8,13 +8,32 @@ export default function BonsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
 
-  useEffect(() => {
+  function loadWorkOrders() {
     const params = filter !== "all" ? `?statut=${filter}` : "";
+    setLoading(true);
     fetch(`/api/admin/work-orders${params}`)
       .then((r) => r.json())
       .then((data) => { setWorkOrders(data.workOrders || []); setLoading(false); })
       .catch(() => setLoading(false));
-  }, [filter]);
+  }
+
+  useEffect(() => { loadWorkOrders(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [filter]);
+
+  async function handleDelete(wo, e) {
+    e.stopPropagation();
+    if (!confirm(`Supprimer le bon ${wo.number}? Cette action est irreversible.`)) return;
+    try {
+      const res = await fetch(`/api/admin/work-orders/${wo.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Erreur de suppression");
+        return;
+      }
+      loadWorkOrders();
+    } catch (err) {
+      alert(err.message);
+    }
+  }
 
   const statusColors = {
     draft: "bg-yellow-500/20 text-yellow-400",
@@ -70,6 +89,7 @@ export default function BonsPage() {
                 <th className="px-4 py-3">Date</th>
                 <th className="px-4 py-3">Total</th>
                 <th className="px-4 py-3">Statut</th>
+                <th className="px-4 py-3 w-20"></th>
               </tr>
             </thead>
             <tbody>
@@ -87,6 +107,16 @@ export default function BonsPage() {
                     <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${statusColors[wo.statut] || ""}`}>
                       {statusLabels[wo.statut] || wo.statut}
                     </span>
+                  </td>
+                  <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
+                    <Link href={`/admin/bons/nouveau?edit=${wo.id}`}
+                      className="admin-text-muted hover:admin-text text-xs mr-3" title="Modifier">
+                      <i className="fas fa-pen"></i>
+                    </Link>
+                    <button onClick={(e) => handleDelete(wo, e)}
+                      className="text-red-500 hover:text-red-600 text-xs" title="Supprimer">
+                      <i className="fas fa-trash"></i>
+                    </button>
                   </td>
                 </tr>
               ))}

@@ -1,13 +1,15 @@
 "use client";
 
 import { Fragment, useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function BonDetailPage() {
+  const router = useRouter();
   const { id } = useParams();
   const [wo, setWo] = useState(null);
   const [sending, setSending] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [msg, setMsg] = useState("");
   const [showEmail, setShowEmail] = useState(false);
   const [emailTo, setEmailTo] = useState("");
@@ -18,6 +20,22 @@ export default function BonDetailPage() {
       .then((data) => { setWo(data); setEmailTo(data?.client?.email || ""); })
       .catch(() => {});
   }, [id]);
+
+  async function handleDelete() {
+    if (!confirm(`Supprimer definitivement le bon ${wo?.number || `#${id}`}? Cette action est irreversible.`)) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/admin/work-orders/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Erreur de suppression");
+      }
+      router.push("/admin/bons");
+    } catch (err) {
+      setMsg(err.message);
+      setDeleting(false);
+    }
+  }
 
   async function sendEmail() {
     if (!emailTo.trim()) { setMsg("Adresse email requise"); return; }
@@ -123,6 +141,11 @@ export default function BonDetailPage() {
           <button onClick={() => window.print()}
             className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-medium">
             <i className="fas fa-print mr-2"></i>Imprimer
+          </button>
+          <button onClick={handleDelete} disabled={deleting}
+            className="px-4 py-2 rounded-lg text-sm font-medium text-red-500 border border-red-500/30 hover:bg-red-500/10 transition-colors disabled:opacity-50">
+            <i className={`fas ${deleting ? "fa-spinner fa-spin" : "fa-trash"} mr-2`}></i>
+            {deleting ? "Suppression..." : "Supprimer"}
           </button>
         </div>
       </div>
