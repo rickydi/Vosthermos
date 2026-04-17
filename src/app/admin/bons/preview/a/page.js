@@ -30,10 +30,9 @@ export default function OptionAPreview() {
         {/* Header — white, minimalist */}
         <div className="px-14 pt-12 pb-10 grid grid-cols-[1fr_auto] gap-8 items-start">
           <div>
-            <div className="flex items-baseline gap-3 mb-1">
-              <span className="text-3xl font-black tracking-tight text-neutral-900">VOSTHERMOS</span>
-            </div>
-            <p className="text-neutral-500 text-[11px] leading-relaxed mt-1">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/images/Vos-Thermos-Logo.png" alt="Vosthermos" className="h-14 w-auto mb-3" />
+            <p className="text-neutral-500 text-[11px] leading-relaxed">
               {COMPANY.legal} · {COMPANY.address}<br/>
               {COMPANY.city}, QC {COMPANY.postalCode}<br/>
               {COMPANY.phone} · {COMPANY.email} · {COMPANY.web}
