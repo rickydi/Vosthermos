@@ -33,11 +33,13 @@ export default function AnalyticsTracker() {
   const sessionIdRef = useRef(null);
   const pageEnteredRef = useRef(null);
 
-  // Skip admin and terrain pages
-  if (pathname.startsWith("/admin") || pathname.startsWith("/terrain")) return null;
+  // Detect tracked page (public only). Computed AFTER hooks so we don't
+  // violate hook rules with a conditional return.
+  const isTracked = !pathname.startsWith("/admin") && !pathname.startsWith("/terrain");
 
   useEffect(() => {
-    // Start session
+    if (!isTracked) return;
+
     async function startSession() {
       try {
         const res = await fetch("/api/analytics/session", {
@@ -55,11 +57,8 @@ export default function AnalyticsTracker() {
       } catch {}
     }
 
-    if (!sessionIdRef.current) {
-      startSession();
-    }
+    if (!sessionIdRef.current) startSession();
 
-    // End session on close
     function handleUnload() {
       if (sessionIdRef.current) {
         navigator.sendBeacon("/api/analytics/session/end", JSON.stringify({
@@ -67,15 +66,14 @@ export default function AnalyticsTracker() {
         }));
       }
     }
-
     window.addEventListener("beforeunload", handleUnload);
     return () => window.removeEventListener("beforeunload", handleUnload);
-  }, []);
+  }, [isTracked]);
 
   useEffect(() => {
-    // Record page view
+    if (!isTracked) return;
+
     async function recordPageView() {
-      // End previous page
       if (pageEnteredRef.current && sessionIdRef.current) {
         const duration = Math.round((Date.now() - pageEnteredRef.current.time) / 1000);
         fetch("/api/analytics/pageview/end", {
@@ -88,8 +86,7 @@ export default function AnalyticsTracker() {
       pageEnteredRef.current = { time: Date.now(), id: null };
 
       if (!sessionIdRef.current) {
-        // Wait for session to be created
-        await new Promise(r => setTimeout(r, 500));
+        await new Promise((r) => setTimeout(r, 500));
       }
 
       if (sessionIdRef.current) {
@@ -109,11 +106,11 @@ export default function AnalyticsTracker() {
     }
 
     recordPageView();
-  }, [pathname]);
+  }, [pathname, isTracked]);
 
-  // Chat presence: update lastSeenAt while client is on any page
+  // Chat presence
   useEffect(() => {
-    const chatId = localStorage.getItem("vosthermos-chat-id");
+    const chatId = typeof window !== "undefined" ? localStorage.getItem("vosthermos-chat-id") : null;
     if (!chatId) return;
     const ping = () => {
       fetch(`/api/public/chat/${chatId}/ping`, { method: "POST" }).catch(() => {});
