@@ -33,9 +33,17 @@ export default function NouveauBonAdmin() {
 
   const [items, setItems] = useState([]);
   const [catalogOpen, setCatalogOpen] = useState(false);
+  const [catalogTarget, setCatalogTarget] = useState(null); // null = flat, number = section index
+
+  const [services, setServices] = useState([]);
+  const [knownUnits, setKnownUnits] = useState([]);
+  const [sections, setSections] = useState([]); // [{unitCode, items:[]}]
+  const [newUnitCode, setNewUnitCode] = useState("");
 
   const [laborHours, setLaborHours] = useState(0);
   const [settings, setSettings] = useState({ labor_rate_per_hour: 85, tps_rate: 0.05, tvq_rate: 0.09975 });
+
+  const isB2B = selectedClient?.type === "gestionnaire";
 
   useEffect(() => {
     fetch("/api/admin/technicians")
@@ -54,7 +62,24 @@ export default function NouveauBonAdmin() {
         }
       })
       .catch(() => {});
+    fetch("/api/admin/services")
+      .then((r) => r.json())
+      .then((d) => { if (Array.isArray(d)) setServices(d); })
+      .catch(() => {});
   }, []);
+
+  // Fetch known units when a gestionnaire client is selected
+  useEffect(() => {
+    if (!selectedClient?.id || selectedClient.type !== "gestionnaire") {
+      setKnownUnits([]);
+      setSections([]);
+      return;
+    }
+    fetch(`/api/admin/clients/${selectedClient.id}/units`)
+      .then((r) => r.json())
+      .then((d) => setKnownUnits(Array.isArray(d) ? d.filter((u) => u.isActive) : []))
+      .catch(() => setKnownUnits([]));
+  }, [selectedClient]);
 
   useEffect(() => {
     if (clientSearch.length < 2 || selectedClient) { setClientResults([]); return; }
@@ -68,18 +93,70 @@ export default function NouveauBonAdmin() {
   }, [clientSearch, selectedClient]);
 
   function addProduct(p) {
-    setItems((prev) => [...prev, {
+    const item = {
       productId: p.id,
       description: `${p.sku} — ${p.name}`,
       quantity: 1,
       unitPrice: Number(p.price),
       itemType: "piece",
-    }]);
+    };
+    if (catalogTarget !== null) {
+      setSections((prev) => prev.map((s, i) => i === catalogTarget ? { ...s, items: [...s.items, item] } : s));
+    } else {
+      setItems((prev) => [...prev, item]);
+    }
     setCatalogOpen(false);
+    setCatalogTarget(null);
   }
 
   function addCustomItem() {
     setItems((prev) => [...prev, { productId: null, description: "", quantity: 1, unitPrice: 0, itemType: "piece" }]);
+  }
+
+  // ─── Sections (B2B) ─────────────────────────────────────────
+  function addSection() {
+    const code = newUnitCode.trim();
+    if (!code) return;
+    if (sections.some((s) => s.unitCode === code)) return;
+    setSections((prev) => [...prev, { unitCode: code, items: [] }]);
+    setNewUnitCode("");
+  }
+  function addSectionFromKnown(u) {
+    if (sections.some((s) => s.unitCode === u.code)) return;
+    setSections((prev) => [...prev, { unitCode: u.code, items: [] }]);
+  }
+  function removeSection(idx) {
+    if (!confirm("Retirer cette unite et ses items?")) return;
+    setSections((prev) => prev.filter((_, i) => i !== idx));
+  }
+  function addServiceToSection(sectionIdx, service) {
+    const item = {
+      serviceId: service.id,
+      description: service.name,
+      quantity: 1,
+      unitPrice: Number(service.price),
+      itemType: "piece",
+    };
+    setSections((prev) => prev.map((s, i) => i === sectionIdx ? { ...s, items: [...s.items, item] } : s));
+  }
+  function addCustomToSection(sectionIdx) {
+    setSections((prev) => prev.map((s, i) => i === sectionIdx ? {
+      ...s, items: [...s.items, { productId: null, serviceId: null, description: "", quantity: 1, unitPrice: 0, itemType: "piece" }],
+    } : s));
+  }
+  function updateSectionItem(sectionIdx, itemIdx, field, value) {
+    setSections((prev) => prev.map((s, i) => i === sectionIdx ? {
+      ...s, items: s.items.map((it, j) => j === itemIdx ? { ...it, [field]: value } : it),
+    } : s));
+  }
+  function removeSectionItem(sectionIdx, itemIdx) {
+    setSections((prev) => prev.map((s, i) => i === sectionIdx ? {
+      ...s, items: s.items.filter((_, j) => j !== itemIdx),
+    } : s));
+  }
+  function openCatalogForSection(sectionIdx) {
+    setCatalogTarget(sectionIdx);
+    setCatalogOpen(true);
   }
 
   function addDiscount(mode) {
@@ -120,7 +197,9 @@ export default function NouveauBonAdmin() {
     return { ...it, unitPrice: Math.round(amount * 100) / 100 };
   });
 
-  const totalPieces = itemsComputed.reduce((s, it) => s + Number(it.quantity) * Number(it.unitPrice), 0);
+  const flatPieces = itemsComputed.reduce((s, it) => s + Number(it.quantity) * Number(it.unitPrice), 0);
+  const sectionsPieces = sections.reduce((s, sec) => s + sec.items.reduce((ss, it) => ss + Number(it.quantity) * Number(it.unitPrice), 0), 0);
+  const totalPieces = flatPieces + sectionsPieces;
   const totalLabor = Number(laborHours) * settings.labor_rate_per_hour;
   const subtotal = totalPieces + totalLabor;
   const tps = subtotal * settings.tps_rate;
@@ -133,31 +212,47 @@ export default function NouveauBonAdmin() {
     setSaving(true);
     setError("");
     try {
-      const res = await fetch("/api/admin/work-orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          clientId: selectedClient.id,
-          technicianId: technicianId || null,
-          date,
-          heureArrivee: heureArrivee || null,
-          heureDepart: heureDepart || null,
-          interventionAddress: interventionAddress || null,
-          interventionCity: interventionCity || null,
-          interventionPostalCode: interventionPostalCode || null,
-          visibleAuClient,
-          description: description || null,
-          notes: notes || null,
-          statut,
-          laborHours,
-          items: itemsComputed.map((it) => ({
+      const payload = {
+        clientId: selectedClient.id,
+        technicianId: technicianId || null,
+        date,
+        heureArrivee: heureArrivee || null,
+        heureDepart: heureDepart || null,
+        interventionAddress: interventionAddress || null,
+        interventionCity: interventionCity || null,
+        interventionPostalCode: interventionPostalCode || null,
+        visibleAuClient,
+        description: description || null,
+        notes: notes || null,
+        statut,
+        laborHours,
+        // Flat items: always included. For B2B, only discount lines stay flat.
+        items: itemsComputed.map((it) => ({
+          productId: it.productId,
+          serviceId: it.serviceId,
+          description: it.description,
+          quantity: Number(it.quantity),
+          unitPrice: Number(it.unitPrice),
+          itemType: it.itemType,
+        })),
+      };
+      if (isB2B) {
+        payload.sections = sections.map((s) => ({
+          unitCode: s.unitCode,
+          items: s.items.map((it) => ({
             productId: it.productId,
+            serviceId: it.serviceId,
             description: it.description,
             quantity: Number(it.quantity),
             unitPrice: Number(it.unitPrice),
             itemType: it.itemType,
           })),
-        }),
+        }));
+      }
+      const res = await fetch("/api/admin/work-orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -301,14 +396,155 @@ export default function NouveauBonAdmin() {
           </label>
         </div>
 
-        {/* Items */}
+        {/* Sections par unite (B2B only) */}
+        {isB2B && (
+          <div className="admin-card border rounded-xl p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="admin-text font-bold">
+                <i className="fas fa-building mr-2 text-blue-400"></i>Unites visitees ({sections.length})
+              </h2>
+              <p className="admin-text-muted text-xs">Client B2B — organiser par unite</p>
+            </div>
+
+            {/* Known units quick-add */}
+            {knownUnits.length > 0 && (
+              <div>
+                <p className="admin-text-muted text-[10px] font-bold uppercase tracking-wider mb-2">
+                  Unites connues ({knownUnits.length})
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {knownUnits.map((u) => {
+                    const already = sections.some((s) => s.unitCode === u.code);
+                    return (
+                      <button type="button" key={u.id}
+                        onClick={() => addSectionFromKnown(u)}
+                        disabled={already}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-colors ${
+                          already
+                            ? "bg-green-500/20 text-green-500 border border-green-500/40 cursor-default"
+                            : "admin-card border admin-border admin-text hover:bg-white/5"
+                        }`}
+                        title={u.description || ""}>
+                        {already && <i className="fas fa-check text-[9px] mr-1"></i>}
+                        {u.code}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Add unit input */}
+            <div className="flex gap-2">
+              <input type="text" placeholder="Nouveau code d'unite (ex: F-0411)"
+                value={newUnitCode}
+                onChange={(e) => setNewUnitCode(e.target.value.toUpperCase())}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSection(); } }}
+                className="admin-input border rounded-lg px-3 py-2 text-sm flex-1 font-mono" />
+              <button type="button" onClick={addSection} disabled={!newUnitCode.trim()}
+                className="px-4 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium disabled:opacity-30">
+                <i className="fas fa-plus mr-1"></i>Ajouter
+              </button>
+            </div>
+
+            {/* Sections list */}
+            {sections.map((sec, sIdx) => {
+              const secSubtotal = sec.items.reduce((s, it) => s + Number(it.quantity) * Number(it.unitPrice), 0);
+              return (
+                <div key={sIdx} className="border admin-border rounded-xl p-4 space-y-3 bg-white/[0.02]">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <span className="font-mono font-bold text-base admin-text bg-blue-500/10 px-3 py-1 rounded">{sec.unitCode}</span>
+                      <span className="admin-text-muted text-xs">{sec.items.length} item{sec.items.length !== 1 ? "s" : ""}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="font-bold text-[var(--color-red)]">{secSubtotal.toFixed(2)}$</span>
+                      <button type="button" onClick={() => removeSection(sIdx)} className="text-red-500 text-sm">
+                        <i className="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Services presets for this section */}
+                  {services.filter((s) => s.isPreset).length > 0 && (
+                    <div>
+                      <p className="admin-text-muted text-[10px] font-bold uppercase tracking-wider mb-1.5">Raccourcis services</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {services.filter((s) => s.isPreset).map((svc) => (
+                          <button type="button" key={svc.id}
+                            onClick={() => addServiceToSection(sIdx, svc)}
+                            className="px-2.5 py-1 rounded text-xs admin-card border admin-border admin-text hover:bg-white/5">
+                            {svc.name} <span className="text-[var(--color-red)] font-bold ml-1">{Number(svc.price).toFixed(0)}$</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Items in this section */}
+                  {sec.items.map((it, iIdx) => (
+                    <div key={iIdx} className="border admin-border rounded-lg p-2.5 bg-white/[0.02]">
+                      <div className="flex items-start gap-2 mb-1.5">
+                        <input
+                          value={it.description}
+                          onChange={(e) => updateSectionItem(sIdx, iIdx, "description", e.target.value)}
+                          placeholder="Description..."
+                          className="admin-input border rounded px-2 py-1 text-sm flex-1" />
+                        <button type="button" onClick={() => removeSectionItem(sIdx, iIdx)} className="text-red-500 text-sm">
+                          <i className="fas fa-trash"></i>
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <label className="admin-text-muted text-xs">Qte</label>
+                        <input type="number" value={it.quantity} min="0" step="1"
+                          onChange={(e) => updateSectionItem(sIdx, iIdx, "quantity", parseFloat(e.target.value) || 0)}
+                          className="admin-input border rounded px-2 py-0.5 text-sm w-16 text-center" />
+                        <label className="admin-text-muted text-xs ml-1">Prix</label>
+                        <input type="number" value={it.unitPrice} min="0" step="0.01"
+                          onChange={(e) => updateSectionItem(sIdx, iIdx, "unitPrice", parseFloat(e.target.value) || 0)}
+                          className="admin-input border rounded px-2 py-0.5 text-sm w-20 text-right" />
+                        <span className="admin-text-muted text-xs">$</span>
+                        <span className="ml-auto font-bold text-[var(--color-red)] text-sm">
+                          {(Number(it.quantity) * Number(it.unitPrice)).toFixed(2)}$
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => openCatalogForSection(sIdx)}
+                      className="flex-1 py-2 border-2 border-dashed admin-border rounded-lg admin-text-muted text-xs admin-hover">
+                      <i className="fas fa-book-open mr-1"></i>Catalogue
+                    </button>
+                    <button type="button" onClick={() => addCustomToSection(sIdx)}
+                      className="flex-1 py-2 border-2 border-dashed admin-border rounded-lg admin-text-muted text-xs admin-hover">
+                      <i className="fas fa-plus mr-1"></i>Ligne libre
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+
+            {sections.length === 0 && (
+              <p className="admin-text-muted text-xs italic text-center py-4">
+                Aucune unite ajoutee. Tape sur une unite connue ci-dessus ou saisis un nouveau code.
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Items (flat — for particulier OR discounts-only B2B) */}
         <div className="admin-card border rounded-xl p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="admin-text font-bold">Pieces utilisees</h2>
-            <button type="button" onClick={() => setCatalogOpen(true)}
-              className="px-4 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium">
-              <i className="fas fa-book-open mr-2"></i>Parcourir le catalogue
-            </button>
+            <h2 className="admin-text font-bold">
+              {isB2B ? "Escomptes / lignes globales" : "Pieces utilisees"}
+            </h2>
+            {!isB2B && (
+              <button type="button" onClick={() => { setCatalogTarget(null); setCatalogOpen(true); }}
+                className="px-4 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium">
+                <i className="fas fa-book-open mr-2"></i>Parcourir le catalogue
+              </button>
+            )}
           </div>
 
           {items.map((it, i) => {
@@ -395,11 +631,13 @@ export default function NouveauBonAdmin() {
             );
           })}
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-            <button type="button" onClick={addCustomItem}
-              className="py-2.5 border-2 border-dashed admin-border rounded-lg admin-text-muted text-sm admin-hover">
-              <i className="fas fa-plus mr-2"></i>Ligne personnalisee
-            </button>
+          <div className={`grid gap-2 ${isB2B ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1 md:grid-cols-3"}`}>
+            {!isB2B && (
+              <button type="button" onClick={addCustomItem}
+                className="py-2.5 border-2 border-dashed admin-border rounded-lg admin-text-muted text-sm admin-hover">
+                <i className="fas fa-plus mr-2"></i>Ligne personnalisee
+              </button>
+            )}
             <button type="button" onClick={() => addDiscount("percent")}
               className="py-2.5 border-2 border-dashed border-green-500/30 rounded-lg text-green-600 text-sm hover:bg-green-500/5">
               <i className="fas fa-percent mr-2"></i>Escompte %
