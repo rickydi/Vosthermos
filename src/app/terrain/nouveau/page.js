@@ -121,9 +121,18 @@ export default function NouveauBon() {
     setIsNewClient(false);
     if (client.type === "gestionnaire") {
       fetch(`/api/technician/clients/${client.id}/units`)
-        .then((r) => r.json())
-        .then((data) => setKnownUnits(Array.isArray(data) ? data : []))
-        .catch(() => setKnownUnits([]));
+        .then(async (r) => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          return r.json();
+        })
+        .then((data) => {
+          console.log(`[units] ${Array.isArray(data) ? data.length : 0} unites pour client ${client.id}`);
+          setKnownUnits(Array.isArray(data) ? data : []);
+        })
+        .catch((err) => {
+          console.error("[units] fetch failed:", err);
+          setKnownUnits([]);
+        });
     } else {
       setKnownUnits([]);
     }
@@ -408,8 +417,39 @@ export default function NouveauBon() {
                   </div>
                 )}
                 {!isNewClient && clientType === "gestionnaire" && (
-                  <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg px-3 py-2 text-xs text-blue-300">
-                    <i className="fas fa-building mr-1"></i>Client B2B — travaux par unite.
+                  <div className="space-y-2">
+                    <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg px-3 py-2 text-xs text-blue-300 flex items-center justify-between">
+                      <span><i className="fas fa-building mr-1"></i>Client B2B — travaux par unite</span>
+                      <span className="font-bold">{knownUnits.length} unite{knownUnits.length !== 1 ? "s" : ""}</span>
+                    </div>
+                    {knownUnits.length > 0 && (
+                      <div>
+                        <p className="text-white/40 text-xs mb-2">Tape une unite pour commencer, ou continue a l&apos;etape suivante</p>
+                        <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto">
+                          {knownUnits.map((u) => {
+                            const already = sections.some((s) => s.unitCode === u.code);
+                            return (
+                              <button key={u.id}
+                                onClick={() => { addSectionFromKnown(u); setStep(2); }}
+                                className={`px-2.5 py-1.5 rounded-lg text-xs font-mono font-bold transition-colors ${
+                                  already
+                                    ? "bg-green-500/20 text-green-400 border border-green-500/40"
+                                    : "bg-white/5 text-white border border-white/10 active:bg-white/10"
+                                }`}
+                                title={u.description || ""}>
+                                {already && <i className="fas fa-check text-[9px] mr-1"></i>}
+                                {u.code}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    {knownUnits.length === 0 && (
+                      <p className="text-white/40 text-xs italic">
+                        Aucune unite pre-enregistree. Tu pourras en ajouter a l&apos;etape Pieces.
+                      </p>
+                    )}
                   </div>
                 )}
 
