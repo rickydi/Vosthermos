@@ -4,8 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 
 export default function ProductCard({ product, promo, locale, showImage = true }) {
-  const productPath = locale === "en" ? `/en/produit/${product.slug}` : `/produit/${product.slug}`;
+  const isEn = locale === "en";
+  const productPath = isEn ? `/en/produit/${product.slug}` : `/produit/${product.slug}`;
   const imgSrc = product.images?.[0]?.url || "/placeholder.jpg";
+  const displayName = isEn ? (product.nameEn || product.name) : product.name;
   const price = Number(product.price);
   const hasDiscount = promo && promo.type !== "message";
   let discountedPrice = null;
@@ -18,6 +20,8 @@ export default function ProductCard({ product, promo, locale, showImage = true }
       discountedPrice = Math.max(0, Math.round((price - v) * 100) / 100);
     }
   }
+
+  const formatPrice = (v) => isEn ? `$${v.toFixed(2)}` : `${v.toFixed(2)} $`;
 
   return (
     <Link
@@ -33,7 +37,7 @@ export default function ProductCard({ product, promo, locale, showImage = true }
         <div className="aspect-square relative bg-gray-50 overflow-hidden">
           <Image
             src={imgSrc}
-            alt={`${product.name} - ${product.sku} | Vosthermos`}
+            alt={`${displayName} - ${product.sku} | Vosthermos`}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"
@@ -43,20 +47,20 @@ export default function ProductCard({ product, promo, locale, showImage = true }
       <div className="p-4">
         <p className="text-xs text-[var(--color-muted)] font-mono mb-1">{product.sku}</p>
         <h3 className="text-sm font-medium line-clamp-2 mb-2 group-hover:text-[var(--color-teal)] transition-colors">
-          {product.name}
+          {displayName}
         </h3>
         {hasDiscount ? (
           <div className="flex items-center gap-2">
             <p className="text-lg font-bold text-[var(--color-red)]">
-              {discountedPrice.toFixed(2)} $
+              {formatPrice(discountedPrice)}
             </p>
             <p className="text-sm text-[var(--color-muted)] line-through">
-              {price.toFixed(2)} $
+              {formatPrice(price)}
             </p>
           </div>
         ) : (
           <p className="text-lg font-bold text-[var(--color-teal)]">
-            {price.toFixed(2)} $
+            {formatPrice(price)}
           </p>
         )}
       </div>
