@@ -31,7 +31,8 @@
 .portail-page a { color: inherit; text-decoration: none; }
 .portail-page img, .portail-page svg { display: block; max-width: 100%; }
 .portail-page button { font: inherit; cursor: pointer; }
-.portail-page h1, .portail-page h2, .portail-page h3, .portail-page h4 { font-family: var(--pg-display); letter-spacing: -0.02em; margin: 0; font-weight: 600; }
+.portail-page h1, .portail-page h2, .portail-page h3, .portail-page h4 { font-family: var(--pg-display); letter-spacing: -0.02em; font-weight: 600; }
+.portail-page h3, .portail-page h4 { margin: 0; }
 .pg-container { width: 100%; max-width: var(--pg-container); margin-inline: auto; padding-inline: 32px; }
 
 /* BUTTONS */
