@@ -5,7 +5,7 @@ import { useCart } from "@/components/CartContext";
 import Image from "next/image";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import Link from "next/link";
-import { COMPANY_INFO } from "@/lib/company";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 export default function CheckoutPage() {
   const { items, total, loaded, clearCart } = useCart();

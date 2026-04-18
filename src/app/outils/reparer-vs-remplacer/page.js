@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { COMPANY_INFO } from "@/lib/company";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 const WEBAPP_JSON_LD = {
   "@context": "https://schema.org",

@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { COMPANY_INFO } from "@/lib/company";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 const REPLACEMENT_PRICES = { window: 1100, patioDoor: 3500, entryDoor: 3000 };
 

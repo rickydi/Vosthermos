@@ -5,7 +5,7 @@ import {
   getServiceEn,
   generateStaticParamsEn,
 } from "@/lib/services-data-en";
-import { COMPANY_INFO } from "@/lib/company";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 export function generateStaticParams() {
   return generateStaticParamsEn();

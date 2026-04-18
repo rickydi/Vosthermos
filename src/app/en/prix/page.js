@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { COMPANY_INFO } from "@/lib/company";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 export const metadata = {
   title: "Window Glass Replacement Pricing 2026 | Price Guide | Vosthermos",

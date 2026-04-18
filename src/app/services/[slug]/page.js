@@ -7,7 +7,7 @@ import {
 } from "@/lib/services-data";
 import { getProblemsForService, getPricingForService, getTopCities } from "@/lib/smart-links";
 import { FullSmartLinksSection } from "@/components/SmartLinks";
-import { COMPANY_INFO } from "@/lib/company";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 export function generateStaticParams() {
   return getParams();

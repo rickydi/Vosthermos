@@ -4,7 +4,7 @@ import { GLOSSARY, getGlossaryTerm, GLOSSARY_CATEGORIES } from "@/lib/glossary-d
 import { getService } from "@/lib/services-data";
 import { getProblem } from "@/lib/problems-data";
 import { getPricing } from "@/lib/pricing-data";
-import { COMPANY_INFO } from "@/lib/company";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 export function generateStaticParams() {
   return GLOSSARY.map((g) => ({ slug: g.slug }));

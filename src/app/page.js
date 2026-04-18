@@ -13,7 +13,7 @@ import BeforeAfterSlider from "@/components/BeforeAfterSlider";
 import Accordion from "@/components/Accordion";
 import { getCategoryIcon } from "@/lib/category-icons";
 import { getActivePromotions } from "@/lib/promotions";
-import { COMPANY_INFO } from "@/lib/company";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 export default async function Home() {
   const categories = await prisma.category.findMany({

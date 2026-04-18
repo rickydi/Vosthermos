@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import BlogCard from "@/components/BlogCard";
 import Link from "next/link";
-import { COMPANY_INFO } from "@/lib/company";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 export const metadata = {
   title: "Blog | Door and Window Repair Tips | Vosthermos",

@@ -1,4 +1,4 @@
-import { COMPANY_INFO } from "@/lib/company";
+import { COMPANY_INFO } from "@/lib/company-info";
 export const metadata = {
   title: "Contact Vosthermos | Soumission gratuite portes & fenêtres — Montréal, Rive-Sud, Laval",
   description:

@@ -1,4 +1,4 @@
-import { COMPANY_INFO } from "@/lib/company";
+import { COMPANY_INFO } from "@/lib/company-info";
 // SEO templates optimises pour le CTR (Click-Through-Rate)
 // Objectif: convertir les impressions en clics avec des titres et descriptions accrocheurs
 //

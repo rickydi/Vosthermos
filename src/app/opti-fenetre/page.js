@@ -1,6 +1,6 @@
 import Link from "next/link";
 import SavingsCalculator from "@/components/SavingsCalculator";
-import { COMPANY_INFO } from "@/lib/company";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 export const metadata = {
   title: "Programme OPTI-FENETRE | Remise a neuf complete | Vosthermos",

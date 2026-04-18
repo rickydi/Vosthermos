@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { PROBLEMS, getProblem, PROBLEM_CATEGORIES } from "@/lib/problems-data";
 import { getService } from "@/lib/services-data";
-import { COMPANY_INFO } from "@/lib/company";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 export function generateStaticParams() {
   return PROBLEMS.map((p) => ({ slug: p.slug }));

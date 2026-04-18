@@ -1,6 +1,6 @@
 import Link from "next/link";
 import DiagnosticTool from "@/components/DiagnosticTool";
-import { COMPANY_INFO } from "@/lib/company";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 export const metadata = {
   title:

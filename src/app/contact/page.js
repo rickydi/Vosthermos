@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { formatPhoneInput } from "@/lib/phone";
 import useFormTracking from "@/lib/useFormTracking";
-import { COMPANY_INFO } from "@/lib/company";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 const hours = [
   { day: "Lundi", time: "FERMÉ" },

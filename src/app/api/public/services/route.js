@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { SERVICES } from "@/lib/services-data";
 import { CITIES } from "@/lib/cities";
-import { COMPANY_INFO } from "@/lib/company";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 export async function GET() {
   const data = {

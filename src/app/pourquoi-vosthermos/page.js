@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { COMPANY_INFO } from "@/lib/company";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 export const metadata = {
   title: "Pourquoi choisir Vosthermos | Experts en reparation de portes et fenetres",

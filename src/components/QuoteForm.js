@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import useFormTracking from "@/lib/useFormTracking";
 import { formatPhoneInput } from "@/lib/phone";
-import { COMPANY_INFO } from "@/lib/company";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 const inputWrap = "relative";
 const inputClass = "w-full bg-white border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:border-[var(--color-red)] transition-colors pr-10";

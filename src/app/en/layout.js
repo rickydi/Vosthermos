@@ -1,4 +1,4 @@
-import { COMPANY_INFO } from "@/lib/company";
+import { COMPANY_INFO } from "@/lib/company-info";
 export const metadata = {
   title: "Vosthermos | Door and Window Repair | Montreal, South Shore",
   description:

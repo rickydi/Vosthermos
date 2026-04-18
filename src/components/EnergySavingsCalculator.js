@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
-import { COMPANY_INFO } from "@/lib/company";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 const TOTAL_ESTIMATED_WINDOWS = 12;
 const AVG_REPLACEMENT_COST = 250;

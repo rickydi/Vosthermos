@@ -1,6 +1,6 @@
 import Link from "next/link";
 import RealisationsGrid from "./RealisationsGrid";
-import { COMPANY_INFO } from "@/lib/company";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 export const metadata = {
   title: "Nos realisations | Vosthermos - Portfolio de nos travaux",

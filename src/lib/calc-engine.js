@@ -1,4 +1,4 @@
-import { COMPANY_INFO } from "@/lib/company";
+import { COMPANY_INFO } from "@/lib/company-info";
 // Moteur de calcul partage pour:
 // - Outils HTML (/outils/*, /calculateur*)
 // - API publique (/api/public/calculate-*)

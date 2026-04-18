@@ -9,7 +9,7 @@ import {
 } from "@/lib/calc-engine";
 import { SERVICES } from "@/lib/services-data";
 import { CITIES } from "@/lib/cities";
-import { COMPANY_INFO } from "@/lib/company";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 // ============================================================================
 // Vosthermos MCP Server (Model Context Protocol)

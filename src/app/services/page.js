@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { SERVICES } from "@/lib/services-data";
 import { CITIES } from "@/lib/cities";
-import { COMPANY_INFO } from "@/lib/company";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 const BASE = "https://www.vosthermos.com";
 

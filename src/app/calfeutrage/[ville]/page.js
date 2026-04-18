@@ -3,7 +3,7 @@ import Link from "next/link";
 import { CITIES, getCity } from "@/lib/cities";
 import QuoteForm from "@/components/QuoteForm";
 import { CITY_PAGE_SEO } from "@/lib/seo-templates";
-import { COMPANY_INFO } from "@/lib/company";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 export async function generateStaticParams() {
   return CITIES.map((c) => ({ ville: c.slug }));

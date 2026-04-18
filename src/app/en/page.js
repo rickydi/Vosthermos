@@ -12,7 +12,7 @@ import EcoSection from "@/components/EcoSection";
 import BeforeAfterSlider from "@/components/BeforeAfterSlider";
 import { getCategoryIcon } from "@/lib/category-icons";
 import { getActivePromotions } from "@/lib/promotions";
-import { COMPANY_INFO } from "@/lib/company";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 export const metadata = {
   title: "Vosthermos | Door and Window Repair | Montreal, South Shore",

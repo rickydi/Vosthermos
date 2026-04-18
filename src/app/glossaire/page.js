@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { GLOSSARY, GLOSSARY_CATEGORIES } from "@/lib/glossary-data";
-import { COMPANY_INFO } from "@/lib/company";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 export const metadata = {
   title: "Glossaire des portes et fenetres | Termes techniques | Vosthermos",

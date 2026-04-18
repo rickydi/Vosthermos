@@ -1,33 +1,12 @@
-// Centralized company info for NAP consistency across the site.
-// Reads from site_settings with fallback to defaults.
-//
-// Use getCompany() in server components/API routes.
-// DEFAULT_COMPANY available for client-side fallback if needed.
+// SERVER-ONLY: reads company settings from DB.
+// For client-safe constant, use @/lib/company-info instead.
 
 import prisma from "./prisma";
+import { COMPANY_INFO } from "./company-info";
 
-// Synchronous fallback used as single source of truth for static imports.
-// For live values from DB (header/footer/JSON-LD/factures), use getCompany() async.
-// Changing these values + deploying updates all static SEO pages at build time.
-export const COMPANY_INFO = {
-  legalName: "Vosthermos",
-  neq: "",
-  address: "330 Ch. St-Francois-Xavier, Local 101",
-  city: "Saint-Francois-Xavier-de-Brompton",
-  cityShort: "Saint-Francois-Xavier",
-  province: "QC",
-  postalCode: "J0H 1S0",
-  phone: "514-825-8411",
-  phoneTel: "+15148258411",
-  email: "info@vosthermos.com",
-  web: "vosthermos.com",
-  url: "https://www.vosthermos.com",
-  facebook: "https://www.facebook.com/profile.php?id=61562303553558",
-  instagram: "https://instagram.com/vosthermos/",
-  logo: "https://www.vosthermos.com/images/Vos-Thermos-Logo.png",
-};
+export { COMPANY_INFO };
 
-// Alias for backward compat; will be merged with DB values by getCompany().
+// Alias for backward compat; merged with DB values by getCompany().
 export const DEFAULT_COMPANY = {
   legalName: "Vosthermos",
   neq: "",
