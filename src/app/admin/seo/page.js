@@ -323,14 +323,43 @@ export default function AdminSeoPage() {
   return (
     <div className="p-6 lg:p-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
         <h1 className="text-2xl font-extrabold admin-text">Suivi SEO</h1>
-        {tab === "serper" && (
-          <button onClick={startCheck} disabled={checking || !activeKeyword}
-            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${checking ? "bg-gray-500/30 text-gray-400 cursor-not-allowed" : "bg-[var(--color-red)] text-white hover:opacity-90"}`}>
-            {checking ? <><i className="fas fa-spinner fa-spin mr-2"></i>Verification...</> : <><i className="fas fa-sync-alt mr-2"></i>Rafraichir</>}
-          </button>
-        )}
+        <div className="flex items-center gap-2 flex-wrap">
+          <a
+            href="https://search.google.com/search-console?resource_id=sc-domain%3Avosthermos.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-medium hover:bg-white/5 transition-colors"
+            title="Ouvrir Google Search Console dans un nouvel onglet"
+          >
+            <i className="fab fa-google mr-2"></i>Search Console
+          </a>
+          <a
+            href="https://search.google.com/search-console/inspect?resource_id=sc-domain%3Avosthermos.com&id=https%3A%2F%2Fwww.vosthermos.com%2F"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-medium hover:bg-white/5 transition-colors"
+            title="Inspecter / Demander l'indexation d'une URL"
+          >
+            <i className="fas fa-plus-circle mr-2"></i>Indexation URL
+          </a>
+          <a
+            href="https://www.google.com/search?q=site:vosthermos.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-medium hover:bg-white/5 transition-colors"
+            title="Voir toutes les pages indexees par Google (site:vosthermos.com)"
+          >
+            <i className="fas fa-search mr-2"></i>site:vosthermos.com
+          </a>
+          {tab === "serper" && (
+            <button onClick={startCheck} disabled={checking || !activeKeyword}
+              className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${checking ? "bg-gray-500/30 text-gray-400 cursor-not-allowed" : "bg-[var(--color-red)] text-white hover:opacity-90"}`}>
+              {checking ? <><i className="fas fa-spinner fa-spin mr-2"></i>Verification...</> : <><i className="fas fa-sync-alt mr-2"></i>Rafraichir</>}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Tabs */}
