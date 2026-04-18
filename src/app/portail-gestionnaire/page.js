@@ -145,8 +145,7 @@ export default function PortailGestionnairePage() {
               <span className="pg-eyebrow-dot"></span>PORTAIL B2B · COPROPRIÉTÉS &amp; GESTIONNAIRES
             </span>
             <h1 className="pg-h1">
-              Le portail des gestionnaires de copropriétés
-              <br />
+              Le portail des gestionnaires de copropriétés{" "}
               <span className="pg-h1-accent">pour vos travaux de fenêtres.</span>
             </h1>
             <p className="pg-hero-sub">
@@ -478,9 +477,8 @@ export default function PortailGestionnairePage() {
               <span className="pg-eyebrow-dot"></span>FONCTIONNALITÉS
             </span>
             <h2 className="pg-section-title">
-              Tout ce qu&apos;un gestionnaire attend
-              <br />
-              d&apos;un <em>logiciel de suivi des travaux de fenêtres</em>.
+              Tout ce qu&apos;un gestionnaire attend d&apos;un{" "}
+              <em>logiciel de suivi des travaux de fenêtres</em>.
             </h2>
             <div className="pg-feat-grid">
               <article className="pg-feat">
@@ -695,8 +693,7 @@ export default function PortailGestionnairePage() {
               <span className="pg-eyebrow-dot"></span>WORKFLOW
             </span>
             <h2 className="pg-section-title light">
-              De la détection du problème à la facture,
-              <br />
+              De la détection du problème à la facture,{" "}
               <em>tout se passe ici.</em>
             </h2>
             <p className="pg-section-lede light">
