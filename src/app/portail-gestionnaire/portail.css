@@ -269,8 +269,8 @@
 
 /* CTA FINAL */
 .pg-cta-final { position: relative; isolation: isolate; overflow: hidden; background: linear-gradient(180deg, var(--pg-teal-600), var(--pg-teal-700)); color: #fff; text-align: center; padding: 120px 0 110px; }
-.pg-cta-inner { position: relative; }
-.pg-cta-h1 { margin: 16px auto 0; font-size: clamp(36px, 5vw, 64px); max-width: 16ch; }
+.pg-cta-inner { position: relative; text-align: center; }
+.pg-cta-h1 { margin: 16px auto 0; font-size: clamp(36px, 5vw, 64px); max-width: 20ch; text-align: center; }
 .pg-cta-sub { margin: 22px auto 0; max-width: 52ch; color: rgba(255,255,255,.7); font-size: 17px; }
 .pg-cta-final .pg-btn-xl { margin-top: 36px; }
 .pg-cta-reassure { margin: 24px auto 0; display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; font-size: 13px; color: rgba(255,255,255,.6); }
