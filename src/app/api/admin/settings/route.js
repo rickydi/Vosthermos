@@ -7,6 +7,34 @@ function maskKey(value) {
   return "••••••••" + value.slice(-8);
 }
 
+const COMPANY_KEYS = [
+  "company_legal_name",
+  "company_address",
+  "company_city",
+  "company_province",
+  "company_postal_code",
+  "company_phone",
+  "company_email",
+  "company_web",
+  "company_neq",
+  "tps_number",
+  "tvq_number",
+];
+
+const COMPANY_DEFAULTS = {
+  company_legal_name: "",
+  company_address: "330 Ch. St-Francois-Xavier, Local 101",
+  company_city: "Saint-Francois-Xavier-de-Brompton",
+  company_province: "QC",
+  company_postal_code: "J0H 1S0",
+  company_phone: "514-825-8411",
+  company_email: "info@vosthermos.com",
+  company_web: "vosthermos.com",
+  company_neq: "",
+  tps_number: "",
+  tvq_number: "",
+};
+
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const section = searchParams.get("section");
@@ -26,6 +54,26 @@ export async function GET(request) {
       });
     } catch {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  }
+
+  // Company section (infos de facturation — lisible par admin et par bon preview)
+  if (section === "company") {
+    try {
+      await requireAdmin();
+    } catch {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    try {
+      const rows = await prisma.$queryRawUnsafe(
+        `SELECT key, value FROM site_settings WHERE key = ANY($1)`,
+        COMPANY_KEYS,
+      );
+      const result = { ...COMPANY_DEFAULTS };
+      for (const row of rows) result[row.key] = row.value;
+      return NextResponse.json(result);
+    } catch {
+      return NextResponse.json(COMPANY_DEFAULTS);
     }
   }
 
@@ -57,6 +105,18 @@ export async function POST(request) {
         await prisma.$executeRawUnsafe(
           `INSERT INTO site_settings (key, value) VALUES ('api_key_serper', $1) ON CONFLICT (key) DO UPDATE SET value = $1`,
           body.serper
+        );
+      }
+      return NextResponse.json({ ok: true });
+    }
+
+    // Company section — save all provided company_* + tax fields
+    if (body.section === "company") {
+      for (const key of COMPANY_KEYS) {
+        if (body[key] === undefined) continue;
+        await prisma.$executeRawUnsafe(
+          `INSERT INTO site_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = $2`,
+          key, String(body[key] || ""),
         );
       }
       return NextResponse.json({ ok: true });

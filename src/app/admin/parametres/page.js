@@ -4,6 +4,7 @@ import { useState } from "react";
 import NotifyMembersSection from "@/components/admin/NotifyMembersSection";
 import BlogNotifyMembersSection from "@/components/admin/BlogNotifyMembersSection";
 import ApiKeysSection from "@/components/admin/ApiKeysSection";
+import CompanyInfoSection from "@/components/admin/CompanyInfoSection";
 
 export default function AdminSettingsPage() {
   const [form, setForm] = useState({
@@ -40,6 +41,11 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="p-6 lg:p-8 max-w-4xl">
+      {/* Infos de facturation (persistees en DB, utilisees sur les factures) */}
+      <div className="mb-8">
+        <CompanyInfoSection />
+      </div>
+
       <form onSubmit={handleSave} className="space-y-6">
         {/* Address */}
         <div className="bg-white/5 rounded-xl p-6 border border-white/5">

@@ -5,10 +5,27 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import InvoiceSheet from "@/components/admin/InvoiceSheet";
 
+// Map DB snake_case settings to InvoiceSheet company prop shape
+function mapCompany(s) {
+  if (!s || typeof s !== "object") return null;
+  return {
+    legal: s.company_legal_name || s.company_neq || "",
+    address: s.company_address || "",
+    city: s.company_city || "",
+    postalCode: s.company_postal_code || "",
+    phone: s.company_phone || "",
+    email: s.company_email || "",
+    web: s.company_web || "",
+    tps: s.tps_number || "",
+    tvq: s.tvq_number || "",
+  };
+}
+
 export default function BonDetailPage() {
   const router = useRouter();
   const { id } = useParams();
   const [wo, setWo] = useState(null);
+  const [company, setCompany] = useState(null);
   const [sending, setSending] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [msg, setMsg] = useState("");
@@ -19,6 +36,10 @@ export default function BonDetailPage() {
     fetch(`/api/admin/work-orders/${id}`)
       .then((r) => r.json())
       .then((data) => { setWo(data); setEmailTo(data?.client?.email || ""); })
+      .catch(() => {});
+    fetch("/api/admin/settings?section=company")
+      .then((r) => r.json())
+      .then((s) => { if (s && !s.error) setCompany(mapCompany(s)); })
       .catch(() => {});
   }, [id]);
 
@@ -142,7 +163,7 @@ export default function BonDetailPage() {
       )}
 
       {/* Invoice sheet — WYSIWYG 8.5x11, paginated, prints 1:1 */}
-      <InvoiceSheet wo={wo} />
+      <InvoiceSheet wo={wo} company={company} />
 
       {/* Admin-only extras (NOT in print): signature + photos */}
       {(wo.signatureUrl || (wo.photos && wo.photos.length > 0)) && (
