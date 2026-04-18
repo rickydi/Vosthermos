@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 export const metadata = {
   title: "MCP Server Documentation - Vosthermos",

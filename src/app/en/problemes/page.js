@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PROBLEMS, PROBLEM_CATEGORIES } from "@/lib/problems-data";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 export const metadata = {
   title: "Common Door and Window Problems — Solutions | Vosthermos",

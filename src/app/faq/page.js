@@ -1,5 +1,6 @@
 import Link from "next/link";
 import FaqAccordion from "@/components/FaqAccordion";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 export const metadata = {
   title: "Foire aux questions - Vosthermos | Reparation portes et fenetres",

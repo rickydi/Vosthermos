@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { getCategoryIcon } from "@/lib/category-icons";
 import { getActivePromotions } from "@/lib/promotions";
 import ProductSearchBar from "@/components/ProductSearchBar";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 export const metadata = {
   title: "Quincaillerie de portes et fenetres en ligne | 740+ pieces | Vosthermos",

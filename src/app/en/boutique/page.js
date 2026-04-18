@@ -2,6 +2,7 @@ import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { getCategoryIcon } from "@/lib/category-icons";
 import { getActivePromotions } from "@/lib/promotions";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 export const metadata = {
   title: "Door and Window Parts Online Store | 740+ Parts | Vosthermos",

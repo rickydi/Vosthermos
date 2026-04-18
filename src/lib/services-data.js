@@ -1,3 +1,4 @@
+import { COMPANY_INFO } from "@/lib/company-info";
 export const SERVICES = [
   {
     slug: "remplacement-quincaillerie",

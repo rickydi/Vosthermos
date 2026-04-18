@@ -1,3 +1,4 @@
+import { COMPANY_INFO } from "@/lib/company-info";
 export const PRICING = [
   {
     slug: "remplacement-thermos",

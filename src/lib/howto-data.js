@@ -1,3 +1,4 @@
+import { COMPANY_INFO } from "@/lib/company-info";
 // HowTo guides for GEO (Generative Engine Optimization) and Google Rich Results
 // These are structured step-by-step guides that LLMs and search engines love.
 // Each guide emits a Schema.org HowTo JSON-LD block on its page.
