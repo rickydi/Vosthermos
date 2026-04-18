@@ -191,16 +191,16 @@ export default function PortailGestionnairePage() {
                       strokeWidth="1.2"
                     />
                   </svg>
-                  portail.vosthermos.com / <b>le-marronnier</b>
+                  portail.vosthermos.com / <b>demo</b>
                 </div>
               </div>
               <div className="pg-dash">
                 <aside className="pg-dash-side">
                   <div className="pg-dash-account">
-                    <div className="pg-avatar">YD</div>
+                    <div className="pg-avatar">ML</div>
                     <div>
-                      <div className="pg-dash-owner">Yannis D.</div>
-                      <div className="pg-dash-org">Le Marronnier · 18 u.</div>
+                      <div className="pg-dash-owner">Marc L.</div>
+                      <div className="pg-dash-org">Les Jardins Fleuris · 24 u.</div>
                     </div>
                   </div>
                   <nav className="pg-dash-nav">
@@ -233,7 +233,7 @@ export default function PortailGestionnairePage() {
                   <header className="pg-dash-header">
                     <div>
                       <div className="pg-dash-crumb">
-                        Copropriété · <b>Le Marronnier</b>
+                        Copropriété · <b>Les Jardins Fleuris</b>
                       </div>
                       <h3 className="pg-dash-title">Tableau de bord</h3>
                     </div>
