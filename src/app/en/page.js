@@ -56,6 +56,13 @@ export default async function HomeEn() {
   const totalProducts = await prisma.product.count();
   const activePromos = await getActivePromotions();
 
+  // Check if images should be shown (admin setting)
+  let showImages = true;
+  try {
+    const imgSetting = await prisma.$queryRawUnsafe(`SELECT value FROM site_settings WHERE key = 'show_boutique_images'`);
+    if (imgSetting[0]?.value === "false") showImages = false;
+  } catch {}
+
   const howToJsonLd = {
     "@context": "https://schema.org",
     "@type": "HowTo",
@@ -278,7 +285,7 @@ export default async function HomeEn() {
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {featuredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard key={product.id} product={product} showImage={showImages} locale="en" />
             ))}
           </div>
 
