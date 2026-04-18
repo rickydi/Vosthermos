@@ -48,16 +48,47 @@ export default function InvoiceA3({ wo, backHref = "/admin/bons/preview", label 
             background: white !important;
             margin: 0 !important;
             padding: 0 !important;
+            width: auto !important;
+            height: auto !important;
+            overflow: visible !important;
+          }
+          /* Hide admin chrome */
+          aside, .admin-sidebar, .admin-header, header[class*="admin"] {
+            display: none !important;
+          }
+          /* Neutralize all wrapper layouts so pages can flow naturally */
+          body > *, body > * > *, body > * > * > *, main {
+            display: block !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: transparent !important;
+            min-height: 0 !important;
+            width: auto !important;
+            overflow: visible !important;
+            box-shadow: none !important;
           }
           .print-hide { display: none !important; }
-          .page-stack { gap: 0 !important; }
+          .page-stack {
+            display: block !important;
+            gap: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
           .invoice-page {
+            display: block !important;
             box-shadow: none !important;
             margin: 0 !important;
             page-break-after: always;
+            break-after: page;
+            /* Force exact page size */
+            width: 8.5in !important;
+            height: 11in !important;
+            max-width: 8.5in !important;
+            overflow: hidden !important;
           }
           .invoice-page:last-child {
             page-break-after: auto;
+            break-after: auto;
           }
         }
       `}</style>
