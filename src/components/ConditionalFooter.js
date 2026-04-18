@@ -3,8 +3,8 @@
 import { usePathname } from "next/navigation";
 import Footer from "./Footer";
 
-export default function ConditionalFooter() {
+export default function ConditionalFooter({ company }) {
   const pathname = usePathname();
   if (pathname.startsWith("/admin") || pathname.startsWith("/terrain")) return null;
-  return <Footer />;
+  return <Footer company={company} />;
 }

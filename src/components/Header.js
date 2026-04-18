@@ -6,7 +6,12 @@ import { useCart } from "./CartContext";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 
-export default function Header() {
+const FALLBACK_PHONE = "514-825-8411";
+const FALLBACK_TEL = "+15148258411";
+
+export default function Header({ company }) {
+  const phone = company?.phone || FALLBACK_PHONE;
+  const phoneTel = company?.phoneTel || FALLBACK_TEL;
   const { itemCount, loaded } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -19,7 +24,8 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
-    setMenuOpen(false);
+    const t = setTimeout(() => setMenuOpen(false), 0);
+    return () => clearTimeout(t);
   }, [pathname]);
 
   const isEnglish = pathname === "/en" || pathname.startsWith("/en/");
@@ -135,11 +141,11 @@ export default function Header() {
             </Link>
 
             <a
-              href="tel:15148258411"
+              href={`tel:${phoneTel}`}
               className="hidden md:flex items-center gap-2 text-white font-semibold text-sm hover:text-[var(--color-red-light)] transition-colors"
             >
               <i className="fas fa-phone text-[var(--color-red)]"></i>
-              <span>514-825-8411</span>
+              <span>{phone}</span>
             </a>
 
             <Link
@@ -198,8 +204,8 @@ export default function Header() {
             <i className="fas fa-globe"></i>
             {labels.langLabel === "EN" ? "English" : "Francais"}
           </Link>
-          <a href="tel:15148258411" className="flex items-center gap-2 text-[var(--color-red-light)] font-bold mt-4">
-            <i className="fas fa-phone"></i> 514-825-8411
+          <a href={`tel:${phoneTel}`} className="flex items-center gap-2 text-[var(--color-red-light)] font-bold mt-4">
+            <i className="fas fa-phone"></i> {phone}
           </a>
         </nav>
       </div>

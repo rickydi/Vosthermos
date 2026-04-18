@@ -13,7 +13,15 @@ const cities = [
   { name: "Granby", slug: "granby" },
 ];
 
-export default function Footer() {
+const FALLBACK_COMPANY = {
+  address: "330 Ch. St-Francois-Xavier, Local 101",
+  phone: "514-825-8411",
+  phoneTel: "+15148258411",
+  email: "info@vosthermos.com",
+};
+
+export default function Footer({ company }) {
+  const co = { ...FALLBACK_COMPANY, ...(company || {}) };
   const pathname = usePathname();
   const isEn = pathname === "/en" || pathname.startsWith("/en/");
   const p = isEn ? "/en" : "";
@@ -144,7 +152,7 @@ export default function Footer() {
               <li><Link href="/problemes" className="hover:text-white transition-colors">Problemes courants</Link></li>
               <li><Link href="/diagnostic" className="hover:text-white transition-colors">Diagnostic gratuit</Link></li>
               <li><Link href="/glossaire" className="hover:text-white transition-colors">Glossaire</Link></li>
-              <li><Link href="/calculateur" className="hover:text-white transition-colors">Calculateur d'economies</Link></li>
+              <li><Link href="/calculateur" className="hover:text-white transition-colors">Calculateur d&apos;economies</Link></li>
               <li><Link href="/opti-fenetre" className="hover:text-white transition-colors">OPTI-FENETRE</Link></li>
               <li><Link href={`${p}/boutique`} className="hover:text-white transition-colors">{labels.shop}</Link></li>
               <li><Link href={`${p}/rendez-vous`} className="hover:text-white transition-colors">{labels.booking}</Link></li>
@@ -169,15 +177,15 @@ export default function Footer() {
             <ul className="space-y-3 text-sm text-white/60">
               <li className="flex items-start gap-2">
                 <i className="fas fa-map-marker-alt mt-1 text-[var(--color-red)]"></i>
-                330 Ch. St-Francois-Xavier, Local 101
+                {co.address}
               </li>
               <li className="flex items-center gap-2">
                 <i className="fas fa-phone text-[var(--color-red)]"></i>
-                <a href="tel:15148258411" className="hover:text-white transition-colors">514-825-8411</a>
+                <a href={`tel:${co.phoneTel}`} className="hover:text-white transition-colors">{co.phone}</a>
               </li>
               <li className="flex items-center gap-2">
                 <i className="fas fa-envelope text-[var(--color-red)]"></i>
-                <a href="mailto:info@vosthermos.com" className="hover:text-white transition-colors">info@vosthermos.com</a>
+                <a href={`mailto:${co.email}`} className="hover:text-white transition-colors">{co.email}</a>
               </li>
             </ul>
             <div className="mt-4 pt-4 border-t border-white/10">

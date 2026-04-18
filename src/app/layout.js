@@ -6,72 +6,76 @@ import AnalyticsTracker from "@/components/AnalyticsTracker";
 import ChatBubble from "@/components/ChatBubble";
 import { CartProvider } from "@/components/CartContext";
 import Script from "next/script";
+import { getCompany } from "@/lib/company";
 
-export const metadata = {
-  title: "Remplacement Thermos & Fenêtres dès 150$ • Vosthermos Montréal",
-  description:
-    "Thermos embué? Porte qui bloque? Vosthermos remplace vos vitres thermos dès 150$ avec garantie 10 ans. ✓ 15 ans d'expérience ✓ Soumission gratuite 24h ✓ Rive-Sud, Montréal, Laval ☎ 514-825-8411",
-  keywords:
-    "reparation portes fenetres, vitre thermos, remplacement thermos, remplacement quincaillerie, moustiquaire sur mesure, porte-patio, porte en bois, calfeutrage fenetres, desembuage, coupe-froid, insertion porte, boutique pieces portes fenetres, quincaillerie porte fenetre en ligne, Saint-Francois-Xavier, Montreal, Rive-Sud, Laval, Longueuil, Brossard, Granby, Saint-Hyacinthe, Terrebonne, Repentigny",
-  authors: [{ name: "Vosthermos" }],
-  robots: "index, follow",
-  alternates: {
-    canonical: "https://www.vosthermos.com/",
-    languages: {
-      fr: "https://www.vosthermos.com/",
-      en: "https://www.vosthermos.com/en/",
+export async function generateMetadata() {
+  const co = await getCompany();
+  return {
+    title: `Remplacement Thermos & Fenêtres dès 150$ • Vosthermos Montréal`,
+    description:
+      `Thermos embué? Porte qui bloque? Vosthermos remplace vos vitres thermos dès 150$ avec garantie 10 ans. ✓ 15 ans d'expérience ✓ Soumission gratuite 24h ✓ Rive-Sud, Montréal, Laval ☎ ${co.phone}`,
+    keywords:
+      "reparation portes fenetres, vitre thermos, remplacement thermos, remplacement quincaillerie, moustiquaire sur mesure, porte-patio, porte en bois, calfeutrage fenetres, desembuage, coupe-froid, insertion porte, boutique pieces portes fenetres, quincaillerie porte fenetre en ligne, Saint-Francois-Xavier, Montreal, Rive-Sud, Laval, Longueuil, Brossard, Granby, Saint-Hyacinthe, Terrebonne, Repentigny",
+    authors: [{ name: "Vosthermos" }],
+    robots: "index, follow",
+    alternates: {
+      canonical: "https://www.vosthermos.com/",
+      languages: {
+        fr: "https://www.vosthermos.com/",
+        en: "https://www.vosthermos.com/en/",
+      },
     },
-  },
-  applicationName: "Vosthermos",
-  openGraph: {
-    type: "website",
-    siteName: "Vosthermos",
-    url: "https://www.vosthermos.com/",
-    title: "Remplacement Thermos & Fenêtres dès 150$ • Vosthermos",
-    description:
-      "Thermos embué? Vosthermos remplace vos vitres thermos dès 150$. Garantie 10 ans, soumission gratuite 24h. 15 ans d'expérience. Montréal, Rive-Sud, Laval ☎ 514-825-8411",
-    images: [{ url: "https://www.vosthermos.com/images/Vos-Thermos-Logo.png" }],
-    locale: "fr_CA",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Remplacement Thermos dès 150$ • Garantie 10 ans • Vosthermos",
-    description:
-      "Vosthermos - Experts en remplacement de thermos depuis 15 ans. Soumission gratuite 24h ☎ 514-825-8411",
-    images: ["https://www.vosthermos.com/images/Vos-Thermos-Logo.png"],
-  },
-  icons: {
-    icon: "/images/Vos-Thermos-Logo-petit.png",
-    apple: "/images/Vos-Thermos-Logo-petit.png",
-  },
-  verification: {
-    google: "LNVLJOda6YGvqjLQb_ZnVDd5ikvAwqv2HzXWJQDxQxA",
-  },
-  other: {
-    "geo.region": "CA-QC",
-    "geo.placename": "Saint-Francois-Xavier",
-  },
-};
+    applicationName: "Vosthermos",
+    openGraph: {
+      type: "website",
+      siteName: "Vosthermos",
+      url: "https://www.vosthermos.com/",
+      title: "Remplacement Thermos & Fenêtres dès 150$ • Vosthermos",
+      description:
+        `Thermos embué? Vosthermos remplace vos vitres thermos dès 150$. Garantie 10 ans, soumission gratuite 24h. 15 ans d'expérience. Montréal, Rive-Sud, Laval ☎ ${co.phone}`,
+      images: [{ url: co.logo }],
+      locale: "fr_CA",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Remplacement Thermos dès 150$ • Garantie 10 ans • Vosthermos",
+      description: `Vosthermos - Experts en remplacement de thermos depuis 15 ans. Soumission gratuite 24h ☎ ${co.phone}`,
+      images: [co.logo],
+    },
+    icons: {
+      icon: "/images/Vos-Thermos-Logo-petit.png",
+      apple: "/images/Vos-Thermos-Logo-petit.png",
+    },
+    verification: {
+      google: "LNVLJOda6YGvqjLQb_ZnVDd5ikvAwqv2HzXWJQDxQxA",
+    },
+    other: {
+      "geo.region": "CA-QC",
+      "geo.placename": co.city,
+    },
+  };
+}
 
-const jsonLd = {
+function buildLocalBusinessJsonLd(co) {
+  return {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
   "@id": "https://www.vosthermos.com/#business",
-  name: "Vosthermos",
-  legalName: "Vosthermos",
+  name: co.legalName || "Vosthermos",
+  legalName: co.legalName || "Vosthermos",
   description:
     "Experts en reparation de portes et fenetres depuis 15 ans. Remplacement de vitres thermos avec service garanti, quincaillerie, portes en bois et moustiquaires sur mesure. Boutique en ligne de 740+ pieces.",
-  url: "https://www.vosthermos.com",
-  telephone: "+15148258411",
-  email: "info@vosthermos.com",
-  image: "https://www.vosthermos.com/images/Vos-Thermos-Logo.png",
-  logo: "https://www.vosthermos.com/images/Vos-Thermos-Logo.png",
+  url: co.url,
+  telephone: co.phoneTel,
+  email: co.email,
+  image: co.logo,
+  logo: co.logo,
   address: {
     "@type": "PostalAddress",
-    streetAddress: "330 Ch. St-Francois-Xavier, Local 101",
-    addressLocality: "Saint-Francois-Xavier",
-    addressRegion: "QC",
-    postalCode: "J0H 1S0",
+    streetAddress: co.address,
+    addressLocality: co.city,
+    addressRegion: co.province,
+    postalCode: co.postalCode,
     addressCountry: "CA",
   },
   geo: { "@type": "GeoCoordinates", latitude: 45.371, longitude: -73.457 },
@@ -102,10 +106,10 @@ const jsonLd = {
   currenciesAccepted: "CAD",
   paymentAccepted: "Cash, Credit Card, Debit Card",
   sameAs: [
-    "https://www.facebook.com/profile.php?id=61562303553558",
-    "https://instagram.com/vosthermos/",
-    "https://www.wikidata.org/wiki/Q_PLACEHOLDER", // Replace Q_PLACEHOLDER with actual Wikidata Q-number after creating entity
-  ],
+    co.facebook,
+    co.instagram,
+    "https://www.wikidata.org/wiki/Q_PLACEHOLDER",
+  ].filter(Boolean),
   hasOfferCatalog: {
     "@type": "OfferCatalog",
     name: "Services de reparation de portes et fenetres",
@@ -193,7 +197,8 @@ const jsonLd = {
   slogan: "Reparer au lieu de remplacer - Economies jusqu'a 70%",
   foundingDate: "2010",
   numberOfEmployees: { "@type": "QuantitativeValue", minValue: 5, maxValue: 20 },
-};
+  };
+}
 
 const sitelinksJsonLd = {
   "@context": "https://schema.org",
@@ -210,7 +215,9 @@ const sitelinksJsonLd = {
   },
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const co = await getCompany();
+  const jsonLd = buildLocalBusinessJsonLd(co);
   return (
     <html lang="fr" className="h-full antialiased scroll-smooth">
       <head>
@@ -247,9 +254,9 @@ export default function RootLayout({ children }) {
       <body className="min-h-full flex flex-col">
         <CartProvider>
           <PromoBanner />
-          <Header />
+          <Header company={co} />
           <main className="flex-1">{children}</main>
-          <ConditionalFooter />
+          <ConditionalFooter company={co} />
           <AnalyticsTracker />
           <ChatBubble />
         </CartProvider>
