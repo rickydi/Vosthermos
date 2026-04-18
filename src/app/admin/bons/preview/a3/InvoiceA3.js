@@ -74,9 +74,10 @@ export default function InvoiceA3({ wo, backHref = "/admin/bons/preview", label 
             margin: 0 !important;
             padding: 0 !important;
           }
-          /* Invoice page: rigid 8.5x11 with page break after each */
+          /* Invoice page: rigid 8.5x11 with flex layout for auto-fit */
           .invoice-page {
-            display: block !important;
+            display: flex !important;
+            flex-direction: column !important;
             width: 8.5in !important;
             height: 11in !important;
             max-width: 8.5in !important;
