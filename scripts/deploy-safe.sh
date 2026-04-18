@@ -64,6 +64,7 @@ INDEXNOW_URLS='[
   "/services/reparation-porte-fenetre",
   "/services/reparation-portes-bois",
   "/services/restauration-fenetres-bois-patrimoine",
+  "/portail-gestionnaire",
   "/services/moustiquaires-sur-mesure",
   "/services/calfeutrage",
   "/services/desembuage",
