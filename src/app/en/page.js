@@ -453,7 +453,7 @@ export default async function HomeEn() {
                   </div>
                   <div>
                     <strong className="block mb-1">Address</strong>
-                    <p className="text-[var(--color-muted)] text-sm">330 Ch. St-Francois-Xavier, Suite 101<br />Saint-Francois-Xavier, QC</p>
+                    <p className="text-[var(--color-muted)] text-sm">{COMPANY_INFO.address}<br />{COMPANY_INFO.city}, {COMPANY_INFO.province} {COMPANY_INFO.postalCode}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">

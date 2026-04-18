@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 const cities = [
   { name: "Montreal", slug: "montreal" },
@@ -14,10 +15,10 @@ const cities = [
 ];
 
 const FALLBACK_COMPANY = {
-  address: "330 Ch. St-Francois-Xavier, Local 101",
-  phone: "514-825-8411",
-  phoneTel: "+15148258411",
-  email: "info@vosthermos.com",
+  address: COMPANY_INFO.address,
+  phone: COMPANY_INFO.phone,
+  phoneTel: COMPANY_INFO.phoneTel,
+  email: COMPANY_INFO.email,
 };
 
 export default function Footer({ company }) {

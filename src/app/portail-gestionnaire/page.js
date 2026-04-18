@@ -86,10 +86,10 @@ export default function PortailGestionnairePage() {
     provider: {
       "@type": "Organization",
       name: "Vosthermos",
-      address: "330 Ch. St-François-Xavier, Local 101, J0H 1S0",
-      telephone: "+15148258411",
+      address: `${COMPANY_INFO.address}, ${COMPANY_INFO.postalCode}`,
+      telephone: COMPANY_INFO.phoneTel,
       email: COMPANY_INFO.email,
-      url: "https://www.vosthermos.com",
+      url: COMPANY_INFO.url,
     },
   };
 
