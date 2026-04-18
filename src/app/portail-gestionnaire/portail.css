@@ -57,6 +57,7 @@
 .pg-eyebrow-dark .pg-eyebrow-dot { background: var(--pg-red-500); box-shadow: 0 0 0 3px rgba(227,7,24,.12); }
 .pg-h1 { font-size: clamp(36px, 5.5vw, 64px); line-height: 1.05; font-weight: 700; margin: 22px auto 0; max-width: 28ch; color: #fff; text-wrap: balance; }
 .pg-h1-accent { background: linear-gradient(135deg, #b7d6dd 0%, #6fb7c7 60%, #ffffff 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+.pg-h1-break { display: block; }
 .pg-hero-sub { margin: 26px auto 0; max-width: 60ch; font-size: clamp(16px, 1.4vw, 19px); color: rgba(233,238,240,.78); text-wrap: pretty; }
 .pg-hero-sub strong { color: #fff; font-weight: 600; }
 .pg-hero-ctas { display: flex; gap: 12px; justify-content: center; margin-top: 34px; flex-wrap: wrap; }

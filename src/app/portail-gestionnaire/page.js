@@ -146,7 +146,7 @@ export default function PortailGestionnairePage() {
             </span>
             <h1 className="pg-h1">
               Le portail des gestionnaires de copropriétés{" "}
-              <span className="pg-h1-accent">pour vos travaux de fenêtres.</span>
+              <span className="pg-h1-accent pg-h1-break">pour vos travaux de fenêtres.</span>
             </h1>
             <p className="pg-hero-sub">
               Bons de travail numériques, suivi en temps réel, plans pluriannuels. Tout votre parc
