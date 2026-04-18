@@ -169,38 +169,58 @@ export const SERVICES = [
   },
   {
     slug: "reparation-portes-bois",
-    title: "Reparation et restauration de portes en bois",
-    shortTitle: "Reparation et restauration portes en bois",
+    title: "Restauration et reparation de portes et fenetres en bois",
+    shortTitle: "Restauration portes et fenetres en bois",
     icon: "fas fa-door-open",
     heroDescription:
-      "Service complet de reparation et restauration de portes et fenetres en bois. Sablage, remplissage, vernissage, peinture, coupe-froid, remplacement de pieces et finition professionnelle. Redonnez vie a vos portes en bois sans les remplacer avec notre equipe d'experts specialises en restauration.",
-    metaTitle: "Réparation et Restauration Portes en Bois • Économisez 50% | Vosthermos",
+      "Service complet de restauration et reparation de portes et fenetres en bois. Greffe de bois, sablage, remplissage epoxy, vernissage, peinture, coupe-froid, remplacement de quincaillerie et finition professionnelle. Redonnez vie a vos portes et fenetres en bois sans les remplacer avec notre equipe d'experts specialises en restauration du bois.",
+    metaTitle: "Restauration Portes & Fenetres en Bois • Economisez 50% | Vosthermos",
     metaDescription:
-      `Restauration et réparation de portes en bois: sablage, vernissage, peinture, remplissage. Économisez 50%+ vs neuve. 15 ans d'expérience, service à domicile ☎ ${COMPANY_INFO.phone}`,
+      `Restauration et reparation de portes et fenetres en bois au Quebec: greffe de bois, sablage, vernissage, epoxy, re-vitrage. Economisez 50%+ vs remplacement neuf. 15 ans d'experience ☎ ${COMPANY_INFO.phone}`,
     sections: [
       {
-        heading: "Restauration professionnelle de portes en bois",
+        heading: "Restauration professionnelle de portes et fenetres en bois",
         paragraphs: [
           "Les portes et fenetres en bois sont appreciees pour leur esthetique chaleureuse et leur caractere intemporel. Cependant, le bois est un materiau vivant qui necessite un entretien regulier pour conserver sa beaute et ses proprietes isolantes.",
-          "Notre equipe possede l'expertise necessaire pour restaurer vos portes en bois, peu importe leur etat. Du simple remplacement de coupe-froid a la restauration complete avec sablage et finition, nous offrons un service adapte a vos besoins et a votre budget.",
+          "Notre equipe possede l'expertise necessaire pour restaurer vos portes et fenetres en bois, peu importe leur etat. Du simple remplacement de coupe-froid a la restauration complete avec greffe de bois, sablage et finition, nous offrons un service adapte a vos besoins et a votre budget.",
+          "La restauration prolonge la duree de vie du bois d'origine de 20 a 40 ans supplementaires. C'est la solution la plus economique et ecologique pour preserver vos ouvertures en bois sans les remplacer par du neuf.",
         ],
       },
       {
-        heading: "Les problemes courants des portes en bois",
+        heading: "Restauration de fenetres en bois",
         paragraphs: [
-          "L'exposition aux elements cause plusieurs problemes recurrents: gonflement du bois par l'humidite, fissures causees par les cycles de gel et degel, peinture ecaillee, joints deteriores et quincaillerie rouille. Ces problemes affectent l'etancheite, l'isolation et la securite de vos ouvertures.",
-          "Un entretien preventif regulier et des reparations rapides permettent de prolonger considerablement la duree de vie de vos portes en bois. Ignorer ces problemes peut mener a des dommages structuraux plus importants et couteux a reparer.",
+          "Les fenetres en bois anciennes ou patrimoniales meritent une attention particuliere. Notre equipe maitrise les techniques de greffe de bois pour remplacer les sections pourries ou endommagees tout en conservant le cadre d'origine. Apres greffe, nous procedons au sablage, au remplissage et a la finition complete.",
+          "Nous pouvons egalement installer un thermos moderne a double ou triple vitrage dans un cadre de fenetre en bois restaure. Vous conservez le charme de l'ancien avec la performance energetique du neuf. Ce service de re-vitrage est particulierement populaire pour les maisons historiques du Vieux-Montreal, du Vieux-Quebec et du Vieux-Terrebonne.",
+          "Pour les projets de restauration patrimoniale avec techniques traditionnelles (mastic a l'huile de lin, re-vitrage a l'ancienne, finition a la gomme-laque), consultez notre page dediee aux fenetres de bois patrimoniales.",
+        ],
+      },
+      {
+        heading: "Difference entre reparation et restauration",
+        paragraphs: [
+          "La reparation corrige un probleme ponctuel: un coupe-froid use, une piece de quincaillerie cassee, une fissure a remplir. Duree: quelques heures. Cout: entre 75$ et 300$ selon le probleme.",
+          "La restauration est un processus complet qui redonne a la porte ou fenetre son aspect et ses performances d'origine. Elle combine plusieurs interventions: decapage, greffe de bois, remplissage epoxy, sablage, vernissage ou peinture, remplacement du coupe-froid et verification de la quincaillerie. Duree: 1 a 3 jours selon l'ampleur. Cout: sur devis apres evaluation.",
+          "Notre technicien vous recommande l'approche la plus appropriee apres evaluation gratuite sur place. Dans la majorite des cas, la restauration complete est plus economique que le remplacement par du neuf, et preserve le caractere unique de votre maison.",
+        ],
+      },
+      {
+        heading: "Les problemes courants des portes et fenetres en bois",
+        paragraphs: [
+          "L'exposition aux elements cause plusieurs problemes recurrents: gonflement du bois par l'humidite, fissures causees par les cycles de gel et degel, peinture ecaillee, joints deteriores, bois pourri aux sections basses et quincaillerie rouillee. Ces problemes affectent l'etancheite, l'isolation et la securite de vos ouvertures.",
+          "Un entretien preventif regulier et des reparations rapides permettent de prolonger considerablement la duree de vie de vos portes et fenetres en bois. Ignorer ces problemes peut mener a des dommages structuraux plus importants et couteux a reparer.",
         ],
       },
     ],
     whatWeRepair: [
       "Portes d'entree en bois",
       "Portes de garage en bois",
+      "Fenetres en bois a battant, a guillotine, a auvent",
+      "Fenetres en bois patrimoniales et historiques",
       "Cadres de fenetre en bois",
       "Moulures et cadrages",
       "Seuils de porte uses",
+      "Bois pourri (greffe de bois neuf)",
       "Coupe-froid et etancheite",
-      "Pentures et quincaillerie",
+      "Pentures et quincaillerie d'epoque",
     ],
     process: [
       {
@@ -221,31 +241,51 @@ export const SERVICES = [
     ],
     faq: [
       {
-        question: "Ma porte en bois est gonflee et ne ferme plus. Que faire?",
+        question: "Quelle est la difference entre reparation et restauration d'une porte ou fenetre en bois?",
         answer:
-          "Le gonflement du bois est cause par l'absorption d'humidite. Notre equipe peut sabler et ajuster la porte pour qu'elle ferme correctement, puis appliquer un scellant protecteur pour prevenir le probleme a l'avenir. Dans certains cas, un rabotage suffit a regler le probleme.",
+          "La reparation corrige un probleme ponctuel (coupe-froid use, piece cassee, fissure) en quelques heures. La restauration est un processus complet qui redonne a l'ouverture son aspect et ses performances d'origine: greffe de bois, remplissage epoxy, sablage, vernissage ou peinture, remplacement du coupe-froid et quincaillerie. La restauration prolonge la duree de vie du bois de 20 a 40 ans et coute generalement 50% de moins qu'un remplacement complet.",
       },
       {
-        question: "Combien coute la reparation d'une porte en bois?",
+        question: "Ma porte ou fenetre en bois est gonflee et ne ferme plus. Que faire?",
         answer:
-          "Le cout varie selon l'ampleur des travaux requis. Un simple remplacement de coupe-froid coute quelques dizaines de dollars, tandis qu'une restauration complete avec sablage et peinture peut aller de 200$ a 600$. Nous offrons une consultation gratuite pour vous donner un prix exact.",
+          "Le gonflement du bois est cause par l'absorption d'humidite. Notre equipe peut sabler et ajuster l'ouverture pour qu'elle ferme correctement, puis appliquer un scellant protecteur pour prevenir le probleme a l'avenir. Dans certains cas, un rabotage suffit a regler le probleme. Si le bois est pourri aux sections basses, nous effectuons une greffe de bois neuf pour remplacer les parties endommagees.",
       },
       {
-        question: "Vaut-il mieux reparer ou remplacer ma porte en bois?",
+        question: "Pouvez-vous restaurer mes fenetres en bois anciennes ou patrimoniales?",
         answer:
-          "Dans la majorite des cas, la reparation est plus economique et ecologique que le remplacement. Une porte en bois de qualite peut durer des decennies avec un bon entretien. Nous vous conseillerons honnetement sur la meilleure option selon l'etat de votre porte.",
+          "Oui, nous sommes specialises dans la restauration de fenetres en bois de tous ages, y compris les fenetres patrimoniales des quartiers historiques (Vieux-Montreal, Vieux-Quebec, Vieux-Terrebonne, Vieux-Saint-Bruno). Nous maitrisons les techniques traditionnelles (mastic a l'huile de lin, re-vitrage a l'ancienne) et modernes (greffe de bois, epoxy, thermos dans cadre ancien). Consultez notre page dediee aux fenetres de bois patrimoniales pour plus de details.",
       },
       {
-        question: "Offrez-vous un service de peinture pour les portes en bois?",
+        question: "Puis-je installer un thermos moderne dans un cadre de fenetre en bois ancien?",
         answer:
-          "Oui, notre service de restauration inclut le sablage, l'application d'appret et la peinture ou teinture de finition. Nous utilisons des produits de qualite professionnelle adaptes aux conditions climatiques du Quebec.",
+          "Absolument. Nous offrons un service de re-vitrage qui consiste a installer une vitre thermos moderne (double ou triple vitrage, gaz argon, verre low-e) dans votre cadre de fenetre en bois restaure. Vous conservez le charme de l'ancien avec la performance energetique du neuf. C'est ideal pour les maisons historiques qui veulent ameliorer leur efficacite energetique sans perdre leur caractere.",
+      },
+      {
+        question: "Combien coute la restauration d'une porte ou fenetre en bois?",
+        answer:
+          "Le cout varie selon l'ampleur des travaux. Une reparation simple (coupe-froid, quincaillerie) coute quelques dizaines de dollars. Une restauration partielle (sablage, peinture, petites reparations) se situe entre 200$ et 600$. Une restauration complete avec greffe de bois, re-vitrage et finition est sur devis apres evaluation sur place. La consultation et le devis sont toujours gratuits.",
+      },
+      {
+        question: "Vaut-il mieux reparer, restaurer ou remplacer ma porte ou fenetre en bois?",
+        answer:
+          "Dans la majorite des cas, la reparation ou la restauration est plus economique et ecologique que le remplacement. Une porte ou fenetre en bois de qualite peut durer des decennies avec un bon entretien. Nous vous conseillerons honnetement sur la meilleure option selon l'etat de votre ouverture, sa valeur patrimoniale eventuelle et votre budget.",
+      },
+      {
+        question: "Offrez-vous un service de peinture ou de teinture pour les portes et fenetres en bois?",
+        answer:
+          "Oui, notre service de restauration inclut le sablage complet, l'application d'appret et la peinture ou teinture de finition. Nous utilisons des produits de qualite professionnelle adaptes aux conditions climatiques du Quebec (resistants aux UV, au gel et a l'humidite).",
+      },
+      {
+        question: "Desservez-vous tout le Quebec pour la restauration de portes et fenetres en bois?",
+        answer:
+          "Oui, nous desservons tout le Quebec pour les projets de restauration importants, avec concentration sur le Grand Montreal, la Monteregie, les Laurentides, Lanaudiere et la region de Quebec. Pour les projets a l'exterieur de nos zones principales, contactez-nous pour confirmer notre disponibilite et evaluer les frais de deplacement.",
       },
     ],
     relatedServices: [
       "remplacement-quincaillerie",
       "remplacement-vitre-thermos",
     ],
-    startingPrice: "Consultation gratuite",
+    startingPrice: "Consultation gratuite - devis sur mesure",
   },
   {
     slug: "moustiquaires-sur-mesure",

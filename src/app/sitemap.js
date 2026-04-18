@@ -24,6 +24,7 @@ export default async function sitemap() {
   // Static pages
   const staticPages = [
     { url: BASE, lastModified: new Date(), changeFrequency: "weekly", priority: 1.0 },
+    { url: `${BASE}/services/restauration-fenetres-bois-patrimoine`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.9 },
     { url: `${BASE}/boutique`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE}/blogue`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
     { url: `${BASE}/faq`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
