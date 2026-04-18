@@ -64,6 +64,13 @@ export default async function CategoryPageEn({ params, searchParams }) {
   const breadcrumbParent = category.parent;
   const activePromos = await getActivePromotions();
 
+  // Check if images should be shown (admin setting)
+  let showImages = true;
+  try {
+    const imgSetting = await prisma.$queryRawUnsafe(`SELECT value FROM site_settings WHERE key = 'show_boutique_images'`);
+    if (imgSetting[0]?.value === "false") showImages = false;
+  } catch {}
+
   let products = [];
   let totalPages = 0;
   if (!hasSubcats) {
@@ -140,7 +147,7 @@ export default async function CategoryPageEn({ params, searchParams }) {
               {products.map((product) => {
                 const promo = getPromoForProduct({ ...product, categoryId: category.id, category }, activePromos);
                 const serializedPromo = promo ? { type: promo.type, value: Number(promo.value) } : null;
-                return <ProductCard key={product.id} product={product} promo={serializedPromo} locale="en" />;
+                return <ProductCard key={product.id} product={product} promo={serializedPromo} showImage={showImages} locale="en" />;
               })}
             </div>
 

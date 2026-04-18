@@ -55,6 +55,14 @@ export default async function ProductPageEn({ params }) {
   if (!rawProduct) notFound();
 
   const product = serializeProduct(rawProduct);
+
+  // Check if images should be shown (admin setting)
+  let showImages = true;
+  try {
+    const imgSetting = await prisma.$queryRawUnsafe(`SELECT value FROM site_settings WHERE key = 'show_boutique_images'`);
+    if (imgSetting[0]?.value === "false") showImages = false;
+  } catch {}
+
   const activePromos = await getActivePromotions();
   const promo = getPromoForProduct(rawProduct, activePromos);
   const discountedPrice = promo ? getDiscountedPrice(product.price, promo) : null;
@@ -98,7 +106,13 @@ export default async function ProductPageEn({ params }) {
 
       <div className="max-w-[1200px] mx-auto px-6 py-10">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          <ProductGallery images={product.images} name={product.name} />
+          {showImages ? (
+            <ProductGallery images={product.images} name={product.name} />
+          ) : (
+            <div className="aspect-square bg-gray-50 rounded-xl flex items-center justify-center">
+              <i className="fas fa-image text-gray-200 text-5xl"></i>
+            </div>
+          )}
 
           <div>
             <p className="text-sm font-mono text-[var(--color-muted)] mb-2">{product.sku}</p>
