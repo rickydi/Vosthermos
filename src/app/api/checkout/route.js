@@ -52,7 +52,7 @@ export async function POST(request) {
         enabled: true,
         invoice_data: {
           description: "Commande Vosthermos — Pieces de portes et fenetres",
-          footer: "Vosthermos — 330 Ch. St-Francois-Xavier, Local 101 — RBQ: 5790-9498-01 — 514-825-8411",
+          footer: `Vosthermos — ${COMPANY_INFO.address} — RBQ: 5790-9498-01 — ${COMPANY_INFO.phone}`,
         },
       },
     });

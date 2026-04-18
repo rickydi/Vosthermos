@@ -1,5 +1,6 @@
 import Link from "next/link";
 import DiagnosticTool from "@/components/DiagnosticTool";
+import { COMPANY_INFO } from "@/lib/company";
 
 export const metadata = {
   title:
@@ -230,10 +231,10 @@ export default function DiagnosticPage() {
               <i className="fas fa-play-circle"></i> Commencer le diagnostic
             </a>
             <a
-              href="tel:15148258411"
+              href={`tel:${COMPANY_INFO.phoneTel}`}
               className="inline-flex items-center justify-center gap-2 bg-transparent text-white border-2 border-white/30 px-8 py-4 rounded-full font-bold hover:border-white hover:bg-white/10 transition-all"
             >
-              <i className="fas fa-phone"></i> 514-825-8411
+              <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
             </a>
           </div>
         </div>
@@ -343,10 +344,10 @@ export default function DiagnosticPage() {
               Demander une soumission
             </Link>
             <a
-              href="tel:15148258411"
+              href={`tel:${COMPANY_INFO.phoneTel}`}
               className="inline-flex items-center justify-center gap-2 bg-transparent text-white border-2 border-white/40 px-8 py-4 rounded-full font-bold hover:border-white hover:bg-white/10 transition-all"
             >
-              <i className="fas fa-phone"></i> 514-825-8411
+              <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
             </a>
           </div>
         </div>

@@ -13,6 +13,7 @@ import BeforeAfterSlider from "@/components/BeforeAfterSlider";
 import Accordion from "@/components/Accordion";
 import { getCategoryIcon } from "@/lib/category-icons";
 import { getActivePromotions } from "@/lib/promotions";
+import { COMPANY_INFO } from "@/lib/company";
 
 export default async function Home() {
   const categories = await prisma.category.findMany({
@@ -46,7 +47,7 @@ export default async function Home() {
     name: "Comment faire reparer vos portes et fenetres avec Vosthermos",
     description: "Un processus simple en 3 etapes pour faire reparer vos portes et fenetres par des experts.",
     step: [
-      { "@type": "HowToStep", name: "Contactez-nous", text: "Appelez-nous au 514-825-8411 ou remplissez notre formulaire en ligne. Decrivez votre besoin et nous vous repondrons rapidement.", url: "https://www.vosthermos.com/#contact" },
+      { "@type": "HowToStep", name: "Contactez-nous", text: `Appelez-nous au ${COMPANY_INFO.phone} ou remplissez notre formulaire en ligne. Decrivez votre besoin et nous vous repondrons rapidement.`, url: "https://www.vosthermos.com/#contact" },
       { "@type": "HowToStep", name: "Estimation gratuite", text: "Nous evaluons vos besoins et vous fournissons une soumission claire et detaillee, sans surprise ni frais caches." },
       { "@type": "HowToStep", name: "Intervention rapide", text: "Notre equipe intervient a votre domicile ou entreprise avec tout le materiel necessaire pour un travail de qualite." },
     ],
@@ -71,7 +72,7 @@ export default async function Home() {
       {
         "@type": "Question",
         name: "Offrez-vous des soumissions gratuites?",
-        acceptedAnswer: { "@type": "Answer", text: "Oui, toutes nos soumissions sont gratuites et sans engagement. Appelez-nous au 514-825-8411 ou remplissez notre formulaire en ligne." },
+        acceptedAnswer: { "@type": "Answer", text: `Oui, toutes nos soumissions sont gratuites et sans engagement. Appelez-nous au ${COMPANY_INFO.phone} ou remplissez notre formulaire en ligne.` },
       },
       {
         "@type": "Question",
@@ -197,10 +198,10 @@ export default async function Home() {
               <i className="fas fa-shopping-bag"></i> Parcourir la boutique
             </Link>
             <a
-              href="tel:15148258411"
+              href={`tel:${COMPANY_INFO.phoneTel}`}
               className="inline-flex items-center justify-center gap-2 text-[var(--color-muted)] hover:text-[var(--color-teal)] border border-[var(--color-border)] hover:border-[var(--color-teal)]/30 px-8 py-3.5 rounded-full font-bold text-sm transition-all"
             >
-              <i className="fas fa-phone text-xs"></i> 514-825-8411
+              <i className="fas fa-phone text-xs"></i> {COMPANY_INFO.phone}
             </a>
           </div>
         </div>
@@ -395,8 +396,8 @@ export default async function Home() {
             <a href="#contact" className="inline-flex items-center justify-center gap-2 bg-white text-[var(--color-teal-dark)] px-8 py-4 rounded-full font-bold hover:bg-gray-100 transition-all">
               Demander une soumission
             </a>
-            <a href="tel:15148258411" className="inline-flex items-center justify-center gap-2 bg-transparent text-white border-2 border-white/40 px-8 py-4 rounded-full font-bold hover:border-white hover:bg-white/10 transition-all">
-              <i className="fas fa-phone"></i> 514-825-8411
+            <a href={`tel:${COMPANY_INFO.phoneTel}`} className="inline-flex items-center justify-center gap-2 bg-transparent text-white border-2 border-white/40 px-8 py-4 rounded-full font-bold hover:border-white hover:bg-white/10 transition-all">
+              <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
             </a>
           </div>
         </div>
@@ -420,7 +421,7 @@ export default async function Home() {
                   </div>
                   <div>
                     <strong className="block mb-1">Adresse</strong>
-                    <p className="text-[var(--color-muted)] text-sm">330 Ch. St-Francois-Xavier, Local 101<br />Saint-Francois-Xavier, QC</p>
+                    <p className="text-[var(--color-muted)] text-sm">{COMPANY_INFO.address}<br />Saint-Francois-Xavier, QC</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -429,7 +430,7 @@ export default async function Home() {
                   </div>
                   <div>
                     <strong className="block mb-1">Telephone</strong>
-                    <a href="tel:15148258411" className="text-[var(--color-teal)] font-medium hover:text-[var(--color-red)] transition-colors">1 514-825-8411</a>
+                    <a href={`tel:${COMPANY_INFO.phoneTel}`} className="text-[var(--color-teal)] font-medium hover:text-[var(--color-red)] transition-colors">1 {COMPANY_INFO.phone}</a>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -438,7 +439,7 @@ export default async function Home() {
                   </div>
                   <div>
                     <strong className="block mb-1">Email</strong>
-                    <a href="mailto:info@vosthermos.com" className="text-[var(--color-teal)] font-medium hover:text-[var(--color-red)] transition-colors">info@vosthermos.com</a>
+                    <a href={`mailto:${COMPANY_INFO.email}`} className="text-[var(--color-teal)] font-medium hover:text-[var(--color-red)] transition-colors">{COMPANY_INFO.email}</a>
                   </div>
                 </div>
                 <div className="flex gap-3 pt-2">

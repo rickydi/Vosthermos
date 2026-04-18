@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { autoLinkContent } from "@/lib/auto-linker";
+import { COMPANY_INFO } from "@/lib/company";
 
 export async function generateMetadata({ params }) {
   const { slug } = await params;
@@ -288,11 +289,11 @@ export default async function BlogPostPage({ params }) {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="tel:15148258411"
+              href={`tel:${COMPANY_INFO.phoneTel}`}
               className="inline-flex items-center justify-center gap-2 bg-[var(--color-red)] text-white font-bold px-8 py-4 rounded-xl hover:bg-[var(--color-red-light)] transition-colors text-lg"
             >
               <i className="fas fa-phone"></i>
-              514-825-8411
+              {COMPANY_INFO.phone}
             </a>
             <Link
               href="/#contact"

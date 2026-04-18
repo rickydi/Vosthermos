@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { COMPANY_INFO } from "@/lib/company";
 
 export const metadata = {
   title: "Window Glass Replacement Pricing 2026 | Price Guide | Vosthermos",
@@ -155,7 +156,7 @@ export default function PricingPageEn() {
       "@type": "LocalBusiness",
       name: "Vosthermos",
       telephone: "+15148258411",
-      email: "info@vosthermos.com",
+      email: COMPANY_INFO.email,
       url: "https://www.vosthermos.com",
       address: {
         "@type": "PostalAddress",
@@ -296,10 +297,10 @@ export default function PricingPageEn() {
           {/* CTA buttons */}
           <div className="flex flex-col sm:flex-row gap-4">
             <a
-              href="tel:15148258411"
+              href={`tel:${COMPANY_INFO.phoneTel}`}
               className="inline-flex items-center justify-center gap-2 bg-[var(--color-red)] text-white px-8 py-4 rounded-full font-bold hover:bg-[var(--color-red-dark)] transition-all shadow-lg"
             >
-              <i className="fas fa-phone"></i> 514-825-8411
+              <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
             </a>
             <Link
               href="/en/#contact"
@@ -546,10 +547,10 @@ export default function PricingPageEn() {
               Request a quote
             </Link>
             <a
-              href="tel:15148258411"
+              href={`tel:${COMPANY_INFO.phoneTel}`}
               className="inline-flex items-center justify-center gap-2 bg-transparent text-white border-2 border-white/40 px-8 py-4 rounded-full font-bold hover:border-white hover:bg-white/10 transition-all"
             >
-              <i className="fas fa-phone"></i> 514-825-8411
+              <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
             </a>
           </div>
         </div>

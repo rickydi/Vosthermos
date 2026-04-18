@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { COMPANY_INFO } from "@/lib/company";
 
 export const metadata = {
   title: "service garanti | Vosthermos",
@@ -103,7 +104,7 @@ const claimSteps = [
     num: "1",
     title: "Contactez-nous",
     description:
-      "Appelez-nous au 514-825-8411 ou remplissez notre formulaire de contact en ligne. Decrivez le probleme rencontre et ayez votre numero de facture a portee de main.",
+      `Appelez-nous au ${COMPANY_INFO.phone} ou remplissez notre formulaire de contact en ligne. Decrivez le probleme rencontre et ayez votre numero de facture a portee de main.`,
     icon: "fa-phone-alt",
   },
   {
@@ -131,7 +132,7 @@ const faqItems = [
   {
     question: "Comment faire une reclamation?",
     answer:
-      "Contactez-nous par telephone au 514-825-8411 ou via notre formulaire en ligne. Fournissez votre numero de facture et une description du probleme. Notre equipe vous repondra dans les 24 a 48 heures ouvrables pour planifier une evaluation.",
+      `Contactez-nous par telephone au ${COMPANY_INFO.phone} ou via notre formulaire en ligne. Fournissez votre numero de facture et une description du probleme. Notre equipe vous repondra dans les 24 a 48 heures ouvrables pour planifier une evaluation.`,
   },
   {
     question: "La garantie est-elle transferable?",
@@ -410,10 +411,10 @@ export default function GarantiePage() {
               Demander une soumission
             </Link>
             <a
-              href="tel:15148258411"
+              href={`tel:${COMPANY_INFO.phoneTel}`}
               className="inline-flex items-center justify-center gap-2 bg-transparent text-white border-2 border-white/40 px-8 py-4 rounded-full font-bold hover:border-white hover:bg-white/10 transition-all"
             >
-              <i className="fas fa-phone"></i> 514-825-8411
+              <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
             </a>
           </div>
         </div>

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { PROBLEMS, getProblem, PROBLEM_CATEGORIES } from "@/lib/problems-data";
 import { getService } from "@/lib/services-data";
+import { COMPANY_INFO } from "@/lib/company";
 
 export function generateStaticParams() {
   return PROBLEMS.map((p) => ({ slug: p.slug }));
@@ -41,7 +42,7 @@ export default async function ProblemPage({ params }) {
     mainEntity: [
       { "@type": "Question", name: `What causes a ${problem.shortTitle.toLowerCase()} problem?`, acceptedAnswer: { "@type": "Answer", text: problem.causes.join(". ") } },
       { "@type": "Question", name: `How to fix a ${problem.shortTitle.toLowerCase()} problem?`, acceptedAnswer: { "@type": "Answer", text: problem.solutions.join(". ") } },
-      { "@type": "Question", name: `How much does the repair cost?`, acceptedAnswer: { "@type": "Answer", text: `The typical cost is ${problem.cost}. Contact Vosthermos at 514-825-8411 for a free quote.` } },
+      { "@type": "Question", name: `How much does the repair cost?`, acceptedAnswer: { "@type": "Answer", text: `The typical cost is ${problem.cost}. Contact Vosthermos at ${COMPANY_INFO.phone} for a free quote.` } },
     ],
   };
 
@@ -53,7 +54,7 @@ export default async function ProblemPage({ params }) {
     step: [
       { "@type": "HowToStep", name: "Identify the problem", text: problem.description },
       { "@type": "HowToStep", name: "Understand the causes", text: problem.causes.join(". ") },
-      { "@type": "HowToStep", name: "Contact a professional", text: `Call Vosthermos at 514-825-8411 for a free quote. Service: ${service ? service.shortTitle : "repair"}.` },
+      { "@type": "HowToStep", name: "Contact a professional", text: `Call Vosthermos at ${COMPANY_INFO.phone} for a free quote. Service: ${service ? service.shortTitle : "repair"}.` },
     ],
   };
 
@@ -167,8 +168,8 @@ export default async function ProblemPage({ params }) {
                 <p className="text-gray-500 text-sm mb-4">
                   An expert will evaluate your situation and recommend the best solution.
                 </p>
-                <a href="tel:15148258411" className="flex items-center justify-center gap-2 bg-[var(--color-red)] text-white font-bold px-6 py-3 rounded-xl hover:bg-[var(--color-red-light)] transition-colors w-full mb-3">
-                  <i className="fas fa-phone"></i> 514-825-8411
+                <a href={`tel:${COMPANY_INFO.phoneTel}`} className="flex items-center justify-center gap-2 bg-[var(--color-red)] text-white font-bold px-6 py-3 rounded-xl hover:bg-[var(--color-red-light)] transition-colors w-full mb-3">
+                  <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
                 </a>
                 <Link href="/en/rendez-vous" className="flex items-center justify-center gap-2 bg-[var(--color-teal)] text-white font-bold px-6 py-3 rounded-xl hover:bg-[var(--color-teal-dark)] transition-colors w-full">
                   <i className="fas fa-calendar-alt"></i> Book an appointment

@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import Link from "next/link";
+import { COMPANY_INFO } from "@/lib/company";
 
 const questions = [
   {
@@ -367,7 +368,7 @@ export default function DiagnosticTool() {
               {result.cta === "appel" && (
                 <>
                   <a
-                    href="tel:15148258411"
+                    href={`tel:${COMPANY_INFO.phoneTel}`}
                     className="inline-flex items-center justify-center gap-2 bg-[var(--color-red)] text-white px-8 py-4 rounded-full font-bold hover:bg-[var(--color-red-dark)] transition-all shadow-lg flex-1"
                   >
                     <i className="fas fa-phone"></i> Appelez maintenant
@@ -389,10 +390,10 @@ export default function DiagnosticTool() {
                     Obtenir une soumission gratuite
                   </Link>
                   <a
-                    href="tel:15148258411"
+                    href={`tel:${COMPANY_INFO.phoneTel}`}
                     className="inline-flex items-center justify-center gap-2 bg-[var(--color-teal)] text-white px-8 py-4 rounded-full font-bold hover:bg-[var(--color-teal-dark)] transition-all flex-1"
                   >
-                    <i className="fas fa-phone"></i> 514-825-8411
+                    <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
                   </a>
                 </>
               )}
@@ -406,10 +407,10 @@ export default function DiagnosticTool() {
                     inspection gratuite
                   </Link>
                   <a
-                    href="tel:15148258411"
+                    href={`tel:${COMPANY_INFO.phoneTel}`}
                     className="inline-flex items-center justify-center gap-2 bg-[var(--color-teal)] text-white px-8 py-4 rounded-full font-bold hover:bg-[var(--color-teal-dark)] transition-all flex-1"
                   >
-                    <i className="fas fa-phone"></i> 514-825-8411
+                    <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
                   </a>
                 </>
               )}

@@ -4,7 +4,7 @@ import FaqAccordion from "@/components/FaqAccordion";
 export const metadata = {
   title: "Foire aux questions - Vosthermos | Reparation portes et fenetres",
   description:
-    "Trouvez les reponses a vos questions sur nos services de reparation de portes et fenetres, nos tarifs, garanties, delais et notre boutique en ligne. Soumission gratuite 514-825-8411.",
+    `Trouvez les reponses a vos questions sur nos services de reparation de portes et fenetres, nos tarifs, garanties, delais et notre boutique en ligne. Soumission gratuite ${COMPANY_INFO.phone}.`,
   alternates: { canonical: "https://www.vosthermos.com/faq" },
   openGraph: {
     title: "FAQ - Vosthermos | Reparation portes et fenetres",
@@ -40,7 +40,7 @@ const faqCategories = [
       {
         question: "Offrez-vous un service pour les portes commerciales?",
         answer:
-          "Oui, nous offrons des services de reparation et de remplacement de pieces pour les portes et fenetres commerciales. Cela inclut les portes d'entree commerciales, les systemes de fermeture (ferme-portes), la quincaillerie specialisee et le remplacement de vitres thermos de grande dimension. Nous comprenons l'importance de minimiser les interruptions pour votre entreprise et nous planifions nos interventions en consequence. Contactez-nous au 514-825-8411 pour discuter de vos besoins specifiques.",
+          `Oui, nous offrons des services de reparation et de remplacement de pieces pour les portes et fenetres commerciales. Cela inclut les portes d'entree commerciales, les systemes de fermeture (ferme-portes), la quincaillerie specialisee et le remplacement de vitres thermos de grande dimension. Nous comprenons l'importance de minimiser les interruptions pour votre entreprise et nous planifions nos interventions en consequence. Contactez-nous au ${COMPANY_INFO.phone} pour discuter de vos besoins specifiques.`,
       },
       {
         question:
@@ -64,12 +64,12 @@ const faqCategories = [
       {
         question: "Combien coute un remplacement de vitre thermos?",
         answer:
-          "Le prix d'un remplacement de vitre thermos commence a partir de 150$ et varie selon plusieurs facteurs : les dimensions de la vitre, le type de verre (double, triple, Low-E, argon), l'accessibilite de la fenetre et la complexite de l'installation. Nous offrons toujours une soumission detaillee et gratuite avant de proceder aux travaux, pour que vous sachiez exactement a quoi vous attendre. Appelez-nous au 514-825-8411 pour obtenir votre estimation personnalisee.",
+          `Le prix d'un remplacement de vitre thermos commence a partir de 150$ et varie selon plusieurs facteurs : les dimensions de la vitre, le type de verre (double, triple, Low-E, argon), l'accessibilite de la fenetre et la complexite de l'installation. Nous offrons toujours une soumission detaillee et gratuite avant de proceder aux travaux, pour que vous sachiez exactement a quoi vous attendre. Appelez-nous au ${COMPANY_INFO.phone} pour obtenir votre estimation personnalisee.`,
       },
       {
         question: "Les soumissions sont-elles gratuites?",
         answer:
-          "Oui, toutes nos soumissions sont entierement gratuites et sans aucun engagement de votre part. Nous pouvons evaluer vos besoins par telephone, par courriel (avec photos) ou lors d'une visite a domicile selon la complexite du projet. Notre objectif est de vous fournir une estimation claire et transparente, sans frais caches ni surprises. Contactez-nous au 514-825-8411 ou via notre formulaire en ligne pour obtenir votre soumission rapidement.",
+          `Oui, toutes nos soumissions sont entierement gratuites et sans aucun engagement de votre part. Nous pouvons evaluer vos besoins par telephone, par courriel (avec photos) ou lors d'une visite a domicile selon la complexite du projet. Notre objectif est de vous fournir une estimation claire et transparente, sans frais caches ni surprises. Contactez-nous au ${COMPANY_INFO.phone} ou via notre formulaire en ligne pour obtenir votre soumission rapidement.`,
       },
       {
         question: "Offrez-vous du financement?",
@@ -106,7 +106,7 @@ const faqCategories = [
       {
         question: "Comment faire une reclamation de garantie?",
         answer:
-          "Pour faire une reclamation de garantie, appelez-nous au 514-825-8411 ou envoyez un courriel a info@vosthermos.com en incluant votre numero de facture, des photos du probleme et une description de la situation. Notre equipe evaluera votre demande rapidement, generalement dans les 48 heures ouvrables. Si la reclamation est approuvee, nous planifions l'intervention de remplacement sans frais additionnel. Conservez toujours votre facture originale comme preuve d'achat.",
+          `Pour faire une reclamation de garantie, appelez-nous au ${COMPANY_INFO.phone} ou envoyez un courriel a ${COMPANY_INFO.email} en incluant votre numero de facture, des photos du probleme et une description de la situation. Notre equipe evaluera votre demande rapidement, generalement dans les 48 heures ouvrables. Si la reclamation est approuvee, nous planifions l'intervention de remplacement sans frais additionnel. Conservez toujours votre facture originale comme preuve d'achat.`,
       },
     ],
   },
@@ -118,7 +118,7 @@ const faqCategories = [
       {
         question: "Quel est le delai d'intervention?",
         answer:
-          "Pour les reparations urgentes (vitre cassee, porte qui ne ferme plus), nous faisons notre possible pour intervenir dans les 24 a 48 heures. Pour les remplacements de vitres thermos, le delai typique est de 1 a 3 semaines, car l'unite scellee doit etre fabriquee sur mesure. Le remplacement de quincaillerie et la reparation de moustiquaires peuvent souvent etre realises dans la semaine suivant votre demande. Contactez-nous au 514-825-8411 pour connaitre nos disponibilites actuelles.",
+          `Pour les reparations urgentes (vitre cassee, porte qui ne ferme plus), nous faisons notre possible pour intervenir dans les 24 a 48 heures. Pour les remplacements de vitres thermos, le delai typique est de 1 a 3 semaines, car l'unite scellee doit etre fabriquee sur mesure. Le remplacement de quincaillerie et la reparation de moustiquaires peuvent souvent etre realises dans la semaine suivant votre demande. Contactez-nous au ${COMPANY_INFO.phone} pour connaitre nos disponibilites actuelles.`,
       },
       {
         question: "Combien de temps dure une intervention typique?",
@@ -145,7 +145,7 @@ const faqCategories = [
       {
         question: "Comment savoir quelle piece j'ai besoin?",
         answer:
-          "Nous savons que trouver la bonne piece peut etre difficile! Prenez quelques photos de votre piece actuelle (de face, de cote et avec une mesure pour l'echelle) et envoyez-les nous par courriel a info@vosthermos.com ou via notre formulaire de contact. Nos conseillers experts identifieront la piece compatible et vous orienteront vers le bon produit dans notre boutique. Vous pouvez aussi nous appeler au 514-825-8411 pour une assistance immediate.",
+          `Nous savons que trouver la bonne piece peut etre difficile! Prenez quelques photos de votre piece actuelle (de face, de cote et avec une mesure pour l'echelle) et envoyez-les nous par courriel a ${COMPANY_INFO.email} ou via notre formulaire de contact. Nos conseillers experts identifieront la piece compatible et vous orienteront vers le bon produit dans notre boutique. Vous pouvez aussi nous appeler au ${COMPANY_INFO.phone} pour une assistance immediate.`,
       },
       {
         question: "Quels sont les delais de livraison?",
@@ -256,10 +256,10 @@ export default function FaqPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="tel:15148258411"
+              href={`tel:${COMPANY_INFO.phoneTel}`}
               className="inline-flex items-center justify-center gap-2 bg-white text-[var(--color-teal-dark)] px-8 py-4 rounded-full font-bold hover:bg-gray-100 transition-all"
             >
-              <i className="fas fa-phone"></i> 514-825-8411
+              <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
             </a>
             <Link
               href="/contact"

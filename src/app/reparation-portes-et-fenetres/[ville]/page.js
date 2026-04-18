@@ -3,6 +3,7 @@ import Link from "next/link";
 import { CITIES, getCity } from "@/lib/cities";
 import QuoteForm from "@/components/QuoteForm";
 import { CITY_PAGE_SEO } from "@/lib/seo-templates";
+import { COMPANY_INFO } from "@/lib/company";
 
 export async function generateStaticParams() {
   return CITIES.map((c) => ({ ville: c.slug }));
@@ -61,16 +62,16 @@ export default async function ReparationVillePage({ params }) {
     "@id": "https://www.vosthermos.com/#business",
     name: "Vosthermos",
     telephone: "+15148258411",
-    email: "info@vosthermos.com",
+    email: COMPANY_INFO.email,
     url: "https://www.vosthermos.com",
     image: "https://www.vosthermos.com/logo.png",
     priceRange: "$$",
     address: {
       "@type": "PostalAddress",
-      streetAddress: "330 Ch. St-Francois-Xavier, Local 101",
+      streetAddress: COMPANY_INFO.address,
       addressLocality: "Saint-Francois-Xavier",
       addressRegion: "QC",
-      postalCode: "J0H 1S0",
+      postalCode: COMPANY_INFO.postalCode,
       addressCountry: "CA",
     },
     geo: {
@@ -134,7 +135,7 @@ export default async function ReparationVillePage({ params }) {
     },
     {
       q: `Combien coute une reparation de fenetres a ${city.name}?`,
-      a: `Le cout varie selon le type de reparation. Un remplacement de thermos debute a environ 150$ par unite installee, la quincaillerie a partir de 4.99$ la piece. Nous offrons des soumissions gratuites a domicile partout a ${city.name} et dans la region de ${city.region}. Appelez-nous au 514-825-8411.`,
+      a: `Le cout varie selon le type de reparation. Un remplacement de thermos debute a environ 150$ par unite installee, la quincaillerie a partir de 4.99$ la piece. Nous offrons des soumissions gratuites a domicile partout a ${city.name} et dans la region de ${city.region}. Appelez-nous au ${COMPANY_INFO.phone}.`,
     },
     {
       q: `Est-ce que Vosthermos se deplace a ${city.name}?`,
@@ -206,10 +207,10 @@ export default async function ReparationVillePage({ params }) {
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <a
-                  href="tel:15148258411"
+                  href={`tel:${COMPANY_INFO.phoneTel}`}
                   className="inline-flex items-center justify-center gap-2 bg-[var(--color-red)] text-white px-8 py-4 rounded-full font-bold hover:bg-[var(--color-red-dark)] transition-all shadow-lg"
                 >
-                  <i className="fas fa-phone"></i> 514-825-8411
+                  <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
                 </a>
                 <a
                   href="#quote-form"
@@ -229,8 +230,8 @@ export default async function ReparationVillePage({ params }) {
               <QuoteForm compact />
               <div className="text-center mt-4 pt-4 border-t border-white/10">
                 <span className="text-white/50 text-xs">ou appelez directement </span>
-                <a href="tel:15148258411" className="text-white font-semibold text-sm hover:text-[var(--color-red-light)]">
-                  <i className="fas fa-phone text-xs"></i> 514-825-8411
+                <a href={`tel:${COMPANY_INFO.phoneTel}`} className="text-white font-semibold text-sm hover:text-[var(--color-red-light)]">
+                  <i className="fas fa-phone text-xs"></i> {COMPANY_INFO.phone}
                 </a>
               </div>
             </div>
@@ -449,10 +450,10 @@ export default async function ReparationVillePage({ params }) {
                 Demander une soumission
               </a>
               <a
-                href="tel:15148258411"
+                href={`tel:${COMPANY_INFO.phoneTel}`}
                 className="inline-flex items-center justify-center gap-2 bg-transparent text-white border-2 border-white/30 px-8 py-4 rounded-full font-bold hover:border-white hover:bg-white/10 transition-all"
               >
-                <i className="fas fa-phone"></i> 514-825-8411
+                <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
               </a>
             </div>
           </div>

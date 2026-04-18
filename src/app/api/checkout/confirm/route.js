@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import nodemailer from "nodemailer";
 import prisma from "@/lib/prisma";
+import { COMPANY_INFO } from "@/lib/company";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -112,11 +113,11 @@ export async function POST(request) {
           </div>
 
           <p style="color: #999; font-size: 12px; text-align: center;">
-            Des questions? Appelez-nous au 514-825-8411 ou ecrivez a info@vosthermos.com
+            Des questions? Appelez-nous au ${COMPANY_INFO.phone} ou ecrivez a ${COMPANY_INFO.email}
           </p>
         </div>
         <div style="background: #f9fafb; padding: 16px; text-align: center; border-top: 1px solid #eee;">
-          <p style="color: #999; font-size: 11px; margin: 0;">Vosthermos — 330 Ch. St-Francois-Xavier, Local 101</p>
+          <p style="color: #999; font-size: 11px; margin: 0;">Vosthermos — ${COMPANY_INFO.address}</p>
         </div>
       </div>
     `;
@@ -136,7 +137,7 @@ export async function POST(request) {
     // Email to admin
     await transporter.sendMail({
       from: '"Vosthermos Boutique" <noreply@vosthermos.com>',
-      to: "info@vosthermos.com",
+      to: COMPANY_INFO.email,
       subject: `Nouvelle commande #${order.id} — ${total} $ — ${session.metadata?.customerName || "Client"}`,
       html: emailHtml.replace("Confirmation de commande", "NOUVELLE COMMANDE").replace("Bonjour " + (session.metadata?.customerName || ""), `<strong>Client:</strong> ${session.metadata?.customerName || ""}<br><strong>Tel:</strong> ${session.metadata?.customerPhone || ""}<br><strong>Email:</strong> ${session.customer_email || ""}<br><strong>Adresse:</strong> ${session.metadata?.customerAddress || ""}`),
     });

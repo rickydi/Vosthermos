@@ -4,6 +4,7 @@ import { GLOSSARY, getGlossaryTerm, GLOSSARY_CATEGORIES } from "@/lib/glossary-d
 import { getService } from "@/lib/services-data";
 import { getProblem } from "@/lib/problems-data";
 import { getPricing } from "@/lib/pricing-data";
+import { COMPANY_INFO } from "@/lib/company";
 
 export function generateStaticParams() {
   return GLOSSARY.map((g) => ({ slug: g.slug }));
@@ -141,8 +142,8 @@ export default async function GlossaryTermPage({ params }) {
               <div>
                 <h3 className="font-bold text-gray-900 mb-2">Need help?</h3>
                 <p className="text-gray-500 text-xs mb-4">Our experts can explain and resolve your situation.</p>
-                <a href="tel:15148258411" className="flex items-center justify-center gap-2 bg-[var(--color-red)] text-white font-bold px-5 py-3 rounded-xl hover:bg-[var(--color-red-light)] transition-colors w-full text-sm mb-2">
-                  <i className="fas fa-phone"></i> 514-825-8411
+                <a href={`tel:${COMPANY_INFO.phoneTel}`} className="flex items-center justify-center gap-2 bg-[var(--color-red)] text-white font-bold px-5 py-3 rounded-xl hover:bg-[var(--color-red-light)] transition-colors w-full text-sm mb-2">
+                  <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
                 </a>
                 <Link href="/en/diagnostic" className="flex items-center justify-center gap-2 bg-purple-600 text-white font-bold px-5 py-3 rounded-xl hover:bg-purple-700 transition-colors w-full text-sm">
                   <i className="fas fa-stethoscope"></i> Free diagnostic

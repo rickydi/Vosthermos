@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { COMPANY_INFO } from "@/lib/company";
 
 export const metadata = {
   title: "professional guaranteed service | Vosthermos",
@@ -90,7 +91,7 @@ const claimSteps = [
     num: "1",
     title: "Contact us",
     description:
-      "Call us at 514-825-8411 or fill out our online contact form. Describe the problem and have your invoice number handy.",
+      `Call us at ${COMPANY_INFO.phone} or fill out our online contact form. Describe the problem and have your invoice number handy.`,
     icon: "fa-phone-alt",
   },
   {
@@ -118,7 +119,7 @@ const faqItems = [
   {
     question: "How do I make a claim?",
     answer:
-      "Contact us by phone at 514-825-8411 or via our online form. Provide your invoice number and a description of the problem. Our team will respond within 24 to 48 business hours to schedule an assessment.",
+      `Contact us by phone at ${COMPANY_INFO.phone} or via our online form. Provide your invoice number and a description of the problem. Our team will respond within 24 to 48 business hours to schedule an assessment.`,
   },
   {
     question: "Is the warranty transferable?",
@@ -380,10 +381,10 @@ export default function WarrantyPageEn() {
               Request a quote
             </Link>
             <a
-              href="tel:15148258411"
+              href={`tel:${COMPANY_INFO.phoneTel}`}
               className="inline-flex items-center justify-center gap-2 bg-transparent text-white border-2 border-white/40 px-8 py-4 rounded-full font-bold hover:border-white hover:bg-white/10 transition-all"
             >
-              <i className="fas fa-phone"></i> 514-825-8411
+              <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
             </a>
           </div>
         </div>

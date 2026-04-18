@@ -4,7 +4,7 @@ import FaqAccordion from "@/components/FaqAccordion";
 export const metadata = {
   title: "FAQ - Vosthermos | Door and Window Repair",
   description:
-    "Find answers to your questions about our door and window repair services, pricing, warranties, timelines and our online store. Free quote 514-825-8411.",
+    `Find answers to your questions about our door and window repair services, pricing, warranties, timelines and our online store. Free quote ${COMPANY_INFO.phone}.`,
   alternates: {
     canonical: "https://www.vosthermos.com/en/faq",
     languages: {
@@ -46,7 +46,7 @@ const faqCategories = [
       {
         question: "Do you offer service for commercial doors?",
         answer:
-          "Yes, we offer repair and parts replacement services for commercial doors and windows. This includes commercial entry doors, door closers, specialized hardware and large-dimension sealed glass replacement. We understand the importance of minimizing disruptions for your business and plan our work accordingly. Contact us at 514-825-8411 to discuss your specific needs.",
+          `Yes, we offer repair and parts replacement services for commercial doors and windows. This includes commercial entry doors, door closers, specialized hardware and large-dimension sealed glass replacement. We understand the importance of minimizing disruptions for your business and plan our work accordingly. Contact us at ${COMPANY_INFO.phone} to discuss your specific needs.`,
       },
       {
         question: "Do you make custom screen doors for all dimensions?",
@@ -68,12 +68,12 @@ const faqCategories = [
       {
         question: "How much does sealed glass replacement cost?",
         answer:
-          "Sealed glass replacement starts at $150 and varies based on several factors: glass dimensions, glass type (double, triple, Low-E, argon), window accessibility and installation complexity. We always provide a detailed, free quote before proceeding, so you know exactly what to expect. Call us at 514-825-8411 for your personalized estimate.",
+          `Sealed glass replacement starts at $150 and varies based on several factors: glass dimensions, glass type (double, triple, Low-E, argon), window accessibility and installation complexity. We always provide a detailed, free quote before proceeding, so you know exactly what to expect. Call us at ${COMPANY_INFO.phone} for your personalized estimate.`,
       },
       {
         question: "Are quotes free?",
         answer:
-          "Yes, all our quotes are completely free and without obligation. We can assess your needs by phone, email (with photos) or during a home visit depending on the project complexity. Our goal is to provide a clear and transparent estimate with no hidden fees or surprises. Contact us at 514-825-8411 or via our online form for a quick quote.",
+          `Yes, all our quotes are completely free and without obligation. We can assess your needs by phone, email (with photos) or during a home visit depending on the project complexity. Our goal is to provide a clear and transparent estimate with no hidden fees or surprises. Contact us at ${COMPANY_INFO.phone} or via our online form for a quick quote.`,
       },
       {
         question: "Do you offer financing?",
@@ -110,7 +110,7 @@ const faqCategories = [
       {
         question: "How do I make a warranty claim?",
         answer:
-          "To make a warranty claim, call us at 514-825-8411 or send an email to info@vosthermos.com including your invoice number, photos of the problem and a description of the situation. Our team will evaluate your claim quickly, usually within 48 business hours. If approved, we schedule the replacement at no additional cost. Always keep your original invoice as proof of purchase.",
+          `To make a warranty claim, call us at ${COMPANY_INFO.phone} or send an email to ${COMPANY_INFO.email} including your invoice number, photos of the problem and a description of the situation. Our team will evaluate your claim quickly, usually within 48 business hours. If approved, we schedule the replacement at no additional cost. Always keep your original invoice as proof of purchase.`,
       },
     ],
   },
@@ -122,7 +122,7 @@ const faqCategories = [
       {
         question: "What is the response time?",
         answer:
-          "For urgent repairs (broken glass, door that won't close), we do our best to respond within 24 to 48 hours. For sealed glass replacements, the typical timeline is 1 to 3 weeks, as the unit must be custom-manufactured. Hardware replacement and screen door repair can often be done within the week following your request. Contact us at 514-825-8411 for current availability.",
+          `For urgent repairs (broken glass, door that won't close), we do our best to respond within 24 to 48 hours. For sealed glass replacements, the typical timeline is 1 to 3 weeks, as the unit must be custom-manufactured. Hardware replacement and screen door repair can often be done within the week following your request. Contact us at ${COMPANY_INFO.phone} for current availability.`,
       },
       {
         question: "How long does a typical service call take?",
@@ -149,7 +149,7 @@ const faqCategories = [
       {
         question: "How do I know which part I need?",
         answer:
-          "We know finding the right part can be difficult! Take a few photos of your current part (front, side and with a measurement for scale) and send them to us by email at info@vosthermos.com or via our contact form. Our expert advisors will identify the compatible part and point you to the right product in our store. You can also call us at 514-825-8411 for immediate assistance.",
+          `We know finding the right part can be difficult! Take a few photos of your current part (front, side and with a measurement for scale) and send them to us by email at ${COMPANY_INFO.email} or via our contact form. Our expert advisors will identify the compatible part and point you to the right product in our store. You can also call us at ${COMPANY_INFO.phone} for immediate assistance.`,
       },
       {
         question: "What are the delivery times?",
@@ -243,10 +243,10 @@ export default function FaqPageEn() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="tel:15148258411"
+              href={`tel:${COMPANY_INFO.phoneTel}`}
               className="inline-flex items-center justify-center gap-2 bg-white text-[var(--color-teal-dark)] px-8 py-4 rounded-full font-bold hover:bg-gray-100 transition-all"
             >
-              <i className="fas fa-phone"></i> 514-825-8411
+              <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
             </a>
             <Link
               href="/en/#contact"

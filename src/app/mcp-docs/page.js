@@ -130,7 +130,7 @@ export default function McpDocsPage() {
           <h3 className="font-bold text-red-900 mb-2">Vous etes un developpeur d&apos;agent AI?</h3>
           <p className="text-red-900 text-sm mb-4">
             On aimerait voir ce que vous construisez avec notre MCP. Envoyez-nous un courriel a{" "}
-            <a href="mailto:info@vosthermos.com" className="underline">info@vosthermos.com</a>.
+            <a href={`mailto:${COMPANY_INFO.email}`} className="underline">{COMPANY_INFO.email}</a>.
           </p>
           <a
             href="https://www.vosthermos.com/api/mcp"

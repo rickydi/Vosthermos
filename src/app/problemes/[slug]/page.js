@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { PROBLEMS, getProblem, PROBLEM_CATEGORIES } from "@/lib/problems-data";
 import { getService } from "@/lib/services-data";
+import { COMPANY_INFO } from "@/lib/company";
 
 export function generateStaticParams() {
   return PROBLEMS.map((p) => ({ slug: p.slug }));
@@ -41,7 +42,7 @@ export default async function ProblemPage({ params }) {
     mainEntity: [
       { "@type": "Question", name: `Quelles sont les causes d'un probleme de ${problem.shortTitle.toLowerCase()}?`, acceptedAnswer: { "@type": "Answer", text: problem.causes.join(". ") } },
       { "@type": "Question", name: `Comment reparer un probleme de ${problem.shortTitle.toLowerCase()}?`, acceptedAnswer: { "@type": "Answer", text: problem.solutions.join(". ") } },
-      { "@type": "Question", name: `Combien coute la reparation?`, acceptedAnswer: { "@type": "Answer", text: `Le cout typique est de ${problem.cost}. Contactez Vosthermos au 514-825-8411 pour une soumission gratuite.` } },
+      { "@type": "Question", name: `Combien coute la reparation?`, acceptedAnswer: { "@type": "Answer", text: `Le cout typique est de ${problem.cost}. Contactez Vosthermos au ${COMPANY_INFO.phone} pour une soumission gratuite.` } },
     ],
   };
 
@@ -53,7 +54,7 @@ export default async function ProblemPage({ params }) {
     step: [
       { "@type": "HowToStep", name: "Identifier le probleme", text: problem.description },
       { "@type": "HowToStep", name: "Comprendre les causes", text: problem.causes.join(". ") },
-      { "@type": "HowToStep", name: "Contacter un professionnel", text: `Appelez Vosthermos au 514-825-8411 pour une soumission gratuite. Service: ${service ? service.shortTitle : "reparation"}.` },
+      { "@type": "HowToStep", name: "Contacter un professionnel", text: `Appelez Vosthermos au ${COMPANY_INFO.phone} pour une soumission gratuite. Service: ${service ? service.shortTitle : "reparation"}.` },
     ],
   };
 
@@ -167,8 +168,8 @@ export default async function ProblemPage({ params }) {
                 <p className="text-gray-500 text-sm mb-4">
                   Un expert evaluera votre situation et vous proposera la meilleure solution.
                 </p>
-                <a href="tel:15148258411" className="flex items-center justify-center gap-2 bg-[var(--color-red)] text-white font-bold px-6 py-3 rounded-xl hover:bg-[var(--color-red-light)] transition-colors w-full mb-3">
-                  <i className="fas fa-phone"></i> 514-825-8411
+                <a href={`tel:${COMPANY_INFO.phoneTel}`} className="flex items-center justify-center gap-2 bg-[var(--color-red)] text-white font-bold px-6 py-3 rounded-xl hover:bg-[var(--color-red-light)] transition-colors w-full mb-3">
+                  <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
                 </a>
                 <Link href="/rendez-vous" className="flex items-center justify-center gap-2 bg-[var(--color-teal)] text-white font-bold px-6 py-3 rounded-xl hover:bg-[var(--color-teal-dark)] transition-colors w-full">
                   <i className="fas fa-calendar-alt"></i> Prendre rendez-vous

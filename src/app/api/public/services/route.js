@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { SERVICES } from "@/lib/services-data";
 import { CITIES } from "@/lib/cities";
+import { COMPANY_INFO } from "@/lib/company";
 
 export async function GET() {
   const data = {
@@ -10,14 +11,14 @@ export async function GET() {
       description: "Experts quebecois en reparation et restauration de portes et fenetres depuis 2010. Remplacement de vitres thermos, quincaillerie, portes-patio, portes-fenetres, portes en bois, moustiquaires et plus.",
       url: "https://www.vosthermos.com",
       telephone: "+15148258411",
-      email: "info@vosthermos.com",
+      email: COMPANY_INFO.email,
       foundingDate: "2010",
       yearsOfExperience: 15,
       address: {
-        streetAddress: "330 Ch. St-Francois-Xavier, Local 101",
+        streetAddress: COMPANY_INFO.address,
         addressLocality: "Saint-Francois-Xavier",
         addressRegion: "QC",
-        postalCode: "J0H 1S0",
+        postalCode: COMPANY_INFO.postalCode,
         addressCountry: "CA",
       },
       openingHours: {

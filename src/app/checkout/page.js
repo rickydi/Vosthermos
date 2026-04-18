@@ -5,6 +5,7 @@ import { useCart } from "@/components/CartContext";
 import Image from "next/image";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import Link from "next/link";
+import { COMPANY_INFO } from "@/lib/company";
 
 export default function CheckoutPage() {
   const { items, total, loaded, clearCart } = useCart();
@@ -170,7 +171,7 @@ export default function CheckoutPage() {
                       <input
                         type="text" id="postalCode" name="postalCode" required
                         value={form.postalCode} onChange={handleChange}
-                        placeholder="J0H 1S0"
+                        placeholder={COMPANY_INFO.postalCode}
                         className="w-full border border-[var(--color-border)] rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-teal)] uppercase"
                       />
                     </div>

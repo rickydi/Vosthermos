@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { SERVICES } from "@/lib/services-data";
 import { CITIES } from "@/lib/cities";
+import { COMPANY_INFO } from "@/lib/company";
 
 const BASE = "https://www.vosthermos.com";
 
 export const metadata = {
   title: "Services de réparation portes & fenêtres | Thermos, quincaillerie, moustiquaires — Vosthermos",
   description:
-    "10 services de réparation de portes et fenêtres : remplacement de vitres thermos dès 150$, quincaillerie, portes-patio, portes en bois, moustiquaires, calfeutrage et plus. Garantie 10 ans, 15 ans d'expérience. Montréal, Laval, Rive-Sud ☎ 514-825-8411",
+    `10 services de réparation de portes et fenêtres : remplacement de vitres thermos dès 150$, quincaillerie, portes-patio, portes en bois, moustiquaires, calfeutrage et plus. Garantie 10 ans, 15 ans d'expérience. Montréal, Laval, Rive-Sud ☎ ${COMPANY_INFO.phone}`,
   alternates: {
     canonical: `${BASE}/services`,
     languages: {
@@ -28,7 +29,7 @@ export const metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Services Vosthermos | 10 spécialités portes & fenêtres",
-    description: "Vitres thermos, quincaillerie, portes-patio et plus. Garantie 10 ans ☎ 514-825-8411",
+    description: `Vitres thermos, quincaillerie, portes-patio et plus. Garantie 10 ans ☎ ${COMPANY_INFO.phone}`,
     images: [`${BASE}/images/Vos-Thermos-Logo.png`],
   },
   robots: "index, follow",
@@ -105,11 +106,11 @@ export default function ServicesPage() {
           </p>
           <div className="flex flex-wrap gap-3 mt-6">
             <a
-              href="tel:+15148258411"
+              href={`tel:${COMPANY_INFO.phoneTel}`}
               className="bg-[var(--color-primary)] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[var(--color-primary-light)] transition"
             >
               <i className="fas fa-phone mr-2" aria-hidden="true"></i>
-              514-825-8411
+              {COMPANY_INFO.phone}
             </a>
             <Link
               href="/contact"
@@ -220,11 +221,11 @@ export default function ServicesPage() {
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <a
-              href="tel:+15148258411"
+              href={`tel:${COMPANY_INFO.phoneTel}`}
               className="bg-white text-[var(--color-primary)] px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition"
             >
               <i className="fas fa-phone mr-2" aria-hidden="true"></i>
-              514-825-8411
+              {COMPANY_INFO.phone}
             </a>
             <Link
               href="/contact"

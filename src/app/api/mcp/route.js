@@ -9,6 +9,7 @@ import {
 } from "@/lib/calc-engine";
 import { SERVICES } from "@/lib/services-data";
 import { CITIES } from "@/lib/cities";
+import { COMPANY_INFO } from "@/lib/company";
 
 // ============================================================================
 // Vosthermos MCP Server (Model Context Protocol)
@@ -37,8 +38,8 @@ const SERVER_INFO = {
   description: "Expert en reparation de portes et fenetres au Quebec depuis 2010. Expose des outils pour diagnostiquer, estimer les couts, comparer les options et prendre rendez-vous.",
   vendor: "Vosthermos",
   website: "https://www.vosthermos.com",
-  contact: "info@vosthermos.com",
-  phone: "514-825-8411",
+  contact: COMPANY_INFO.email,
+  phone: COMPANY_INFO.phone,
 };
 
 const PROTOCOL_VERSION = "2025-06-18";
@@ -270,8 +271,8 @@ async function executeTool(name, args = {}) {
     case "book_appointment_url":
       return {
         bookingUrl: "https://www.vosthermos.com/rendez-vous",
-        phone: "514-825-8411",
-        email: "info@vosthermos.com",
+        phone: COMPANY_INFO.phone,
+        email: COMPANY_INFO.email,
         hours: "Lundi au vendredi 08:00 - 17:00 (HNE)",
         serviceType: args.serviceType || "Tous services",
         preferredDate: args.preferredDate || "Flexible",
@@ -336,9 +337,9 @@ async function readResource(uri) {
           text: JSON.stringify({
             name: "Vosthermos",
             description: "Experts en reparation de portes et fenetres depuis 2010",
-            phone: "514-825-8411",
-            email: "info@vosthermos.com",
-            address: "330 Ch. St-Francois-Xavier, Local 101, Saint-Francois-Xavier, QC J0H 1S0",
+            phone: COMPANY_INFO.phone,
+            email: COMPANY_INFO.email,
+            address: `${COMPANY_INFO.address}, Saint-Francois-Xavier, QC ${COMPANY_INFO.postalCode}`,
             hours: "Lundi-Vendredi 08:00-17:00",
             yearsExperience: 15,
             warranty: { thermos: "10 ans transferable", labor: "5 ans" },

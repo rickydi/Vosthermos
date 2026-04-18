@@ -9,7 +9,7 @@ export const SERVICES_EN = [
       "Professional hardware replacement service for patio doors, windows, and screen doors. Handles, locks, rollers, cranks, hinges and more. Parts compatible with all models, with quick installation and warranty.",
     metaTitle: "Door & Window Hardware Replacement | Vosthermos",
     metaDescription:
-      "Professional door and window hardware replacement: handles, locks, rollers, cranks. Parts from $4.99. Fast service Montreal and South Shore. 514-825-8411.",
+      `Professional door and window hardware replacement: handles, locks, rollers, cranks. Parts from $4.99. Fast service Montreal and South Shore. ${COMPANY_INFO.phone}.`,
     sections: [
       {
         heading: "Quality parts for all models",
@@ -91,7 +91,7 @@ export const SERVICES_EN = [
       "Are your windows foggy, cracked, or have they lost their thermal efficiency? Our sealed glass unit replacement service restores your windows to their original performance. professional guaranteed service on all replacements.",
     metaTitle: "Sealed Glass Unit Replacement | professional guaranteed service | Vosthermos",
     metaDescription:
-      "Professional foggy or cracked sealed glass replacement. professional guaranteed service, Low-E glass and argon. Starting at $150/unit installed. Montreal and South Shore. 514-825-8411.",
+      `Professional foggy or cracked sealed glass replacement. professional guaranteed service, Low-E glass and argon. Starting at $150/unit installed. Montreal and South Shore. ${COMPANY_INFO.phone}.`,
     sections: [
       {
         heading: "What is a sealed glass unit?",
@@ -178,7 +178,7 @@ export const SERVICES_EN = [
       "Complete repair and restoration service for wooden doors and windows. Sanding, filling, painting, weatherstripping and hardware replacement. Bring your wooden doors back to life with our team of experts.",
     metaTitle: "Wooden Door Repair | Professional Restoration | Vosthermos",
     metaDescription:
-      "Wooden door repair and restoration: sanding, painting, weatherstripping, frames. Free consultation. Professional service Montreal and South Shore. 514-825-8411.",
+      `Wooden door repair and restoration: sanding, painting, weatherstripping, frames. Free consultation. Professional service Montreal and South Shore. ${COMPANY_INFO.phone}.`,
     sections: [
       {
         heading: "Professional wooden door restoration",
@@ -259,7 +259,7 @@ export const SERVICES_EN = [
       "Custom manufacturing and repair of screen doors for all types of windows and doors. Sliding, retractable, fixed-frame and patio door screens. Superior quality mesh and durable aluminum frame.",
     metaTitle: "Custom Screen Doors | Manufacturing & Repair | Vosthermos",
     metaDescription:
-      "Custom screen doors for windows and patio doors. Manufacturing, repair and mesh replacement. Starting at $25/unit. Montreal and South Shore. 514-825-8411.",
+      `Custom screen doors for windows and patio doors. Manufacturing, repair and mesh replacement. Starting at $25/unit. Montreal and South Shore. ${COMPANY_INFO.phone}.`,
     sections: [
       {
         heading: "Screen doors made to your measurements",
@@ -339,7 +339,7 @@ export const SERVICES_EN = [
       "Professional caulking service for doors and windows. Prevent air and water infiltration around your openings with premium sealant products. Quality caulking is essential to face Quebec winters and reduce your heating costs.",
     metaTitle: "Door & Window Caulking | Professional Service | Vosthermos",
     metaDescription:
-      "Professional door and window caulking. Interior and exterior sealant, air and water infiltration prevention. Starting at $8/linear foot. Montreal and South Shore. 514-825-8411.",
+      `Professional door and window caulking. Interior and exterior sealant, air and water infiltration prevention. Starting at $8/linear foot. Montreal and South Shore. ${COMPANY_INFO.phone}.`,
     sections: [
       {
         heading: "Why caulking is essential in Quebec",
@@ -421,7 +421,7 @@ export const SERVICES_EN = [
       "An economical alternative to complete replacement of your foggy sealed glass units. Our defogging service cleans the inside of your sealed units, injects argon gas and reseals everything to restore clarity and efficiency to your windows without replacing them.",
     metaTitle: "Sealed Glass Defogging | Economical Alternative | Vosthermos",
     metaDescription:
-      "Professional defogging of foggy sealed glass units. Interior cleaning, argon injection and sealing. Starting at $65/unit. Montreal and South Shore. 514-825-8411.",
+      `Professional defogging of foggy sealed glass units. Interior cleaning, argon injection and sealing. Starting at $65/unit. Montreal and South Shore. ${COMPANY_INFO.phone}.`,
     sections: [
       {
         heading: "Understanding the three types of fog in a sealed unit",
@@ -502,7 +502,7 @@ export const SERVICES_EN = [
       "Change the look of your entry door without replacing the entire door. Our glass insert replacement service offers a wide selection of decorative models to transform your entrance at a fraction of the cost of a new door.",
     metaTitle: "Door Glass Insert Replacement | Vosthermos",
     metaDescription:
-      "Decorative door insert and entry door glass replacement. Novatech, Verre Select, Vitre-Art. Starting at $200. Professional installation Montreal and South Shore. 514-825-8411.",
+      `Decorative door insert and entry door glass replacement. Novatech, Verre Select, Vitre-Art. Starting at $200. Professional installation Montreal and South Shore. ${COMPANY_INFO.phone}.`,
     sections: [
       {
         heading: "Transform your entry door with a new insert",
@@ -576,7 +576,7 @@ export const SERVICES_EN = [
       "Eliminate drafts and reduce your heating costs with our weatherstripping replacement service for doors and windows. New, compatible seals for your model for optimal comfort and restored airtightness, even in the coldest weather.",
     metaTitle: "Door & Window Weatherstripping Replacement | Vosthermos",
     metaDescription:
-      "Professional door and window weatherstripping replacement. Door sweeps, threshold seals, window weatherstripping. Starting at $5/foot. Montreal and South Shore. 514-825-8411.",
+      `Professional door and window weatherstripping replacement. Door sweeps, threshold seals, window weatherstripping. Starting at $5/foot. Montreal and South Shore. ${COMPANY_INFO.phone}.`,
     sections: [
       {
         heading: "Weatherstripping: your ally against drafts",

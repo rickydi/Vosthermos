@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import { COMPANY_INFO } from "@/lib/company";
 
 const REPLACEMENT_PRICES = { window: 1100, patioDoor: 3500, entryDoor: 3000 };
 
@@ -240,10 +241,10 @@ export default function CalculateurPage() {
                 <p className="text-white/60 text-sm mb-6">Soumission gratuite et sans engagement pour votre projet</p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <a
-                    href="tel:15148258411"
+                    href={`tel:${COMPANY_INFO.phoneTel}`}
                     className="inline-flex items-center justify-center gap-2 bg-[var(--color-red)] text-white font-bold px-8 py-4 rounded-xl hover:bg-[var(--color-red-light)] transition-colors text-lg"
                   >
-                    <i className="fas fa-phone"></i> 514-825-8411
+                    <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
                   </a>
                   <Link
                     href="/rendez-vous"

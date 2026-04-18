@@ -8,7 +8,7 @@ export const SERVICES = [
       "Service professionnel de remplacement de quincaillerie pour portes-patio, fenetres et portes moustiquaires. Poignees, serrures, roulettes, manivelles, charnieres et plus. Pieces adaptees a tous les modeles avec installation rapide et garantie.",
     metaTitle: "Quincaillerie Portes & Fenêtres dès 4,99$ • Vosthermos",
     metaDescription:
-      "Poignée brisée, roulette usée? Vosthermos a 700+ pièces de quincaillerie en stock pour portes-patio et fenêtres. Installation pro, service rapide ☎ 514-825-8411",
+      `Poignée brisée, roulette usée? Vosthermos a 700+ pièces de quincaillerie en stock pour portes-patio et fenêtres. Installation pro, service rapide ☎ ${COMPANY_INFO.phone}`,
     sections: [
       {
         heading: "Des pieces de qualite pour tous les modeles",
@@ -89,7 +89,7 @@ export const SERVICES = [
       "Vos vitres sont embuees, fissurees ou ont perdu leur efficacite thermique? Notre service de remplacement de vitres thermos (unites scellees) redonne a vos fenetres leur performance d'origine. service garanti sur tous nos remplacements.",
     metaTitle: "Remplacement Vitre Thermos dès 150$ • Garantie 10 ans",
     metaDescription:
-      "Thermos embué? Vosthermos remplace vos vitres thermos dès 150$. ✓ Garantie 10 ans ✓ Soumission gratuite 24h ✓ 15 ans d'expérience. Montréal, Rive-Sud ☎ 514-825-8411",
+      `Thermos embué? Vosthermos remplace vos vitres thermos dès 150$. ✓ Garantie 10 ans ✓ Soumission gratuite 24h ✓ 15 ans d'expérience. Montréal, Rive-Sud ☎ ${COMPANY_INFO.phone}`,
     sections: [
       {
         heading: "Qu'est-ce qu'une vitre thermos?",
@@ -175,7 +175,7 @@ export const SERVICES = [
       "Service complet de reparation et restauration de portes et fenetres en bois. Sablage, remplissage, vernissage, peinture, coupe-froid, remplacement de pieces et finition professionnelle. Redonnez vie a vos portes en bois sans les remplacer avec notre equipe d'experts specialises en restauration.",
     metaTitle: "Réparation et Restauration Portes en Bois • Économisez 50% | Vosthermos",
     metaDescription:
-      "Restauration et réparation de portes en bois: sablage, vernissage, peinture, remplissage. Économisez 50%+ vs neuve. 15 ans d'expérience, service à domicile ☎ 514-825-8411",
+      `Restauration et réparation de portes en bois: sablage, vernissage, peinture, remplissage. Économisez 50%+ vs neuve. 15 ans d'expérience, service à domicile ☎ ${COMPANY_INFO.phone}`,
     sections: [
       {
         heading: "Restauration professionnelle de portes en bois",
@@ -255,7 +255,7 @@ export const SERVICES = [
       "Fabrication sur mesure et reparation de moustiquaires pour tous les types de fenetres et de portes. Moustiquaires coulissantes, retractables, a cadre fixe et pour portes-patio. Toile de qualite superieure et cadre en aluminium durable.",
     metaTitle: "Moustiquaires sur Mesure • Fabrication 48h | Vosthermos",
     metaDescription:
-      "Moustiquaire déchirée ou brisée? Vosthermos fabrique vos moustiquaires sur mesure en 48h. Toutes dimensions, tous modèles de fenêtres et portes ☎ 514-825-8411",
+      `Moustiquaire déchirée ou brisée? Vosthermos fabrique vos moustiquaires sur mesure en 48h. Toutes dimensions, tous modèles de fenêtres et portes ☎ ${COMPANY_INFO.phone}`,
     sections: [
       {
         heading: "Des moustiquaires fabriquees a vos mesures",
@@ -334,7 +334,7 @@ export const SERVICES = [
       "Service professionnel de calfeutrage pour portes et fenetres. Empechons les infiltrations d'air et d'eau autour de vos ouvertures grace a des produits de scellement haut de gamme. Un calfeutrage de qualite est essentiel pour affronter les hivers quebecois et reduire vos couts de chauffage.",
     metaTitle: "Calfeutrage Fenêtres & Portes • Étanchéité Garantie | Vosthermos",
     metaDescription:
-      "Courants d'air, infiltrations d'eau? Vosthermos calfeutre fenêtres et portes (intérieur/extérieur). Réduisez votre facture de chauffage. 15 ans d'expérience ☎ 514-825-8411",
+      `Courants d'air, infiltrations d'eau? Vosthermos calfeutre fenêtres et portes (intérieur/extérieur). Réduisez votre facture de chauffage. 15 ans d'expérience ☎ ${COMPANY_INFO.phone}`,
     sections: [
       {
         heading: "Pourquoi le calfeutrage est essentiel au Quebec",
@@ -423,7 +423,7 @@ export const SERVICES = [
       "Alternative economique au remplacement complet de vos vitres thermos embuees. Notre service de desembuage nettoie l'interieur de vos unites scellees, injecte du gaz argon et rescelle le tout pour restaurer la clarte et l'efficacite de vos fenetres sans les remplacer.",
     metaTitle: "Désembuage Vitres Thermos dès 80$ • 50% Moins Cher | Vosthermos",
     metaDescription:
-      "Vitres thermos embuées? Alternative au remplacement: désembuage pro dès 80$ par vitre. Résultat durable, garanti. Économisez jusqu'à 50% ☎ 514-825-8411",
+      `Vitres thermos embuées? Alternative au remplacement: désembuage pro dès 80$ par vitre. Résultat durable, garanti. Économisez jusqu'à 50% ☎ ${COMPANY_INFO.phone}`,
     sections: [
       {
         heading: "Comprendre les trois types de buee dans un thermos",
@@ -512,7 +512,7 @@ export const SERVICES = [
       "Changez l'apparence de votre porte d'entree sans la remplacer au complet. Notre service d'insertion et de remplacement de vitre de porte vous offre un vaste choix de modeles decoratifs pour transformer votre entree a une fraction du cout d'une nouvelle porte.",
     metaTitle: "Insertion de Porte • Nouvelle Porte en 1 Jour | Vosthermos",
     metaDescription:
-      "Besoin d'une nouvelle porte sans refaire le cadre? Vosthermos installe l'insertion en 1 jour. Économies de 40% vs remplacement complet. Multiples modèles ☎ 514-825-8411",
+      `Besoin d'une nouvelle porte sans refaire le cadre? Vosthermos installe l'insertion en 1 jour. Économies de 40% vs remplacement complet. Multiples modèles ☎ ${COMPANY_INFO.phone}`,
     sections: [
       {
         heading: "Transformez votre porte d'entree avec une nouvelle insertion",
@@ -600,7 +600,7 @@ export const SERVICES = [
       "Eliminez les courants d'air et reduisez vos couts de chauffage avec notre service de remplacement de coupe-froid pour portes et fenetres. Des joints neufs et compatibles avec votre modele pour un confort optimal et une etancheite retrouvee, meme par les froids les plus intenses.",
     metaTitle: "Coupe-froid Fenêtres & Portes • Fin des Courants d'air | Vosthermos",
     metaDescription:
-      "Courants d'air, perte de chaleur? Vosthermos remplace vos coupe-froids usés pour une étanchéité parfaite. Économisez sur le chauffage. Service rapide ☎ 514-825-8411",
+      `Courants d'air, perte de chaleur? Vosthermos remplace vos coupe-froids usés pour une étanchéité parfaite. Économisez sur le chauffage. Service rapide ☎ ${COMPANY_INFO.phone}`,
     sections: [
       {
         heading: "Le coupe-froid: votre allie contre les courants d'air",
@@ -689,7 +689,7 @@ export const SERVICES = [
       "Votre porte-patio est difficile a ouvrir, ne glisse plus, a une vitre embuee ou une poignee brisee? Vosthermos repare tous les types de portes-patio coulissantes: remplacement de roulettes, ajustement du rail, remplacement de vitre thermos, coupe-froid, poignees et serrures. Service a domicile rapide partout a Montreal et sur la Rive-Sud.",
     metaTitle: "Réparation Porte-Patio • Roulettes, Vitre, Poignée | Vosthermos",
     metaDescription:
-      "Porte-patio bloquée, difficile à glisser? Remplacement de roulettes, rail, vitre thermos, coupe-froid. Service pro à domicile. 15 ans d'expérience ☎ 514-825-8411",
+      `Porte-patio bloquée, difficile à glisser? Remplacement de roulettes, rail, vitre thermos, coupe-froid. Service pro à domicile. 15 ans d'expérience ☎ ${COMPANY_INFO.phone}`,
     sections: [
       {
         heading: "Tous les problemes de porte-patio, une seule equipe",
@@ -783,7 +783,7 @@ export const SERVICES = [
       "Service specialise de reparation de portes-fenetres (portes francaises, portes a battant avec vitrage). Mecanismes multipoints, charnieres, poignees, coupe-froid, vitres thermos et ajustements de cadre. Experts en portes-fenetres Novatech, Fenplast, Lepage Millwork et autres marques quebecoises.",
     metaTitle: "Réparation Porte-Fenêtre • Multipoint, Vitre, Charnières | Vosthermos",
     metaDescription:
-      "Porte-fenêtre qui ferme mal, mécanisme multipoint brisé, vitre embuée? Vosthermos répare tous types de portes-fenêtres. Service à domicile ☎ 514-825-8411",
+      `Porte-fenêtre qui ferme mal, mécanisme multipoint brisé, vitre embuée? Vosthermos répare tous types de portes-fenêtres. Service à domicile ☎ ${COMPANY_INFO.phone}`,
     sections: [
       {
         heading: "Porte-fenetre vs porte-patio: on repare les deux",

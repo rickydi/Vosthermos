@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { COMPANY_INFO } from "@/lib/company";
 
 export const metadata = {
   title: "Pourquoi choisir Vosthermos | Experts en reparation de portes et fenetres",
@@ -40,14 +41,14 @@ const jsonLd = {
   },
   address: {
     "@type": "PostalAddress",
-    streetAddress: "330 Ch. St-Francois-Xavier, Local 101",
+    streetAddress: COMPANY_INFO.address,
     addressLocality: "Saint-Francois-Xavier",
     addressRegion: "QC",
-    postalCode: "J0H 1S0",
+    postalCode: COMPANY_INFO.postalCode,
     addressCountry: "CA",
   },
   telephone: "+15148258411",
-  email: "info@vosthermos.com",
+  email: COMPANY_INFO.email,
   areaServed: {
     "@type": "GeoCircle",
     geoMidpoint: {
@@ -384,10 +385,10 @@ export default function PourquoiVosthermosPage() {
               Demander une soumission
             </Link>
             <a
-              href="tel:15148258411"
+              href={`tel:${COMPANY_INFO.phoneTel}`}
               className="inline-flex items-center justify-center gap-2 bg-transparent text-white border-2 border-white/40 px-8 py-4 rounded-full font-bold hover:border-white hover:bg-white/10 transition-all"
             >
-              <i className="fas fa-phone"></i> 514-825-8411
+              <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
             </a>
           </div>
         </div>

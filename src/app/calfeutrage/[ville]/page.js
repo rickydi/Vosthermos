@@ -3,6 +3,7 @@ import Link from "next/link";
 import { CITIES, getCity } from "@/lib/cities";
 import QuoteForm from "@/components/QuoteForm";
 import { CITY_PAGE_SEO } from "@/lib/seo-templates";
+import { COMPANY_INFO } from "@/lib/company";
 
 export async function generateStaticParams() {
   return CITIES.map((c) => ({ ville: c.slug }));
@@ -79,11 +80,11 @@ export default async function CalfeutrageVillePage({ params }) {
       "@type": "LocalBusiness",
       name: "Vosthermos",
       telephone: "+15148258411",
-      email: "info@vosthermos.com",
+      email: COMPANY_INFO.email,
       url: "https://www.vosthermos.com",
       address: {
         "@type": "PostalAddress",
-        streetAddress: "330 Ch. St-Francois-Xavier, Local 101",
+        streetAddress: COMPANY_INFO.address,
         addressLocality: "Saint-Francois-Xavier",
         addressRegion: "QC",
         addressCountry: "CA",
@@ -99,7 +100,7 @@ export default async function CalfeutrageVillePage({ params }) {
   const faqItems = [
     {
       q: `Combien coute le calfeutrage de fenetres a ${city.name}?`,
-      a: `Le prix du calfeutrage a ${city.name} depend du nombre d'ouvertures et de l'etat du calfeutrage existant. Pour une maison typique de ${city.region}, le calfeutrage complet de toutes les fenetres et portes se situe generalement entre 500$ et 1 500$. Nous offrons des soumissions gratuites a domicile. Appelez-nous au 514-825-8411.`,
+      a: `Le prix du calfeutrage a ${city.name} depend du nombre d'ouvertures et de l'etat du calfeutrage existant. Pour une maison typique de ${city.region}, le calfeutrage complet de toutes les fenetres et portes se situe generalement entre 500$ et 1 500$. Nous offrons des soumissions gratuites a domicile. Appelez-nous au ${COMPANY_INFO.phone}.`,
     },
     {
       q: `A quelle frequence faut-il refaire le calfeutrage a ${city.name}?`,
@@ -161,10 +162,10 @@ export default async function CalfeutrageVillePage({ params }) {
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <a
-              href="tel:15148258411"
+              href={`tel:${COMPANY_INFO.phoneTel}`}
               className="inline-flex items-center justify-center gap-2 bg-[var(--color-red)] text-white px-8 py-4 rounded-full font-bold hover:bg-[var(--color-red-dark)] transition-all shadow-lg"
             >
-              <i className="fas fa-phone"></i> 514-825-8411
+              <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
             </a>
             <Link
               href="/rendez-vous"
@@ -369,10 +370,10 @@ export default async function CalfeutrageVillePage({ params }) {
               </div>
               <div className="mt-8">
                 <a
-                  href="tel:15148258411"
+                  href={`tel:${COMPANY_INFO.phoneTel}`}
                   className="inline-flex items-center gap-2 bg-[var(--color-red)] text-white px-8 py-4 rounded-full font-bold hover:bg-[var(--color-red-dark)] transition-all shadow-lg"
                 >
-                  <i className="fas fa-phone"></i> 514-825-8411
+                  <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
                 </a>
               </div>
             </div>

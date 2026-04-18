@@ -149,7 +149,7 @@ export default async function BoutiquePage() {
                 Nos categories incluent les poignees et mecanismes de fenetre, les rouleaux et chariots de porte-patio, les coupe-froid et joints d&apos;etancheite, les moustiquaires de remplacement, ainsi que toute la quincaillerie necessaire pour reparer vous-meme vos portes et fenetres.
               </p>
               <p>
-                Besoin d&apos;aide pour identifier votre piece? <Link href="/#contact" className="text-[var(--color-teal)] font-semibold hover:underline">Contactez nos experts</Link> au 514-825-8411 ou envoyez-nous une photo. Nous offrons egalement un <Link href="/services/remplacement-quincaillerie" className="text-[var(--color-teal)] font-semibold hover:underline">service d&apos;installation professionnel</Link> partout a Montreal et sur la Rive-Sud.
+                Besoin d&apos;aide pour identifier votre piece? <Link href="/#contact" className="text-[var(--color-teal)] font-semibold hover:underline">Contactez nos experts</Link> au {COMPANY_INFO.phone} ou envoyez-nous une photo. Nous offrons egalement un <Link href="/services/remplacement-quincaillerie" className="text-[var(--color-teal)] font-semibold hover:underline">service d&apos;installation professionnel</Link> partout a Montreal et sur la Rive-Sud.
               </p>
             </div>
           </div>

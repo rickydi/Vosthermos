@@ -359,7 +359,7 @@ export const HOWTOS = [
       {
         name: "Prendre des photos de reference",
         text:
-          "Photographiez chaque vitre concernee en differents eclairages (matin, apres-midi, nuit). Ces photos nous aident a evaluer a distance si votre fenetre est un bon candidat. Envoyez-les par courriel a info@vosthermos.com avec vos dimensions.",
+          `Photographiez chaque vitre concernee en differents eclairages (matin, apres-midi, nuit). Ces photos nous aident a evaluer a distance si votre fenetre est un bon candidat. Envoyez-les par courriel a ${COMPANY_INFO.email} avec vos dimensions.`,
       },
     ],
     tips: [

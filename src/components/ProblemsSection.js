@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { COMPANY_INFO } from "@/lib/company";
 
 const problems = [
   {
@@ -84,10 +85,10 @@ export default function ProblemsSection() {
             Vous ne trouvez pas votre probleme? Contactez-nous, on a probablement la solution.
           </p>
           <a
-            href="tel:15148258411"
+            href={`tel:${COMPANY_INFO.phoneTel}`}
             className="inline-flex items-center gap-2 bg-[var(--color-teal)] text-white px-8 py-3.5 rounded-full font-bold text-sm hover:bg-[var(--color-teal-dark)] transition-all shadow-lg"
           >
-            <i className="fas fa-phone text-xs"></i> 514-825-8411
+            <i className="fas fa-phone text-xs"></i> {COMPANY_INFO.phone}
           </a>
         </div>
       </div>

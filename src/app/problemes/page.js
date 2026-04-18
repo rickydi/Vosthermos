@@ -4,7 +4,7 @@ import { PROBLEMS, PROBLEM_CATEGORIES } from "@/lib/problems-data";
 export const metadata = {
   title: "Problemes courants de portes et fenetres — Solutions | Vosthermos",
   description:
-    "Fenetre embuee, porte patio qui coince, courant d'air, moustiquaire dechiree? Trouvez les causes et solutions pour tous les problemes de portes et fenetres. Experts depuis 15 ans. 514-825-8411.",
+    `Fenetre embuee, porte patio qui coince, courant d'air, moustiquaire dechiree? Trouvez les causes et solutions pour tous les problemes de portes et fenetres. Experts depuis 15 ans. ${COMPANY_INFO.phone}.`,
   alternates: { canonical: "https://www.vosthermos.com/problemes" },
 };
 

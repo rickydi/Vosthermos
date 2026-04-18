@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
+import { COMPANY_INFO } from "@/lib/company";
 
 export async function POST(request) {
   try {
@@ -35,7 +36,7 @@ export async function POST(request) {
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
         max_tokens: 300,
-        system: `Tu es un assistant pour Vosthermos, une entreprise de reparation de portes et fenetres au Quebec. Tu rediges des reponses professionnelles, courtes et chaleureuses en francais quebecois (pas de France) aux messages des clients. Tutoie le client. Signe jamais le message. Ne mets pas de guillemets autour de la reponse. Le numero de telephone est 514-825-8411.`,
+        system: `Tu es un assistant pour Vosthermos, une entreprise de reparation de portes et fenetres au Quebec. Tu rediges des reponses professionnelles, courtes et chaleureuses en francais quebecois (pas de France) aux messages des clients. Tutoie le client. Signe jamais le message. Ne mets pas de guillemets autour de la reponse. Le numero de telephone est ${COMPANY_INFO.phone}.`,
         messages: [
           {
             role: "user",

@@ -119,7 +119,7 @@ export const CITIES = [
       { question: "Combien coûte une réparation de fenêtres à Saint-Hyacinthe?", answer: "Un remplacement de thermos standard à Saint-Hyacinthe coûte entre 150$ et 350$. Pour les maisons victoriennes du centre-ville nécessitant des travaux de restauration de cadres en bois, le prix peut varier entre 300$ et 700$ selon l'ampleur des travaux." },
       { question: "Vous déplacez-vous jusqu'à Saint-Hyacinthe pour les réparations?", answer: "Oui, Saint-Hyacinthe fait partie de notre zone de service régulière. Nous sommes à environ 45 minutes de route et nous nous y déplaçons plusieurs fois par semaine pour servir notre clientèle de la Montérégie." },
       { question: "L'humidité de la zone agricole de Saint-Hyacinthe affecte-t-elle les fenêtres?", answer: "Oui, le taux d'humidité plus élevé dans cette zone agricole accélère la dégradation des joints d'étanchéité et la pourriture des cadres en bois. Nous recommandons des inspections régulières et un entretien préventif pour prolonger la durée de vie de vos fenêtres." },
-      { question: "Offrez-vous un service d'urgence à Saint-Hyacinthe?", answer: "Nous priorisons les situations urgentes comme les bris de vitre ou les infiltrations actives. Contactez-nous au 514-825-8411 et nous ferons notre possible pour intervenir rapidement, généralement dans les 24 à 48 heures." },
+      { question: "Offrez-vous un service d'urgence à Saint-Hyacinthe?", answer: `Nous priorisons les situations urgentes comme les bris de vitre ou les infiltrations actives. Contactez-nous au ${COMPANY_INFO.phone} et nous ferons notre possible pour intervenir rapidement, généralement dans les 24 à 48 heures.` },
     ],
   },
   {

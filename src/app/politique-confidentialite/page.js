@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { COMPANY_INFO } from "@/lib/company";
 
 export const metadata = {
   title: "Politique de confidentialite - Vosthermos",
@@ -253,17 +254,17 @@ const sections = [
           Pour exercer l&apos;un de ces droits, veuillez nous contacter par
           courriel a{" "}
           <a
-            href="mailto:info@vosthermos.com"
+            href={`mailto:${COMPANY_INFO.email}`}
             className="text-[var(--color-red)] hover:underline font-medium"
           >
-            info@vosthermos.com
+            {COMPANY_INFO.email}
           </a>{" "}
           ou par telephone au{" "}
           <a
-            href="tel:15148258411"
+            href={`tel:${COMPANY_INFO.phoneTel}`}
             className="text-[var(--color-red)] hover:underline font-medium"
           >
-            514-825-8411
+            {COMPANY_INFO.phone}
           </a>
           . Nous traiterons votre demande dans un delai de 30 jours suivant sa
           reception.
@@ -362,18 +363,18 @@ const sections = [
           <ul className="not-styled space-y-2">
             <li className="flex items-start gap-3">
               <i className="fas fa-map-marker-alt text-[var(--color-red)] mt-1 w-4 text-center"></i>
-              <span>330 Ch. St-Francois-Xavier, Local 101, Saint-Francois-Xavier, QC</span>
+              <span>{COMPANY_INFO.address}, Saint-Francois-Xavier, QC</span>
             </li>
             <li className="flex items-start gap-3">
               <i className="fas fa-phone text-[var(--color-red)] mt-1 w-4 text-center"></i>
-              <a href="tel:15148258411" className="text-[var(--color-red)] hover:underline font-medium">
-                514-825-8411
+              <a href={`tel:${COMPANY_INFO.phoneTel}`} className="text-[var(--color-red)] hover:underline font-medium">
+                {COMPANY_INFO.phone}
               </a>
             </li>
             <li className="flex items-start gap-3">
               <i className="fas fa-envelope text-[var(--color-red)] mt-1 w-4 text-center"></i>
-              <a href="mailto:info@vosthermos.com" className="text-[var(--color-red)] hover:underline font-medium">
-                info@vosthermos.com
+              <a href={`mailto:${COMPANY_INFO.email}`} className="text-[var(--color-red)] hover:underline font-medium">
+                {COMPANY_INFO.email}
               </a>
             </li>
             <li className="flex items-start gap-3">

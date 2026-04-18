@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import BlogCard from "@/components/BlogCard";
 import Link from "next/link";
+import { COMPANY_INFO } from "@/lib/company";
 
 export const metadata = {
   title: "Blogue | Vosthermos - Conseils portes et fenetres",
@@ -200,11 +201,11 @@ export default async function BloguePage({ searchParams }) {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="tel:15148258411"
+              href={`tel:${COMPANY_INFO.phoneTel}`}
               className="inline-flex items-center justify-center gap-2 bg-[var(--color-red)] text-white font-bold px-8 py-3 rounded-xl hover:bg-[var(--color-red-light)] transition-colors"
             >
               <i className="fas fa-phone"></i>
-              514-825-8411
+              {COMPANY_INFO.phone}
             </a>
             <Link
               href="/#contact"

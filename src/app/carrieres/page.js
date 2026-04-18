@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { COMPANY_INFO } from "@/lib/company";
 
 export const metadata = {
   title: "Carrieres chez Vosthermos | Rejoignez notre equipe",
@@ -131,10 +132,10 @@ const jobPostingJsonLd = positions.map((pos) => ({
     "@type": "Place",
     address: {
       "@type": "PostalAddress",
-      streetAddress: "330 Ch. St-Francois-Xavier, Local 101",
+      streetAddress: COMPANY_INFO.address,
       addressLocality: "Saint-Francois-Xavier",
       addressRegion: "QC",
-      postalCode: "J0H 1S0",
+      postalCode: COMPANY_INFO.postalCode,
       addressCountry: "CA",
     },
   },
@@ -262,7 +263,7 @@ export default function CarrieresPage() {
                     </div>
                   </div>
                   <a
-                    href={`mailto:info@vosthermos.com?subject=Candidature - ${pos.title}`}
+                    href={`mailto:${COMPANY_INFO.email}?subject=Candidature - ${pos.title}`}
                     className="inline-flex items-center justify-center gap-2 bg-[var(--color-red)] text-white px-6 py-3 rounded-full font-bold text-sm hover:bg-[var(--color-red-dark)] transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 shrink-0"
                   >
                     <i className="fas fa-paper-plane text-xs"></i> Postuler
@@ -337,10 +338,10 @@ export default function CarrieresPage() {
                   </div>
                   <h3 className="text-white font-bold mb-1">Par courriel</h3>
                   <a
-                    href="mailto:info@vosthermos.com?subject=Candidature spontanee"
+                    href={`mailto:${COMPANY_INFO.email}?subject=Candidature spontanee`}
                     className="text-[var(--color-red-light)] hover:text-white transition-colors font-medium"
                   >
-                    info@vosthermos.com
+                    {COMPANY_INFO.email}
                   </a>
                   <p className="text-white/40 text-sm mt-1">
                     Joindre votre CV en format PDF
@@ -352,10 +353,10 @@ export default function CarrieresPage() {
                   </div>
                   <h3 className="text-white font-bold mb-1">Par telephone</h3>
                   <a
-                    href="tel:15148258411"
+                    href={`tel:${COMPANY_INFO.phoneTel}`}
                     className="text-[var(--color-red-light)] hover:text-white transition-colors font-medium"
                   >
-                    514-825-8411
+                    {COMPANY_INFO.phone}
                   </a>
                   <p className="text-white/40 text-sm mt-1">
                     Du lundi au vendredi, 8h a 17h
@@ -380,16 +381,16 @@ export default function CarrieresPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="mailto:info@vosthermos.com?subject=Candidature spontanee"
+              href={`mailto:${COMPANY_INFO.email}?subject=Candidature spontanee`}
               className="inline-flex items-center justify-center gap-2 bg-white text-[var(--color-teal-dark)] px-8 py-4 rounded-full font-bold hover:bg-gray-100 transition-all"
             >
               <i className="fas fa-paper-plane"></i> Envoyer mon CV
             </a>
             <a
-              href="tel:15148258411"
+              href={`tel:${COMPANY_INFO.phoneTel}`}
               className="inline-flex items-center justify-center gap-2 bg-transparent text-white border-2 border-white/40 px-8 py-4 rounded-full font-bold hover:border-white hover:bg-white/10 transition-all"
             >
-              <i className="fas fa-phone"></i> 514-825-8411
+              <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
             </a>
           </div>
         </div>

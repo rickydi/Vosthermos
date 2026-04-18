@@ -4,6 +4,7 @@ import { SERVICES, getService } from "@/lib/services-data";
 import { CITIES, getCity } from "@/lib/cities";
 import { getServiceSeo } from "@/lib/seo-templates";
 import QuoteForm from "@/components/QuoteForm";
+import { COMPANY_INFO } from "@/lib/company";
 
 export function generateStaticParams() {
   const params = [];
@@ -57,11 +58,11 @@ export default async function ServiceCityPage({ params }) {
       "@type": "LocalBusiness",
       name: "Vosthermos",
       telephone: "+15148258411",
-      email: "info@vosthermos.com",
+      email: COMPANY_INFO.email,
       url: "https://www.vosthermos.com",
       address: {
         "@type": "PostalAddress",
-        streetAddress: "330 Ch. St-Francois-Xavier, Local 101",
+        streetAddress: COMPANY_INFO.address,
         addressLocality: "Saint-Francois-Xavier",
         addressRegion: "QC",
         addressCountry: "CA",
@@ -73,7 +74,7 @@ export default async function ServiceCityPage({ params }) {
   const faqItems = [
     {
       q: `Combien coute le service de ${service.shortTitle.toLowerCase()} a ${city.name}?`,
-      a: `Le prix varie selon l'ampleur des travaux. Contactez-nous au 514-825-8411 pour une soumission gratuite a ${city.name}. Nous nous deplacons dans tous les quartiers${city.neighborhoods ? ` incluant ${city.neighborhoods.slice(0, 3).join(", ")}` : ""}.`,
+      a: `Le prix varie selon l'ampleur des travaux. Contactez-nous au ${COMPANY_INFO.phone} pour une soumission gratuite a ${city.name}. Nous nous deplacons dans tous les quartiers${city.neighborhoods ? ` incluant ${city.neighborhoods.slice(0, 3).join(", ")}` : ""}.`,
     },
     {
       q: `Desservez-vous ${city.name} pour ce service?`,
@@ -133,11 +134,11 @@ export default async function ServiceCityPage({ params }) {
               </div>
               <div className="flex flex-wrap gap-4">
                 <a
-                  href="tel:15148258411"
+                  href={`tel:${COMPANY_INFO.phoneTel}`}
                   className="inline-flex items-center gap-2 bg-[var(--color-red)] text-white font-bold px-6 py-3 rounded-xl hover:bg-[var(--color-red-light)] transition-colors"
                 >
                   <i className="fas fa-phone"></i>
-                  514-825-8411
+                  {COMPANY_INFO.phone}
                 </a>
                 <Link
                   href="/rendez-vous"
@@ -268,11 +269,11 @@ export default async function ServiceCityPage({ params }) {
                 Appelez-nous pour {service.shortTitle.toLowerCase()} a {city.name}.
               </p>
               <a
-                href="tel:15148258411"
+                href={`tel:${COMPANY_INFO.phoneTel}`}
                 className="flex items-center justify-center gap-2 bg-[var(--color-red)] text-white font-bold px-6 py-3 rounded-xl hover:bg-[var(--color-red-light)] transition-colors w-full mb-3"
               >
                 <i className="fas fa-phone"></i>
-                514-825-8411
+                {COMPANY_INFO.phone}
               </a>
               <Link
                 href="/rendez-vous"

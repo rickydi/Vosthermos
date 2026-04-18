@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { COMPANY_INFO } from "@/lib/company";
 
 const steps = [
   {
@@ -224,10 +225,10 @@ export default function DiagnosticPage() {
               <p className="text-white/60 text-sm mb-6">Free quote with no obligation</p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <a
-                  href="tel:15148258411"
+                  href={`tel:${COMPANY_INFO.phoneTel}`}
                   className="inline-flex items-center justify-center gap-2 bg-[var(--color-red)] text-white font-bold px-6 py-3 rounded-xl hover:bg-[var(--color-red-light)] transition-colors"
                 >
-                  <i className="fas fa-phone"></i> 514-825-8411
+                  <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
                 </a>
                 <Link
                   href="/en/rendez-vous"

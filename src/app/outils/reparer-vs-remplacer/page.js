@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { COMPANY_INFO } from "@/lib/company";
 
 const WEBAPP_JSON_LD = {
   "@context": "https://schema.org",
@@ -191,10 +192,10 @@ export default function CompareToolPage() {
                   <i className="fas fa-calendar-check mr-2"></i>Prendre RDV gratuit
                 </Link>
                 <a
-                  href="tel:+15148258411"
+                  href={`tel:${COMPANY_INFO.phoneTel}`}
                   className="px-6 py-3 border border-[var(--color-border)] rounded-lg text-[var(--color-text)] hover:bg-[var(--color-bg)]"
                 >
-                  <i className="fas fa-phone mr-2"></i>514-825-8411
+                  <i className="fas fa-phone mr-2"></i>{COMPANY_INFO.phone}
                 </a>
               </div>
             </div>

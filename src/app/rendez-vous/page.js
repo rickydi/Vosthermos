@@ -1,4 +1,5 @@
 import BookingCalendar from "@/components/BookingCalendar";
+import { COMPANY_INFO } from "@/lib/company";
 
 export const metadata = {
   title: "Prendre rendez-vous - Vosthermos",
@@ -49,11 +50,11 @@ export default function RendezVousPage() {
         <div className="max-w-[1200px] mx-auto px-6 text-center">
           <p className="text-white/60 mb-3">Vous preferez nous appeler directement?</p>
           <a
-            href="tel:15148258411"
+            href={`tel:${COMPANY_INFO.phoneTel}`}
             className="inline-flex items-center gap-2 text-white font-bold text-xl hover:text-[var(--color-red-light)] transition-colors"
           >
             <i className="fas fa-phone"></i>
-            514-825-8411
+            {COMPANY_INFO.phone}
           </a>
         </div>
       </section>

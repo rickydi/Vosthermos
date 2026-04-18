@@ -1,10 +1,11 @@
 import Link from "next/link";
 import SavingsCalculator from "@/components/SavingsCalculator";
+import { COMPANY_INFO } from "@/lib/company";
 
 export const metadata = {
   title: "OPTI-FENETRE Program | Complete Window Restoration | Vosthermos",
   description:
-    "The Vosthermos OPTI-FENETRE program: complete restoration of your doors and windows at a fraction of the replacement cost. Free evaluation, personalized plan, warranty. Montreal, South Shore, Laval. 514-825-8411.",
+    `The Vosthermos OPTI-FENETRE program: complete restoration of your doors and windows at a fraction of the replacement cost. Free evaluation, personalized plan, warranty. Montreal, South Shore, Laval. ${COMPANY_INFO.phone}.`,
   alternates: { canonical: "https://www.vosthermos.com/en/opti-fenetre" },
   openGraph: {
     type: "website",
@@ -119,11 +120,11 @@ export default function OptiFenetrePage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
-                href="tel:15148258411"
+                href={`tel:${COMPANY_INFO.phoneTel}`}
                 className="inline-flex items-center justify-center gap-2 bg-[var(--color-red)] text-white font-bold px-8 py-4 rounded-xl hover:bg-[var(--color-red-light)] transition-colors text-lg"
               >
                 <i className="fas fa-phone"></i>
-                514-825-8411
+                {COMPANY_INFO.phone}
               </a>
               <Link
                 href="/en/rendez-vous"
@@ -343,11 +344,11 @@ export default function OptiFenetrePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="tel:15148258411"
+              href={`tel:${COMPANY_INFO.phoneTel}`}
               className="inline-flex items-center justify-center gap-2 bg-white text-[var(--color-red)] font-bold px-8 py-4 rounded-xl hover:bg-gray-100 transition-colors text-lg"
             >
               <i className="fas fa-phone"></i>
-              514-825-8411
+              {COMPANY_INFO.phone}
             </a>
             <Link
               href="/en/rendez-vous"

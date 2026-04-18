@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
+import { COMPANY_INFO } from "@/lib/company";
 
 const TOTAL_ESTIMATED_WINDOWS = 12;
 const AVG_REPLACEMENT_COST = 250;
@@ -387,10 +388,10 @@ export default function EnergySavingsCalculator() {
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <a
-                href="tel:15148258411"
+                href={`tel:${COMPANY_INFO.phoneTel}`}
                 className="inline-flex items-center justify-center gap-2 bg-[var(--color-red)] text-white font-bold px-8 py-4 rounded-xl hover:bg-[var(--color-red-light)] transition-colors text-lg"
               >
-                <i className="fas fa-phone"></i> 514-825-8411
+                <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
               </a>
               <Link
                 href="/#contact"

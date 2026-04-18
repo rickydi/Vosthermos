@@ -1,7 +1,8 @@
+import { COMPANY_INFO } from "@/lib/company";
 export const metadata = {
   title: "Contact Vosthermos | Soumission gratuite portes & fenêtres — Montréal, Rive-Sud, Laval",
   description:
-    "Contactez Vosthermos pour une soumission gratuite en 24h. Réparation de portes, fenêtres et vitres thermos. 15 ans d'expérience, garantie 10 ans. Montréal, Laval, Longueuil, Rive-Sud ☎ 514-825-8411",
+    `Contactez Vosthermos pour une soumission gratuite en 24h. Réparation de portes, fenêtres et vitres thermos. 15 ans d'expérience, garantie 10 ans. Montréal, Laval, Longueuil, Rive-Sud ☎ ${COMPANY_INFO.phone}`,
   alternates: {
     canonical: "https://www.vosthermos.com/contact",
     languages: {
@@ -13,7 +14,7 @@ export const metadata = {
     type: "website",
     url: "https://www.vosthermos.com/contact",
     siteName: "Vosthermos",
-    title: "Contact Vosthermos | Soumission gratuite 24h — 514-825-8411",
+    title: `Contact Vosthermos | Soumission gratuite 24h — ${COMPANY_INFO.phone}`,
     description:
       "Soumission gratuite en 24h pour réparation de vos portes, fenêtres et vitres thermos. Montréal, Laval, Rive-Sud. 15 ans d'expérience.",
     images: [{ url: "https://www.vosthermos.com/images/Vos-Thermos-Logo.png" }],
@@ -22,7 +23,7 @@ export const metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Contact Vosthermos | Soumission gratuite 24h",
-    description: "Réparation portes & fenêtres — Montréal, Laval, Rive-Sud ☎ 514-825-8411",
+    description: `Réparation portes & fenêtres — Montréal, Laval, Rive-Sud ☎ ${COMPANY_INFO.phone}`,
     images: ["https://www.vosthermos.com/images/Vos-Thermos-Logo.png"],
   },
   robots: "index, follow",
@@ -41,13 +42,13 @@ const contactJsonLd = {
     "@id": "https://www.vosthermos.com/#business",
     name: "Vosthermos",
     telephone: "+15148258411",
-    email: "info@vosthermos.com",
+    email: COMPANY_INFO.email,
     address: {
       "@type": "PostalAddress",
-      streetAddress: "330 Ch. St-François-Xavier, Local 101",
+      streetAddress: COMPANY_INFO.address,
       addressLocality: "Saint-François-Xavier",
       addressRegion: "QC",
-      postalCode: "J0H 1S0",
+      postalCode: COMPANY_INFO.postalCode,
       addressCountry: "CA",
     },
     openingHoursSpecification: [

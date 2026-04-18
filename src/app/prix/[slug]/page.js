@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { PRICING, getPricing } from "@/lib/pricing-data";
 import { getService } from "@/lib/services-data";
+import { COMPANY_INFO } from "@/lib/company";
 
 export function generateStaticParams() {
   return PRICING.map((p) => ({ slug: p.slug }));
@@ -193,8 +194,8 @@ export default async function PricingDetailPage({ params }) {
                 <p className="text-gray-500 text-sm mb-4">
                   Obtenez un prix exact pour votre projet. Sans engagement.
                 </p>
-                <a href="tel:15148258411" className="flex items-center justify-center gap-2 bg-[var(--color-red)] text-white font-bold px-6 py-3 rounded-xl hover:bg-[var(--color-red-light)] transition-colors w-full mb-3">
-                  <i className="fas fa-phone"></i> 514-825-8411
+                <a href={`tel:${COMPANY_INFO.phoneTel}`} className="flex items-center justify-center gap-2 bg-[var(--color-red)] text-white font-bold px-6 py-3 rounded-xl hover:bg-[var(--color-red-light)] transition-colors w-full mb-3">
+                  <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
                 </a>
                 <Link href="/rendez-vous" className="flex items-center justify-center gap-2 bg-[var(--color-teal)] text-white font-bold px-6 py-3 rounded-xl hover:bg-[var(--color-teal-dark)] transition-colors w-full">
                   <i className="fas fa-calendar-alt"></i> Prendre rendez-vous

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import useFormTracking from "@/lib/useFormTracking";
 import { formatPhoneInput } from "@/lib/phone";
+import { COMPANY_INFO } from "@/lib/company";
 
 const inputWrap = "relative";
 const inputClass = "w-full bg-white border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:border-[var(--color-red)] transition-colors pr-10";
@@ -148,8 +149,8 @@ export default function QuoteForm({ compact = false }) {
           <p className="text-white/70 text-sm text-center">
             On s&apos;en occupe! Nous vous contacterons rapidement.
           </p>
-          <a href="tel:15148258411" className="text-white/50 hover:text-white text-xs transition-colors">
-            <i className="fas fa-phone text-[10px] mr-1"></i>514-825-8411
+          <a href={`tel:${COMPANY_INFO.phoneTel}`} className="text-white/50 hover:text-white text-xs transition-colors">
+            <i className="fas fa-phone text-[10px] mr-1"></i>{COMPANY_INFO.phone}
           </a>
           <button
             onClick={() => setStatus("")}
@@ -180,8 +181,8 @@ export default function QuoteForm({ compact = false }) {
         </div>
         <div className="text-center mt-3">
           <span className="text-white/50 text-xs">ou appelez-nous </span>
-          <a href="tel:15148258411" className="text-white font-semibold text-sm hover:text-[var(--color-red-light)]">
-            <i className="fas fa-phone text-xs"></i> 514-825-8411
+          <a href={`tel:${COMPANY_INFO.phoneTel}`} className="text-white font-semibold text-sm hover:text-[var(--color-red-light)]">
+            <i className="fas fa-phone text-xs"></i> {COMPANY_INFO.phone}
           </a>
         </div>
       </div>
@@ -277,7 +278,7 @@ export default function QuoteForm({ compact = false }) {
         {sending ? "Envoi..." : "Envoyer la demande"}
       </button>
       {status === "error" && (
-        <p className="text-red-400 text-xs text-center">Erreur. Appelez-nous au 514-825-8411.</p>
+        <p className="text-red-400 text-xs text-center">Erreur. Appelez-nous au {COMPANY_INFO.phone}.</p>
       )}
     </form>
   );
@@ -290,8 +291,8 @@ export default function QuoteForm({ compact = false }) {
       {formContent}
       <div className="text-center mt-3">
         <span className="text-white/50 text-xs">ou appelez-nous </span>
-        <a href="tel:15148258411" className="text-white font-semibold text-sm hover:text-[var(--color-red-light)]">
-          <i className="fas fa-phone text-xs"></i> 514-825-8411
+        <a href={`tel:${COMPANY_INFO.phoneTel}`} className="text-white font-semibold text-sm hover:text-[var(--color-red-light)]">
+          <i className="fas fa-phone text-xs"></i> {COMPANY_INFO.phone}
         </a>
       </div>
     </div>

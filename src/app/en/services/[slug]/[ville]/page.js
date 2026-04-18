@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { SERVICES, getService } from "@/lib/services-data";
 import { CITIES, getCity } from "@/lib/cities";
+import { COMPANY_INFO } from "@/lib/company";
 
 export function generateStaticParams() {
   const params = [];
@@ -20,7 +21,7 @@ export async function generateMetadata({ params }) {
   if (!service || !city) return {};
 
   const title = `${service.shortTitle} in ${city.name} | Vosthermos`;
-  const description = `${service.shortTitle} in ${city.name}, ${city.region}. Professional service with warranty. Free quote. 514-825-8411. Vosthermos serves ${city.name} and surrounding areas.`;
+  const description = `${service.shortTitle} in ${city.name}, ${city.region}. Professional service with warranty. Free quote. ${COMPANY_INFO.phone}. Vosthermos serves ${city.name} and surrounding areas.`;
 
   return {
     title,
@@ -56,11 +57,11 @@ export default async function ServiceCityPage({ params }) {
       "@type": "LocalBusiness",
       name: "Vosthermos",
       telephone: "+15148258411",
-      email: "info@vosthermos.com",
+      email: COMPANY_INFO.email,
       url: "https://www.vosthermos.com",
       address: {
         "@type": "PostalAddress",
-        streetAddress: "330 Ch. St-Francois-Xavier, Local 101",
+        streetAddress: COMPANY_INFO.address,
         addressLocality: "Saint-Francois-Xavier",
         addressRegion: "QC",
         addressCountry: "CA",
@@ -72,7 +73,7 @@ export default async function ServiceCityPage({ params }) {
   const faqItems = [
     {
       q: `How much does ${service.shortTitle.toLowerCase()} cost in ${city.name}?`,
-      a: `The price varies depending on the scope of work. Contact us at 514-825-8411 for a free quote in ${city.name}. We service all neighborhoods${city.neighborhoods ? ` including ${city.neighborhoods.slice(0, 3).join(", ")}` : ""}.`,
+      a: `The price varies depending on the scope of work. Contact us at ${COMPANY_INFO.phone} for a free quote in ${city.name}. We service all neighborhoods${city.neighborhoods ? ` including ${city.neighborhoods.slice(0, 3).join(", ")}` : ""}.`,
     },
     {
       q: `Do you serve ${city.name} for this service?`,
@@ -124,11 +125,11 @@ export default async function ServiceCityPage({ params }) {
           </p>
           <div className="flex flex-wrap gap-4">
             <a
-              href="tel:15148258411"
+              href={`tel:${COMPANY_INFO.phoneTel}`}
               className="inline-flex items-center gap-2 bg-[var(--color-red)] text-white font-bold px-6 py-3 rounded-xl hover:bg-[var(--color-red-light)] transition-colors"
             >
               <i className="fas fa-phone"></i>
-              514-825-8411
+              {COMPANY_INFO.phone}
             </a>
             <Link
               href="/en/rendez-vous"
@@ -241,11 +242,11 @@ export default async function ServiceCityPage({ params }) {
                 Get a free evaluation for {service.shortTitle.toLowerCase()} in {city.name}.
               </p>
               <a
-                href="tel:15148258411"
+                href={`tel:${COMPANY_INFO.phoneTel}`}
                 className="flex items-center justify-center gap-2 bg-[var(--color-red)] text-white font-bold px-6 py-3 rounded-xl hover:bg-[var(--color-red-light)] transition-colors w-full mb-3"
               >
                 <i className="fas fa-phone"></i>
-                514-825-8411
+                {COMPANY_INFO.phone}
               </a>
               <Link
                 href="/en/rendez-vous"

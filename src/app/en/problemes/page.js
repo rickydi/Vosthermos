@@ -4,7 +4,7 @@ import { PROBLEMS, PROBLEM_CATEGORIES } from "@/lib/problems-data";
 export const metadata = {
   title: "Common Door and Window Problems — Solutions | Vosthermos",
   description:
-    "Foggy window, stuck patio door, drafts, torn screen? Find the causes and solutions for all door and window problems. Experts for 15 years. 514-825-8411.",
+    `Foggy window, stuck patio door, drafts, torn screen? Find the causes and solutions for all door and window problems. Experts for 15 years. ${COMPANY_INFO.phone}.`,
   alternates: { canonical: "https://www.vosthermos.com/en/problemes" },
 };
 

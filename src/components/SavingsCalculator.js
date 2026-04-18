@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import { COMPANY_INFO } from "@/lib/company";
 
 const REPLACEMENT_PRICES = { window: 1100, patioDoor: 3500, entryDoor: 3000 };
 
@@ -24,7 +25,7 @@ const labels = {
     heatingYear: "Economie chauffage/an", roi: "Retour sur investissement",
     saved: "Ouvertures sauvees", years: "ans",
     readyToSave: "Pret a economiser", freeQuote: "Soumission gratuite et sans engagement",
-    callUs: "514-825-8411", bookNow: "Prendre rendez-vous",
+    callUs: COMPANY_INFO.phone, bookNow: "Prendre rendez-vous",
     recalculate: "Recalculer",
   },
   en: {
@@ -36,7 +37,7 @@ const labels = {
     heatingYear: "Heating savings/year", roi: "Return on investment",
     saved: "Openings saved", years: "years",
     readyToSave: "Ready to save", freeQuote: "Free quote, no obligation",
-    callUs: "514-825-8411", bookNow: "Book an appointment",
+    callUs: COMPANY_INFO.phone, bookNow: "Book an appointment",
     recalculate: "Recalculate",
   },
 };
@@ -194,7 +195,7 @@ export default function SavingsCalculator({ lang = "fr" }) {
             <h3 className="text-xl font-bold mb-2">{t.readyToSave} {formatMoney(calc.savings)}?</h3>
             <p className="text-white/60 text-sm mb-6">{t.freeQuote}</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <a href="tel:15148258411" className="inline-flex items-center justify-center gap-2 bg-[var(--color-red)] text-white font-bold px-8 py-4 rounded-xl hover:bg-[var(--color-red-light)] transition-colors text-lg">
+              <a href={`tel:${COMPANY_INFO.phoneTel}`} className="inline-flex items-center justify-center gap-2 bg-[var(--color-red)] text-white font-bold px-8 py-4 rounded-xl hover:bg-[var(--color-red-light)] transition-colors text-lg">
                 <i className="fas fa-phone"></i> {t.callUs}
               </a>
               <Link href={`${prefix}/rendez-vous`} className="inline-flex items-center justify-center gap-2 bg-white/10 text-white font-bold px-8 py-4 rounded-xl hover:bg-white/20 transition-colors">

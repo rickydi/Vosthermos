@@ -1,3 +1,4 @@
+import { COMPANY_INFO } from "@/lib/company";
 // Moteur de calcul partage pour:
 // - Outils HTML (/outils/*, /calculateur*)
 // - API publique (/api/public/calculate-*)
@@ -5,7 +6,7 @@
 //
 // Toute la logique de prix/diagnostic est ici. Une seule source de verite.
 
-const PHONE = "514-825-8411";
+const PHONE = COMPANY_INFO.phone;
 const BASE = "https://www.vosthermos.com";
 
 // ── 1. Thermos (sealed glass) cost estimator ──

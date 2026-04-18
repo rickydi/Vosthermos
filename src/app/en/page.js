@@ -12,11 +12,12 @@ import EcoSection from "@/components/EcoSection";
 import BeforeAfterSlider from "@/components/BeforeAfterSlider";
 import { getCategoryIcon } from "@/lib/category-icons";
 import { getActivePromotions } from "@/lib/promotions";
+import { COMPANY_INFO } from "@/lib/company";
 
 export const metadata = {
   title: "Vosthermos | Door and Window Repair | Montreal, South Shore",
   description:
-    "Door and window repair experts for over 15 years. Sealed glass unit replacement with professional guaranteed service, hardware, wooden doors, screen doors. Fast service Montreal, South Shore and 100km radius. Free quote 514-825-8411. Online parts store.",
+    `Door and window repair experts for over 15 years. Sealed glass unit replacement with professional guaranteed service, hardware, wooden doors, screen doors. Fast service Montreal, South Shore and 100km radius. Free quote ${COMPANY_INFO.phone}. Online parts store.`,
   alternates: {
     canonical: "https://www.vosthermos.com/en/",
     languages: {
@@ -61,7 +62,7 @@ export default async function HomeEn() {
     name: "How to get your doors and windows repaired with Vosthermos",
     description: "A simple 3-step process to get your doors and windows repaired by experts.",
     step: [
-      { "@type": "HowToStep", name: "Contact us", text: "Call us at 514-825-8411 or fill out our online form. Describe your need and we'll respond quickly.", url: "https://www.vosthermos.com/en/#contact" },
+      { "@type": "HowToStep", name: "Contact us", text: `Call us at ${COMPANY_INFO.phone} or fill out our online form. Describe your need and we'll respond quickly.`, url: "https://www.vosthermos.com/en/#contact" },
       { "@type": "HowToStep", name: "Free estimate", text: "We assess your needs and provide a clear, detailed quote with no surprises or hidden fees." },
       { "@type": "HowToStep", name: "Quick service", text: "Our team comes to your home or business with all the materials needed for quality work." },
     ],
@@ -86,7 +87,7 @@ export default async function HomeEn() {
       {
         "@type": "Question",
         name: "Do you offer free quotes?",
-        acceptedAnswer: { "@type": "Answer", text: "Yes, all our quotes are free and without obligation. Call us at 514-825-8411 or fill out our online form." },
+        acceptedAnswer: { "@type": "Answer", text: `Yes, all our quotes are free and without obligation. Call us at ${COMPANY_INFO.phone} or fill out our online form.` },
       },
       {
         "@type": "Question",
@@ -183,10 +184,10 @@ export default async function HomeEn() {
               <i className="fas fa-shopping-bag"></i> Browse the shop
             </Link>
             <a
-              href="tel:15148258411"
+              href={`tel:${COMPANY_INFO.phoneTel}`}
               className="inline-flex items-center justify-center gap-2 text-[var(--color-muted)] hover:text-[var(--color-teal)] border border-[var(--color-border)] hover:border-[var(--color-teal)]/30 px-8 py-3.5 rounded-full font-bold text-sm transition-all"
             >
-              <i className="fas fa-phone text-xs"></i> 514-825-8411
+              <i className="fas fa-phone text-xs"></i> {COMPANY_INFO.phone}
             </a>
           </div>
         </div>
@@ -420,8 +421,8 @@ export default async function HomeEn() {
             <a href="#contact" className="inline-flex items-center justify-center gap-2 bg-white text-[var(--color-teal-dark)] px-8 py-4 rounded-full font-bold hover:bg-gray-100 transition-all">
               Request a quote
             </a>
-            <a href="tel:15148258411" className="inline-flex items-center justify-center gap-2 bg-transparent text-white border-2 border-white/40 px-8 py-4 rounded-full font-bold hover:border-white hover:bg-white/10 transition-all">
-              <i className="fas fa-phone"></i> 514-825-8411
+            <a href={`tel:${COMPANY_INFO.phoneTel}`} className="inline-flex items-center justify-center gap-2 bg-transparent text-white border-2 border-white/40 px-8 py-4 rounded-full font-bold hover:border-white hover:bg-white/10 transition-all">
+              <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
             </a>
           </div>
         </div>
@@ -454,7 +455,7 @@ export default async function HomeEn() {
                   </div>
                   <div>
                     <strong className="block mb-1">Phone</strong>
-                    <a href="tel:15148258411" className="text-[var(--color-teal)] font-medium hover:text-[var(--color-red)] transition-colors">1 514-825-8411</a>
+                    <a href={`tel:${COMPANY_INFO.phoneTel}`} className="text-[var(--color-teal)] font-medium hover:text-[var(--color-red)] transition-colors">1 {COMPANY_INFO.phone}</a>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -463,7 +464,7 @@ export default async function HomeEn() {
                   </div>
                   <div>
                     <strong className="block mb-1">Email</strong>
-                    <a href="mailto:info@vosthermos.com" className="text-[var(--color-teal)] font-medium hover:text-[var(--color-red)] transition-colors">info@vosthermos.com</a>
+                    <a href={`mailto:${COMPANY_INFO.email}`} className="text-[var(--color-teal)] font-medium hover:text-[var(--color-red)] transition-colors">{COMPANY_INFO.email}</a>
                   </div>
                 </div>
                 <div className="flex gap-3 pt-2">

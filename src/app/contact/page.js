@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { formatPhoneInput } from "@/lib/phone";
 import useFormTracking from "@/lib/useFormTracking";
+import { COMPANY_INFO } from "@/lib/company";
 
 const hours = [
   { day: "Lundi", time: "FERMÉ" },
@@ -85,17 +86,17 @@ export default function ContactPage() {
           <div className="bg-white rounded-xl p-8 shadow-sm border border-[var(--color-border)] mb-8">
             <h2 className="text-xl font-bold mb-4">Pour nous joindre</h2>
             <ul className="space-y-3 text-[var(--color-muted)]">
-              <li>330 Ch. St-François-Xavier, Local 101, Saint-François-Xavier, QC J0H 1S0</li>
+              <li>{COMPANY_INFO.address}, Saint-François-Xavier, QC {COMPANY_INFO.postalCode}</li>
               <li>
                 Téléphone:{" "}
-                <a href="tel:+15148258411" className="text-[var(--color-primary)] font-medium hover:underline">
-                  514-825-8411
+                <a href={`tel:${COMPANY_INFO.phoneTel}`} className="text-[var(--color-primary)] font-medium hover:underline">
+                  {COMPANY_INFO.phone}
                 </a>
               </li>
               <li>
                 Courriel:{" "}
-                <a href="mailto:info@vosthermos.com" className="text-[var(--color-primary)] font-medium hover:underline">
-                  info@vosthermos.com
+                <a href={`mailto:${COMPANY_INFO.email}`} className="text-[var(--color-primary)] font-medium hover:underline">
+                  {COMPANY_INFO.email}
                 </a>
               </li>
             </ul>

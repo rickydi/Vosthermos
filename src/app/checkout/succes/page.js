@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useCart } from "@/components/CartContext";
+import { COMPANY_INFO } from "@/lib/company";
 
 function SuccessContent() {
   const { clearCart } = useCart();
@@ -66,11 +67,11 @@ function SuccessContent() {
           <div className="space-y-2 text-sm text-[var(--color-muted)]">
             <p>
               <i className="fas fa-phone text-[var(--color-red)] mr-2"></i>
-              <a href="tel:15148258411" className="text-[var(--color-teal)] font-medium hover:underline">514-825-8411</a>
+              <a href={`tel:${COMPANY_INFO.phoneTel}`} className="text-[var(--color-teal)] font-medium hover:underline">{COMPANY_INFO.phone}</a>
             </p>
             <p>
               <i className="fas fa-envelope text-[var(--color-red)] mr-2"></i>
-              <a href="mailto:info@vosthermos.com" className="text-[var(--color-teal)] font-medium hover:underline">info@vosthermos.com</a>
+              <a href={`mailto:${COMPANY_INFO.email}`} className="text-[var(--color-teal)] font-medium hover:underline">{COMPANY_INFO.email}</a>
             </p>
           </div>
         </div>
