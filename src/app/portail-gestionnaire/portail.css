@@ -51,7 +51,7 @@
 .pg-glow-a { width: 620px; height: 620px; background: var(--pg-teal-500); top: -220px; left: -140px; opacity: .55; }
 .pg-glow-b { width: 520px; height: 520px; background: var(--pg-red-500); top: 40px; right: -120px; opacity: .15; }
 .pg-hero-inner { position: relative; text-align: center; }
-.pg-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-family: var(--pg-sans); font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--pg-teal-300); padding: 6px 12px; border: 1px solid rgba(111,183,199,.25); background: rgba(0,77,94,.25); border-radius: 999px; }
+.pg-eyebrow { display: flex; width: fit-content; margin-left: auto; margin-right: auto; align-items: center; gap: 8px; font-family: var(--pg-sans); font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--pg-teal-300); padding: 6px 12px; border: 1px solid rgba(111,183,199,.25); background: rgba(0,77,94,.25); border-radius: 999px; }
 .pg-eyebrow-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--pg-red-500); box-shadow: 0 0 0 3px rgba(227,7,24,.2); }
 .pg-eyebrow-dark { color: var(--pg-teal-600); background: #eaf2f4; border-color: #d4e4e7; }
 .pg-eyebrow-dark .pg-eyebrow-dot { background: var(--pg-red-500); box-shadow: 0 0 0 3px rgba(227,7,24,.12); }
@@ -134,11 +134,11 @@
 
 /* SECTIONS */
 .portail-page section { padding: 110px 0; }
-.pg-section-title { font-size: clamp(28px, 3.5vw, 44px); line-height: 1.1; font-weight: 700; margin: 18px 0 0; max-width: 36ch; text-wrap: balance; color: var(--pg-fg); }
+.pg-section-title { font-size: clamp(28px, 3.5vw, 44px); line-height: 1.1; font-weight: 700; margin: 18px auto 0; max-width: 36ch; text-wrap: balance; color: var(--pg-fg); text-align: center; }
 .pg-section-title em { font-style: normal; background: linear-gradient(135deg, var(--pg-red-500), var(--pg-red-600)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .pg-section-title.light { color: #fff; }
 .pg-section-title.light em { background: linear-gradient(135deg, #ffbdc4, var(--pg-red-400)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.pg-section-lede { margin-top: 20px; max-width: 62ch; color: var(--pg-muted); font-size: 17px; }
+.pg-section-lede { margin: 20px auto 0; max-width: 62ch; color: var(--pg-muted); font-size: 17px; text-align: center; }
 .pg-section-lede.light { color: rgba(255,255,255,.65); }
 
 /* PROBLEM/SOLUTION */
