@@ -48,6 +48,12 @@ export async function generateMetadata() {
     },
     verification: {
       google: "LNVLJOda6YGvqjLQb_ZnVDd5ikvAwqv2HzXWJQDxQxA",
+      other: {
+        // Bing Webmaster Tools: https://www.bing.com/webmasters → Sites → Add → remplacer le token ci-dessous
+        "msvalidate.01": process.env.BING_SITE_VERIFICATION || "",
+        // Yandex Webmaster: https://webmaster.yandex.com → Add site → remplacer le token ci-dessous
+        "yandex-verification": process.env.YANDEX_SITE_VERIFICATION || "",
+      },
     },
     other: {
       "geo.region": "CA-QC",

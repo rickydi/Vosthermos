@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import GscTab from "@/components/admin/GscTab";
+import IndexNowPanel from "@/components/admin/IndexNowPanel";
 
 function positionColor(pos) {
   if (pos === null || pos === undefined) return "bg-gray-500/20 text-gray-400";
@@ -353,6 +354,33 @@ export default function AdminSeoPage() {
           >
             <i className="fas fa-search mr-2"></i>site:vosthermos.com
           </a>
+          <a
+            href="https://www.bing.com/webmasters"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-medium hover:bg-white/5 transition-colors"
+            title="Bing Webmaster Tools — Import depuis Google Search Console en 1 clic"
+          >
+            <i className="fab fa-microsoft mr-2"></i>Bing Webmaster
+          </a>
+          <a
+            href="https://www.bing.com/search?q=site:vosthermos.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-medium hover:bg-white/5 transition-colors"
+            title="Voir pages indexees par Bing — utilise par ChatGPT, Copilot, Perplexity"
+          >
+            <i className="fab fa-windows mr-2"></i>site:bing.com
+          </a>
+          <a
+            href="https://webmaster.yandex.com/sites/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-medium hover:bg-white/5 transition-colors"
+            title="Yandex Webmaster — pour IndexNow"
+          >
+            <i className="fas fa-globe mr-2"></i>Yandex
+          </a>
           {tab === "serper" && (
             <button onClick={startCheck} disabled={checking || !activeKeyword}
               className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${checking ? "bg-gray-500/30 text-gray-400 cursor-not-allowed" : "bg-[var(--color-red)] text-white hover:opacity-90"}`}>
@@ -361,6 +389,9 @@ export default function AdminSeoPage() {
           )}
         </div>
       </div>
+
+      {/* IndexNow panel - always visible */}
+      <IndexNowPanel />
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6">

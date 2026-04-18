@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
+import { pingIndexNowAsync } from "@/lib/indexnow";
 
 export async function GET(request) {
   try {
@@ -72,6 +73,10 @@ export async function POST(request) {
         publishedAt: data.status === "published" ? new Date() : null,
       },
     });
+
+    if (post.status === "published") {
+      pingIndexNowAsync([`/blogue/${post.slug}`, "/blogue", "/sitemap.xml"]);
+    }
 
     return NextResponse.json({
       ...post,

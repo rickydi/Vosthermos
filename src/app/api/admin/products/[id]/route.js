@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
+import { pingIndexNowAsync } from "@/lib/indexnow";
 
 export async function GET(request, { params }) {
   try {
@@ -49,6 +50,8 @@ export async function PUT(request, { params }) {
       where: { id: parseInt(id) },
       data: updateData,
     });
+
+    pingIndexNowAsync([`/produit/${product.slug}`]);
 
     return NextResponse.json({ ...product, price: Number(product.price) });
   } catch (err) {
