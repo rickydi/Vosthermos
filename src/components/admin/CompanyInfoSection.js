@@ -22,6 +22,26 @@ export default function CompanyInfoSection() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState("");
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState("");
+
+  async function propagateToSite() {
+    if (!confirm("Propager ces valeurs sur TOUT le site (incluant les pages statiques)?\n\nCela va:\n1. Sauvegarder le fichier company-info.js\n2. Committer + pousser sur GitHub\n3. Relancer le site (2 minutes)\n\nLe site sera offline ~2 min pendant le rebuild.")) return;
+    setSyncing(true);
+    setSyncMsg("");
+    setErr("");
+    try {
+      const res = await fetch("/api/admin/company/sync", { method: "POST" });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || "Erreur");
+      setSyncMsg(d.message);
+      // Keep syncing state for a bit so user sees feedback
+      setTimeout(() => setSyncing(false), 8000);
+    } catch (e) {
+      setErr(e.message);
+      setSyncing(false);
+    }
+  }
 
   useEffect(() => {
     fetch("/api/admin/settings?section=company")
@@ -80,15 +100,28 @@ export default function CompanyInfoSection() {
             Ces informations apparaissent sur toutes les factures generees (header + footer).
           </p>
         </div>
-        <button type="submit" disabled={saving}
-          className="px-6 py-2.5 bg-[var(--color-red)] text-white rounded-lg text-sm font-bold disabled:opacity-50 flex items-center gap-2">
-          {saving ? <><i className="fas fa-spinner fa-spin"></i> Sauvegarde...</> :
-            saved ? <><i className="fas fa-check"></i> Sauvegarde</> :
-              <><i className="fas fa-save"></i> Enregistrer</>}
-        </button>
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={propagateToSite} disabled={syncing || saving}
+            className="px-4 py-2.5 admin-card border admin-border admin-text rounded-lg text-sm font-medium hover:bg-white/5 disabled:opacity-50 flex items-center gap-2"
+            title="Synchronise les valeurs sur toutes les pages statiques du site + redeploie">
+            {syncing ? <><i className="fas fa-spinner fa-spin"></i> Propagation...</> :
+              <><i className="fas fa-globe"></i> Propager sur le site</>}
+          </button>
+          <button type="submit" disabled={saving}
+            className="px-6 py-2.5 bg-[var(--color-red)] text-white rounded-lg text-sm font-bold disabled:opacity-50 flex items-center gap-2">
+            {saving ? <><i className="fas fa-spinner fa-spin"></i> Sauvegarde...</> :
+              saved ? <><i className="fas fa-check"></i> Sauvegarde</> :
+                <><i className="fas fa-save"></i> Enregistrer</>}
+          </button>
+        </div>
       </div>
 
       {err && <p className="text-sm text-red-500 mb-3">{err}</p>}
+      {syncMsg && (
+        <div className="mb-3 px-4 py-3 bg-blue-500/10 border border-blue-500/30 text-blue-400 rounded-lg text-sm">
+          <i className="fas fa-info-circle mr-2"></i>{syncMsg}
+        </div>
+      )}
 
       <div className="grid md:grid-cols-2 gap-4">
         {FIELDS.map((f) => (
