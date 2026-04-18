@@ -44,47 +44,47 @@ export default function InvoiceA3({ wo, backHref = "/admin/bons/preview", label 
             size: 8.5in 11in;
             margin: 0;
           }
+          /* Hide admin chrome (sidebar, header, nav bar) */
+          aside, .admin-sidebar, .admin-header, .print-hide {
+            display: none !important;
+          }
+          /* Neutralize all wrapper layouts WITHOUT touching display
+             (so our explicit display rules below win) */
+          body *:not(.invoice-page):not(.invoice-page *) {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            min-height: 0 !important;
+            max-width: none !important;
+            overflow: visible !important;
+          }
+          /* Force block layout on the ancestor chain so pages flow naturally */
+          html, body,
+          body > *,
+          body > * > *,
+          body > * > * > *,
+          body > * > * > * > *,
+          main,
+          .page-stack {
+            display: block !important;
+          }
           html, body {
             background: white !important;
             margin: 0 !important;
             padding: 0 !important;
-            width: auto !important;
-            height: auto !important;
-            overflow: visible !important;
           }
-          /* Hide admin chrome */
-          aside, .admin-sidebar, .admin-header, header[class*="admin"] {
-            display: none !important;
-          }
-          /* Neutralize all wrapper layouts so pages can flow naturally */
-          body > *, body > * > *, body > * > * > *, main {
-            display: block !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            background: transparent !important;
-            min-height: 0 !important;
-            width: auto !important;
-            overflow: visible !important;
-            box-shadow: none !important;
-          }
-          .print-hide { display: none !important; }
-          .page-stack {
-            display: block !important;
-            gap: 0 !important;
-            margin: 0 !important;
-            padding: 0 !important;
-          }
+          /* Invoice page: rigid 8.5x11 with page break after each */
           .invoice-page {
             display: block !important;
-            box-shadow: none !important;
-            margin: 0 !important;
-            page-break-after: always;
-            break-after: page;
-            /* Force exact page size */
             width: 8.5in !important;
             height: 11in !important;
             max-width: 8.5in !important;
             overflow: hidden !important;
+            margin: 0 !important;
+            box-shadow: none !important;
+            page-break-after: always;
+            break-after: page;
           }
           .invoice-page:last-child {
             page-break-after: auto;
