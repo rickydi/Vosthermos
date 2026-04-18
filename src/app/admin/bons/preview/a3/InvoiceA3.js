@@ -44,12 +44,12 @@ export default function InvoiceA3({ wo, backHref = "/admin/bons/preview", label 
             size: 8.5in 11in;
             margin: 0;
           }
-          /* Hide admin chrome (sidebar, header, nav bar) */
+          /* Hide everything — scripts, styles, meta, admin chrome */
+          script, style, link, meta, noscript,
           aside, .admin-sidebar, .admin-header, .print-hide {
             display: none !important;
           }
-          /* Neutralize all wrapper layouts WITHOUT touching display
-             (so our explicit display rules below win) */
+          /* Neutralize wrapper layouts (without touching display) */
           body *:not(.invoice-page):not(.invoice-page *) {
             margin: 0 !important;
             padding: 0 !important;
@@ -59,13 +59,16 @@ export default function InvoiceA3({ wo, backHref = "/admin/bons/preview", label 
             max-width: none !important;
             overflow: visible !important;
           }
-          /* Force block layout on the ancestor chain so pages flow naturally */
-          html, body,
-          body > *,
-          body > * > *,
-          body > * > * > *,
-          body > * > * > * > *,
-          main,
+          /* Force block layout on ONLY the ancestor chain of .invoice-page.
+             Using :has() to target only elements that contain invoice pages,
+             so we don't break script/style/etc. */
+          html:has(.invoice-page),
+          body:has(.invoice-page),
+          body > *:has(.invoice-page),
+          body > * > *:has(.invoice-page),
+          body > * > * > *:has(.invoice-page),
+          body > * > * > * > *:has(.invoice-page),
+          main:has(.invoice-page),
           .page-stack {
             display: block !important;
           }
