@@ -948,16 +948,8 @@ export default function PortailGestionnairePage() {
             </div>
             <div className="pg-team-grid">
               <article className="pg-team-card">
-                <div className="pg-team-photo-wrap">
-                  <img
-                    className="pg-team-photo"
-                    src="/images/personas/representant-marie.png"
-                    alt="Marie Lefebvre, spécialiste copropriétés"
-                  />
-                </div>
                 <div className="pg-team-info">
-                  <p className="pg-team-eyebrow">Spécialiste copropriétés</p>
-                  <h3 className="pg-team-name">Marie Lefebvre</h3>
+                  <h3 className="pg-team-name">Spécialiste copropriétés</h3>
                   <p className="pg-team-role">
                     Démos, mise en route du portail et formation de votre équipe.
                   </p>
@@ -969,10 +961,10 @@ export default function PortailGestionnairePage() {
                       href={`tel:${COMPANY_INFO.phoneTel}`}
                       className="pg-team-btn pg-team-btn-primary"
                     >
-                      Appeler Marie
+                      Appeler
                     </a>
                     <Link
-                      href="/contact?sujet=portail-demo&specialiste=marie"
+                      href="/contact?sujet=portail-demo&specialiste=coproprietes"
                       className="pg-team-btn pg-team-btn-outline"
                     >
                       Écrire
@@ -982,16 +974,8 @@ export default function PortailGestionnairePage() {
               </article>
 
               <article className="pg-team-card">
-                <div className="pg-team-photo-wrap">
-                  <img
-                    className="pg-team-photo"
-                    src="/images/personas/representant-jean-pierre.png"
-                    alt="Jean-Pierre Desjardins, conseiller technique"
-                  />
-                </div>
                 <div className="pg-team-info">
-                  <p className="pg-team-eyebrow">Conseiller technique</p>
-                  <h3 className="pg-team-name">Jean-Pierre Desjardins</h3>
+                  <h3 className="pg-team-name">Conseiller technique</h3>
                   <p className="pg-team-role">
                     Plans pluriannuels et parcs importants de 50 fenêtres et plus.
                   </p>
@@ -1003,10 +987,10 @@ export default function PortailGestionnairePage() {
                       href={`tel:${COMPANY_INFO.phoneTel}`}
                       className="pg-team-btn pg-team-btn-primary"
                     >
-                      Appeler Jean-Pierre
+                      Appeler
                     </a>
                     <Link
-                      href="/contact?sujet=portail-demo&specialiste=jean-pierre"
+                      href="/contact?sujet=portail-demo&specialiste=technique"
                       className="pg-team-btn pg-team-btn-outline"
                     >
                       Écrire
