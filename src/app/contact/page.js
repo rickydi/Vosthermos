@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { formatPhoneInput } from "@/lib/phone";
 import useFormTracking from "@/lib/useFormTracking";
-import { COMPANY_INFO } from "@/lib/company-info";
+import { useCompany } from "@/lib/useCompany";
 import "./contact.css";
 
 const hours = [
@@ -46,6 +46,7 @@ function ContactContent() {
   const searchParams = useSearchParams();
   const sujet = searchParams.get("sujet");
   const context = (sujet && SUBJECT_CONTEXT[sujet]) || DEFAULT_CONTEXT;
+  const COMPANY_INFO = useCompany();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
