@@ -793,64 +793,79 @@ export default function PortailGestionnairePage() {
               portail change l&apos;équation.
             </p>
             <div className="pg-table-wrap">
-              <table className="pg-cmp">
-                <thead>
-                  <tr>
-                    <th>
-                      <span className="pg-cmp-col-sub">Comparatif</span>
-                      Fonctionnalité
-                    </th>
-                    <th className="us">
-                      <span className="pg-cmp-col-sub">Solution numérique</span>
-                      Vosthermos Portail
-                      <span className="pg-cmp-badge-reco">
-                        <i className="fas fa-star"></i> Recommandé
-                      </span>
-                    </th>
-                    <th>
-                      <span className="pg-cmp-col-sub">Traditionnel</span>
-                      Entrepreneur classique
-                    </th>
-                    <th>
-                      <span className="pg-cmp-col-sub">Basique</span>
-                      Appels téléphoniques
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    ["Portail web 24/7", "yes", "no", "no"],
-                    ["Bon de travail numérique", "yes", "no", "no"],
-                    ["Historique par unité", "yes", "maybe", "no"],
-                    ["Plan pluriannuel", "yes", "no", "no"],
-                    ["Notifications automatiques", "yes", "no", "no"],
-                    ["Factures consolidées", "yes", "maybe", "no"],
-                    ["Photos avant / après archivées", "yes", "no", "no"],
-                    ["Garanties trackées numériquement", "yes", "no", "no"],
-                  ].map(([feat, us, trad, phone], i) => (
-                    <tr key={i}>
-                      <th>{feat}</th>
-                      <td className="us">
-                        <span className={`pg-check ${us}`}>
-                          {us === "yes" ? "✓" : us === "maybe" ? "~" : "✗"}
-                        </span>
-                      </td>
-                      <td>
-                        <span className={`pg-check ${trad}`}>
-                          {trad === "yes" ? "✓" : trad === "maybe" ? "~" : "✗"}
-                        </span>
-                      </td>
-                      <td>
-                        <span className={`pg-check ${phone}`}>
-                          {phone === "yes" ? "✓" : phone === "maybe" ? "~" : "✗"}
-                        </span>
-                      </td>
+              <span className="pg-cmp-recobadge">
+                <i className="fas fa-star"></i> Notre recommandation
+              </span>
+              <div className="pg-cmp-shell">
+                <table className="pg-cmp">
+                  <thead>
+                    <tr>
+                      <th>
+                        <span className="pg-cmp-col-sub">Fonctionnalité</span>
+                        Ce qu&apos;il vous faut
+                      </th>
+                      <th className="us">
+                        <span className="pg-cmp-col-sub">Solution numérique</span>
+                        Vosthermos Portail
+                      </th>
+                      <th>
+                        <span className="pg-cmp-col-sub">Traditionnel</span>
+                        Entrepreneur classique
+                      </th>
+                      <th>
+                        <span className="pg-cmp-col-sub">Basique</span>
+                        Appels téléphoniques
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div className="pg-cmp-footer">
-                Seul <strong>Vosthermos Portail</strong> coche toutes les cases pour les gestionnaires de copropriétés modernes.
+                  </thead>
+                  <tbody>
+                    {[
+                      ["Portail web 24/7", "yes", "no", "no"],
+                      ["Bon de travail numérique", "yes", "no", "no"],
+                      ["Historique par unité", "yes", "maybe", "no"],
+                      ["Plan pluriannuel", "yes", "no", "no"],
+                      ["Notifications automatiques", "yes", "no", "no"],
+                      ["Factures consolidées", "yes", "maybe", "no"],
+                      ["Photos avant / après archivées", "yes", "no", "no"],
+                      ["Garanties trackées numériquement", "yes", "no", "no"],
+                    ].map(([feat, us, trad, phone], i) => {
+                      const Icon = ({ state }) => {
+                        if (state === "yes") {
+                          return (
+                            <span className="pg-check yes" aria-label="Oui">
+                              <svg viewBox="0 0 24 24"><polyline points="5 12 10 17 19 7" /></svg>
+                            </span>
+                          );
+                        }
+                        if (state === "maybe") {
+                          return (
+                            <span className="pg-check maybe" aria-label="Partiel">
+                              <svg viewBox="0 0 24 24"><line x1="6" y1="12" x2="18" y2="12" /></svg>
+                            </span>
+                          );
+                        }
+                        return (
+                          <span className="pg-check no" aria-label="Non">
+                            <svg viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18" /><line x1="18" y1="6" x2="6" y2="18" /></svg>
+                          </span>
+                        );
+                      };
+                      return (
+                        <tr key={i}>
+                          <th>{feat}</th>
+                          <td className="us"><Icon state={us} /></td>
+                          <td><Icon state={trad} /></td>
+                          <td><Icon state={phone} /></td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                <div className="pg-cmp-footer">
+                  Seul <strong>Vosthermos Portail</strong>
+                  <span className="pg-cmp-arrow"> → </span>
+                  coche toutes les cases pour les gestionnaires de copropriétés modernes.
+                </div>
               </div>
             </div>
           </div>
