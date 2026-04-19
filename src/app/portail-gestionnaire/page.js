@@ -792,42 +792,49 @@ export default function PortailGestionnairePage() {
               Face à un entrepreneur fenêtres Québec traditionnel ou à la gestion par téléphone, le
               portail change l&apos;équation.
             </p>
-            <div className="pg-table-wrap">
-              <table className="pg-cmp">
-                <thead>
-                  <tr>
-                    <th>Fonctionnalité</th>
-                    <th className="us">Vosthermos Portail</th>
-                    <th>Entrepreneur traditionnel</th>
-                    <th>Appels téléphoniques</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    ["Portail web 24/7", "yes", "no", "no"],
-                    ["Bon de travail numérique", "yes", "no", "no"],
-                    ["Historique par unité", "yes", "maybe", "no"],
-                    ["Plan pluriannuel", "yes", "no", "no"],
-                    ["Notifications automatiques", "yes", "no", "no"],
-                    ["Factures consolidées", "yes", "maybe", "no"],
-                    ["Photos avant / après archivées", "yes", "no", "no"],
-                    ["Garanties trackées numériquement", "yes", "no", "no"],
-                  ].map(([feat, us, trad, phone], i) => (
-                    <tr key={i}>
-                      <th>{feat}</th>
-                      <td className="us">
-                        <span className={`pg-check ${us}`}>{us === "yes" ? "✓" : us === "maybe" ? "~" : "✗"}</span>
-                      </td>
-                      <td>
-                        <span className={`pg-check ${trad}`}>{trad === "yes" ? "✓" : trad === "maybe" ? "~" : "✗"}</span>
-                      </td>
-                      <td>
-                        <span className={`pg-check ${phone}`}>{phone === "yes" ? "✓" : phone === "maybe" ? "~" : "✗"}</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="pg-compare-cards">
+              {(() => {
+                const FEATURES = [
+                  ["Portail web 24/7", "yes", "no", "no"],
+                  ["Bon de travail numérique", "yes", "no", "no"],
+                  ["Historique par unité", "yes", "maybe", "no"],
+                  ["Plan pluriannuel", "yes", "no", "no"],
+                  ["Notifications automatiques", "yes", "no", "no"],
+                  ["Factures consolidées", "yes", "maybe", "no"],
+                  ["Photos avant / après archivées", "yes", "no", "no"],
+                  ["Garanties trackées numériquement", "yes", "no", "no"],
+                ];
+                const icon = (s) => s === "yes" ? "✓" : s === "maybe" ? "~" : "✗";
+                const columns = [
+                  { idx: 2, badge: "Traditionnel", title: "Entrepreneur classique", sub: "Méthode répandue au Québec", cta: "Efficacité limitée" },
+                  { idx: 1, featured: true, badge: "Recommandé", title: "Vosthermos Portail", sub: "Solution numérique complète pour gestionnaires", cta: "Tout-en-un, sans friction" },
+                  { idx: 3, badge: "Basique", title: "Appels téléphoniques", sub: "Gestion par téléphone et courriels", cta: "Sans traçabilité" },
+                ];
+                return columns.map((col, i) => (
+                  <div className={`pg-cc-card${col.featured ? " pg-cc-featured" : ""}`} key={i}>
+                    <div className="pg-cc-head">
+                      <span className={`pg-cc-badge${col.featured ? " pg-cc-badge-accent" : ""}`}>
+                        {col.featured && <i className="fas fa-star"></i>}
+                        {col.badge}
+                      </span>
+                      <h3>{col.title}</h3>
+                      <p className="pg-cc-sub">{col.sub}</p>
+                    </div>
+                    <ul className="pg-cc-list">
+                      {FEATURES.map((f, j) => {
+                        const state = f[col.idx];
+                        return (
+                          <li key={j} className={state}>
+                            <span className={`pg-cc-icon ${state}`}>{icon(state)}</span>
+                            <span>{f[0]}</span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    <div className="pg-cc-cta">{col.cta}</div>
+                  </div>
+                ));
+              })()}
             </div>
           </div>
         </section>
