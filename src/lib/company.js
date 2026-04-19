@@ -10,10 +10,10 @@ export { COMPANY_INFO };
 export const DEFAULT_COMPANY = {
   legalName: "Vosthermos",
   neq: "",
-  address: "330 Ch. St-Francois-Xavier, Local 101",
+  address: "330 Ch. St-Francois-Xavier, Local 104",
   city: "Saint-Francois-Xavier-de-Brompton",
   province: "QC",
-  postalCode: "J0H 1S0",
+  postalCode: "J5B 1C9",
   phone: "514-825-8411",
   phoneTel: "+15148258411", // canonical format for tel: links + schema.org
   email: "info@vosthermos.com",

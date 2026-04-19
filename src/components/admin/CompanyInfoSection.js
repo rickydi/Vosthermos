@@ -5,10 +5,10 @@ import { useEffect, useState } from "react";
 const FIELDS = [
   { key: "company_legal_name", label: "Nom legal (raison sociale)", placeholder: "9999-9999 Quebec inc." },
   { key: "company_neq", label: "NEQ (numero d'entreprise Quebec)", placeholder: "1234567890" },
-  { key: "company_address", label: "Adresse", placeholder: "330 Ch. St-Francois-Xavier, Local 101" },
+  { key: "company_address", label: "Adresse", placeholder: "330 Ch. St-Francois-Xavier, Local 104" },
   { key: "company_city", label: "Ville", placeholder: "Saint-Francois-Xavier-de-Brompton" },
   { key: "company_province", label: "Province", placeholder: "QC" },
-  { key: "company_postal_code", label: "Code postal", placeholder: "J0H 1S0" },
+  { key: "company_postal_code", label: "Code postal", placeholder: "J5B 1C9" },
   { key: "company_phone", label: "Telephone", placeholder: "514-825-8411" },
   { key: "company_email", label: "Email", placeholder: "info@vosthermos.com" },
   { key: "company_web", label: "Site web", placeholder: "vosthermos.com" },

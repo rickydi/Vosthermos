@@ -37,11 +37,11 @@ function buildFileContent(values) {
 export const COMPANY_INFO = {
   legalName: "${esc(v.legalName || "Vosthermos")}",
   neq: "${esc(v.neq || "")}",
-  address: "${esc(v.address || "330 Ch. St-Francois-Xavier, Local 101")}",
+  address: "${esc(v.address || "330 Ch. St-Francois-Xavier, Local 104")}",
   city: "${esc(v.city || "Saint-Francois-Xavier-de-Brompton")}",
   cityShort: "${esc((v.city || "Saint-Francois-Xavier-de-Brompton").split(",")[0].split("-de-")[0])}",
   province: "${esc(v.province || "QC")}",
-  postalCode: "${esc(v.postalCode || "J0H 1S0")}",
+  postalCode: "${esc(v.postalCode || "J5B 1C9")}",
   phone: "${esc(v.phone || "514-825-8411")}",
   phoneTel: "${esc(toTelFormat(v.phone))}",
   email: "${esc(v.email || "info@vosthermos.com")}",

@@ -8,7 +8,7 @@ import CompanyInfoSection from "@/components/admin/CompanyInfoSection";
 
 export default function AdminSettingsPage() {
   const [form, setForm] = useState({
-    address: "330 Ch. St-Francois-Xavier, Local 101",
+    address: "330 Ch. St-Francois-Xavier, Local 104",
     city: "Saint-Francois-Xavier",
     province: "QC",
     postalCode: "",

@@ -6,9 +6,9 @@
 
 const COMPANY_DEFAULTS = {
   legal: "9999-9999 Quebec inc.",
-  address: "330 Ch. St-Francois-Xavier, Local 101",
+  address: "330 Ch. St-Francois-Xavier, Local 104",
   city: "Saint-Francois-Xavier-de-Brompton",
-  postalCode: "J0H 1S0",
+  postalCode: "J5B 1C9",
   phone: "514-825-8411",
   email: "info@vosthermos.com",
   web: "vosthermos.com",

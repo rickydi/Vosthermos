@@ -23,10 +23,10 @@ const COMPANY_KEYS = [
 
 const COMPANY_DEFAULTS = {
   company_legal_name: "",
-  company_address: "330 Ch. St-Francois-Xavier, Local 101",
+  company_address: "330 Ch. St-Francois-Xavier, Local 104",
   company_city: "Saint-Francois-Xavier-de-Brompton",
   company_province: "QC",
-  company_postal_code: "J0H 1S0",
+  company_postal_code: "J5B 1C9",
   company_phone: "514-825-8411",
   company_email: "info@vosthermos.com",
   company_web: "vosthermos.com",
