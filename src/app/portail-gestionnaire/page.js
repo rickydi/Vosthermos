@@ -936,75 +936,93 @@ export default function PortailGestionnairePage() {
           </div>
         </section>
 
-        {/* TÉMOIGNAGES */}
-        <section className="pg-testi">
+        {/* VOTRE ÉQUIPE DÉDIÉE */}
+        <section className="pg-team">
           <div className="pg-container">
             <span className="pg-eyebrow pg-eyebrow-dark">
-              <span className="pg-eyebrow-dot"></span>TÉMOIGNAGES
+              <span className="pg-eyebrow-dot"></span>VOTRE ÉQUIPE DÉDIÉE
             </span>
             <h2 className="pg-section-title">
-              Des gestionnaires qui nous font <em>confiance</em>.
+              Parlez à un <em>vrai humain</em>, pas à un bot.
             </h2>
             <p className="pg-section-lede">
-              Ils gèrent des copropriétés au Québec et utilisent Vosthermos Portail pour
-              centraliser leurs travaux de fenêtres.
+              Deux spécialistes vous accompagnent : de la démo à la mise en route
+              jusqu&apos;au suivi mensuel. Disponibles par téléphone, courriel ou en
+              personne.
             </p>
-            <div className="pg-testi-grid">
-              <article className="pg-testi-card">
-                <div className="pg-testi-stars">
-                  <i className="fas fa-star"></i>
-                  <i className="fas fa-star"></i>
-                  <i className="fas fa-star"></i>
-                  <i className="fas fa-star"></i>
-                  <i className="fas fa-star"></i>
-                </div>
-                <p className="pg-testi-quote">
-                  Depuis qu&apos;on utilise le portail, fini les appels sans fin. Je vois
-                  tout sur mon tableau de bord : quelle fenêtre, quand, pour combien.
-                  Mes propriétaires me demandent même comment on a mis ça en place.
-                </p>
-                <div className="pg-testi-author">
+            <div className="pg-team-grid">
+              <article className="pg-team-card">
+                <div className="pg-team-photo-wrap">
                   <img
-                    className="pg-testi-photo"
-                    src="/images/personas/gestionnaire-marie.jpg"
-                    alt="Marie L., gestionnaire de copropriété"
+                    className="pg-team-photo"
+                    src="/images/personas/representant-marie.png"
+                    alt="Marie Lefebvre, spécialiste copropriétés"
                   />
-                  <div className="pg-testi-info">
-                    <h4>Marie L.</h4>
-                    <p>Gestionnaire · Copropriété à Laval</p>
+                </div>
+                <div className="pg-team-info">
+                  <span className="pg-team-badge">
+                    <span className="pg-team-pulse"></span>Disponible aujourd&apos;hui
+                  </span>
+                  <h3 className="pg-team-name">Marie Lefebvre</h3>
+                  <p className="pg-team-role">
+                    Spécialiste copropriétés · Démos et mise en route du portail
+                  </p>
+                  <p className="pg-team-spec">
+                    <i className="fas fa-location-dot"></i>Grand Montréal · Laval · Laurentides
+                  </p>
+                  <div className="pg-team-cta">
+                    <a
+                      href={`tel:${COMPANY_INFO.phoneTel}`}
+                      className="pg-team-btn pg-team-btn-primary"
+                    >
+                      <i className="fas fa-phone"></i> Appeler Marie
+                    </a>
+                    <Link
+                      href="/contact?sujet=portail-demo&specialiste=marie"
+                      className="pg-team-btn pg-team-btn-outline"
+                    >
+                      <i className="fas fa-envelope"></i> Message
+                    </Link>
                   </div>
                 </div>
               </article>
 
-              <article className="pg-testi-card">
-                <div className="pg-testi-stars">
-                  <i className="fas fa-star"></i>
-                  <i className="fas fa-star"></i>
-                  <i className="fas fa-star"></i>
-                  <i className="fas fa-star"></i>
-                  <i className="fas fa-star"></i>
-                </div>
-                <p className="pg-testi-quote">
-                  Le plan pluriannuel nous a permis de budgéter 5 ans d&apos;entretien
-                  devant le CA en 10 minutes. Chaque fenêtre a son historique, ses
-                  photos, sa garantie. C&apos;est exactement ce qui manquait au secteur.
-                </p>
-                <div className="pg-testi-author">
+              <article className="pg-team-card">
+                <div className="pg-team-photo-wrap">
                   <img
-                    className="pg-testi-photo"
-                    src="/images/personas/gestionnaire-jean-pierre.jpg"
-                    alt="Jean-Pierre D., président CA copropriété"
+                    className="pg-team-photo"
+                    src="/images/personas/representant-jean-pierre.png"
+                    alt="Jean-Pierre Desjardins, conseiller technique"
                   />
-                  <div className="pg-testi-info">
-                    <h4>Jean-Pierre D.</h4>
-                    <p>Président CA · 3 immeubles en Montérégie</p>
+                </div>
+                <div className="pg-team-info">
+                  <span className="pg-team-badge">
+                    <span className="pg-team-pulse"></span>Disponible aujourd&apos;hui
+                  </span>
+                  <h3 className="pg-team-name">Jean-Pierre Desjardins</h3>
+                  <p className="pg-team-role">
+                    Conseiller technique · Plans pluriannuels et parcs importants (50+ fenêtres)
+                  </p>
+                  <p className="pg-team-spec">
+                    <i className="fas fa-location-dot"></i>Montérégie · Rive-Sud · Estrie
+                  </p>
+                  <div className="pg-team-cta">
+                    <a
+                      href={`tel:${COMPANY_INFO.phoneTel}`}
+                      className="pg-team-btn pg-team-btn-primary"
+                    >
+                      <i className="fas fa-phone"></i> Appeler Jean-Pierre
+                    </a>
+                    <Link
+                      href="/contact?sujet=portail-demo&specialiste=jean-pierre"
+                      className="pg-team-btn pg-team-btn-outline"
+                    >
+                      <i className="fas fa-envelope"></i> Message
+                    </Link>
                   </div>
                 </div>
               </article>
             </div>
-            <p className="pg-testi-disclaimer">
-              Témoignages représentatifs de gestionnaires utilisateurs du portail.
-            </p>
           </div>
         </section>
 
