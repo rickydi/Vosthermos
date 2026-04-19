@@ -196,9 +196,13 @@ export default function PortailGestionnairePage() {
               <div className="pg-dash">
                 <aside className="pg-dash-side">
                   <div className="pg-dash-account">
-                    <div className="pg-avatar">ML</div>
+                    <img
+                      className="pg-avatar-photo"
+                      src="/images/personas/gestionnaire-marie.jpg"
+                      alt="Avatar gestionnaire"
+                    />
                     <div>
-                      <div className="pg-dash-owner">Marc L.</div>
+                      <div className="pg-dash-owner">Marie L.</div>
                       <div className="pg-dash-org">Les Jardins Fleuris · 24 u.</div>
                     </div>
                   </div>
@@ -416,9 +420,14 @@ export default function PortailGestionnairePage() {
                     </span>
                   </div>
                   <div className="pg-phone-app-header">
-                    <div className="pg-avatar">ML</div>
+                    <img
+                      className="pg-avatar-photo"
+                      src="/images/personas/gestionnaire-marie.jpg"
+                      alt="Avatar gestionnaire"
+                      style={{ width: 30, height: 30, borderRadius: 8 }}
+                    />
                     <div>
-                      <h4>Marc L.</h4>
+                      <h4>Marie L.</h4>
                       <p>Les Jardins Fleuris</p>
                     </div>
                     <span className="pg-phone-burger">
@@ -924,6 +933,78 @@ export default function PortailGestionnairePage() {
                 </ul>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* TÉMOIGNAGES */}
+        <section className="pg-testi">
+          <div className="pg-container">
+            <span className="pg-eyebrow pg-eyebrow-dark">
+              <span className="pg-eyebrow-dot"></span>TÉMOIGNAGES
+            </span>
+            <h2 className="pg-section-title">
+              Des gestionnaires qui nous font <em>confiance</em>.
+            </h2>
+            <p className="pg-section-lede">
+              Ils gèrent des copropriétés au Québec et utilisent Vosthermos Portail pour
+              centraliser leurs travaux de fenêtres.
+            </p>
+            <div className="pg-testi-grid">
+              <article className="pg-testi-card">
+                <div className="pg-testi-stars">
+                  <i className="fas fa-star"></i>
+                  <i className="fas fa-star"></i>
+                  <i className="fas fa-star"></i>
+                  <i className="fas fa-star"></i>
+                  <i className="fas fa-star"></i>
+                </div>
+                <p className="pg-testi-quote">
+                  Depuis qu&apos;on utilise le portail, fini les appels sans fin. Je vois
+                  tout sur mon tableau de bord : quelle fenêtre, quand, pour combien.
+                  Mes propriétaires me demandent même comment on a mis ça en place.
+                </p>
+                <div className="pg-testi-author">
+                  <img
+                    className="pg-testi-photo"
+                    src="/images/personas/gestionnaire-marie.jpg"
+                    alt="Marie L., gestionnaire de copropriété"
+                  />
+                  <div className="pg-testi-info">
+                    <h4>Marie L.</h4>
+                    <p>Gestionnaire · Copropriété à Laval</p>
+                  </div>
+                </div>
+              </article>
+
+              <article className="pg-testi-card">
+                <div className="pg-testi-stars">
+                  <i className="fas fa-star"></i>
+                  <i className="fas fa-star"></i>
+                  <i className="fas fa-star"></i>
+                  <i className="fas fa-star"></i>
+                  <i className="fas fa-star"></i>
+                </div>
+                <p className="pg-testi-quote">
+                  Le plan pluriannuel nous a permis de budgéter 5 ans d&apos;entretien
+                  devant le CA en 10 minutes. Chaque fenêtre a son historique, ses
+                  photos, sa garantie. C&apos;est exactement ce qui manquait au secteur.
+                </p>
+                <div className="pg-testi-author">
+                  <img
+                    className="pg-testi-photo"
+                    src="/images/personas/gestionnaire-jean-pierre.jpg"
+                    alt="Jean-Pierre D., président CA copropriété"
+                  />
+                  <div className="pg-testi-info">
+                    <h4>Jean-Pierre D.</h4>
+                    <p>Président CA · 3 immeubles en Montérégie</p>
+                  </div>
+                </div>
+              </article>
+            </div>
+            <p className="pg-testi-disclaimer">
+              Témoignages représentatifs de gestionnaires utilisateurs du portail.
+            </p>
           </div>
         </section>
 
