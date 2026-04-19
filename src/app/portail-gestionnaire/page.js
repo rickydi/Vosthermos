@@ -793,9 +793,6 @@ export default function PortailGestionnairePage() {
               portail change l&apos;équation.
             </p>
             <div className="pg-table-wrap">
-              <span className="pg-cmp-recobadge">
-                <i className="fas fa-star"></i> Notre recommandation
-              </span>
               <div className="pg-cmp-shell">
                 <table className="pg-cmp">
                   <thead>
@@ -805,6 +802,9 @@ export default function PortailGestionnairePage() {
                         Ce qu&apos;il vous faut
                       </th>
                       <th className="us">
+                        <span className="pg-cmp-reco-inline">
+                          <i className="fas fa-star"></i> Recommandé
+                        </span>
                         <span className="pg-cmp-col-sub">Solution numérique</span>
                         Vosthermos Portail
                       </th>
