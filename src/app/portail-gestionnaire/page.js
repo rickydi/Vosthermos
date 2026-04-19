@@ -402,6 +402,68 @@ export default function PortailGestionnairePage() {
               </div>
             </div>
 
+            {/* Phone mockup (mobile only, replaces desktop mockup < 980px) */}
+            <div className="pg-phone-mockup" aria-hidden="true">
+              <div className="pg-phone">
+                <div className="pg-phone-screen">
+                  <div className="pg-phone-status">
+                    <span>9 h 41</span>
+                    <span className="pg-sig">
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                    </span>
+                  </div>
+                  <div className="pg-phone-app-header">
+                    <div className="pg-avatar">ML</div>
+                    <div>
+                      <h4>Marc L.</h4>
+                      <p>Les Jardins Fleuris</p>
+                    </div>
+                    <span className="pg-phone-burger">
+                      <i className="fas fa-bars"></i>
+                    </span>
+                  </div>
+                  <div className="pg-phone-kpi-main">
+                    <div className="pg-phone-kpi-label">À approuver</div>
+                    <div className="pg-phone-kpi-value">3</div>
+                    <div className="pg-phone-kpi-sub">bons de travail en attente</div>
+                  </div>
+                  <div className="pg-phone-list-head">
+                    <span>Récents</span>
+                    <span>Voir tout</span>
+                  </div>
+                  <div className="pg-phone-list">
+                    <div className="pg-phone-item">
+                      <b>Unité 301 · cuisine</b>
+                      <div className="pg-phone-item-sub">
+                        <span>Remplacement scellé</span>
+                        <span>14 h 22</span>
+                      </div>
+                    </div>
+                    <div className="pg-phone-item">
+                      <b>Unité 204 · chambre</b>
+                      <div className="pg-phone-item-sub">
+                        <span>Inspection (2 fenêtres)</span>
+                        <span>En cours</span>
+                      </div>
+                    </div>
+                    <div className="pg-phone-item">
+                      <b>Unité 102 · salon</b>
+                      <div className="pg-phone-item-sub">
+                        <span>Ajustement quincaillerie</span>
+                        <span>À approuver</span>
+                      </div>
+                    </div>
+                  </div>
+                  <button className="pg-phone-approve">
+                    <i className="fas fa-check"></i> Approuver 3 bons de travail
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <div className="pg-trust-bar">
               <div>
                 <b>Données hébergées au Canada</b>
