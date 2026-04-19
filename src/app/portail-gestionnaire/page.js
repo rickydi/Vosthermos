@@ -936,20 +936,16 @@ export default function PortailGestionnairePage() {
           </div>
         </section>
 
-        {/* VOTRE ÉQUIPE DÉDIÉE */}
+        {/* VOTRE ÉQUIPE DÉDIÉE — style Apple */}
         <section className="pg-team">
           <div className="pg-container">
-            <span className="pg-eyebrow pg-eyebrow-dark">
-              <span className="pg-eyebrow-dot"></span>VOTRE ÉQUIPE DÉDIÉE
-            </span>
-            <h2 className="pg-section-title">
-              Parlez à un <em>vrai humain</em>, pas à un bot.
-            </h2>
-            <p className="pg-section-lede">
-              Deux spécialistes vous accompagnent : de la démo à la mise en route
-              jusqu&apos;au suivi mensuel. Disponibles par téléphone, courriel ou en
-              personne.
-            </p>
+            <div className="pg-team-intro">
+              <h2 className="pg-section-title">Parlez à un humain. Pas à un bot.</h2>
+              <p className="pg-section-lede">
+                Deux spécialistes vous accompagnent, de la démo à la mise en route jusqu&apos;au
+                suivi mensuel.
+              </p>
+            </div>
             <div className="pg-team-grid">
               <article className="pg-team-card">
                 <div className="pg-team-photo-wrap">
@@ -960,28 +956,26 @@ export default function PortailGestionnairePage() {
                   />
                 </div>
                 <div className="pg-team-info">
-                  <span className="pg-team-badge">
-                    <span className="pg-team-pulse"></span>Disponible aujourd&apos;hui
-                  </span>
+                  <p className="pg-team-eyebrow">Spécialiste copropriétés</p>
                   <h3 className="pg-team-name">Marie Lefebvre</h3>
                   <p className="pg-team-role">
-                    Spécialiste copropriétés · Démos et mise en route du portail
+                    Démos, mise en route du portail et formation de votre équipe.
                   </p>
                   <p className="pg-team-spec">
-                    <i className="fas fa-location-dot"></i>Grand Montréal · Laval · Laurentides
+                    Grand Montréal · Laval · Laurentides
                   </p>
                   <div className="pg-team-cta">
                     <a
                       href={`tel:${COMPANY_INFO.phoneTel}`}
                       className="pg-team-btn pg-team-btn-primary"
                     >
-                      <i className="fas fa-phone"></i> Appeler Marie
+                      Appeler Marie
                     </a>
                     <Link
                       href="/contact?sujet=portail-demo&specialiste=marie"
                       className="pg-team-btn pg-team-btn-outline"
                     >
-                      <i className="fas fa-envelope"></i> Message
+                      Écrire
                     </Link>
                   </div>
                 </div>
@@ -996,28 +990,26 @@ export default function PortailGestionnairePage() {
                   />
                 </div>
                 <div className="pg-team-info">
-                  <span className="pg-team-badge">
-                    <span className="pg-team-pulse"></span>Disponible aujourd&apos;hui
-                  </span>
+                  <p className="pg-team-eyebrow">Conseiller technique</p>
                   <h3 className="pg-team-name">Jean-Pierre Desjardins</h3>
                   <p className="pg-team-role">
-                    Conseiller technique · Plans pluriannuels et parcs importants (50+ fenêtres)
+                    Plans pluriannuels et parcs importants de 50 fenêtres et plus.
                   </p>
                   <p className="pg-team-spec">
-                    <i className="fas fa-location-dot"></i>Montérégie · Rive-Sud · Estrie
+                    Montérégie · Rive-Sud · Estrie
                   </p>
                   <div className="pg-team-cta">
                     <a
                       href={`tel:${COMPANY_INFO.phoneTel}`}
                       className="pg-team-btn pg-team-btn-primary"
                     >
-                      <i className="fas fa-phone"></i> Appeler Jean-Pierre
+                      Appeler Jean-Pierre
                     </a>
                     <Link
                       href="/contact?sujet=portail-demo&specialiste=jean-pierre"
                       className="pg-team-btn pg-team-btn-outline"
                     >
-                      <i className="fas fa-envelope"></i> Message
+                      Écrire
                     </Link>
                   </div>
                 </div>
