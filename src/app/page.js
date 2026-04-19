@@ -131,6 +131,24 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* Bandeau B2B — Portail Gestionnaires */}
+      <section className="bg-gradient-to-r from-[var(--color-teal-dark)] via-[var(--color-teal)] to-[var(--color-teal-dark)] py-5 border-y border-white/10">
+        <div className="max-w-[1200px] mx-auto px-6">
+          <Link href="/portail-gestionnaire" className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-5 text-white group">
+            <span className="inline-flex items-center gap-2 bg-[var(--color-red)]/20 text-[var(--color-red-light)] text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full border border-[var(--color-red)]/30">
+              <i className="fas fa-star text-[9px]"></i> Nouveau
+            </span>
+            <span className="text-sm md:text-base text-center">
+              <strong className="font-semibold">Portail Gestionnaires de Copropriétés</strong>
+              <span className="text-white/60"> — bons de travail numériques, suivi en temps réel, plans pluriannuels.</span>
+            </span>
+            <span className="inline-flex items-center gap-1 text-[var(--color-red-light)] text-sm font-semibold group-hover:gap-2 transition-all whitespace-nowrap">
+              Découvrir <i className="fas fa-arrow-right text-xs"></i>
+            </span>
+          </Link>
+        </div>
+      </section>
+
       {/* Hero — Boutique catalogue */}
       <section className="bg-[var(--color-background)] py-16">
         <div className="max-w-[1200px] mx-auto px-6">

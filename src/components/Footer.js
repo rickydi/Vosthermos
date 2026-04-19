@@ -157,6 +157,13 @@ export default function Footer({ company }) {
               <li><Link href="/opti-fenetre" className="hover:text-white transition-colors">OPTI-FENETRE</Link></li>
               <li><Link href={`${p}/boutique`} className="hover:text-white transition-colors">{labels.shop}</Link></li>
               <li><Link href={`${p}/rendez-vous`} className="hover:text-white transition-colors">{labels.booking}</Link></li>
+              {!isEn && (
+                <li className="mt-3 pt-3 border-t border-white/10">
+                  <Link href="/portail-gestionnaire" className="inline-flex items-center gap-1 text-[var(--color-red-light)] hover:text-white transition-colors font-semibold">
+                    <i className="fas fa-star text-[10px]"></i> Portail Gestionnaires
+                  </Link>
+                </li>
+              )}
             </ul>
           </div>
 
