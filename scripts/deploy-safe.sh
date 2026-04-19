@@ -1,9 +1,8 @@
 #!/bin/bash
-# Deploy for vosthermos with rollback safety
-# - Stops pm2 to free RAM during build (VPS too small for concurrent build + run)
-# - Builds into .next.new
-# - On success: swap .next.new -> .next and start pm2
-# - On failure: keep old .next intact and restart pm2 (site comes back with previous build)
+# Deploy for vosthermos ZERO-DOWNTIME (VPS 16GB upgrade)
+# - Build into .next.new WITHOUT stopping pm2 (site continues serving old build)
+# - On success: atomic swap + pm2 reload (zero-downtime, cluster mode)
+# - On failure: old .next intact, no action needed (site never went down)
 
 set -e
 
@@ -22,35 +21,31 @@ git pull origin master
 echo "[deploy] cleaning any old .next.new"
 rm -rf .next.new
 
-echo "[deploy] stopping pm2 $APP_NAME to free memory"
-pm2 stop "$APP_NAME" || true
-
-echo "[deploy] building into .next.new (webpack)"
+echo "[deploy] building into .next.new (pm2 still serving old build = no downtime)"
 set +e
 NEXT_DIST_DIR=".next.new" npm run build
 BUILD_EXIT=$?
 set -e
 
 if [ $BUILD_EXIT -ne 0 ] || [ ! -f .next.new/BUILD_ID ]; then
-  echo "[deploy] BUILD FAILED (exit=$BUILD_EXIT) — restoring old build"
+  echo "[deploy] BUILD FAILED (exit=$BUILD_EXIT) — old build still serving, no rollback needed"
   rm -rf .next.new
-  pm2 start "$APP_NAME"
   exit 1
 fi
 
-echo "[deploy] swapping .next.new -> .next"
+echo "[deploy] atomic swap .next.new -> .next"
 rm -rf .next.old
 [ -d .next ] && mv .next .next.old
 mv .next.new .next
 
-echo "[deploy] starting pm2 $APP_NAME"
-pm2 start "$APP_NAME"
+echo "[deploy] zero-downtime reload pm2 $APP_NAME (cluster mode)"
+pm2 reload "$APP_NAME" --update-env
 
 echo "[deploy] cleanup .next.old"
 rm -rf .next.old
 
-# Wait for pm2 app to be ready
-sleep 8
+# Wait for reload to settle (pm2 reload is fast, 2s is enough)
+sleep 3
 
 # Trigger IndexNow (Bing, Yandex, DuckDuckGo, Naver) with priority URLs.
 # Google doesn't support IndexNow — use GSC manually for Google.
