@@ -291,11 +291,11 @@
 .pg-team-role { font-size: 17px; color: #6e6e73; margin: 14px 0 0; line-height: 1.4; letter-spacing: -0.01em; max-width: 32ch; }
 .pg-team-spec { font-size: 14px; color: #86868b; margin: 24px 0 0; line-height: 1.45; letter-spacing: -0.005em; }
 .pg-team-cta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 32px; }
-.pg-team-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 12px 22px; font-size: 15px; font-weight: 500; border-radius: 980px; transition: background .2s, color .2s, border-color .2s; border: 1px solid transparent; letter-spacing: -0.005em; }
-.pg-team-btn-primary { background: #1d1d1f; color: #fff; }
-.pg-team-btn-primary:hover { background: #333336; }
-.pg-team-btn-outline { background: transparent; color: #1d1d1f; border-color: #1d1d1f; }
-.pg-team-btn-outline:hover { background: #1d1d1f; color: #fff; }
+.portail-page a.pg-team-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 12px 22px; font-size: 15px; font-weight: 500; border-radius: 980px; transition: background .2s, color .2s, border-color .2s; border: 1px solid transparent; letter-spacing: -0.005em; }
+.portail-page a.pg-team-btn-primary { background: #1d1d1f; color: #fff; }
+.portail-page a.pg-team-btn-primary:hover { background: #333336; color: #fff; }
+.portail-page a.pg-team-btn-outline { background: transparent; color: #1d1d1f; border-color: #1d1d1f; }
+.portail-page a.pg-team-btn-outline:hover { background: #1d1d1f; color: #fff; border-color: #1d1d1f; }
 .pg-team-btn i { font-size: 13px; }
 
 /* Avatar photo dans dashboard */
