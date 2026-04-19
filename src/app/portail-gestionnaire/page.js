@@ -1021,10 +1021,16 @@ export default function PortailGestionnairePage() {
         {/* FAQ */}
         <section id="faq" className="pg-faq">
           <div className="pg-container">
-            <span className="pg-eyebrow pg-eyebrow-dark">
-              <span className="pg-eyebrow-dot"></span>FAQ
-            </span>
-            <h2 className="pg-section-title">Questions fréquentes des gestionnaires.</h2>
+            <div className="pg-faq-intro">
+              <span className="pg-eyebrow pg-eyebrow-dark">
+                <span className="pg-eyebrow-dot"></span>FAQ
+              </span>
+              <h2 className="pg-section-title">Questions fréquentes des gestionnaires.</h2>
+              <p className="pg-section-lede">
+                Tout ce que vous devez savoir sur le portail. Vous ne trouvez pas votre
+                réponse&nbsp;? Contactez Marie ou Jean-Pierre plus haut.
+              </p>
+            </div>
             <div className="pg-faq-list">
               {FAQS.map((f, i) => (
                 <details className="pg-faq-item" key={i} open={i === 0}>
