@@ -45,6 +45,20 @@ export default async function sitemap() {
     { url: `${BASE}/outils/cout-thermos`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.85 },
     { url: `${BASE}/outils/reparer-vs-remplacer`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.85 },
     { url: `${BASE}/mcp-docs`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.6 },
+
+    // B2B pages - Copropriétés
+    { url: `${BASE}/copropriete`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.9 },
+    { url: `${BASE}/copropriete/plan-pluriannuel-fenetres`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE}/copropriete/remplacement-massif-thermos-condos`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE}/copropriete/conformite-loi-25`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
+
+    // B2B pages - Commercial
+    { url: `${BASE}/commercial`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.9 },
+    { url: `${BASE}/commercial/remplacement-thermos-bureau`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE}/commercial/infiltration-eau-batiment`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.85 },
+
+    // Case studies
+    { url: `${BASE}/realisations/marronnier-laval`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.75 },
   ];
 
   // HowTo guides (structured data for LLMs + Google rich results)
