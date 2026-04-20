@@ -42,12 +42,18 @@ export default function Header({ company }) {
       const frPath = pathname.replace(/^\/en(\/|$)/, "/");
       return frPath || "/";
     }
+    if (pathname === "/contact" || pathname === "/rendez-vous") return "/en/#contact";
+    if (pathname === "/realisations" || pathname.startsWith("/realisations/")) return "/en/#gallery";
+    if (pathname === "/panier" || pathname.startsWith("/checkout")) return pathname;
     // Add /en prefix for English URL
     return `/en${pathname === "/" ? "" : pathname}`;
   };
 
   // Prefix for internal links
   const prefix = isEnglish ? "/en" : "";
+  const bookNowHref = isEnglish ? (isHome ? "#contact" : "/en/#contact") : "/rendez-vous";
+  const projectsHref = isEnglish ? (isHome ? "#gallery" : "/en/#gallery") : "/realisations";
+  const cartHref = "/panier";
 
   // Navigation labels
   const labels = isEnglish
@@ -108,8 +114,8 @@ export default function Header({ company }) {
               { href: `${prefix}/boutique`, label: labels.boutique, match: ["/boutique", "/produit", "/en/boutique", "/en/produit"] },
               { href: `${prefix}/blogue`, label: labels.blogue, match: ["/blogue", "/en/blogue"] },
               { href: `${prefix}/opti-fenetre`, label: labels.optiFenetre, match: ["/opti-fenetre", "/en/opti-fenetre"] },
-              { href: `${prefix}/rendez-vous`, label: labels.rendezvous, match: ["/rendez-vous", "/en/rendez-vous"] },
-              { href: `${prefix}/realisations`, label: labels.realisations, match: ["/realisations", "/en/realisations"] },
+              { href: bookNowHref, label: labels.rendezvous, match: ["/rendez-vous"] },
+              { href: projectsHref, label: labels.realisations, match: ["/realisations"] },
               { href: isHome ? "#contact" : `${prefix || ""}/#contact`, label: labels.contact, match: null },
             ].map((item) => {
               const isActive = item.match && item.match.some((m) => pathname.startsWith(m));
@@ -149,7 +155,7 @@ export default function Header({ company }) {
             </a>
 
             <Link
-              href={`${prefix}/panier`}
+              href={cartHref}
               className="relative flex items-center gap-1 text-white/80 hover:text-white transition-colors"
               aria-label={labels.panier}
             >
@@ -186,13 +192,13 @@ export default function Header({ company }) {
           <Link href={`${prefix}/boutique`} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.boutique}</Link>
           <Link href={`${prefix}/blogue`} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.blogue}</Link>
           <Link href={`${prefix}/opti-fenetre`} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.optiFenetre}</Link>
-          <Link href={`${prefix}/rendez-vous`} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.rendezvous}</Link>
+          <Link href={bookNowHref} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.rendezvous}</Link>
           <Link href={`${prefix}/garantie`} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.garantie}</Link>
-          <Link href={`${prefix}/realisations`} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.realisations}</Link>
+          <Link href={projectsHref} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.realisations}</Link>
           <Link href={`${prefix}/faq`} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.faq}</Link>
           <Link href={isHome ? "#secteurs" : `${prefix || ""}/#secteurs`} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.secteurs}</Link>
           <Link href={isHome ? "#contact" : `${prefix || ""}/#contact`} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.contact}</Link>
-          <Link href={`${prefix}/panier`} className="text-white font-medium" onClick={() => setMenuOpen(false)}>
+          <Link href={cartHref} className="text-white font-medium" onClick={() => setMenuOpen(false)}>
             {labels.panier} {loaded && itemCount > 0 && `(${itemCount})`}
           </Link>
           {/* Mobile language switcher */}

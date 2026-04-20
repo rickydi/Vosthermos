@@ -247,7 +247,7 @@ export default function CalculateurPage() {
                     <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
                   </a>
                   <Link
-                    href="/en/rendez-vous"
+                    href="/en/#contact"
                     className="inline-flex items-center justify-center gap-2 bg-white/10 text-white font-bold px-8 py-4 rounded-xl hover:bg-white/20 transition-colors"
                   >
                     <i className="fas fa-calendar-alt"></i> Book an appointment
@@ -293,7 +293,7 @@ export default function CalculateurPage() {
             <span>·</span>
             <Link href="/en/blogue" className="hover:text-[var(--color-teal)]">Blog articles</Link>
             <span>·</span>
-            <Link href="/en/services/remplacement-vitre-thermos" className="hover:text-[var(--color-teal)]">Sealed unit replacement</Link>
+            <Link href="/en/services/sealed-glass-replacement" className="hover:text-[var(--color-teal)]">Sealed unit replacement</Link>
           </div>
         </div>
       </div>

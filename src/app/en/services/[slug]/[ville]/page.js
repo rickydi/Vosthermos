@@ -132,7 +132,7 @@ export default async function ServiceCityPage({ params }) {
               {COMPANY_INFO.phone}
             </a>
             <Link
-              href="/en/rendez-vous"
+              href="/en/#contact"
               className="inline-flex items-center gap-2 bg-white/10 text-white font-bold px-6 py-3 rounded-xl hover:bg-white/20 transition-colors"
             >
               <i className="fas fa-file-alt"></i>
@@ -249,7 +249,7 @@ export default async function ServiceCityPage({ params }) {
                 {COMPANY_INFO.phone}
               </a>
               <Link
-                href="/en/rendez-vous"
+                href="/en/#contact"
                 className="flex items-center justify-center gap-2 bg-[var(--color-teal)] text-white font-bold px-6 py-3 rounded-xl hover:bg-[var(--color-teal-dark)] transition-colors w-full"
               >
                 <i className="fas fa-calendar-alt"></i>

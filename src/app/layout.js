@@ -114,7 +114,6 @@ function buildLocalBusinessJsonLd(co) {
   sameAs: [
     co.facebook,
     co.instagram,
-    "https://www.wikidata.org/wiki/Q_PLACEHOLDER",
   ].filter(Boolean),
   hasOfferCatalog: {
     "@type": "OfferCatalog",

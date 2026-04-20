@@ -231,7 +231,7 @@ export default function DiagnosticPage() {
                   <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
                 </a>
                 <Link
-                  href="/en/rendez-vous"
+                  href="/en/#contact"
                   className="inline-flex items-center justify-center gap-2 bg-white/10 text-white font-bold px-6 py-3 rounded-xl hover:bg-white/20 transition-colors"
                 >
                   <i className="fas fa-calendar-alt"></i> Book an appointment

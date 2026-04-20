@@ -3,13 +3,7 @@ export const metadata = {
   title: "Contact Vosthermos | Soumission gratuite portes & fenêtres — Montréal, Rive-Sud, Laval",
   description:
     `Contactez Vosthermos pour une soumission gratuite en 24h. Réparation de portes, fenêtres et vitres thermos. 15 ans d'expérience, garantie 10 ans. Montréal, Laval, Longueuil, Rive-Sud ☎ ${COMPANY_INFO.phone}`,
-  alternates: {
-    canonical: "https://www.vosthermos.com/contact",
-    languages: {
-      fr: "https://www.vosthermos.com/contact",
-      en: "https://www.vosthermos.com/en/contact",
-    },
-  },
+  alternates: { canonical: "https://www.vosthermos.com/contact" },
   openGraph: {
     type: "website",
     url: "https://www.vosthermos.com/contact",

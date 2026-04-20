@@ -95,14 +95,17 @@ export default async function ServicePage({ params }) {
     thumbnailUrl: `https://www.vosthermos.com/images/video-thumb-${service.slug}.jpg`,
     uploadDate: "2026-03-27",
     duration: "PT1M30S",
-    contentUrl: `https://www.youtube.com/watch?v=PLACEHOLDER_${service.slug}`,
-    embedUrl: `https://www.youtube.com/embed/PLACEHOLDER_${service.slug}`,
+    contentUrl: undefined,
+    embedUrl: undefined,
     publisher: {
       "@type": "Organization",
       name: "Vosthermos",
       logo: { "@type": "ImageObject", url: "https://www.vosthermos.com/images/Vos-Thermos-Logo.png" },
     },
   } : null;
+
+  void videoTitles;
+  void videoJsonLd;
 
   // Speakable schema for voice search
   const speakableJsonLd = {
@@ -130,13 +133,6 @@ export default async function ServicePage({ params }) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(speakableJsonLd) }}
       />
-      {videoJsonLd && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(videoJsonLd) }}
-        />
-      )}
-
       {/* Hero */}
       <section className="bg-[var(--color-teal-dark)] pt-[80px]">
         <div className="max-w-[1200px] mx-auto px-6 py-16 lg:py-20">

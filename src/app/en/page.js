@@ -165,7 +165,7 @@ export default async function HomeEn() {
               return (
                 <Link
                   key={cat.id}
-                  href={`/boutique/${cat.slug}`}
+                  href={`/en/boutique/${cat.slug}`}
                   className="group relative bg-white hover:bg-white border border-[var(--color-border)] hover:border-[var(--color-red)]/40 rounded-xl px-4 py-4 text-center transition-all hover:shadow-md"
                 >
                   {catPromo && (
@@ -185,7 +185,7 @@ export default async function HomeEn() {
 
           <div className="flex flex-col sm:flex-row gap-3">
             <Link
-              href="/boutique"
+              href="/en/boutique"
               className="inline-flex items-center justify-center gap-2 bg-[var(--color-red)] text-white px-8 py-3.5 rounded-full font-bold text-sm hover:bg-[var(--color-red-dark)] transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
             >
               <i className="fas fa-shopping-bag"></i> Browse the shop
@@ -291,7 +291,7 @@ export default async function HomeEn() {
 
           <div className="text-center mt-10">
             <Link
-              href="/boutique"
+              href="/en/boutique"
               className="inline-flex items-center gap-2 bg-[var(--color-red)] text-white px-8 py-4 rounded-full font-bold hover:bg-[var(--color-red-dark)] transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
             >
               View all products <i className="fas fa-arrow-right"></i>

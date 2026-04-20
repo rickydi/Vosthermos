@@ -4,6 +4,7 @@ import { PROBLEMS } from "@/lib/problems-data";
 import { PRICING } from "@/lib/pricing-data";
 import { GLOSSARY } from "@/lib/glossary-data";
 import { HOWTOS } from "@/lib/howto-data";
+import { SERVICES_EN } from "@/lib/services-data-en";
 
 const BASE = "https://www.vosthermos.com";
 
@@ -24,6 +25,8 @@ export default async function sitemap() {
   // Static pages
   const staticPages = [
     { url: BASE, lastModified: new Date(), changeFrequency: "weekly", priority: 1.0 },
+    { url: `${BASE}/services`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.95 },
+    { url: `${BASE}/contact`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
     { url: `${BASE}/services/restauration-fenetres-bois-patrimoine`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.9 },
     { url: `${BASE}/portail-gestionnaire`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.9 },
     { url: `${BASE}/boutique`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
@@ -116,6 +119,12 @@ export default async function sitemap() {
     changeFrequency: "weekly",
     priority: 0.8,
   }));
+  const enCategoryPages = categories.map((cat) => ({
+    url: `${BASE}/en/boutique/${cat.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly",
+    priority: 0.7,
+  }));
 
   // Product pages
   const products = await prisma.product.findMany({
@@ -126,6 +135,12 @@ export default async function sitemap() {
     lastModified: p.updatedAt,
     changeFrequency: "monthly",
     priority: 0.6,
+  }));
+  const enProductPages = products.map((p) => ({
+    url: `${BASE}/en/produit/${p.slug}`,
+    lastModified: p.updatedAt,
+    changeFrequency: "monthly",
+    priority: 0.55,
   }));
 
   // Blog posts
@@ -159,28 +174,34 @@ export default async function sitemap() {
   // English pages
   const enPages = [
     { url: `${BASE}/en`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE}/en/opti-fenetre`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE}/en/diagnostic`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE}/en/calculateur`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
     { url: `${BASE}/en/prix`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE}/en/glossaire`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
+    { url: `${BASE}/en/problemes`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${BASE}/en/boutique`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
     { url: `${BASE}/en/blogue`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${BASE}/en/faq`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
     { url: `${BASE}/en/garantie`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
   ];
-  const EN_SERVICE_SLUGS = [
-    "hardware-replacement",
-    "sealed-glass-replacement",
-    "wooden-door-repair",
-    "custom-screen-doors",
-    "caulking",
-    "defogging",
-    "door-insert",
-    "weatherstripping",
-  ];
-  const enServicePages = EN_SERVICE_SLUGS.map((slug) => ({
-    url: `${BASE}/en/services/${slug}`,
+  const enServicePages = SERVICES_EN.map((service) => ({
+    url: `${BASE}/en/services/${service.slug}`,
     lastModified: new Date(),
     changeFrequency: "monthly",
     priority: 0.8,
   }));
+  const enServiceCityPages = [];
+  for (const service of SERVICES_EN) {
+    for (const city of CITIES) {
+      enServiceCityPages.push({
+        url: `${BASE}/en/services/${service.slug}/${city.slug}`,
+        lastModified: new Date(),
+        changeFrequency: "monthly",
+        priority: 0.7,
+      });
+    }
+  }
 
   // Pricing detail pages
   const pricingPages = PRICING.map((p) => ({
@@ -188,6 +209,12 @@ export default async function sitemap() {
     lastModified: new Date(),
     changeFrequency: "monthly",
     priority: 0.8,
+  }));
+  const enPricingPages = PRICING.map((p) => ({
+    url: `${BASE}/en/prix/${p.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly",
+    priority: 0.7,
   }));
 
   // Glossary pages
@@ -200,6 +227,39 @@ export default async function sitemap() {
       priority: 0.6,
     })),
   ];
+  const enGlossaryPages = GLOSSARY.map((g) => ({
+    url: `${BASE}/en/glossaire/${g.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly",
+    priority: 0.55,
+  }));
+  const enProblemPages = PROBLEMS.map((p) => ({
+    url: `${BASE}/en/problemes/${p.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly",
+    priority: 0.6,
+  }));
 
-  return [...staticPages, ...howtoPages, ...servicePages, ...serviceCityPages, ...reparationCityPages, ...calfeutrageCityPages, ...problemPages, ...pricingPages, ...glossaryPages, ...categoryPages, ...productPages, ...blogPages, ...enPages, ...enServicePages];
+  return [
+    ...staticPages,
+    ...howtoPages,
+    ...servicePages,
+    ...serviceCityPages,
+    ...reparationCityPages,
+    ...calfeutrageCityPages,
+    ...problemPages,
+    ...pricingPages,
+    ...glossaryPages,
+    ...categoryPages,
+    ...productPages,
+    ...blogPages,
+    ...enPages,
+    ...enServicePages,
+    ...enServiceCityPages,
+    ...enPricingPages,
+    ...enGlossaryPages,
+    ...enProblemPages,
+    ...enCategoryPages,
+    ...enProductPages,
+  ];
 }
