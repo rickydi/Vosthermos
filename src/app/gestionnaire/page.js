@@ -21,40 +21,46 @@ export default async function GestionnairePage({ searchParams }) {
     );
   }
 
-  const clientIdParam = sp?.c ? Number(sp.c) : null;
-  const activeClient = clientIdParam
-    ? manager.clients.find((c) => c.clientId === clientIdParam)
-    : manager.clients[0];
+  const cParam = sp?.c || "";
+  const isGlobal = cParam === "global";
+  const clientIdParam = !isGlobal && cParam ? Number(cParam) : null;
+  const activeClient = isGlobal
+    ? null
+    : clientIdParam
+      ? manager.clients.find((c) => c.clientId === clientIdParam)
+      : manager.clients[0];
 
-  if (!activeClient) redirect(`/gestionnaire?c=${manager.clients[0].clientId}`);
+  if (!isGlobal && !activeClient) redirect(`/gestionnaire?c=${manager.clients[0].clientId}`);
 
-  const clientId = activeClient.clientId;
+  const allClientIds = manager.clients.map((c) => c.clientId);
+  const clientIdsFilter = isGlobal ? allClientIds : [activeClient.clientId];
 
-  // Fetch data for active client
+  // Fetch data scoped to selected client(s)
   const [buildings, unitsRaw, activeWOs, recentWOs, pendingInvoicesCount] = await Promise.all([
     prisma.building.findMany({
-      where: { clientId },
-      orderBy: { position: "asc" },
+      where: { clientId: { in: clientIdsFilter } },
+      include: { client: { select: { name: true } } },
+      orderBy: [{ clientId: "asc" }, { position: "asc" }],
     }),
     prisma.clientUnit.findMany({
-      where: { clientId, isActive: true },
+      where: { clientId: { in: clientIdsFilter }, isActive: true },
       include: {
         openings: { orderBy: { position: "asc" } },
       },
-      orderBy: [{ buildingId: "asc" }, { code: "asc" }],
+      orderBy: [{ clientId: "asc" }, { buildingId: "asc" }, { code: "asc" }],
     }),
     prisma.workOrder.findMany({
       where: {
-        clientId,
+        clientId: { in: clientIdsFilter },
         statut: { in: ["draft", "scheduled", "in_progress"] },
       },
-      include: { sections: true, technician: true },
+      include: { sections: true, technician: true, client: { select: { name: true } } },
       orderBy: { date: "asc" },
       take: 10,
     }),
     prisma.workOrder.findMany({
       where: {
-        clientId,
+        clientId: { in: clientIdsFilter },
         statut: { in: ["completed", "invoiced", "paid"] },
       },
       orderBy: { date: "desc" },
@@ -62,7 +68,7 @@ export default async function GestionnairePage({ searchParams }) {
     }),
     prisma.workOrder.count({
       where: {
-        clientId,
+        clientId: { in: clientIdsFilter },
         statut: "invoiced",
       },
     }),
@@ -142,12 +148,13 @@ export default async function GestionnairePage({ searchParams }) {
         city: c.client.city,
         permissions: c.permissions,
       }))}
-      activeClient={{
+      isGlobal={isGlobal}
+      activeClient={activeClient ? {
         id: activeClient.client.id,
         name: activeClient.client.name,
         city: activeClient.client.city,
         address: activeClient.client.address,
-      }}
+      } : null}
       buildings={buildings.map((b) => {
         const bUnits = unitsByBuilding[b.id]?.units || [];
         const done = bUnits.filter((u) => unitStatusMap[u.code]?.status === "done").length;
@@ -156,6 +163,7 @@ export default async function GestionnairePage({ searchParams }) {
           id: b.id,
           code: b.code,
           name: b.name,
+          clientName: b.client?.name || "",
           metaLine: `${bUnits.length} unité${bUnits.length > 1 ? "s" : ""} · ${done} terminée${done > 1 ? "s" : ""}${active > 0 ? ` · ${active} actif${active > 1 ? "s" : ""}` : ""}`,
           units: bUnits.map((u) => ({
             id: u.id,

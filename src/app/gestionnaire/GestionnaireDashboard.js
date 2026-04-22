@@ -17,7 +17,7 @@ function clientInitials(name) {
     .toUpperCase() || name.slice(0, 2).toUpperCase();
 }
 
-export default function GestionnaireDashboard({ manager, clients, activeClient, buildings, orphanUnits, stats, notifs }) {
+export default function GestionnaireDashboard({ manager, clients, isGlobal, activeClient, buildings, orphanUnits, stats, notifs }) {
   const router = useRouter();
   const sp = useSearchParams();
   const [activeTab, setActiveTab] = useState(sp.get("tab") || "dashboard");
@@ -79,15 +79,18 @@ export default function GestionnaireDashboard({ manager, clients, activeClient, 
             <div className="sb-sec-title" style={{ marginBottom: 10 }}>Vos copropriétés · {clients.length}</div>
             <div className="synd-picker">
               {clients.length > 1 && (
-                <button className="synd-btn all" onClick={() => alert("Vue globale multi-copros bientôt disponible")}>
+                <button
+                  className={"synd-btn all" + (isGlobal ? " active" : "")}
+                  onClick={() => router.push("/gestionnaire?c=global")}
+                >
                   <i className="fas fa-th-large"></i>
-                  <span>Vue globale</span>
+                  <span>Vue globale · {clients.length} copros</span>
                 </button>
               )}
               {clients.map((c) => (
                 <button
                   key={c.clientId}
-                  className={"synd-btn" + (c.clientId === activeClient.id ? " active" : "")}
+                  className={"synd-btn" + (!isGlobal && activeClient && c.clientId === activeClient.id ? " active" : "")}
                   onClick={() => switchClient(c.clientId)}
                 >
                   <div className="sb-emblem">{clientInitials(c.clientName)}</div>
@@ -140,7 +143,7 @@ export default function GestionnaireDashboard({ manager, clients, activeClient, 
         <main className="gm-main">
           <div className="gm-topbar">
             <nav className="gm-crumb">
-              <a href="#" onClick={(e) => e.preventDefault()}>{activeClient.name}</a>
+              <a href="#" onClick={(e) => e.preventDefault()}>{isGlobal ? "Vue globale" : activeClient.name}</a>
               <span className="sep">/</span>
               <span className="current">{crumbs[activeTab]}</span>
             </nav>
@@ -157,9 +160,9 @@ export default function GestionnaireDashboard({ manager, clients, activeClient, 
             <div className="gm-content">
               <div className="gm-page-head">
                 <div>
-                  <h1 className="gm-page-title">Tableau de bord</h1>
+                  <h1 className="gm-page-title">{isGlobal ? "Vue globale" : "Tableau de bord"}</h1>
                   <div className="gm-page-sub">
-                    {activeClient.name}
+                    {isGlobal ? `${clients.length} copropriétés · ${stats.totalUnits} unités` : activeClient.name}
                     {stats.activeWOsCount > 0 && <> · <strong>{stats.activeWOsCount} bon{stats.activeWOsCount > 1 ? "s" : ""} actif{stats.activeWOsCount > 1 ? "s" : ""}</strong></>}
                     {stats.invoicedCount > 0 && <> · {stats.invoicedCount} facture{stats.invoicedCount > 1 ? "s" : ""} due{stats.invoicedCount > 1 ? "s" : ""}</>}
                   </div>
@@ -218,7 +221,10 @@ export default function GestionnaireDashboard({ manager, clients, activeClient, 
                   <div key={b.id} className="bldg">
                     <div className="bldg-head">
                       <div className="bldg-tag">{b.code}</div>
-                      <div className="bldg-name">{b.name}</div>
+                      <div>
+                        <div className="bldg-name">{b.name}</div>
+                        {isGlobal && b.clientName && <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600, marginTop: 2 }}>{b.clientName}</div>}
+                      </div>
                       <div className="bldg-meta">{b.metaLine}</div>
                     </div>
                     {b.units.length === 0 ? (
@@ -229,7 +235,7 @@ export default function GestionnaireDashboard({ manager, clients, activeClient, 
                           <div
                             key={u.id}
                             className={"unit" + (u.status === "active" ? " active" : u.status === "done" ? " done" : "")}
-                            onClick={() => setSelectedUnit({ ...u, buildingName: b.name })}
+                            onClick={() => setSelectedUnit({ ...u, buildingName: b.name, clientName: b.clientName })}
                           >
                             {u.status !== "none" && <span className="unit-dot"></span>}
                             <div className="unit-num">{u.code}</div>
@@ -301,7 +307,7 @@ export default function GestionnaireDashboard({ manager, clients, activeClient, 
               </div>
               <div>
                 <div className="gm-modal-title">Unité {selectedUnit.code}</div>
-                <div className="gm-modal-sub">{selectedUnit.buildingName} · {activeClient.name}</div>
+                <div className="gm-modal-sub">{selectedUnit.buildingName} · {isGlobal ? (selectedUnit.clientName || "—") : activeClient.name}</div>
               </div>
               <button className="gm-modal-close" onClick={() => setSelectedUnit(null)}>
                 <i className="fas fa-times"></i>
