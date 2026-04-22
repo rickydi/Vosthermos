@@ -1,0 +1,1642 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Portail Gestionnaire — Vosthermos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  :root {
+    --red: #e30718;
+    --red-light: #fdf2f3;
+    --red-dark: #c10615;
+    --teal: #003845;
+    --teal-dark: #002530;
+    --teal-light: #004d5e;
+    --bg: #f5f6f8;
+    --surface: #ffffff;
+    --text: #0f1720;
+    --text-dim: #4a5568;
+    --text-muted: #718096;
+    --border: rgba(15, 23, 32, 0.08);
+    --border-strong: rgba(15, 23, 32, 0.14);
+    --shadow-sm: 0 1px 2px rgba(15, 23, 32, 0.04);
+    --shadow: 0 2px 8px rgba(15, 23, 32, 0.06);
+    --shadow-md: 0 4px 20px rgba(15, 23, 32, 0.08);
+    --green: #059669;
+    --amber: #d97706;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Montserrat', -apple-system, system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font-family: inherit; cursor: pointer; }
+
+  /* Layout */
+  .app {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    min-height: 100vh;
+  }
+
+  /* ===== SIDEBAR ===== */
+  .sidebar {
+    background: var(--teal-dark);
+    color: white;
+    padding: 24px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  .sidebar-brand {
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .brand-logo {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .brand-logo span { color: var(--red); }
+  .brand-tag {
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 3px 8px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 4px;
+  }
+
+  /* Section heading in sidebar */
+  .sb-section {
+    padding: 0 24px;
+  }
+  .sb-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 10px;
+  }
+
+  /* Syndicat picker */
+  .synd-picker {
+    padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .synd-btn {
+    display: flex; align-items: center; gap: 11px;
+    padding: 10px 12px;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: rgba(255,255,255,0.7);
+    text-align: left;
+    transition: all 0.15s ease;
+  }
+  .synd-btn:hover { background: rgba(255,255,255,0.06); color: white; }
+  .synd-btn.active { background: rgba(255,255,255,0.08); color: white; }
+  .synd-btn.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 3px;
+    height: 20px;
+    background: var(--red);
+    border-radius: 0 3px 3px 0;
+  }
+  .synd-btn { position: relative; }
+  .synd-btn.all { font-size: 13px; font-weight: 600; }
+  .synd-btn.all i { color: rgba(255,255,255,0.5); font-size: 14px; width: 28px; text-align: center; }
+  .synd-btn.all.active i { color: var(--red); }
+
+  .sb-emblem {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .synd-btn.active .sb-emblem { background: var(--red); }
+  .synd-btn .synd-name {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .synd-btn .synd-sub { font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 1px; }
+  .synd-btn .synd-count {
+    background: var(--red);
+    color: white;
+    font-size: 9px; font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 999px;
+    min-width: 18px;
+    text-align: center;
+  }
+
+  /* Main nav */
+  .nav {
+    padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: rgba(255,255,255,0.7);
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
+    transition: all 0.15s ease;
+    position: relative;
+  }
+  .nav-item i { width: 18px; text-align: center; font-size: 13px; color: rgba(255,255,255,0.5); }
+  .nav-item:hover { background: rgba(255,255,255,0.06); color: white; }
+  .nav-item:hover i { color: white; }
+  .nav-item.active {
+    background: rgba(255,255,255,0.08);
+    color: white;
+    font-weight: 700;
+  }
+  .nav-item.active i { color: var(--red); }
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: -16px;
+    top: 8px; bottom: 8px;
+    width: 3px;
+    background: var(--red);
+    border-radius: 0 3px 3px 0;
+  }
+  .nav-badge {
+    margin-left: auto;
+    background: var(--red);
+    color: white;
+    font-size: 10px; font-weight: 700;
+    padding: 1px 7px;
+    border-radius: 999px;
+    min-width: 18px;
+    text-align: center;
+  }
+  .nav-item:not(.active) .nav-badge { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); }
+
+  /* User card at bottom */
+  .user-card {
+    margin-top: auto;
+    margin: auto 16px 0;
+    padding: 12px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--red);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .user-info { flex: 1; min-width: 0; }
+  .user-name { font-size: 13px; font-weight: 700; }
+  .user-email { font-size: 11px; color: rgba(255,255,255,0.5); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .user-logout {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: rgba(255,255,255,0.5);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .user-logout:hover { background: rgba(255,255,255,0.08); color: white; }
+
+  /* ===== MAIN CONTENT ===== */
+  .main {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Top bar (thin, contextual) */
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .breadcrumb {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px;
+  }
+  .breadcrumb a { color: var(--text-muted); text-decoration: none; font-weight: 500; }
+  .breadcrumb a:hover { color: var(--text); }
+  .breadcrumb .sep { color: var(--border-strong); }
+  .breadcrumb .current { color: var(--text); font-weight: 700; }
+
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+  .search-box {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    min-width: 260px;
+  }
+  .search-box input {
+    border: none; background: transparent; outline: none;
+    font-family: inherit; font-size: 13px;
+    flex: 1;
+    color: var(--text);
+  }
+  .search-box input::placeholder { color: var(--text-muted); }
+  .search-box i { color: var(--text-muted); font-size: 12px; }
+  .search-kbd {
+    font-size: 10px; font-weight: 600;
+    color: var(--text-muted);
+    padding: 2px 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+  }
+
+  .bell {
+    position: relative;
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-dim);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .bell-dot {
+    position: absolute;
+    top: 6px; right: 7px;
+    width: 8px; height: 8px;
+    background: var(--red);
+    border-radius: 50%;
+    border: 2px solid var(--surface);
+  }
+
+  /* Content area */
+  .content {
+    padding: 28px 32px 48px;
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  /* Page header */
+  .page-head {
+    margin-bottom: 28px;
+    display: flex; justify-content: space-between; align-items: flex-end;
+    gap: 16px;
+  }
+  .page-title { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+  .page-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; font-weight: 500; }
+  .page-sub strong { color: var(--red); font-weight: 700; }
+  .page-actions { display: flex; gap: 8px; }
+
+  /* Section header inside content */
+  .section-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin: 24px 0 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  /* Grid */
+  .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    transition: box-shadow 0.15s ease;
+  }
+  .card:hover { box-shadow: var(--shadow); }
+  .card-lg { padding: 24px; }
+  .card-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 14px; font-weight: 700;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-title i { color: var(--text-muted); font-size: 13px; }
+  .card-meta { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 12px; font-weight: 600;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--border-strong); background: var(--bg); }
+  .btn-primary { background: var(--red); color: white; border-color: var(--red); }
+  .btn-primary:hover { background: var(--red-dark); border-color: var(--red-dark); }
+  .btn-ghost { border: none; background: transparent; color: var(--text-muted); }
+  .btn-ghost:hover { background: var(--bg); color: var(--text); }
+  .btn-sm { padding: 6px 11px; font-size: 11px; }
+  .btn-icon { padding: 7px; width: 32px; justify-content: center; }
+  .btn-icon.btn-sm { padding: 5px; width: 26px; height: 26px; }
+
+  /* Kebab menu */
+  .actions { position: relative; display: inline-flex; }
+  .kebab {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+  }
+  .kebab:hover { background: var(--bg); color: var(--text); }
+  .menu {
+    position: absolute; right: 0; top: 100%;
+    margin-top: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow-md);
+    padding: 4px;
+    min-width: 170px;
+    z-index: 50;
+    display: none;
+  }
+  .actions.open .menu { display: block; }
+  .menu-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px;
+    border-radius: 5px;
+    font-size: 12px; font-weight: 500;
+    color: var(--text);
+    width: 100%;
+    border: none;
+    background: transparent;
+    text-align: left;
+  }
+  .menu-item:hover { background: var(--bg); }
+  .menu-item i { color: var(--text-muted); font-size: 11px; width: 14px; }
+  .menu-item.danger { color: var(--red); }
+  .menu-item.danger i { color: var(--red); }
+  .menu-divider { height: 1px; background: var(--border); margin: 4px 2px; }
+
+  /* Hero */
+  .hero { grid-column: span 8; padding: 28px; }
+  .hero h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
+  .hero h1 span { color: var(--red); }
+  .hero-date { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+  .hero-next {
+    margin-top: 22px;
+    padding: 16px 18px;
+    background: var(--bg);
+    border-radius: 8px;
+    display: flex; gap: 20px; align-items: center;
+  }
+  .hero-next .label { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+  .hero-next .time { font-size: 17px; font-weight: 700; color: var(--teal-dark); }
+  .hero-next .what { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+  .hero-next .sub { font-size: 12px; color: var(--text-muted); }
+
+  .stats { grid-column: span 4; }
+  .stat-big { font-size: 40px; font-weight: 700; color: var(--teal-dark); line-height: 1; letter-spacing: -0.03em; }
+  .stat-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 4px; }
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border); }
+  .mini-stat .n { font-size: 19px; font-weight: 700; line-height: 1; }
+  .mini-stat.red .n { color: var(--red); }
+  .mini-stat.amber .n { color: var(--amber); }
+  .mini-stat.green .n { color: var(--green); }
+  .mini-stat .l { font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 3px; }
+
+  /* Inbox */
+  .inbox { grid-column: span 12; }
+  .inbox-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  @media (max-width: 1100px) { .inbox-list { grid-template-columns: 1fr; } }
+
+  .inb {
+    display: flex; gap: 12px;
+    padding: 14px;
+    background: var(--bg);
+    border-radius: 8px;
+    align-items: flex-start;
+  }
+  .inb.urgent { background: var(--red-light); }
+  .inb-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; color: var(--text-muted);
+    flex-shrink: 0;
+  }
+  .inb.urgent .inb-icon { color: var(--red); border-color: rgba(227,7,24,0.2); }
+  .inb.ok .inb-icon { color: var(--green); border-color: rgba(5,150,105,0.2); }
+  .inb-body { flex: 1; min-width: 0; }
+  .inb-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 3px; }
+  .inb-name { font-size: 13px; font-weight: 700; }
+  .inb-time { font-size: 10px; color: var(--text-muted); font-weight: 600; }
+  .inb-text { font-size: 12px; color: var(--text-dim); line-height: 1.4; }
+
+  /* Units + bâtiments */
+  .units { grid-column: span 12; }
+  .legend { display: flex; gap: 18px; font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+  .legend .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+  .legend .dot.ok { background: var(--green); }
+  .legend .dot.active { background: var(--red); }
+  .legend .dot.none { background: var(--border-strong); }
+
+  .bldg {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 12px;
+    background: var(--surface);
+  }
+  .bldg-head {
+    display: flex; align-items: center; gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+  .bldg-tag {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    background: var(--teal-dark);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+  }
+  .bldg-name { font-size: 14px; font-weight: 700; }
+  .bldg-meta { font-size: 11px; color: var(--text-muted); font-weight: 600; margin-left: auto; }
+
+  .unit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); gap: 6px; }
+  .unit {
+    padding: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.12s ease;
+  }
+  .unit:hover {
+    border-color: var(--red);
+    box-shadow: 0 0 0 3px rgba(227,7,24,0.08);
+    transform: translateY(-1px);
+  }
+  .unit:active { transform: translateY(0); }
+  .unit-num { font-size: 13px; font-weight: 700; }
+  .unit-sub { font-size: 10px; color: var(--text-muted); font-weight: 600; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .unit.active { background: var(--red-light); border-color: rgba(227,7,24,0.2); }
+  .unit.active .unit-sub { color: var(--red); }
+  .unit.done { background: #f0fdf4; border-color: rgba(5,150,105,0.18); }
+  .unit.done .unit-sub { color: var(--green); }
+  .unit-dot { position: absolute; top: 6px; right: 6px; width: 5px; height: 5px; border-radius: 50%; }
+  .unit.active .unit-dot { background: var(--red); }
+  .unit.done .unit-dot { background: var(--green); }
+
+  /* List items */
+  .li {
+    display: flex; gap: 16px; align-items: center;
+    padding: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+  .li:hover { border-color: var(--border-strong); }
+  .li-when { font-size: 11px; font-weight: 700; color: var(--text-muted); min-width: 108px; text-transform: uppercase; letter-spacing: 0.05em; line-height: 1.4; }
+  .li-when.now { color: var(--green); }
+  .li-when.soon { color: var(--red); }
+  .li-body { flex: 1; }
+  .li-title { font-size: 13px; font-weight: 700; }
+  .li-text { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  .tag { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .tag.green { background: #d1fae5; color: var(--green); }
+  .tag.red { background: #fee2e2; color: var(--red); }
+  .tag.amber { background: #fef3c7; color: var(--amber); }
+  .tag.gray { background: var(--bg); color: var(--text-muted); }
+
+  /* Plan bars */
+  .plan-row { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .plan-row:last-child { border-bottom: none; }
+  .plan-year { font-size: 13px; font-weight: 700; min-width: 76px; }
+  .plan-year.future { color: var(--text-muted); }
+  .plan-track { flex: 1; height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; }
+  .plan-fill { height: 100%; background: var(--red); border-radius: 3px; }
+  .plan-amt { font-size: 11px; color: var(--text-muted); min-width: 170px; text-align: right; font-weight: 600; }
+
+  /* Week */
+  .week { display: flex; gap: 6px; margin-bottom: 16px; }
+  .day {
+    flex: 1;
+    padding: 10px 4px;
+    text-align: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .day:hover { border-color: var(--border-strong); }
+  .day.past { opacity: 0.35; }
+  .day.today { background: var(--teal-dark); border-color: var(--teal-dark); color: white; }
+  .day.has-event { border-color: var(--red); }
+  .day-name { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .day.today .day-name { color: rgba(255,255,255,0.6); }
+  .day-num { font-size: 18px; font-weight: 700; margin-top: 2px; }
+  .day.today .day-num { color: white; }
+  .day-dot { width: 4px; height: 4px; background: var(--red); border-radius: 50%; margin: 3px auto 0; }
+
+  /* Table */
+  .table { width: 100%; border-collapse: collapse; }
+  .table thead { border-bottom: 1px solid var(--border); }
+  .table th {
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 11px; font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .table th.num, .table td.num { text-align: right; }
+  .table td { padding: 14px 12px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
+  .table tr:hover td { background: var(--bg); }
+  .table .inv-num { font-weight: 700; font-family: monospace; font-size: 12px; }
+  .table .amount { font-weight: 700; font-size: 14px; }
+
+  /* Panels */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Modal (unit detail) */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(15, 23, 32, 0.45);
+    backdrop-filter: blur(2px);
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    z-index: 200;
+    padding: 40px 16px;
+    overflow-y: auto;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 640px;
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+  }
+  .modal-head {
+    display: flex; align-items: center; gap: 14px;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-tag {
+    width: 40px; height: 40px;
+    border-radius: 8px;
+    background: var(--teal-dark);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700;
+  }
+  .modal-tag.active { background: var(--red); }
+  .modal-tag.done { background: var(--green); }
+  .modal-title { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+  .modal-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .modal-close {
+    margin-left: auto;
+    width: 32px; height: 32px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 16px;
+  }
+  .modal-close:hover { background: var(--bg); color: var(--text); }
+  .modal-body { padding: 20px 24px; }
+  .modal-foot {
+    padding: 14px 24px;
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; gap: 8px;
+    background: var(--bg);
+  }
+
+  .modal-kv { display: grid; grid-template-columns: 140px 1fr; gap: 14px; font-size: 13px; padding: 8px 0; border-bottom: 1px dashed var(--border); }
+  .modal-kv:last-child { border-bottom: none; }
+  .modal-kv .k { color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 10px; letter-spacing: 0.08em; align-self: center; }
+  .modal-kv .v { color: var(--text); font-weight: 500; }
+
+  .modal-section-title {
+    font-size: 11px; font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.12em;
+    margin: 20px 0 10px;
+  }
+
+  .unit-history { display: flex; flex-direction: column; gap: 8px; }
+  .unit-history .li { margin-bottom: 0; }
+
+  /* Openings grid (fenêtres / portes dans le modal) */
+  .openings { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+  .opening {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+  }
+  .opening:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
+  .opening-photo {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    background: linear-gradient(135deg, #e2e6ea, #c8d0da);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted);
+    position: relative;
+  }
+  .opening-photo i { font-size: 24px; opacity: 0.5; }
+  .opening-badge {
+    position: absolute;
+    top: 8px; left: 8px;
+    padding: 3px 8px;
+    background: rgba(15,23,32,0.8);
+    color: white;
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    border-radius: 999px;
+  }
+  .opening-badge.active { background: var(--red); }
+  .opening-badge.done { background: var(--green); }
+  .opening-body { padding: 10px 12px; }
+  .opening-type {
+    font-size: 10px; font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .opening-loc { font-size: 13px; font-weight: 700; margin-top: 3px; }
+  .opening-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; font-weight: 500; }
+  .opening-add {
+    aspect-ratio: 4 / 3;
+    border: 2px dashed var(--border-strong);
+    background: var(--bg);
+    border-radius: 8px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 6px;
+    color: var(--text-muted);
+    font-size: 12px; font-weight: 600;
+    cursor: pointer;
+  }
+  .opening-add:hover { border-color: var(--red); color: var(--red); background: var(--red-light); }
+  .opening-add i { font-size: 20px; }
+
+  /* Responsive */
+  @media (max-width: 1000px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar {
+      position: fixed; top: 0; left: 0;
+      height: 100vh; width: 280px;
+      transform: translateX(-100%);
+      transition: transform 0.25s ease;
+      z-index: 100;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .hero, .stats { grid-column: span 12; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ========== SIDEBAR ========== -->
+  <aside class="sidebar">
+
+    <div class="sidebar-brand">
+      <div class="brand-logo">VOS<span>THERMOS</span></div>
+    </div>
+    <div style="padding:0 24px">
+      <div class="brand-tag"><i class="fas fa-building"></i> Portail Gestionnaire</div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-title">Vos copropriétés</div>
+    </div>
+    <div class="synd-picker">
+      <button class="synd-btn all">
+        <i class="fas fa-th-large"></i>
+        <span>Vue globale · 3 copros</span>
+      </button>
+      <button class="synd-btn active">
+        <div class="sb-emblem">LM</div>
+        <div class="synd-name">Le Marronnier
+          <div class="synd-sub">Laval · 18 unités</div>
+        </div>
+        <span class="synd-count">3</span>
+      </button>
+      <button class="synd-btn">
+        <div class="sb-emblem">LT</div>
+        <div class="synd-name">Les Terrasses du Parc
+          <div class="synd-sub">Montréal · 14 unités</div>
+        </div>
+        <span class="synd-count">2</span>
+      </button>
+      <button class="synd-btn">
+        <div class="sb-emblem">BS</div>
+        <div class="synd-name">Les Boisés St-Hubert
+          <div class="synd-sub">Longueuil · 12 unités</div>
+        </div>
+        <span class="synd-count">3</span>
+      </button>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-title">Menu</div>
+    </div>
+    <div class="nav">
+      <button class="nav-item active" data-tab="dashboard">
+        <i class="fas fa-th-large"></i>
+        <span>Tableau de bord</span>
+      </button>
+      <button class="nav-item" data-tab="interventions">
+        <i class="far fa-calendar"></i>
+        <span>Interventions</span>
+        <span class="nav-badge">3</span>
+      </button>
+      <button class="nav-item" data-tab="plan">
+        <i class="far fa-chart-bar"></i>
+        <span>Plan pluriannuel</span>
+      </button>
+      <button class="nav-item" data-tab="factures">
+        <i class="far fa-file"></i>
+        <span>Factures</span>
+        <span class="nav-badge">2</span>
+      </button>
+      <button class="nav-item" data-tab="documents">
+        <i class="far fa-folder"></i>
+        <span>Documents</span>
+      </button>
+      <button class="nav-item" data-tab="parametres">
+        <i class="fas fa-cog"></i>
+        <span>Paramètres</span>
+      </button>
+    </div>
+
+    <div class="user-card">
+      <div class="avatar">YD</div>
+      <div class="user-info">
+        <div class="user-name">Yannis D'Almeida</div>
+        <div class="user-email">ydalmeida@lemarronnier.ca</div>
+      </div>
+      <button class="user-logout" title="Se déconnecter"><i class="fas fa-sign-out-alt" style="font-size:12px"></i></button>
+    </div>
+  </aside>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <!-- Top bar -->
+    <div class="topbar">
+      <nav class="breadcrumb">
+        <a href="#">Le Marronnier</a>
+        <span class="sep">/</span>
+        <span class="current" id="crumb">Tableau de bord</span>
+      </nav>
+      <div class="topbar-right">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input placeholder="Rechercher…">
+          <span class="search-kbd">⌘K</span>
+        </div>
+        <button class="bell"><i class="far fa-bell" style="font-size:14px"></i><span class="bell-dot"></span></button>
+      </div>
+    </div>
+
+    <!-- ============ DASHBOARD ============ -->
+    <div class="panel active" id="tab-dashboard">
+      <div class="content">
+        <div class="page-head">
+          <div>
+            <h1 class="page-title">Tableau de bord</h1>
+            <div class="page-sub">Le Marronnier · <strong>3 bons actifs</strong> · 2 factures dues</div>
+          </div>
+          <div class="page-actions">
+            <button class="btn"><i class="fas fa-download"></i>Exporter</button>
+            <button class="btn btn-primary"><i class="fas fa-plus"></i>Demander intervention</button>
+          </div>
+        </div>
+
+        <!-- SECTION : Notifications (en haut) -->
+        <div class="section-head">
+          <div class="section-title">Notifications · 3 non lues</div>
+          <button class="btn btn-ghost btn-sm">Tout marquer lu</button>
+        </div>
+
+        <div class="grid">
+          <div class="card inbox">
+            <div class="inbox-list">
+              <div class="inb urgent">
+                <div class="inb-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                <div class="inb-body">
+                  <div class="inb-top"><div class="inb-name">Facture à régler</div><div class="inb-time">12 min</div></div>
+                  <div class="inb-text">VOS-2026-042 · 3 450$ · éch. 30 avril</div>
+                </div>
+                <div class="actions">
+                  <button class="kebab"><i class="fas fa-ellipsis-h"></i></button>
+                  <div class="menu">
+                    <button class="menu-item"><i class="fas fa-eye"></i>Voir la facture</button>
+                    <button class="menu-item"><i class="fas fa-credit-card"></i>Payer</button>
+                    <div class="menu-divider"></div>
+                    <button class="menu-item"><i class="fas fa-bell-slash"></i>Marquer lu</button>
+                  </div>
+                </div>
+              </div>
+              <div class="inb ok">
+                <div class="inb-icon"><i class="fas fa-check"></i></div>
+                <div class="inb-body">
+                  <div class="inb-top"><div class="inb-name">Intervention complétée</div><div class="inb-time">2h</div></div>
+                  <div class="inb-text">Unité B-412 · thermos remplacé · photos dispo</div>
+                </div>
+                <div class="actions">
+                  <button class="kebab"><i class="fas fa-ellipsis-h"></i></button>
+                  <div class="menu">
+                    <button class="menu-item"><i class="fas fa-eye"></i>Voir le bon</button>
+                    <button class="menu-item"><i class="fas fa-image"></i>Photos</button>
+                  </div>
+                </div>
+              </div>
+              <div class="inb">
+                <div class="inb-icon"><i class="fas fa-user-tie"></i></div>
+                <div class="inb-body">
+                  <div class="inb-top"><div class="inb-name">Nouvelle soumission</div><div class="inb-time">5h</div></div>
+                  <div class="inb-text">U-201 · infiltration · 850$ · approbation requise</div>
+                </div>
+                <div class="actions">
+                  <button class="kebab"><i class="fas fa-ellipsis-h"></i></button>
+                  <div class="menu">
+                    <button class="menu-item"><i class="fas fa-check"></i>Approuver</button>
+                    <button class="menu-item"><i class="fas fa-comment"></i>Question</button>
+                    <div class="menu-divider"></div>
+                    <button class="menu-item danger"><i class="fas fa-times"></i>Refuser</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION : Parc de fenêtres -->
+        <div class="section-head">
+          <div class="section-title">Parc de fenêtres · 4 bâtiments · 18 unités</div>
+          <div style="display:flex; gap:16px; align-items:center">
+            <div class="legend">
+              <span><span class="dot ok"></span>Terminé</span>
+              <span><span class="dot active"></span>Actif</span>
+              <span><span class="dot none"></span>Aucun</span>
+            </div>
+            <button class="btn btn-sm"><i class="fas fa-plus"></i>Ajouter bâtiment</button>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="card units card-lg">
+            <div class="bldg">
+              <div class="bldg-head">
+                <div class="bldg-tag">A</div>
+                <div class="bldg-name">Bâtiment A</div>
+                <div class="bldg-meta">5 unités · 3 terminées</div>
+                <div class="actions">
+                  <button class="kebab"><i class="fas fa-ellipsis-h"></i></button>
+                  <div class="menu">
+                    <button class="menu-item"><i class="fas fa-edit"></i>Modifier</button>
+                    <button class="menu-item"><i class="fas fa-plus"></i>Ajouter unité</button>
+                    <div class="menu-divider"></div>
+                    <button class="menu-item danger"><i class="fas fa-trash"></i>Supprimer</button>
+                  </div>
+                </div>
+              </div>
+              <div class="unit-grid">
+                <div class="unit done"><span class="unit-dot"></span><div class="unit-num">A-101</div><div class="unit-sub">Terminé</div></div>
+                <div class="unit done"><span class="unit-dot"></span><div class="unit-num">A-201</div><div class="unit-sub">Terminé</div></div>
+                <div class="unit"><div class="unit-num">A-202</div><div class="unit-sub">—</div></div>
+                <div class="unit done"><span class="unit-dot"></span><div class="unit-num">A-301</div><div class="unit-sub">Terminé</div></div>
+                <div class="unit"><div class="unit-num">A-302</div><div class="unit-sub">—</div></div>
+              </div>
+            </div>
+
+            <div class="bldg">
+              <div class="bldg-head">
+                <div class="bldg-tag">B</div>
+                <div class="bldg-name">Bâtiment B</div>
+                <div class="bldg-meta">6 unités · 5 actifs MAR 22</div>
+                <div class="actions">
+                  <button class="kebab"><i class="fas fa-ellipsis-h"></i></button>
+                  <div class="menu">
+                    <button class="menu-item"><i class="fas fa-edit"></i>Modifier</button>
+                    <button class="menu-item"><i class="fas fa-plus"></i>Ajouter unité</button>
+                    <div class="menu-divider"></div>
+                    <button class="menu-item danger"><i class="fas fa-trash"></i>Supprimer</button>
+                  </div>
+                </div>
+              </div>
+              <div class="unit-grid">
+                <div class="unit active"><span class="unit-dot"></span><div class="unit-num">B-404</div><div class="unit-sub">MAR 22</div></div>
+                <div class="unit active"><span class="unit-dot"></span><div class="unit-num">B-408</div><div class="unit-sub">MAR 22</div></div>
+                <div class="unit done"><span class="unit-dot"></span><div class="unit-num">B-410</div><div class="unit-sub">Terminé</div></div>
+                <div class="unit active"><span class="unit-dot"></span><div class="unit-num">B-412</div><div class="unit-sub">MAR 22</div></div>
+                <div class="unit active"><span class="unit-dot"></span><div class="unit-num">B-416</div><div class="unit-sub">MAR 22</div></div>
+                <div class="unit active"><span class="unit-dot"></span><div class="unit-num">B-418</div><div class="unit-sub">MAR 22</div></div>
+              </div>
+            </div>
+
+            <div class="bldg">
+              <div class="bldg-head">
+                <div class="bldg-tag">C</div>
+                <div class="bldg-name">Bâtiment C</div>
+                <div class="bldg-meta">5 unités · 1 actif VEN 24</div>
+                <div class="actions">
+                  <button class="kebab"><i class="fas fa-ellipsis-h"></i></button>
+                  <div class="menu">
+                    <button class="menu-item"><i class="fas fa-edit"></i>Modifier</button>
+                    <button class="menu-item danger"><i class="fas fa-trash"></i>Supprimer</button>
+                  </div>
+                </div>
+              </div>
+              <div class="unit-grid">
+                <div class="unit done"><span class="unit-dot"></span><div class="unit-num">C-201</div><div class="unit-sub">Terminé</div></div>
+                <div class="unit done"><span class="unit-dot"></span><div class="unit-num">C-203</div><div class="unit-sub">Terminé</div></div>
+                <div class="unit active"><span class="unit-dot"></span><div class="unit-num">C-301</div><div class="unit-sub">VEN 24</div></div>
+                <div class="unit"><div class="unit-num">C-305</div><div class="unit-sub">—</div></div>
+                <div class="unit done"><span class="unit-dot"></span><div class="unit-num">C-402</div><div class="unit-sub">Terminé</div></div>
+              </div>
+            </div>
+
+            <div class="bldg">
+              <div class="bldg-head">
+                <div class="bldg-tag">D</div>
+                <div class="bldg-name">Bâtiment D</div>
+                <div class="bldg-meta">2 unités · 1 terminée</div>
+                <div class="actions">
+                  <button class="kebab"><i class="fas fa-ellipsis-h"></i></button>
+                  <div class="menu">
+                    <button class="menu-item"><i class="fas fa-edit"></i>Modifier</button>
+                    <button class="menu-item danger"><i class="fas fa-trash"></i>Supprimer</button>
+                  </div>
+                </div>
+              </div>
+              <div class="unit-grid">
+                <div class="unit done"><span class="unit-dot"></span><div class="unit-num">D-101</div><div class="unit-sub">Terminé</div></div>
+                <div class="unit"><div class="unit-num">D-205</div><div class="unit-sub">—</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ INTERVENTIONS ============ -->
+    <div class="panel" id="tab-interventions">
+      <div class="content">
+        <div class="page-head">
+          <div>
+            <h1 class="page-title">Interventions</h1>
+            <div class="page-sub"><strong>3 actives</strong> cette semaine</div>
+          </div>
+          <div class="page-actions">
+            <button class="btn"><i class="fas fa-filter"></i>Filtrer</button>
+            <button class="btn btn-primary"><i class="fas fa-plus"></i>Demander intervention</button>
+          </div>
+        </div>
+
+        <div class="section-head">
+          <div class="section-title">Calendrier · Semaine du 21 avril</div>
+          <div style="display:flex; gap:6px">
+            <button class="btn btn-icon btn-sm"><i class="fas fa-chevron-left"></i></button>
+            <button class="btn btn-sm">Aujourd'hui</button>
+            <button class="btn btn-icon btn-sm"><i class="fas fa-chevron-right"></i></button>
+          </div>
+        </div>
+        <div class="card card-lg">
+          <div class="week">
+            <div class="day past"><div class="day-name">Lun</div><div class="day-num">20</div></div>
+            <div class="day today"><div class="day-name">Mar</div><div class="day-num">21</div></div>
+            <div class="day has-event"><div class="day-name">Mer</div><div class="day-num">22</div><div class="day-dot"></div></div>
+            <div class="day"><div class="day-name">Jeu</div><div class="day-num">23</div></div>
+            <div class="day has-event"><div class="day-name">Ven</div><div class="day-num">24</div><div class="day-dot"></div></div>
+            <div class="day"><div class="day-name">Sam</div><div class="day-num">25</div></div>
+            <div class="day"><div class="day-name">Dim</div><div class="day-num">26</div></div>
+          </div>
+        </div>
+
+        <div class="section-head">
+          <div class="section-title">Événements planifiés · 3 à venir</div>
+        </div>
+        <div>
+          <div class="li">
+            <div class="li-when now">AUJOURD'HUI<br>14:00 → 17:00</div>
+            <div class="li-body">
+              <div class="li-title">Inspection annuelle du bâtiment B</div>
+              <div class="li-text">9 unités · rapport sous 3 jours · technicien Marc Tremblay</div>
+            </div>
+            <span class="tag green">En cours</span>
+            <div class="actions">
+              <button class="kebab"><i class="fas fa-ellipsis-h"></i></button>
+              <div class="menu">
+                <button class="menu-item"><i class="fas fa-eye"></i>Voir détails</button>
+                <button class="menu-item"><i class="fas fa-edit"></i>Modifier</button>
+                <button class="menu-item"><i class="far fa-calendar-alt"></i>Reporter</button>
+                <div class="menu-divider"></div>
+                <button class="menu-item danger"><i class="fas fa-trash"></i>Annuler</button>
+              </div>
+            </div>
+          </div>
+          <div class="li">
+            <div class="li-when soon">MER 22<br>09:00 → 13:00</div>
+            <div class="li-body">
+              <div class="li-title">Remplacement 14 thermos</div>
+              <div class="li-text">Bâtiment B · B-404, B-408, B-412, B-416, B-418 · équipe de 3</div>
+            </div>
+            <span class="tag red">Confirmé</span>
+            <div class="actions">
+              <button class="kebab"><i class="fas fa-ellipsis-h"></i></button>
+              <div class="menu">
+                <button class="menu-item"><i class="fas fa-eye"></i>Voir détails</button>
+                <button class="menu-item"><i class="fas fa-edit"></i>Modifier</button>
+                <button class="menu-item"><i class="far fa-calendar-alt"></i>Reporter</button>
+                <div class="menu-divider"></div>
+                <button class="menu-item danger"><i class="fas fa-trash"></i>Annuler</button>
+              </div>
+            </div>
+          </div>
+          <div class="li">
+            <div class="li-when soon">VEN 24<br>14:00 → 16:00</div>
+            <div class="li-body">
+              <div class="li-title">Ajustement porte-patio</div>
+              <div class="li-text">Bâtiment C · unité C-301 · technicien Pierre Côté</div>
+            </div>
+            <span class="tag red">Confirmé</span>
+            <div class="actions">
+              <button class="kebab"><i class="fas fa-ellipsis-h"></i></button>
+              <div class="menu">
+                <button class="menu-item"><i class="fas fa-eye"></i>Voir détails</button>
+                <button class="menu-item"><i class="fas fa-edit"></i>Modifier</button>
+                <div class="menu-divider"></div>
+                <button class="menu-item danger"><i class="fas fa-trash"></i>Annuler</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-head">
+          <div class="section-title">Historique · 30 derniers jours · 14 interventions</div>
+          <button class="btn btn-ghost btn-sm">Voir tout</button>
+        </div>
+        <div>
+          <div class="li">
+            <div class="li-when">19 AVR<br>Terminée</div>
+            <div class="li-body">
+              <div class="li-title">Remplacement thermos U-B-412</div>
+              <div class="li-text">420$ · photos · garantie 10 ans activée</div>
+            </div>
+            <span class="tag green">Terminé</span>
+            <button class="btn btn-sm">Voir bon</button>
+          </div>
+          <div class="li">
+            <div class="li-when">14 AVR<br>Terminée</div>
+            <div class="li-body">
+              <div class="li-title">Réparation mécanisme fenêtre U-A-201</div>
+              <div class="li-text">Poignée + opérateur remplacés · 185$</div>
+            </div>
+            <span class="tag green">Terminé</span>
+            <button class="btn btn-sm">Voir bon</button>
+          </div>
+          <div class="li">
+            <div class="li-when">08 AVR<br>Terminée</div>
+            <div class="li-body">
+              <div class="li-title">Diagnostic infiltration U-C-402</div>
+              <div class="li-text">Caméra thermique · calfeutrage préventif 2027</div>
+            </div>
+            <span class="tag green">Terminé</span>
+            <button class="btn btn-sm">Voir bon</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ PLAN ============ -->
+    <div class="panel" id="tab-plan">
+      <div class="content">
+        <div class="page-head">
+          <div>
+            <h1 class="page-title">Plan pluriannuel</h1>
+            <div class="page-sub">Budget prévisionnel 2026-2030 · <strong>84 300 $</strong> sur 5 ans</div>
+          </div>
+          <div class="page-actions">
+            <button class="btn"><i class="fas fa-download"></i>PDF</button>
+            <button class="btn btn-primary"><i class="fas fa-edit"></i>Modifier le plan</button>
+          </div>
+        </div>
+
+        <div class="section-head">
+          <div class="section-title">Budget par année</div>
+          <span class="card-meta">Mise à jour · 14 avril 2026</span>
+        </div>
+        <div class="card card-lg">
+          <div class="plan-row">
+            <div class="plan-year">2026</div>
+            <div class="plan-track"><div class="plan-fill" style="width:68%"></div></div>
+            <div class="plan-amt">68% · 12 240$ / 18 000$</div>
+            <div class="actions"><button class="kebab"><i class="fas fa-ellipsis-h"></i></button>
+              <div class="menu"><button class="menu-item"><i class="fas fa-edit"></i>Modifier</button><button class="menu-item"><i class="fas fa-list"></i>Détails</button></div>
+            </div>
+          </div>
+          <div class="plan-row">
+            <div class="plan-year future">2027</div>
+            <div class="plan-track"><div class="plan-fill" style="width:0%"></div></div>
+            <div class="plan-amt">Planifié · 22 500$</div>
+            <div class="actions"><button class="kebab"><i class="fas fa-ellipsis-h"></i></button>
+              <div class="menu"><button class="menu-item"><i class="fas fa-edit"></i>Modifier</button></div>
+            </div>
+          </div>
+          <div class="plan-row">
+            <div class="plan-year future">2028</div>
+            <div class="plan-track"><div class="plan-fill" style="width:0%"></div></div>
+            <div class="plan-amt">Planifié · 15 800$</div>
+            <div class="actions"><button class="kebab"><i class="fas fa-ellipsis-h"></i></button></div>
+          </div>
+          <div class="plan-row">
+            <div class="plan-year future">2029</div>
+            <div class="plan-track"><div class="plan-fill" style="width:0%"></div></div>
+            <div class="plan-amt">Provisoire · 14 000$</div>
+            <div class="actions"><button class="kebab"><i class="fas fa-ellipsis-h"></i></button></div>
+          </div>
+          <div class="plan-row">
+            <div class="plan-year future">2030</div>
+            <div class="plan-track"><div class="plan-fill" style="width:0%"></div></div>
+            <div class="plan-amt">Provisoire · 14 000$</div>
+            <div class="actions"><button class="kebab"><i class="fas fa-ellipsis-h"></i></button></div>
+          </div>
+        </div>
+
+        <div class="section-head">
+          <div class="section-title">Répartition 2026</div>
+        </div>
+        <div class="grid">
+          <div class="card" style="grid-column:span 7">
+            <div class="card-head"><div class="card-title">Par bâtiment</div></div>
+            <div class="plan-row"><div class="plan-year">Bât. A</div><div class="plan-track"><div class="plan-fill" style="width:25%"></div></div><div class="plan-amt">3 200$ · 5 unités</div></div>
+            <div class="plan-row"><div class="plan-year">Bât. B</div><div class="plan-track"><div class="plan-fill" style="width:52%"></div></div><div class="plan-amt">6 800$ · 6 unités</div></div>
+            <div class="plan-row"><div class="plan-year">Bât. C</div><div class="plan-track"><div class="plan-fill" style="width:14%"></div></div><div class="plan-amt">1 840$ · 5 unités</div></div>
+            <div class="plan-row"><div class="plan-year">Bât. D</div><div class="plan-track"><div class="plan-fill" style="width:3%"></div></div><div class="plan-amt">400$ · 2 unités</div></div>
+          </div>
+          <div class="card" style="grid-column:span 5">
+            <div class="card-head"><div class="card-title">Conformité Loi 16</div></div>
+            <p style="font-size:13px; color:var(--text-dim); line-height:1.6; margin-bottom:14px">
+              La Loi 16 impose une étude du fonds de prévoyance couvrant 25 ans.
+            </p>
+            <div style="padding:12px; background:#f0fdf4; border-radius:6px; display:flex; align-items:center; gap:10px">
+              <i class="fas fa-check-circle" style="color:var(--green); font-size:16px"></i>
+              <div>
+                <div style="font-weight:700; color:var(--green); font-size:13px">Plan conforme</div>
+                <div style="font-size:11px; color:var(--text-muted)">Prochaine révision · avril 2027</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ FACTURES ============ -->
+    <div class="panel" id="tab-factures">
+      <div class="content">
+        <div class="page-head">
+          <div>
+            <h1 class="page-title">Factures</h1>
+            <div class="page-sub"><strong>2 factures</strong> à régler · 4 340$</div>
+          </div>
+          <div class="page-actions">
+            <button class="btn"><i class="fas fa-download"></i>Exporter CSV</button>
+          </div>
+        </div>
+
+        <div class="section-head">
+          <div class="section-title">Résumé 2026</div>
+        </div>
+        <div class="grid">
+          <div class="card" style="grid-column:span 4">
+            <div class="stat-big" style="color:var(--red)">4 340 $</div>
+            <div class="stat-label">Total à payer</div>
+          </div>
+          <div class="card" style="grid-column:span 4">
+            <div class="stat-big" style="color:var(--green)">7 900 $</div>
+            <div class="stat-label">Payé en 2026</div>
+          </div>
+          <div class="card" style="grid-column:span 4">
+            <div class="stat-big">12 240 $</div>
+            <div class="stat-label">Facturé · 8 factures</div>
+          </div>
+        </div>
+
+        <div class="section-head">
+          <div class="section-title">Toutes les factures</div>
+          <div style="display:flex; gap:6px">
+            <button class="btn btn-sm">Tout</button>
+            <button class="btn btn-sm btn-primary">À payer · 2</button>
+            <button class="btn btn-sm">Payées · 6</button>
+          </div>
+        </div>
+        <div class="card card-lg">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Facture</th>
+                <th>Date</th>
+                <th>Description</th>
+                <th class="num">Montant</th>
+                <th>Statut</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="inv-num">VOS-2026-042</span></td>
+                <td style="color:var(--text-muted)">14 avr 2026</td>
+                <td>Remplacement thermos B-412 + inspection</td>
+                <td class="num amount">3 450 $</td>
+                <td><span class="tag amber">À payer</span></td>
+                <td class="num">
+                  <button class="btn btn-sm btn-primary">Payer</button>
+                  <div class="actions" style="display:inline-block; vertical-align:middle">
+                    <button class="kebab"><i class="fas fa-ellipsis-h"></i></button>
+                    <div class="menu">
+                      <button class="menu-item"><i class="fas fa-download"></i>PDF</button>
+                      <button class="menu-item"><i class="fas fa-eye"></i>Voir</button>
+                      <button class="menu-item"><i class="fas fa-envelope"></i>Renvoyer</button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="inv-num">VOS-2026-031</span></td>
+                <td style="color:var(--text-muted)">28 mar 2026</td>
+                <td>Ajustement porte-patio C-301</td>
+                <td class="num amount">890 $</td>
+                <td><span class="tag amber">À payer</span></td>
+                <td class="num">
+                  <button class="btn btn-sm btn-primary">Payer</button>
+                  <div class="actions" style="display:inline-block; vertical-align:middle">
+                    <button class="kebab"><i class="fas fa-ellipsis-h"></i></button>
+                    <div class="menu"><button class="menu-item"><i class="fas fa-download"></i>PDF</button></div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="inv-num">VOS-2026-018</span></td>
+                <td style="color:var(--text-muted)">12 mar 2026</td>
+                <td>Remplacement 6 thermos bâtiment A</td>
+                <td class="num amount">2 100 $</td>
+                <td><span class="tag green">Payé</span></td>
+                <td class="num">
+                  <button class="btn btn-sm">Voir</button>
+                  <div class="actions" style="display:inline-block; vertical-align:middle">
+                    <button class="kebab"><i class="fas fa-ellipsis-h"></i></button>
+                    <div class="menu"><button class="menu-item"><i class="fas fa-download"></i>PDF</button><button class="menu-item"><i class="fas fa-receipt"></i>Reçu</button></div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="inv-num">VOS-2026-007</span></td>
+                <td style="color:var(--text-muted)">02 fév 2026</td>
+                <td>Gros projet · 14 thermos + quincaillerie</td>
+                <td class="num amount">5 800 $</td>
+                <td><span class="tag green">Payé</span></td>
+                <td class="num">
+                  <button class="btn btn-sm">Voir</button>
+                  <div class="actions" style="display:inline-block; vertical-align:middle">
+                    <button class="kebab"><i class="fas fa-ellipsis-h"></i></button>
+                    <div class="menu"><button class="menu-item"><i class="fas fa-download"></i>PDF</button><button class="menu-item"><i class="fas fa-receipt"></i>Reçu</button></div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ DOCUMENTS ============ -->
+    <div class="panel" id="tab-documents">
+      <div class="content">
+        <div class="page-head">
+          <div>
+            <h1 class="page-title">Documents</h1>
+            <div class="page-sub">Rapports, plans, attestations</div>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-primary"><i class="fas fa-upload"></i>Téléverser</button>
+          </div>
+        </div>
+        <div class="card card-lg" style="text-align:center; padding:60px 24px">
+          <i class="far fa-folder-open" style="font-size:36px; color:var(--border-strong); margin-bottom:12px"></i>
+          <div style="font-weight:700; margin-bottom:6px">Aucun document</div>
+          <div style="color:var(--text-muted); font-size:13px; margin-bottom:20px">Rapports d'inspection, plans PDF, attestations, garanties.</div>
+          <button class="btn btn-primary"><i class="fas fa-upload"></i>Téléverser un document</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PARAMÈTRES ============ -->
+    <div class="panel" id="tab-parametres">
+      <div class="content">
+        <div class="page-head">
+          <div>
+            <h1 class="page-title">Paramètres</h1>
+            <div class="page-sub">Votre compte et préférences</div>
+          </div>
+        </div>
+
+        <div class="section-head"><div class="section-title">Profil</div></div>
+        <div class="card">
+          <div style="display:flex; flex-direction:column; gap:14px">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:14px; border-bottom:1px solid var(--border)">
+              <div><div style="font-size:11px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.08em; margin-bottom:2px">Nom</div><div style="font-weight:600">Yannis D'Almeida</div></div>
+              <button class="btn btn-sm"><i class="fas fa-edit"></i>Modifier</button>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:14px; border-bottom:1px solid var(--border)">
+              <div><div style="font-size:11px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.08em; margin-bottom:2px">Email</div><div style="font-weight:600">ydalmeida@lemarronnier.ca</div></div>
+              <button class="btn btn-sm"><i class="fas fa-edit"></i>Modifier</button>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center">
+              <div><div style="font-size:11px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.08em; margin-bottom:2px">Téléphone</div><div style="color:var(--text-muted)">Non renseigné</div></div>
+              <button class="btn btn-sm"><i class="fas fa-plus"></i>Ajouter</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-head"><div class="section-title">Notifications email</div></div>
+        <div class="card">
+          <div style="display:flex; flex-direction:column; gap:14px">
+            <label style="display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:600"><span>Nouvelle facture</span><input type="checkbox" checked></label>
+            <label style="display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:600"><span>Intervention terminée</span><input type="checkbox" checked></label>
+            <label style="display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:600"><span>Soumission en attente</span><input type="checkbox" checked></label>
+            <label style="display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:600"><span>Rappels de paiement</span><input type="checkbox" checked></label>
+            <label style="display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:600"><span>Newsletter mensuelle</span><input type="checkbox"></label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Modal détail d'unité -->
+<div class="modal-backdrop" id="unitModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-tag" id="modal-tag">B-412</div>
+      <div>
+        <div class="modal-title" id="modal-title">Unité B-412</div>
+        <div class="modal-sub" id="modal-sub">Bâtiment B · Le Marronnier</div>
+      </div>
+      <button class="modal-close" id="modalClose"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-kv"><span class="k">Propriétaire</span><span class="v">Jean Beaulieu</span></div>
+      <div class="modal-kv"><span class="k">Téléphone</span><span class="v">438-555-0102</span></div>
+      <div class="modal-kv"><span class="k">Email</span><span class="v">jean.beaulieu@example.com</span></div>
+      <div class="modal-kv"><span class="k">Marque</span><span class="v">Novatech (2014)</span></div>
+      <div class="modal-kv"><span class="k">Statut</span><span class="v"><span class="tag red">Bon actif — MAR 22</span></span></div>
+      <div class="modal-kv"><span class="k">Notes</span><span class="v">Locataire sensible au bruit. Préfère créneau après-midi.</span></div>
+
+      <div style="display:flex; align-items:center; justify-content:space-between; margin:20px 0 10px">
+        <div class="modal-section-title" style="margin:0">Ouvertures · 5 au total</div>
+        <button class="btn btn-sm"><i class="fas fa-plus"></i>Ajouter</button>
+      </div>
+      <div class="openings">
+        <div class="opening">
+          <div class="opening-photo"><span class="opening-badge active">Bon actif</span><i class="fas fa-camera"></i></div>
+          <div class="opening-body">
+            <div class="opening-type">Fenêtre</div>
+            <div class="opening-loc">Salon · nord</div>
+            <div class="opening-sub">Thermos embué depuis mars</div>
+          </div>
+        </div>
+        <div class="opening">
+          <div class="opening-photo"><span class="opening-badge done">OK</span><i class="fas fa-camera"></i></div>
+          <div class="opening-body">
+            <div class="opening-type">Fenêtre</div>
+            <div class="opening-loc">Chambre maître · est</div>
+            <div class="opening-sub">Thermos remplacé avril 2026</div>
+          </div>
+        </div>
+        <div class="opening">
+          <div class="opening-photo"><i class="fas fa-camera"></i></div>
+          <div class="opening-body">
+            <div class="opening-type">Fenêtre</div>
+            <div class="opening-loc">Chambre 2 · ouest</div>
+            <div class="opening-sub">Aucune intervention</div>
+          </div>
+        </div>
+        <div class="opening">
+          <div class="opening-photo"><i class="fas fa-camera"></i></div>
+          <div class="opening-body">
+            <div class="opening-type">Fenêtre</div>
+            <div class="opening-loc">Cuisine · sud</div>
+            <div class="opening-sub">Inspection annuelle OK</div>
+          </div>
+        </div>
+        <div class="opening">
+          <div class="opening-photo"><i class="fas fa-door-closed" style="font-size:28px"></i></div>
+          <div class="opening-body">
+            <div class="opening-type">Porte-patio</div>
+            <div class="opening-loc">Balcon · sud-est</div>
+            <div class="opening-sub">Roulettes ajustées 2023</div>
+          </div>
+        </div>
+        <div class="opening-add">
+          <i class="fas fa-plus"></i>
+          Ajouter ouverture
+        </div>
+      </div>
+
+      <div class="modal-section-title">Historique · 3 interventions</div>
+      <div class="unit-history">
+        <div class="li">
+          <div class="li-when soon">MAR 22<br>À venir</div>
+          <div class="li-body">
+            <div class="li-title">Remplacement thermos cuisine</div>
+            <div class="li-text">Confirmée · équipe de 3 · 420$</div>
+          </div>
+          <span class="tag red">Planifié</span>
+        </div>
+        <div class="li">
+          <div class="li-when">14 AVR<br>Terminée</div>
+          <div class="li-body">
+            <div class="li-title">Thermos salon remplacé</div>
+            <div class="li-text">420$ · garantie 10 ans activée</div>
+          </div>
+          <span class="tag green">Terminé</span>
+        </div>
+        <div class="li">
+          <div class="li-when">02 FÉV<br>Terminée</div>
+          <div class="li-body">
+            <div class="li-title">Inspection fenêtres</div>
+            <div class="li-text">Aucun problème détecté</div>
+          </div>
+          <span class="tag green">Terminé</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <div style="display:flex; gap:6px">
+        <button class="btn btn-sm"><i class="fas fa-edit"></i>Modifier</button>
+        <button class="btn btn-sm"><i class="fas fa-image"></i>Photos</button>
+      </div>
+      <div style="display:flex; gap:6px">
+        <button class="btn btn-sm btn-primary"><i class="fas fa-plus"></i>Nouvelle intervention</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const crumbs = {
+    dashboard: 'Tableau de bord',
+    interventions: 'Interventions',
+    plan: 'Plan pluriannuel',
+    factures: 'Factures',
+    documents: 'Documents',
+    parametres: 'Paramètres',
+  };
+
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      const tab = btn.dataset.tab;
+      document.getElementById('tab-' + tab).classList.add('active');
+      document.getElementById('crumb').textContent = crumbs[tab];
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+
+  document.querySelectorAll('.kebab').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const parent = btn.closest('.actions');
+      const wasOpen = parent.classList.contains('open');
+      document.querySelectorAll('.actions.open').forEach(a => a.classList.remove('open'));
+      if (!wasOpen) parent.classList.add('open');
+    });
+  });
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.actions.open').forEach(a => a.classList.remove('open'));
+  });
+
+  // Unit click → open modal
+  const modal = document.getElementById('unitModal');
+  const modalTag = document.getElementById('modal-tag');
+  const modalTitle = document.getElementById('modal-title');
+  const modalSub = document.getElementById('modal-sub');
+
+  function openUnitModal(unitEl) {
+    const num = unitEl.querySelector('.unit-num').textContent;
+    const sub = unitEl.querySelector('.unit-sub').textContent;
+    const bldg = unitEl.closest('.bldg')?.querySelector('.bldg-name')?.textContent || '';
+
+    modalTag.textContent = num;
+    modalTag.className = 'modal-tag';
+    if (unitEl.classList.contains('active')) modalTag.classList.add('active');
+    if (unitEl.classList.contains('done')) modalTag.classList.add('done');
+
+    modalTitle.textContent = 'Unité ' + num;
+    modalSub.textContent = bldg + ' · Le Marronnier · ' + sub;
+
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeUnitModal() {
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll('.unit').forEach(u => {
+    u.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openUnitModal(u);
+    });
+  });
+
+  document.getElementById('modalClose').addEventListener('click', closeUnitModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeUnitModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeUnitModal();
+  });
+</script>
+</body>
+</html>

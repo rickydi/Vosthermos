@@ -304,6 +304,8 @@ model Client {
   updatedAt      DateTime     @updatedAt
   workOrders     WorkOrder[]
   units          ClientUnit[]
+  buildings      Building[]
+  managers       ManagerClient[]
 
   @@index([phone])
   @@index([type])
@@ -314,16 +316,115 @@ model ClientUnit {
   id          Int      @id @default(autoincrement())
   clientId    Int
   client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  buildingId  Int?
+  building    Building? @relation(fields: [buildingId], references: [id], onDelete: SetNull)
   code        String
   description String?
   notes       String?  @db.Text
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  openings    UnitOpening[]
 
   @@unique([clientId, code])
   @@index([clientId, isActive])
+  @@index([buildingId])
   @@map("client_units")
+}
+
+model Building {
+  id        Int          @id @default(autoincrement())
+  clientId  Int
+  client    Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  code      String       // "A", "B", "C", "D"
+  name      String       // "Bâtiment A"
+  address   String?
+  position  Int          @default(0)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  units     ClientUnit[]
+
+  @@unique([clientId, code])
+  @@index([clientId])
+  @@map("buildings")
+}
+
+model UnitOpening {
+  id          Int        @id @default(autoincrement())
+  unitId      Int
+  unit        ClientUnit @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  type        String     // "fenetre" | "porte" | "porte-patio" | "porte-francaise"
+  location    String     // "Salon · nord"
+  description String?    @db.Text
+  photoUrl    String?
+  year        Int?
+  brand       String?
+  status      String     @default("ok") // "ok" | "active" | "done"
+  position    Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([unitId])
+  @@map("unit_openings")
+}
+
+model ManagerUser {
+  id           Int                @id @default(autoincrement())
+  email        String             @unique
+  firstName    String
+  lastName     String
+  phone        String?
+  isActive     Boolean            @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  clients      ManagerClient[]
+  sessions     ManagerSession[]
+  magicTokens  ManagerMagicToken[]
+
+  @@index([email])
+  @@map("manager_users")
+}
+
+model ManagerClient {
+  managerId   Int
+  manager     ManagerUser @relation(fields: [managerId], references: [id], onDelete: Cascade)
+  clientId    Int
+  client      Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  permissions String[]    @default(["view_work_orders","view_invoices","request_intervention"])
+  createdAt   DateTime    @default(now())
+
+  @@id([managerId, clientId])
+  @@index([clientId])
+  @@map("manager_clients")
+}
+
+model ManagerSession {
+  token     String      @id
+  managerId Int
+  manager   ManagerUser @relation(fields: [managerId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  userAgent String?
+  ip        String?
+  createdAt DateTime    @default(now())
+
+  @@index([managerId])
+  @@index([expiresAt])
+  @@map("manager_sessions")
+}
+
+model ManagerMagicToken {
+  token     String      @id
+  managerId Int
+  manager   ManagerUser @relation(fields: [managerId], references: [id], onDelete: Cascade)
+  email     String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime    @default(now())
+
+  @@index([managerId])
+  @@index([expiresAt])
+  @@map("manager_magic_tokens")
 }
 
 model WorkOrder {
