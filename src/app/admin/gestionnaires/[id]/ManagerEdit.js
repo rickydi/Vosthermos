@@ -101,6 +101,17 @@ export default function ManagerEdit({ manager, allClients }) {
           <p className="admin-text-muted text-sm mt-1">{manager.email}</p>
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={async () => {
+              const res = await fetch(`/api/admin/managers/${manager.id}?action=impersonate`, { method: "POST" });
+              const d = await res.json();
+              if (res.ok && d.redirect) window.open(d.redirect, "_blank");
+              else alert("Erreur: " + (d.error || "?"));
+            }}
+            className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-medium"
+          >
+            <i className="fas fa-eye mr-2"></i>Voir le portail
+          </button>
           <button onClick={sendLink} className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-medium">
             <i className="fas fa-envelope mr-2"></i>Envoyer lien magique
           </button>

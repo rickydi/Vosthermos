@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
-import { createMagicToken } from "@/lib/manager-auth";
+import { createMagicToken, createSession, MANAGER_COOKIE } from "@/lib/manager-auth";
 import { getTransporter } from "@/lib/mail";
 import { COMPANY_INFO } from "@/lib/company-info";
 
@@ -84,6 +85,23 @@ export async function POST(req, { params }) {
   const { id } = await params;
   const { searchParams } = new URL(req.url);
   const action = searchParams.get("action");
+
+  if (action === "impersonate") {
+    const manager = await prisma.managerUser.findUnique({ where: { id: Number(id) } });
+    if (!manager) return NextResponse.json({ error: "Non trouve" }, { status: 404 });
+
+    const { token: sessionToken, expiresAt } = await createSession(manager.id, req);
+    const store = await cookies();
+    store.set(MANAGER_COOKIE, sessionToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      path: "/",
+      expires: expiresAt,
+    });
+
+    return NextResponse.json({ ok: true, redirect: "/gestionnaire" });
+  }
 
   if (action === "send-link") {
     const manager = await prisma.managerUser.findUnique({ where: { id: Number(id) } });

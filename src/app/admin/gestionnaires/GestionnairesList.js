@@ -238,6 +238,18 @@ export default function GestionnairesList({ initialManagers, clients }) {
                 </td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex gap-1 justify-end">
+                    <button
+                      onClick={async () => {
+                        const res = await fetch(`/api/admin/managers/${m.id}?action=impersonate`, { method: "POST" });
+                        const d = await res.json();
+                        if (res.ok && d.redirect) window.open(d.redirect, "_blank");
+                        else alert("Erreur: " + (d.error || "?"));
+                      }}
+                      title="Voir le portail comme ce gestionnaire (nouvel onglet)"
+                      className="w-8 h-8 rounded admin-card border admin-border hover:bg-white/10 inline-flex items-center justify-center"
+                    >
+                      <i className="fas fa-eye text-xs admin-text-muted"></i>
+                    </button>
                     <button onClick={() => sendLink(m.id)} title="Renvoyer lien magique" className="w-8 h-8 rounded admin-card border admin-border hover:bg-white/10 inline-flex items-center justify-center">
                       <i className="fas fa-envelope text-xs admin-text-muted"></i>
                     </button>

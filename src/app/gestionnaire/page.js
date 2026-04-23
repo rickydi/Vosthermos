@@ -36,7 +36,7 @@ export default async function GestionnairePage({ searchParams }) {
   const clientIdsFilter = isGlobal ? allClientIds : [activeClient.clientId];
 
   // Fetch data scoped to selected client(s)
-  const [buildings, unitsRaw, activeWOs, recentWOs, pendingInvoicesCount] = await Promise.all([
+  const [buildings, unitsRaw, activeWOs, recentWOs, pendingInvoicesCount, invoicedWOs] = await Promise.all([
     prisma.building.findMany({
       where: { clientId: { in: clientIdsFilter } },
       include: { client: { select: { name: true } } },
@@ -71,6 +71,15 @@ export default async function GestionnairePage({ searchParams }) {
         clientId: { in: clientIdsFilter },
         statut: "invoiced",
       },
+    }),
+    prisma.workOrder.findMany({
+      where: {
+        clientId: { in: clientIdsFilter },
+        statut: { in: ["invoiced", "paid"] },
+      },
+      include: { client: { select: { name: true } } },
+      orderBy: { date: "desc" },
+      take: 50,
     }),
   ]);
 
@@ -112,6 +121,45 @@ export default async function GestionnairePage({ searchParams }) {
     invoicedCount: pendingInvoicesCount,
     completedCount: recentWOs.length,
   };
+
+  // Pre-serialize interventions for client
+  const interventions = {
+    active: activeWOs.map((wo) => ({
+      id: wo.id,
+      number: wo.number,
+      date: wo.date?.toISOString() || null,
+      statut: wo.statut,
+      description: wo.description,
+      technicianName: wo.technician ? `${wo.technician.firstName} ${wo.technician.lastName || ""}`.trim() : null,
+      clientName: wo.client?.name || "",
+      sections: wo.sections?.map((s) => s.unitCode) || [],
+      total: Number(wo.total),
+    })),
+    recent: recentWOs.map((wo) => ({
+      id: wo.id,
+      number: wo.number,
+      date: wo.date?.toISOString() || null,
+      statut: wo.statut,
+      description: wo.description,
+      total: Number(wo.total),
+    })),
+  };
+
+  const invoices = invoicedWOs.map((wo) => ({
+    id: wo.id,
+    number: wo.number,
+    date: wo.date?.toISOString() || null,
+    statut: wo.statut,
+    description: wo.description,
+    clientName: wo.client?.name || "",
+    subtotal: Number(wo.subtotal),
+    tps: Number(wo.tps),
+    tvq: Number(wo.tvq),
+    total: Number(wo.total),
+  }));
+
+  const toPayTotal = invoices.filter((i) => i.statut === "invoiced").reduce((s, i) => s + i.total, 0);
+  const paidTotal = invoices.filter((i) => i.statut === "paid").reduce((s, i) => s + i.total, 0);
 
   // Notifications (derived from WOs + invoices)
   const notifs = [];
@@ -183,6 +231,9 @@ export default async function GestionnairePage({ searchParams }) {
       }))}
       stats={stats}
       notifs={notifs}
+      interventions={interventions}
+      invoices={invoices}
+      invoicesTotals={{ toPay: toPayTotal, paid: paidTotal }}
     />
   );
 }

@@ -17,7 +17,17 @@ function clientInitials(name) {
     .toUpperCase() || name.slice(0, 2).toUpperCase();
 }
 
-export default function GestionnaireDashboard({ manager, clients, isGlobal, activeClient, buildings, orphanUnits, stats, notifs }) {
+function fmtMoney(n) { return Number(n || 0).toLocaleString("fr-CA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " $"; }
+function fmtDate(iso) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleDateString("fr-CA", { day: "numeric", month: "short", year: "numeric" });
+}
+function fmtDateShort(iso) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleDateString("fr-CA", { day: "2-digit", month: "short" }).toUpperCase();
+}
+
+export default function GestionnaireDashboard({ manager, clients, isGlobal, activeClient, buildings, orphanUnits, stats, notifs, interventions, invoices, invoicesTotals }) {
   const router = useRouter();
   const sp = useSearchParams();
   const [activeTab, setActiveTab] = useState(sp.get("tab") || "dashboard");
@@ -272,8 +282,139 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
             </div>
           )}
 
-          {/* Other tabs — placeholders for now */}
-          {activeTab !== "dashboard" && (
+          {/* INTERVENTIONS TAB */}
+          {activeTab === "interventions" && (
+            <div className="gm-content">
+              <div className="gm-page-head">
+                <div>
+                  <h1 className="gm-page-title">Interventions</h1>
+                  <div className="gm-page-sub">
+                    {interventions?.active?.length > 0 ? <><strong>{interventions.active.length} active{interventions.active.length > 1 ? "s" : ""}</strong></> : "Aucune intervention active"}
+                    {interventions?.recent?.length > 0 && ` · ${interventions.recent.length} récente${interventions.recent.length > 1 ? "s" : ""}`}
+                  </div>
+                </div>
+                <div className="gm-page-actions">
+                  <button className="gm-btn gm-btn-primary">
+                    <i className="fas fa-plus"></i>Demander intervention
+                  </button>
+                </div>
+              </div>
+
+              <div className="gm-section-head">
+                <div className="gm-section-title">À venir / en cours</div>
+              </div>
+              {!interventions?.active?.length ? (
+                <div className="gm-card" style={{ textAlign: "center", padding: 48, color: "var(--text-muted)" }}>
+                  Aucune intervention planifiée
+                </div>
+              ) : (
+                interventions.active.map((wo) => (
+                  <div key={wo.id} className="li">
+                    <div className={"li-when " + (wo.statut === "in_progress" ? "now" : "soon")}>
+                      {fmtDateShort(wo.date)}<br />{wo.statut === "in_progress" ? "EN COURS" : wo.statut === "scheduled" ? "PLANIFIÉ" : "BROUILLON"}
+                    </div>
+                    <div className="li-body">
+                      <div className="li-title">{wo.number} {isGlobal && wo.clientName && <span style={{ fontWeight: 500, color: "var(--text-muted)", fontSize: 12 }}>· {wo.clientName}</span>}</div>
+                      <div className="li-text">
+                        {wo.description ? wo.description.slice(0, 90) : "Intervention planifiée"}
+                        {wo.sections.length > 0 && ` · Unités: ${wo.sections.join(", ")}`}
+                        {wo.technicianName && ` · ${wo.technicianName}`}
+                      </div>
+                    </div>
+                    <span className={"gm-tag " + (wo.statut === "in_progress" ? "green" : "red")}>
+                      {wo.statut === "in_progress" ? "En cours" : "Confirmé"}
+                    </span>
+                  </div>
+                ))
+              )}
+
+              {interventions?.recent?.length > 0 && (
+                <>
+                  <div className="gm-section-head" style={{ marginTop: 24 }}>
+                    <div className="gm-section-title">Historique récent</div>
+                  </div>
+                  {interventions.recent.map((wo) => (
+                    <div key={wo.id} className="li">
+                      <div className="li-when">{fmtDateShort(wo.date)}<br />Terminée</div>
+                      <div className="li-body">
+                        <div className="li-title">{wo.number}</div>
+                        <div className="li-text">{wo.description?.slice(0, 100) || "—"} · {fmtMoney(wo.total)}</div>
+                      </div>
+                      <span className="gm-tag green">Terminé</span>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
+          )}
+
+          {/* FACTURES TAB */}
+          {activeTab === "factures" && (
+            <div className="gm-content">
+              <div className="gm-page-head">
+                <div>
+                  <h1 className="gm-page-title">Factures</h1>
+                  <div className="gm-page-sub">
+                    {stats.invoicedCount > 0 ? <><strong>{stats.invoicedCount} à régler</strong> · {fmtMoney(invoicesTotals.toPay)}</> : "Aucune facture en attente"}
+                  </div>
+                </div>
+              </div>
+
+              <div className="gm-grid" style={{ marginBottom: 16 }}>
+                <div className="gm-card" style={{ gridColumn: "span 4" }}>
+                  <div style={{ fontSize: 32, fontWeight: 700, color: "var(--red)" }}>{fmtMoney(invoicesTotals.toPay)}</div>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".1em", marginTop: 4 }}>Total à payer</div>
+                </div>
+                <div className="gm-card" style={{ gridColumn: "span 4" }}>
+                  <div style={{ fontSize: 32, fontWeight: 700, color: "var(--green)" }}>{fmtMoney(invoicesTotals.paid)}</div>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".1em", marginTop: 4 }}>Payé</div>
+                </div>
+                <div className="gm-card" style={{ gridColumn: "span 4" }}>
+                  <div style={{ fontSize: 32, fontWeight: 700, color: "var(--teal-dark)" }}>{invoices.length}</div>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".1em", marginTop: 4 }}>Factures · 12 mois</div>
+                </div>
+              </div>
+
+              <div className="gm-card" style={{ padding: 0, overflow: "hidden" }}>
+                {invoices.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: 48, color: "var(--text-muted)" }}>Aucune facture</div>
+                ) : (
+                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <thead>
+                      <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                        <th style={{ padding: "14px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em" }}>Facture</th>
+                        <th style={{ padding: "14px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em" }}>Date</th>
+                        <th style={{ padding: "14px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em" }}>Description</th>
+                        <th style={{ padding: "14px 16px", textAlign: "right", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em" }}>Total</th>
+                        <th style={{ padding: "14px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em" }}>Statut</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {invoices.map((inv) => (
+                        <tr key={inv.id} style={{ borderBottom: "1px solid var(--border)" }}>
+                          <td style={{ padding: "14px 16px", fontFamily: "monospace", fontSize: 12, fontWeight: 700 }}>{inv.number}</td>
+                          <td style={{ padding: "14px 16px", fontSize: 13, color: "var(--text-muted)" }}>{fmtDate(inv.date)}</td>
+                          <td style={{ padding: "14px 16px", fontSize: 13 }}>
+                            {inv.description?.slice(0, 80) || "—"}
+                            {isGlobal && inv.clientName && <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>{inv.clientName}</div>}
+                          </td>
+                          <td style={{ padding: "14px 16px", textAlign: "right", fontWeight: 700, fontSize: 14 }}>{fmtMoney(inv.total)}</td>
+                          <td style={{ padding: "14px 16px" }}>
+                            <span className={"gm-tag " + (inv.statut === "paid" ? "green" : "amber")}>
+                              {inv.statut === "paid" ? "Payé" : "À payer"}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* PLAN / DOCUMENTS / PARAMÈTRES — placeholders */}
+          {(activeTab === "plan" || activeTab === "documents" || activeTab === "parametres") && (
             <div className="gm-content">
               <div className="gm-page-head">
                 <div>
@@ -285,9 +426,7 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                 <i className="fas fa-tools" style={{ fontSize: 36, color: "var(--border-strong)", marginBottom: 12 }}></i>
                 <div style={{ fontWeight: 700, marginBottom: 6 }}>Section bientôt disponible</div>
                 <div style={{ color: "var(--text-muted)", fontSize: 13 }}>
-                  {activeTab === "interventions" && "Calendrier complet des interventions planifiées et historique."}
                   {activeTab === "plan" && "Plan pluriannuel et budget prévisionnel 5 ans."}
-                  {activeTab === "factures" && "Liste des factures et paiements en ligne."}
                   {activeTab === "documents" && "Rapports, plans et attestations Loi 25."}
                   {activeTab === "parametres" && "Profil et préférences de notifications."}
                 </div>
