@@ -260,11 +260,18 @@ export default function AdminSidebar() {
                     </span>
                   )
                 )}
-                {!reorderMode && item.href === "/admin/rendez-vous" && pendingRdv > 0 && (
-                  <span className="ml-auto flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse" />
-                    <span className="text-xs font-bold">{pendingRdv}</span>
-                  </span>
+                {!reorderMode && item.href === "/admin/rendez-vous" && (
+                  pendingRdv > 0 ? (
+                    <span className="ml-auto flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse" />
+                      <span className="text-xs font-bold">{pendingRdv}</span>
+                    </span>
+                  ) : (
+                    <span className="ml-auto relative flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500" />
+                    </span>
+                  )
                 )}
               </LinkOrDiv>
             );
