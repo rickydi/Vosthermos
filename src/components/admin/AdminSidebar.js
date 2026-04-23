@@ -40,6 +40,7 @@ export default function AdminSidebar() {
   const [open, setOpen] = useState(false);
   const [unreadChat, setUnreadChat] = useState(0);
   const [pendingRdv, setPendingRdv] = useState(0);
+  const [pendingRequests, setPendingRequests] = useState(0);
 
   // Reorderable menu
   const [items, setItems] = useState(DEFAULT_NAV_ITEMS);
@@ -72,9 +73,10 @@ export default function AdminSidebar() {
   useEffect(() => {
     async function fetchBadges() {
       try {
-        const [chatRes, rdvRes] = await Promise.all([
+        const [chatRes, rdvRes, reqRes] = await Promise.all([
           fetch("/api/admin/chat"),
           fetch("/api/admin/appointments?status=pending"),
+          fetch("/api/admin/work-orders/pending-count"),
         ]);
         const chatData = await chatRes.json();
         if (Array.isArray(chatData)) {
@@ -83,6 +85,10 @@ export default function AdminSidebar() {
         const rdvData = await rdvRes.json();
         if (Array.isArray(rdvData)) {
           setPendingRdv(rdvData.length);
+        }
+        const reqData = await reqRes.json();
+        if (typeof reqData?.count === "number") {
+          setPendingRequests(reqData.count);
         }
       } catch {}
     }
@@ -240,6 +246,12 @@ export default function AdminSidebar() {
                       <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500" />
                     </span>
                   )
+                )}
+                {!reorderMode && item.href === "/admin/bons" && pendingRequests > 0 && (
+                  <span className="ml-auto flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+                    <span className="text-xs font-bold text-red-400">{pendingRequests}</span>
+                  </span>
                 )}
                 {!reorderMode && item.href === "/admin/rendez-vous" && pendingRdv > 0 && (
                   <span className="ml-auto flex items-center gap-1.5">
