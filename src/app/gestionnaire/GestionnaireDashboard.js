@@ -47,6 +47,7 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
   const [openingEditor, setOpeningEditor] = useState(null);
   const [buildingEditor, setBuildingEditor] = useState(null);
   const [unitEditor, setUnitEditor] = useState(null);
+  const [newCopro, setNewCopro] = useState(false);
   const canManageOpenings = !isGlobal && hasPerm(activeClient, "manage_openings");
   const canManageUnits = !isGlobal && hasPerm(activeClient, "manage_units");
 
@@ -126,6 +127,18 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                   </div>
                 </button>
               ))}
+              <button
+                className="synd-btn"
+                onClick={() => setNewCopro(true)}
+                style={{ borderTop: "1px dashed rgba(255,255,255,0.1)", marginTop: 4, paddingTop: 12 }}
+              >
+                <div className="sb-emblem" style={{ background: "rgba(255,255,255,0.08)" }}>
+                  <i className="fas fa-plus" style={{ fontSize: 10 }}></i>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div className="synd-name" style={{ fontSize: 12 }}>Ajouter copropriété</div>
+                </div>
+              </button>
             </div>
           </div>
 
@@ -469,6 +482,14 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
         </main>
       </div>
 
+      {/* Modal nouvelle copropriété */}
+      {newCopro && (
+        <CoproEditor
+          onClose={() => setNewCopro(false)}
+          onSaved={(clientId) => { setNewCopro(false); router.push(`/gestionnaire?c=${clientId}`); }}
+        />
+      )}
+
       {/* Modal éditeur de bâtiment */}
       {buildingEditor && activeClient && (
         <BuildingEditor
@@ -580,6 +601,73 @@ function TextInput({ label, value, onChange, placeholder, required, type = "text
       <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 4, display: "block" }}>{label}</label>
       <input required={required} type={type} value={value || ""} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
         style={{ width: "100%", padding: "8px 12px", border: "1px solid var(--border)", borderRadius: 6, fontFamily: "inherit", fontSize: 13 }} />
+    </div>
+  );
+}
+
+function CoproEditor({ onClose, onSaved }) {
+  const [form, setForm] = useState({
+    name: "", company: "", address: "", city: "", province: "QC", postalCode: "",
+    phone: "", email: "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState("");
+
+  async function save(e) {
+    e.preventDefault();
+    setSaving(true); setErr("");
+    try {
+      const res = await fetch("/api/manager/clients", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || "Erreur");
+      onSaved(d.client.id);
+    } catch (e) { setErr(e.message); }
+    setSaving(false);
+  }
+
+  return (
+    <div className="gm-modal-backdrop open" onClick={(e) => { if (e.target.classList.contains("gm-modal-backdrop")) onClose(); }}>
+      <div className="gm-modal" style={{ maxWidth: 600 }}>
+        <div className="gm-modal-head">
+          <div className="modal-tag"><i className="fas fa-building"></i></div>
+          <div>
+            <div className="gm-modal-title">Nouvelle copropriété</div>
+            <div className="gm-modal-sub">Vous en serez automatiquement gestionnaire</div>
+          </div>
+          <button className="gm-modal-close" onClick={onClose}><i className="fas fa-times"></i></button>
+        </div>
+        <form onSubmit={save} className="gm-modal-body" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {err && <div style={{ background: "#fdf2f3", color: "#c10615", padding: "10px 12px", borderRadius: 6, fontSize: 12 }}>{err}</div>}
+
+          <TextInput label="Nom du syndicat *" value={form.name} onChange={(v) => setForm({ ...form, name: v })} placeholder="Syndicat Le Marronnier" required />
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <TextInput label="Entreprise gestion" value={form.company} onChange={(v) => setForm({ ...form, company: v })} placeholder="Optionnel" />
+            <TextInput label="Email" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} placeholder="info@syndicat.ca" />
+          </div>
+
+          <TextInput label="Adresse" value={form.address} onChange={(v) => setForm({ ...form, address: v })} placeholder="1500 Montée Monette" />
+
+          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 10 }}>
+            <TextInput label="Ville" value={form.city} onChange={(v) => setForm({ ...form, city: v })} placeholder="Laval" />
+            <TextInput label="Province" value={form.province} onChange={(v) => setForm({ ...form, province: v })} />
+            <TextInput label="Code postal" value={form.postalCode} onChange={(v) => setForm({ ...form, postalCode: v })} placeholder="H7M 5C9" />
+          </div>
+
+          <TextInput label="Téléphone" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="450-555-0100" />
+
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, paddingTop: 8, borderTop: "1px solid var(--border)" }}>
+            <button type="button" onClick={onClose} className="gm-btn gm-btn-sm">Annuler</button>
+            <button type="submit" disabled={saving} className="gm-btn gm-btn-sm gm-btn-primary">
+              {saving ? "..." : "Créer la copropriété"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
