@@ -64,6 +64,21 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
     return () => document.removeEventListener("keydown", onKey);
   }, []);
 
+  // Sync selectedUnit with fresh server data after router.refresh()
+  useEffect(() => {
+    if (!selectedUnit) return;
+    for (const b of buildings) {
+      const fresh = b.units.find((u) => u.id === selectedUnit.id);
+      if (fresh) {
+        setSelectedUnit((prev) => prev ? { ...fresh, buildingName: b.name, clientName: b.clientName } : null);
+        return;
+      }
+    }
+    const fresh = orphanUnits.find((u) => u.id === selectedUnit.id);
+    if (fresh) setSelectedUnit((prev) => prev ? { ...fresh, buildingName: "—" } : null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [buildings, orphanUnits]);
+
   function switchClient(clientId) {
     setSidebarOpen(false);
     router.push(`/gestionnaire?c=${clientId}`);
