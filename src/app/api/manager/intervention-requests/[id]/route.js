@@ -13,15 +13,18 @@ async function authorize(id, manager) {
     },
   });
   if (!wo) return { error: "Demande introuvable", status: 404 };
+  if (wo.visibleAuClient === false) return { error: "Demande introuvable", status: 404 };
   const mc = canAccessClient(manager, wo.clientId);
-  if (!mc || !hasPermission(mc, "request_intervention")) {
+  if (!mc) return { error: "Permission refusée", status: 403 };
+  // GET/DELETE exigent au minimum view_work_orders OU request_intervention (pour voir sa propre demande)
+  if (!hasPermission(mc, "view_work_orders") && !hasPermission(mc, "request_intervention")) {
     return { error: "Permission refusée", status: 403 };
   }
   // Vérif: c'est bien une demande créée par un gestionnaire
   if (!wo.notes?.startsWith("Demande du gestionnaire")) {
     return { error: "Ce bon n'est pas une demande gestionnaire", status: 403 };
   }
-  return { wo };
+  return { wo, mc };
 }
 
 export async function GET(req, { params }) {
@@ -59,6 +62,11 @@ export async function DELETE(req, { params }) {
   const { id } = await params;
   const auth = await authorize(id, manager);
   if (auth.error) return NextResponse.json({ error: auth.error }, { status: auth.status });
+
+  // DELETE requiert request_intervention (le gestionnaire annule sa propre demande)
+  if (!hasPermission(auth.mc, "request_intervention")) {
+    return NextResponse.json({ error: "Permission refusée" }, { status: 403 });
+  }
 
   if (auth.wo.statut !== "draft") {
     return NextResponse.json({ error: "Impossible d'annuler — l'intervention a déjà été planifiée ou traitée par Vosthermos" }, { status: 400 });

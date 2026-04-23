@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
-import { getManagerFromCookie, canAccessClient } from "@/lib/manager-auth";
+import { getManagerFromCookie, canAccessClient, hasPermission } from "@/lib/manager-auth";
 import GestionnaireDashboard from "./GestionnaireDashboard";
 
 export const dynamic = "force-dynamic";
@@ -35,7 +35,17 @@ export default async function GestionnairePage({ searchParams }) {
   const allClientIds = manager.clients.map((c) => c.clientId);
   const clientIdsFilter = isGlobal ? allClientIds : [activeClient.clientId];
 
-  // Fetch data scoped to selected client(s)
+  // Permission-scoped client IDs: only clients where manager has the specific permission
+  const woClientIds = clientIdsFilter.filter((cid) => {
+    const mc = manager.clients.find((c) => c.clientId === cid);
+    return mc && hasPermission(mc, "view_work_orders");
+  });
+  const invoiceClientIds = clientIdsFilter.filter((cid) => {
+    const mc = manager.clients.find((c) => c.clientId === cid);
+    return mc && hasPermission(mc, "view_invoices");
+  });
+
+  // Fetch data scoped to selected client(s) + permissions + visibleAuClient
   const [buildings, unitsRaw, activeWOs, recentWOs, pendingInvoicesCount, invoicedWOs] = await Promise.all([
     prisma.building.findMany({
       where: { clientId: { in: clientIdsFilter } },
@@ -49,9 +59,10 @@ export default async function GestionnairePage({ searchParams }) {
       },
       orderBy: [{ clientId: "asc" }, { buildingId: "asc" }, { code: "asc" }],
     }),
-    prisma.workOrder.findMany({
+    woClientIds.length === 0 ? Promise.resolve([]) : prisma.workOrder.findMany({
       where: {
-        clientId: { in: clientIdsFilter },
+        clientId: { in: woClientIds },
+        visibleAuClient: true,
         statut: { in: ["draft", "scheduled", "in_progress"] },
       },
       include: {
@@ -62,23 +73,26 @@ export default async function GestionnairePage({ searchParams }) {
       orderBy: { date: "asc" },
       take: 10,
     }),
-    prisma.workOrder.findMany({
+    woClientIds.length === 0 ? Promise.resolve([]) : prisma.workOrder.findMany({
       where: {
-        clientId: { in: clientIdsFilter },
+        clientId: { in: woClientIds },
+        visibleAuClient: true,
         statut: { in: ["completed", "invoiced", "paid"] },
       },
       orderBy: { date: "desc" },
       take: 5,
     }),
-    prisma.workOrder.count({
+    invoiceClientIds.length === 0 ? Promise.resolve(0) : prisma.workOrder.count({
       where: {
-        clientId: { in: clientIdsFilter },
+        clientId: { in: invoiceClientIds },
+        visibleAuClient: true,
         statut: "invoiced",
       },
     }),
-    prisma.workOrder.findMany({
+    invoiceClientIds.length === 0 ? Promise.resolve([]) : prisma.workOrder.findMany({
       where: {
-        clientId: { in: clientIdsFilter },
+        clientId: { in: invoiceClientIds },
+        visibleAuClient: true,
         statut: { in: ["invoiced", "paid"] },
       },
       include: { client: { select: { name: true } } },

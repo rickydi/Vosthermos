@@ -22,7 +22,7 @@ export async function POST(req) {
     }
 
     const token = await createMagicToken(manager);
-    const loginUrl = `${SITE_URL}/gestionnaire/verify?token=${token}`;
+    const loginUrl = `${SITE_URL}/api/manager/auth/verify?token=${token}`;
 
     if (!process.env.SMTP_HOST) {
       console.log(`[DEV] Magic link for ${normalized}: ${loginUrl}`);
