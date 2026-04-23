@@ -67,7 +67,7 @@ export default async function GestionnairePage({ searchParams }) {
       },
       include: {
         sections: true,
-        technician: { select: { id: true, name: true, phone: true } },
+        technician: { select: { id: true, name: true, phone: true, photoUrl: true } },
         client: { select: { name: true } },
       },
       orderBy: { date: "asc" },
@@ -151,6 +151,7 @@ export default async function GestionnairePage({ searchParams }) {
       description: wo.description,
       technicianName: wo.technician?.name || null,
       technicianPhone: wo.technician?.phone || null,
+      technicianPhotoUrl: wo.technician?.photoUrl || null,
       clientName: wo.client?.name || "",
       sections: wo.sections?.map((s) => s.unitCode) || [],
       total: Number(wo.total),

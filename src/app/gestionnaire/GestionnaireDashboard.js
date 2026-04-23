@@ -1127,7 +1127,16 @@ function RequestDetailModal({ requestId, onClose, onDeleted }) {
             <>
               <div className="modal-section-title">Technicien attitré</div>
               <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 12, background: "var(--bg)", borderRadius: 6 }}>
-                <i className="fas fa-user-hard-hat" style={{ fontSize: 28, color: "var(--text-dim)", flexShrink: 0 }}></i>
+                {data.technician.photoUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={data.technician.photoUrl}
+                    alt={data.technician.name}
+                    style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "2px solid var(--border)" }}
+                  />
+                ) : (
+                  <i className="fas fa-user-hard-hat" style={{ fontSize: 28, color: "var(--text-dim)", flexShrink: 0 }}></i>
+                )}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 700, fontSize: 14 }}>{data.technician.name}</div>
                   {data.technician.phone ? (

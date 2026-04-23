@@ -9,7 +9,7 @@ async function authorize(id, manager) {
     where: { id: Number(id) },
     include: {
       sections: true,
-      technician: { select: { id: true, name: true, phone: true, email: true } },
+      technician: { select: { id: true, name: true, phone: true, email: true, photoUrl: true } },
     },
   });
   if (!wo) return { error: "Demande introuvable", status: 404 };
@@ -60,6 +60,7 @@ export async function GET(req, { params }) {
       name: wo.technician.name,
       phone: wo.technician.phone || null,
       email: wo.technician.email || null,
+      photoUrl: wo.technician.photoUrl || null,
     } : null,
   });
 }

@@ -276,6 +276,7 @@ model Technician {
   name       String
   email      String?     @unique
   phone      String?
+  photoUrl   String?
   pin        String      // bcrypt hash du PIN 4 chiffres
   isActive   Boolean     @default(true)
   createdAt  DateTime    @default(now())
