@@ -49,6 +49,7 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
   const [unitEditor, setUnitEditor] = useState(null);
   const [newCopro, setNewCopro] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [bonsActifsOpen, setBonsActifsOpen] = useState(false);
   const [requestModal, setRequestModal] = useState(null); // null | { unitCode? }
   const [viewRequestId, setViewRequestId] = useState(null);
   const canManageOpenings = !isGlobal && hasPerm(activeClient, "manage_openings");
@@ -262,71 +263,86 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                 </>
               )}
 
-              {/* Bons actifs */}
+              {/* Bons actifs · accordéon */}
               {interventions?.active?.length > 0 && (
-                <>
-                  <div className="gm-section-head">
-                    <div className="gm-section-title">
-                      Bons actifs · {interventions.active.length}
-                    </div>
-                    <button className="gm-btn gm-btn-sm" onClick={() => setActiveTab("interventions")}>
+                <div className={"gm-accordion" + (bonsActifsOpen ? " open" : "")} style={{ marginBottom: 12 }}>
+                  <button
+                    type="button"
+                    className="gm-accordion-head"
+                    onClick={() => setBonsActifsOpen((v) => !v)}
+                    aria-expanded={bonsActifsOpen}
+                  >
+                    <i className={"fas fa-chevron-right gm-accordion-caret"}></i>
+                    <span className="gm-accordion-title">
+                      Bons actifs
+                      <span className="gm-accordion-count">{interventions.active.length}</span>
+                    </span>
+                    <span
+                      className="gm-btn gm-btn-sm"
+                      style={{ marginLeft: "auto" }}
+                      onClick={(e) => { e.stopPropagation(); setActiveTab("interventions"); }}
+                    >
                       Voir tout<i className="fas fa-arrow-right" style={{ marginLeft: 4 }}></i>
-                    </button>
-                  </div>
-                  <div className="gm-card" style={{ padding: 0, overflow: "hidden" }}>
-                    {interventions.active.map((wo) => {
-                      const statusConfig = {
-                        draft: { label: "En attente Vosthermos", tag: "amber" },
-                        scheduled: { label: "Planifié", tag: "red" },
-                        in_progress: { label: "En cours", tag: "green" },
-                      }[wo.statut] || { label: wo.statut, tag: "" };
-                      return (
-                        <div
-                          key={wo.id}
-                          className="li"
-                          style={{ cursor: "pointer", borderBottom: "1px solid var(--border)" }}
-                          onClick={() => setViewRequestId(wo.id)}
-                        >
-                          <div className={"li-when " + (wo.statut === "in_progress" ? "now" : wo.statut === "draft" ? "" : "soon")}>
-                            {fmtDateShort(wo.date)}<br />{wo.statut === "in_progress" ? "EN COURS" : wo.statut === "scheduled" ? "PLANIFIÉ" : "EN ATTENTE"}
-                          </div>
-                          <div className="li-body">
-                            <div className="li-title">
-                              {wo.number}
-                              {isGlobal && wo.clientName && <span style={{ fontWeight: 500, color: "var(--text-muted)", fontSize: 12 }}> · {wo.clientName}</span>}
-                            </div>
-                            <div className="li-text">
-                              {wo.description ? wo.description.slice(0, 100) : "Intervention planifiée"}
-                              {wo.sections.length > 0 ? ` · Unités: ${wo.sections.join(", ")}` : " · Intervention générale"}
-                            </div>
-                            {wo.technicianName && (
-                              <div style={{ fontSize: 12, color: "var(--text-dim)", marginTop: 4, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                                <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                                  <i className="fas fa-user-hard-hat"></i>
-                                  <span style={{ color: "var(--text-muted)" }}>Technicien attitré :</span>
-                                  <strong>{wo.technicianName}</strong>
-                                </span>
-                                {wo.technicianPhone && (
-                                  <a
-                                    href={`tel:${wo.technicianPhone}`}
-                                    onClick={(e) => e.stopPropagation()}
-                                    style={{ color: "var(--red)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4 }}
-                                  >
-                                    <i className="fas fa-phone"></i> {wo.technicianPhone}
-                                  </a>
+                    </span>
+                  </button>
+                  <div className="gm-accordion-panel">
+                    <div className="gm-accordion-inner">
+                      <div className="gm-card" style={{ padding: 0, overflow: "hidden", marginTop: 8 }}>
+                        {interventions.active.map((wo) => {
+                          const statusConfig = {
+                            draft: { label: "En attente Vosthermos", tag: "amber" },
+                            scheduled: { label: "Planifié", tag: "red" },
+                            in_progress: { label: "En cours", tag: "green" },
+                          }[wo.statut] || { label: wo.statut, tag: "" };
+                          return (
+                            <div
+                              key={wo.id}
+                              className="li"
+                              style={{ cursor: "pointer", borderBottom: "1px solid var(--border)" }}
+                              onClick={() => setViewRequestId(wo.id)}
+                            >
+                              <div className={"li-when " + (wo.statut === "in_progress" ? "now" : wo.statut === "draft" ? "" : "soon")}>
+                                {fmtDateShort(wo.date)}<br />{wo.statut === "in_progress" ? "EN COURS" : wo.statut === "scheduled" ? "PLANIFIÉ" : "EN ATTENTE"}
+                              </div>
+                              <div className="li-body">
+                                <div className="li-title">
+                                  {wo.number}
+                                  {isGlobal && wo.clientName && <span style={{ fontWeight: 500, color: "var(--text-muted)", fontSize: 12 }}> · {wo.clientName}</span>}
+                                </div>
+                                <div className="li-text">
+                                  {wo.description ? wo.description.slice(0, 100) : "Intervention planifiée"}
+                                  {wo.sections.length > 0 ? ` · Unités: ${wo.sections.join(", ")}` : " · Intervention générale"}
+                                </div>
+                                {wo.technicianName && (
+                                  <div style={{ fontSize: 12, color: "var(--text-dim)", marginTop: 4, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                                      <i className="fas fa-user-hard-hat"></i>
+                                      <span style={{ color: "var(--text-muted)" }}>Technicien attitré :</span>
+                                      <strong>{wo.technicianName}</strong>
+                                    </span>
+                                    {wo.technicianPhone && (
+                                      <a
+                                        href={`tel:${wo.technicianPhone}`}
+                                        onClick={(e) => e.stopPropagation()}
+                                        style={{ color: "var(--red)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4 }}
+                                      >
+                                        <i className="fas fa-phone"></i> {wo.technicianPhone}
+                                      </a>
+                                    )}
+                                  </div>
                                 )}
                               </div>
-                            )}
-                          </div>
-                          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                            <span className={"gm-tag " + statusConfig.tag}>{statusConfig.label}</span>
-                            <i className="fas fa-chevron-right" style={{ color: "var(--text-muted)", fontSize: 11 }}></i>
-                          </div>
-                        </div>
-                      );
-                    })}
+                              <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                                <span className={"gm-tag " + statusConfig.tag}>{statusConfig.label}</span>
+                                <i className="fas fa-chevron-right" style={{ color: "var(--text-muted)", fontSize: 11 }}></i>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
-                </>
+                </div>
               )}
 
               {/* Bâtiments & Unités */}
