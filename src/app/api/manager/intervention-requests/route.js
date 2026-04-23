@@ -12,10 +12,31 @@ export async function POST(req) {
   if (!manager) return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
 
   const body = await req.json().catch(() => ({}));
-  const { clientId, unitCode, description, urgency, preferredDate } = body;
+  const { clientId, unitId, openingId, description, urgency, preferredDate } = body;
 
   if (!clientId || !description?.trim()) {
     return NextResponse.json({ error: "Copropriété et description requis" }, { status: 400 });
+  }
+
+  // Fetch unit code + opening details if provided
+  let unitCode = null;
+  let openingInfo = null;
+  if (unitId) {
+    const u = await prisma.clientUnit.findUnique({
+      where: { id: Number(unitId) },
+      select: { code: true, clientId: true },
+    });
+    if (u && u.clientId === Number(clientId)) unitCode = u.code;
+  }
+  if (openingId) {
+    const o = await prisma.unitOpening.findUnique({
+      where: { id: Number(openingId) },
+      select: { type: true, location: true, unit: { select: { clientId: true, code: true } } },
+    });
+    if (o && o.unit.clientId === Number(clientId)) {
+      openingInfo = { type: o.type, location: o.location };
+      if (!unitCode) unitCode = o.unit.code;
+    }
   }
 
   const mc = canAccessClient(manager, Number(clientId));
@@ -32,10 +53,12 @@ export async function POST(req) {
   const date = preferredDate ? new Date(preferredDate) : new Date();
 
   const urgencyLabel = urgency === "urgent" ? "🚨 URGENT" : urgency === "haute" ? "⚠ Priorité haute" : "Normale";
+  const openingLabel = openingInfo ? `${openingInfo.type.replace("-", " ")} · ${openingInfo.location}` : null;
   const noteFromManager = [
     `Demande du gestionnaire ${manager.firstName} ${manager.lastName}`,
     `Email : ${manager.email}`,
     unitCode ? `Unité concernée : ${unitCode}` : null,
+    openingLabel ? `Ouverture visée : ${openingLabel}` : null,
     `Priorité : ${urgencyLabel}`,
     preferredDate ? `Date souhaitée : ${new Date(preferredDate).toLocaleDateString("fr-CA")}` : null,
   ].filter(Boolean).join("\n");
@@ -54,7 +77,12 @@ export async function POST(req) {
       visibleAuClient: true,
       ...(unitCode ? {
         sections: {
-          create: [{ unitCode: unitCode, notes: `Unité visée par la demande du gestionnaire` }],
+          create: [{
+            unitCode: unitCode,
+            notes: openingLabel
+              ? `Ouverture visée : ${openingLabel}`
+              : `Unité visée par la demande du gestionnaire`,
+          }],
         },
       } : {}),
     },
@@ -77,6 +105,7 @@ export async function POST(req) {
     <tr><td style="color:#718096;width:140px"><strong>Copropriété</strong></td><td>${client?.name || "—"}</td></tr>
     <tr><td style="color:#718096"><strong>Gestionnaire</strong></td><td>${manager.firstName} ${manager.lastName} &lt;${manager.email}&gt;</td></tr>
     ${unitCode ? `<tr><td style="color:#718096"><strong>Unité</strong></td><td>${unitCode}</td></tr>` : ""}
+    ${openingLabel ? `<tr><td style="color:#718096"><strong>Ouverture</strong></td><td>${openingLabel}</td></tr>` : ""}
     <tr><td style="color:#718096"><strong>Priorité</strong></td><td>${urgencyLabel}</td></tr>
     ${preferredDate ? `<tr><td style="color:#718096"><strong>Date souhaitée</strong></td><td>${new Date(preferredDate).toLocaleDateString("fr-CA")}</td></tr>` : ""}
     <tr><td style="color:#718096" valign="top"><strong>Description</strong></td><td>${description.trim().replace(/\n/g,"<br>")}</td></tr>

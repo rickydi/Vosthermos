@@ -658,7 +658,7 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                 {canRequest && (
                   <button
                     className="gm-btn gm-btn-sm gm-btn-primary"
-                    onClick={() => setRequestModal({ unitCode: selectedUnit.code })}
+                    onClick={() => setRequestModal({ unitId: selectedUnit.id })}
                   >
                     <i className="fas fa-plus"></i>Demander intervention
                   </button>
@@ -670,11 +670,12 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
       )}
 
       {/* Modal demande d'intervention */}
-      {requestModal && activeClient && (
+      {requestModal && (
         <InterventionRequestModal
-          clientId={activeClient.id}
-          clientName={activeClient.name}
-          presetUnitCode={requestModal.unitCode}
+          clientId={activeClient?.id || null}
+          clientName={activeClient?.name}
+          presetUnitId={requestModal.unitId}
+          presetOpeningId={requestModal.openingId}
           onClose={() => setRequestModal(null)}
           onSaved={(number) => {
             setRequestModal(null);
@@ -915,9 +916,13 @@ function UnitEditor({ clientId, buildings, initial, onClose, onSaved }) {
   );
 }
 
-function InterventionRequestModal({ clientId, clientName, presetUnitCode, onClose, onSaved }) {
+function InterventionRequestModal({ clientId, clientName, presetUnitId, presetOpeningId, onClose, onSaved }) {
+  const [tree, setTree] = useState(null);
   const [form, setForm] = useState({
-    unitCode: presetUnitCode || "",
+    clientId: clientId || "",
+    buildingId: "",
+    unitId: presetUnitId || "",
+    openingId: presetOpeningId || "",
     description: "",
     urgency: "normale",
     preferredDate: "",
@@ -925,14 +930,58 @@ function InterventionRequestModal({ clientId, clientName, presetUnitCode, onClos
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
 
+  useEffect(() => {
+    fetch("/api/manager/tree")
+      .then((r) => r.json())
+      .then((d) => {
+        setTree(d.clients || []);
+        // Si une unité preset est fournie, trouver son bâtiment automatiquement
+        if (presetUnitId) {
+          for (const c of d.clients || []) {
+            for (const b of c.buildings) {
+              const unit = b.units.find((u) => u.id === Number(presetUnitId));
+              if (unit) {
+                setForm((f) => ({ ...f, clientId: c.id, buildingId: b.id, unitId: unit.id }));
+                return;
+              }
+            }
+            const orph = c.orphanUnits?.find((u) => u.id === Number(presetUnitId));
+            if (orph) {
+              setForm((f) => ({ ...f, clientId: c.id, buildingId: "", unitId: orph.id }));
+              return;
+            }
+          }
+        }
+      })
+      .catch(() => setTree([]));
+  }, [presetUnitId]);
+
+  const activeC = tree?.find((c) => c.id === Number(form.clientId));
+  const buildings = activeC?.buildings || [];
+  const orphans = activeC?.orphanUnits || [];
+  const activeB = buildings.find((b) => b.id === Number(form.buildingId));
+  const units = form.buildingId
+    ? (activeB?.units || [])
+    : [...buildings.flatMap((b) => b.units), ...orphans];
+  const activeU = units.find((u) => u.id === Number(form.unitId));
+  const openings = activeU?.openings || [];
+
   async function save(e) {
     e.preventDefault();
     setSaving(true); setErr("");
     try {
+      const payload = {
+        clientId: Number(form.clientId),
+        unitId: form.unitId ? Number(form.unitId) : null,
+        openingId: form.openingId ? Number(form.openingId) : null,
+        description: form.description,
+        urgency: form.urgency,
+        preferredDate: form.preferredDate || null,
+      };
       const res = await fetch("/api/manager/intervention-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clientId, ...form }),
+        body: JSON.stringify(payload),
       });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error || "Erreur");
@@ -941,20 +990,72 @@ function InterventionRequestModal({ clientId, clientName, presetUnitCode, onClos
     setSaving(false);
   }
 
+  if (!tree) {
+    return (
+      <ModalShell icon={<i className="fas fa-wrench"></i>} title="Demander une intervention" onClose={onClose} level={3} maxWidth={560}>
+        <div className="gm-modal-body" style={{ textAlign: "center", padding: 40, color: "var(--text-muted)" }}>
+          <i className="fas fa-spinner fa-spin"></i> Chargement...
+        </div>
+      </ModalShell>
+    );
+  }
+
   return (
     <ModalShell
       icon={<i className="fas fa-wrench"></i>}
       title="Demander une intervention"
-      subtitle={clientName}
+      subtitle={activeC?.name || clientName}
       onClose={onClose}
       level={3}
-      maxWidth={560}
+      maxWidth={600}
     >
       <form onSubmit={save} className="gm-modal-body gm-form">
         {err && <div className="gm-form-err">{err}</div>}
 
+        <Field label="Copropriété *">
+          <select value={form.clientId} onChange={(e) => setForm({ ...form, clientId: e.target.value, buildingId: "", unitId: "", openingId: "" })} required>
+            <option value="">— Sélectionner —</option>
+            {tree.map((c) => <option key={c.id} value={c.id}>{c.name}{c.city ? ` · ${c.city}` : ""}</option>)}
+          </select>
+        </Field>
+
+        {form.clientId && (
+          <div className="gm-field-row gm-field-row-2">
+            <Field label="Bâtiment (optionnel)">
+              <select value={form.buildingId} onChange={(e) => setForm({ ...form, buildingId: e.target.value, unitId: "", openingId: "" })}>
+                <option value="">Tous / sans bâtiment</option>
+                {buildings.map((b) => <option key={b.id} value={b.id}>{b.code} — {b.name}</option>)}
+              </select>
+            </Field>
+            <Field label="Unité (optionnel)">
+              <select value={form.unitId} onChange={(e) => setForm({ ...form, unitId: e.target.value, openingId: "" })}>
+                <option value="">Aucune unité précise</option>
+                {units.map((u) => <option key={u.id} value={u.id}>{u.code}{u.description ? ` — ${u.description}` : ""}</option>)}
+              </select>
+            </Field>
+          </div>
+        )}
+
+        {form.unitId && openings.length > 0 && (
+          <Field label="Fenêtre/porte précise (optionnel)">
+            <select value={form.openingId} onChange={(e) => setForm({ ...form, openingId: e.target.value })}>
+              <option value="">Aucune ouverture précise (ou plusieurs)</option>
+              {openings.map((o) => (
+                <option key={o.id} value={o.id}>
+                  {o.type.replace("-", " ")} — {o.location}
+                </option>
+              ))}
+            </select>
+          </Field>
+        )}
+
+        {form.unitId && openings.length === 0 && (
+          <div style={{ fontSize: 12, color: "var(--text-muted)", fontStyle: "italic" }}>
+            Aucune ouverture enregistrée pour cette unité. Vous pouvez en ajouter depuis le modal de l'unité.
+          </div>
+        )}
+
         <div className="gm-field-row gm-field-row-2">
-          <TextInput label="Unité concernée (optionnel)" value={form.unitCode} onChange={(v) => setForm({ ...form, unitCode: v })} placeholder="B-412" />
           <Field label="Priorité">
             <select value={form.urgency} onChange={(e) => setForm({ ...form, urgency: e.target.value })}>
               <option value="normale">Normale</option>
@@ -962,11 +1063,10 @@ function InterventionRequestModal({ clientId, clientName, presetUnitCode, onClos
               <option value="urgent">Urgent</option>
             </select>
           </Field>
+          <Field label="Date souhaitée (optionnel)">
+            <input className="gm-field-input" type="date" value={form.preferredDate} onChange={(e) => setForm({ ...form, preferredDate: e.target.value })} />
+          </Field>
         </div>
-
-        <Field label="Date souhaitée (optionnel)">
-          <input className="gm-field-input" type="date" value={form.preferredDate} onChange={(e) => setForm({ ...form, preferredDate: e.target.value })} />
-        </Field>
 
         <Field label="Description du problème *">
           <textarea rows={5} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -976,12 +1076,12 @@ function InterventionRequestModal({ clientId, clientName, presetUnitCode, onClos
 
         <div style={{ padding: 12, background: "var(--bg)", borderRadius: 6, fontSize: 12, color: "var(--text-muted)" }}>
           <i className="fas fa-info-circle" style={{ marginRight: 6, color: "var(--red)" }}></i>
-          Vosthermos recevra votre demande par courriel et vous contactera pour confirmer l'intervention. Un bon de travail sera créé en brouillon.
+          Vosthermos recevra votre demande par courriel et vous contactera pour confirmer l'intervention.
         </div>
 
         <div className="gm-form-actions">
           <button type="button" onClick={onClose} className="gm-btn gm-btn-sm">Annuler</button>
-          <button type="submit" disabled={saving || !form.description.trim()} className="gm-btn gm-btn-sm gm-btn-primary">
+          <button type="submit" disabled={saving || !form.description.trim() || !form.clientId} className="gm-btn gm-btn-sm gm-btn-primary">
             {saving ? "Envoi..." : "Envoyer la demande"}
           </button>
         </div>
