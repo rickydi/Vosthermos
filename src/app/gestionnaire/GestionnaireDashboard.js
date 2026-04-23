@@ -595,12 +595,51 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
   );
 }
 
+function Field({ label, children }) {
+  return (
+    <div className="gm-field">
+      <label className="gm-field-label">{label}</label>
+      {children}
+    </div>
+  );
+}
+
 function TextInput({ label, value, onChange, placeholder, required, type = "text" }) {
   return (
-    <div>
-      <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 4, display: "block" }}>{label}</label>
-      <input required={required} type={type} value={value || ""} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
-        style={{ width: "100%", padding: "8px 12px", border: "1px solid var(--border)", borderRadius: 6, fontFamily: "inherit", fontSize: 13 }} />
+    <Field label={label}>
+      <input className="gm-field-input" required={required} type={type} value={value || ""}
+        onChange={(e) => onChange(e.target.value)} placeholder={placeholder} />
+    </Field>
+  );
+}
+
+function ModalShell({ icon, title, subtitle, onClose, level = 2, maxWidth = 560, children }) {
+  useEffect(() => {
+    function onKey(e) { if (e.key === "Escape") onClose(); }
+    document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [onClose]);
+
+  return (
+    <div className={`gm-modal-backdrop open level-${level}`} onClick={(e) => { if (e.target.classList.contains("gm-modal-backdrop")) onClose(); }}>
+      <div className="gm-modal" style={{ maxWidth }}>
+        <div className="gm-modal-head">
+          <div className="modal-tag">{icon}</div>
+          <div style={{ minWidth: 0 }}>
+            <div className="gm-modal-title">{title}</div>
+            {subtitle && <div className="gm-modal-sub">{subtitle}</div>}
+          </div>
+          <button className="gm-modal-close" onClick={onClose} aria-label="Fermer">
+            <i className="fas fa-times"></i>
+          </button>
+        </div>
+        {children}
+      </div>
     </div>
   );
 }
@@ -630,45 +669,36 @@ function CoproEditor({ onClose, onSaved }) {
   }
 
   return (
-    <div className="gm-modal-backdrop open" onClick={(e) => { if (e.target.classList.contains("gm-modal-backdrop")) onClose(); }}>
-      <div className="gm-modal" style={{ maxWidth: 600 }}>
-        <div className="gm-modal-head">
-          <div className="modal-tag"><i className="fas fa-building"></i></div>
-          <div>
-            <div className="gm-modal-title">Nouvelle copropriété</div>
-            <div className="gm-modal-sub">Vous en serez automatiquement gestionnaire</div>
-          </div>
-          <button className="gm-modal-close" onClick={onClose}><i className="fas fa-times"></i></button>
+    <ModalShell
+      icon={<i className="fas fa-building"></i>}
+      title="Nouvelle copropriété"
+      subtitle="Vous en serez automatiquement gestionnaire"
+      onClose={onClose}
+      level={2}
+      maxWidth={600}
+    >
+      <form onSubmit={save} className="gm-modal-body gm-form">
+        {err && <div className="gm-form-err">{err}</div>}
+        <TextInput label="Nom du syndicat *" value={form.name} onChange={(v) => setForm({ ...form, name: v })} placeholder="Syndicat Le Marronnier" required />
+        <div className="gm-field-row gm-field-row-2">
+          <TextInput label="Contact dans la copropriété" value={form.company} onChange={(v) => setForm({ ...form, company: v })} placeholder="Jean Tremblay (président)" />
+          <TextInput label="Courriel du contact" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} placeholder="president@syndicat.ca" />
         </div>
-        <form onSubmit={save} className="gm-modal-body" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {err && <div style={{ background: "#fdf2f3", color: "#c10615", padding: "10px 12px", borderRadius: 6, fontSize: 12 }}>{err}</div>}
-
-          <TextInput label="Nom du syndicat *" value={form.name} onChange={(v) => setForm({ ...form, name: v })} placeholder="Syndicat Le Marronnier" required />
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            <TextInput label="Contact dans la copropriété" value={form.company} onChange={(v) => setForm({ ...form, company: v })} placeholder="Jean Tremblay (président)" />
-            <TextInput label="Courriel du contact" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} placeholder="president@syndicat.ca" />
-          </div>
-
-          <TextInput label="Adresse" value={form.address} onChange={(v) => setForm({ ...form, address: v })} placeholder="1500 Montée Monette" />
-
-          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 10 }}>
-            <TextInput label="Ville" value={form.city} onChange={(v) => setForm({ ...form, city: v })} placeholder="Laval" />
-            <TextInput label="Province" value={form.province} onChange={(v) => setForm({ ...form, province: v })} />
-            <TextInput label="Code postal" value={form.postalCode} onChange={(v) => setForm({ ...form, postalCode: v })} placeholder="H7M 5C9" />
-          </div>
-
-          <TextInput label="Téléphone" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="450-555-0100" />
-
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, paddingTop: 8, borderTop: "1px solid var(--border)" }}>
-            <button type="button" onClick={onClose} className="gm-btn gm-btn-sm">Annuler</button>
-            <button type="submit" disabled={saving} className="gm-btn gm-btn-sm gm-btn-primary">
-              {saving ? "..." : "Créer la copropriété"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <TextInput label="Adresse" value={form.address} onChange={(v) => setForm({ ...form, address: v })} placeholder="1500 Montée Monette" />
+        <div className="gm-field-row gm-field-row-address">
+          <TextInput label="Ville" value={form.city} onChange={(v) => setForm({ ...form, city: v })} placeholder="Laval" />
+          <TextInput label="Province" value={form.province} onChange={(v) => setForm({ ...form, province: v })} />
+          <TextInput label="Code postal" value={form.postalCode} onChange={(v) => setForm({ ...form, postalCode: v })} placeholder="H7M 5C9" />
+        </div>
+        <TextInput label="Téléphone" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="450-555-0100" />
+        <div className="gm-form-actions">
+          <button type="button" onClick={onClose} className="gm-btn gm-btn-sm">Annuler</button>
+          <button type="submit" disabled={saving} className="gm-btn gm-btn-sm gm-btn-primary">
+            {saving ? "Création..." : "Créer la copropriété"}
+          </button>
+        </div>
+      </form>
+    </ModalShell>
   );
 }
 
@@ -693,27 +723,26 @@ function BuildingEditor({ clientId, initial, onClose, onSaved }) {
   }
 
   return (
-    <div className="gm-modal-backdrop open" onClick={(e) => { if (e.target.classList.contains("gm-modal-backdrop")) onClose(); }}>
-      <div className="gm-modal" style={{ maxWidth: 500 }}>
-        <div className="gm-modal-head">
-          <div className="modal-tag"><i className="fas fa-building"></i></div>
-          <div><div className="gm-modal-title">Nouveau bâtiment</div></div>
-          <button className="gm-modal-close" onClick={onClose}><i className="fas fa-times"></i></button>
+    <ModalShell
+      icon={<i className="fas fa-building"></i>}
+      title="Nouveau bâtiment"
+      onClose={onClose}
+      level={2}
+      maxWidth={500}
+    >
+      <form onSubmit={save} className="gm-modal-body gm-form">
+        {err && <div className="gm-form-err">{err}</div>}
+        <div className="gm-field-row gm-field-row-name">
+          <TextInput label="Code" value={form.code} onChange={(v) => setForm({ ...form, code: v.toUpperCase() })} placeholder="A" required />
+          <TextInput label="Nom" value={form.name} onChange={(v) => setForm({ ...form, name: v })} placeholder="Bâtiment A" required />
         </div>
-        <form onSubmit={save} className="gm-modal-body" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {err && <div style={{ background: "#fdf2f3", color: "#c10615", padding: "10px 12px", borderRadius: 6, fontSize: 12 }}>{err}</div>}
-          <div style={{ display: "grid", gridTemplateColumns: "100px 1fr", gap: 10 }}>
-            <TextInput label="Code" value={form.code} onChange={(v) => setForm({ ...form, code: v.toUpperCase() })} placeholder="A" required />
-            <TextInput label="Nom" value={form.name} onChange={(v) => setForm({ ...form, name: v })} placeholder="Bâtiment A" required />
-          </div>
-          <TextInput label="Adresse (optionnel)" value={form.address} onChange={(v) => setForm({ ...form, address: v })} placeholder="1500 Montée Monette" />
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, paddingTop: 8, borderTop: "1px solid var(--border)" }}>
-            <button type="button" onClick={onClose} className="gm-btn gm-btn-sm">Annuler</button>
-            <button type="submit" disabled={saving} className="gm-btn gm-btn-sm gm-btn-primary">{saving ? "..." : "Créer"}</button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <TextInput label="Adresse (optionnel)" value={form.address} onChange={(v) => setForm({ ...form, address: v })} placeholder="1500 Montée Monette" />
+        <div className="gm-form-actions">
+          <button type="button" onClick={onClose} className="gm-btn gm-btn-sm">Annuler</button>
+          <button type="submit" disabled={saving} className="gm-btn gm-btn-sm gm-btn-primary">{saving ? "Création..." : "Créer"}</button>
+        </div>
+      </form>
+    </ModalShell>
   );
 }
 
@@ -742,37 +771,32 @@ function UnitEditor({ clientId, buildings, initial, onClose, onSaved }) {
   }
 
   return (
-    <div className="gm-modal-backdrop open" onClick={(e) => { if (e.target.classList.contains("gm-modal-backdrop")) onClose(); }}>
-      <div className="gm-modal" style={{ maxWidth: 500 }}>
-        <div className="gm-modal-head">
-          <div className="modal-tag"><i className="fas fa-door-open"></i></div>
-          <div>
-            <div className="gm-modal-title">Nouvelle unité</div>
-            {initial.buildingName && <div className="gm-modal-sub">{initial.buildingName}</div>}
-          </div>
-          <button className="gm-modal-close" onClick={onClose}><i className="fas fa-times"></i></button>
+    <ModalShell
+      icon={<i className="fas fa-door-open"></i>}
+      title="Nouvelle unité"
+      subtitle={initial.buildingName || undefined}
+      onClose={onClose}
+      level={2}
+      maxWidth={500}
+    >
+      <form onSubmit={save} className="gm-modal-body gm-form">
+        {err && <div className="gm-form-err">{err}</div>}
+        <div className="gm-field-row gm-field-row-2">
+          <TextInput label="Code unité" value={form.code} onChange={(v) => setForm({ ...form, code: v })} placeholder="A-101" required />
+          <Field label="Bâtiment">
+            <select value={form.buildingId || ""} onChange={(e) => setForm({ ...form, buildingId: e.target.value || null })}>
+              <option value="">Aucun</option>
+              {buildings.map((b) => <option key={b.id} value={b.id}>{b.name} ({b.code})</option>)}
+            </select>
+          </Field>
         </div>
-        <form onSubmit={save} className="gm-modal-body" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {err && <div style={{ background: "#fdf2f3", color: "#c10615", padding: "10px 12px", borderRadius: 6, fontSize: 12 }}>{err}</div>}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            <TextInput label="Code unité" value={form.code} onChange={(v) => setForm({ ...form, code: v })} placeholder="A-101" required />
-            <div>
-              <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 4, display: "block" }}>Bâtiment</label>
-              <select value={form.buildingId || ""} onChange={(e) => setForm({ ...form, buildingId: e.target.value || null })}
-                style={{ width: "100%", padding: "8px 12px", border: "1px solid var(--border)", borderRadius: 6, fontFamily: "inherit", fontSize: 13 }}>
-                <option value="">Aucun</option>
-                {buildings.map((b) => <option key={b.id} value={b.id}>{b.name} ({b.code})</option>)}
-              </select>
-            </div>
-          </div>
-          <TextInput label="Description (optionnel)" value={form.description} onChange={(v) => setForm({ ...form, description: v })} placeholder="Ex: 3 chambres" />
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, paddingTop: 8, borderTop: "1px solid var(--border)" }}>
-            <button type="button" onClick={onClose} className="gm-btn gm-btn-sm">Annuler</button>
-            <button type="submit" disabled={saving} className="gm-btn gm-btn-sm gm-btn-primary">{saving ? "..." : "Créer"}</button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <TextInput label="Description (optionnel)" value={form.description} onChange={(v) => setForm({ ...form, description: v })} placeholder="Ex: 3 chambres" />
+        <div className="gm-form-actions">
+          <button type="button" onClick={onClose} className="gm-btn gm-btn-sm">Annuler</button>
+          <button type="submit" disabled={saving} className="gm-btn gm-btn-sm gm-btn-primary">{saving ? "Création..." : "Créer"}</button>
+        </div>
+      </form>
+    </ModalShell>
   );
 }
 
@@ -829,93 +853,84 @@ function OpeningEditor({ initial, onClose, onSaved, onDeleted }) {
     onDeleted();
   }
 
+  const icon = form.type === "fenetre"
+    ? <i className="far fa-window-maximize"></i>
+    : form.type === "porte-patio"
+      ? <i className="fas fa-bars"></i>
+      : <i className="fas fa-door-closed"></i>;
+
   return (
-    <div className="gm-modal-backdrop open" onClick={(e) => { if (e.target.classList.contains("gm-modal-backdrop")) onClose(); }}>
-      <div className="gm-modal" style={{ maxWidth: 560 }}>
-        <div className="gm-modal-head">
-          <div className="modal-tag">{form.type === "fenetre" ? "🪟" : form.type.startsWith("porte") ? "🚪" : "◳"}</div>
-          <div>
-            <div className="gm-modal-title">{initial.isNew ? "Nouvelle ouverture" : "Modifier l'ouverture"}</div>
-          </div>
-          <button className="gm-modal-close" onClick={onClose}><i className="fas fa-times"></i></button>
+    <ModalShell
+      icon={icon}
+      title={initial.isNew ? "Nouvelle ouverture" : "Modifier l'ouverture"}
+      onClose={onClose}
+      level={3}
+      maxWidth={560}
+    >
+      <form onSubmit={save} className="gm-modal-body gm-form">
+        {err && <div className="gm-form-err">{err}</div>}
+        <div className="gm-field-row gm-field-row-2">
+          <Field label="Type">
+            <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
+              {OPENING_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+            </select>
+          </Field>
+          <Field label="Statut">
+            <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+              <option value="ok">OK</option>
+              <option value="active">Bon actif</option>
+              <option value="done">Terminé récemment</option>
+            </select>
+          </Field>
         </div>
-        <form onSubmit={save} className="gm-modal-body" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {err && <div style={{ background: "#fdf2f3", color: "#c10615", padding: "10px 12px", borderRadius: 6, fontSize: 12 }}>{err}</div>}
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            <div>
-              <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 4, display: "block" }}>Type</label>
-              <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} style={{ width: "100%", padding: "8px 12px", border: "1px solid var(--border)", borderRadius: 6, fontFamily: "inherit", fontSize: 13 }}>
-                {OPENING_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 4, display: "block" }}>Statut</label>
-              <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} style={{ width: "100%", padding: "8px 12px", border: "1px solid var(--border)", borderRadius: 6, fontFamily: "inherit", fontSize: 13 }}>
-                <option value="ok">OK</option>
-                <option value="active">Bon actif</option>
-                <option value="done">Terminé récemment</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 4, display: "block" }}>Localisation</label>
-            <input required value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })}
-              placeholder="Salon · nord" style={{ width: "100%", padding: "8px 12px", border: "1px solid var(--border)", borderRadius: 6, fontFamily: "inherit", fontSize: 13 }} />
-          </div>
-
-          <div>
-            <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 4, display: "block" }}>Description (optionnel)</label>
-            <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
-              style={{ width: "100%", padding: "8px 12px", border: "1px solid var(--border)", borderRadius: 6, fontFamily: "inherit", fontSize: 13, resize: "vertical" }} />
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            <div>
-              <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 4, display: "block" }}>Année</label>
-              <input type="number" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })}
-                placeholder="2014" style={{ width: "100%", padding: "8px 12px", border: "1px solid var(--border)", borderRadius: 6, fontFamily: "inherit", fontSize: 13 }} />
-            </div>
-            <div>
-              <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 4, display: "block" }}>Marque</label>
-              <input value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })}
-                placeholder="Novatech" style={{ width: "100%", padding: "8px 12px", border: "1px solid var(--border)", borderRadius: 6, fontFamily: "inherit", fontSize: 13 }} />
-            </div>
-          </div>
-
-          <div>
-            <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 4, display: "block" }}>Photo</label>
-            {preview && !removePhoto ? (
-              <div style={{ position: "relative", display: "inline-block" }}>
-                <img src={preview} alt="Aperçu" style={{ maxHeight: 140, borderRadius: 6 }} />
-                <button type="button" onClick={() => { setPreview(null); setFile(null); setRemovePhoto(true); }}
-                  style={{ position: "absolute", top: -8, right: -8, width: 26, height: 26, background: "#e30718", color: "white", border: "none", borderRadius: "50%", cursor: "pointer" }}>
-                  <i className="fas fa-times" style={{ fontSize: 11 }}></i>
-                </button>
-              </div>
-            ) : (
-              <input type="file" accept="image/*" onChange={(e) => handleFile(e.target.files?.[0])}
-                style={{ width: "100%", padding: "8px 12px", border: "1px solid var(--border)", borderRadius: 6, fontFamily: "inherit", fontSize: 13 }} />
-            )}
-            <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>JPEG, PNG, WebP ou GIF · max 8 MB</p>
-          </div>
-
-          <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 8, borderTop: "1px solid var(--border)" }}>
-            <div>
-              {!initial.isNew && <button type="button" onClick={del} className="gm-btn gm-btn-sm" style={{ color: "var(--red)", borderColor: "rgba(227,7,24,0.3)" }}>
-                <i className="fas fa-trash"></i>Supprimer
-              </button>}
-            </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button type="button" onClick={onClose} className="gm-btn gm-btn-sm">Annuler</button>
-              <button type="submit" disabled={saving} className="gm-btn gm-btn-sm gm-btn-primary">
-                {saving ? "..." : "Enregistrer"}
+        <Field label="Localisation *">
+          <input className="gm-field-input" required value={form.location}
+            onChange={(e) => setForm({ ...form, location: e.target.value })}
+            placeholder="Salon · nord" />
+        </Field>
+        <Field label="Description (optionnel)">
+          <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
+            placeholder="Détails ou notes sur cette ouverture" />
+        </Field>
+        <div className="gm-field-row gm-field-row-2">
+          <Field label="Année">
+            <input className="gm-field-input" type="number" value={form.year}
+              onChange={(e) => setForm({ ...form, year: e.target.value })} placeholder="2014" />
+          </Field>
+          <Field label="Marque">
+            <input className="gm-field-input" value={form.brand}
+              onChange={(e) => setForm({ ...form, brand: e.target.value })} placeholder="Novatech" />
+          </Field>
+        </div>
+        <Field label="Photo">
+          {preview && !removePhoto ? (
+            <div style={{ position: "relative", display: "inline-block" }}>
+              <img src={preview} alt="Aperçu" style={{ maxHeight: 140, borderRadius: 6, border: "1px solid var(--border)" }} />
+              <button type="button" onClick={() => { setPreview(null); setFile(null); setRemovePhoto(true); }}
+                style={{ position: "absolute", top: -8, right: -8, width: 26, height: 26, background: "var(--red)", color: "white", border: "none", borderRadius: "50%", cursor: "pointer", boxShadow: "0 2px 6px rgba(0,0,0,0.2)" }}
+                aria-label="Retirer la photo">
+                <i className="fas fa-times" style={{ fontSize: 11 }}></i>
               </button>
             </div>
+          ) : (
+            <input className="gm-field-input" type="file" accept="image/*" onChange={(e) => handleFile(e.target.files?.[0])} />
+          )}
+          <p style={{ fontSize: 11, color: "var(--text-muted)" }}>JPEG, PNG, WebP ou GIF · max 8 MB</p>
+        </Field>
+        <div className="gm-form-actions gm-form-actions-split">
+          {!initial.isNew ? (
+            <button type="button" onClick={del} className="gm-btn gm-btn-sm" style={{ color: "var(--red)", borderColor: "rgba(227,7,24,0.3)" }}>
+              <i className="fas fa-trash"></i>Supprimer
+            </button>
+          ) : <div />}
+          <div style={{ display: "flex", gap: 8 }}>
+            <button type="button" onClick={onClose} className="gm-btn gm-btn-sm">Annuler</button>
+            <button type="submit" disabled={saving} className="gm-btn gm-btn-sm gm-btn-primary">
+              {saving ? "Enregistrement..." : "Enregistrer"}
+            </button>
           </div>
-        </form>
-      </div>
-    </div>
+        </div>
+      </form>
+    </ModalShell>
   );
 }
