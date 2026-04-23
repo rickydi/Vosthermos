@@ -48,6 +48,7 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
   const [buildingEditor, setBuildingEditor] = useState(null);
   const [unitEditor, setUnitEditor] = useState(null);
   const [newCopro, setNewCopro] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const canManageOpenings = !isGlobal && hasPerm(activeClient, "manage_openings");
   const canManageUnits = !isGlobal && hasPerm(activeClient, "manage_units");
 
@@ -64,6 +65,7 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
   }, []);
 
   function switchClient(clientId) {
+    setSidebarOpen(false);
     router.push(`/gestionnaire?c=${clientId}`);
   }
 
@@ -74,6 +76,7 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
 
   function changeTab(tab) {
     setActiveTab(tab);
+    setSidebarOpen(false);
     const url = new URL(window.location.href);
     url.searchParams.set("tab", tab);
     window.history.replaceState({}, "", url.toString());
@@ -93,8 +96,14 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
   return (
     <div className="gm-root">
       <div className="gm-app">
+        {/* Overlay mobile */}
+        <div
+          className={"gm-sidebar-overlay" + (sidebarOpen ? " open" : "")}
+          onClick={() => setSidebarOpen(false)}
+        />
+
         {/* SIDEBAR */}
-        <aside className="gm-sidebar">
+        <aside className={"gm-sidebar" + (sidebarOpen ? " open" : "")}>
           <div className="gm-brand">
             <div className="gm-logo">VOS<span>THERMOS</span></div>
           </div>
@@ -181,11 +190,20 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
         {/* MAIN */}
         <main className="gm-main">
           <div className="gm-topbar">
-            <nav className="gm-crumb">
-              <a href="#" onClick={(e) => e.preventDefault()}>{isGlobal ? "Vue globale" : activeClient.name}</a>
-              <span className="sep">/</span>
-              <span className="current">{crumbs[activeTab]}</span>
-            </nav>
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <button
+                className="gm-menu-toggle"
+                onClick={() => setSidebarOpen(true)}
+                aria-label="Ouvrir le menu"
+              >
+                <i className="fas fa-bars"></i>
+              </button>
+              <nav className="gm-crumb">
+                <a href="#" onClick={(e) => e.preventDefault()}>{isGlobal ? "Vue globale" : activeClient.name}</a>
+                <span className="sep">/</span>
+                <span className="current">{crumbs[activeTab]}</span>
+              </nav>
+            </div>
             <div className="gm-top-right">
               <button className="bell">
                 <i className="far fa-bell" style={{ fontSize: 14 }}></i>
@@ -800,6 +818,36 @@ function UnitEditor({ clientId, buildings, initial, onClose, onSaved }) {
   );
 }
 
+function PhotoDropzone({ onFile }) {
+  const [drag, setDrag] = useState(false);
+
+  function handleDrop(e) {
+    e.preventDefault();
+    setDrag(false);
+    const file = e.dataTransfer?.files?.[0];
+    if (file && file.type.startsWith("image/")) onFile(file);
+  }
+
+  return (
+    <div
+      className={"gm-dropzone" + (drag ? " drag" : "")}
+      onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
+      onDragLeave={() => setDrag(false)}
+      onDrop={handleDrop}
+    >
+      <div className="gm-dropzone-icon">
+        <i className="fas fa-camera"></i>
+      </div>
+      <div>
+        <div className="gm-dropzone-title">Déposez une photo ici</div>
+        <div className="gm-dropzone-sub">ou <strong>cliquez pour parcourir</strong></div>
+        <div className="gm-dropzone-sub" style={{ marginTop: 4 }}>JPEG · PNG · WebP · GIF — max 8 MB</div>
+      </div>
+      <input type="file" accept="image/*" onChange={(e) => onFile(e.target.files?.[0])} />
+    </div>
+  );
+}
+
 function OpeningEditor({ initial, onClose, onSaved, onDeleted }) {
   const [form, setForm] = useState({
     id: initial.id,
@@ -902,20 +950,20 @@ function OpeningEditor({ initial, onClose, onSaved, onDeleted }) {
               onChange={(e) => setForm({ ...form, brand: e.target.value })} placeholder="Novatech" />
           </Field>
         </div>
-        <Field label="Photo">
+        <Field label="Photo de l'ouverture">
           {preview && !removePhoto ? (
-            <div style={{ position: "relative", display: "inline-block" }}>
-              <img src={preview} alt="Aperçu" style={{ maxHeight: 140, borderRadius: 6, border: "1px solid var(--border)" }} />
-              <button type="button" onClick={() => { setPreview(null); setFile(null); setRemovePhoto(true); }}
-                style={{ position: "absolute", top: -8, right: -8, width: 26, height: 26, background: "var(--red)", color: "white", border: "none", borderRadius: "50%", cursor: "pointer", boxShadow: "0 2px 6px rgba(0,0,0,0.2)" }}
+            <div className="gm-photo-preview">
+              <img src={preview} alt="Aperçu" />
+              <button type="button"
+                onClick={() => { setPreview(null); setFile(null); setRemovePhoto(true); }}
+                className="gm-photo-remove"
                 aria-label="Retirer la photo">
                 <i className="fas fa-times" style={{ fontSize: 11 }}></i>
               </button>
             </div>
           ) : (
-            <input className="gm-field-input" type="file" accept="image/*" onChange={(e) => handleFile(e.target.files?.[0])} />
+            <PhotoDropzone onFile={handleFile} />
           )}
-          <p style={{ fontSize: 11, color: "var(--text-muted)" }}>JPEG, PNG, WebP ou GIF · max 8 MB</p>
         </Field>
         <div className="gm-form-actions gm-form-actions-split">
           {!initial.isNew ? (
