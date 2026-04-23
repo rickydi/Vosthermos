@@ -49,8 +49,10 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
   const [unitEditor, setUnitEditor] = useState(null);
   const [newCopro, setNewCopro] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [requestModal, setRequestModal] = useState(null); // null | { unitCode? }
   const canManageOpenings = !isGlobal && hasPerm(activeClient, "manage_openings");
   const canManageUnits = !isGlobal && hasPerm(activeClient, "manage_units");
+  const canRequest = !isGlobal && hasPerm(activeClient, "request_intervention");
 
   useEffect(() => {
     const onClickOutside = () => setOpenMenu(null);
@@ -226,9 +228,11 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                   </div>
                 </div>
                 <div className="gm-page-actions">
-                  <button className="gm-btn gm-btn-primary">
-                    <i className="fas fa-plus"></i>Demander intervention
-                  </button>
+                  {canRequest && (
+                    <button className="gm-btn gm-btn-primary" onClick={() => setRequestModal({})}>
+                      <i className="fas fa-plus"></i>Demander intervention
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -651,13 +655,32 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                 <button className="gm-btn gm-btn-sm">
                   <i className="fas fa-history"></i>Historique
                 </button>
-                <button className="gm-btn gm-btn-sm gm-btn-primary">
-                  <i className="fas fa-plus"></i>Demander intervention
-                </button>
+                {canRequest && (
+                  <button
+                    className="gm-btn gm-btn-sm gm-btn-primary"
+                    onClick={() => setRequestModal({ unitCode: selectedUnit.code })}
+                  >
+                    <i className="fas fa-plus"></i>Demander intervention
+                  </button>
+                )}
               </div>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal demande d'intervention */}
+      {requestModal && activeClient && (
+        <InterventionRequestModal
+          clientId={activeClient.id}
+          clientName={activeClient.name}
+          presetUnitCode={requestModal.unitCode}
+          onClose={() => setRequestModal(null)}
+          onSaved={(number) => {
+            setRequestModal(null);
+            alert(`Demande envoyée · bon ${number}\n\nVosthermos a été notifié et traitera votre demande prochainement.`);
+          }}
+        />
       )}
     </div>
   );
@@ -886,6 +909,81 @@ function UnitEditor({ clientId, buildings, initial, onClose, onSaved }) {
         <div className="gm-form-actions">
           <button type="button" onClick={onClose} className="gm-btn gm-btn-sm">Annuler</button>
           <button type="submit" disabled={saving} className="gm-btn gm-btn-sm gm-btn-primary">{saving ? "Création..." : "Créer"}</button>
+        </div>
+      </form>
+    </ModalShell>
+  );
+}
+
+function InterventionRequestModal({ clientId, clientName, presetUnitCode, onClose, onSaved }) {
+  const [form, setForm] = useState({
+    unitCode: presetUnitCode || "",
+    description: "",
+    urgency: "normale",
+    preferredDate: "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState("");
+
+  async function save(e) {
+    e.preventDefault();
+    setSaving(true); setErr("");
+    try {
+      const res = await fetch("/api/manager/intervention-requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clientId, ...form }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || "Erreur");
+      onSaved(d.number);
+    } catch (e) { setErr(e.message); }
+    setSaving(false);
+  }
+
+  return (
+    <ModalShell
+      icon={<i className="fas fa-wrench"></i>}
+      title="Demander une intervention"
+      subtitle={clientName}
+      onClose={onClose}
+      level={3}
+      maxWidth={560}
+    >
+      <form onSubmit={save} className="gm-modal-body gm-form">
+        {err && <div className="gm-form-err">{err}</div>}
+
+        <div className="gm-field-row gm-field-row-2">
+          <TextInput label="Unité concernée (optionnel)" value={form.unitCode} onChange={(v) => setForm({ ...form, unitCode: v })} placeholder="B-412" />
+          <Field label="Priorité">
+            <select value={form.urgency} onChange={(e) => setForm({ ...form, urgency: e.target.value })}>
+              <option value="normale">Normale</option>
+              <option value="haute">Priorité haute</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </Field>
+        </div>
+
+        <Field label="Date souhaitée (optionnel)">
+          <input className="gm-field-input" type="date" value={form.preferredDate} onChange={(e) => setForm({ ...form, preferredDate: e.target.value })} />
+        </Field>
+
+        <Field label="Description du problème *">
+          <textarea rows={5} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
+            placeholder="Décrivez ce qui nécessite une intervention&#10;(ex: vitre embuée, porte qui bloque, infiltration d'eau...)"
+            required />
+        </Field>
+
+        <div style={{ padding: 12, background: "var(--bg)", borderRadius: 6, fontSize: 12, color: "var(--text-muted)" }}>
+          <i className="fas fa-info-circle" style={{ marginRight: 6, color: "var(--red)" }}></i>
+          Vosthermos recevra votre demande par courriel et vous contactera pour confirmer l'intervention. Un bon de travail sera créé en brouillon.
+        </div>
+
+        <div className="gm-form-actions">
+          <button type="button" onClick={onClose} className="gm-btn gm-btn-sm">Annuler</button>
+          <button type="submit" disabled={saving || !form.description.trim()} className="gm-btn gm-btn-sm gm-btn-primary">
+            {saving ? "Envoi..." : "Envoyer la demande"}
+          </button>
         </div>
       </form>
     </ModalShell>
