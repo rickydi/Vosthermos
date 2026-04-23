@@ -26,6 +26,11 @@ function fmtDateShort(iso) {
   if (!iso) return "—";
   return new Date(iso).toLocaleDateString("fr-CA", { day: "2-digit", month: "short" }).toUpperCase();
 }
+function fmtDateTime(iso) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  return d.toLocaleDateString("fr-CA", { day: "numeric", month: "short", year: "numeric" }) + " à " + d.toLocaleTimeString("fr-CA", { hour: "2-digit", minute: "2-digit" });
+}
 
 const OPENING_TYPES = [
   { value: "fenetre", label: "Fenêtre" },
@@ -267,6 +272,9 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                     <span className="gm-accordion-title">
                       Bons actifs
                       <span className="gm-accordion-count">{interventions.active.length}</span>
+                      {interventions.active.filter((w) => w.isUnread).length > 0 && (
+                        <span className="gm-unread-dot" style={{ marginLeft: 4 }} title={`${interventions.active.filter((w) => w.isUnread).length} non vu(s)`}></span>
+                      )}
                     </span>
                     <span
                       className="gm-btn gm-btn-sm"
@@ -296,9 +304,15 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                                 {fmtDateShort(wo.date)}<br />{wo.statut === "in_progress" ? "EN COURS" : wo.statut === "scheduled" ? "PLANIFIÉ" : "EN ATTENTE"}
                               </div>
                               <div className="li-body">
-                                <div className="li-title">
-                                  {wo.number}
-                                  {isGlobal && wo.clientName && <span style={{ fontWeight: 500, color: "var(--text-muted)", fontSize: 12 }}> · {wo.clientName}</span>}
+                                <div className="li-title" style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                                  {wo.isUnread && <span className="gm-unread-dot" title="Nouveau · non vu"></span>}
+                                  <span>{wo.number}</span>
+                                  {isGlobal && wo.clientName && <span style={{ fontWeight: 500, color: "var(--text-muted)", fontSize: 12 }}>· {wo.clientName}</span>}
+                                  {wo.createdAt && (
+                                    <span style={{ fontWeight: 400, color: "var(--text-muted)", fontSize: 11 }}>
+                                      · Demandé le {fmtDateTime(wo.createdAt)}
+                                    </span>
+                                  )}
                                 </div>
                                 <div className="li-text">
                                   {wo.description ? wo.description.slice(0, 100) : "Intervention planifiée"}
@@ -462,10 +476,16 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                       {fmtDateShort(wo.date)}<br />{wo.statut === "in_progress" ? "EN COURS" : wo.statut === "scheduled" ? "PLANIFIÉ" : "EN ATTENTE"}
                     </div>
                     <div className="li-body">
-                      <div className="li-title">
-                        {wo.number}
-                        {isGlobal && wo.clientName && <span style={{ fontWeight: 500, color: "var(--text-muted)", fontSize: 12 }}> · {wo.clientName}</span>}
-                        {wo.isManagerRequest && wo.statut === "draft" && <span className="gm-tag amber" style={{ marginLeft: 8 }}>Demande envoyée</span>}
+                      <div className="li-title" style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                        {wo.isUnread && <span className="gm-unread-dot" title="Nouveau · non vu"></span>}
+                        <span>{wo.number}</span>
+                        {isGlobal && wo.clientName && <span style={{ fontWeight: 500, color: "var(--text-muted)", fontSize: 12 }}>· {wo.clientName}</span>}
+                        {wo.isManagerRequest && wo.statut === "draft" && <span className="gm-tag amber">Demande envoyée</span>}
+                        {wo.createdAt && (
+                          <span style={{ fontWeight: 400, color: "var(--text-muted)", fontSize: 11 }}>
+                            · Demandé le {fmtDateTime(wo.createdAt)}
+                          </span>
+                        )}
                       </div>
                       <div className="li-text">
                         {wo.description ? wo.description.slice(0, 120) : "Intervention planifiée"}

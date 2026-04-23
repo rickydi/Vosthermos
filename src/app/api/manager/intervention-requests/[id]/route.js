@@ -36,6 +36,15 @@ export async function GET(req, { params }) {
   if (auth.error) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   const wo = auth.wo;
+
+  // Marquer comme vu la première fois que le gestionnaire ouvre le bon
+  if (!wo.viewedByManagerAt && wo.statut !== "draft") {
+    await prisma.workOrder.update({
+      where: { id: wo.id },
+      data: { viewedByManagerAt: new Date() },
+    });
+  }
+
   return NextResponse.json({
     id: wo.id,
     number: wo.number,

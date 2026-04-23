@@ -146,6 +146,7 @@ export default async function GestionnairePage({ searchParams }) {
       id: wo.id,
       number: wo.number,
       date: wo.date?.toISOString() || null,
+      createdAt: wo.createdAt?.toISOString() || null,
       statut: wo.statut,
       description: wo.description,
       technicianName: wo.technician?.name || null,
@@ -155,6 +156,7 @@ export default async function GestionnairePage({ searchParams }) {
       total: Number(wo.total),
       isManagerRequest: (wo.notes || "").startsWith("Demande du gestionnaire"),
       notes: wo.notes,
+      isUnread: !wo.viewedByManagerAt && wo.statut !== "draft",
     })),
     recent: recentWOs.map((wo) => ({
       id: wo.id,

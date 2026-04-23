@@ -455,6 +455,7 @@ model WorkOrder {
   tps                    Decimal         @default(0) @db.Decimal(10, 2)
   tvq                    Decimal         @default(0) @db.Decimal(10, 2)
   total                  Decimal         @default(0) @db.Decimal(10, 2)
+  viewedByManagerAt      DateTime?
   createdAt              DateTime        @default(now())
   updatedAt              DateTime        @updatedAt
   items                  WorkOrderItem[]

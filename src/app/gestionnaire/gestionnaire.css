@@ -110,6 +110,14 @@
 .gm-add-bldg:hover { background: rgba(227, 7, 24, 0.06); border-color: var(--red); transform: translateY(-1px); }
 .gm-add-bldg i { font-size: 18px; }
 
+/* Point rouge 'non vu' */
+.gm-unread-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--red); flex-shrink: 0; box-shadow: 0 0 0 0 rgba(227, 7, 24, 0.6); animation: gm-pulse 1.8s infinite; }
+@keyframes gm-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(227, 7, 24, 0.55); }
+  70% { box-shadow: 0 0 0 8px rgba(227, 7, 24, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(227, 7, 24, 0); }
+}
+
 .gm-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
 .gm-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
 .gm-card:hover { box-shadow: var(--shadow); }
