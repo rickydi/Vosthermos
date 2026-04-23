@@ -27,12 +27,25 @@ function fmtDateShort(iso) {
   return new Date(iso).toLocaleDateString("fr-CA", { day: "2-digit", month: "short" }).toUpperCase();
 }
 
+const OPENING_TYPES = [
+  { value: "fenetre", label: "Fenêtre" },
+  { value: "porte", label: "Porte" },
+  { value: "porte-patio", label: "Porte-patio" },
+  { value: "porte-francaise", label: "Porte française" },
+];
+
+function hasPerm(activeClient, perm) {
+  return activeClient?.permissions?.includes(perm) || false;
+}
+
 export default function GestionnaireDashboard({ manager, clients, isGlobal, activeClient, buildings, orphanUnits, stats, notifs, interventions, invoices, invoicesTotals }) {
   const router = useRouter();
   const sp = useSearchParams();
   const [activeTab, setActiveTab] = useState(sp.get("tab") || "dashboard");
   const [openMenu, setOpenMenu] = useState(null);
   const [selectedUnit, setSelectedUnit] = useState(null);
+  const [openingEditor, setOpeningEditor] = useState(null); // null | {isNew:true,unitId} | {id,...}
+  const canManageOpenings = !isGlobal && hasPerm(activeClient, "manage_openings");
 
   useEffect(() => {
     const onClickOutside = () => setOpenMenu(null);
@@ -436,6 +449,16 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
         </main>
       </div>
 
+      {/* Modal éditeur d'ouverture */}
+      {openingEditor && (
+        <OpeningEditor
+          initial={openingEditor}
+          onClose={() => setOpeningEditor(null)}
+          onSaved={() => { setOpeningEditor(null); router.refresh(); }}
+          onDeleted={() => { setOpeningEditor(null); router.refresh(); }}
+        />
+      )}
+
       {/* Modal unité */}
       {selectedUnit && (
         <div className="gm-modal-backdrop open" onClick={(e) => { if (e.target.classList.contains("gm-modal-backdrop")) setSelectedUnit(null); }}>
@@ -460,26 +483,39 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
               </span></div>
               <div className="modal-kv"><span className="k">Ouvertures</span><span className="v">{selectedUnit.openings.length || "Aucune renseignée"}</span></div>
 
-              {selectedUnit.openings.length > 0 && (
-                <>
-                  <div className="modal-section-title">Détail des ouvertures</div>
-                  <div className="openings">
-                    {selectedUnit.openings.map((o) => (
-                      <div key={o.id} className="opening">
-                        <div className="opening-photo">
-                          {o.photoUrl ? <img src={o.photoUrl} alt={o.location} /> : <i className="fas fa-camera"></i>}
-                          {o.status === "active" && <span className="opening-badge active">Actif</span>}
-                          {o.status === "done" && <span className="opening-badge done">Terminé</span>}
-                        </div>
-                        <div className="opening-body">
-                          <div className="opening-type">{o.type.replace("-", " ")}</div>
-                          <div className="opening-loc">{o.location}</div>
-                          {o.description && <div className="opening-sub">{o.description}</div>}
-                        </div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 20, marginBottom: 10 }}>
+                <div className="modal-section-title" style={{ margin: 0 }}>Détail des ouvertures</div>
+                {canManageOpenings && (
+                  <button
+                    className="gm-btn gm-btn-sm gm-btn-primary"
+                    onClick={() => setOpeningEditor({ isNew: true, unitId: selectedUnit.id, type: "fenetre", location: "", status: "ok" })}
+                  >
+                    <i className="fas fa-plus"></i>Ajouter
+                  </button>
+                )}
+              </div>
+              {selectedUnit.openings.length === 0 ? (
+                <div style={{ padding: 20, textAlign: "center", color: "var(--text-muted)", fontSize: 13, background: "var(--bg)", borderRadius: 8 }}>
+                  Aucune ouverture enregistrée
+                  {canManageOpenings && ". Cliquez « Ajouter » pour commencer."}
+                </div>
+              ) : (
+                <div className="openings">
+                  {selectedUnit.openings.map((o) => (
+                    <div key={o.id} className="opening" onClick={canManageOpenings ? () => setOpeningEditor(o) : undefined} style={canManageOpenings ? { cursor: "pointer" } : {}}>
+                      <div className="opening-photo">
+                        {o.photoUrl ? <img src={o.photoUrl} alt={o.location} /> : <i className="fas fa-camera"></i>}
+                        {o.status === "active" && <span className="opening-badge active">Actif</span>}
+                        {o.status === "done" && <span className="opening-badge done">Terminé</span>}
                       </div>
-                    ))}
-                  </div>
-                </>
+                      <div className="opening-body">
+                        <div className="opening-type">{o.type.replace("-", " ")}</div>
+                        <div className="opening-loc">{o.location}</div>
+                        {o.description && <div className="opening-sub">{o.description}</div>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
             <div className="gm-modal-foot">
@@ -493,6 +529,150 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function OpeningEditor({ initial, onClose, onSaved, onDeleted }) {
+  const [form, setForm] = useState({
+    id: initial.id,
+    type: initial.type || "fenetre",
+    location: initial.location || "",
+    description: initial.description || "",
+    year: initial.year || "",
+    brand: initial.brand || "",
+    status: initial.status || "ok",
+  });
+  const [file, setFile] = useState(null);
+  const [preview, setPreview] = useState(initial.photoUrl || null);
+  const [removePhoto, setRemovePhoto] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState("");
+
+  function handleFile(f) {
+    setFile(f);
+    setRemovePhoto(false);
+    if (f) setPreview(URL.createObjectURL(f));
+  }
+
+  async function save(e) {
+    e.preventDefault();
+    setSaving(true);
+    setErr("");
+    try {
+      const fd = new FormData();
+      if (initial.isNew) fd.set("unitId", initial.unitId);
+      for (const k of ["type", "location", "description", "year", "brand", "status"]) {
+        if (form[k] !== undefined && form[k] !== null && form[k] !== "") fd.set(k, form[k]);
+      }
+      if (file) fd.set("photo", file);
+      if (removePhoto) fd.set("removePhoto", "true");
+
+      const url = initial.isNew ? "/api/manager/openings" : `/api/manager/openings/${initial.id}`;
+      const method = initial.isNew ? "POST" : "PUT";
+      const res = await fetch(url, { method, body: fd });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Erreur"); }
+      onSaved();
+    } catch (e) {
+      setErr(e.message);
+    }
+    setSaving(false);
+  }
+
+  async function del() {
+    if (!confirm("Supprimer cette ouverture?")) return;
+    const res = await fetch(`/api/manager/openings/${initial.id}`, { method: "DELETE" });
+    if (!res.ok) { const d = await res.json(); alert(d.error || "Erreur"); return; }
+    onDeleted();
+  }
+
+  return (
+    <div className="gm-modal-backdrop open" onClick={(e) => { if (e.target.classList.contains("gm-modal-backdrop")) onClose(); }}>
+      <div className="gm-modal" style={{ maxWidth: 560 }}>
+        <div className="gm-modal-head">
+          <div className="modal-tag">{form.type === "fenetre" ? "🪟" : form.type.startsWith("porte") ? "🚪" : "◳"}</div>
+          <div>
+            <div className="gm-modal-title">{initial.isNew ? "Nouvelle ouverture" : "Modifier l'ouverture"}</div>
+          </div>
+          <button className="gm-modal-close" onClick={onClose}><i className="fas fa-times"></i></button>
+        </div>
+        <form onSubmit={save} className="gm-modal-body" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {err && <div style={{ background: "#fdf2f3", color: "#c10615", padding: "10px 12px", borderRadius: 6, fontSize: 12 }}>{err}</div>}
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 4, display: "block" }}>Type</label>
+              <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} style={{ width: "100%", padding: "8px 12px", border: "1px solid var(--border)", borderRadius: 6, fontFamily: "inherit", fontSize: 13 }}>
+                {OPENING_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 4, display: "block" }}>Statut</label>
+              <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} style={{ width: "100%", padding: "8px 12px", border: "1px solid var(--border)", borderRadius: 6, fontFamily: "inherit", fontSize: 13 }}>
+                <option value="ok">OK</option>
+                <option value="active">Bon actif</option>
+                <option value="done">Terminé récemment</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 4, display: "block" }}>Localisation</label>
+            <input required value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })}
+              placeholder="Salon · nord" style={{ width: "100%", padding: "8px 12px", border: "1px solid var(--border)", borderRadius: 6, fontFamily: "inherit", fontSize: 13 }} />
+          </div>
+
+          <div>
+            <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 4, display: "block" }}>Description (optionnel)</label>
+            <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
+              style={{ width: "100%", padding: "8px 12px", border: "1px solid var(--border)", borderRadius: 6, fontFamily: "inherit", fontSize: 13, resize: "vertical" }} />
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 4, display: "block" }}>Année</label>
+              <input type="number" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })}
+                placeholder="2014" style={{ width: "100%", padding: "8px 12px", border: "1px solid var(--border)", borderRadius: 6, fontFamily: "inherit", fontSize: 13 }} />
+            </div>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 4, display: "block" }}>Marque</label>
+              <input value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })}
+                placeholder="Novatech" style={{ width: "100%", padding: "8px 12px", border: "1px solid var(--border)", borderRadius: 6, fontFamily: "inherit", fontSize: 13 }} />
+            </div>
+          </div>
+
+          <div>
+            <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 4, display: "block" }}>Photo</label>
+            {preview && !removePhoto ? (
+              <div style={{ position: "relative", display: "inline-block" }}>
+                <img src={preview} alt="Aperçu" style={{ maxHeight: 140, borderRadius: 6 }} />
+                <button type="button" onClick={() => { setPreview(null); setFile(null); setRemovePhoto(true); }}
+                  style={{ position: "absolute", top: -8, right: -8, width: 26, height: 26, background: "#e30718", color: "white", border: "none", borderRadius: "50%", cursor: "pointer" }}>
+                  <i className="fas fa-times" style={{ fontSize: 11 }}></i>
+                </button>
+              </div>
+            ) : (
+              <input type="file" accept="image/*" onChange={(e) => handleFile(e.target.files?.[0])}
+                style={{ width: "100%", padding: "8px 12px", border: "1px solid var(--border)", borderRadius: 6, fontFamily: "inherit", fontSize: 13 }} />
+            )}
+            <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>JPEG, PNG, WebP ou GIF · max 8 MB</p>
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 8, borderTop: "1px solid var(--border)" }}>
+            <div>
+              {!initial.isNew && <button type="button" onClick={del} className="gm-btn gm-btn-sm" style={{ color: "var(--red)", borderColor: "rgba(227,7,24,0.3)" }}>
+                <i className="fas fa-trash"></i>Supprimer
+              </button>}
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button type="button" onClick={onClose} className="gm-btn gm-btn-sm">Annuler</button>
+              <button type="submit" disabled={saving} className="gm-btn gm-btn-sm gm-btn-primary">
+                {saving ? "..." : "Enregistrer"}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

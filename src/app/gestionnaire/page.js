@@ -202,6 +202,7 @@ export default async function GestionnairePage({ searchParams }) {
         name: activeClient.client.name,
         city: activeClient.client.city,
         address: activeClient.client.address,
+        permissions: activeClient.permissions || [],
       } : null}
       buildings={buildings.map((b) => {
         const bUnits = unitsByBuilding[b.id]?.units || [];

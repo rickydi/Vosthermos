@@ -10,6 +10,8 @@ const ALL_PERMISSIONS = [
   { key: "view_quotes", label: "Voir soumissions" },
   { key: "request_intervention", label: "Demander intervention" },
   { key: "approve_quotes", label: "Approuver soumissions" },
+  { key: "manage_units", label: "Gérer unités" },
+  { key: "manage_openings", label: "Gérer ouvertures (fenêtres/portes + photos)" },
 ];
 
 function formatDate(iso) {
