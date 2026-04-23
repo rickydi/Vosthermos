@@ -44,8 +44,11 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
   const [activeTab, setActiveTab] = useState(sp.get("tab") || "dashboard");
   const [openMenu, setOpenMenu] = useState(null);
   const [selectedUnit, setSelectedUnit] = useState(null);
-  const [openingEditor, setOpeningEditor] = useState(null); // null | {isNew:true,unitId} | {id,...}
+  const [openingEditor, setOpeningEditor] = useState(null);
+  const [buildingEditor, setBuildingEditor] = useState(null);
+  const [unitEditor, setUnitEditor] = useState(null);
   const canManageOpenings = !isGlobal && hasPerm(activeClient, "manage_openings");
+  const canManageUnits = !isGlobal && hasPerm(activeClient, "manage_units");
 
   useEffect(() => {
     const onClickOutside = () => setOpenMenu(null);
@@ -225,12 +228,20 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
               {/* Bâtiments & Unités */}
               <div className="gm-section-head">
                 <div className="gm-section-title">Parc de fenêtres · {buildings.length} bâtiment{buildings.length > 1 ? "s" : ""} · {stats.totalUnits} unité{stats.totalUnits > 1 ? "s" : ""}</div>
-                <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
+                <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
                   <div className="legend">
                     <span><span className="dot ok"></span>Terminé</span>
                     <span><span className="dot active"></span>Actif</span>
                     <span><span className="dot none"></span>Aucun</span>
                   </div>
+                  {canManageUnits && (
+                    <button
+                      className="gm-btn gm-btn-sm gm-btn-primary"
+                      onClick={() => setBuildingEditor({ code: "", name: "", address: "" })}
+                    >
+                      <i className="fas fa-plus"></i>Ajouter bâtiment
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -249,6 +260,15 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                         {isGlobal && b.clientName && <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600, marginTop: 2 }}>{b.clientName}</div>}
                       </div>
                       <div className="bldg-meta">{b.metaLine}</div>
+                      {canManageUnits && (
+                        <button
+                          className="gm-btn gm-btn-sm"
+                          onClick={() => setUnitEditor({ buildingId: b.id, buildingName: b.name, code: "", description: "" })}
+                          style={{ marginLeft: 8 }}
+                        >
+                          <i className="fas fa-plus"></i>Ajouter unité
+                        </button>
+                      )}
                     </div>
                     {b.units.length === 0 ? (
                       <p style={{ fontSize: 12, color: "var(--text-muted)", padding: 8 }}>Aucune unité enregistrée</p>
@@ -449,6 +469,27 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
         </main>
       </div>
 
+      {/* Modal éditeur de bâtiment */}
+      {buildingEditor && activeClient && (
+        <BuildingEditor
+          clientId={activeClient.id}
+          initial={buildingEditor}
+          onClose={() => setBuildingEditor(null)}
+          onSaved={() => { setBuildingEditor(null); router.refresh(); }}
+        />
+      )}
+
+      {/* Modal éditeur d'unité */}
+      {unitEditor && activeClient && (
+        <UnitEditor
+          clientId={activeClient.id}
+          buildings={buildings.map((b) => ({ id: b.id, name: b.name, code: b.code }))}
+          initial={unitEditor}
+          onClose={() => setUnitEditor(null)}
+          onSaved={() => { setUnitEditor(null); router.refresh(); }}
+        />
+      )}
+
       {/* Modal éditeur d'ouverture */}
       {openingEditor && (
         <OpeningEditor
@@ -529,6 +570,120 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function TextInput({ label, value, onChange, placeholder, required, type = "text" }) {
+  return (
+    <div>
+      <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 4, display: "block" }}>{label}</label>
+      <input required={required} type={type} value={value || ""} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
+        style={{ width: "100%", padding: "8px 12px", border: "1px solid var(--border)", borderRadius: 6, fontFamily: "inherit", fontSize: 13 }} />
+    </div>
+  );
+}
+
+function BuildingEditor({ clientId, initial, onClose, onSaved }) {
+  const [form, setForm] = useState({ code: initial.code || "", name: initial.name || "", address: initial.address || "" });
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState("");
+
+  async function save(e) {
+    e.preventDefault();
+    setSaving(true); setErr("");
+    try {
+      const res = await fetch("/api/manager/buildings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, clientId }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Erreur"); }
+      onSaved();
+    } catch (e) { setErr(e.message); }
+    setSaving(false);
+  }
+
+  return (
+    <div className="gm-modal-backdrop open" onClick={(e) => { if (e.target.classList.contains("gm-modal-backdrop")) onClose(); }}>
+      <div className="gm-modal" style={{ maxWidth: 500 }}>
+        <div className="gm-modal-head">
+          <div className="modal-tag"><i className="fas fa-building"></i></div>
+          <div><div className="gm-modal-title">Nouveau bâtiment</div></div>
+          <button className="gm-modal-close" onClick={onClose}><i className="fas fa-times"></i></button>
+        </div>
+        <form onSubmit={save} className="gm-modal-body" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {err && <div style={{ background: "#fdf2f3", color: "#c10615", padding: "10px 12px", borderRadius: 6, fontSize: 12 }}>{err}</div>}
+          <div style={{ display: "grid", gridTemplateColumns: "100px 1fr", gap: 10 }}>
+            <TextInput label="Code" value={form.code} onChange={(v) => setForm({ ...form, code: v.toUpperCase() })} placeholder="A" required />
+            <TextInput label="Nom" value={form.name} onChange={(v) => setForm({ ...form, name: v })} placeholder="Bâtiment A" required />
+          </div>
+          <TextInput label="Adresse (optionnel)" value={form.address} onChange={(v) => setForm({ ...form, address: v })} placeholder="1500 Montée Monette" />
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, paddingTop: 8, borderTop: "1px solid var(--border)" }}>
+            <button type="button" onClick={onClose} className="gm-btn gm-btn-sm">Annuler</button>
+            <button type="submit" disabled={saving} className="gm-btn gm-btn-sm gm-btn-primary">{saving ? "..." : "Créer"}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function UnitEditor({ clientId, buildings, initial, onClose, onSaved }) {
+  const [form, setForm] = useState({
+    code: initial.code || "",
+    buildingId: initial.buildingId || buildings[0]?.id || null,
+    description: initial.description || "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState("");
+
+  async function save(e) {
+    e.preventDefault();
+    setSaving(true); setErr("");
+    try {
+      const res = await fetch("/api/manager/units", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, clientId }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Erreur"); }
+      onSaved();
+    } catch (e) { setErr(e.message); }
+    setSaving(false);
+  }
+
+  return (
+    <div className="gm-modal-backdrop open" onClick={(e) => { if (e.target.classList.contains("gm-modal-backdrop")) onClose(); }}>
+      <div className="gm-modal" style={{ maxWidth: 500 }}>
+        <div className="gm-modal-head">
+          <div className="modal-tag"><i className="fas fa-door-open"></i></div>
+          <div>
+            <div className="gm-modal-title">Nouvelle unité</div>
+            {initial.buildingName && <div className="gm-modal-sub">{initial.buildingName}</div>}
+          </div>
+          <button className="gm-modal-close" onClick={onClose}><i className="fas fa-times"></i></button>
+        </div>
+        <form onSubmit={save} className="gm-modal-body" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {err && <div style={{ background: "#fdf2f3", color: "#c10615", padding: "10px 12px", borderRadius: 6, fontSize: 12 }}>{err}</div>}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <TextInput label="Code unité" value={form.code} onChange={(v) => setForm({ ...form, code: v })} placeholder="A-101" required />
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 4, display: "block" }}>Bâtiment</label>
+              <select value={form.buildingId || ""} onChange={(e) => setForm({ ...form, buildingId: e.target.value || null })}
+                style={{ width: "100%", padding: "8px 12px", border: "1px solid var(--border)", borderRadius: 6, fontFamily: "inherit", fontSize: 13 }}>
+                <option value="">Aucun</option>
+                {buildings.map((b) => <option key={b.id} value={b.id}>{b.name} ({b.code})</option>)}
+              </select>
+            </div>
+          </div>
+          <TextInput label="Description (optionnel)" value={form.description} onChange={(v) => setForm({ ...form, description: v })} placeholder="Ex: 3 chambres" />
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, paddingTop: 8, borderTop: "1px solid var(--border)" }}>
+            <button type="button" onClick={onClose} className="gm-btn gm-btn-sm">Annuler</button>
+            <button type="submit" disabled={saving} className="gm-btn gm-btn-sm gm-btn-primary">{saving ? "..." : "Créer"}</button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
