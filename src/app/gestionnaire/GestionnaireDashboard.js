@@ -406,8 +406,24 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                       <div className="li-text">
                         {wo.description ? wo.description.slice(0, 120) : "Intervention planifiée"}
                         {wo.sections.length > 0 && ` · Unités: ${wo.sections.join(", ")}`}
-                        {wo.technicianName && ` · ${wo.technicianName}`}
                       </div>
+                      {wo.technicianName && (
+                        <div style={{ fontSize: 12, color: "var(--text-dim)", marginTop: 4, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                            <i className="fas fa-user-hard-hat" style={{ color: "var(--red)" }}></i>
+                            <strong>{wo.technicianName}</strong>
+                          </span>
+                          {wo.technicianPhone && (
+                            <a
+                              href={`tel:${wo.technicianPhone}`}
+                              onClick={(e) => e.stopPropagation()}
+                              style={{ color: "var(--red)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4 }}
+                            >
+                              <i className="fas fa-phone"></i> {wo.technicianPhone}
+                            </a>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <div style={{ display: "flex", gap: 6, alignItems: "center" }} onClick={(e) => e.stopPropagation()}>
                       <span className={"gm-tag " + (wo.statut === "in_progress" ? "green" : wo.statut === "draft" ? "amber" : "red")}>
@@ -1023,6 +1039,43 @@ function RequestDetailModal({ requestId, onClose, onDeleted }) {
                     <div style={{ color: "var(--text-muted)", whiteSpace: "pre-wrap" }}>{s.notes || "—"}</div>
                   </div>
                 ))}
+              </div>
+            </>
+          )}
+
+          {data.statut !== "draft" && data.technician && (
+            <>
+              <div className="modal-section-title">Technicien assigné</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 12, background: "var(--bg)", borderRadius: 6 }}>
+                <div style={{
+                  width: 40, height: 40, borderRadius: "50%", background: "var(--red)",
+                  color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+                  fontWeight: 700, fontSize: 14, flexShrink: 0,
+                }}>
+                  <i className="fas fa-user-hard-hat"></i>
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, fontSize: 14 }}>{data.technician.name}</div>
+                  {data.technician.phone ? (
+                    <a
+                      href={`tel:${data.technician.phone}`}
+                      style={{ fontSize: 13, color: "var(--red)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}
+                    >
+                      <i className="fas fa-phone"></i> {data.technician.phone}
+                    </a>
+                  ) : (
+                    <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Téléphone non disponible</div>
+                  )}
+                </div>
+                {data.technician.phone && (
+                  <a
+                    href={`tel:${data.technician.phone}`}
+                    className="gm-btn gm-btn-sm"
+                    style={{ background: "var(--red)", color: "#fff", borderColor: "var(--red)", textDecoration: "none" }}
+                  >
+                    <i className="fas fa-phone"></i> Appeler
+                  </a>
+                )}
               </div>
             </>
           )}

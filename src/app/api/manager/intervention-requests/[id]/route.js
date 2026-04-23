@@ -7,7 +7,10 @@ export const dynamic = "force-dynamic";
 async function authorize(id, manager) {
   const wo = await prisma.workOrder.findUnique({
     where: { id: Number(id) },
-    include: { sections: true },
+    include: {
+      sections: true,
+      technician: { select: { id: true, name: true, phone: true, email: true } },
+    },
   });
   if (!wo) return { error: "Demande introuvable", status: 404 };
   const mc = canAccessClient(manager, wo.clientId);
@@ -40,6 +43,12 @@ export async function GET(req, { params }) {
     statut: wo.statut,
     createdAt: wo.createdAt.toISOString(),
     sections: wo.sections.map((s) => ({ id: s.id, unitCode: s.unitCode, notes: s.notes })),
+    technician: wo.technician ? {
+      id: wo.technician.id,
+      name: wo.technician.name,
+      phone: wo.technician.phone || null,
+      email: wo.technician.email || null,
+    } : null,
   });
 }
 
