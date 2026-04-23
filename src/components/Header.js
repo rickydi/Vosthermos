@@ -32,8 +32,9 @@ export default function Header({ company }) {
   const isHome = pathname === "/" || pathname === "/en";
   const isAdmin = pathname.startsWith("/admin");
   const isTerrain = pathname.startsWith("/terrain");
+  const isGestionnaire = pathname.startsWith("/gestionnaire");
 
-  if (isAdmin || isTerrain) return null;
+  if (isAdmin || isTerrain || isGestionnaire) return null;
 
   // Build the alternate language URL
   const getAlternateLangUrl = () => {

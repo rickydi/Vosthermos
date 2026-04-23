@@ -7,7 +7,12 @@ import useFormTracking from "@/lib/useFormTracking";
 
 export default function ChatBubble() {
   const pathname = usePathname();
-  if (pathname.startsWith("/admin") || pathname.startsWith("/c/") || pathname.startsWith("/terrain")) return null;
+  if (
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/c/") ||
+    pathname.startsWith("/terrain") ||
+    pathname.startsWith("/gestionnaire")
+  ) return null;
   return <ChatBubbleInner />;
 }
 

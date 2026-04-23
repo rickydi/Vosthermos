@@ -7,7 +7,11 @@ export default function PromoBanner() {
   const pathname = usePathname();
   const [promo, setPromo] = useState(null);
 
-  if (pathname.startsWith("/admin") || pathname.startsWith("/terrain")) return null;
+  if (
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/terrain") ||
+    pathname.startsWith("/gestionnaire")
+  ) return null;
 
   useEffect(() => {
     let cancelled = false;
