@@ -921,6 +921,8 @@ function InterventionRequestModal({ clientId, clientName, presetUnitId, presetOp
   const [selectedClientId, setSelectedClientId] = useState(clientId || "");
   // selections = Map<unitId, Set<openingId>> — Set vide = unité entière sans opening précise
   const [selections, setSelections] = useState(new Map());
+  const [expandedBuildings, setExpandedBuildings] = useState(new Set());
+  const [expandedUnits, setExpandedUnits] = useState(new Set());
   const [form, setForm] = useState({ description: "", urgency: "normale", preferredDate: "" });
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
@@ -936,12 +938,20 @@ function InterventionRequestModal({ clientId, clientName, presetUnitId, presetOp
           if (presetOpeningId) opSet.add(Number(presetOpeningId));
           next.set(Number(presetUnitId), opSet);
           setSelections(next);
-          // Auto-select client du preset
+          // Auto-select client + auto-expand bâtiment/unité du preset
           for (const c of d.clients || []) {
-            const all = [...c.buildings.flatMap((b) => b.units), ...(c.orphanUnits || [])];
-            if (all.find((u) => u.id === Number(presetUnitId))) {
+            for (const b of c.buildings) {
+              if (b.units.find((u) => u.id === Number(presetUnitId))) {
+                setSelectedClientId(c.id);
+                setExpandedBuildings(new Set([b.id]));
+                setExpandedUnits(new Set([Number(presetUnitId)]));
+                return;
+              }
+            }
+            if ((c.orphanUnits || []).find((u) => u.id === Number(presetUnitId))) {
               setSelectedClientId(c.id);
-              break;
+              setExpandedUnits(new Set([Number(presetUnitId)]));
+              return;
             }
           }
         }
@@ -949,6 +959,23 @@ function InterventionRequestModal({ clientId, clientName, presetUnitId, presetOp
       .catch(() => setTree([]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [presetUnitId, presetOpeningId]);
+
+  function toggleBuilding(id) {
+    setExpandedBuildings((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+  function toggleUnit(id) {
+    setExpandedUnits((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
 
   const activeC = tree?.find((c) => c.id === Number(selectedClientId));
   const buildings = activeC?.buildings || [];
@@ -1053,27 +1080,60 @@ function InterventionRequestModal({ clientId, clientName, presetUnitId, presetOp
                   Aucune unité enregistrée. La demande sera générale sur la copropriété.
                 </div>
               )}
-              {buildings.map((b) => (
-                b.units.length > 0 && (
-                  <div key={b.id} className="gm-picker-bldg">
-                    <div className="gm-picker-bldg-head">
+              {buildings.map((b) => {
+                if (b.units.length === 0) return null;
+                const isOpen = expandedBuildings.has(b.id);
+                const unitsWithSelections = b.units.filter((u) => selections.has(u.id)).length;
+                return (
+                  <div key={b.id} className={"gm-picker-bldg" + (isOpen ? " open" : "")}>
+                    <div className="gm-picker-bldg-head" onClick={() => toggleBuilding(b.id)}>
+                      <i className={`fas fa-chevron-right gm-picker-caret`}></i>
                       <div style={{ width: 24, height: 24, borderRadius: 4, background: "var(--teal-dark)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11 }}>{b.code}</div>
                       <div>{b.name}</div>
-                      <span style={{ marginLeft: "auto", fontSize: 10, color: "var(--text-muted)", fontWeight: 600 }}>{b.units.length} unité{b.units.length > 1 ? "s" : ""}</span>
+                      <span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600 }}>· {b.units.length} unité{b.units.length > 1 ? "s" : ""}</span>
+                      {unitsWithSelections > 0 && <span className="gm-picker-selcount" style={{ marginLeft: "auto" }}>{unitsWithSelections}</span>}
                     </div>
-                    {b.units.map((u) => <UnitPickerRow key={u.id} unit={u} selections={selections} toggleOpening={toggleOpening} toggleUnitAll={toggleUnitAll} toggleUnitGeneral={toggleUnitGeneral} />)}
+                    {isOpen && b.units.map((u) => (
+                      <UnitPickerRow
+                        key={u.id}
+                        unit={u}
+                        selections={selections}
+                        expanded={expandedUnits.has(u.id)}
+                        onToggleExpand={() => toggleUnit(u.id)}
+                        toggleOpening={toggleOpening}
+                        toggleUnitAll={toggleUnitAll}
+                        toggleUnitGeneral={toggleUnitGeneral}
+                      />
+                    ))}
                   </div>
-                )
-              ))}
-              {orphans.length > 0 && (
-                <div className="gm-picker-bldg">
-                  <div className="gm-picker-bldg-head">
-                    <i className="fas fa-question" style={{ color: "var(--text-muted)", fontSize: 10, width: 24, textAlign: "center" }}></i>
-                    <div>Unités sans bâtiment</div>
+                );
+              })}
+              {orphans.length > 0 && (() => {
+                const orphansKey = "orphans";
+                const isOpen = expandedBuildings.has(orphansKey);
+                return (
+                  <div className={"gm-picker-bldg" + (isOpen ? " open" : "")}>
+                    <div className="gm-picker-bldg-head" onClick={() => toggleBuilding(orphansKey)}>
+                      <i className={`fas fa-chevron-right gm-picker-caret`}></i>
+                      <i className="fas fa-question" style={{ color: "var(--text-muted)", fontSize: 10, width: 24, textAlign: "center" }}></i>
+                      <div>Unités sans bâtiment</div>
+                      <span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600 }}>· {orphans.length}</span>
+                    </div>
+                    {isOpen && orphans.map((u) => (
+                      <UnitPickerRow
+                        key={u.id}
+                        unit={u}
+                        selections={selections}
+                        expanded={expandedUnits.has(u.id)}
+                        onToggleExpand={() => toggleUnit(u.id)}
+                        toggleOpening={toggleOpening}
+                        toggleUnitAll={toggleUnitAll}
+                        toggleUnitGeneral={toggleUnitGeneral}
+                      />
+                    ))}
                   </div>
-                  {orphans.map((u) => <UnitPickerRow key={u.id} unit={u} selections={selections} toggleOpening={toggleOpening} toggleUnitAll={toggleUnitAll} toggleUnitGeneral={toggleUnitGeneral} />)}
-                </div>
-              )}
+                );
+              })()}
             </div>
 
             <div className="gm-picker-summary">
@@ -1121,53 +1181,64 @@ function InterventionRequestModal({ clientId, clientName, presetUnitId, presetOp
   );
 }
 
-function UnitPickerRow({ unit, selections, toggleOpening, toggleUnitAll, toggleUnitGeneral }) {
+function UnitPickerRow({ unit, selections, expanded, onToggleExpand, toggleOpening, toggleUnitAll, toggleUnitGeneral }) {
   const currentSet = selections.get(unit.id);
   const hasOpenings = unit.openings.length > 0;
+  const selectedCount = currentSet?.size || 0;
   const allSelected = hasOpenings && currentSet && unit.openings.every((o) => currentSet.has(o.id));
   const generalSelected = currentSet && currentSet.size === 0;
 
   return (
-    <div className="gm-picker-unit">
-      <div className="gm-picker-unit-head">
+    <div className={"gm-picker-unit" + (expanded ? " open" : "")}>
+      <div className="gm-picker-unit-head" onClick={onToggleExpand}>
+        <i className={`fas fa-chevron-right gm-picker-caret`} style={{ transform: expanded ? "rotate(90deg)" : "none", transition: "transform 0.15s" }}></i>
         <span className="gm-picker-unit-code">{unit.code}</span>
         {unit.description && <span className="gm-picker-unit-desc">· {unit.description}</span>}
-        {hasOpenings && (
-          <button type="button" className="gm-picker-unit-all" onClick={() => toggleUnitAll(unit)}>
-            {allSelected ? "Tout décocher" : "Tout cocher"}
-          </button>
-        )}
+        <span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600 }}>· {unit.openings.length} ouverture{unit.openings.length !== 1 ? "s" : ""}</span>
+        {selectedCount > 0 && <span className="gm-picker-selcount" style={{ marginLeft: "auto" }}>{selectedCount}</span>}
+        {generalSelected && selectedCount === 0 && <span className="gm-picker-selcount" style={{ marginLeft: "auto" }}>✓</span>}
       </div>
-      {!hasOpenings ? (
-        <div className="gm-picker-no-openings">
-          <label>
-            <input type="checkbox" checked={!!generalSelected} onChange={() => toggleUnitGeneral(unit.id)} />
-            Inclure cette unité (aucune ouverture enregistrée)
-          </label>
-        </div>
-      ) : (
-        <div className="gm-picker-openings">
-          {unit.openings.map((o) => {
-            const isSelected = currentSet?.has(o.id);
-            return (
-              <div
-                key={o.id}
-                className={"gm-picker-opening" + (isSelected ? " selected" : "")}
-                onClick={() => toggleOpening(unit.id, o.id)}
-              >
-                <div className="gm-picker-opening-photo">
-                  {o.photoUrl ? <img src={o.photoUrl} alt={o.location} /> : <i className="fas fa-camera"></i>}
-                </div>
-                <div className="gm-picker-opening-check">
-                  {isSelected ? <i className="fas fa-check" style={{ fontSize: 11 }}></i> : null}
-                </div>
-                <div className="gm-picker-opening-body">
-                  <div className="gm-picker-opening-type">{o.type.replace("-", " ")}</div>
-                  <div className="gm-picker-opening-loc">{o.location}</div>
-                </div>
-              </div>
-            );
-          })}
+      {expanded && (
+        <div className="gm-picker-unit-body">
+          {hasOpenings && (
+            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+              <button type="button" className="gm-picker-unit-all" onClick={(e) => { e.stopPropagation(); toggleUnitAll(unit); }}>
+                {allSelected ? "Tout décocher" : "Tout cocher"}
+              </button>
+            </div>
+          )}
+          {!hasOpenings ? (
+            <div className="gm-picker-no-openings">
+              <label onClick={(e) => e.stopPropagation()}>
+                <input type="checkbox" checked={!!generalSelected} onChange={() => toggleUnitGeneral(unit.id)} />
+                Inclure cette unité (aucune ouverture enregistrée)
+              </label>
+            </div>
+          ) : (
+            <div className="gm-picker-openings">
+              {unit.openings.map((o) => {
+                const isSelected = currentSet?.has(o.id);
+                return (
+                  <div
+                    key={o.id}
+                    className={"gm-picker-opening" + (isSelected ? " selected" : "")}
+                    onClick={(e) => { e.stopPropagation(); toggleOpening(unit.id, o.id); }}
+                  >
+                    <div className="gm-picker-opening-photo">
+                      {o.photoUrl ? <img src={o.photoUrl} alt={o.location} /> : <i className="fas fa-camera"></i>}
+                    </div>
+                    <div className="gm-picker-opening-check">
+                      {isSelected ? <i className="fas fa-check" style={{ fontSize: 11 }}></i> : null}
+                    </div>
+                    <div className="gm-picker-opening-body">
+                      <div className="gm-picker-opening-type">{o.type.replace("-", " ")}</div>
+                      <div className="gm-picker-opening-loc">{o.location}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
     </div>
