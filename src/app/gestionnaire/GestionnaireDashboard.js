@@ -206,6 +206,11 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
               <h2 className="gm-topbar-title">{crumbs[activeTab]}</h2>
             </div>
             <div className="gm-top-right">
+              {canRequest && (
+                <button className="gm-btn gm-btn-sm gm-btn-primary" onClick={() => setRequestModal({})}>
+                  <i className="fas fa-plus"></i>Demander intervention
+                </button>
+              )}
               <button className="bell">
                 <i className="far fa-bell" style={{ fontSize: 14 }}></i>
                 {notifs.filter((n) => n.kind === "urgent").length > 0 && <span className="bell-dot"></span>}
@@ -221,13 +226,6 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                   {isGlobal ? `${clients.length} copropriétés · ${stats.totalUnits} unités` : activeClient.name}
                   {stats.activeWOsCount > 0 && <> · <strong>{stats.activeWOsCount} bon{stats.activeWOsCount > 1 ? "s" : ""} actif{stats.activeWOsCount > 1 ? "s" : ""}</strong></>}
                   {stats.invoicedCount > 0 && <> · {stats.invoicedCount} facture{stats.invoicedCount > 1 ? "s" : ""} due{stats.invoicedCount > 1 ? "s" : ""}</>}
-                </div>
-                <div className="gm-page-actions">
-                  {canRequest && (
-                    <button className="gm-btn gm-btn-primary" onClick={() => setRequestModal({})}>
-                      <i className="fas fa-plus"></i>Demander intervention
-                    </button>
-                  )}
                 </div>
               </div>
 
@@ -442,11 +440,6 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                 <div className="gm-page-sub">
                   {interventions?.active?.length > 0 ? <><strong>{interventions.active.length} active{interventions.active.length > 1 ? "s" : ""}</strong></> : "Aucune intervention active"}
                   {interventions?.recent?.length > 0 && ` · ${interventions.recent.length} récente${interventions.recent.length > 1 ? "s" : ""}`}
-                </div>
-                <div className="gm-page-actions">
-                  <button className="gm-btn gm-btn-primary">
-                    <i className="fas fa-plus"></i>Demander intervention
-                  </button>
                 </div>
               </div>
 
