@@ -66,17 +66,22 @@ export default function BonDetailPage() {
     if (!tech) { setMsg("Technicien introuvable."); return; }
     if (!tech.phone) { setMsg(`${tech.name} n'a pas de numéro de téléphone dans la DB.`); return; }
 
+    const isReassign = wo.statut !== "draft";
+    const previousTechName = wo.technician?.name || null;
+
     setApproving(true);
     setMsg("");
     try {
+      const payload = { technicianId: Number(selectedTechId) };
+      if (!isReassign) payload.statut = "scheduled";
       const res = await fetch(`/api/admin/work-orders/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ statut: "scheduled", technicianId: Number(selectedTechId) }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
-        throw new Error(d.error || "Erreur approbation");
+        throw new Error(d.error || "Erreur mise à jour");
       }
 
       const phone = formatPhoneForWhatsapp(tech.phone);
@@ -85,8 +90,14 @@ export default function BonDetailPage() {
       const unitsPart = wo.sections?.length > 0 ? wo.sections.map((s) => s.unitCode).join(", ") : "";
       const addressPart = [wo.interventionAddress, wo.interventionCity].filter(Boolean).join(", ") || wo.client?.address || "";
 
+      const header = isReassign
+        ? (previousTechName && previousTechName !== tech.name
+            ? `Bon ${wo.number} — réassigné (anciennement ${previousTechName})`
+            : `Rappel bon ${wo.number}`)
+        : `Nouveau bon ${wo.number}`;
+
       const lines = [
-        `Nouveau bon ${wo.number}`,
+        header,
         "",
         `Client : ${wo.client?.name || "—"}`,
         addressPart ? `Adresse : ${addressPart}` : null,
@@ -102,11 +113,12 @@ export default function BonDetailPage() {
       const wa = `https://wa.me/${phone}?text=${encodeURIComponent(lines)}`;
       window.open(wa, "_blank", "noopener,noreferrer");
 
-      // Refresh state
       const refreshed = await fetch(`/api/admin/work-orders/${id}`).then((r) => r.json());
       setWo(refreshed);
       setShowApprove(false);
-      setMsg(`Approuvé et assigné à ${tech.name}. WhatsApp ouvert.`);
+      setMsg(isReassign
+        ? `Réassigné à ${tech.name}. WhatsApp ouvert.`
+        : `Approuvé et assigné à ${tech.name}. WhatsApp ouvert.`);
     } catch (err) {
       setMsg(err.message);
     }
@@ -220,6 +232,15 @@ export default function BonDetailPage() {
               <i className="fab fa-whatsapp mr-2"></i>Approuver &amp; envoyer WhatsApp
             </button>
           )}
+          {(wo.statut === "scheduled" || wo.statut === "in_progress") && (
+            <button
+              onClick={() => setShowApprove(true)}
+              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold"
+              title={wo.technician?.name ? `Actuellement assigné à ${wo.technician.name}` : "Aucun technicien assigné"}
+            >
+              <i className="fab fa-whatsapp mr-2"></i>Réassigner &amp; renvoyer WhatsApp
+            </button>
+          )}
           {wo.statut === "completed" && (
             <button
               onClick={convertToInvoice}
@@ -264,10 +285,12 @@ export default function BonDetailPage() {
             onClick={(e) => e.stopPropagation()}>
             <h3 className="font-bold text-lg mb-1">
               <i className="fab fa-whatsapp text-green-500 mr-2"></i>
-              Approuver et envoyer
+              {wo.statut === "draft" ? "Approuver et envoyer" : "Réassigner et renvoyer"}
             </h3>
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-              Le bon passera en &quot;Planifié&quot;, le technicien sera assigné, et WhatsApp s&apos;ouvrira avec le message pré-rempli.
+              {wo.statut === "draft"
+                ? "Le bon passera en \"Planifié\", le technicien sera assigné, et WhatsApp s'ouvrira avec le message pré-rempli."
+                : `Le bon sera réassigné au nouveau technicien et WhatsApp s'ouvrira pour l'aviser.${wo.technician?.name ? ` Actuellement : ${wo.technician.name}.` : ""}`}
             </p>
 
             <label className="text-xs mb-1 block text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Technicien</label>
@@ -304,7 +327,7 @@ export default function BonDetailPage() {
               <button onClick={approveAndSend} disabled={approving || !selectedTechId}
                 className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold disabled:opacity-50 flex items-center gap-2">
                 <i className={approving ? "fas fa-spinner fa-spin" : "fab fa-whatsapp"}></i>
-                {approving ? "Traitement..." : "Approuver & envoyer"}
+                {approving ? "Traitement..." : (wo.statut === "draft" ? "Approuver & envoyer" : "Réassigner & renvoyer")}
               </button>
             </div>
           </div>
