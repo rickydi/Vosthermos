@@ -8,16 +8,28 @@ export default function BonsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
 
-  function loadWorkOrders() {
+  function loadWorkOrders(showSpinner = true) {
     const params = filter !== "all" ? `?statut=${filter}` : "";
-    setLoading(true);
-    fetch(`/api/admin/work-orders${params}`)
+    if (showSpinner) setLoading(true);
+    fetch(`/api/admin/work-orders${params}`, { cache: "no-store", headers: { "Cache-Control": "no-cache" } })
       .then((r) => r.json())
       .then((data) => { setWorkOrders(data.workOrders || []); setLoading(false); })
       .catch(() => setLoading(false));
   }
 
-  useEffect(() => { loadWorkOrders(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [filter]);
+  useEffect(() => {
+    loadWorkOrders();
+    const interval = setInterval(() => loadWorkOrders(false), 5000);
+    const onFocus = () => loadWorkOrders(false);
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
+    };
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [filter]);
 
   async function handleDelete(wo, e) {
     e.stopPropagation();
@@ -100,22 +112,39 @@ export default function BonsPage() {
                 <th className="px-4 py-3">Numero</th>
                 <th className="px-4 py-3">Client</th>
                 <th className="px-4 py-3">Technicien</th>
-                <th className="px-4 py-3">Date</th>
+                <th className="px-4 py-3">Date prévue</th>
+                <th className="px-4 py-3">Demandé le</th>
                 <th className="px-4 py-3">Total</th>
                 <th className="px-4 py-3">Statut</th>
                 <th className="px-4 py-3 w-20"></th>
               </tr>
             </thead>
             <tbody>
-              {workOrders.map((wo) => (
-                <tr key={wo.id} className="border-b admin-border admin-hover cursor-pointer" onClick={() => window.location.href = `/admin/bons/${wo.id}`}>
-                  <td className="px-4 py-3 font-mono text-xs">{wo.number}</td>
+              {workOrders.map((wo) => {
+                const isNewManagerRequest = wo.statut === "draft" && typeof wo.notes === "string" && wo.notes.startsWith("Demande du gestionnaire");
+                return (
+                <tr key={wo.id} className={"border-b admin-border admin-hover cursor-pointer" + (isNewManagerRequest ? " bg-red-500/5" : "")} onClick={() => window.location.href = `/admin/bons/${wo.id}`}>
+                  <td className="px-4 py-3 font-mono text-xs">
+                    <div className="flex items-center gap-2">
+                      {isNewManagerRequest && <span className="admin-unread-dot" title="Nouvelle demande gestionnaire"></span>}
+                      <span>{wo.number}</span>
+                      {isNewManagerRequest && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-red-500 text-white uppercase tracking-wider">Nouveau</span>}
+                    </div>
+                  </td>
                   <td className="px-4 py-3">
                     <p className="admin-text font-medium">{wo.client?.name}</p>
                     <p className="admin-text-muted text-xs">{wo.client?.phone}</p>
                   </td>
                   <td className="px-4 py-3 admin-text-muted">{wo.technician?.name || "—"}</td>
                   <td className="px-4 py-3 admin-text-muted">{new Date(wo.date).toLocaleDateString("fr-CA")}</td>
+                  <td className="px-4 py-3 admin-text-muted text-xs">
+                    {wo.createdAt ? (
+                      <>
+                        {new Date(wo.createdAt).toLocaleDateString("fr-CA", { day: "2-digit", month: "short" })}<br />
+                        {new Date(wo.createdAt).toLocaleTimeString("fr-CA", { hour: "2-digit", minute: "2-digit" })}
+                      </>
+                    ) : "—"}
+                  </td>
                   <td className="px-4 py-3 font-bold">{wo.total.toFixed(2)}$</td>
                   <td className="px-4 py-3">
                     <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${statusColors[wo.statut] || ""}`}>
@@ -133,7 +162,8 @@ export default function BonsPage() {
                     </button>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

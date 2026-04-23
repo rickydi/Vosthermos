@@ -191,13 +191,24 @@ export default function BonDetailPage() {
     <div className="p-6 lg:p-8">
       {/* Top bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6 print-hide">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <Link href="/admin/bons" className="admin-text-muted text-sm hover:admin-text">
             <i className="fas fa-arrow-left mr-2"></i>Retour
           </Link>
           <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${statusColors[wo.statut] || ""}`}>
             {statusLabels[wo.statut] || wo.statut}
           </span>
+          {wo.createdAt && (
+            <span className="admin-text-muted text-xs">
+              <i className="far fa-clock mr-1"></i>
+              Demandé le {new Date(wo.createdAt).toLocaleDateString("fr-CA", { day: "numeric", month: "long", year: "numeric" })} à {new Date(wo.createdAt).toLocaleTimeString("fr-CA", { hour: "2-digit", minute: "2-digit" })}
+            </span>
+          )}
+          {wo.statut === "draft" && typeof wo.notes === "string" && wo.notes.startsWith("Demande du gestionnaire") && (
+            <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-red-500 text-white uppercase tracking-wider animate-pulse">
+              <i className="fas fa-bell mr-1"></i>Nouvelle demande
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {wo.statut === "draft" && (

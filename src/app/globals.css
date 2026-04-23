@@ -101,6 +101,13 @@ body {
 [data-admin-theme="light"] .admin-hover:hover { background: #f1f5f9; }
 [data-admin-theme="light"] .admin-header { border-color: #e2e8f0; background: #ffffff; }
 
+.admin-unread-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #e30718; flex-shrink: 0; box-shadow: 0 0 0 0 rgba(227, 7, 24, 0.7); animation: admin-pulse 1.6s infinite; }
+@keyframes admin-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(227, 7, 24, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(227, 7, 24, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(227, 7, 24, 0); }
+}
+
 /* Light theme: auto-remap white-based colors inside admin layout */
 [data-admin-theme="light"] .admin-bg .text-white { color: #1e293b; }
 [data-admin-theme="light"] .admin-bg .text-white\/80 { color: #334155; }
