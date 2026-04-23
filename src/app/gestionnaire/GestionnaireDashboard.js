@@ -918,15 +918,10 @@ function UnitEditor({ clientId, buildings, initial, onClose, onSaved }) {
 
 function InterventionRequestModal({ clientId, clientName, presetUnitId, presetOpeningId, onClose, onSaved }) {
   const [tree, setTree] = useState(null);
-  const [form, setForm] = useState({
-    clientId: clientId || "",
-    buildingId: "",
-    unitId: presetUnitId || "",
-    openingId: presetOpeningId || "",
-    description: "",
-    urgency: "normale",
-    preferredDate: "",
-  });
+  const [selectedClientId, setSelectedClientId] = useState(clientId || "");
+  // selections = Map<unitId, Set<openingId>> — Set vide = unité entière sans opening précise
+  const [selections, setSelections] = useState(new Map());
+  const [form, setForm] = useState({ description: "", urgency: "normale", preferredDate: "" });
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
 
@@ -935,53 +930,84 @@ function InterventionRequestModal({ clientId, clientName, presetUnitId, presetOp
       .then((r) => r.json())
       .then((d) => {
         setTree(d.clients || []);
-        // Si une unité preset est fournie, trouver son bâtiment automatiquement
-        if (presetUnitId) {
+        if (presetUnitId && !selections.size) {
+          const next = new Map();
+          const opSet = new Set();
+          if (presetOpeningId) opSet.add(Number(presetOpeningId));
+          next.set(Number(presetUnitId), opSet);
+          setSelections(next);
+          // Auto-select client du preset
           for (const c of d.clients || []) {
-            for (const b of c.buildings) {
-              const unit = b.units.find((u) => u.id === Number(presetUnitId));
-              if (unit) {
-                setForm((f) => ({ ...f, clientId: c.id, buildingId: b.id, unitId: unit.id }));
-                return;
-              }
-            }
-            const orph = c.orphanUnits?.find((u) => u.id === Number(presetUnitId));
-            if (orph) {
-              setForm((f) => ({ ...f, clientId: c.id, buildingId: "", unitId: orph.id }));
-              return;
+            const all = [...c.buildings.flatMap((b) => b.units), ...(c.orphanUnits || [])];
+            if (all.find((u) => u.id === Number(presetUnitId))) {
+              setSelectedClientId(c.id);
+              break;
             }
           }
         }
       })
       .catch(() => setTree([]));
-  }, [presetUnitId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [presetUnitId, presetOpeningId]);
 
-  const activeC = tree?.find((c) => c.id === Number(form.clientId));
+  const activeC = tree?.find((c) => c.id === Number(selectedClientId));
   const buildings = activeC?.buildings || [];
   const orphans = activeC?.orphanUnits || [];
-  const activeB = buildings.find((b) => b.id === Number(form.buildingId));
-  const units = form.buildingId
-    ? (activeB?.units || [])
-    : [...buildings.flatMap((b) => b.units), ...orphans];
-  const activeU = units.find((u) => u.id === Number(form.unitId));
-  const openings = activeU?.openings || [];
+
+  function toggleOpening(unitId, openingId) {
+    const next = new Map(selections);
+    const set = new Set(next.get(unitId) || []);
+    if (set.has(openingId)) set.delete(openingId);
+    else set.add(openingId);
+    if (set.size === 0 && !next.get(unitId)) next.delete(unitId);
+    else next.set(unitId, set);
+    setSelections(next);
+  }
+
+  function toggleUnitAll(unit) {
+    const next = new Map(selections);
+    const currentSet = next.get(unit.id);
+    const allIds = unit.openings.map((o) => o.id);
+    const allSelected = currentSet && allIds.every((id) => currentSet.has(id));
+    if (allSelected) {
+      next.delete(unit.id);
+    } else {
+      next.set(unit.id, new Set(allIds));
+    }
+    setSelections(next);
+  }
+
+  function toggleUnitGeneral(unitId) {
+    const next = new Map(selections);
+    if (next.has(unitId) && next.get(unitId).size === 0) {
+      next.delete(unitId);
+    } else {
+      next.set(unitId, new Set());
+    }
+    setSelections(next);
+  }
+
+  const totalOpenings = [...selections.values()].reduce((s, set) => s + set.size, 0);
+  const totalUnits = selections.size;
 
   async function save(e) {
     e.preventDefault();
     setSaving(true); setErr("");
     try {
-      const payload = {
-        clientId: Number(form.clientId),
-        unitId: form.unitId ? Number(form.unitId) : null,
-        openingId: form.openingId ? Number(form.openingId) : null,
-        description: form.description,
-        urgency: form.urgency,
-        preferredDate: form.preferredDate || null,
-      };
+      const selectionsPayload = [...selections.entries()].map(([unitId, opSet]) => ({
+        unitId,
+        openingIds: [...opSet],
+      }));
       const res = await fetch("/api/manager/intervention-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          clientId: Number(selectedClientId),
+          selections: selectionsPayload,
+          description: form.description,
+          urgency: form.urgency,
+          preferredDate: form.preferredDate || null,
+        }),
       });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error || "Erreur");
@@ -992,7 +1018,7 @@ function InterventionRequestModal({ clientId, clientName, presetUnitId, presetOp
 
   if (!tree) {
     return (
-      <ModalShell icon={<i className="fas fa-wrench"></i>} title="Demander une intervention" onClose={onClose} level={3} maxWidth={560}>
+      <ModalShell icon={<i className="fas fa-wrench"></i>} title="Demander une intervention" onClose={onClose} level={3} maxWidth={720}>
         <div className="gm-modal-body" style={{ textAlign: "center", padding: 40, color: "var(--text-muted)" }}>
           <i className="fas fa-spinner fa-spin"></i> Chargement...
         </div>
@@ -1007,52 +1033,57 @@ function InterventionRequestModal({ clientId, clientName, presetUnitId, presetOp
       subtitle={activeC?.name || clientName}
       onClose={onClose}
       level={3}
-      maxWidth={600}
+      maxWidth={720}
     >
       <form onSubmit={save} className="gm-modal-body gm-form">
         {err && <div className="gm-form-err">{err}</div>}
 
         <Field label="Copropriété *">
-          <select value={form.clientId} onChange={(e) => setForm({ ...form, clientId: e.target.value, buildingId: "", unitId: "", openingId: "" })} required>
+          <select value={selectedClientId} onChange={(e) => { setSelectedClientId(e.target.value); setSelections(new Map()); }} required>
             <option value="">— Sélectionner —</option>
             {tree.map((c) => <option key={c.id} value={c.id}>{c.name}{c.city ? ` · ${c.city}` : ""}</option>)}
           </select>
         </Field>
 
-        {form.clientId && (
-          <div className="gm-field-row gm-field-row-2">
-            <Field label="Bâtiment (optionnel)">
-              <select value={form.buildingId} onChange={(e) => setForm({ ...form, buildingId: e.target.value, unitId: "", openingId: "" })}>
-                <option value="">Tous / sans bâtiment</option>
-                {buildings.map((b) => <option key={b.id} value={b.id}>{b.code} — {b.name}</option>)}
-              </select>
-            </Field>
-            <Field label="Unité (optionnel)">
-              <select value={form.unitId} onChange={(e) => setForm({ ...form, unitId: e.target.value, openingId: "" })}>
-                <option value="">Aucune unité précise</option>
-                {units.map((u) => <option key={u.id} value={u.id}>{u.code}{u.description ? ` — ${u.description}` : ""}</option>)}
-              </select>
-            </Field>
-          </div>
-        )}
-
-        {form.unitId && openings.length > 0 && (
-          <Field label="Fenêtre/porte précise (optionnel)">
-            <select value={form.openingId} onChange={(e) => setForm({ ...form, openingId: e.target.value })}>
-              <option value="">Aucune ouverture précise (ou plusieurs)</option>
-              {openings.map((o) => (
-                <option key={o.id} value={o.id}>
-                  {o.type.replace("-", " ")} — {o.location}
-                </option>
+        {selectedClientId && (
+          <Field label="Unités et ouvertures à inclure (optionnel — cochez ce qui est concerné)">
+            <div className="gm-picker">
+              {buildings.length === 0 && orphans.length === 0 && (
+                <div style={{ padding: 20, textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>
+                  Aucune unité enregistrée. La demande sera générale sur la copropriété.
+                </div>
+              )}
+              {buildings.map((b) => (
+                b.units.length > 0 && (
+                  <div key={b.id} className="gm-picker-bldg">
+                    <div className="gm-picker-bldg-head">
+                      <div style={{ width: 24, height: 24, borderRadius: 4, background: "var(--teal-dark)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11 }}>{b.code}</div>
+                      <div>{b.name}</div>
+                      <span style={{ marginLeft: "auto", fontSize: 10, color: "var(--text-muted)", fontWeight: 600 }}>{b.units.length} unité{b.units.length > 1 ? "s" : ""}</span>
+                    </div>
+                    {b.units.map((u) => <UnitPickerRow key={u.id} unit={u} selections={selections} toggleOpening={toggleOpening} toggleUnitAll={toggleUnitAll} toggleUnitGeneral={toggleUnitGeneral} />)}
+                  </div>
+                )
               ))}
-            </select>
-          </Field>
-        )}
+              {orphans.length > 0 && (
+                <div className="gm-picker-bldg">
+                  <div className="gm-picker-bldg-head">
+                    <i className="fas fa-question" style={{ color: "var(--text-muted)", fontSize: 10, width: 24, textAlign: "center" }}></i>
+                    <div>Unités sans bâtiment</div>
+                  </div>
+                  {orphans.map((u) => <UnitPickerRow key={u.id} unit={u} selections={selections} toggleOpening={toggleOpening} toggleUnitAll={toggleUnitAll} toggleUnitGeneral={toggleUnitGeneral} />)}
+                </div>
+              )}
+            </div>
 
-        {form.unitId && openings.length === 0 && (
-          <div style={{ fontSize: 12, color: "var(--text-muted)", fontStyle: "italic" }}>
-            Aucune ouverture enregistrée pour cette unité. Vous pouvez en ajouter depuis le modal de l'unité.
-          </div>
+            <div className="gm-picker-summary">
+              {totalUnits === 0 ? (
+                <span>Aucune unité sélectionnée — la demande sera générale</span>
+              ) : (
+                <span><strong>{totalUnits}</strong> unité{totalUnits > 1 ? "s" : ""} · <strong>{totalOpenings}</strong> ouverture{totalOpenings !== 1 ? "s" : ""} ciblée{totalOpenings !== 1 ? "s" : ""}</span>
+              )}
+            </div>
+          </Field>
         )}
 
         <div className="gm-field-row gm-field-row-2">
@@ -1069,24 +1100,77 @@ function InterventionRequestModal({ clientId, clientName, presetUnitId, presetOp
         </div>
 
         <Field label="Description du problème *">
-          <textarea rows={5} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
+          <textarea rows={4} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
             placeholder="Décrivez ce qui nécessite une intervention&#10;(ex: vitre embuée, porte qui bloque, infiltration d'eau...)"
             required />
         </Field>
 
         <div style={{ padding: 12, background: "var(--bg)", borderRadius: 6, fontSize: 12, color: "var(--text-muted)" }}>
           <i className="fas fa-info-circle" style={{ marginRight: 6, color: "var(--red)" }}></i>
-          Vosthermos recevra votre demande par courriel et vous contactera pour confirmer l'intervention.
+          Vosthermos recevra votre demande par courriel. Un bon de travail regroupant toutes les unités ciblées sera créé en brouillon.
         </div>
 
         <div className="gm-form-actions">
           <button type="button" onClick={onClose} className="gm-btn gm-btn-sm">Annuler</button>
-          <button type="submit" disabled={saving || !form.description.trim() || !form.clientId} className="gm-btn gm-btn-sm gm-btn-primary">
+          <button type="submit" disabled={saving || !form.description.trim() || !selectedClientId} className="gm-btn gm-btn-sm gm-btn-primary">
             {saving ? "Envoi..." : "Envoyer la demande"}
           </button>
         </div>
       </form>
     </ModalShell>
+  );
+}
+
+function UnitPickerRow({ unit, selections, toggleOpening, toggleUnitAll, toggleUnitGeneral }) {
+  const currentSet = selections.get(unit.id);
+  const hasOpenings = unit.openings.length > 0;
+  const allSelected = hasOpenings && currentSet && unit.openings.every((o) => currentSet.has(o.id));
+  const generalSelected = currentSet && currentSet.size === 0;
+
+  return (
+    <div className="gm-picker-unit">
+      <div className="gm-picker-unit-head">
+        <span className="gm-picker-unit-code">{unit.code}</span>
+        {unit.description && <span className="gm-picker-unit-desc">· {unit.description}</span>}
+        {hasOpenings && (
+          <button type="button" className="gm-picker-unit-all" onClick={() => toggleUnitAll(unit)}>
+            {allSelected ? "Tout décocher" : "Tout cocher"}
+          </button>
+        )}
+      </div>
+      {!hasOpenings ? (
+        <div className="gm-picker-no-openings">
+          <label>
+            <input type="checkbox" checked={!!generalSelected} onChange={() => toggleUnitGeneral(unit.id)} />
+            Inclure cette unité (aucune ouverture enregistrée)
+          </label>
+        </div>
+      ) : (
+        <div className="gm-picker-openings">
+          {unit.openings.map((o) => {
+            const isSelected = currentSet?.has(o.id);
+            return (
+              <div
+                key={o.id}
+                className={"gm-picker-opening" + (isSelected ? " selected" : "")}
+                onClick={() => toggleOpening(unit.id, o.id)}
+              >
+                <div className="gm-picker-opening-photo">
+                  {o.photoUrl ? <img src={o.photoUrl} alt={o.location} /> : <i className="fas fa-camera"></i>}
+                </div>
+                <div className="gm-picker-opening-check">
+                  {isSelected ? <i className="fas fa-check" style={{ fontSize: 11 }}></i> : null}
+                </div>
+                <div className="gm-picker-opening-body">
+                  <div className="gm-picker-opening-type">{o.type.replace("-", " ")}</div>
+                  <div className="gm-picker-opening-loc">{o.location}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
 

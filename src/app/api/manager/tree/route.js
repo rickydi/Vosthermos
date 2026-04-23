@@ -29,7 +29,7 @@ export async function GET() {
     }),
     prisma.unitOpening.findMany({
       where: { unit: { clientId: { in: clientIds } } },
-      select: { id: true, unitId: true, type: true, location: true, status: true },
+      select: { id: true, unitId: true, type: true, location: true, status: true, photoUrl: true },
       orderBy: { position: "asc" },
     }),
   ]);
