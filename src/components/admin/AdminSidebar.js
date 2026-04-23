@@ -73,10 +73,11 @@ export default function AdminSidebar() {
   useEffect(() => {
     async function fetchBadges() {
       try {
+        const noCache = { cache: "no-store", headers: { "Cache-Control": "no-cache" } };
         const [chatRes, rdvRes, reqRes] = await Promise.all([
-          fetch("/api/admin/chat"),
-          fetch("/api/admin/appointments?status=pending"),
-          fetch("/api/admin/work-orders/pending-count"),
+          fetch("/api/admin/chat", noCache),
+          fetch("/api/admin/appointments?status=pending", noCache),
+          fetch("/api/admin/work-orders/pending-count", noCache),
         ]);
         const chatData = await chatRes.json();
         if (Array.isArray(chatData)) {
@@ -93,8 +94,16 @@ export default function AdminSidebar() {
       } catch {}
     }
     fetchBadges();
-    const interval = setInterval(fetchBadges, 10000);
-    return () => clearInterval(interval);
+    const interval = setInterval(fetchBadges, 5000);
+    // Refresh aussi quand l'onglet redevient actif (focus/visible)
+    const onFocus = () => fetchBadges();
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
+    };
   }, []);
 
   function saveOrder(next) {

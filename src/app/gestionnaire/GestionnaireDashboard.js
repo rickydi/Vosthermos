@@ -797,6 +797,7 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
           onSaved={(number) => {
             setRequestModal(null);
             alert(`Demande envoyée · bon ${number}\n\nVosthermos a été notifié et traitera votre demande prochainement.`);
+            router.refresh();
           }}
         />
       )}
