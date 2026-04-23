@@ -195,7 +195,7 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
         {/* MAIN */}
         <main className="gm-main">
           <div className="gm-topbar">
-            <div style={{ display: "flex", alignItems: "center" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <button
                 className="gm-menu-toggle"
                 onClick={() => setSidebarOpen(true)}
@@ -203,11 +203,7 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
               >
                 <i className="fas fa-bars"></i>
               </button>
-              <nav className="gm-crumb">
-                <a href="#" onClick={(e) => e.preventDefault()}>{isGlobal ? "Vue globale" : activeClient.name}</a>
-                <span className="sep">/</span>
-                <span className="current">{crumbs[activeTab]}</span>
-              </nav>
+              <h2 className="gm-topbar-title">{crumbs[activeTab]}</h2>
             </div>
             <div className="gm-top-right">
               <button className="bell">
@@ -220,14 +216,11 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
           {/* DASHBOARD TAB */}
           {activeTab === "dashboard" && (
             <div className="gm-content">
-              <div className="gm-page-head">
-                <div>
-                  <h1 className="gm-page-title">{isGlobal ? "Vue globale" : "Tableau de bord"}</h1>
-                  <div className="gm-page-sub">
-                    {isGlobal ? `${clients.length} copropriétés · ${stats.totalUnits} unités` : activeClient.name}
-                    {stats.activeWOsCount > 0 && <> · <strong>{stats.activeWOsCount} bon{stats.activeWOsCount > 1 ? "s" : ""} actif{stats.activeWOsCount > 1 ? "s" : ""}</strong></>}
-                    {stats.invoicedCount > 0 && <> · {stats.invoicedCount} facture{stats.invoicedCount > 1 ? "s" : ""} due{stats.invoicedCount > 1 ? "s" : ""}</>}
-                  </div>
+              <div className="gm-page-head gm-page-head-compact">
+                <div className="gm-page-sub">
+                  {isGlobal ? `${clients.length} copropriétés · ${stats.totalUnits} unités` : activeClient.name}
+                  {stats.activeWOsCount > 0 && <> · <strong>{stats.activeWOsCount} bon{stats.activeWOsCount > 1 ? "s" : ""} actif{stats.activeWOsCount > 1 ? "s" : ""}</strong></>}
+                  {stats.invoicedCount > 0 && <> · {stats.invoicedCount} facture{stats.invoicedCount > 1 ? "s" : ""} due{stats.invoicedCount > 1 ? "s" : ""}</>}
                 </div>
                 <div className="gm-page-actions">
                   {canRequest && (
@@ -445,13 +438,10 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
           {/* INTERVENTIONS TAB */}
           {activeTab === "interventions" && (
             <div className="gm-content">
-              <div className="gm-page-head">
-                <div>
-                  <h1 className="gm-page-title">Interventions</h1>
-                  <div className="gm-page-sub">
-                    {interventions?.active?.length > 0 ? <><strong>{interventions.active.length} active{interventions.active.length > 1 ? "s" : ""}</strong></> : "Aucune intervention active"}
-                    {interventions?.recent?.length > 0 && ` · ${interventions.recent.length} récente${interventions.recent.length > 1 ? "s" : ""}`}
-                  </div>
+              <div className="gm-page-head gm-page-head-compact">
+                <div className="gm-page-sub">
+                  {interventions?.active?.length > 0 ? <><strong>{interventions.active.length} active{interventions.active.length > 1 ? "s" : ""}</strong></> : "Aucune intervention active"}
+                  {interventions?.recent?.length > 0 && ` · ${interventions.recent.length} récente${interventions.recent.length > 1 ? "s" : ""}`}
                 </div>
                 <div className="gm-page-actions">
                   <button className="gm-btn gm-btn-primary">
@@ -540,12 +530,9 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
           {/* FACTURES TAB */}
           {activeTab === "factures" && (
             <div className="gm-content">
-              <div className="gm-page-head">
-                <div>
-                  <h1 className="gm-page-title">Factures</h1>
-                  <div className="gm-page-sub">
-                    {stats.invoicedCount > 0 ? <><strong>{stats.invoicedCount} à régler</strong> · {fmtMoney(invoicesTotals.toPay)}</> : "Aucune facture en attente"}
-                  </div>
+              <div className="gm-page-head gm-page-head-compact">
+                <div className="gm-page-sub">
+                  {stats.invoicedCount > 0 ? <><strong>{stats.invoicedCount} à régler</strong> · {fmtMoney(invoicesTotals.toPay)}</> : "Aucune facture en attente"}
                 </div>
               </div>
 
@@ -605,11 +592,8 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
           {/* PLAN / DOCUMENTS / PARAMÈTRES — placeholders */}
           {(activeTab === "plan" || activeTab === "documents" || activeTab === "parametres") && (
             <div className="gm-content">
-              <div className="gm-page-head">
-                <div>
-                  <h1 className="gm-page-title">{crumbs[activeTab]}</h1>
-                  <div className="gm-page-sub">Section en cours de développement</div>
-                </div>
+              <div className="gm-page-head gm-page-head-compact">
+                <div className="gm-page-sub">Section en cours de développement</div>
               </div>
               <div className="gm-card" style={{ textAlign: "center", padding: 60 }}>
                 <i className="fas fa-tools" style={{ fontSize: 36, color: "var(--border-strong)", marginBottom: 12 }}></i>
