@@ -1019,7 +1019,19 @@ function InterventionRequestModal({ clientId, clientName, presetUnitId, presetOp
 
   async function save(e) {
     e.preventDefault();
-    setSaving(true); setErr("");
+    setErr("");
+
+    // Validation cote client avec messages clairs
+    if (!selectedClientId) {
+      setErr("Sélectionnez une copropriété avant d'envoyer la demande.");
+      return;
+    }
+    if (!form.description.trim()) {
+      setErr("Décrivez brièvement le problème avant d'envoyer la demande.");
+      return;
+    }
+
+    setSaving(true);
     try {
       const selectionsPayload = [...selections.entries()].map(([unitId, opSet]) => ({
         unitId,
@@ -1037,7 +1049,7 @@ function InterventionRequestModal({ clientId, clientName, presetUnitId, presetOp
         }),
       });
       const d = await res.json();
-      if (!res.ok) throw new Error(d.error || "Erreur");
+      if (!res.ok) throw new Error(d.error || "Erreur serveur");
       onSaved(d.number);
     } catch (e) { setErr(e.message); }
     setSaving(false);
@@ -1172,7 +1184,7 @@ function InterventionRequestModal({ clientId, clientName, presetUnitId, presetOp
 
         <div className="gm-form-actions">
           <button type="button" onClick={onClose} className="gm-btn gm-btn-sm">Annuler</button>
-          <button type="submit" disabled={saving || !form.description.trim() || !selectedClientId} className="gm-btn gm-btn-sm gm-btn-primary">
+          <button type="submit" disabled={saving} className="gm-btn gm-btn-sm gm-btn-primary">
             {saving ? "Envoi..." : "Envoyer la demande"}
           </button>
         </div>
