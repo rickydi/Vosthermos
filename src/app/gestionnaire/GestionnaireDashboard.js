@@ -388,20 +388,42 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
               ) : (
                 interventions.active.map((wo) => (
                   <div key={wo.id} className="li">
-                    <div className={"li-when " + (wo.statut === "in_progress" ? "now" : "soon")}>
-                      {fmtDateShort(wo.date)}<br />{wo.statut === "in_progress" ? "EN COURS" : wo.statut === "scheduled" ? "PLANIFIÉ" : "BROUILLON"}
+                    <div className={"li-when " + (wo.statut === "in_progress" ? "now" : wo.statut === "draft" ? "" : "soon")}>
+                      {fmtDateShort(wo.date)}<br />{wo.statut === "in_progress" ? "EN COURS" : wo.statut === "scheduled" ? "PLANIFIÉ" : "EN ATTENTE"}
                     </div>
                     <div className="li-body">
-                      <div className="li-title">{wo.number} {isGlobal && wo.clientName && <span style={{ fontWeight: 500, color: "var(--text-muted)", fontSize: 12 }}>· {wo.clientName}</span>}</div>
+                      <div className="li-title">
+                        {wo.number}
+                        {isGlobal && wo.clientName && <span style={{ fontWeight: 500, color: "var(--text-muted)", fontSize: 12 }}> · {wo.clientName}</span>}
+                        {wo.isManagerRequest && wo.statut === "draft" && <span className="gm-tag amber" style={{ marginLeft: 8 }}>Demande envoyée</span>}
+                      </div>
                       <div className="li-text">
-                        {wo.description ? wo.description.slice(0, 90) : "Intervention planifiée"}
+                        {wo.description ? wo.description.slice(0, 120) : "Intervention planifiée"}
                         {wo.sections.length > 0 && ` · Unités: ${wo.sections.join(", ")}`}
                         {wo.technicianName && ` · ${wo.technicianName}`}
                       </div>
                     </div>
-                    <span className={"gm-tag " + (wo.statut === "in_progress" ? "green" : "red")}>
-                      {wo.statut === "in_progress" ? "En cours" : "Confirmé"}
-                    </span>
+                    <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                      <span className={"gm-tag " + (wo.statut === "in_progress" ? "green" : wo.statut === "draft" ? "amber" : "red")}>
+                        {wo.statut === "in_progress" ? "En cours" : wo.statut === "draft" ? "En attente Vosthermos" : "Confirmé"}
+                      </span>
+                      {wo.isManagerRequest && wo.statut === "draft" && (
+                        <button
+                          className="gm-btn gm-btn-sm"
+                          style={{ color: "var(--red)", borderColor: "rgba(227,7,24,0.3)", padding: "5px 10px" }}
+                          onClick={async () => {
+                            if (!confirm(`Annuler la demande ${wo.number}?\n\nCeci supprime définitivement la demande côté Vosthermos.`)) return;
+                            const res = await fetch(`/api/manager/intervention-requests/${wo.id}`, { method: "DELETE" });
+                            const d = await res.json().catch(() => ({}));
+                            if (!res.ok) { alert(d.error || "Erreur"); return; }
+                            router.refresh();
+                          }}
+                          title="Annuler cette demande"
+                        >
+                          <i className="fas fa-trash"></i>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))
               )}

@@ -134,6 +134,8 @@ export default async function GestionnairePage({ searchParams }) {
       clientName: wo.client?.name || "",
       sections: wo.sections?.map((s) => s.unitCode) || [],
       total: Number(wo.total),
+      isManagerRequest: (wo.notes || "").startsWith("Demande du gestionnaire"),
+      notes: wo.notes,
     })),
     recent: recentWOs.map((wo) => ({
       id: wo.id,

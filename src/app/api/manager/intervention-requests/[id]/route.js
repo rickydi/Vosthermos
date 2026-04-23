@@ -1,0 +1,60 @@
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { getManagerFromCookie, hasPermission, canAccessClient } from "@/lib/manager-auth";
+
+export const dynamic = "force-dynamic";
+
+async function authorize(id, manager) {
+  const wo = await prisma.workOrder.findUnique({
+    where: { id: Number(id) },
+    include: { sections: true },
+  });
+  if (!wo) return { error: "Demande introuvable", status: 404 };
+  const mc = canAccessClient(manager, wo.clientId);
+  if (!mc || !hasPermission(mc, "request_intervention")) {
+    return { error: "Permission refusée", status: 403 };
+  }
+  // Vérif: c'est bien une demande créée par un gestionnaire
+  if (!wo.notes?.startsWith("Demande du gestionnaire")) {
+    return { error: "Ce bon n'est pas une demande gestionnaire", status: 403 };
+  }
+  return { wo };
+}
+
+export async function GET(req, { params }) {
+  const manager = await getManagerFromCookie();
+  if (!manager) return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+
+  const { id } = await params;
+  const auth = await authorize(id, manager);
+  if (auth.error) return NextResponse.json({ error: auth.error }, { status: auth.status });
+
+  const wo = auth.wo;
+  return NextResponse.json({
+    id: wo.id,
+    number: wo.number,
+    clientId: wo.clientId,
+    date: wo.date?.toISOString() || null,
+    description: wo.description,
+    notes: wo.notes,
+    statut: wo.statut,
+    createdAt: wo.createdAt.toISOString(),
+    sections: wo.sections.map((s) => ({ id: s.id, unitCode: s.unitCode, notes: s.notes })),
+  });
+}
+
+export async function DELETE(req, { params }) {
+  const manager = await getManagerFromCookie();
+  if (!manager) return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+
+  const { id } = await params;
+  const auth = await authorize(id, manager);
+  if (auth.error) return NextResponse.json({ error: auth.error }, { status: auth.status });
+
+  if (auth.wo.statut !== "draft") {
+    return NextResponse.json({ error: "Impossible d'annuler — l'intervention a déjà été planifiée ou traitée par Vosthermos" }, { status: 400 });
+  }
+
+  await prisma.workOrder.delete({ where: { id: Number(id) } });
+  return NextResponse.json({ ok: true });
+}
