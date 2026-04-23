@@ -50,6 +50,7 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
   const [newCopro, setNewCopro] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [requestModal, setRequestModal] = useState(null); // null | { unitCode? }
+  const [viewRequestId, setViewRequestId] = useState(null);
   const canManageOpenings = !isGlobal && hasPerm(activeClient, "manage_openings");
   const canManageUnits = !isGlobal && hasPerm(activeClient, "manage_units");
   const canRequest = !isGlobal && hasPerm(activeClient, "request_intervention");
@@ -387,7 +388,12 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                 </div>
               ) : (
                 interventions.active.map((wo) => (
-                  <div key={wo.id} className="li">
+                  <div
+                    key={wo.id}
+                    className="li"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => setViewRequestId(wo.id)}
+                  >
                     <div className={"li-when " + (wo.statut === "in_progress" ? "now" : wo.statut === "draft" ? "" : "soon")}>
                       {fmtDateShort(wo.date)}<br />{wo.statut === "in_progress" ? "EN COURS" : wo.statut === "scheduled" ? "PLANIFIÉ" : "EN ATTENTE"}
                     </div>
@@ -403,26 +409,11 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                         {wo.technicianName && ` · ${wo.technicianName}`}
                       </div>
                     </div>
-                    <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                    <div style={{ display: "flex", gap: 6, alignItems: "center" }} onClick={(e) => e.stopPropagation()}>
                       <span className={"gm-tag " + (wo.statut === "in_progress" ? "green" : wo.statut === "draft" ? "amber" : "red")}>
                         {wo.statut === "in_progress" ? "En cours" : wo.statut === "draft" ? "En attente Vosthermos" : "Confirmé"}
                       </span>
-                      {wo.isManagerRequest && wo.statut === "draft" && (
-                        <button
-                          className="gm-btn gm-btn-sm"
-                          style={{ color: "var(--red)", borderColor: "rgba(227,7,24,0.3)", padding: "5px 10px" }}
-                          onClick={async () => {
-                            if (!confirm(`Annuler la demande ${wo.number}?\n\nCeci supprime définitivement la demande côté Vosthermos.`)) return;
-                            const res = await fetch(`/api/manager/intervention-requests/${wo.id}`, { method: "DELETE" });
-                            const d = await res.json().catch(() => ({}));
-                            if (!res.ok) { alert(d.error || "Erreur"); return; }
-                            router.refresh();
-                          }}
-                          title="Annuler cette demande"
-                        >
-                          <i className="fas fa-trash"></i>
-                        </button>
-                      )}
+                      <i className="fas fa-chevron-right" style={{ color: "var(--text-muted)", fontSize: 11 }}></i>
                     </div>
                   </div>
                 ))
@@ -691,6 +682,15 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
         </div>
       )}
 
+      {/* Modal détail d'une demande */}
+      {viewRequestId && (
+        <RequestDetailModal
+          requestId={viewRequestId}
+          onClose={() => setViewRequestId(null)}
+          onDeleted={() => { setViewRequestId(null); router.refresh(); }}
+        />
+      )}
+
       {/* Modal demande d'intervention */}
       {requestModal && (
         <InterventionRequestModal
@@ -934,6 +934,123 @@ function UnitEditor({ clientId, buildings, initial, onClose, onSaved }) {
           <button type="submit" disabled={saving} className="gm-btn gm-btn-sm gm-btn-primary">{saving ? "Création..." : "Créer"}</button>
         </div>
       </form>
+    </ModalShell>
+  );
+}
+
+function RequestDetailModal({ requestId, onClose, onDeleted }) {
+  const [data, setData] = useState(null);
+  const [err, setErr] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    fetch(`/api/manager/intervention-requests/${requestId}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.error) setErr(d.error);
+        else setData(d);
+      })
+      .catch((e) => setErr(e.message));
+  }, [requestId]);
+
+  async function del() {
+    if (!confirm(`Annuler la demande ${data?.number || ""}?\n\nCeci supprime définitivement la demande.`)) return;
+    setDeleting(true);
+    const res = await fetch(`/api/manager/intervention-requests/${requestId}`, { method: "DELETE" });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) { alert(d.error || "Erreur"); setDeleting(false); return; }
+    onDeleted();
+  }
+
+  const statutLabel = {
+    draft: "En attente Vosthermos",
+    scheduled: "Planifié",
+    in_progress: "En cours",
+    completed: "Terminé",
+    invoiced: "Facturé",
+    paid: "Payé",
+  }[data?.statut] || data?.statut;
+
+  const statutColor = data?.statut === "draft" ? "amber" : data?.statut === "in_progress" ? "green" : "red";
+
+  return (
+    <ModalShell
+      icon={<i className="fas fa-wrench"></i>}
+      title={data?.number || "Chargement..."}
+      subtitle={data ? `Demande · ${new Date(data.createdAt).toLocaleDateString("fr-CA", { day: "numeric", month: "long", year: "numeric" })}` : ""}
+      onClose={onClose}
+      level={3}
+      maxWidth={640}
+    >
+      {err ? (
+        <div className="gm-modal-body">
+          <div className="gm-form-err">{err}</div>
+        </div>
+      ) : !data ? (
+        <div className="gm-modal-body" style={{ textAlign: "center", padding: 40, color: "var(--text-muted)" }}>
+          <i className="fas fa-spinner fa-spin"></i> Chargement...
+        </div>
+      ) : (
+        <div className="gm-modal-body">
+          <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 16 }}>
+            <span className={"gm-tag " + statutColor}>{statutLabel}</span>
+            <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+              Date souhaitée : {data.date ? new Date(data.date).toLocaleDateString("fr-CA", { day: "numeric", month: "long", year: "numeric" }) : "—"}
+            </span>
+          </div>
+
+          <div className="modal-section-title" style={{ marginTop: 0 }}>Description du problème</div>
+          <div style={{ padding: 12, background: "var(--bg)", borderRadius: 6, fontSize: 13, lineHeight: 1.5, whiteSpace: "pre-wrap" }}>
+            {data.description || "—"}
+          </div>
+
+          {data.notes && (
+            <>
+              <div className="modal-section-title">Informations de la demande</div>
+              <div style={{ padding: 12, background: "var(--bg)", borderRadius: 6, fontSize: 12, lineHeight: 1.6, whiteSpace: "pre-wrap", color: "var(--text-dim)" }}>
+                {data.notes}
+              </div>
+            </>
+          )}
+
+          {data.sections && data.sections.length > 0 && (
+            <>
+              <div className="modal-section-title">Unités concernées · {data.sections.length}</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {data.sections.map((s) => (
+                  <div key={s.id} style={{ padding: 10, background: "var(--bg)", borderRadius: 6, fontSize: 12 }}>
+                    <div style={{ fontWeight: 700, marginBottom: 4 }}>{s.unitCode}</div>
+                    <div style={{ color: "var(--text-muted)", whiteSpace: "pre-wrap" }}>{s.notes || "—"}</div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {data.statut !== "draft" && (
+            <div style={{ marginTop: 16, padding: 12, background: "#ecfdf5", borderRadius: 6, fontSize: 12, color: "#047857" }}>
+              <i className="fas fa-info-circle" style={{ marginRight: 6 }}></i>
+              Vosthermos a pris en charge votre demande. Pour toute modification, contactez-nous directement.
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="gm-modal-foot gm-form-actions-split">
+        <div>
+          {data?.statut === "draft" && (
+            <button
+              className="gm-btn gm-btn-sm"
+              style={{ color: "var(--red)", borderColor: "rgba(227,7,24,0.3)" }}
+              onClick={del}
+              disabled={deleting}
+            >
+              <i className="fas fa-trash"></i>{deleting ? "Annulation..." : "Annuler cette demande"}
+            </button>
+          )}
+        </div>
+        <button className="gm-btn gm-btn-sm" onClick={onClose}>Fermer</button>
+      </div>
     </ModalShell>
   );
 }
