@@ -410,7 +410,8 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                       {wo.technicianName && (
                         <div style={{ fontSize: 12, color: "var(--text-dim)", marginTop: 4, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                           <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                            <i className="fas fa-user-hard-hat" style={{ color: "var(--red)" }}></i>
+                            <i className="fas fa-user-hard-hat"></i>
+                            <span style={{ color: "var(--text-muted)" }}>Technicien attitré :</span>
                             <strong>{wo.technicianName}</strong>
                           </span>
                           {wo.technicianPhone && (
@@ -1045,15 +1046,9 @@ function RequestDetailModal({ requestId, onClose, onDeleted }) {
 
           {data.statut !== "draft" && data.technician && (
             <>
-              <div className="modal-section-title">Technicien assigné</div>
+              <div className="modal-section-title">Technicien attitré</div>
               <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 12, background: "var(--bg)", borderRadius: 6 }}>
-                <div style={{
-                  width: 40, height: 40, borderRadius: "50%", background: "var(--red)",
-                  color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
-                  fontWeight: 700, fontSize: 14, flexShrink: 0,
-                }}>
-                  <i className="fas fa-user-hard-hat"></i>
-                </div>
+                <i className="fas fa-user-hard-hat" style={{ fontSize: 28, color: "var(--text-dim)", flexShrink: 0 }}></i>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 700, fontSize: 14 }}>{data.technician.name}</div>
                   {data.technician.phone ? (
