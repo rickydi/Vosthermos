@@ -619,13 +619,33 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                 </div>
               )}
             </div>
-            <div className="gm-modal-foot">
-              <button className="gm-btn gm-btn-sm">
-                <i className="fas fa-history"></i>Historique complet
-              </button>
-              <button className="gm-btn gm-btn-sm gm-btn-primary">
-                <i className="fas fa-plus"></i>Demander intervention
-              </button>
+            <div className="gm-modal-foot gm-form-actions-split">
+              {canManageUnits ? (
+                <button
+                  className="gm-btn gm-btn-sm"
+                  style={{ color: "var(--red)", borderColor: "rgba(227,7,24,0.3)" }}
+                  onClick={async () => {
+                    if (!confirm(`Supprimer l'unité ${selectedUnit.code}?\n\nNote: les bons de travail historiques restent intacts.`)) return;
+                    const res = await fetch(`/api/manager/units/${selectedUnit.id}`, { method: "DELETE" });
+                    if (!res.ok) { const d = await res.json(); alert(d.error || "Erreur"); return; }
+                    const deletedId = selectedUnit.id;
+                    setSelectedUnit(null);
+                    router.refresh();
+                    // Also remove locally — router.refresh will re-render with fresh data, but in case
+                    // we need immediate visual feedback, we can leave it to the re-render from server.
+                  }}
+                >
+                  <i className="fas fa-trash"></i>Supprimer l'unité
+                </button>
+              ) : <div />}
+              <div style={{ display: "flex", gap: 8 }}>
+                <button className="gm-btn gm-btn-sm">
+                  <i className="fas fa-history"></i>Historique
+                </button>
+                <button className="gm-btn gm-btn-sm gm-btn-primary">
+                  <i className="fas fa-plus"></i>Demander intervention
+                </button>
+              </div>
             </div>
           </div>
         </div>
