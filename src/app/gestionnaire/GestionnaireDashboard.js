@@ -117,6 +117,30 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
           </div>
 
           <div>
+            <div className="sb-sec-title" style={{ marginBottom: 10 }}>Menu</div>
+            <div className="nav">
+              {[
+                { id: "dashboard", icon: "fa-th-large", label: "Tableau de bord" },
+                { id: "interventions", icon: "far fa-calendar", label: "Interventions", badge: stats.activeWOsCount },
+                { id: "plan", icon: "far fa-chart-bar", label: "Plan pluriannuel" },
+                { id: "factures", icon: "far fa-file", label: "Factures", badge: stats.invoicedCount },
+                { id: "documents", icon: "far fa-folder", label: "Documents" },
+                { id: "parametres", icon: "fas fa-cog", label: "Paramètres" },
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  className={"nav-item" + (activeTab === item.id ? " active" : "")}
+                  onClick={() => changeTab(item.id)}
+                >
+                  <i className={item.icon.startsWith("fa") ? item.icon : "fas " + item.icon}></i>
+                  <span>{item.label}</span>
+                  {item.badge > 0 && <span className="nav-badge">{item.badge}</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
             <div className="sb-sec-title" style={{ marginBottom: 10 }}>Vos copropriétés · {clients.length}</div>
             <div className="synd-picker">
               {clients.length > 1 && (
@@ -153,30 +177,6 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                   <div className="synd-name" style={{ fontSize: 12 }}>Ajouter copropriété</div>
                 </div>
               </button>
-            </div>
-          </div>
-
-          <div>
-            <div className="sb-sec-title" style={{ marginBottom: 10 }}>Menu</div>
-            <div className="nav">
-              {[
-                { id: "dashboard", icon: "fa-th-large", label: "Tableau de bord" },
-                { id: "interventions", icon: "far fa-calendar", label: "Interventions", badge: stats.activeWOsCount },
-                { id: "plan", icon: "far fa-chart-bar", label: "Plan pluriannuel" },
-                { id: "factures", icon: "far fa-file", label: "Factures", badge: stats.invoicedCount },
-                { id: "documents", icon: "far fa-folder", label: "Documents" },
-                { id: "parametres", icon: "fas fa-cog", label: "Paramètres" },
-              ].map((item) => (
-                <button
-                  key={item.id}
-                  className={"nav-item" + (activeTab === item.id ? " active" : "")}
-                  onClick={() => changeTab(item.id)}
-                >
-                  <i className={item.icon.startsWith("fa") ? item.icon : "fas " + item.icon}></i>
-                  <span>{item.label}</span>
-                  {item.badge > 0 && <span className="nav-badge">{item.badge}</span>}
-                </button>
-              ))}
             </div>
           </div>
 
