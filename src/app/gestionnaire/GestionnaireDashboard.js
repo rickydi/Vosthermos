@@ -262,6 +262,73 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                 </>
               )}
 
+              {/* Bons actifs */}
+              {interventions?.active?.length > 0 && (
+                <>
+                  <div className="gm-section-head">
+                    <div className="gm-section-title">
+                      Bons actifs · {interventions.active.length}
+                    </div>
+                    <button className="gm-btn gm-btn-sm" onClick={() => setActiveTab("interventions")}>
+                      Voir tout<i className="fas fa-arrow-right" style={{ marginLeft: 4 }}></i>
+                    </button>
+                  </div>
+                  <div className="gm-card" style={{ padding: 0, overflow: "hidden" }}>
+                    {interventions.active.map((wo) => {
+                      const statusConfig = {
+                        draft: { label: "En attente Vosthermos", tag: "amber" },
+                        scheduled: { label: "Planifié", tag: "red" },
+                        in_progress: { label: "En cours", tag: "green" },
+                      }[wo.statut] || { label: wo.statut, tag: "" };
+                      return (
+                        <div
+                          key={wo.id}
+                          className="li"
+                          style={{ cursor: "pointer", borderBottom: "1px solid var(--border)" }}
+                          onClick={() => setViewRequestId(wo.id)}
+                        >
+                          <div className={"li-when " + (wo.statut === "in_progress" ? "now" : wo.statut === "draft" ? "" : "soon")}>
+                            {fmtDateShort(wo.date)}<br />{wo.statut === "in_progress" ? "EN COURS" : wo.statut === "scheduled" ? "PLANIFIÉ" : "EN ATTENTE"}
+                          </div>
+                          <div className="li-body">
+                            <div className="li-title">
+                              {wo.number}
+                              {isGlobal && wo.clientName && <span style={{ fontWeight: 500, color: "var(--text-muted)", fontSize: 12 }}> · {wo.clientName}</span>}
+                            </div>
+                            <div className="li-text">
+                              {wo.description ? wo.description.slice(0, 100) : "Intervention planifiée"}
+                              {wo.sections.length > 0 ? ` · Unités: ${wo.sections.join(", ")}` : " · Intervention générale"}
+                            </div>
+                            {wo.technicianName && (
+                              <div style={{ fontSize: 12, color: "var(--text-dim)", marginTop: 4, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                                <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                                  <i className="fas fa-user-hard-hat"></i>
+                                  <span style={{ color: "var(--text-muted)" }}>Technicien attitré :</span>
+                                  <strong>{wo.technicianName}</strong>
+                                </span>
+                                {wo.technicianPhone && (
+                                  <a
+                                    href={`tel:${wo.technicianPhone}`}
+                                    onClick={(e) => e.stopPropagation()}
+                                    style={{ color: "var(--red)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4 }}
+                                  >
+                                    <i className="fas fa-phone"></i> {wo.technicianPhone}
+                                  </a>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                            <span className={"gm-tag " + statusConfig.tag}>{statusConfig.label}</span>
+                            <i className="fas fa-chevron-right" style={{ color: "var(--text-muted)", fontSize: 11 }}></i>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+
               {/* Bâtiments & Unités */}
               <div className="gm-section-head">
                 <div className="gm-section-title">Parc de fenêtres · {buildings.length} bâtiment{buildings.length > 1 ? "s" : ""} · {stats.totalUnits} unité{stats.totalUnits > 1 ? "s" : ""}</div>

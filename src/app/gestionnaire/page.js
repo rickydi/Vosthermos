@@ -168,19 +168,10 @@ export default async function GestionnairePage({ searchParams }) {
   const toPayTotal = invoices.filter((i) => i.statut === "invoiced").reduce((s, i) => s + i.total, 0);
   const paidTotal = invoices.filter((i) => i.statut === "paid").reduce((s, i) => s + i.total, 0);
 
-  // Notifications (derived from WOs + invoices)
+  // Notifications (derived from WOs + invoices) — only urgent/info, not per-WO
   const notifs = [];
-  for (const wo of activeWOs.slice(0, 2)) {
-    notifs.push({
-      kind: wo.statut === "in_progress" ? "ok" : "plain",
-      icon: wo.statut === "in_progress" ? "fa-check" : "fa-calendar",
-      name: wo.statut === "in_progress" ? "Intervention en cours" : "Intervention planifiée",
-      time: wo.date ? new Date(wo.date).toLocaleDateString("fr-CA", { day: "numeric", month: "short" }) : "",
-      text: `${wo.number} · ${wo.description?.slice(0, 60) || "Voir détails"}`,
-    });
-  }
   if (pendingInvoicesCount > 0) {
-    notifs.unshift({
+    notifs.push({
       kind: "urgent",
       icon: "fa-file-invoice-dollar",
       name: "Facture à régler",
