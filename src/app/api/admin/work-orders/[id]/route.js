@@ -67,15 +67,21 @@ export async function PUT(req, { params }) {
 
   const body = await req.json();
   const settings = await getWorkOrderSettings();
+  const rebuildLines = body.items !== undefined || body.sections !== undefined;
   const { flatItems, sections, allForCalc } = flattenSectionsBody(body);
-  const laborHours = Number(body.laborHours) || 0;
-  const totals = calcTotals(
-    allForCalc,
-    laborHours,
-    settings.labor_rate_per_hour,
-    settings.tps_rate,
-    settings.tvq_rate,
-  );
+  const laborHours = body.laborHours !== undefined
+    ? Number(body.laborHours) || 0
+    : (Number(existing.totalLabor) / Number(settings.labor_rate_per_hour) || 0);
+  const totals = rebuildLines
+    ? calcTotals(allForCalc, laborHours, settings.labor_rate_per_hour, settings.tps_rate, settings.tvq_rate)
+    : {
+        totalPieces: Number(existing.totalPieces),
+        totalLabor: Number(existing.totalLabor),
+        subtotal: Number(existing.subtotal),
+        tps: Number(existing.tps),
+        tvq: Number(existing.tvq),
+        total: Number(existing.total),
+      };
 
   const newDate = body.date ? new Date(body.date) : existing.date;
   const arrivalAt = body.heureArrivee !== undefined
@@ -86,8 +92,10 @@ export async function PUT(req, { params }) {
     : existing.departureAt;
 
   const wo = await prisma.$transaction(async (tx) => {
-    await tx.workOrderItem.deleteMany({ where: { workOrderId: woId } });
-    await tx.workOrderSection.deleteMany({ where: { workOrderId: woId } });
+    if (rebuildLines) {
+      await tx.workOrderItem.deleteMany({ where: { workOrderId: woId } });
+      await tx.workOrderSection.deleteMany({ where: { workOrderId: woId } });
+    }
 
     const updated = await tx.workOrder.update({
       where: { id: woId },
@@ -116,7 +124,9 @@ export async function PUT(req, { params }) {
       },
     });
 
-    await attachSectionsAndItems(tx, updated.id, updated.clientId, flatItems, sections);
+    if (rebuildLines) {
+      await attachSectionsAndItems(tx, updated.id, updated.clientId, flatItems, sections);
+    }
 
     return tx.workOrder.findUnique({
       where: { id: woId },

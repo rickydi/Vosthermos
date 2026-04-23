@@ -193,6 +193,9 @@ function FullHeader({ wo, co, meta }) {
   const intervAddr = wo.interventionAddress || wo.client?.address;
   const intervCity = wo.interventionCity || wo.client?.city;
   const intervPostal = wo.interventionPostalCode || wo.client?.postalCode;
+  const isInvoice = wo.statut === "invoiced" || wo.statut === "paid";
+  const docLabel = isInvoice ? "Facture" : "Bon de commande";
+  const recipientLabel = isInvoice ? "Facturer à" : "Adressé à";
 
   return (
     <>
@@ -206,7 +209,7 @@ function FullHeader({ wo, co, meta }) {
           </p>
         </div>
         <div style={{ textAlign: "right" }}>
-          <p style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3em", color: "#9ca3af" }}>Facture</p>
+          <p style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3em", color: "#9ca3af" }}>{docLabel}</p>
           <p style={{ fontSize: "36px", lineHeight: 1, fontWeight: 900, color: "#111827", marginTop: "6px", letterSpacing: "-0.02em" }}>{wo.number}</p>
           <p style={{ fontSize: "12px", color: "#6b7280", marginTop: "8px" }}>{fmtDate(wo.date)}</p>
         </div>
@@ -216,7 +219,7 @@ function FullHeader({ wo, co, meta }) {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
         <div>
-          <p style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.25em", color: "#9ca3af", marginBottom: "8px" }}>Facturer à</p>
+          <p style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.25em", color: "#9ca3af", marginBottom: "8px" }}>{recipientLabel}</p>
           <p style={{ fontWeight: 700, fontSize: "16px", color: "#111827", lineHeight: 1.2 }}>{wo.client?.name || "—"}</p>
           {wo.client?.company && <p style={{ fontSize: "12px", color: "#6b7280", marginTop: "2px" }}>{wo.client.company}</p>}
           {intervAddr && (

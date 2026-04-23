@@ -37,19 +37,31 @@ export default function BonsPage() {
 
   const statusColors = {
     draft: "bg-yellow-500/20 text-yellow-400",
+    scheduled: "bg-blue-500/20 text-blue-400",
+    in_progress: "bg-purple-500/20 text-purple-400",
     completed: "bg-green-500/20 text-green-400",
+    invoiced: "bg-orange-500/20 text-orange-400",
+    paid: "bg-emerald-500/20 text-emerald-400",
     sent: "bg-blue-500/20 text-blue-400",
   };
-  const statusLabels = { draft: "Brouillon", completed: "Complete", sent: "Envoye" };
+  const statusLabels = {
+    draft: "Brouillon",
+    scheduled: "Planifié",
+    in_progress: "En cours",
+    completed: "Complété",
+    invoiced: "Facturé",
+    paid: "Payé",
+    sent: "Envoyé",
+  };
 
-  const totalUnpaid = workOrders.filter((w) => w.statut !== "sent").reduce((sum, w) => sum + w.total, 0);
+  const totalUnpaid = workOrders.filter((w) => w.statut === "invoiced").reduce((sum, w) => sum + w.total, 0);
 
   return (
     <div className="p-6 lg:p-8">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="admin-text text-2xl font-bold">Bons de travail</h1>
-          <p className="admin-text-muted text-sm">{workOrders.length} bons | Non-envoyes: {totalUnpaid.toFixed(2)}$</p>
+          <p className="admin-text-muted text-sm">{workOrders.length} bons | À recevoir: {totalUnpaid.toFixed(2)}$</p>
         </div>
         <Link href="/admin/bons/nouveau"
           className="px-4 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium">
@@ -61,8 +73,10 @@ export default function BonsPage() {
         {[
           { key: "all", label: "Tous" },
           { key: "draft", label: "Brouillons" },
-          { key: "completed", label: "Completes" },
-          { key: "sent", label: "Envoyes" },
+          { key: "scheduled", label: "Planifiés" },
+          { key: "completed", label: "Complétés" },
+          { key: "invoiced", label: "Facturés" },
+          { key: "paid", label: "Payés" },
         ].map((tab) => (
           <button key={tab.key} onClick={() => setFilter(tab.key)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === tab.key ? "bg-[var(--color-red)]/10 text-[var(--color-red)]" : "admin-text-muted admin-hover"}`}>

@@ -43,6 +43,7 @@ export default function BonDetailPage() {
   const [technicians, setTechnicians] = useState([]);
   const [selectedTechId, setSelectedTechId] = useState("");
   const [approving, setApproving] = useState(false);
+  const [invoicing, setInvoicing] = useState(false);
 
   useEffect(() => {
     fetch(`/api/admin/work-orders/${id}`)
@@ -112,6 +113,29 @@ export default function BonDetailPage() {
     setApproving(false);
   }
 
+  async function convertToInvoice() {
+    if (!confirm(`Transformer le bon ${wo.number} en facture ? Cette action changera le document en facture officielle.`)) return;
+    setInvoicing(true);
+    setMsg("");
+    try {
+      const res = await fetch(`/api/admin/work-orders/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ statut: "invoiced" }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.error || "Erreur transformation");
+      }
+      const refreshed = await fetch(`/api/admin/work-orders/${id}`).then((r) => r.json());
+      setWo(refreshed);
+      setMsg(`Bon ${wo.number} transformé en facture.`);
+    } catch (err) {
+      setMsg(err.message);
+    }
+    setInvoicing(false);
+  }
+
   async function handleDelete() {
     if (!confirm(`Supprimer definitivement le bon ${wo?.number || `#${id}`}? Cette action est irreversible.`)) return;
     setDeleting(true);
@@ -158,10 +182,22 @@ export default function BonDetailPage() {
 
   const statusColors = {
     draft: "bg-yellow-500/20 text-yellow-400",
+    scheduled: "bg-blue-500/20 text-blue-400",
+    in_progress: "bg-purple-500/20 text-purple-400",
     completed: "bg-green-500/20 text-green-400",
+    invoiced: "bg-orange-500/20 text-orange-400",
+    paid: "bg-emerald-500/20 text-emerald-400",
     sent: "bg-blue-500/20 text-blue-400",
   };
-  const statusLabels = { draft: "Brouillon", completed: "Complete", sent: "Envoye" };
+  const statusLabels = {
+    draft: "Brouillon",
+    scheduled: "Planifié",
+    in_progress: "En cours",
+    completed: "Complété",
+    invoiced: "Facturé",
+    paid: "Payé",
+    sent: "Envoyé",
+  };
 
   return (
     <div className="p-6 lg:p-8">
@@ -182,6 +218,16 @@ export default function BonDetailPage() {
               className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold"
             >
               <i className="fab fa-whatsapp mr-2"></i>Approuver &amp; envoyer WhatsApp
+            </button>
+          )}
+          {wo.statut === "completed" && (
+            <button
+              onClick={convertToInvoice}
+              disabled={invoicing}
+              className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-bold disabled:opacity-50"
+            >
+              <i className={`fas ${invoicing ? "fa-spinner fa-spin" : "fa-file-invoice-dollar"} mr-2`}></i>
+              {invoicing ? "Transformation..." : "Transformer en facture"}
             </button>
           )}
           <Link href={`/admin/bons/nouveau?edit=${id}`}
