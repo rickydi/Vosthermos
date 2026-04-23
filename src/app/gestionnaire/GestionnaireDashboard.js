@@ -549,8 +549,28 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
         <OpeningEditor
           initial={openingEditor}
           onClose={() => setOpeningEditor(null)}
-          onSaved={() => { setOpeningEditor(null); router.refresh(); }}
-          onDeleted={() => { setOpeningEditor(null); router.refresh(); }}
+          onSaved={(saved, isNew) => {
+            setSelectedUnit((prev) => {
+              if (!prev) return prev;
+              const opns = prev.openings || [];
+              return {
+                ...prev,
+                openings: isNew
+                  ? [...opns, saved]
+                  : opns.map((o) => (o.id === saved.id ? { ...o, ...saved } : o)),
+              };
+            });
+            setOpeningEditor(null);
+            router.refresh();
+          }}
+          onDeleted={(deletedId) => {
+            setSelectedUnit((prev) => {
+              if (!prev) return prev;
+              return { ...prev, openings: (prev.openings || []).filter((o) => o.id !== deletedId) };
+            });
+            setOpeningEditor(null);
+            router.refresh();
+          }}
         />
       )}
 
@@ -901,8 +921,9 @@ function OpeningEditor({ initial, onClose, onSaved, onDeleted }) {
       const url = initial.isNew ? "/api/manager/openings" : `/api/manager/openings/${initial.id}`;
       const method = initial.isNew ? "POST" : "PUT";
       const res = await fetch(url, { method, body: fd });
-      if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Erreur"); }
-      onSaved();
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erreur");
+      onSaved(data.opening, !!initial.isNew);
     } catch (e) {
       setErr(e.message);
     }
@@ -913,7 +934,7 @@ function OpeningEditor({ initial, onClose, onSaved, onDeleted }) {
     if (!confirm("Supprimer cette ouverture?")) return;
     const res = await fetch(`/api/manager/openings/${initial.id}`, { method: "DELETE" });
     if (!res.ok) { const d = await res.json(); alert(d.error || "Erreur"); return; }
-    onDeleted();
+    onDeleted(initial.id);
   }
 
   const icon = form.type === "fenetre"
