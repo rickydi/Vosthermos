@@ -43,7 +43,6 @@ export default function BonDetailPage() {
   const [technicians, setTechnicians] = useState([]);
   const [selectedTechId, setSelectedTechId] = useState("");
   const [approving, setApproving] = useState(false);
-  const [invoicing, setInvoicing] = useState(false);
 
   useEffect(() => {
     fetch(`/api/admin/work-orders/${id}`)
@@ -123,29 +122,6 @@ export default function BonDetailPage() {
       setMsg(err.message);
     }
     setApproving(false);
-  }
-
-  async function convertToInvoice() {
-    if (!confirm(`Transformer le bon ${wo.number} en facture ? Cette action changera le document en facture officielle.`)) return;
-    setInvoicing(true);
-    setMsg("");
-    try {
-      const res = await fetch(`/api/admin/work-orders/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ statut: "invoiced" }),
-      });
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        throw new Error(d.error || "Erreur transformation");
-      }
-      const refreshed = await fetch(`/api/admin/work-orders/${id}`).then((r) => r.json());
-      setWo(refreshed);
-      setMsg(`Bon ${wo.number} transformé en facture.`);
-    } catch (err) {
-      setMsg(err.message);
-    }
-    setInvoicing(false);
   }
 
   async function handleDelete() {
@@ -241,15 +217,14 @@ export default function BonDetailPage() {
               <i className="fab fa-whatsapp mr-2"></i>Réassigner &amp; renvoyer WhatsApp
             </button>
           )}
-          {wo.statut === "completed" && (
-            <button
-              onClick={convertToInvoice}
-              disabled={invoicing}
-              className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-bold disabled:opacity-50"
+          {(wo.statut === "scheduled" || wo.statut === "in_progress" || wo.statut === "completed") && (
+            <Link
+              href={`/admin/bons/nouveau?edit=${id}&mode=invoice`}
+              className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-bold inline-flex items-center"
             >
-              <i className={`fas ${invoicing ? "fa-spinner fa-spin" : "fa-file-invoice-dollar"} mr-2`}></i>
-              {invoicing ? "Transformation..." : "Transformer en facture"}
-            </button>
+              <i className="fas fa-file-invoice-dollar mr-2"></i>
+              Facturer ce bon
+            </Link>
           )}
           <Link href={`/admin/bons/nouveau?edit=${id}`}
             className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-medium hover:bg-white/5 transition-colors">

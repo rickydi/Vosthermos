@@ -18,7 +18,9 @@ function NouveauBonAdmin() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
+  const invoiceMode = searchParams.get("mode") === "invoice";
   const [saving, setSaving] = useState(false);
+  const [forceStatut, setForceStatut] = useState(null);
   const [error, setError] = useState("");
   const [loadingEdit, setLoadingEdit] = useState(!!editId);
 
@@ -327,7 +329,7 @@ function NouveauBonAdmin() {
         visibleAuClient,
         description: description || null,
         notes: notes || null,
-        statut,
+        statut: forceStatut || statut,
         laborHours,
         // Flat items: always included. For B2B, only discount lines stay flat.
         items: itemsComputed.map((it) => ({
@@ -379,10 +381,24 @@ function NouveauBonAdmin() {
             <i className="fas fa-arrow-left mr-2"></i>Retour aux bons
           </Link>
           <h1 className="admin-text text-2xl font-bold mt-2">
-            {editId ? "Modifier le bon de travail" : "Nouveau bon de travail"}
+            {invoiceMode ? "Facturer le bon de travail" : (editId ? "Modifier le bon de travail" : "Nouveau bon de travail")}
           </h1>
         </div>
       </div>
+
+      {invoiceMode && (
+        <div className="border border-orange-500/40 bg-orange-500/10 rounded-xl p-4 mb-6 max-w-5xl">
+          <div className="flex items-start gap-3">
+            <i className="fas fa-file-invoice-dollar text-orange-500 text-xl mt-0.5"></i>
+            <div className="flex-1">
+              <h3 className="font-bold text-orange-500 mb-1">Mode facturation</h3>
+              <p className="text-sm admin-text-muted">
+                Ajoutez les heures travaillées (champ <strong>Heures</strong> plus bas) et les pièces installées par unité (bouton <strong>+ Ajouter pièce</strong> dans chaque section). Cliquez <strong>Facturer ce bon</strong> pour générer la facture, ou <strong>Enregistrer (sans facturer)</strong> pour revenir plus tard.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {loadingEdit && (
         <div className="admin-card border rounded-xl p-6 mb-6 max-w-5xl">
@@ -796,15 +812,41 @@ function NouveauBonAdmin() {
               <select value={statut} onChange={(e) => setStatut(e.target.value)}
                 className="admin-input border rounded-lg px-3 py-2.5 text-sm">
                 <option value="draft">Brouillon</option>
-                <option value="completed">Complete</option>
-                <option value="sent">Envoye</option>
+                <option value="scheduled">Planifié</option>
+                <option value="in_progress">En cours</option>
+                <option value="completed">Complété</option>
+                <option value="invoiced">Facturé</option>
+                <option value="paid">Payé</option>
               </select>
             </div>
             {error && <p className="text-sm text-red-500 md:ml-auto">{error}</p>}
-            <button type="submit" disabled={saving || !selectedClient}
-              className="md:ml-auto px-6 py-3 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium disabled:opacity-50">
-              {saving ? (editId ? "Enregistrement..." : "Creation...") : (editId ? "Enregistrer les modifications" : "Creer le bon")}
-            </button>
+            {invoiceMode ? (
+              <div className="md:ml-auto flex gap-3 flex-wrap">
+                <button
+                  type="submit"
+                  disabled={saving || !selectedClient}
+                  onClick={() => setForceStatut(null)}
+                  className="px-5 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium admin-text hover:bg-white/5 disabled:opacity-50"
+                >
+                  Enregistrer (sans facturer)
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving || !selectedClient}
+                  onClick={() => setForceStatut("invoiced")}
+                  className="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-bold disabled:opacity-50"
+                >
+                  <i className="fas fa-file-invoice-dollar mr-2"></i>
+                  {saving && forceStatut === "invoiced" ? "Facturation..." : "Facturer ce bon"}
+                </button>
+              </div>
+            ) : (
+              <button type="submit" disabled={saving || !selectedClient}
+                onClick={() => setForceStatut(null)}
+                className="md:ml-auto px-6 py-3 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium disabled:opacity-50">
+                {saving ? (editId ? "Enregistrement..." : "Creation...") : (editId ? "Enregistrer les modifications" : "Creer le bon")}
+              </button>
+            )}
           </div>
         </div>
       </form>
