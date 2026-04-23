@@ -21,6 +21,14 @@ function mapCompany(s) {
   };
 }
 
+function formatPhoneForWhatsapp(phone) {
+  if (!phone) return "";
+  const digits = String(phone).replace(/\D/g, "");
+  if (digits.length === 10) return `1${digits}`;
+  if (digits.length === 11 && digits.startsWith("1")) return digits;
+  return digits;
+}
+
 export default function BonDetailPage() {
   const router = useRouter();
   const { id } = useParams();
@@ -31,17 +39,78 @@ export default function BonDetailPage() {
   const [msg, setMsg] = useState("");
   const [showEmail, setShowEmail] = useState(false);
   const [emailTo, setEmailTo] = useState("");
+  const [showApprove, setShowApprove] = useState(false);
+  const [technicians, setTechnicians] = useState([]);
+  const [selectedTechId, setSelectedTechId] = useState("");
+  const [approving, setApproving] = useState(false);
 
   useEffect(() => {
     fetch(`/api/admin/work-orders/${id}`)
       .then((r) => r.json())
-      .then((data) => { setWo(data); setEmailTo(data?.client?.email || ""); })
+      .then((data) => { setWo(data); setEmailTo(data?.client?.email || ""); setSelectedTechId(data?.technicianId ? String(data.technicianId) : ""); })
       .catch(() => {});
     fetch("/api/admin/settings?section=company")
       .then((r) => r.json())
       .then((s) => { if (s && !s.error) setCompany(mapCompany(s)); })
       .catch(() => {});
+    fetch("/api/admin/technicians")
+      .then((r) => r.json())
+      .then((d) => setTechnicians(Array.isArray(d) ? d : (d.technicians || [])))
+      .catch(() => {});
   }, [id]);
+
+  async function approveAndSend() {
+    if (!selectedTechId) { setMsg("Choisissez un technicien."); return; }
+    const tech = technicians.find((t) => String(t.id) === String(selectedTechId));
+    if (!tech) { setMsg("Technicien introuvable."); return; }
+    if (!tech.phone) { setMsg(`${tech.name} n'a pas de numéro de téléphone dans la DB.`); return; }
+
+    setApproving(true);
+    setMsg("");
+    try {
+      const res = await fetch(`/api/admin/work-orders/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ statut: "scheduled", technicianId: Number(selectedTechId) }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.error || "Erreur approbation");
+      }
+
+      const phone = formatPhoneForWhatsapp(tech.phone);
+      const siteUrl = typeof window !== "undefined" ? window.location.origin : "https://www.vosthermos.com";
+      const datePart = wo.date ? new Date(wo.date).toLocaleDateString("fr-CA", { weekday: "long", day: "numeric", month: "long" }) : "";
+      const unitsPart = wo.sections?.length > 0 ? wo.sections.map((s) => s.unitCode).join(", ") : "";
+      const addressPart = [wo.interventionAddress, wo.interventionCity].filter(Boolean).join(", ") || wo.client?.address || "";
+
+      const lines = [
+        `Nouveau bon ${wo.number}`,
+        "",
+        `Client : ${wo.client?.name || "—"}`,
+        addressPart ? `Adresse : ${addressPart}` : null,
+        datePart ? `Date : ${datePart}` : null,
+        unitsPart ? `Unités : ${unitsPart}` : null,
+        "",
+        "Demande :",
+        (wo.description || "").trim(),
+        "",
+        `Détails : ${siteUrl}/admin/bons/${id}`,
+      ].filter((l) => l !== null).join("\n");
+
+      const wa = `https://wa.me/${phone}?text=${encodeURIComponent(lines)}`;
+      window.open(wa, "_blank", "noopener,noreferrer");
+
+      // Refresh state
+      const refreshed = await fetch(`/api/admin/work-orders/${id}`).then((r) => r.json());
+      setWo(refreshed);
+      setShowApprove(false);
+      setMsg(`Approuvé et assigné à ${tech.name}. WhatsApp ouvert.`);
+    } catch (err) {
+      setMsg(err.message);
+    }
+    setApproving(false);
+  }
 
   async function handleDelete() {
     if (!confirm(`Supprimer definitivement le bon ${wo?.number || `#${id}`}? Cette action est irreversible.`)) return;
@@ -106,7 +175,15 @@ export default function BonDetailPage() {
             {statusLabels[wo.statut] || wo.statut}
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {wo.statut === "draft" && (
+            <button
+              onClick={() => setShowApprove(true)}
+              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold"
+            >
+              <i className="fab fa-whatsapp mr-2"></i>Approuver &amp; envoyer WhatsApp
+            </button>
+          )}
           <Link href={`/admin/bons/nouveau?edit=${id}`}
             className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-medium hover:bg-white/5 transition-colors">
             <i className="fas fa-pen mr-2"></i>Modifier
@@ -130,6 +207,61 @@ export default function BonDetailPage() {
       {msg && (
         <div className="mb-4 px-4 py-3 admin-card border admin-border rounded-lg text-sm admin-text print-hide">
           {msg}
+        </div>
+      )}
+
+      {/* Approve + WhatsApp modal */}
+      {showApprove && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm print-hide"
+          onClick={() => !approving && setShowApprove(false)}>
+          <div className="bg-white text-gray-900 border border-gray-200 rounded-xl w-full max-w-md p-6 shadow-2xl dark:bg-gray-900 dark:text-white dark:border-gray-700"
+            onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-bold text-lg mb-1">
+              <i className="fab fa-whatsapp text-green-500 mr-2"></i>
+              Approuver et envoyer
+            </h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+              Le bon passera en &quot;Planifié&quot;, le technicien sera assigné, et WhatsApp s&apos;ouvrira avec le message pré-rempli.
+            </p>
+
+            <label className="text-xs mb-1 block text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Technicien</label>
+            <select
+              value={selectedTechId}
+              onChange={(e) => setSelectedTechId(e.target.value)}
+              className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm w-full mb-4 focus:outline-none focus:ring-2 focus:ring-green-500"
+              autoFocus
+            >
+              <option value="">— Sélectionner —</option>
+              {technicians.filter((t) => t.isActive).map((t) => (
+                <option key={t.id} value={t.id}>{t.name}{t.phone ? ` · ${t.phone}` : " · pas de téléphone"}</option>
+              ))}
+            </select>
+
+            {selectedTechId && (() => {
+              const tech = technicians.find((t) => String(t.id) === String(selectedTechId));
+              if (!tech?.phone) return <p className="text-xs text-red-500 mb-4"><i className="fas fa-exclamation-triangle mr-1"></i>Pas de numéro de téléphone pour ce technicien.</p>;
+              return (
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3 mb-4 text-xs text-gray-700 dark:text-gray-300">
+                  <div className="font-bold mb-1">Aperçu du message WhatsApp :</div>
+                  <div className="whitespace-pre-wrap font-mono text-[11px]">{`Nouveau bon ${wo.number}\n\nClient : ${wo.client?.name || "—"}\n...\nDétails : /admin/bons/${id}`}</div>
+                </div>
+              );
+            })()}
+
+            {msg && <p className="text-sm text-red-500 mb-3">{msg}</p>}
+
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setShowApprove(false)} disabled={approving}
+                className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-sm disabled:opacity-50">
+                Annuler
+              </button>
+              <button onClick={approveAndSend} disabled={approving || !selectedTechId}
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold disabled:opacity-50 flex items-center gap-2">
+                <i className={approving ? "fas fa-spinner fa-spin" : "fab fa-whatsapp"}></i>
+                {approving ? "Traitement..." : "Approuver & envoyer"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
