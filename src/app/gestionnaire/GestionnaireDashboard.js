@@ -348,20 +348,10 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
               {/* Bâtiments & Unités */}
               <div className="gm-section-head">
                 <div className="gm-section-title">Parc de fenêtres · {buildings.length} bâtiment{buildings.length > 1 ? "s" : ""} · {stats.totalUnits} unité{stats.totalUnits > 1 ? "s" : ""}</div>
-                <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-                  <div className="legend">
-                    <span><span className="dot ok"></span>Terminé</span>
-                    <span><span className="dot active"></span>Actif</span>
-                    <span><span className="dot none"></span>Aucun</span>
-                  </div>
-                  {canManageUnits && (
-                    <button
-                      className="gm-btn gm-btn-sm gm-btn-primary"
-                      onClick={() => setBuildingEditor({ code: "", name: "", address: "" })}
-                    >
-                      <i className="fas fa-plus"></i>Ajouter bâtiment
-                    </button>
-                  )}
+                <div className="legend">
+                  <span><span className="dot ok"></span>Terminé</span>
+                  <span><span className="dot active"></span>Actif</span>
+                  <span><span className="dot none"></span>Aucun</span>
                 </div>
               </div>
 
@@ -381,14 +371,12 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                       </div>
                       <div className="bldg-meta">{b.metaLine}</div>
                       {canManageUnits && (
-                        <div style={{ display: "flex", gap: 6, marginLeft: 8 }}>
+                        <div style={{ display: "flex", gap: 6, marginLeft: 8, flexWrap: "wrap" }}>
                           <button
                             className="gm-btn gm-btn-sm"
                             onClick={() => setBuildingEditor({ id: b.id, code: b.code, name: b.name, address: b.address || "" })}
-                            title="Modifier ce bâtiment"
-                            style={{ padding: "6px 8px" }}
                           >
-                            <i className="fas fa-edit"></i>
+                            <i className="fas fa-edit"></i>Modifier bâtiment
                           </button>
                           <button
                             className="gm-btn gm-btn-sm"
@@ -439,6 +427,16 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                       ))}
                     </div>
                   </div>
+                )}
+                {canManageUnits && (
+                  <button
+                    type="button"
+                    className="gm-add-bldg"
+                    onClick={() => setBuildingEditor({ code: "", name: "", address: "" })}
+                  >
+                    <i className="fas fa-plus-circle"></i>
+                    <span>Ajouter un bâtiment</span>
+                  </button>
                 )}
               </div>
             </div>

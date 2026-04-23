@@ -107,6 +107,11 @@
 .gm-accordion.open .gm-accordion-panel { max-height: 3000px; transition: max-height 1.5s cubic-bezier(0.4, 0, 0.2, 1); }
 .gm-accordion-inner { padding: 0 16px 14px; }
 
+/* Carte "Ajouter un bâtiment" */
+.gm-add-bldg { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 18px; margin-top: 8px; background: transparent; border: 2px dashed var(--border); border-radius: 10px; color: var(--red); font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease; font-family: inherit; }
+.gm-add-bldg:hover { background: rgba(227, 7, 24, 0.06); border-color: var(--red); transform: translateY(-1px); }
+.gm-add-bldg i { font-size: 18px; }
+
 .gm-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
 .gm-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
 .gm-card:hover { box-shadow: var(--shadow); }
