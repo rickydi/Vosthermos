@@ -646,8 +646,8 @@ function CoproEditor({ onClose, onSaved }) {
           <TextInput label="Nom du syndicat *" value={form.name} onChange={(v) => setForm({ ...form, name: v })} placeholder="Syndicat Le Marronnier" required />
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            <TextInput label="Entreprise gestion" value={form.company} onChange={(v) => setForm({ ...form, company: v })} placeholder="Optionnel" />
-            <TextInput label="Email" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} placeholder="info@syndicat.ca" />
+            <TextInput label="Contact dans la copropriété" value={form.company} onChange={(v) => setForm({ ...form, company: v })} placeholder="Jean Tremblay (président)" />
+            <TextInput label="Courriel du contact" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} placeholder="president@syndicat.ca" />
           </div>
 
           <TextInput label="Adresse" value={form.address} onChange={(v) => setForm({ ...form, address: v })} placeholder="1500 Montée Monette" />
