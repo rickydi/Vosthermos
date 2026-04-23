@@ -24,6 +24,8 @@ const DEFAULT_NAV_ITEMS = [
   { href: "/admin/services", label: "Services", icon: "fa-tools" },
   { href: "/admin/techniciens", label: "Techniciens", icon: "fa-hard-hat" },
   { href: "/admin/clients", label: "Clients", icon: "fa-address-book" },
+  { section: "B2B · PORTAIL" },
+  { href: "/admin/gestionnaires", label: "Gestionnaires", icon: "fa-user-tie" },
   { section: "SYSTEME" },
   { href: "/admin/parametres", label: "Parametres", icon: "fa-cog" },
   { href: "/admin/utilisateurs", label: "Utilisateurs", icon: "fa-users" },
