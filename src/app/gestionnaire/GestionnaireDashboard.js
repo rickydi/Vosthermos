@@ -293,13 +293,22 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                       </div>
                       <div className="bldg-meta">{b.metaLine}</div>
                       {canManageUnits && (
-                        <button
-                          className="gm-btn gm-btn-sm"
-                          onClick={() => setUnitEditor({ buildingId: b.id, buildingName: b.name, code: "", description: "" })}
-                          style={{ marginLeft: 8 }}
-                        >
-                          <i className="fas fa-plus"></i>Ajouter unité
-                        </button>
+                        <div style={{ display: "flex", gap: 6, marginLeft: 8 }}>
+                          <button
+                            className="gm-btn gm-btn-sm"
+                            onClick={() => setBuildingEditor({ id: b.id, code: b.code, name: b.name, address: b.address || "" })}
+                            title="Modifier ce bâtiment"
+                            style={{ padding: "6px 8px" }}
+                          >
+                            <i className="fas fa-edit"></i>
+                          </button>
+                          <button
+                            className="gm-btn gm-btn-sm"
+                            onClick={() => setUnitEditor({ buildingId: b.id, buildingName: b.name, code: "", description: "" })}
+                          >
+                            <i className="fas fa-plus"></i>Ajouter unité
+                          </button>
+                        </div>
                       )}
                     </div>
                     {b.units.length === 0 ? (
@@ -762,7 +771,12 @@ function CoproEditor({ onClose, onSaved }) {
 }
 
 function BuildingEditor({ clientId, initial, onClose, onSaved }) {
-  const [form, setForm] = useState({ code: initial.code || "", name: initial.name || "", address: initial.address || "" });
+  const isEdit = !!initial.id;
+  const [form, setForm] = useState({
+    code: initial.code || "",
+    name: initial.name || "",
+    address: initial.address || "",
+  });
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
 
@@ -770,10 +784,12 @@ function BuildingEditor({ clientId, initial, onClose, onSaved }) {
     e.preventDefault();
     setSaving(true); setErr("");
     try {
-      const res = await fetch("/api/manager/buildings", {
-        method: "POST",
+      const url = isEdit ? `/api/manager/buildings/${initial.id}` : "/api/manager/buildings";
+      const method = isEdit ? "PUT" : "POST";
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, clientId }),
+        body: JSON.stringify(isEdit ? form : { ...form, clientId }),
       });
       if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Erreur"); }
       onSaved();
@@ -781,10 +797,18 @@ function BuildingEditor({ clientId, initial, onClose, onSaved }) {
     setSaving(false);
   }
 
+  async function del() {
+    if (!confirm(`Supprimer le bâtiment ${initial.name}?\n\nLes unités ne sont pas supprimées — elles perdent simplement leur bâtiment.`)) return;
+    const res = await fetch(`/api/manager/buildings/${initial.id}`, { method: "DELETE" });
+    if (!res.ok) { const d = await res.json(); alert(d.error || "Erreur"); return; }
+    onSaved();
+  }
+
   return (
     <ModalShell
       icon={<i className="fas fa-building"></i>}
-      title="Nouveau bâtiment"
+      title={isEdit ? "Modifier bâtiment" : "Nouveau bâtiment"}
+      subtitle={isEdit ? initial.name : undefined}
       onClose={onClose}
       level={2}
       maxWidth={500}
@@ -796,9 +820,18 @@ function BuildingEditor({ clientId, initial, onClose, onSaved }) {
           <TextInput label="Nom" value={form.name} onChange={(v) => setForm({ ...form, name: v })} placeholder="Bâtiment A" required />
         </div>
         <TextInput label="Adresse (optionnel)" value={form.address} onChange={(v) => setForm({ ...form, address: v })} placeholder="1500 Montée Monette" />
-        <div className="gm-form-actions">
-          <button type="button" onClick={onClose} className="gm-btn gm-btn-sm">Annuler</button>
-          <button type="submit" disabled={saving} className="gm-btn gm-btn-sm gm-btn-primary">{saving ? "Création..." : "Créer"}</button>
+        <div className="gm-form-actions gm-form-actions-split">
+          {isEdit ? (
+            <button type="button" onClick={del} className="gm-btn gm-btn-sm" style={{ color: "var(--red)", borderColor: "rgba(227,7,24,0.3)" }}>
+              <i className="fas fa-trash"></i>Supprimer
+            </button>
+          ) : <div />}
+          <div style={{ display: "flex", gap: 8 }}>
+            <button type="button" onClick={onClose} className="gm-btn gm-btn-sm">Annuler</button>
+            <button type="submit" disabled={saving} className="gm-btn gm-btn-sm gm-btn-primary">
+              {saving ? "..." : isEdit ? "Enregistrer" : "Créer"}
+            </button>
+          </div>
         </div>
       </form>
     </ModalShell>
