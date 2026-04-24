@@ -363,7 +363,7 @@ const sections = [
           <ul className="not-styled space-y-2">
             <li className="flex items-start gap-3">
               <i className="fas fa-map-marker-alt text-[var(--color-red)] mt-1 w-4 text-center"></i>
-              <span>{COMPANY_INFO.address}, Saint-Francois-Xavier, QC</span>
+              <span>{COMPANY_INFO.address}, {COMPANY_INFO.city}, {COMPANY_INFO.province} {COMPANY_INFO.postalCode}</span>
             </li>
             <li className="flex items-start gap-3">
               <i className="fas fa-phone text-[var(--color-red)] mt-1 w-4 text-center"></i>

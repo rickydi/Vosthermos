@@ -48,8 +48,8 @@ Add each of the following statements by clicking "+ add statement":
 | Official website | P856 | https://www.vosthermos.com |
 | Email address | P968 | info@vosthermos.com |
 | Phone number | P1329 | +1-514-825-8411 |
-| Street address | P6375 | 330 Ch. St-Francois-Xavier, Local 101 |
-| Postal code | P281 | J0H 1S0 |
+| Street address | P6375 | 330 Ch. St-Francois-Xavier, Local 104 |
+| Postal code | P281 | J5B 1C9 |
 | Coordinate location | P625 | 45.371, -73.457 |
 
 ### Branding

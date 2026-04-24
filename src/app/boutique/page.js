@@ -10,7 +10,13 @@ export const metadata = {
   description:
     "Achetez en ligne vos pieces de remplacement pour portes et fenetres: poignees, mecanismes, rouleaux, coupe-froid, moustiquaires. Plus de 740 pieces compatibles avec Novatech, Lepage, Fenplast, Jeld-Wen. Livraison rapide au Quebec.",
   keywords: "quincaillerie fenetre, pieces fenetre en ligne, quincaillerie porte patio, rouleau porte patio, poignee fenetre, coupe-froid fenetre, moustiquaire remplacement, pieces porte et fenetre Quebec",
-  alternates: { canonical: "https://www.vosthermos.com/boutique" },
+  alternates: {
+    canonical: "https://www.vosthermos.com/boutique",
+    languages: {
+      "fr-CA": "https://www.vosthermos.com/boutique",
+      "en-CA": "https://www.vosthermos.com/en/boutique",
+    },
+  },
   openGraph: {
     type: "website",
     url: "https://www.vosthermos.com/boutique",

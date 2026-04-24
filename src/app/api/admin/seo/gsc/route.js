@@ -61,6 +61,21 @@ function buildFilters({ keyword, device, branded, country, cityFilter }) {
 
 function isoDate(d) { return d.toISOString().split("T")[0]; }
 
+function pageMatchesCity(page, citySlug) {
+  try {
+    const pathname = new URL(page).pathname.replace(/\/$/, "");
+    const escaped = citySlug.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return (
+      pathname === `/reparation-portes-et-fenetres/${citySlug}` ||
+      pathname === `/calfeutrage/${citySlug}` ||
+      new RegExp(`^/services/[^/]+/${escaped}$`).test(pathname) ||
+      new RegExp(`^/en/services/[^/]+/${escaped}$`).test(pathname)
+    );
+  } catch {
+    return false;
+  }
+}
+
 export async function GET(request) {
   try {
     await requireAdmin();
@@ -198,7 +213,7 @@ export async function GET(request) {
         const page = row.keys[0];
         let matched = false;
         for (const c of CITIES) {
-          if (page.includes(`/${c.slug}`)) {
+          if (pageMatchesCity(page, c.slug)) {
             const cr = cityResults[c.slug];
             cr.totalClicks += row.clicks;
             cr.totalImpressions += row.impressions;
@@ -229,7 +244,8 @@ export async function GET(request) {
       }
 
       const cities = Object.values(cityResults);
-      const withPosition = cities.filter((c) => c.bestPosition !== null);
+      const cityOnly = cities.filter((c) => c.slug !== "_general");
+      const withPosition = cityOnly.filter((c) => c.bestPosition !== null);
       const inTop1 = withPosition.filter((c) => c.bestPosition <= 1.5).length;
       const inTop3 = withPosition.filter((c) => c.bestPosition <= 3.5).length;
       const inTop10 = withPosition.filter((c) => c.bestPosition <= 10.5).length;

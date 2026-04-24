@@ -27,6 +27,32 @@ export default function Footer({ company }) {
   const isEn = pathname === "/en" || pathname.startsWith("/en/");
   const p = isEn ? "/en" : "";
 
+  const serviceLinks = isEn
+    ? {
+        thermos: "/en/services/sealed-glass-replacement",
+        hardware: "/en/services/hardware-replacement",
+        woodDoors: "/en/services/wooden-door-repair",
+        patio: "/services/reparation-porte-patio",
+        frenchDoor: "/services/reparation-porte-fenetre",
+        screens: "/en/services/custom-screen-doors",
+        caulking: "/en/services/caulking",
+        defogging: "/en/services/defogging",
+        doorInsert: "/en/services/door-insert",
+        weatherstrip: "/en/services/weatherstripping",
+      }
+    : {
+        thermos: "/services/remplacement-vitre-thermos",
+        hardware: "/services/remplacement-quincaillerie",
+        woodDoors: "/services/reparation-portes-bois",
+        patio: "/services/reparation-porte-patio",
+        frenchDoor: "/services/reparation-porte-fenetre",
+        screens: "/services/moustiquaires-sur-mesure",
+        caulking: "/services/calfeutrage",
+        defogging: "/services/desembuage",
+        doorInsert: "/services/insertion-porte",
+        weatherstrip: "/services/coupe-froid",
+      };
+
   const labels = isEn
     ? {
         tagline: "Door and window repair experts for over 15 years. Professional and guaranteed service.",
@@ -127,34 +153,34 @@ export default function Footer({ company }) {
           <div>
             <h4 className="font-bold text-sm uppercase tracking-wider mb-4">{labels.services}</h4>
             <ul className="space-y-2 text-sm text-white/60">
-              <li><Link href={`${p}/services/remplacement-vitre-thermos`} className="hover:text-white transition-colors">{labels.thermos}</Link></li>
-              <li><Link href={`${p}/services/remplacement-quincaillerie`} className="hover:text-white transition-colors">{labels.hardware}</Link></li>
-              <li><Link href={`${p}/services/reparation-portes-bois`} className="hover:text-white transition-colors">{labels.woodDoors}</Link></li>
-              <li><Link href={`${p}/services/reparation-porte-patio`} className="hover:text-white transition-colors">{labels.patio}</Link></li>
-              <li><Link href={`${p}/services/reparation-porte-fenetre`} className="hover:text-white transition-colors">{labels.frenchDoor}</Link></li>
-              <li><Link href={`${p}/services/moustiquaires-sur-mesure`} className="hover:text-white transition-colors">{labels.screens}</Link></li>
-              <li><Link href={`${p}/services/calfeutrage`} className="hover:text-white transition-colors">{labels.caulking}</Link></li>
-              <li><Link href={`${p}/services/desembuage`} className="hover:text-white transition-colors">{labels.defogging}</Link></li>
-              <li><Link href={`${p}/services/insertion-porte`} className="hover:text-white transition-colors">{labels.doorInsert}</Link></li>
-              <li><Link href={`${p}/services/coupe-froid`} className="hover:text-white transition-colors">{labels.weatherstrip}</Link></li>
+              <li><Link href={serviceLinks.thermos} className="hover:text-white transition-colors">{labels.thermos}</Link></li>
+              <li><Link href={serviceLinks.hardware} className="hover:text-white transition-colors">{labels.hardware}</Link></li>
+              <li><Link href={serviceLinks.woodDoors} className="hover:text-white transition-colors">{labels.woodDoors}</Link></li>
+              <li><Link href={serviceLinks.patio} className="hover:text-white transition-colors">{labels.patio}</Link></li>
+              <li><Link href={serviceLinks.frenchDoor} className="hover:text-white transition-colors">{labels.frenchDoor}</Link></li>
+              <li><Link href={serviceLinks.screens} className="hover:text-white transition-colors">{labels.screens}</Link></li>
+              <li><Link href={serviceLinks.caulking} className="hover:text-white transition-colors">{labels.caulking}</Link></li>
+              <li><Link href={serviceLinks.defogging} className="hover:text-white transition-colors">{labels.defogging}</Link></li>
+              <li><Link href={serviceLinks.doorInsert} className="hover:text-white transition-colors">{labels.doorInsert}</Link></li>
+              <li><Link href={serviceLinks.weatherstrip} className="hover:text-white transition-colors">{labels.weatherstrip}</Link></li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-bold text-sm uppercase tracking-wider mb-4">{labels.company}</h4>
             <ul className="space-y-2 text-sm text-white/60">
-              <li><Link href={`${p}/pourquoi-vosthermos`} className="hover:text-white transition-colors">{labels.why}</Link></li>
-              <li><Link href={`${p}/realisations`} className="hover:text-white transition-colors">{labels.projects}</Link></li>
+              <li><Link href={isEn ? "/en/#how-it-works" : "/pourquoi-vosthermos"} className="hover:text-white transition-colors">{labels.why}</Link></li>
+              <li><Link href={isEn ? "/en/#gallery" : "/realisations"} className="hover:text-white transition-colors">{labels.projects}</Link></li>
               <li><Link href={`${p}/garantie`} className="hover:text-white transition-colors">{labels.warranty}</Link></li>
               <li><Link href={`${p}/blogue`} className="hover:text-white transition-colors">{labels.blog}</Link></li>
               <li><Link href={`${p}/faq`} className="hover:text-white transition-colors">{labels.faq}</Link></li>
-              <li><Link href={`${p}/carrieres`} className="hover:text-white transition-colors">{labels.careers}</Link></li>
-              <li><Link href="/prix" className="hover:text-white transition-colors">Prix et tarifs</Link></li>
-              <li><Link href="/problemes" className="hover:text-white transition-colors">Problemes courants</Link></li>
-              <li><Link href="/diagnostic" className="hover:text-white transition-colors">Diagnostic gratuit</Link></li>
-              <li><Link href="/glossaire" className="hover:text-white transition-colors">Glossaire</Link></li>
-              <li><Link href="/calculateur" className="hover:text-white transition-colors">Calculateur d&apos;economies</Link></li>
-              <li><Link href="/opti-fenetre" className="hover:text-white transition-colors">OPTI-FENETRE</Link></li>
+              <li><Link href={isEn ? "/carrieres" : "/carrieres"} className="hover:text-white transition-colors">{labels.careers}</Link></li>
+              <li><Link href={isEn ? "/en/prix" : "/prix"} className="hover:text-white transition-colors">{isEn ? "Pricing" : "Prix et tarifs"}</Link></li>
+              <li><Link href={isEn ? "/en/problemes" : "/problemes"} className="hover:text-white transition-colors">{isEn ? "Common problems" : "Problemes courants"}</Link></li>
+              <li><Link href={isEn ? "/en/diagnostic" : "/diagnostic"} className="hover:text-white transition-colors">{isEn ? "Free diagnostic" : "Diagnostic gratuit"}</Link></li>
+              <li><Link href={isEn ? "/en/glossaire" : "/glossaire"} className="hover:text-white transition-colors">Glossaire</Link></li>
+              <li><Link href={isEn ? "/en/calculateur" : "/calculateur"} className="hover:text-white transition-colors">{isEn ? "Savings calculator" : "Calculateur d'economies"}</Link></li>
+              <li><Link href={isEn ? "/en/opti-fenetre" : "/opti-fenetre"} className="hover:text-white transition-colors">OPTI-FENETRE</Link></li>
               <li><Link href={`${p}/boutique`} className="hover:text-white transition-colors">{labels.shop}</Link></li>
               <li><Link href={`${p}/rendez-vous`} className="hover:text-white transition-colors">{labels.booking}</Link></li>
               {!isEn && (
@@ -172,7 +198,7 @@ export default function Footer({ company }) {
             <ul className="space-y-2 text-sm text-white/60">
               {cities.map((c) => (
                 <li key={c.slug}>
-                  <Link href={`${p}/reparation-portes-et-fenetres/${c.slug}`} className="hover:text-white transition-colors">
+                  <Link href={isEn ? `/en/services/sealed-glass-replacement/${c.slug}` : `/reparation-portes-et-fenetres/${c.slug}`} className="hover:text-white transition-colors">
                     {c.name}
                   </Link>
                 </li>
@@ -207,7 +233,7 @@ export default function Footer({ company }) {
           <span>&copy; {new Date().getFullYear()} Vosthermos. {labels.rights}</span>
           <span>
             RBQ : 5790-9498-01 |{" "}
-            <Link href={`${p}/politique-confidentialite`} className="hover:text-white transition-colors">
+            <Link href="/politique-confidentialite" className="hover:text-white transition-colors">
               {labels.privacy}
             </Link>
           </span>

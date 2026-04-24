@@ -6,7 +6,22 @@ export const metadata = {
   title: "Common Door and Window Problems — Solutions | Vosthermos",
   description:
     `Foggy window, stuck patio door, drafts, torn screen? Find the causes and solutions for all door and window problems. Experts for 15 years. ${COMPANY_INFO.phone}.`,
-  alternates: { canonical: "https://www.vosthermos.com/en/problemes" },
+  alternates: {
+    canonical: "https://www.vosthermos.com/en/problemes",
+    languages: {
+      "fr-CA": "https://www.vosthermos.com/problemes",
+      "en-CA": "https://www.vosthermos.com/en/problemes",
+    },
+  },
+  openGraph: {
+    type: "website",
+    url: "https://www.vosthermos.com/en/problemes",
+    title: "Common Door and Window Problems | Vosthermos",
+    description:
+      "Causes, symptoms and solutions for foggy sealed units, drafts, hardware issues, damaged screens and more.",
+    images: [{ url: COMPANY_INFO.logo }],
+    locale: "en_CA",
+  },
 };
 
 export default function ProblemesPage() {

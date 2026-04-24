@@ -11,6 +11,10 @@ export const metadata = {
     "diagnostic thermos, fenetre embuee que faire, comment savoir si thermos est fini, thermos fenetre brise, test thermos fenetre",
   alternates: {
     canonical: "https://www.vosthermos.com/diagnostic",
+    languages: {
+      "fr-CA": "https://www.vosthermos.com/diagnostic",
+      "en-CA": "https://www.vosthermos.com/en/diagnostic",
+    },
   },
   openGraph: {
     title:

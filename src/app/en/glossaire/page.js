@@ -4,7 +4,22 @@ import { GLOSSARY, GLOSSARY_CATEGORIES } from "@/lib/glossary-data";
 export const metadata = {
   title: "Door and Window Glossary — Terms and Definitions | Vosthermos",
   description: "Complete glossary of door and window terms: sealed units, Low-E, argon, weatherstripping, caulking, hardware and more. Clear definitions by the Vosthermos experts.",
-  alternates: { canonical: "https://www.vosthermos.com/en/glossaire" },
+  alternates: {
+    canonical: "https://www.vosthermos.com/en/glossaire",
+    languages: {
+      "fr-CA": "https://www.vosthermos.com/glossaire",
+      "en-CA": "https://www.vosthermos.com/en/glossaire",
+    },
+  },
+  openGraph: {
+    type: "website",
+    url: "https://www.vosthermos.com/en/glossaire",
+    title: "Door and Window Glossary | Vosthermos",
+    description:
+      "Clear definitions for sealed units, Low-E, argon, weatherstripping, caulking, hardware and more.",
+    images: [{ url: "https://www.vosthermos.com/images/Vos-Thermos-Logo.png" }],
+    locale: "en_CA",
+  },
 };
 
 export default function GlossairePage() {

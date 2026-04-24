@@ -16,7 +16,7 @@ export async function GET() {
       yearsOfExperience: 15,
       address: {
         streetAddress: COMPANY_INFO.address,
-        addressLocality: "Saint-Francois-Xavier",
+        addressLocality: COMPANY_INFO.city,
         addressRegion: "QC",
         postalCode: COMPANY_INFO.postalCode,
         addressCountry: "CA",
@@ -56,7 +56,7 @@ export async function GET() {
       cities: CITIES.map((c) => c.name),
       count: CITIES.length,
       radius_km: 100,
-      center: "Saint-Francois-Xavier, QC",
+      center: `${COMPANY_INFO.city}, ${COMPANY_INFO.province}`,
     },
     brands: [
       "Novatech", "Lepage Millwork", "Fenplast", "Jeld-Wen", "Kohltech",

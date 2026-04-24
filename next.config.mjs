@@ -50,7 +50,6 @@ const nextConfig = {
       { source: "/blog/:slug*", destination: "/blogue/:slug*", permanent: true },
 
       // EN: pages qui n'existent pas mais Google les demande (content FR dans path EN)
-      { source: "/en/blogue", destination: "/en", permanent: true },
       { source: "/en/blogue/:slug*", destination: "/blogue/:slug*", permanent: true },
       { source: "/en/secteurs/:ville", destination: "/en", permanent: true },
       { source: "/en/secteurs", destination: "/en", permanent: true },

@@ -7,18 +7,31 @@ import { getCategoryIcon } from "@/lib/category-icons";
 import { getActivePromotions, getPromoForProduct } from "@/lib/promotions";
 // ImageToggle moved to admin only
 
-export async function generateMetadata({ params }) {
+export async function generateMetadata({ params, searchParams }) {
   const { categorie } = await params;
+  const sp = await searchParams;
+  const page = Math.max(1, parseInt(sp?.page || "1", 10) || 1);
   const category = await prisma.category.findUnique({ where: { slug: categorie } });
   if (!category) return {};
+  const frBaseUrl = `https://www.vosthermos.com/boutique/${categorie}`;
+  const enBaseUrl = `https://www.vosthermos.com/en/boutique/${categorie}`;
+  const url = page > 1 ? `${frBaseUrl}?page=${page}` : frBaseUrl;
+  const enUrl = page > 1 ? `${enBaseUrl}?page=${page}` : enBaseUrl;
+  const pageSuffix = page > 1 ? ` - Page ${page}` : "";
   return {
-    title: `${category.name} - Boutique Vosthermos | Pieces de portes et fenetres`,
+    title: `${category.name}${pageSuffix} - Boutique Vosthermos | Pieces de portes et fenetres`,
     description: `Achetez des pieces de ${category.name.toLowerCase()} en ligne. Vaste choix, prix competitifs. Vosthermos, votre quincaillerie specialisee.`,
-    alternates: { canonical: `https://www.vosthermos.com/boutique/${categorie}` },
+    alternates: {
+      canonical: url,
+      languages: {
+        "fr-CA": url,
+        "en-CA": enUrl,
+      },
+    },
     openGraph: {
       type: "website",
-      url: `https://www.vosthermos.com/boutique/${categorie}`,
-      title: `${category.name} - Boutique Vosthermos`,
+      url,
+      title: `${category.name}${pageSuffix} - Boutique Vosthermos`,
       description: `Pieces de ${category.name.toLowerCase()} disponibles en ligne chez Vosthermos.`,
       images: [{ url: "https://www.vosthermos.com/images/Vos-Thermos-Logo.png" }],
       locale: "fr_CA",

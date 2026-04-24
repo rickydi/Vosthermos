@@ -5,6 +5,7 @@ import {
   getService,
   generateStaticParams as getParams,
 } from "@/lib/services-data";
+import { SERVICES_EN } from "@/lib/services-data-en";
 import { getProblemsForService, getPricingForService, getTopCities } from "@/lib/smart-links";
 import { FullSmartLinksSection } from "@/components/SmartLinks";
 import { COMPANY_INFO } from "@/lib/company-info";
@@ -17,11 +18,27 @@ export async function generateMetadata({ params }) {
   const { slug } = await params;
   const service = getService(slug);
   if (!service) return {};
+  const englishService = SERVICES_EN.find((item) => item.frSlug === service.slug);
+  const url = `https://www.vosthermos.com/services/${service.slug}`;
   return {
     title: service.metaTitle,
     description: service.metaDescription,
     alternates: {
-      canonical: `https://www.vosthermos.com/services/${service.slug}`,
+      canonical: url,
+      languages: englishService
+        ? {
+            "fr-CA": url,
+            "en-CA": `https://www.vosthermos.com/en/services/${englishService.slug}`,
+          }
+        : undefined,
+    },
+    openGraph: {
+      type: "website",
+      url,
+      title: service.metaTitle,
+      description: service.metaDescription,
+      images: [{ url: COMPANY_INFO.logo }],
+      locale: "fr_CA",
     },
   };
 }

@@ -5,8 +5,8 @@ export const metadata = {
   alternates: {
     canonical: "https://www.vosthermos.com/calculateur",
     languages: {
-      fr: "https://www.vosthermos.com/calculateur",
-      en: "https://www.vosthermos.com/en/calculateur",
+      "fr-CA": "https://www.vosthermos.com/calculateur",
+      "en-CA": "https://www.vosthermos.com/en/calculateur",
     },
   },
   openGraph: {

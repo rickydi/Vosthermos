@@ -8,6 +8,10 @@ export const metadata = {
     "Lexique complet des termes techniques de portes et fenetres : vitre thermos, Low-E, gaz argon, coupe-froid, calfeutrage, quincaillerie et plus. Vocabulaire et definitions claires par les experts Vosthermos.",
   alternates: {
     canonical: "https://www.vosthermos.com/glossaire",
+    languages: {
+      "fr-CA": "https://www.vosthermos.com/glossaire",
+      "en-CA": "https://www.vosthermos.com/en/glossaire",
+    },
   },
   openGraph: {
     title: "Glossaire des portes et fenetres | Vosthermos",

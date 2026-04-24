@@ -5,6 +5,24 @@ export const metadata = {
   title: "Prendre rendez-vous - Vosthermos",
   description:
     "Prenez rendez-vous en ligne pour vos reparations de portes et fenetres. Service rapide, soumission gratuite.",
+  alternates: {
+    canonical: "https://www.vosthermos.com/rendez-vous",
+  },
+  openGraph: {
+    type: "website",
+    url: "https://www.vosthermos.com/rendez-vous",
+    title: "Prendre rendez-vous - Vosthermos",
+    description:
+      "Planifiez votre rendez-vous Vosthermos pour une reparation de porte, fenetre, vitre thermos ou quincaillerie.",
+    images: [{ url: COMPANY_INFO.logo }],
+    locale: "fr_CA",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Prendre rendez-vous - Vosthermos",
+    description: "Soumission gratuite et rendez-vous rapide pour portes et fenetres.",
+    images: [COMPANY_INFO.logo],
+  },
 };
 
 export default function RendezVousPage() {

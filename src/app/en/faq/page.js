@@ -9,8 +9,8 @@ export const metadata = {
   alternates: {
     canonical: "https://www.vosthermos.com/en/faq",
     languages: {
-      fr: "https://www.vosthermos.com/faq",
-      en: "https://www.vosthermos.com/en/faq",
+      "fr-CA": "https://www.vosthermos.com/faq",
+      "en-CA": "https://www.vosthermos.com/en/faq",
     },
   },
   openGraph: {

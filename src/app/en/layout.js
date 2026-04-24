@@ -1,35 +1,6 @@
 import { COMPANY_INFO } from "@/lib/company-info";
 export const metadata = {
-  title: "Vosthermos | Door and Window Repair | Montreal, South Shore",
-  description:
-    `Door and window repair experts for over 15 years. Sealed glass unit replacement with professional guaranteed service, hardware, wooden doors, screen doors. Fast service Montreal, South Shore and 100km radius. Free quote ${COMPANY_INFO.phone}. Online parts store.`,
-  keywords:
-    "door window repair, sealed glass unit, thermos glass replacement, hardware replacement, custom screen door, patio door, wooden door, window caulking, defogging, weatherstripping, door insert, door window parts shop, door window hardware online, Saint-Francois-Xavier, Montreal, South Shore, Laval, Longueuil, Brossard, Granby, Saint-Hyacinthe, Terrebonne, Repentigny",
-  authors: [{ name: "Vosthermos" }],
   robots: "index, follow",
-  alternates: {
-    canonical: "https://www.vosthermos.com/en/",
-    languages: {
-      fr: "https://www.vosthermos.com/",
-      en: "https://www.vosthermos.com/en/",
-    },
-  },
-  openGraph: {
-    type: "website",
-    url: "https://www.vosthermos.com/en/",
-    title: "Vosthermos | Door and Window Repair | Montreal, South Shore",
-    description:
-      "Door and window repair experts for over 15 years. Online parts store. Free quote.",
-    images: [{ url: "https://www.vosthermos.com/images/Vos-Thermos-Logo.png" }],
-    locale: "en_CA",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Vosthermos | Door and Window Repair",
-    description:
-      `Door and window repair experts for over 15 years. Free quote ${COMPANY_INFO.phone}.`,
-    images: ["https://www.vosthermos.com/images/Vos-Thermos-Logo.png"],
-  },
   other: {
     "geo.region": "CA-QC",
     "geo.placename": "Saint-Francois-Xavier",

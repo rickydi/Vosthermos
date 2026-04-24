@@ -2,6 +2,15 @@ import { NextResponse } from "next/server";
 
 export function middleware(request) {
   const { pathname } = request.nextUrl;
+  const host = request.headers.get("host")?.toLowerCase().split(":")[0];
+
+  // Canonical host for SEO: avoid serving duplicate content on vosthermos.com and www.vosthermos.com.
+  if (host === "vosthermos.com") {
+    const url = request.nextUrl.clone();
+    url.protocol = "https";
+    url.hostname = "www.vosthermos.com";
+    return NextResponse.redirect(url, 308);
+  }
 
   // Protect admin routes (except login)
   if (pathname.startsWith("/admin") && !pathname.startsWith("/admin/login")) {
@@ -27,5 +36,7 @@ export function middleware(request) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/terrain/:path*"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|images|uploads).*)",
+  ],
 };

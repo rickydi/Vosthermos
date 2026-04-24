@@ -83,6 +83,17 @@ const urgencyStyles = {
   faible: { bg: "bg-green-100", text: "text-green-700", label: "Low urgency" },
 };
 
+const serviceSlugEn = {
+  "remplacement-vitre-thermos": "sealed-glass-replacement",
+  "remplacement-quincaillerie": "hardware-replacement",
+  "reparation-portes-bois": "wooden-door-repair",
+  "moustiquaires-sur-mesure": "custom-screen-doors",
+  calfeutrage: "caulking",
+  desembuage: "defogging",
+  "insertion-porte": "door-insert",
+  "coupe-froid": "weatherstripping",
+};
+
 export default function DiagnosticPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState([]);
@@ -105,6 +116,7 @@ export default function DiagnosticPage() {
   const resultKey = answers.length === 2 ? getResultKey(answers) : null;
   const result = resultKey ? results[resultKey] : null;
   const urg = result ? urgencyStyles[result.urgency] || urgencyStyles.modere : null;
+  const serviceHref = result ? `/en/services/${serviceSlugEn[result.service] || result.service}` : "/en/services";
 
   const currentOptions =
     currentStep === 1 && steps[1].optionsMap
@@ -210,7 +222,7 @@ export default function DiagnosticPage() {
                   <span className="text-xs font-medium text-gray-700">View pricing</span>
                 </Link>
                 <Link
-                  href={`/en/services/${result.service}`}
+                  href={serviceHref}
                   className="flex flex-col items-center gap-2 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors text-center"
                 >
                   <i className="fas fa-wrench text-[var(--color-teal)]"></i>

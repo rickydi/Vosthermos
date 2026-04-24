@@ -6,25 +6,32 @@ import { serializeProducts } from "@/lib/serialize";
 import { getCategoryIcon } from "@/lib/category-icons";
 import { getActivePromotions, getPromoForProduct } from "@/lib/promotions";
 
-export async function generateMetadata({ params }) {
+export async function generateMetadata({ params, searchParams }) {
   const { categorie } = await params;
+  const sp = await searchParams;
+  const page = Math.max(1, parseInt(sp?.page || "1", 10) || 1);
   const category = await prisma.category.findUnique({ where: { slug: categorie } });
   if (!category) return {};
   const displayName = category.nameEn || category.name;
+  const frBaseUrl = `https://www.vosthermos.com/boutique/${categorie}`;
+  const enBaseUrl = `https://www.vosthermos.com/en/boutique/${categorie}`;
+  const frUrl = page > 1 ? `${frBaseUrl}?page=${page}` : frBaseUrl;
+  const enUrl = page > 1 ? `${enBaseUrl}?page=${page}` : enBaseUrl;
+  const pageSuffix = page > 1 ? ` - Page ${page}` : "";
   return {
-    title: `${displayName} - Vosthermos Shop | Door and Window Parts`,
+    title: `${displayName}${pageSuffix} - Vosthermos Shop | Door and Window Parts`,
     description: `Buy ${displayName.toLowerCase()} parts online. Wide selection, competitive prices. Vosthermos, your specialized hardware store.`,
     alternates: {
-      canonical: `https://www.vosthermos.com/en/boutique/${categorie}`,
+      canonical: enUrl,
       languages: {
-        fr: `https://www.vosthermos.com/boutique/${categorie}`,
-        en: `https://www.vosthermos.com/en/boutique/${categorie}`,
+        "fr-CA": frUrl,
+        "en-CA": enUrl,
       },
     },
     openGraph: {
       type: "website",
-      url: `https://www.vosthermos.com/en/boutique/${categorie}`,
-      title: `${displayName} - Vosthermos Shop`,
+      url: enUrl,
+      title: `${displayName}${pageSuffix} - Vosthermos Shop`,
       description: `${displayName} parts available online at Vosthermos.`,
       images: [{ url: "https://www.vosthermos.com/images/Vos-Thermos-Logo.png" }],
       locale: "en_CA",

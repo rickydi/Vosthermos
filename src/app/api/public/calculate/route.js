@@ -77,7 +77,7 @@ async function handle(req) {
         return jsonOk(compareRepairVsReplace({
           problem: input.problem || input.description,
           windowAgeYears: input.windowAgeYears || input.age,
-          framStatus: input.framStatus || input.frame,
+          framStatus: input.frameStatus || input.framStatus || input.frame,
         }));
       case "warranty":
         return jsonOk(checkWarranty({

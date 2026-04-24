@@ -6,7 +6,13 @@ export const metadata = {
   title: "Foire aux questions - Vosthermos | Reparation portes et fenetres",
   description:
     `Trouvez les reponses a vos questions sur nos services de reparation de portes et fenetres, nos tarifs, garanties, delais et notre boutique en ligne. Soumission gratuite ${COMPANY_INFO.phone}.`,
-  alternates: { canonical: "https://www.vosthermos.com/faq" },
+  alternates: {
+    canonical: "https://www.vosthermos.com/faq",
+    languages: {
+      "fr-CA": "https://www.vosthermos.com/faq",
+      "en-CA": "https://www.vosthermos.com/en/faq",
+    },
+  },
   openGraph: {
     title: "FAQ - Vosthermos | Reparation portes et fenetres",
     description:

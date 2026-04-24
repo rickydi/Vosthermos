@@ -26,8 +26,8 @@ export async function generateMetadata({ params }) {
     alternates: {
       canonical: `${BASE}/en/produit/${slug}`,
       languages: {
-        fr: `${BASE}/produit/${slug}`,
-        en: `${BASE}/en/produit/${slug}`,
+        "fr-CA": `${BASE}/produit/${slug}`,
+        "en-CA": `${BASE}/en/produit/${slug}`,
       },
     },
     openGraph: {

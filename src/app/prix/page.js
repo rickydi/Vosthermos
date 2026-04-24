@@ -7,6 +7,10 @@ export const metadata = {
     "Decouvrez nos prix pour le remplacement de vitre thermos, fenetre thermos et vitre thermos sur mesure. Prix au pied carre, grille tarifaire 2026 et soumission gratuite. Service professionnel avec service garanti.",
   alternates: {
     canonical: "https://www.vosthermos.com/prix",
+    languages: {
+      "fr-CA": "https://www.vosthermos.com/prix",
+      "en-CA": "https://www.vosthermos.com/en/prix",
+    },
   },
   openGraph: {
     title: "Prix remplacement de vitre thermos 2026 | Grille tarifaire | Vosthermos",

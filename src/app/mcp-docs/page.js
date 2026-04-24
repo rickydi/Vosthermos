@@ -6,6 +6,15 @@ export const metadata = {
   description:
     "Documentation du serveur MCP (Model Context Protocol) de Vosthermos. Exposez les outils de diagnostic, estimation et prise de rendez-vous de Vosthermos a vos agents AI (Claude, ChatGPT, Perplexity).",
   alternates: { canonical: "https://www.vosthermos.com/mcp-docs" },
+  openGraph: {
+    type: "website",
+    url: "https://www.vosthermos.com/mcp-docs",
+    title: "MCP Server Documentation - Vosthermos",
+    description:
+      "Documentation du serveur MCP public de Vosthermos pour agents IA: diagnostic, estimation, comparaison et prise de rendez-vous.",
+    images: [{ url: COMPANY_INFO.logo }],
+    locale: "fr_CA",
+  },
 };
 
 export default function McpDocsPage() {

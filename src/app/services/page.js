@@ -12,8 +12,8 @@ export const metadata = {
   alternates: {
     canonical: `${BASE}/services`,
     languages: {
-      fr: `${BASE}/services`,
-      en: `${BASE}/en/services`,
+      "fr-CA": `${BASE}/services`,
+      "en-CA": `${BASE}/en/services`,
     },
   },
   openGraph: {

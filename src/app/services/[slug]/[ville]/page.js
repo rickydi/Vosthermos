@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { SERVICES, getService } from "@/lib/services-data";
+import { SERVICES_EN } from "@/lib/services-data-en";
 import { CITIES, getCity } from "@/lib/cities";
 import { getServiceSeo } from "@/lib/seo-templates";
 import QuoteForm from "@/components/QuoteForm";
@@ -23,14 +24,24 @@ export async function generateMetadata({ params }) {
   if (!service || !city) return {};
 
   const { title, description } = getServiceSeo(slug, city, service.shortTitle);
+  const englishService = SERVICES_EN.find((item) => item.frSlug === service.slug);
+  const url = `https://www.vosthermos.com/services/${service.slug}/${city.slug}`;
 
   return {
     title,
     description,
-    alternates: { canonical: `https://www.vosthermos.com/services/${service.slug}/${city.slug}` },
+    alternates: {
+      canonical: url,
+      languages: englishService
+        ? {
+            "fr-CA": url,
+            "en-CA": `https://www.vosthermos.com/en/services/${englishService.slug}/${city.slug}`,
+          }
+        : undefined,
+    },
     openGraph: {
       type: "website",
-      url: `https://www.vosthermos.com/services/${service.slug}/${city.slug}`,
+      url,
       title,
       description,
       images: [{ url: "https://www.vosthermos.com/images/Vos-Thermos-Logo.png" }],

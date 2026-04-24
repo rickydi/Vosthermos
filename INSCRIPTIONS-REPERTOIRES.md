@@ -6,7 +6,7 @@
 ## INFORMATIONS BUSINESS (copier-coller)
 
 **Nom:** Vosthermos
-**Adresse:** 330 Ch. St-Francois-Xavier, Local 101, Saint-Francois-Xavier, QC J0H 1S0
+**Adresse:** 330 Ch. St-Francois-Xavier, Local 104, Saint-Francois-Xavier-de-Brompton, QC J5B 1C9
 **Telephone:** 514-825-8411
 **Email:** info@vosthermos.com
 **Site web:** https://www.vosthermos.com
@@ -38,7 +38,7 @@
 4. Entrer "Vosthermos" comme nom
 5. Categorie principale: "Vitrier" ou "Service de reparation de fenetres"
 6. Categories secondaires: "Quincaillerie", "Magasin de fenetres"
-7. Adresse: 330 Ch. St-Francois-Xavier, Local 101
+7. Adresse: 330 Ch. St-Francois-Xavier, Local 104
 8. Zone de service: ajouter les 20 villes listees ci-haut
 9. Telephone: 514-825-8411
 10. Site web: https://www.vosthermos.com

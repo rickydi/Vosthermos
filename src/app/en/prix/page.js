@@ -8,8 +8,8 @@ export const metadata = {
   alternates: {
     canonical: "https://www.vosthermos.com/en/prix",
     languages: {
-      fr: "https://www.vosthermos.com/prix",
-      en: "https://www.vosthermos.com/en/prix",
+      "fr-CA": "https://www.vosthermos.com/prix",
+      "en-CA": "https://www.vosthermos.com/en/prix",
     },
   },
   openGraph: {

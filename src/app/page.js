@@ -13,17 +13,40 @@ import BeforeAfterSlider from "@/components/BeforeAfterSlider";
 import Accordion from "@/components/Accordion";
 import { getCategoryIcon } from "@/lib/category-icons";
 import { getActivePromotions } from "@/lib/promotions";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 export const metadata = {
+  title: "Remplacement Thermos & Fenetres des 150$ - Vosthermos Montreal",
+  description:
+    `Thermos embue? Porte qui bloque? Vosthermos remplace vos vitres thermos des 150$ avec garantie 10 ans. 15 ans d'experience, soumission gratuite 24h, Rive-Sud, Montreal, Laval. ${COMPANY_INFO.phone}`,
+  keywords:
+    "reparation portes fenetres, vitre thermos, remplacement thermos, remplacement quincaillerie, moustiquaire sur mesure, porte-patio, porte en bois, calfeutrage fenetres, desembuage, coupe-froid, insertion porte, boutique pieces portes fenetres, quincaillerie porte fenetre en ligne, Saint-Francois-Xavier, Montreal, Rive-Sud, Laval, Longueuil, Brossard, Granby, Saint-Hyacinthe, Terrebonne, Repentigny",
+  robots: "index, follow",
   alternates: {
     canonical: "https://www.vosthermos.com/",
     languages: {
       "fr-CA": "https://www.vosthermos.com/",
       "en-CA": "https://www.vosthermos.com/en/",
+      "x-default": "https://www.vosthermos.com/",
     },
   },
+  openGraph: {
+    type: "website",
+    siteName: "Vosthermos",
+    url: "https://www.vosthermos.com/",
+    title: "Remplacement Thermos & Fenetres des 150$ - Vosthermos",
+    description:
+      `Thermos embue? Vosthermos remplace vos vitres thermos des 150$. Garantie 10 ans, soumission gratuite 24h. Montreal, Rive-Sud, Laval. ${COMPANY_INFO.phone}`,
+    images: [{ url: COMPANY_INFO.logo }],
+    locale: "fr_CA",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Remplacement Thermos des 150$ - Garantie 10 ans - Vosthermos",
+    description: `Experts en remplacement de thermos depuis 2010. Soumission gratuite 24h. ${COMPANY_INFO.phone}`,
+    images: [COMPANY_INFO.logo],
+  },
 };
-import { COMPANY_INFO } from "@/lib/company-info";
 
 export default async function Home() {
   const categories = await prisma.category.findMany({
@@ -449,7 +472,7 @@ export default async function Home() {
                   </div>
                   <div>
                     <strong className="block mb-1">Adresse</strong>
-                    <p className="text-[var(--color-muted)] text-sm">{COMPANY_INFO.address}<br />Saint-Francois-Xavier, QC</p>
+                    <p className="text-[var(--color-muted)] text-sm">{COMPANY_INFO.address}<br />{COMPANY_INFO.city}, {COMPANY_INFO.province} {COMPANY_INFO.postalCode}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -482,7 +505,7 @@ export default async function Home() {
             </div>
             <div className="rounded-xl overflow-hidden shadow-sm border border-[var(--color-border)]">
               <iframe
-                src="https://maps.google.com/maps?q=330+Chemin+Saint-Francois-Xavier+Delson+QC+Canada&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                src="https://maps.google.com/maps?q=330+Chemin+Saint-Francois-Xavier+Saint-Francois-Xavier-de-Brompton+QC+Canada&t=&z=15&ie=UTF8&iwloc=&output=embed"
                 width="100%"
                 height="100%"
                 style={{ border: 0, minHeight: "350px" }}

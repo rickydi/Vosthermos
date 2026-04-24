@@ -15,15 +15,25 @@ export async function generateMetadata({ params }) {
   const { slug } = await params;
   const service = getServiceEn(slug);
   if (!service) return {};
+  const url = `https://www.vosthermos.com/en/services/${service.slug}`;
+  const frUrl = `https://www.vosthermos.com/services/${service.frSlug}`;
   return {
     title: service.metaTitle,
     description: service.metaDescription,
     alternates: {
-      canonical: `https://www.vosthermos.com/en/services/${service.slug}`,
+      canonical: url,
       languages: {
-        fr: `https://www.vosthermos.com/services/${service.frSlug}`,
-        en: `https://www.vosthermos.com/en/services/${service.slug}`,
+        "fr-CA": frUrl,
+        "en-CA": url,
       },
+    },
+    openGraph: {
+      type: "website",
+      url,
+      title: service.metaTitle,
+      description: service.metaDescription,
+      images: [{ url: COMPANY_INFO.logo }],
+      locale: "en_CA",
     },
   };
 }

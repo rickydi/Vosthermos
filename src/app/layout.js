@@ -11,9 +11,9 @@ import { getCompany } from "@/lib/company";
 export async function generateMetadata() {
   const co = await getCompany();
   return {
-    title: `Remplacement Thermos & Fenêtres dès 150$ • Vosthermos Montréal`,
+    title: "Vosthermos",
     description:
-      `Thermos embué? Porte qui bloque? Vosthermos remplace vos vitres thermos dès 150$ avec garantie 10 ans. ✓ 15 ans d'expérience ✓ Soumission gratuite 24h ✓ Rive-Sud, Montréal, Laval ☎ ${co.phone}`,
+      `Experts en reparation de portes et fenetres depuis 2010. Remplacement de vitres thermos, quincaillerie, portes-patio, moustiquaires et boutique de pieces. ${co.phone}`,
     keywords:
       "reparation portes fenetres, vitre thermos, remplacement thermos, remplacement quincaillerie, moustiquaire sur mesure, porte-patio, porte en bois, calfeutrage fenetres, desembuage, coupe-froid, insertion porte, boutique pieces portes fenetres, quincaillerie porte fenetre en ligne, Saint-Francois-Xavier, Montreal, Rive-Sud, Laval, Longueuil, Brossard, Granby, Saint-Hyacinthe, Terrebonne, Repentigny",
     authors: [{ name: "Vosthermos" }],
@@ -23,22 +23,6 @@ export async function generateMetadata() {
     // son propre canonical pour éviter qu'elles pointent toutes vers la home.
     // Les pages qui ne le font pas n'auront simplement pas de canonical (OK).
     applicationName: "Vosthermos",
-    openGraph: {
-      type: "website",
-      siteName: "Vosthermos",
-      url: "https://www.vosthermos.com/",
-      title: "Remplacement Thermos & Fenêtres dès 150$ • Vosthermos",
-      description:
-        `Thermos embué? Vosthermos remplace vos vitres thermos dès 150$. Garantie 10 ans, soumission gratuite 24h. 15 ans d'expérience. Montréal, Rive-Sud, Laval ☎ ${co.phone}`,
-      images: [{ url: co.logo }],
-      locale: "fr_CA",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: "Remplacement Thermos dès 150$ • Garantie 10 ans • Vosthermos",
-      description: `Vosthermos - Experts en remplacement de thermos depuis 15 ans. Soumission gratuite 24h ☎ ${co.phone}`,
-      images: [co.logo],
-    },
     icons: {
       icon: "/images/Vos-Thermos-Logo-petit.png",
       apple: "/images/Vos-Thermos-Logo-petit.png",
@@ -240,9 +224,6 @@ export default async function RootLayout({ children }) {
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
         />
-        <link rel="alternate" hrefLang="fr" href="https://www.vosthermos.com/" />
-        <link rel="alternate" hrefLang="en" href="https://www.vosthermos.com/en/" />
-        <link rel="alternate" hrefLang="x-default" href="https://www.vosthermos.com/" />
         <link rel="alternate" type="application/rss+xml" title="Blogue Vosthermos" href="/feed.xml" />
         <script
           type="application/ld+json"

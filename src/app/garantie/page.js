@@ -5,7 +5,13 @@ export const metadata = {
   title: "service garanti | Vosthermos",
   description:
     "Vosthermos offre une service professionnel garanti sur le remplacement de vitres thermos, 5 ans sur la main-d'oeuvre et une garantie transferable au prochain proprietaire. Service de reclamation simple et rapide.",
-  alternates: { canonical: "https://www.vosthermos.com/garantie" },
+  alternates: {
+    canonical: "https://www.vosthermos.com/garantie",
+    languages: {
+      "fr-CA": "https://www.vosthermos.com/garantie",
+      "en-CA": "https://www.vosthermos.com/en/garantie",
+    },
+  },
   openGraph: {
     title: "service garanti | Vosthermos",
     description:
@@ -19,7 +25,7 @@ export const metadata = {
 
 const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "OfferWarranty",
+  "@type": "WarrantyPromise",
   name: "Garantie Vosthermos",
   description:
     "service professionnel garanti sur le remplacement de vitres thermos, 5 ans sur la main-d'oeuvre, transferable au prochain proprietaire.",

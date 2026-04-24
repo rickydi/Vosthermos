@@ -10,8 +10,8 @@ export const metadata = {
   alternates: {
     canonical: "https://www.vosthermos.com/en/blogue",
     languages: {
-      fr: "https://www.vosthermos.com/blogue",
-      en: "https://www.vosthermos.com/en/blogue",
+      "fr-CA": "https://www.vosthermos.com/blogue",
+      "en-CA": "https://www.vosthermos.com/en/blogue",
     },
   },
   openGraph: {

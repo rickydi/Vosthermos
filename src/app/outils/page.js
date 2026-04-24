@@ -5,6 +5,15 @@ export const metadata = {
   description:
     "Outils gratuits pour diagnostiquer vos portes et fenetres, estimer les couts et comparer les options. Calculateurs de prix, quiz de diagnostic et comparateurs bases sur 15 ans d'experience.",
   alternates: { canonical: "https://www.vosthermos.com/outils" },
+  openGraph: {
+    type: "website",
+    url: "https://www.vosthermos.com/outils",
+    title: "Outils interactifs portes et fenetres | Vosthermos",
+    description:
+      "Calculateurs gratuits, quiz diagnostic et comparateurs pour choisir la bonne reparation.",
+    images: [{ url: "https://www.vosthermos.com/images/Vos-Thermos-Logo.png" }],
+    locale: "fr_CA",
+  },
 };
 
 const TOOLS = [

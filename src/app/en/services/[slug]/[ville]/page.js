@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { SERVICES, getService } from "@/lib/services-data";
+import { SERVICES_EN, getServiceEn } from "@/lib/services-data-en";
 import { CITIES, getCity } from "@/lib/cities";
 import { COMPANY_INFO } from "@/lib/company-info";
 
 export function generateStaticParams() {
   const params = [];
-  for (const service of SERVICES) {
+  for (const service of SERVICES_EN) {
     for (const city of CITIES) {
       params.push({ slug: service.slug, ville: city.slug });
     }
@@ -16,20 +16,28 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }) {
   const { slug, ville } = await params;
-  const service = getService(slug);
+  const service = getServiceEn(slug);
   const city = getCity(ville);
   if (!service || !city) return {};
 
   const title = `${service.shortTitle} in ${city.name} | Vosthermos`;
   const description = `${service.shortTitle} in ${city.name}, ${city.region}. Professional service with warranty. Free quote. ${COMPANY_INFO.phone}. Vosthermos serves ${city.name} and surrounding areas.`;
+  const url = `https://www.vosthermos.com/en/services/${service.slug}/${city.slug}`;
+  const frUrl = `https://www.vosthermos.com/services/${service.frSlug}/${city.slug}`;
 
   return {
     title,
     description,
-    alternates: { canonical: `https://www.vosthermos.com/en/services/${service.slug}/${city.slug}` },
+    alternates: {
+      canonical: url,
+      languages: {
+        "fr-CA": frUrl,
+        "en-CA": url,
+      },
+    },
     openGraph: {
       type: "website",
-      url: `https://www.vosthermos.com/en/services/${service.slug}/${city.slug}`,
+      url,
       title,
       description,
       images: [{ url: "https://www.vosthermos.com/images/Vos-Thermos-Logo.png" }],
@@ -40,11 +48,11 @@ export async function generateMetadata({ params }) {
 
 export default async function ServiceCityPage({ params }) {
   const { slug, ville } = await params;
-  const service = getService(slug);
+  const service = getServiceEn(slug);
   const city = getCity(ville);
   if (!service || !city) notFound();
 
-  const otherServices = SERVICES.filter((s) => s.slug !== service.slug).slice(0, 4);
+  const otherServices = SERVICES_EN.filter((s) => s.slug !== service.slug).slice(0, 4);
   const otherCities = CITIES.filter((c) => c.slug !== city.slug).slice(0, 8);
 
   const jsonLd = {

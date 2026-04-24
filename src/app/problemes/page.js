@@ -6,7 +6,22 @@ export const metadata = {
   title: "Problemes courants de portes et fenetres — Solutions | Vosthermos",
   description:
     `Fenetre embuee, porte patio qui coince, courant d'air, moustiquaire dechiree? Trouvez les causes et solutions pour tous les problemes de portes et fenetres. Experts depuis 15 ans. ${COMPANY_INFO.phone}.`,
-  alternates: { canonical: "https://www.vosthermos.com/problemes" },
+  alternates: {
+    canonical: "https://www.vosthermos.com/problemes",
+    languages: {
+      "fr-CA": "https://www.vosthermos.com/problemes",
+      "en-CA": "https://www.vosthermos.com/en/problemes",
+    },
+  },
+  openGraph: {
+    type: "website",
+    url: "https://www.vosthermos.com/problemes",
+    title: "Problemes courants de portes et fenetres | Vosthermos",
+    description:
+      "Causes, symptomes et solutions pour les problemes de portes et fenetres: thermos embue, courant d'air, quincaillerie, moustiquaire et plus.",
+    images: [{ url: COMPANY_INFO.logo }],
+    locale: "fr_CA",
+  },
 };
 
 export default function ProblemesPage() {

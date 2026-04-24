@@ -6,6 +6,15 @@ export const metadata = {
   description:
     "Guides etape par etape pour diagnostiquer et reparer vos portes et fenetres. Videos, outils, couts et astuces de nos techniciens experts avec 15 ans d'experience.",
   alternates: { canonical: "https://www.vosthermos.com/guides" },
+  openGraph: {
+    type: "website",
+    url: "https://www.vosthermos.com/guides",
+    title: "Guides pratiques portes et fenetres | Vosthermos",
+    description:
+      "Guides etape par etape pour diagnostiquer, entretenir et reparer vos portes et fenetres.",
+    images: [{ url: "https://www.vosthermos.com/images/Vos-Thermos-Logo.png" }],
+    locale: "fr_CA",
+  },
 };
 
 export default function GuidesIndex() {

@@ -1,8 +1,8 @@
 User-agent: *
 Allow: /
-Disallow: /checkout
-Disallow: /panier
 Disallow: /admin
+Allow: /api/mcp
+Allow: /api/public/
 Disallow: /api/
 Disallow: /user
 

@@ -8,8 +8,8 @@ export const metadata = {
   alternates: {
     canonical: "https://www.vosthermos.com/en/garantie",
     languages: {
-      fr: "https://www.vosthermos.com/garantie",
-      en: "https://www.vosthermos.com/en/garantie",
+      "fr-CA": "https://www.vosthermos.com/garantie",
+      "en-CA": "https://www.vosthermos.com/en/garantie",
     },
   },
   openGraph: {
@@ -135,7 +135,7 @@ const faqItems = [
 
 const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "OfferWarranty",
+  "@type": "WarrantyPromise",
   name: "Vosthermos Warranty",
   description:
     "professional guaranteed service on sealed glass replacement, 5 years on workmanship, transferable to the next property owner.",

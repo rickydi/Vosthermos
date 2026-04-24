@@ -7,7 +7,13 @@ export const metadata = {
   title: "Blogue | Vosthermos - Conseils portes et fenetres",
   description:
     "Decouvrez nos articles de blogue sur la reparation de portes et fenetres, l'entretien, les guides pratiques et les nouvelles de Vosthermos.",
-  alternates: { canonical: "https://www.vosthermos.com/blogue" },
+  alternates: {
+    canonical: "https://www.vosthermos.com/blogue",
+    languages: {
+      "fr-CA": "https://www.vosthermos.com/blogue",
+      "en-CA": "https://www.vosthermos.com/en/blogue",
+    },
+  },
   openGraph: {
     type: "website",
     url: "https://www.vosthermos.com/blogue",

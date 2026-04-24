@@ -71,7 +71,8 @@ export default function Header({ company }) {
     const serviceMatch = pathname.match(/^\/services\/([^/]+)(.*)$/);
     if (serviceMatch) {
       const [, slug, rest] = serviceMatch;
-      const enSlug = SERVICE_SLUG_FR_EN[slug] || slug;
+      const enSlug = SERVICE_SLUG_FR_EN[slug];
+      if (!enSlug) return "/en/#services";
       return `/en/services/${enSlug}${rest}`;
     }
     // Add /en prefix for English URL (autres pages)

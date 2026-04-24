@@ -46,6 +46,15 @@ async function getSerperKey() {
   return apiKey;
 }
 
+function isVosthermosUrl(link) {
+  try {
+    const hostname = new URL(link).hostname.toLowerCase().replace(/^www\./, "");
+    return hostname === "vosthermos.com";
+  } catch {
+    return false;
+  }
+}
+
 async function checkRankingSerper(cityName, keywordBase) {
   const apiKey = await getSerperKey();
   if (!apiKey) return { position: null, aiMention: false, url: null };
@@ -83,7 +92,7 @@ async function checkRankingSerper(cityName, keywordBase) {
       // Look for vosthermos in this page
       // Serper's `position` is page-relative (1-10 per page), so compute absolute
       for (const o of data.organic || []) {
-        if ((o.link || "").includes("vosthermos")) {
+        if (isVosthermosUrl(o.link || "")) {
           const pagePos = o.position || 0;
           const absolutePos = (page - 1) * 10 + pagePos;
           return { position: absolutePos, aiMention, url: o.link };
@@ -126,7 +135,7 @@ async function debugSerper(cityName, keywordBase) {
         pos: o.position,
         title: o.title?.slice(0, 60),
         link: o.link,
-        isVosthermos: (o.link || "").toLowerCase().includes("vosthermos"),
+        isVosthermos: isVosthermosUrl(o.link || ""),
       }));
       allResults.push(...organic);
       if (!vosthermosFound) {

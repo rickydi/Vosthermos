@@ -98,7 +98,7 @@ const TOOLS = [
       properties: {
         problem: { type: "string", description: "Description du probleme" },
         windowAgeYears: { type: "number", description: "Age de la fenetre/porte en annees", default: 15 },
-        framStatus: { type: "string", enum: ["good", "warped", "rotten"], description: "Etat du cadre", default: "good" },
+        frameStatus: { type: "string", enum: ["good", "warped", "rotten"], description: "Etat du cadre", default: "good" },
       },
       required: ["problem"],
     },
@@ -226,7 +226,7 @@ async function executeTool(name, args = {}) {
       return compareRepairVsReplace({
         problem: args.problem,
         windowAgeYears: args.windowAgeYears || 15,
-        framStatus: args.framStatus || "good",
+        framStatus: args.frameStatus || args.framStatus || "good",
       });
 
     case "check_window_warranty":
@@ -264,7 +264,7 @@ async function executeTool(name, args = {}) {
           url: `https://www.vosthermos.com/reparation-portes-et-fenetres/${c.slug}`,
         })),
         total: CITIES.length,
-        serviceRadius: "100 km autour de Saint-Francois-Xavier, QC",
+        serviceRadius: `100 km autour de ${COMPANY_INFO.city}, ${COMPANY_INFO.province}`,
         brand: "Vosthermos",
       };
 
@@ -339,7 +339,7 @@ async function readResource(uri) {
             description: "Experts en reparation de portes et fenetres depuis 2010",
             phone: COMPANY_INFO.phone,
             email: COMPANY_INFO.email,
-            address: `${COMPANY_INFO.address}, Saint-Francois-Xavier, QC ${COMPANY_INFO.postalCode}`,
+            address: `${COMPANY_INFO.address}, ${COMPANY_INFO.city}, ${COMPANY_INFO.province} ${COMPANY_INFO.postalCode}`,
             hours: "Lundi-Vendredi 08:00-17:00",
             yearsExperience: 15,
             warranty: { thermos: "10 ans transferable", labor: "5 ans" },
@@ -533,7 +533,7 @@ export async function GET() {
           id: 1,
         },
       },
-      documentation: "https://www.vosthermos.com/api/mcp-docs",
+      documentation: "https://www.vosthermos.com/mcp-docs",
     },
     {
       headers: {

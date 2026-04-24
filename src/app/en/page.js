@@ -21,8 +21,9 @@ export const metadata = {
   alternates: {
     canonical: "https://www.vosthermos.com/en/",
     languages: {
-      fr: "https://www.vosthermos.com/",
-      en: "https://www.vosthermos.com/en/",
+      "fr-CA": "https://www.vosthermos.com/",
+      "en-CA": "https://www.vosthermos.com/en/",
+      "x-default": "https://www.vosthermos.com/",
     },
   },
   openGraph: {
@@ -486,7 +487,7 @@ export default async function HomeEn() {
             </div>
             <div className="rounded-xl overflow-hidden shadow-sm border border-[var(--color-border)]">
               <iframe
-                src="https://maps.google.com/maps?q=330+Chemin+Saint-Francois-Xavier+Delson+QC+Canada&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                src="https://maps.google.com/maps?q=330+Chemin+Saint-Francois-Xavier+Saint-Francois-Xavier-de-Brompton+QC+Canada&t=&z=15&ie=UTF8&iwloc=&output=embed"
                 width="100%"
                 height="100%"
                 style={{ border: 0, minHeight: "350px" }}
