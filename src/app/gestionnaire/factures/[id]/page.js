@@ -83,6 +83,7 @@ export default async function FacturePage({ params }) {
     web: company?.company_web || "",
     tps: company?.tps_number || "",
     tvq: company?.tvq_number || "",
+    rbq: company?.rbq_number || "",
   };
 
   return <FactureView wo={serialized} company={coProp} />;

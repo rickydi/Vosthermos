@@ -19,6 +19,7 @@ const COMPANY_KEYS = [
   "company_neq",
   "tps_number",
   "tvq_number",
+  "rbq_number",
 ];
 
 const COMPANY_DEFAULTS = {
@@ -33,6 +34,7 @@ const COMPANY_DEFAULTS = {
   company_neq: "",
   tps_number: "",
   tvq_number: "",
+  rbq_number: "",
 };
 
 export async function GET(request) {

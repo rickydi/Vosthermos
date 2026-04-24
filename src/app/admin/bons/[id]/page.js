@@ -18,6 +18,7 @@ function mapCompany(s) {
     web: s.company_web || "",
     tps: s.tps_number || "",
     tvq: s.tvq_number || "",
+    rbq: s.rbq_number || "",
   };
 }
 

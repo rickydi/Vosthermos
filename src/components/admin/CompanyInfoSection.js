@@ -14,6 +14,7 @@ const FIELDS = [
   { key: "company_web", label: "Site web", placeholder: "vosthermos.com" },
   { key: "tps_number", label: "Numero TPS", placeholder: "123456789 RT0001" },
   { key: "tvq_number", label: "Numero TVQ", placeholder: "1234567890 TQ0001" },
+  { key: "rbq_number", label: "Licence RBQ", placeholder: "5790-9498-01" },
 ];
 
 export default function CompanyInfoSection() {

@@ -12,8 +12,9 @@ const COMPANY_DEFAULTS = {
   phone: "514-825-8411",
   email: "info@vosthermos.com",
   web: "vosthermos.com",
-  tps: "XXXXX XXXX RT0001",
-  tvq: "XXXXXXXXXX TQ0001",
+  tps: "",
+  tvq: "",
+  rbq: "",
 };
 
 function fmt(n) { return `${Number(n || 0).toFixed(2)} $`; }
@@ -356,11 +357,12 @@ function Footer({ co }) {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
         <div>
           <p style={{ fontWeight: 700, color: "#374151", textTransform: "uppercase", letterSpacing: "0.08em", fontSize: "9px", marginBottom: "4px" }}>Conditions</p>
-          <p style={{ color: "#6b7280", lineHeight: 1.4 }}>Net 30 jours · Intérêt 1,5%/mois sur solde en retard · Chèque, virement Interac ou comptant.</p>
+          <p style={{ color: "#6b7280", lineHeight: 1.4 }}>Intérêt 1,5%/mois sur solde en retard · Chèque, virement Interac ou comptant.</p>
+          {co.rbq && <p style={{ color: "#6b7280", lineHeight: 1.4, marginTop: 4 }}>Licence RBQ : <strong style={{ color: "#374151" }}>{co.rbq}</strong></p>}
         </div>
         <div>
           <p style={{ fontWeight: 700, color: "#374151", textTransform: "uppercase", letterSpacing: "0.08em", fontSize: "9px", marginBottom: "4px" }}>Taxes</p>
-          <p style={{ color: "#6b7280", lineHeight: 1.4 }}>TPS: {co.tps}<br />TVQ: {co.tvq}</p>
+          <p style={{ color: "#6b7280", lineHeight: 1.4 }}>TPS: {co.tps || "—"}<br />TVQ: {co.tvq || "—"}</p>
         </div>
       </div>
     </div>
