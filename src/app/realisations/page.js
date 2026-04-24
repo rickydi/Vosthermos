@@ -20,6 +20,18 @@ export const metadata = {
 
 const projects = [
   {
+    id: 0,
+    title: "Avant/apres - thermos legerement embue",
+    category: "Vitre Thermos",
+    city: "Quebec",
+    description:
+      "Exemple illustratif d'un thermos intact avec une legere buee interne, puis le resultat apres remplacement de l'unite scellee: verre clair, cadre conserve et finition propre.",
+    comparisonImage: "/images/realisations/avant-apres-thermos-embue-quebec.png",
+    imageAlt:
+      "Exemple illustratif avant apres d'une vitre thermos legerement embuee au Quebec",
+    illustrative: true,
+  },
+  {
     id: 1,
     title: "Remplacement de thermos double - fenetre de salon",
     category: "Vitre Thermos",
