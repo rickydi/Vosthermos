@@ -25,7 +25,7 @@ export default function QuoteForm({ compact = false, theme = "dark" }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const uploadButtonClass = lightTheme
-    ? "flex items-center gap-2 text-[var(--color-muted)] hover:text-[var(--color-teal)] text-xs transition-colors py-1"
+    ? "flex w-full items-center gap-2 min-h-[42px] px-3 py-2.5 border border-dashed border-[rgba(19,33,39,.2)] rounded-[13px] bg-white/60 text-[var(--color-muted)] hover:text-[var(--color-teal)] hover:border-[var(--color-teal)]/40 text-xs font-bold transition-colors"
     : "flex items-center gap-2 text-white/50 hover:text-white text-xs transition-colors py-1";
   const fileChipClass = lightTheme
     ? "flex items-center gap-1.5 bg-[var(--color-teal)]/10 rounded-lg px-2.5 py-1.5 text-xs text-[var(--color-teal)]"
