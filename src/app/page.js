@@ -281,10 +281,12 @@ export default async function Home() {
             </div>
 
             <div className="hp-hero-conversion">
+              {/* TEMP: bulle RBQ désactivée
               <div className="hp-form-proof">
                 <i className="fas fa-shield-halved"></i>
                 <span>RBQ 5790-9498-01 · Soumission gratuite</span>
               </div>
+              */}
               <QuoteCard />
             </div>
           </div>
