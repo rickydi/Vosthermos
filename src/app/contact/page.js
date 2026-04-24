@@ -63,6 +63,16 @@ const SUBJECT_CONTEXT = {
     lede: "Demandez une évaluation sur place pour vos fenêtres en bois patrimoniales.",
     defaultMessage: "Bonjour, j'aimerais une évaluation pour un projet de restauration patrimoniale.",
   },
+  "opti-fenetre": {
+    title: "Évaluation OPTI-FENÊTRE",
+    lede:
+      "Demandez une analyse de vos fenêtres pour savoir si une remise à neuf est plus rentable qu'un remplacement complet.",
+    defaultMessage:
+      "Bonjour, j'aimerais une évaluation pour le programme OPTI-FENÊTRE. Je peux joindre des photos de mes fenêtres.",
+    formTitle: "Demander mon évaluation",
+    formSub: "Ajoutez des photos ou vidéos pour accélérer le diagnostic.",
+    submitLabel: "Envoyer ma demande",
+  },
   copropriete: {
     title: "Copropriétés et gestionnaires",
     lede: "Parlons de votre parc de fenêtres : plan pluriannuel, portail B2B, contrat d'entretien.",
