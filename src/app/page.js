@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import prisma from "@/lib/prisma";
 import ProductCard from "@/components/ProductCard";
 import { serializeProducts } from "@/lib/serialize";
@@ -136,29 +135,90 @@ export default async function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(howToJsonLd) }}
       />
 
-      {/* Soumission + Image */}
-      <section className="bg-[var(--color-teal-dark)] pt-[80px]">
-        <div className="max-w-[1200px] mx-auto px-6 pt-12 lg:pt-16 pb-16">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-            <div className="bg-white/[0.06] backdrop-blur-md rounded-2xl p-8 border border-white/[0.08] flex flex-col justify-center">
-              <div className="flex items-center gap-2 mb-1">
+      {/* Hero + formulaire de soumission */}
+      <section className="relative overflow-hidden bg-[var(--color-teal-dark)] pt-[80px] text-white">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, rgba(255,255,255,.045) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.045) 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+            maskImage: "radial-gradient(ellipse at 50% 0%, #000 25%, transparent 78%)",
+            WebkitMaskImage: "radial-gradient(ellipse at 50% 0%, #000 25%, transparent 78%)",
+          }}
+        ></div>
+        <div className="absolute -right-40 top-20 h-[420px] w-[420px] rounded-full bg-[var(--color-red)]/20 blur-3xl"></div>
+        <div className="absolute -left-32 bottom-0 h-[360px] w-[360px] rounded-full bg-cyan-300/10 blur-3xl"></div>
+
+        <div className="relative max-w-[1200px] mx-auto px-6 pt-14 lg:pt-20 pb-16 lg:pb-20">
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_500px] gap-10 lg:gap-14 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 mb-6">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                 </span>
-                <span className="text-green-400 text-[10px] font-semibold uppercase tracking-wider">Service disponible</span>
+                <span className="text-cyan-100 text-[11px] font-extrabold uppercase tracking-[0.16em]">
+                  Service disponible Grand Montréal
+                </span>
               </div>
-              <h2 className="text-white font-bold text-xl mb-1">Besoin d&apos;une reparation?</h2>
-              <p className="text-white/50 text-sm mb-5">Soumission gratuite, reponse rapide.</p>
-              <QuoteForm compact />
+
+              <h1 className="font-['Space_Grotesk'] text-[clamp(42px,6.8vw,86px)] leading-[0.9] tracking-[-0.06em] font-extrabold max-w-[10ch]">
+                Réparez avant de remplacer.
+              </h1>
+              <p className="text-white/72 text-lg lg:text-xl leading-relaxed max-w-2xl mt-7">
+                Vosthermos remplace les vitres thermos embuées, répare la quincaillerie
+                et prolonge la vie de vos portes et fenêtres avec un service clair, rapide et garanti.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-3 mt-8">
+                <a
+                  href={`tel:${COMPANY_INFO.phoneTel}`}
+                  className="inline-flex items-center justify-center gap-2 bg-[var(--color-red)] text-white px-7 py-4 rounded-full font-extrabold hover:bg-[var(--color-red-dark)] transition-all shadow-xl"
+                >
+                  <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
+                </a>
+                <Link
+                  href="/boutique"
+                  className="inline-flex items-center justify-center gap-2 border border-white/25 bg-white/10 text-white px-7 py-4 rounded-full font-extrabold hover:bg-white/15 transition-all"
+                >
+                  Voir la boutique
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-9 max-w-2xl">
+                {[
+                  { value: "15+", label: "ans d'expérience" },
+                  { value: `${totalProducts}+`, label: "pièces en stock" },
+                  { value: "10 ans", label: "garantie thermos" },
+                  { value: "24 h", label: "réponse ouvrable" },
+                ].map((item) => (
+                  <div key={item.label} className="rounded-2xl border border-white/12 bg-white/[0.075] p-4 backdrop-blur">
+                    <strong className="block text-2xl font-extrabold leading-none">{item.value}</strong>
+                    <span className="block mt-2 text-[10px] font-extrabold uppercase tracking-wider text-white/62">
+                      {item.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="hidden lg:block relative rounded-2xl overflow-hidden shadow-2xl">
-              <Image
-                src="/images/hero-technicien.jpg"
-                alt="Technicien Vosthermos installant une vitre thermos"
-                fill
-                className="object-cover"
-              />
+
+            <div className="rounded-[28px] border border-white/12 bg-white/[0.075] p-6 lg:p-8 backdrop-blur-xl shadow-2xl">
+              <div className="flex items-start justify-between gap-4 mb-5">
+                <div>
+                  <span className="text-[var(--color-red-light)] text-[11px] font-extrabold uppercase tracking-[0.16em]">
+                    Soumission gratuite
+                  </span>
+                  <h2 className="text-white font-extrabold text-2xl mt-2">Décrivez votre besoin</h2>
+                </div>
+                <span className="hidden sm:inline-flex rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-white/75">
+                  Réponse rapide
+                </span>
+              </div>
+              <p className="text-white/55 text-sm mb-5">
+                Email requis, photos et vidéos acceptées pour accélérer l&apos;estimation.
+              </p>
+              <QuoteForm compact />
             </div>
           </div>
         </div>
@@ -191,10 +251,10 @@ export default async function Home() {
               <span className="inline-block bg-[var(--color-red)]/10 text-[var(--color-red)] text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full mb-4">
                 Plus de {totalProducts} pieces en stock
               </span>
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight">
                 Pieces de remplacement pour{" "}
                 <span className="text-[var(--color-red)]">portes et fenetres</span>
-              </h1>
+              </h2>
               <p className="text-[var(--color-muted)] text-lg mt-4 max-w-2xl">
                 Quincaillerie, vitres thermos, moustiquaires et plus. Livraison rapide ou cueillette sur place.
               </p>
