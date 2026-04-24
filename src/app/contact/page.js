@@ -99,7 +99,7 @@ function PortalPreview() {
           </div>
           <div className="contact-demo-content">
             <div className="contact-demo-heading">
-              <p>Marronnier</p>
+              <p>Syndicat Les Cèdres</p>
               <span>12 demandes actives</span>
             </div>
             <div className="contact-demo-kpis">
