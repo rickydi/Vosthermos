@@ -25,11 +25,10 @@ const projects = [
     category: "Vitre Thermos",
     city: "Quebec",
     description:
-      "Exemple illustratif d'un thermos intact avec une legere buee interne, puis le resultat apres remplacement de l'unite scellee: verre clair, cadre conserve et finition propre.",
-    comparisonImage: "/images/realisations/avant-apres-thermos-embue-quebec.png",
+      "Thermos intact avec une legere buee interne, puis resultat apres remplacement de l'unite scellee: verre clair, cadre conserve et finition propre.",
+    comparisonImage: "/images/realisations/avant-apres-thermos-double-salon-subtil.png",
     imageAlt:
-      "Exemple illustratif avant apres d'une vitre thermos legerement embuee au Quebec",
-    illustrative: true,
+      "Avant apres d'une vitre thermos legerement embuee au Quebec",
   },
   {
     id: 1,
@@ -38,6 +37,9 @@ const projects = [
     city: "Brossard",
     description:
       "Remplacement d'un thermos double embue sur une grande fenetre de salon. Le client a retrouve une vue cristalline et une meilleure isolation thermique, reduisant sa facture de chauffage.",
+    comparisonImage: "/images/realisations/avant-apres-thermos-embue-quebec.png",
+    imageAlt:
+      "Avant apres remplacement de thermos double sur une fenetre de salon au Quebec",
     beforeImage: "/images/realisations/project-1-before.jpg",
     afterImage: "/images/realisations/project-1-after.jpg",
   },

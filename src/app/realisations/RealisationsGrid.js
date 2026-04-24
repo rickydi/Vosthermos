@@ -64,11 +64,6 @@ export default function RealisationsGrid({ projects, categories }) {
                       Apres
                     </span>
                   </div>
-                  {project.illustrative && (
-                    <div className="absolute bottom-3 left-3 bg-white/90 text-[var(--color-teal-dark)] text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded">
-                      Exemple illustratif
-                    </div>
-                  )}
                 </>
               ) : (
                 <>
