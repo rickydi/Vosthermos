@@ -30,6 +30,12 @@ export default function ManagerEdit({ manager, allClients }) {
   const [links, setLinks] = useState(
     manager.clients.map((c) => ({
       clientId: c.clientId,
+      clientName: c.clientName,
+      clientAddress: c.clientAddress || "",
+      clientCity: c.clientCity || "",
+      clientPostalCode: c.clientPostalCode || "",
+      clientPhone: c.clientPhone || "",
+      clientEmail: c.clientEmail || "",
       permissions: [...c.permissions],
       paymentTermsDays: c.paymentTermsDays ?? 30,
     }))
@@ -52,6 +58,12 @@ export default function ManagerEdit({ manager, allClients }) {
     const c = allClients.find((x) => x.id === Number(clientId));
     setLinks((ls) => [...ls, {
       clientId: Number(clientId),
+      clientName: c?.name || "",
+      clientAddress: c?.address || "",
+      clientCity: c?.city || "",
+      clientPostalCode: c?.postalCode || "",
+      clientPhone: "",
+      clientEmail: "",
       permissions: ["view_work_orders", "view_invoices", "request_intervention"],
       paymentTermsDays: c?.paymentTermsDays ?? 30,
     }]);
@@ -59,6 +71,10 @@ export default function ManagerEdit({ manager, allClients }) {
 
   function setTerms(clientId, days) {
     setLinks((ls) => ls.map((l) => l.clientId === clientId ? { ...l, paymentTermsDays: Number(days) } : l));
+  }
+
+  function setField(clientId, field, value) {
+    setLinks((ls) => ls.map((l) => l.clientId === clientId ? { ...l, [field]: value } : l));
   }
 
   function removeClient(clientId) {
@@ -79,11 +95,18 @@ export default function ManagerEdit({ manager, allClients }) {
         const d = await res.json().catch(() => ({}));
         throw new Error(d.error || "Erreur");
       }
-      // Update payment terms per client (stored on Client model)
+      // Update client infos per link (address + terms stored on Client model)
       await Promise.all(links.map((l) => fetch(`/api/admin/clients/${l.clientId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paymentTermsDays: l.paymentTermsDays ?? 30 }),
+        body: JSON.stringify({
+          address: l.clientAddress ?? "",
+          city: l.clientCity ?? "",
+          postalCode: l.clientPostalCode ?? "",
+          phone: l.clientPhone ?? "",
+          email: l.clientEmail ?? "",
+          paymentTermsDays: l.paymentTermsDays ?? 30,
+        }),
       })));
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
@@ -209,6 +232,59 @@ export default function ManagerEdit({ manager, allClients }) {
                     <i className="fas fa-times"></i> Retirer
                   </button>
                 </div>
+                <div className="mb-4 pb-4 border-b admin-border">
+                  <div className="admin-text-muted text-xs font-bold uppercase tracking-wider mb-2">Adresse de facturation</div>
+                  <div className="grid md:grid-cols-2 gap-3">
+                    <div className="md:col-span-2">
+                      <label className="admin-text-muted text-xs mb-1 block">Adresse</label>
+                      <input
+                        value={link.clientAddress || ""}
+                        onChange={(e) => setField(link.clientId, "clientAddress", e.target.value)}
+                        placeholder="1500 Montée Monette"
+                        className="admin-input border rounded-lg px-3 py-2 text-sm w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="admin-text-muted text-xs mb-1 block">Ville</label>
+                      <input
+                        value={link.clientCity || ""}
+                        onChange={(e) => setField(link.clientId, "clientCity", e.target.value)}
+                        placeholder="Laval"
+                        className="admin-input border rounded-lg px-3 py-2 text-sm w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="admin-text-muted text-xs mb-1 block">Code postal</label>
+                      <input
+                        value={link.clientPostalCode || ""}
+                        onChange={(e) => setField(link.clientId, "clientPostalCode", e.target.value)}
+                        placeholder="H7N 5K3"
+                        className="admin-input border rounded-lg px-3 py-2 text-sm w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="admin-text-muted text-xs mb-1 block">Téléphone copropriété</label>
+                      <input
+                        value={link.clientPhone || ""}
+                        onChange={(e) => setField(link.clientId, "clientPhone", e.target.value)}
+                        placeholder="450-555-0100"
+                        className="admin-input border rounded-lg px-3 py-2 text-sm w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="admin-text-muted text-xs mb-1 block">Email copropriété</label>
+                      <input
+                        type="email"
+                        value={link.clientEmail || ""}
+                        onChange={(e) => setField(link.clientId, "clientEmail", e.target.value)}
+                        placeholder="info@copro.ca"
+                        className="admin-input border rounded-lg px-3 py-2 text-sm w-full"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="admin-text-muted text-xs font-bold uppercase tracking-wider mb-2">Permissions portail gestionnaire</div>
                 <div className="grid md:grid-cols-2 gap-2">
                   {ALL_PERMISSIONS.map((p) => (
                     <label key={p.key} className="flex items-center gap-2 text-sm cursor-pointer">

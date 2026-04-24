@@ -13,13 +13,13 @@ export default async function ManagerEditPage({ params }) {
     prisma.managerUser.findUnique({
       where: { id: Number(id) },
       include: {
-        clients: { include: { client: { select: { id: true, name: true, city: true, paymentTermsDays: true } } } },
+        clients: { include: { client: { select: { id: true, name: true, address: true, city: true, postalCode: true, phone: true, email: true, paymentTermsDays: true } } } },
         sessions: { orderBy: { createdAt: "desc" }, take: 10 },
       },
     }),
     prisma.client.findMany({
       where: { type: "gestionnaire" },
-      select: { id: true, name: true, city: true, paymentTermsDays: true },
+      select: { id: true, name: true, address: true, city: true, postalCode: true, paymentTermsDays: true },
       orderBy: { name: "asc" },
     }),
   ]);
@@ -38,7 +38,11 @@ export default async function ManagerEditPage({ params }) {
     clients: manager.clients.map((mc) => ({
       clientId: mc.clientId,
       clientName: mc.client.name,
-      clientCity: mc.client.city,
+      clientAddress: mc.client.address || "",
+      clientCity: mc.client.city || "",
+      clientPostalCode: mc.client.postalCode || "",
+      clientPhone: mc.client.phone || "",
+      clientEmail: mc.client.email || "",
       paymentTermsDays: mc.client.paymentTermsDays ?? 30,
       permissions: mc.permissions,
     })),
