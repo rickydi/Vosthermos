@@ -95,7 +95,7 @@ export default async function GestionnairePage({ searchParams }) {
         visibleAuClient: true,
         statut: { in: ["invoiced", "paid"] },
       },
-      include: { client: { select: { name: true } } },
+      include: { client: { select: { name: true, paymentTermsDays: true } } },
       orderBy: { date: "desc" },
       take: 50,
     }),
@@ -169,18 +169,25 @@ export default async function GestionnairePage({ searchParams }) {
     })),
   };
 
-  const invoices = invoicedWOs.map((wo) => ({
-    id: wo.id,
-    number: wo.number,
-    date: wo.date?.toISOString() || null,
-    statut: wo.statut,
-    description: wo.description,
-    clientName: wo.client?.name || "",
-    subtotal: Number(wo.subtotal),
-    tps: Number(wo.tps),
-    tvq: Number(wo.tvq),
-    total: Number(wo.total),
-  }));
+  const invoices = invoicedWOs.map((wo) => {
+    const termsDays = wo.client?.paymentTermsDays ?? 30;
+    const invoiceDate = wo.date ? new Date(wo.date) : null;
+    const dueDate = invoiceDate ? new Date(invoiceDate.getTime() + termsDays * 24 * 60 * 60 * 1000) : null;
+    return {
+      id: wo.id,
+      number: wo.number,
+      date: wo.date?.toISOString() || null,
+      dueDate: dueDate?.toISOString() || null,
+      paymentTermsDays: termsDays,
+      statut: wo.statut,
+      description: wo.description,
+      clientName: wo.client?.name || "",
+      subtotal: Number(wo.subtotal),
+      tps: Number(wo.tps),
+      tvq: Number(wo.tvq),
+      total: Number(wo.total),
+    };
+  });
 
   const toPayTotal = invoices.filter((i) => i.statut === "invoiced").reduce((s, i) => s + i.total, 0);
   const paidTotal = invoices.filter((i) => i.statut === "paid").reduce((s, i) => s + i.total, 0);

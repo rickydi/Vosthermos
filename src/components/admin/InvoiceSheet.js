@@ -238,6 +238,7 @@ function FullHeader({ wo, co, meta }) {
           <div style={{ fontSize: "12px" }}>
             {wo.technician?.name && <Row label="Technicien" value={wo.technician.name} />}
             <Row label="Date" value={fmtDate(wo.date)} />
+            {isInvoice && wo.dueDate && <Row label="Échéance" value={`${fmtDate(wo.dueDate)} (Net ${wo.paymentTermsDays || 30} j.)`} />}
             {(meta.arrival || meta.departure) && <Row label="Horaire" value={`${meta.arrival || "—"} – ${meta.departure || "—"}`} />}
             {meta.duration && <Row label="Durée" value={meta.duration} />}
           </div>

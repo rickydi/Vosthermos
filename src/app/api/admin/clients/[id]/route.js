@@ -34,22 +34,20 @@ export async function PUT(req, { params }) {
 
   const { id } = await params;
   const body = await req.json();
-  const client = await prisma.client.update({
-    where: { id: parseInt(id) },
-    data: {
-      name: body.name,
-      type: body.type === "gestionnaire" ? "gestionnaire" : "particulier",
-      company: body.company || null,
-      address: body.address || null,
-      city: body.city || null,
-      province: body.province || "QC",
-      postalCode: body.postalCode || null,
-      phone: body.phone || null,
-      email: body.email || null,
-      notes: body.notes || null,
-    },
-  });
+  const data = {};
+  if (body.name !== undefined) data.name = body.name;
+  if (body.type !== undefined) data.type = body.type === "gestionnaire" ? "gestionnaire" : "particulier";
+  if (body.company !== undefined) data.company = body.company || null;
+  if (body.address !== undefined) data.address = body.address || null;
+  if (body.city !== undefined) data.city = body.city || null;
+  if (body.province !== undefined) data.province = body.province || "QC";
+  if (body.postalCode !== undefined) data.postalCode = body.postalCode || null;
+  if (body.phone !== undefined) data.phone = body.phone || null;
+  if (body.email !== undefined) data.email = body.email || null;
+  if (body.notes !== undefined) data.notes = body.notes || null;
+  if (body.paymentTermsDays !== undefined) data.paymentTermsDays = Number(body.paymentTermsDays) || 30;
 
+  const client = await prisma.client.update({ where: { id: parseInt(id) }, data });
   return NextResponse.json(client);
 }
 

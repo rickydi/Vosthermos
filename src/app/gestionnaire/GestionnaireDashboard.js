@@ -573,28 +573,59 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                       <tr style={{ borderBottom: "1px solid var(--border)" }}>
                         <th style={{ padding: "14px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em" }}>Facture</th>
                         <th style={{ padding: "14px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em" }}>Date</th>
+                        <th style={{ padding: "14px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em" }}>Échéance</th>
                         <th style={{ padding: "14px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em" }}>Description</th>
                         <th style={{ padding: "14px 16px", textAlign: "right", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em" }}>Total</th>
                         <th style={{ padding: "14px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em" }}>Statut</th>
+                        <th style={{ padding: "14px 16px", textAlign: "right", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em" }}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {invoices.map((inv) => (
+                      {invoices.map((inv) => {
+                        const isOverdue = inv.statut === "invoiced" && inv.dueDate && new Date(inv.dueDate) < new Date();
+                        return (
                         <tr key={inv.id} style={{ borderBottom: "1px solid var(--border)" }}>
                           <td style={{ padding: "14px 16px", fontFamily: "monospace", fontSize: 12, fontWeight: 700 }}>{inv.number}</td>
                           <td style={{ padding: "14px 16px", fontSize: 13, color: "var(--text-muted)" }}>{fmtDate(inv.date)}</td>
+                          <td style={{ padding: "14px 16px", fontSize: 13, color: isOverdue ? "var(--red)" : "var(--text-muted)", fontWeight: isOverdue ? 700 : 400 }}>
+                            {inv.dueDate ? fmtDate(inv.dueDate) : "—"}
+                            {inv.paymentTermsDays && <div style={{ fontSize: 10, fontWeight: 500 }}>Net {inv.paymentTermsDays} j.</div>}
+                          </td>
                           <td style={{ padding: "14px 16px", fontSize: 13 }}>
                             {inv.description?.slice(0, 80) || "—"}
                             {isGlobal && inv.clientName && <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>{inv.clientName}</div>}
                           </td>
                           <td style={{ padding: "14px 16px", textAlign: "right", fontWeight: 700, fontSize: 14 }}>{fmtMoney(inv.total)}</td>
                           <td style={{ padding: "14px 16px" }}>
-                            <span className={"gm-tag " + (inv.statut === "paid" ? "green" : "amber")}>
-                              {inv.statut === "paid" ? "Payé" : "À payer"}
+                            <span className={"gm-tag " + (inv.statut === "paid" ? "green" : isOverdue ? "red" : "amber")}>
+                              {inv.statut === "paid" ? "Payé" : isOverdue ? "En retard" : "À payer"}
                             </span>
                           </td>
+                          <td style={{ padding: "14px 16px", textAlign: "right", whiteSpace: "nowrap" }}>
+                            <a
+                              href={`/gestionnaire/factures/${inv.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="gm-btn gm-btn-sm"
+                              style={{ marginRight: 6, textDecoration: "none" }}
+                              title="Voir la facture"
+                            >
+                              <i className="fas fa-eye"></i>Voir
+                            </a>
+                            <a
+                              href={`/gestionnaire/factures/${inv.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="gm-btn gm-btn-sm"
+                              style={{ textDecoration: "none" }}
+                              title="Imprimer / Télécharger PDF"
+                            >
+                              <i className="fas fa-print"></i>
+                            </a>
+                          </td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
                 )}

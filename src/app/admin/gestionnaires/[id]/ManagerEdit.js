@@ -31,6 +31,7 @@ export default function ManagerEdit({ manager, allClients }) {
     manager.clients.map((c) => ({
       clientId: c.clientId,
       permissions: [...c.permissions],
+      paymentTermsDays: c.paymentTermsDays ?? 30,
     }))
   );
   const [saving, setSaving] = useState(false);
@@ -48,10 +49,16 @@ export default function ManagerEdit({ manager, allClients }) {
   }
 
   function addClient(clientId) {
+    const c = allClients.find((x) => x.id === Number(clientId));
     setLinks((ls) => [...ls, {
       clientId: Number(clientId),
       permissions: ["view_work_orders", "view_invoices", "request_intervention"],
+      paymentTermsDays: c?.paymentTermsDays ?? 30,
     }]);
+  }
+
+  function setTerms(clientId, days) {
+    setLinks((ls) => ls.map((l) => l.clientId === clientId ? { ...l, paymentTermsDays: Number(days) } : l));
   }
 
   function removeClient(clientId) {
@@ -72,6 +79,12 @@ export default function ManagerEdit({ manager, allClients }) {
         const d = await res.json().catch(() => ({}));
         throw new Error(d.error || "Erreur");
       }
+      // Update payment terms per client (stored on Client model)
+      await Promise.all(links.map((l) => fetch(`/api/admin/clients/${l.clientId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentTermsDays: l.paymentTermsDays ?? 30 }),
+      })));
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
       router.refresh();
@@ -207,6 +220,20 @@ export default function ManagerEdit({ manager, allClients }) {
                       <span className="admin-text">{p.label}</span>
                     </label>
                   ))}
+                </div>
+                <div className="mt-4 pt-3 border-t admin-border flex items-center gap-3 flex-wrap">
+                  <label className="admin-text-muted text-xs font-bold uppercase tracking-wider">Termes de paiement :</label>
+                  <select
+                    value={link.paymentTermsDays ?? 30}
+                    onChange={(e) => setTerms(link.clientId, e.target.value)}
+                    className="admin-input border rounded-lg px-3 py-1.5 text-sm"
+                  >
+                    <option value="15">Net 15 jours</option>
+                    <option value="30">Net 30 jours</option>
+                    <option value="45">Net 45 jours</option>
+                    <option value="60">Net 60 jours</option>
+                  </select>
+                  <span className="admin-text-muted text-xs">s&apos;applique aux factures de cette copropriété</span>
                 </div>
               </div>
             );

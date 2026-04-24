@@ -301,6 +301,7 @@ model Client {
   passwordHash   String?
   portalToken    String?      @unique
   isPortalActive Boolean      @default(false)
+  paymentTermsDays Int        @default(30)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   workOrders     WorkOrder[]
