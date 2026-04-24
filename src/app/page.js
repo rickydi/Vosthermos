@@ -13,6 +13,16 @@ import BeforeAfterSlider from "@/components/BeforeAfterSlider";
 import Accordion from "@/components/Accordion";
 import { getCategoryIcon } from "@/lib/category-icons";
 import { getActivePromotions } from "@/lib/promotions";
+
+export const metadata = {
+  alternates: {
+    canonical: "https://www.vosthermos.com/",
+    languages: {
+      "fr-CA": "https://www.vosthermos.com/",
+      "en-CA": "https://www.vosthermos.com/en/",
+    },
+  },
+};
 import { COMPANY_INFO } from "@/lib/company-info";
 
 export default async function Home() {

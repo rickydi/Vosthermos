@@ -36,17 +36,45 @@ export default function Header({ company }) {
 
   if (isAdmin || isTerrain || isGestionnaire) return null;
 
+  // FR slug → EN slug pour les services (miroir inverse des redirects dans next.config.mjs)
+  const SERVICE_SLUG_FR_EN = {
+    "insertion-porte": "door-insert",
+    "reparation-portes-bois": "wooden-door-repair",
+    "remplacement-vitre-thermos": "sealed-glass-replacement",
+    "remplacement-quincaillerie": "hardware-replacement",
+    "moustiquaires-sur-mesure": "custom-screen-doors",
+    "calfeutrage": "caulking",
+    "desembuage": "defogging",
+    "coupe-froid": "weatherstripping",
+  };
+  const SERVICE_SLUG_EN_FR = Object.fromEntries(
+    Object.entries(SERVICE_SLUG_FR_EN).map(([fr, en]) => [en, fr])
+  );
+
   // Build the alternate language URL
   const getAlternateLangUrl = () => {
     if (isEnglish) {
-      // Strip /en prefix to get French URL
-      const frPath = pathname.replace(/^\/en(\/|$)/, "/");
+      // Strip /en prefix to get French URL, puis mapper slug service EN→FR
+      let frPath = pathname.replace(/^\/en(\/|$)/, "/");
+      const serviceMatch = frPath.match(/^\/services\/([^/]+)(.*)$/);
+      if (serviceMatch) {
+        const [, slug, rest] = serviceMatch;
+        const frSlug = SERVICE_SLUG_EN_FR[slug] || slug;
+        frPath = `/services/${frSlug}${rest}`;
+      }
       return frPath || "/";
     }
     if (pathname === "/contact" || pathname === "/rendez-vous") return "/en/#contact";
     if (pathname === "/realisations" || pathname.startsWith("/realisations/")) return "/en/#gallery";
     if (pathname === "/panier" || pathname.startsWith("/checkout")) return pathname;
-    // Add /en prefix for English URL
+    // FR → EN : mapper slug service si applicable
+    const serviceMatch = pathname.match(/^\/services\/([^/]+)(.*)$/);
+    if (serviceMatch) {
+      const [, slug, rest] = serviceMatch;
+      const enSlug = SERVICE_SLUG_FR_EN[slug] || slug;
+      return `/en/services/${enSlug}${rest}`;
+    }
+    // Add /en prefix for English URL (autres pages)
     return `/en${pathname === "/" ? "" : pathname}`;
   };
 

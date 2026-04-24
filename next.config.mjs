@@ -28,6 +28,14 @@ const nextConfig = {
   },
   async redirects() {
     return [
+      // ── Canonicalization: non-www → www (évite duplicate content SEO) ──
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "vosthermos.com" }],
+        destination: "https://www.vosthermos.com/:path*",
+        permanent: true,
+      },
+
       // ── Anciennes URLs (pre-refonte Next.js) — 301 pour recuperer le SEO ──
       { source: "/secteurs/:ville", destination: "/reparation-portes-et-fenetres/:ville", permanent: true },
       { source: "/secteurs", destination: "/services", permanent: true },

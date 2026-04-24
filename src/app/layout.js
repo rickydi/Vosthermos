@@ -18,13 +18,10 @@ export async function generateMetadata() {
       "reparation portes fenetres, vitre thermos, remplacement thermos, remplacement quincaillerie, moustiquaire sur mesure, porte-patio, porte en bois, calfeutrage fenetres, desembuage, coupe-froid, insertion porte, boutique pieces portes fenetres, quincaillerie porte fenetre en ligne, Saint-Francois-Xavier, Montreal, Rive-Sud, Laval, Longueuil, Brossard, Granby, Saint-Hyacinthe, Terrebonne, Repentigny",
     authors: [{ name: "Vosthermos" }],
     robots: "index, follow",
-    alternates: {
-      canonical: "https://www.vosthermos.com/",
-      languages: {
-        fr: "https://www.vosthermos.com/",
-        en: "https://www.vosthermos.com/en/",
-      },
-    },
+    metadataBase: new URL("https://www.vosthermos.com"),
+    // Note: canonical intentionally NOT set at root — chaque page doit définir
+    // son propre canonical pour éviter qu'elles pointent toutes vers la home.
+    // Les pages qui ne le font pas n'auront simplement pas de canonical (OK).
     applicationName: "Vosthermos",
     openGraph: {
       type: "website",
