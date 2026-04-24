@@ -838,6 +838,11 @@
     width: min(100% - 32px, 1180px);
   }
 
+  /* Masquer la kicker "Réparation portes et fenêtres" du hero sur mobile */
+  .hp-hero .hp-copy .hp-kicker {
+    display: none;
+  }
+
   .hp-hero {
     padding: 70px 0 56px;
   }
