@@ -14,11 +14,43 @@ const OPENING_TYPES = [
 
 export default function ClientDetail({ client }) {
   const router = useRouter();
-  const [tab, setTab] = useState("batiments");
+  const [tab, setTab] = useState("infos");
 
   // State local pour bâtiments et unités
   const [buildings, setBuildings] = useState(client.buildings);
   const [units, setUnits] = useState(client.units);
+
+  // Infos client éditables
+  const [infoForm, setInfoForm] = useState({
+    name: client.name || "",
+    address: client.address || "",
+    city: client.city || "",
+    postalCode: client.postalCode || "",
+    phone: client.phone || "",
+    email: client.email || "",
+    paymentTermsDays: client.paymentTermsDays ?? 30,
+  });
+  const [savingInfo, setSavingInfo] = useState(false);
+  const [infoMsg, setInfoMsg] = useState("");
+
+  async function saveClientInfo() {
+    setSavingInfo(true);
+    setInfoMsg("");
+    try {
+      const res = await fetch(`/api/admin/clients/${client.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(infoForm),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Erreur"); }
+      setInfoMsg("Enregistré ✓");
+      setTimeout(() => setInfoMsg(""), 2500);
+      router.refresh();
+    } catch (err) {
+      setInfoMsg(err.message);
+    }
+    setSavingInfo(false);
+  }
 
   // Modaux
   const [buildingModal, setBuildingModal] = useState(null); // null | {isNew:true} | {id, code, name, address}
@@ -127,6 +159,7 @@ export default function ClientDetail({ client }) {
 
       <div className="flex gap-2 mb-6 border-b admin-border">
         {[
+          { id: "infos", label: "Infos", icon: "fa-id-card" },
           { id: "batiments", label: "Bâtiments", icon: "fa-building" },
           { id: "unites", label: "Unités", icon: "fa-door-open" },
         ].map((t) => (
@@ -139,6 +172,65 @@ export default function ClientDetail({ client }) {
           </button>
         ))}
       </div>
+
+      {tab === "infos" && (
+        <div className="admin-card border rounded-xl p-6 max-w-3xl">
+          <h2 className="admin-text font-bold mb-4">Informations de la copropriété</h2>
+          <p className="admin-text-muted text-xs mb-4">Ces infos apparaissent sur les factures et documents envoyés à la copropriété.</p>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="md:col-span-2">
+              <label className="admin-text-muted text-xs mb-1 block font-medium">Nom</label>
+              <input value={infoForm.name} onChange={(e) => setInfoForm({ ...infoForm, name: e.target.value })}
+                className="admin-input border rounded-lg px-3 py-2 text-sm w-full" />
+            </div>
+            <div className="md:col-span-2">
+              <label className="admin-text-muted text-xs mb-1 block font-medium">Adresse</label>
+              <input value={infoForm.address} onChange={(e) => setInfoForm({ ...infoForm, address: e.target.value })}
+                placeholder="1500 Montée Monette"
+                className="admin-input border rounded-lg px-3 py-2 text-sm w-full" />
+            </div>
+            <div>
+              <label className="admin-text-muted text-xs mb-1 block font-medium">Ville</label>
+              <input value={infoForm.city} onChange={(e) => setInfoForm({ ...infoForm, city: e.target.value })}
+                placeholder="Laval"
+                className="admin-input border rounded-lg px-3 py-2 text-sm w-full" />
+            </div>
+            <div>
+              <label className="admin-text-muted text-xs mb-1 block font-medium">Code postal</label>
+              <input value={infoForm.postalCode} onChange={(e) => setInfoForm({ ...infoForm, postalCode: e.target.value })}
+                placeholder="H7N 5K3"
+                className="admin-input border rounded-lg px-3 py-2 text-sm w-full" />
+            </div>
+            <div>
+              <label className="admin-text-muted text-xs mb-1 block font-medium">Téléphone</label>
+              <input value={infoForm.phone} onChange={(e) => setInfoForm({ ...infoForm, phone: e.target.value })}
+                className="admin-input border rounded-lg px-3 py-2 text-sm w-full" />
+            </div>
+            <div>
+              <label className="admin-text-muted text-xs mb-1 block font-medium">Email</label>
+              <input type="email" value={infoForm.email} onChange={(e) => setInfoForm({ ...infoForm, email: e.target.value })}
+                className="admin-input border rounded-lg px-3 py-2 text-sm w-full" />
+            </div>
+            <div>
+              <label className="admin-text-muted text-xs mb-1 block font-medium">Termes de paiement</label>
+              <select value={infoForm.paymentTermsDays} onChange={(e) => setInfoForm({ ...infoForm, paymentTermsDays: Number(e.target.value) })}
+                className="admin-input border rounded-lg px-3 py-2 text-sm w-full">
+                <option value="15">Net 15 jours</option>
+                <option value="30">Net 30 jours</option>
+                <option value="45">Net 45 jours</option>
+                <option value="60">Net 60 jours</option>
+              </select>
+            </div>
+          </div>
+          <div className="mt-5 pt-4 border-t admin-border flex items-center gap-3">
+            <button onClick={saveClientInfo} disabled={savingInfo}
+              className="px-5 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-bold disabled:opacity-50">
+              {savingInfo ? "Enregistrement..." : "Enregistrer"}
+            </button>
+            {infoMsg && <span className={`text-sm ${infoMsg.includes("✓") ? "text-green-500" : "text-red-500"}`}>{infoMsg}</span>}
+          </div>
+        </div>
+      )}
 
       {tab === "batiments" && (
         <div>

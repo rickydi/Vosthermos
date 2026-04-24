@@ -39,6 +39,7 @@ const KEY_MAP = {
   company_web: "web",
   tps_number: "tpsNumber",
   tvq_number: "tvqNumber",
+  rbq_number: "rbqNumber",
 };
 
 // Convert a Quebec phone "514-825-8411" -> "+15148258411"

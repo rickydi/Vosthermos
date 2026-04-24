@@ -74,16 +74,16 @@ export default async function FacturePage({ params }) {
   };
 
   const coProp = {
-    legal: company?.company_legal_name || "",
-    address: company?.company_address || "",
-    city: company?.company_city || "",
-    postalCode: company?.company_postal_code || "",
-    phone: company?.company_phone || "",
-    email: company?.company_email || "",
-    web: company?.company_web || "",
-    tps: company?.tps_number || "",
-    tvq: company?.tvq_number || "",
-    rbq: company?.rbq_number || "",
+    legal: company?.legalName || "",
+    address: company?.address || "",
+    city: company?.city || "",
+    postalCode: company?.postalCode || "",
+    phone: company?.phone || "",
+    email: company?.email || "",
+    web: company?.web || "",
+    tps: company?.tpsNumber || "",
+    tvq: company?.tvqNumber || "",
+    rbq: company?.rbqNumber || "",
   };
 
   return <FactureView wo={serialized} company={coProp} />;
