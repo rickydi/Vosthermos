@@ -9,7 +9,8 @@ const inputWrap = "relative";
 const inputClass = "w-full bg-white border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:border-[var(--color-red)] transition-colors pr-10";
 const checkClass = "absolute right-3 top-1/2 -translate-y-1/2 text-green-500 text-sm pointer-events-none";
 
-export default function QuoteForm({ compact = false }) {
+export default function QuoteForm({ compact = false, theme = "dark" }) {
+  const lightTheme = theme === "light";
   const [status, setStatus] = useState("");
   const [sending, setSending] = useState(false);
   const [name, setName] = useState("");
@@ -18,12 +19,24 @@ export default function QuoteForm({ compact = false }) {
   const [service, setService] = useState("");
   const [message, setMessage] = useState("");
   const [files, setFiles] = useState([]);
-  const [uploading, setUploading] = useState(false);
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
   const { trackFieldFocus, trackFieldValue, trackHover, trackSubmit } = useFormTracking("soumission");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const uploadButtonClass = lightTheme
+    ? "flex items-center gap-2 text-[var(--color-muted)] hover:text-[var(--color-teal)] text-xs transition-colors py-1"
+    : "flex items-center gap-2 text-white/50 hover:text-white text-xs transition-colors py-1";
+  const fileChipClass = lightTheme
+    ? "flex items-center gap-1.5 bg-[var(--color-teal)]/10 rounded-lg px-2.5 py-1.5 text-xs text-[var(--color-teal)]"
+    : "flex items-center gap-1.5 bg-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white/70";
+  const compactSuccessText = lightTheme ? "text-gray-600" : "text-white/70";
+  const compactSuccessPhone = lightTheme
+    ? "text-[var(--color-teal)] hover:text-[var(--color-red)] text-xs transition-colors"
+    : "text-white/50 hover:text-white text-xs transition-colors";
+  const compactSuccessReset = lightTheme
+    ? "text-gray-500 hover:text-[var(--color-teal)] text-[11px] underline transition-colors"
+    : "text-white/30 hover:text-white/60 text-[11px] underline transition-colors";
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -146,15 +159,15 @@ export default function QuoteForm({ compact = false }) {
           <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center animate-[fadeIn_0.5s_ease-out]">
             <span className="text-green-400 text-2xl">&#10003;</span>
           </div>
-          <p className="text-white/70 text-sm text-center">
+          <p className={`${compactSuccessText} text-sm text-center`}>
             On s&apos;en occupe! Nous vous contacterons rapidement.
           </p>
-          <a href={`tel:${COMPANY_INFO.phoneTel}`} className="text-white/50 hover:text-white text-xs transition-colors">
+          <a href={`tel:${COMPANY_INFO.phoneTel}`} className={compactSuccessPhone}>
             <i className="fas fa-phone text-[10px] mr-1"></i>{COMPANY_INFO.phone}
           </a>
           <button
             onClick={() => setStatus("")}
-            className="text-white/30 hover:text-white/60 text-[11px] underline transition-colors"
+            className={compactSuccessReset}
           >
             Envoyer une autre demande
           </button>
@@ -253,7 +266,7 @@ export default function QuoteForm({ compact = false }) {
       {/* File upload */}
       <div>
         <button type="button" onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-2 text-white/50 hover:text-white text-xs transition-colors py-1">
+          className={uploadButtonClass}>
           <i className="fas fa-paperclip"></i>
           Joindre photo ou video (max 25 MB)
         </button>
@@ -261,7 +274,7 @@ export default function QuoteForm({ compact = false }) {
         {files.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-2">
             {files.map((f, i) => (
-              <div key={i} className="flex items-center gap-1.5 bg-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white/70">
+              <div key={i} className={fileChipClass}>
                 <i className={`fas ${f.type.startsWith("video") ? "fa-video" : "fa-image"} text-[10px]`}></i>
                 <span className="max-w-[120px] truncate">{f.name}</span>
                 <button type="button" onClick={() => removeFile(i)} className="text-red-400 hover:text-red-300 ml-1">
