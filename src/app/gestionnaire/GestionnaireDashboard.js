@@ -1157,23 +1157,32 @@ function RequestDetailModal({ requestId, onClose, onDeleted }) {
           {data.statut !== "draft" && data.technician && (
             <>
               <div className="modal-section-title">Technicien attitré</div>
-              <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 12, background: "var(--bg)", borderRadius: 6 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 16, padding: 16, background: "var(--bg)", borderRadius: 8, border: "1px solid var(--border)" }}>
                 {data.technician.photoUrl ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
                   <img
                     src={data.technician.photoUrl}
                     alt={data.technician.name}
-                    style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "2px solid var(--border)" }}
+                    style={{ width: 96, height: 96, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "3px solid var(--red)", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}
+                    onError={(e) => { e.target.style.display = "none"; }}
                   />
                 ) : (
-                  <i className="fas fa-user-hard-hat" style={{ fontSize: 28, color: "var(--text-dim)", flexShrink: 0 }}></i>
+                  <div style={{
+                    width: 96, height: 96, borderRadius: "50%", flexShrink: 0,
+                    background: "var(--teal-dark)", color: "#fff",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 38,
+                  }}>
+                    <i className="fas fa-user-hard-hat"></i>
+                  </div>
                 )}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 700, fontSize: 14 }}>{data.technician.name}</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: 4 }}>Vosthermos</div>
+                  <div style={{ fontWeight: 700, fontSize: 18, lineHeight: 1.2, marginBottom: 6 }}>{data.technician.name}</div>
                   {data.technician.phone ? (
                     <a
                       href={`tel:${data.technician.phone}`}
-                      style={{ fontSize: 13, color: "var(--red)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}
+                      style={{ fontSize: 15, fontWeight: 600, color: "var(--red)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}
                     >
                       <i className="fas fa-phone"></i> {data.technician.phone}
                     </a>

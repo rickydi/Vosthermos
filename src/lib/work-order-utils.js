@@ -1,5 +1,7 @@
 import prisma from "./prisma";
 
+const MIN_INVOICE_NUMBER = 150;
+
 export async function generateWorkOrderNumber() {
   const year = new Date().getFullYear();
 
@@ -14,14 +16,15 @@ export async function generateWorkOrderNumber() {
   const key = `workorder:${prefix}:${year}`;
 
   // Atomic increment via ON CONFLICT — safe under concurrent inserts.
+  // Floor à MIN_INVOICE_NUMBER : si compteur < 150, passe à 150, sinon +1.
   const rows = await prisma.$queryRawUnsafe(
-    `INSERT INTO counters ("key", "value") VALUES ($1, 1)
-     ON CONFLICT ("key") DO UPDATE SET "value" = counters."value" + 1
+    `INSERT INTO counters ("key", "value") VALUES ($1, ${MIN_INVOICE_NUMBER})
+     ON CONFLICT ("key") DO UPDATE SET "value" = GREATEST(counters."value" + 1, ${MIN_INVOICE_NUMBER})
      RETURNING "value"`,
     key
   );
 
-  const nextNum = rows[0]?.value ?? 1;
+  const nextNum = rows[0]?.value ?? MIN_INVOICE_NUMBER;
   return `${prefix}-${year}-${String(nextNum).padStart(3, "0")}`;
 }
 
