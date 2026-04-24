@@ -371,18 +371,21 @@ model UnitOpening {
 }
 
 model ManagerUser {
-  id           Int                @id @default(autoincrement())
-  email        String             @unique
-  firstName    String
-  lastName     String
-  phone        String?
-  isActive     Boolean            @default(true)
-  lastLoginAt  DateTime?
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
-  clients      ManagerClient[]
-  sessions     ManagerSession[]
-  magicTokens  ManagerMagicToken[]
+  id                      Int                @id @default(autoincrement())
+  email                   String             @unique
+  firstName               String
+  lastName                String
+  phone                   String?
+  isActive                Boolean            @default(true)
+  notifyNewInvoice        Boolean            @default(true)
+  notifyWorkOrderScheduled Boolean           @default(true)
+  notifyInvoiceOverdue    Boolean            @default(true)
+  lastLoginAt             DateTime?
+  createdAt               DateTime           @default(now())
+  updatedAt               DateTime           @updatedAt
+  clients                 ManagerClient[]
+  sessions                ManagerSession[]
+  magicTokens             ManagerMagicToken[]
 
   @@index([email])
   @@map("manager_users")

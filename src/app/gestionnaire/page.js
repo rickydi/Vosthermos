@@ -201,6 +201,7 @@ export default async function GestionnairePage({ searchParams }) {
       name: "Facture à régler",
       time: "Récent",
       text: `${pendingInvoicesCount} facture${pendingInvoicesCount > 1 ? "s" : ""} en attente de paiement`,
+      tab: "factures",
     });
   }
 

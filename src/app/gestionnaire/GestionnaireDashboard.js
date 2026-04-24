@@ -242,18 +242,40 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                   </div>
                   <div className="gm-card" style={{ padding: 14 }}>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 10 }}>
-                      {notifs.map((n, i) => (
-                        <div key={i} className={"inb" + (n.kind === "urgent" ? " urgent" : n.kind === "ok" ? " ok" : "")}>
-                          <div className="inb-icon"><i className={"fas " + n.icon}></i></div>
-                          <div className="inb-body">
-                            <div className="inb-top">
-                              <div className="inb-name">{n.name}</div>
-                              <div className="inb-time">{n.time}</div>
+                      {notifs.map((n, i) => {
+                        const isClickable = n.tab;
+                        const content = (
+                          <>
+                            <div className="inb-icon"><i className={"fas " + n.icon}></i></div>
+                            <div className="inb-body">
+                              <div className="inb-top">
+                                <div className="inb-name">{n.name}</div>
+                                <div className="inb-time">{n.time}</div>
+                              </div>
+                              <div className="inb-text">{n.text}</div>
                             </div>
-                            <div className="inb-text">{n.text}</div>
+                            {isClickable && <i className="fas fa-chevron-right" style={{ color: "var(--text-muted)", fontSize: 11, alignSelf: "center", marginLeft: 8 }}></i>}
+                          </>
+                        );
+                        if (isClickable) {
+                          return (
+                            <button
+                              key={i}
+                              type="button"
+                              onClick={() => setActiveTab(n.tab)}
+                              className={"inb" + (n.kind === "urgent" ? " urgent" : n.kind === "ok" ? " ok" : "")}
+                              style={{ cursor: "pointer", border: 0, font: "inherit", textAlign: "left", width: "100%" }}
+                            >
+                              {content}
+                            </button>
+                          );
+                        }
+                        return (
+                          <div key={i} className={"inb" + (n.kind === "urgent" ? " urgent" : n.kind === "ok" ? " ok" : "")}>
+                            {content}
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 </>
@@ -633,8 +655,20 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
             </div>
           )}
 
-          {/* PLAN / DOCUMENTS / PARAMÈTRES — placeholders */}
-          {(activeTab === "plan" || activeTab === "documents" || activeTab === "parametres") && (
+          {/* PARAMÈTRES */}
+          {activeTab === "parametres" && (
+            <ParametresTab
+              manager={manager}
+              activeClient={activeClient}
+              clients={clients}
+              isGlobal={isGlobal}
+              canManageUnits={!isGlobal && activeClient?.permissions?.includes("manage_units")}
+              onClientRenamed={() => router.refresh()}
+            />
+          )}
+
+          {/* PLAN / DOCUMENTS — placeholders */}
+          {(activeTab === "plan" || activeTab === "documents") && (
             <div className="gm-content">
               <div className="gm-page-head gm-page-head-compact">
                 <div className="gm-page-sub">Section en cours de développement</div>
@@ -645,7 +679,6 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                 <div style={{ color: "var(--text-muted)", fontSize: 13 }}>
                   {activeTab === "plan" && "Plan pluriannuel et budget prévisionnel 5 ans."}
                   {activeTab === "documents" && "Rapports, plans et attestations Loi 25."}
-                  {activeTab === "parametres" && "Profil et préférences de notifications."}
                 </div>
               </div>
             </div>
@@ -1735,5 +1768,192 @@ function OpeningEditor({ initial, onClose, onSaved, onDeleted }) {
         </div>
       </form>
     </ModalShell>
+  );
+}
+
+function ParametresTab({ manager, activeClient, clients, isGlobal, canManageUnits, onClientRenamed }) {
+  const [profile, setProfile] = useState(null);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [msg, setMsg] = useState("");
+
+  const [renameValue, setRenameValue] = useState(activeClient?.name || "");
+  const [renameAddress, setRenameAddress] = useState(activeClient?.address || "");
+  const [renameCity, setRenameCity] = useState(activeClient?.city || "");
+  const [savingRename, setSavingRename] = useState(false);
+  const [renameMsg, setRenameMsg] = useState("");
+
+  useEffect(() => {
+    fetch("/api/manager/profile")
+      .then((r) => r.json())
+      .then((d) => { if (!d.error) setProfile(d); })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    setRenameValue(activeClient?.name || "");
+    setRenameAddress(activeClient?.address || "");
+    setRenameCity(activeClient?.city || "");
+  }, [activeClient]);
+
+  async function saveProfile() {
+    if (!profile) return;
+    setSavingProfile(true);
+    setMsg("");
+    try {
+      const res = await fetch("/api/manager/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(profile),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || "Erreur");
+      setMsg("Profil enregistré ✓");
+      setTimeout(() => setMsg(""), 2500);
+    } catch (err) {
+      setMsg(err.message);
+    }
+    setSavingProfile(false);
+  }
+
+  async function saveCopro() {
+    if (!activeClient?.id) return;
+    if (!renameValue.trim()) { setRenameMsg("Le nom ne peut pas être vide"); return; }
+    setSavingRename(true);
+    setRenameMsg("");
+    try {
+      const res = await fetch(`/api/manager/clients/${activeClient.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: renameValue, address: renameAddress, city: renameCity }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || "Erreur");
+      setRenameMsg("Copropriété mise à jour ✓");
+      setTimeout(() => setRenameMsg(""), 2500);
+      onClientRenamed();
+    } catch (err) {
+      setRenameMsg(err.message);
+    }
+    setSavingRename(false);
+  }
+
+  if (!profile) {
+    return (
+      <div className="gm-content">
+        <div className="gm-card" style={{ textAlign: "center", padding: 40, color: "var(--text-muted)" }}>
+          <i className="fas fa-spinner fa-spin"></i> Chargement...
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="gm-content">
+      <div className="gm-page-head gm-page-head-compact">
+        <div className="gm-page-sub">Profil, notifications et informations copropriété</div>
+      </div>
+
+      {/* Profil */}
+      <div className="gm-section-head">
+        <div className="gm-section-title">Profil · {profile.email}</div>
+      </div>
+      <div className="gm-card" style={{ padding: 20 }}>
+        <div className="gm-form" style={{ maxWidth: 560 }}>
+          <div className="gm-field-row gm-field-row-2">
+            <TextInput label="Prénom" value={profile.firstName} onChange={(v) => setProfile({ ...profile, firstName: v })} required />
+            <TextInput label="Nom" value={profile.lastName} onChange={(v) => setProfile({ ...profile, lastName: v })} required />
+          </div>
+          <TextInput label="Téléphone" value={profile.phone} onChange={(v) => setProfile({ ...profile, phone: v })} placeholder="514-555-0100" />
+          <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: -8 }}>
+            L&apos;email <strong>{profile.email}</strong> sert de login et ne peut pas être modifié ici.
+          </div>
+          <div className="gm-form-actions" style={{ marginTop: 8 }}>
+            <button type="button" onClick={saveProfile} disabled={savingProfile} className="gm-btn gm-btn-sm gm-btn-primary">
+              {savingProfile ? "Enregistrement..." : "Enregistrer profil"}
+            </button>
+            {msg && <span style={{ fontSize: 12, color: msg.includes("✓") ? "var(--green)" : "var(--red)", marginLeft: 10, alignSelf: "center" }}>{msg}</span>}
+          </div>
+        </div>
+      </div>
+
+      {/* Notifications */}
+      <div className="gm-section-head">
+        <div className="gm-section-title">Notifications par courriel</div>
+      </div>
+      <div className="gm-card" style={{ padding: 20 }}>
+        <label style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", cursor: "pointer" }}>
+          <input type="checkbox" checked={profile.notifyNewInvoice} onChange={(e) => setProfile({ ...profile, notifyNewInvoice: e.target.checked })} style={{ marginTop: 3 }} />
+          <div>
+            <div style={{ fontWeight: 600, fontSize: 14 }}>Nouvelle facture</div>
+            <div style={{ fontSize: 12, color: "var(--text-muted)" }}>M&apos;aviser dès qu&apos;une facture est émise pour une de mes copropriétés.</div>
+          </div>
+        </label>
+        <label style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", cursor: "pointer", borderTop: "1px solid var(--border)" }}>
+          <input type="checkbox" checked={profile.notifyWorkOrderScheduled} onChange={(e) => setProfile({ ...profile, notifyWorkOrderScheduled: e.target.checked })} style={{ marginTop: 3 }} />
+          <div>
+            <div style={{ fontWeight: 600, fontSize: 14 }}>Bon de travail planifié</div>
+            <div style={{ fontSize: 12, color: "var(--text-muted)" }}>M&apos;aviser quand un technicien est assigné à une intervention.</div>
+          </div>
+        </label>
+        <label style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", cursor: "pointer", borderTop: "1px solid var(--border)" }}>
+          <input type="checkbox" checked={profile.notifyInvoiceOverdue} onChange={(e) => setProfile({ ...profile, notifyInvoiceOverdue: e.target.checked })} style={{ marginTop: 3 }} />
+          <div>
+            <div style={{ fontWeight: 600, fontSize: 14 }}>Rappel facture en retard</div>
+            <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Recevoir un rappel si une facture dépasse la date d&apos;échéance.</div>
+          </div>
+        </label>
+        <div className="gm-form-actions" style={{ marginTop: 14, paddingTop: 14, borderTop: "1px solid var(--border)" }}>
+          <button type="button" onClick={saveProfile} disabled={savingProfile} className="gm-btn gm-btn-sm gm-btn-primary">
+            {savingProfile ? "Enregistrement..." : "Enregistrer préférences"}
+          </button>
+        </div>
+      </div>
+
+      {/* Copropriété active */}
+      {!isGlobal && activeClient && canManageUnits && (
+        <>
+          <div className="gm-section-head">
+            <div className="gm-section-title">Copropriété · {activeClient.name}</div>
+          </div>
+          <div className="gm-card" style={{ padding: 20 }}>
+            <div className="gm-form" style={{ maxWidth: 560 }}>
+              <TextInput label="Nom de la copropriété" value={renameValue} onChange={setRenameValue} placeholder="Ex: Le Marronnier" required />
+              <TextInput label="Adresse" value={renameAddress} onChange={setRenameAddress} placeholder="1500 Montée Monette" />
+              <TextInput label="Ville" value={renameCity} onChange={setRenameCity} placeholder="Laval" />
+              <div className="gm-form-actions" style={{ marginTop: 8 }}>
+                <button type="button" onClick={saveCopro} disabled={savingRename} className="gm-btn gm-btn-sm gm-btn-primary">
+                  {savingRename ? "Enregistrement..." : "Enregistrer la copropriété"}
+                </button>
+                {renameMsg && <span style={{ fontSize: 12, color: renameMsg.includes("✓") ? "var(--green)" : "var(--red)", marginLeft: 10, alignSelf: "center" }}>{renameMsg}</span>}
+              </div>
+              <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>
+                Les modifications s&apos;appliquent à toutes les factures et documents de cette copropriété.
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {isGlobal && (
+        <>
+          <div className="gm-section-head">
+            <div className="gm-section-title">Vos copropriétés · {clients.length}</div>
+          </div>
+          <div className="gm-card" style={{ padding: 4 }}>
+            {clients.map((c) => (
+              <div key={c.clientId} style={{ padding: "14px 16px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ fontWeight: 700 }}>{c.clientName}</div>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{c.city || "—"}</div>
+                </div>
+                <button type="button" className="gm-btn gm-btn-sm" onClick={() => window.location.href = `/gestionnaire?c=${c.clientId}&tab=parametres`}>
+                  <i className="fas fa-cog"></i>Gérer
+                </button>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   );
 }
