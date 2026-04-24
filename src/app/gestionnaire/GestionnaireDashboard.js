@@ -605,8 +605,14 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                     <tbody>
                       {invoices.map((inv) => {
                         const isOverdue = inv.statut === "invoiced" && inv.dueDate && new Date(inv.dueDate) < new Date();
+                        const openInvoice = () => window.open(`/gestionnaire/factures/${inv.id}`, "_blank", "noopener,noreferrer");
                         return (
-                        <tr key={inv.id} style={{ borderBottom: "1px solid var(--border)" }}>
+                        <tr
+                          key={inv.id}
+                          style={{ borderBottom: "1px solid var(--border)", cursor: "pointer" }}
+                          onClick={openInvoice}
+                          className="gm-row-clickable"
+                        >
                           <td style={{ padding: "14px 16px", fontFamily: "monospace", fontSize: 12, fontWeight: 700 }}>{inv.number}</td>
                           <td style={{ padding: "14px 16px", fontSize: 13, color: "var(--text-muted)" }}>{fmtDate(inv.date)}</td>
                           <td style={{ padding: "14px 16px", fontSize: 13, color: isOverdue ? "var(--red)" : "var(--text-muted)", fontWeight: isOverdue ? 700 : 400 }}>
@@ -623,7 +629,7 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                               {inv.statut === "paid" ? "Payé" : isOverdue ? "En retard" : "À payer"}
                             </span>
                           </td>
-                          <td style={{ padding: "14px 16px", textAlign: "right", whiteSpace: "nowrap" }}>
+                          <td style={{ padding: "14px 16px", textAlign: "right", whiteSpace: "nowrap" }} onClick={(e) => e.stopPropagation()}>
                             <a
                               href={`/gestionnaire/factures/${inv.id}`}
                               target="_blank"

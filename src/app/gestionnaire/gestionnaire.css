@@ -110,6 +110,9 @@
 .gm-add-bldg:hover { background: rgba(227, 7, 24, 0.06); border-color: var(--red); transform: translateY(-1px); }
 .gm-add-bldg i { font-size: 18px; }
 
+.gm-row-clickable { transition: background 0.15s ease; }
+.gm-row-clickable:hover { background: var(--bg); }
+
 /* Point rouge 'non vu' */
 .gm-unread-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--red); flex-shrink: 0; box-shadow: 0 0 0 0 rgba(227, 7, 24, 0.6); animation: gm-pulse 1.8s infinite; }
 @keyframes gm-pulse {
