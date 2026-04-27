@@ -1,12 +1,27 @@
 const SITE_URL = "https://www.vosthermos.com";
 
+const COVER_REPLACEMENTS = {
+  "/images/blog/5-problemes-courants-de-porte-patio-et-leurs-solutions.jpg":
+    "/images/quincaillerie/detail-roulette-porte-patio.jpg",
+  "/images/blog/comment-choisir-la-bonne-moustiquaire-pour-chaque-type-de-fenetre.jpg":
+    "/images/realisations/thermos-remplacement-after.jpg",
+  "/images/blog/comment-savoir-si-vos-vitres-thermos-doivent-etre-remplacees.jpg":
+    "/images/vitre-thermos/detail-1.jpg",
+  "/images/blog/l-importance-du-calfeutrage-avant-l-hiver-quebecois.jpg":
+    "/images/realisations/quincaillerie-ajustement-after.jpg",
+  "/images/blog/les-avantages-du-verre-low-e-et-argon-pour-vos-thermos.jpg":
+    "/images/vitre-thermos/reparation-1.jpg",
+  "/images/blog/reparer-ou-remplacer-ses-fenetres-le-guide-decision.jpg":
+    "/images/realisations/fenetre-restauration-after.jpg",
+};
+
 const EXACT_IMAGES = {
   "5-problemes-courants-de-porte-patio-et-leurs-solutions":
-    "/images/blog/5-problemes-courants-de-porte-patio-et-leurs-solutions.jpg",
+    "/images/quincaillerie/detail-roulette-porte-patio.jpg",
   "comment-choisir-la-bonne-moustiquaire-pour-chaque-type-de-fenetre":
-    "/images/blog/comment-choisir-la-bonne-moustiquaire-pour-chaque-type-de-fenetre.jpg",
+    "/images/realisations/thermos-remplacement-after.jpg",
   "comment-savoir-si-vos-vitres-thermos-doivent-etre-remplacees":
-    "/images/blog/comment-savoir-si-vos-vitres-thermos-doivent-etre-remplacees.jpg",
+    "/images/vitre-thermos/detail-1.jpg",
   "economiser-sur-le-chauffage-en-reparant-vos-fenetres":
     "/images/blog/economiser-sur-le-chauffage-en-reparant-vos-fenetres.jpg",
   "guide-complet-du-remplacement-de-coupe-froid-au-quebec":
@@ -14,19 +29,27 @@ const EXACT_IMAGES = {
   "inspection-printaniere-de-vos-portes-et-fenetres-liste-complete":
     "/images/blog/inspection-printaniere-de-vos-portes-et-fenetres-liste-complete.jpg",
   "l-importance-du-calfeutrage-avant-l-hiver-quebecois":
-    "/images/blog/l-importance-du-calfeutrage-avant-l-hiver-quebecois.jpg",
+    "/images/realisations/quincaillerie-ajustement-after.jpg",
   "les-avantages-du-verre-low-e-et-argon-pour-vos-thermos":
-    "/images/blog/les-avantages-du-verre-low-e-et-argon-pour-vos-thermos.jpg",
+    "/images/vitre-thermos/reparation-1.jpg",
   "pourquoi-la-buee-dans-vos-fenetres-est-plus-qu-un-probleme-esthetique":
     "/images/blog/pourquoi-la-buee-dans-vos-fenetres-est-plus-qu-un-probleme-esthetique.jpg",
   "reparer-ou-remplacer-ses-fenetres-le-guide-decision":
-    "/images/blog/reparer-ou-remplacer-ses-fenetres-le-guide-decision.jpg",
+    "/images/realisations/fenetre-restauration-after.jpg",
 };
 
 const RULES = [
   {
-    terms: ["moustiquaire", "moustiquaires"],
-    image: "/images/blog/comment-choisir-la-bonne-moustiquaire-pour-chaque-type-de-fenetre.jpg",
+    terms: ["climatisation", "chaleur", "ete", "fraiche", "frais"],
+    image: "/images/vitre-thermos/detail-1.jpg",
+  },
+  {
+    terms: ["hiver", "automne", "chauffage", "isolation", "energie", "energetique"],
+    image: "/images/blog/guide-complet-du-remplacement-de-coupe-froid-au-quebec.jpg",
+  },
+  {
+    terms: ["budget", "renovation", "subvention", "subventions", "renoclimat", "financement"],
+    image: "/images/realisations/fenetre-restauration-after.jpg",
   },
   {
     terms: ["porte-patio", "patio", "roulette", "roulettes", "coulissante", "coince", "coincee", "glisse"],
@@ -34,7 +57,7 @@ const RULES = [
   },
   {
     terms: ["calfeutrage", "calfeutrer", "scellant", "infiltration"],
-    image: "/images/blog/l-importance-du-calfeutrage-avant-l-hiver-quebecois.jpg",
+    image: "/images/realisations/quincaillerie-ajustement-after.jpg",
   },
   {
     terms: ["coupe-froid", "coupe froid"],
@@ -46,15 +69,11 @@ const RULES = [
   },
   {
     terms: ["low-e", "argon"],
-    image: "/images/blog/les-avantages-du-verre-low-e-et-argon-pour-vos-thermos.jpg",
-  },
-  {
-    terms: ["chauffage", "isolation", "energie", "energetique", "climatisation", "chaleur", "hiver"],
-    image: "/images/blog/economiser-sur-le-chauffage-en-reparant-vos-fenetres.jpg",
+    image: "/images/vitre-thermos/reparation-1.jpg",
   },
   {
     terms: ["thermos", "vitre", "vitres", "verre"],
-    image: "/images/blog/comment-savoir-si-vos-vitres-thermos-doivent-etre-remplacees.jpg",
+    image: "/images/realisations/thermos-remplacement-after.jpg",
   },
   {
     terms: ["bois", "restauration", "renovation", "budget", "patrimoine"],
@@ -65,13 +84,17 @@ const RULES = [
     image: "/images/realisations/quincaillerie-ajustement-before.jpg",
   },
   {
+    terms: ["moustiquaire", "moustiquaires"],
+    image: "/images/realisations/thermos-remplacement-after.jpg",
+  },
+  {
     terms: ["fenetre", "fenetres", "printaniere", "automne", "entretien"],
     image: "/images/blog/inspection-printaniere-de-vos-portes-et-fenetres-liste-complete.jpg",
   },
 ];
 
 const CATEGORY_IMAGES = {
-  conseils: "/images/vitre-thermos/detail-1.jpg",
+  conseils: "/images/realisations/thermos-remplacement-after.jpg",
   entretien: "/images/blog/inspection-printaniere-de-vos-portes-et-fenetres-liste-complete.jpg",
   guides: "/images/blog/reparer-ou-remplacer-ses-fenetres-le-guide-decision.jpg",
   nouvelles: "/images/hero-technicien.jpg",
@@ -84,13 +107,19 @@ function normalizeText(value) {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
+function replaceNonQuebecCover(image) {
+  if (!image) return "";
+  const localPath = image.startsWith(SITE_URL) ? image.slice(SITE_URL.length) : image;
+  return COVER_REPLACEMENTS[localPath] || image;
+}
+
 export function getBlogImage(post) {
-  if (post?.coverImage) return post.coverImage;
+  if (post?.coverImage) return replaceNonQuebecCover(post.coverImage);
 
   const slug = post?.slug || "";
   if (EXACT_IMAGES[slug]) return EXACT_IMAGES[slug];
 
-  const searchable = normalizeText(`${slug} ${post?.title || ""} ${post?.excerpt || ""} ${(post?.tags || []).join(" ")}`);
+  const searchable = normalizeText(`${slug} ${post?.title || ""} ${(post?.tags || []).join(" ")}`);
   const match = RULES.find((rule) => rule.terms.some((term) => searchable.includes(term)));
 
   return match?.image || CATEGORY_IMAGES[post?.category] || CATEGORY_IMAGES.conseils;
