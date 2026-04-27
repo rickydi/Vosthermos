@@ -89,6 +89,11 @@ const BRANDED = [
   { value: "only", label: "Marque" },
 ];
 
+const COUNTRIES = [
+  { value: "ALL", label: "Tous" },
+  { value: "can", label: "Canada" },
+];
+
 // ─── Main component ───────────────────────────────────────────────
 export default function GscTab() {
   const [allData, setAllData] = useState(null);
@@ -98,6 +103,7 @@ export default function GscTab() {
   const [keyword, setKeyword] = useState("");
   const [device, setDevice] = useState("ALL");
   const [branded, setBranded] = useState("all");
+  const [country, setCountry] = useState("ALL");
   const [expandedCities, setExpandedCities] = useState(new Set());
   const [cityQueries, setCityQueries] = useState({});
   const [sortMode, setSortMode] = useState("position");
@@ -107,9 +113,10 @@ export default function GscTab() {
     if (keyword) p.set("keyword", keyword);
     if (device !== "ALL") p.set("device", device);
     if (branded !== "all") p.set("branded", branded);
+    if (country !== "ALL") p.set("country", country);
     for (const [k, v] of Object.entries(extra)) p.set(k, v);
     return p.toString();
-  }, [keyword, device, branded]);
+  }, [keyword, device, branded, country]);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -306,11 +313,25 @@ export default function GscTab() {
               ))}
             </div>
           </div>
+
+          <div className="flex items-center gap-1.5">
+            <span className="admin-text-muted text-[10px] font-bold uppercase tracking-wider">Pays</span>
+            <div className="flex gap-1">
+              {COUNTRIES.map((c) => (
+                <button key={c.value} onClick={() => setCountry(c.value)}
+                  className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all ${
+                    country === c.value ? "bg-[var(--color-red)] text-white" : "bg-white/5 admin-text-muted hover:bg-white/10"
+                  }`}>
+                  {c.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
       <p className="admin-text-muted text-xs mb-4">
-        Donnees reelles Google (cache 1h). Clics/impressions = 28j. Filtres appliques a tout le tableau.
+        Donnees reelles Google (cache 1h). Clics/impressions = 28j. Les periodes excluent les donnees GSC non finalisees.
       </p>
 
       {/* Summary */}

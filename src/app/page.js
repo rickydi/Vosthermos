@@ -50,7 +50,7 @@ const services = [
     icon: "fas fa-screwdriver-wrench",
     title: "Quincaillerie",
     text: "Poignées, roulettes, serrures, mécanismes et ajustements de portes-patio.",
-    image: "/images/quincaillerie/detail-1.jpg",
+    image: "/images/quincaillerie/detail-roulette-porte-patio.jpg",
     href: "/services/remplacement-quincaillerie",
   },
   {
@@ -73,19 +73,19 @@ const problems = [
 
 const gallery = [
   {
-    before: "/images/realisations/project-1-before.jpg",
-    after: "/images/realisations/project-1-after.jpg",
+    before: "/images/realisations/thermos-remplacement-before.jpg",
+    after: "/images/realisations/thermos-remplacement-after.jpg",
     title: "Thermos remplacé",
   },
   {
-    before: "/images/realisations/project-3-before.jpg",
-    after: "/images/realisations/project-3-after.jpg",
+    before: "/images/realisations/fenetre-restauration-before.jpg",
+    after: "/images/realisations/fenetre-restauration-after.jpg",
     title: "Fenêtre restaurée",
   },
   {
-    before: "/images/realisations/project-5-before.jpg",
-    after: "/images/realisations/project-5-after.jpg",
-    title: "Porte remise en état",
+    before: "/images/realisations/quincaillerie-ajustement-before.jpg",
+    after: "/images/realisations/quincaillerie-ajustement-after.jpg",
+    title: "Quincaillerie ajustée",
   },
 ];
 

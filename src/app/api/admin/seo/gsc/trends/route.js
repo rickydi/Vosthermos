@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 
 const SITE_URL = "https://www.vosthermos.com/";
 const BRAND_TERM = "vosthermos";
+const GSC_DATA_LAG_DAYS = 2;
 
 async function getSearchConsoleClient() {
   const configPath = path.join(process.cwd(), "config", "google-service-account.json");
@@ -26,7 +27,7 @@ function isoDate(d) { return d.toISOString().split("T")[0]; }
 //   ?window=7   (default — days in each window)
 //   ?device=ALL|DESKTOP|MOBILE|TABLET
 //   ?branded=all|exclude|only
-//   ?country=can
+//   ?country=can (optional; omitted = all countries)
 // Returns rising and falling queries between current window and previous window.
 export async function GET(request) {
   try { await requireAdmin(); }
@@ -36,15 +37,14 @@ export async function GET(request) {
   const windowDays = parseInt(searchParams.get("window") || "7");
   const device = (searchParams.get("device") || "ALL").toUpperCase();
   const branded = searchParams.get("branded") || "all";
-  const country = searchParams.get("country") || "can";
+  const country = searchParams.get("country") || "";
 
   const cacheParams = { windowDays, device, branded, country };
 
   try {
     const searchconsole = await getSearchConsoleClient();
 
-    // Yesterday (GSC lag ~2 days in practice, but we use 1 for simplicity)
-    const endCurrent = new Date(); endCurrent.setDate(endCurrent.getDate() - 1);
+    const endCurrent = new Date(); endCurrent.setDate(endCurrent.getDate() - GSC_DATA_LAG_DAYS);
     const startCurrent = new Date(endCurrent); startCurrent.setDate(startCurrent.getDate() - (windowDays - 1));
     const endPrev = new Date(startCurrent); endPrev.setDate(endPrev.getDate() - 1);
     const startPrev = new Date(endPrev); startPrev.setDate(startPrev.getDate() - (windowDays - 1));

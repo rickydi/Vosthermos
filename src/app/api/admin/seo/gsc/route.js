@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 
 const SITE_URL = "https://www.vosthermos.com/";
 const BRAND_TERM = "vosthermos";
+const GSC_DATA_LAG_DAYS = 2;
 
 function parsePopulation(str) {
   if (!str) return 0;
@@ -89,7 +90,7 @@ export async function GET(request) {
   const city = searchParams.get("city") || "";
   const device = (searchParams.get("device") || "ALL").toUpperCase(); // ALL|DESKTOP|MOBILE|TABLET
   const branded = searchParams.get("branded") || "all"; // all|exclude|only
-  const country = searchParams.get("country") || "can";
+  const country = searchParams.get("country") || "";
 
   const cacheParams = { days, keyword, city, device, branded, country };
 
@@ -97,9 +98,9 @@ export async function GET(request) {
     const searchconsole = await getSearchConsoleClient();
 
     const endDate = new Date();
-    endDate.setDate(endDate.getDate() - 1);
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
+    endDate.setDate(endDate.getDate() - GSC_DATA_LAG_DAYS);
+    const startDate = new Date(endDate);
+    startDate.setDate(startDate.getDate() - (days - 1));
 
     // ─── Mode detail par ville ──────────────────────────────────
     if (city) {

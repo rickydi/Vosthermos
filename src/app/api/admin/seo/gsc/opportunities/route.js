@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 
 const SITE_URL = "https://www.vosthermos.com/";
 const BRAND_TERM = "vosthermos";
+const GSC_DATA_LAG_DAYS = 2;
 
 async function getSearchConsoleClient() {
   const configPath = path.join(process.cwd(), "config", "google-service-account.json");
@@ -32,7 +33,7 @@ function targetCtrForTop3() { return 0.18; } // 18% avg for top 3
 //   ?minPos=4  (default — below this = already top 3)
 //   ?device=ALL|DESKTOP|MOBILE|TABLET
 //   ?branded=all|exclude|only
-//   ?country=can
+//   ?country=can (optional; omitted = all countries)
 export async function GET(request) {
   try { await requireAdmin(); }
   catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
@@ -44,14 +45,14 @@ export async function GET(request) {
   const minPos = parseFloat(searchParams.get("minPos") || "4");
   const device = (searchParams.get("device") || "ALL").toUpperCase();
   const branded = searchParams.get("branded") || "exclude"; // default exclude = focus acquisition
-  const country = searchParams.get("country") || "can";
+  const country = searchParams.get("country") || "";
 
   const cacheParams = { days, minImpr, maxPos, minPos, device, branded, country };
 
   try {
     const searchconsole = await getSearchConsoleClient();
-    const endDate = new Date(); endDate.setDate(endDate.getDate() - 1);
-    const startDate = new Date(); startDate.setDate(startDate.getDate() - days);
+    const endDate = new Date(); endDate.setDate(endDate.getDate() - GSC_DATA_LAG_DAYS);
+    const startDate = new Date(endDate); startDate.setDate(startDate.getDate() - (days - 1));
 
     const { fromCache, data } = await withCache("opportunities", cacheParams, async () => {
       const filters = [];
