@@ -47,7 +47,15 @@ export default function RealisationsGrid({ projects, categories }) {
           >
             {/* Before/After visual */}
             <div className="relative aspect-[4/3] overflow-hidden">
-              {project.comparisonImage ? (
+              {project.cardImage ? (
+                <Image
+                  src={project.cardImage}
+                  alt={project.imageAlt || project.title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              ) : project.comparisonImage ? (
                 <>
                   <Image
                     src={project.comparisonImage}

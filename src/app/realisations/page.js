@@ -50,11 +50,11 @@ const projects = [
     city: "Montreal",
     description:
       "Remplacement de la poignee, du mecanisme de verrouillage et des rouleaux d'une porte-patio coulissante. La porte glisse maintenant sans effort et se verrouille parfaitement.",
-    comparisonImage: "/images/realisations/avant-apres-quincaillerie-porte-patio-montreal.png",
+    cardImage: "/images/realisations/porte-patio-quincaillerie-remplacement.jpg",
     imageAlt:
-      "Avant apres remplacement de quincaillerie sur une porte-patio a Montreal",
-    beforeImage: "/images/realisations/project-2-before.jpg",
-    afterImage: "/images/realisations/project-2-after.jpg",
+      "Technicien Vos Thermos qui remplace la quincaillerie d'une porte-patio sur un balcon a Montreal",
+    beforeImage: "/images/realisations/quincaillerie-ajustement-before.jpg",
+    afterImage: "/images/realisations/quincaillerie-ajustement-after.jpg",
   },
   {
     id: 3,
