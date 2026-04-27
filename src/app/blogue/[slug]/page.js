@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { autoLinkContent } from "@/lib/auto-linker";
 import { COMPANY_INFO } from "@/lib/company-info";
+import { getAbsoluteBlogImage, getBlogImage } from "@/lib/blog-images";
 
 export async function generateMetadata({ params }) {
   const { slug } = await params;
@@ -26,9 +27,7 @@ export async function generateMetadata({ params }) {
       url: `https://www.vosthermos.com/blogue/${post.slug}`,
       title: post.title,
       description: post.excerpt,
-      images: post.coverImage
-        ? [{ url: post.coverImage }]
-        : [{ url: "https://www.vosthermos.com/images/Vos-Thermos-Logo.png" }],
+      images: [{ url: getAbsoluteBlogImage(post) }],
       locale: "fr_CA",
       publishedTime: post.publishedAt ? post.publishedAt.toISOString() : undefined,
       modifiedTime: post.updatedAt.toISOString(),
@@ -104,6 +103,7 @@ export default async function BlogPostPage({ params }) {
   const headings = extractHeadings(post.content);
   const contentWithIds = autoLinkContent(addIdsToHeadings(post.content));
   const readingTime = estimateReadingTime(post.content);
+  const coverImage = getBlogImage(post);
 
   const publishedDate = post.publishedAt
     ? new Date(post.publishedAt).toLocaleDateString("fr-CA", {
@@ -144,7 +144,7 @@ export default async function BlogPostPage({ params }) {
         "https://instagram.com/vosthermos/",
       ],
     },
-    image: post.coverImage || "https://www.vosthermos.com/images/Vos-Thermos-Logo.png",
+    image: getAbsoluteBlogImage(post),
     inLanguage: "fr-CA",
     articleSection: post.category || "Conseils",
     keywords: (post.tags || []).join(", "),
@@ -203,15 +203,13 @@ export default async function BlogPostPage({ params }) {
       </div>
 
       {/* Cover image */}
-      {post.coverImage && (
-        <div className="max-w-[900px] mx-auto px-6 -mt-4">
-          <img
-            src={post.coverImage}
-            alt={post.title}
-            className="w-full h-64 md:h-96 object-cover rounded-2xl shadow-lg"
-          />
-        </div>
-      )}
+      <div className="max-w-[900px] mx-auto px-6 -mt-4">
+        <img
+          src={coverImage}
+          alt={post.title}
+          className="w-full h-64 md:h-96 object-cover rounded-2xl shadow-lg"
+        />
+      </div>
 
       {/* Content + Sidebar */}
       <div className="max-w-[1200px] mx-auto px-6 py-12">

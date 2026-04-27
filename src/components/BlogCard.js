@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getBlogImage } from "@/lib/blog-images";
 
 const categoryColors = {
   conseils: "bg-blue-500",
@@ -25,25 +26,21 @@ export default function BlogCard({ post }) {
 
   const badgeColor = categoryColors[post.category] || "bg-gray-500";
   const badgeLabel = categoryLabels[post.category] || post.category;
+  const coverImage = getBlogImage(post);
 
   return (
     <Link
       href={`/blogue/${post.slug}`}
       className="group block rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100"
     >
-      {/* Cover image or gradient placeholder */}
+      {/* Cover image */}
       <div className="relative h-48 overflow-hidden">
-        {post.coverImage ? (
-          <img
-            src={post.coverImage}
-            alt={post.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-[var(--color-teal-dark)] to-[var(--color-teal)] flex items-center justify-center">
-            <i className="fas fa-newspaper text-white/20 text-5xl"></i>
-          </div>
-        )}
+        <img
+          src={coverImage}
+          alt={post.title}
+          loading="lazy"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
         {/* Category badge */}
         <span
           className={`absolute top-3 left-3 ${badgeColor} text-white text-xs font-semibold px-3 py-1 rounded-full`}
