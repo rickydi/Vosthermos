@@ -21,8 +21,8 @@ export default function Image() {
           overflow: "hidden",
         }}
       >
-        <div style={{ display: "flex", flexDirection: "column", width: "48%", zIndex: 1 }}>
-          <div style={{ fontSize: 34, fontWeight: 900, letterSpacing: 0 }}>
+        <div style={{ display: "flex", flexDirection: "column", width: "48%" }}>
+          <div style={{ display: "flex", fontSize: 34, fontWeight: 900, letterSpacing: 0 }}>
             VOS<span style={{ color: "#ff3547" }}>THERMOS</span>
           </div>
           <div
@@ -59,7 +59,6 @@ export default function Image() {
             display: "flex",
             flexDirection: "column",
             gap: 22,
-            zIndex: 1,
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
