@@ -16,9 +16,13 @@ const cities = [
 
 const FALLBACK_COMPANY = {
   address: COMPANY_INFO.address,
+  city: COMPANY_INFO.city,
+  province: COMPANY_INFO.province,
+  postalCode: COMPANY_INFO.postalCode,
   phone: COMPANY_INFO.phone,
   phoneTel: COMPANY_INFO.phoneTel,
   email: COMPANY_INFO.email,
+  rbqNumber: COMPANY_INFO.rbqNumber,
 };
 
 export default function Footer({ company }) {
@@ -182,7 +186,7 @@ export default function Footer({ company }) {
               <li><Link href={isEn ? "/en/calculateur" : "/calculateur"} className="hover:text-white transition-colors">{isEn ? "Savings calculator" : "Calculateur d'economies"}</Link></li>
               <li><Link href={isEn ? "/en/opti-fenetre" : "/opti-fenetre"} className="hover:text-white transition-colors">OPTI-FENETRE</Link></li>
               <li><Link href={`${p}/boutique`} className="hover:text-white transition-colors">{labels.shop}</Link></li>
-              <li><Link href={`${p}/rendez-vous`} className="hover:text-white transition-colors">{labels.booking}</Link></li>
+              <li><Link href={isEn ? "/en/contact" : "/rendez-vous"} className="hover:text-white transition-colors">{labels.booking}</Link></li>
               {!isEn && (
                 <li className="mt-3 pt-3 border-t border-white/10">
                   <Link href="/portail-gestionnaire" className="inline-flex items-center gap-1 text-[var(--color-red-light)] hover:text-white transition-colors font-semibold">
@@ -211,7 +215,11 @@ export default function Footer({ company }) {
             <ul className="space-y-3 text-sm text-white/60">
               <li className="flex items-start gap-2">
                 <i className="fas fa-map-marker-alt mt-1 text-[var(--color-red)]"></i>
-                {co.address}
+                <span>
+                  {co.address}
+                  <br />
+                  {co.city}, {co.province} {co.postalCode}
+                </span>
               </li>
               <li className="flex items-center gap-2">
                 <i className="fas fa-phone text-[var(--color-red)]"></i>
@@ -232,7 +240,7 @@ export default function Footer({ company }) {
         <div className="border-t border-white/10 mt-12 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-white/40">
           <span>&copy; {new Date().getFullYear()} Vosthermos. {labels.rights}</span>
           <span>
-            RBQ : 5790-9498-01 |{" "}
+            RBQ : {co.rbqNumber} |{" "}
             <Link href="/politique-confidentialite" className="hover:text-white transition-colors">
               {labels.privacy}
             </Link>

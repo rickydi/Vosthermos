@@ -6,7 +6,7 @@
 ## INFORMATIONS BUSINESS (copier-coller)
 
 **Nom:** Vosthermos
-**Adresse:** 330 Ch. St-Francois-Xavier, Local 104, Saint-Francois-Xavier-de-Brompton, QC J5B 1C9
+**Adresse:** 330 Chem. Saint-François-Xavier, local 104, Delson, QC J5B 1Y1
 **Telephone:** 514-825-8411
 **Email:** info@vosthermos.com
 **Site web:** https://www.vosthermos.com
@@ -20,7 +20,7 @@
 **Instagram:** https://instagram.com/vosthermos/
 **Annee de fondation:** 2010
 **Nombre d'employes:** 5-15
-**RBQ:** En cours d'obtention
+**RBQ:** 5820-0684-01
 **Mots-cles:** reparation portes fenetres, vitre thermos, remplacement thermos, quincaillerie fenetre, moustiquaire sur mesure, calfeutrage, desembuage, porte en bois
 
 ---
@@ -38,7 +38,7 @@
 4. Entrer "Vosthermos" comme nom
 5. Categorie principale: "Vitrier" ou "Service de reparation de fenetres"
 6. Categories secondaires: "Quincaillerie", "Magasin de fenetres"
-7. Adresse: 330 Ch. St-Francois-Xavier, Local 104
+7. Adresse: 330 Chem. Saint-François-Xavier, local 104, Delson, QC J5B 1Y1
 8. Zone de service: ajouter les 20 villes listees ci-haut
 9. Telephone: 514-825-8411
 10. Site web: https://www.vosthermos.com
@@ -65,7 +65,7 @@
 - Assurance responsabilite
 - Au moins 2 ans en affaires
 
-### Note: Le RBQ est en cours. Revisiter cette inscription quand obtenu.
+### Note: RBQ obtenu. Utiliser le numero 5820-0684-01 pour cette inscription.
 
 ---
 
@@ -100,7 +100,7 @@
 - Bonne reputation (pas de plaintes)
 - Inspection sur site par CAA
 
-### Note: Revisiter quand le RBQ sera obtenu. CAA est le badge #1 de confiance au Quebec.
+### Note: RBQ obtenu. Utiliser le numero 5820-0684-01 pour l'inscription CAA.
 
 ---
 
@@ -167,8 +167,8 @@
 | Semaine 1 | 411.ca, Yelp, Canpages |
 | Semaine 2 | HomeStars, TrustedPros, RenovationFinder |
 | Semaine 2 | IndexWeb, JeCherche Quebec |
-| Quand RBQ obtenu | Soumission Renovation |
-| Quand RBQ obtenu | CAA-Quebec |
+| A faire avec RBQ 5820-0684-01 | Soumission Renovation |
+| A faire avec RBQ 5820-0684-01 | CAA-Quebec |
 
 ---
 
@@ -186,5 +186,5 @@
 | RenovationFinder | [ ] | | |
 | IndexWeb QC | [ ] | | |
 | JeCherche QC | [ ] | | |
-| Soumission Renovation | [ ] En attente RBQ | | |
-| CAA-Quebec | [ ] En attente RBQ | | |
+| Soumission Renovation | [ ] A faire avec RBQ 5820-0684-01 | | |
+| CAA-Quebec | [ ] A faire avec RBQ 5820-0684-01 | | |

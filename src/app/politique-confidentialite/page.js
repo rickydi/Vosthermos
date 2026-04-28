@@ -379,7 +379,7 @@ const sections = [
             </li>
             <li className="flex items-start gap-3">
               <i className="fas fa-id-card text-[var(--color-red)] mt-1 w-4 text-center"></i>
-              <span>RBQ : 5790-9498-01</span>
+              <span>RBQ : {COMPANY_INFO.rbqNumber}</span>
             </li>
           </ul>
         </div>

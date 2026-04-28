@@ -32,7 +32,7 @@ const faqCategories = [
       {
         question: "What services do you offer?",
         answer:
-          "Vosthermos offers a complete range of services for your doors and windows: sealed glass unit replacement, wooden door repair and restoration, custom screen door manufacturing, hardware replacement (handles, locks, rollers, etc.) and defogging. We serve the greater Montreal area within a 100km radius of Saint-Francois-Xavier. All our work is performed by experienced technicians with over 15 years of expertise.",
+          "Vosthermos offers a complete range of services for your doors and windows: sealed glass unit replacement, wooden door repair and restoration, custom screen door manufacturing, hardware replacement (handles, locks, rollers, etc.) and defogging. We serve the greater Montreal area within a 100km radius of Delson. All our work is performed by experienced technicians with over 15 years of expertise.",
       },
       {
         question: "What is the difference between defogging and sealed glass replacement?",
@@ -84,7 +84,7 @@ const faqCategories = [
       {
         question: "Are there travel fees?",
         answer:
-          "We serve the greater Montreal area and a 100km radius around Saint-Francois-Xavier with no additional travel fees for most services. For travel beyond this zone, fees may apply and will be communicated in advance during the quote. Our services cover Montreal, Laval, Longueuil, Brossard, Saint-Hyacinthe, Granby, Terrebonne, Repentigny and surrounding municipalities.",
+          "We serve the greater Montreal area and a 100km radius around Delson with no additional travel fees for most services. For travel beyond this zone, fees may apply and will be communicated in advance during the quote. Our services cover Montreal, Laval, Longueuil, Brossard, Saint-Hyacinthe, Granby, Terrebonne, Repentigny and surrounding municipalities.",
       },
     ],
   },
@@ -145,7 +145,7 @@ const faqCategories = [
       {
         question: "Can I buy parts online?",
         answer:
-          "Yes! Our online store offers over 740 replacement parts for doors, windows and screen doors. You'll find hardware (handles, locks, rollers, mechanisms), screen door materials, accessories and more. Payment is secure and delivery is available throughout Quebec. You can also choose in-store pickup at our Saint-Francois-Xavier workshop.",
+          "Yes! Our online store offers over 740 replacement parts for doors, windows and screen doors. You'll find hardware (handles, locks, rollers, mechanisms), screen door materials, accessories and more. Payment is secure and delivery is available throughout Quebec. You can also choose in-store pickup at our Delson workshop.",
       },
       {
         question: "How do I know which part I need?",
@@ -155,7 +155,7 @@ const faqCategories = [
       {
         question: "What are the delivery times?",
         answer:
-          "In-stock orders are usually shipped within 1 to 3 business days. Standard delivery in Quebec takes 3 to 7 business days depending on your area. For special-order parts, the timeline can be 1 to 3 weeks. In-store pickup in Saint-Francois-Xavier is available and free, usually the same day or the day after your order. You'll receive a tracking number by email once your order ships.",
+          "In-stock orders are usually shipped within 1 to 3 business days. Standard delivery in Quebec takes 3 to 7 business days depending on your area. For special-order parts, the timeline can be 1 to 3 weeks. In-store pickup in Delson is available and free, usually the same day or the day after your order. You'll receive a tracking number by email once your order ships.",
       },
       {
         question: "Do you accept returns?",
@@ -250,7 +250,7 @@ export default function FaqPageEn() {
               <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
             </a>
             <Link
-              href="/en/#contact"
+              href="/en/contact"
               className="inline-flex items-center justify-center gap-2 bg-transparent text-white border-2 border-white/40 px-8 py-4 rounded-full font-bold hover:border-white hover:bg-white/10 transition-all"
             >
               <i className="fas fa-envelope"></i> Contact us

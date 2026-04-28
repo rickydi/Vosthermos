@@ -161,7 +161,7 @@ export default function PrixPage() {
       address: {
         "@type": "PostalAddress",
         streetAddress: COMPANY_INFO.address,
-        addressLocality: "Saint-Francois-Xavier",
+        addressLocality: COMPANY_INFO.city,
         addressRegion: "QC",
         addressCountry: "CA",
       },

@@ -10,7 +10,7 @@ export const metadata = {
   description:
     `Thermos embue? Porte qui bloque? Vosthermos remplace vos vitres thermos des 150$ avec garantie 10 ans. 15 ans d'experience, soumission gratuite 24h, Rive-Sud, Montreal, Laval. ${COMPANY_INFO.phone}`,
   keywords:
-    "reparation portes fenetres, vitre thermos, remplacement thermos, remplacement quincaillerie, moustiquaire sur mesure, porte-patio, porte en bois, calfeutrage fenetres, desembuage, coupe-froid, insertion porte, boutique pieces portes fenetres, quincaillerie porte fenetre en ligne, Saint-Francois-Xavier, Montreal, Rive-Sud, Laval, Longueuil, Brossard, Granby, Saint-Hyacinthe, Terrebonne, Repentigny",
+    "reparation portes fenetres, vitre thermos, remplacement thermos, remplacement quincaillerie, moustiquaire sur mesure, porte-patio, porte en bois, calfeutrage fenetres, desembuage, coupe-froid, insertion porte, boutique pieces portes fenetres, quincaillerie porte fenetre en ligne, Delson, Montreal, Rive-Sud, Laval, Longueuil, Brossard, Granby, Saint-Hyacinthe, Terrebonne, Repentigny",
   robots: "index, follow",
   alternates: {
     canonical: "https://www.vosthermos.com/",
@@ -217,7 +217,7 @@ export default async function Home() {
       {
         "@type": "Question",
         name: "Quels secteurs desservez-vous?",
-        acceptedAnswer: { "@type": "Answer", text: "Nous desservons Montreal, Laval, Longueuil, Brossard, Saint-Hyacinthe, Granby, Terrebonne, Repentigny et toute la region dans un rayon de 100km autour de Saint-Francois-Xavier." },
+        acceptedAnswer: { "@type": "Answer", text: "Nous desservons Montreal, Laval, Longueuil, Brossard, Saint-Hyacinthe, Granby, Terrebonne, Repentigny et toute la region dans un rayon de 100km autour de Delson." },
       },
       {
         "@type": "Question",
@@ -284,7 +284,7 @@ export default async function Home() {
               {/* TEMP: bulle RBQ désactivée
               <div className="hp-form-proof">
                 <i className="fas fa-shield-halved"></i>
-                <span>RBQ 5790-9498-01 · Soumission gratuite</span>
+                <span>RBQ 5820-0684-01 · Soumission gratuite</span>
               </div>
               */}
               <QuoteCard />

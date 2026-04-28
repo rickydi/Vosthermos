@@ -24,17 +24,17 @@ const COMPANY_KEYS = [
 
 const COMPANY_DEFAULTS = {
   company_legal_name: "",
-  company_address: "330 Ch. St-Francois-Xavier, Local 104",
-  company_city: "Saint-Francois-Xavier-de-Brompton",
+  company_address: "330 Chem. Saint-François-Xavier, local 104",
+  company_city: "Delson",
   company_province: "QC",
-  company_postal_code: "J5B 1C9",
+  company_postal_code: "J5B 1Y1",
   company_phone: "514-825-8411",
   company_email: "info@vosthermos.com",
   company_web: "vosthermos.com",
   company_neq: "",
   tps_number: "",
   tvq_number: "",
-  rbq_number: "",
+  rbq_number: "5820-0684-01",
 };
 
 export async function GET(request) {

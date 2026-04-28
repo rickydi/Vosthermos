@@ -21,7 +21,7 @@ const positions = [
   {
     title: "Technicien(ne) en reparation de portes et fenetres",
     type: "Temps plein",
-    location: "Saint-Francois-Xavier + deplacements",
+    location: "Delson + deplacements",
     description:
       "Nous recherchons un(e) technicien(ne) experimente(e) ou motive(e) a apprendre pour rejoindre notre equipe de terrain. Vous serez responsable des interventions chez nos clients pour le remplacement de vitres thermos, la reparation de quincaillerie et la fabrication de moustiquaires.",
     responsibilities: [
@@ -46,7 +46,7 @@ const positions = [
   {
     title: "Representant(e) au service a la clientele",
     type: "Temps plein",
-    location: "Saint-Francois-Xavier",
+    location: "Delson",
     description:
       "Nous cherchons une personne dynamique et organisee pour gerer les communications avec nos clients, traiter les commandes de la boutique en ligne et coordonner les rendez-vous de service. Vous serez le premier point de contact de nos clients.",
     responsibilities: [
@@ -71,7 +71,7 @@ const positions = [
   {
     title: "Apprenti(e) vitrier/vitriere",
     type: "Temps plein",
-    location: "Saint-Francois-Xavier + deplacements",
+    location: "Delson + deplacements",
     description:
       "Poste ideal pour une personne motivee qui souhaite apprendre le metier de vitrier dans un environnement formateur et bienveillant. Vous travaillerez aux cotes de nos techniciens experimentes et apprendrez toutes les facettes de la reparation de portes et fenetres.",
     responsibilities: [
@@ -133,7 +133,7 @@ const jobPostingJsonLd = positions.map((pos) => ({
     address: {
       "@type": "PostalAddress",
       streetAddress: COMPANY_INFO.address,
-      addressLocality: "Saint-Francois-Xavier",
+      addressLocality: COMPANY_INFO.city,
       addressRegion: "QC",
       postalCode: COMPANY_INFO.postalCode,
       addressCountry: "CA",

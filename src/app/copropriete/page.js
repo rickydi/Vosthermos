@@ -72,7 +72,7 @@ const FAQS = [
   },
   {
     q: "Quelles villes couvrez-vous pour les copropriétés ?",
-    a: `Montréal, Laval, Longueuil, Brossard, Boucherville, Saint-Hyacinthe, Granby, Terrebonne, Repentigny, Chambly, Saint-Jean-sur-Richelieu, Blainville et environs. Rayon de 100 km autour de Saint-François-Xavier. Contactez-nous au ${COMPANY_INFO.phone} pour confirmer votre secteur.`,
+    a: `Montréal, Laval, Longueuil, Brossard, Boucherville, Saint-Hyacinthe, Granby, Terrebonne, Repentigny, Chambly, Saint-Jean-sur-Richelieu, Blainville et environs. Rayon de 100 km autour de Delson. Contactez-nous au ${COMPANY_INFO.phone} pour confirmer votre secteur.`,
   },
   {
     q: "Travaillez-vous avec des logiciels de gestion comme Condo Manager ou Hopem ?",
@@ -219,7 +219,7 @@ export default function CoproprietePage() {
               Un gestionnaire de condos à Laval avait 14 thermos embués répartis dans 9 unités différentes. Nous avons coordonné tout le remplacement en 3 semaines, avec une seule facture centralisée et zéro plainte de résident.
             </p>
             <Link href="/realisations/marronnier-laval" className="inline-flex items-center gap-2 bg-white text-[var(--color-teal-dark)] px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-all">
-              Lire l'étude de cas complète <i className="fas fa-arrow-right"></i>
+              Lire l&apos;étude de cas complète <i className="fas fa-arrow-right"></i>
             </Link>
           </div>
         </div>
@@ -247,7 +247,7 @@ export default function CoproprietePage() {
       {/* Final CTA */}
       <section className="py-16 bg-[var(--color-teal-dark)] text-white">
         <div className="max-w-[900px] mx-auto px-6 text-center">
-          <h2 className="text-3xl md:text-4xl font-extrabold mb-4">Votre syndicat mérite mieux qu'un appel à la fois</h2>
+          <h2 className="text-3xl md:text-4xl font-extrabold mb-4">Votre syndicat mérite mieux qu&apos;un appel à la fois</h2>
           <p className="text-white/70 text-lg mb-8 max-w-2xl mx-auto">
             Parlons de votre parc de fenêtres. Soumission gratuite, sans engagement, avec plan pluriannuel inclus.
           </p>

@@ -171,7 +171,7 @@ export default async function ProblemPage({ params }) {
                 <a href={`tel:${COMPANY_INFO.phoneTel}`} className="flex items-center justify-center gap-2 bg-[var(--color-red)] text-white font-bold px-6 py-3 rounded-xl hover:bg-[var(--color-red-light)] transition-colors w-full mb-3">
                   <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
                 </a>
-                <Link href="/en/#contact" className="flex items-center justify-center gap-2 bg-[var(--color-teal)] text-white font-bold px-6 py-3 rounded-xl hover:bg-[var(--color-teal-dark)] transition-colors w-full">
+                <Link href="/en/contact" className="flex items-center justify-center gap-2 bg-[var(--color-teal)] text-white font-bold px-6 py-3 rounded-xl hover:bg-[var(--color-teal-dark)] transition-colors w-full">
                   <i className="fas fa-calendar-alt"></i> Book an appointment
                 </Link>
               </div>

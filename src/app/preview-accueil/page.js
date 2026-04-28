@@ -221,7 +221,7 @@ export default function PreviewAccueil() {
             {/* TEMP: bulle RBQ désactivée
             <div className="hp-form-proof">
               <i className="fas fa-shield-halved"></i>
-              <span>RBQ 5790-9498-01 · Soumission gratuite</span>
+              <span>RBQ 5820-0684-01 · Soumission gratuite</span>
             </div>
             */}
             <StaticQuoteForm />

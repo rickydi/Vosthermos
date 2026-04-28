@@ -31,7 +31,7 @@ const faqCategories = [
       {
         question: "Quels services offrez-vous?",
         answer:
-          "Vosthermos offre une gamme complete de services pour vos portes et fenetres : remplacement de vitres thermos, reparation et restauration de portes en bois, fabrication de moustiquaires sur mesure, remplacement de quincaillerie (poignees, serrures, rouleaux, etc.) et desembuage. Nous desservons la grande region de Montreal dans un rayon de 100km autour de Saint-Francois-Xavier. Toutes nos interventions sont realisees par des techniciens experimentes avec plus de 15 ans d'expertise.",
+          "Vosthermos offre une gamme complete de services pour vos portes et fenetres : remplacement de vitres thermos, reparation et restauration de portes en bois, fabrication de moustiquaires sur mesure, remplacement de quincaillerie (poignees, serrures, rouleaux, etc.) et desembuage. Nous desservons la grande region de Montreal dans un rayon de 100km autour de Delson. Toutes nos interventions sont realisees par des techniciens experimentes avec plus de 15 ans d'expertise.",
       },
       {
         question:
@@ -86,7 +86,7 @@ const faqCategories = [
       {
         question: "Y a-t-il des frais de deplacement?",
         answer:
-          "Nous desservons la grande region de Montreal et un rayon de 100km autour de Saint-Francois-Xavier sans frais de deplacement supplementaires pour la plupart des interventions. Pour les deplacements au-dela de cette zone, des frais peuvent s'appliquer et seront communiques a l'avance lors de la soumission. Nos services couvrent Montreal, Laval, Longueuil, Brossard, Saint-Hyacinthe, Granby, Terrebonne, Repentigny et les municipalites environnantes.",
+          "Nous desservons la grande region de Montreal et un rayon de 100km autour de Delson sans frais de deplacement supplementaires pour la plupart des interventions. Pour les deplacements au-dela de cette zone, des frais peuvent s'appliquer et seront communiques a l'avance lors de la soumission. Nos services couvrent Montreal, Laval, Longueuil, Brossard, Saint-Hyacinthe, Granby, Terrebonne, Repentigny et les municipalites environnantes.",
       },
     ],
   },
@@ -147,7 +147,7 @@ const faqCategories = [
       {
         question: "Peut-on acheter des pieces en ligne?",
         answer:
-          "Oui! Notre boutique en ligne offre plus de 740 pieces de remplacement pour portes, fenetres et moustiquaires. Vous y trouverez de la quincaillerie (poignees, serrures, rouleaux, mecanismes), des materiaux pour moustiquaires, des accessoires et plus encore. Le paiement est securise et la livraison est disponible partout au Quebec. Vous pouvez aussi choisir la cueillette sur place a notre atelier de Saint-Francois-Xavier.",
+          "Oui! Notre boutique en ligne offre plus de 740 pieces de remplacement pour portes, fenetres et moustiquaires. Vous y trouverez de la quincaillerie (poignees, serrures, rouleaux, mecanismes), des materiaux pour moustiquaires, des accessoires et plus encore. Le paiement est securise et la livraison est disponible partout au Quebec. Vous pouvez aussi choisir la cueillette sur place a notre atelier de Delson.",
       },
       {
         question: "Comment savoir quelle piece j'ai besoin?",
@@ -157,7 +157,7 @@ const faqCategories = [
       {
         question: "Quels sont les delais de livraison?",
         answer:
-          "Les commandes en stock sont generalement expediees dans les 1 a 3 jours ouvrables. La livraison standard au Quebec prend de 3 a 7 jours ouvrables selon votre region. Pour les pieces sur commande speciale, le delai peut etre de 1 a 3 semaines. La cueillette sur place a Saint-Francois-Xavier est disponible et gratuite, generalement le jour meme ou le lendemain de la commande. Vous recevrez un numero de suivi par courriel des l'expedition de votre colis.",
+          "Les commandes en stock sont generalement expediees dans les 1 a 3 jours ouvrables. La livraison standard au Quebec prend de 3 a 7 jours ouvrables selon votre region. Pour les pieces sur commande speciale, le delai peut etre de 1 a 3 semaines. La cueillette sur place a Delson est disponible et gratuite, generalement le jour meme ou le lendemain de la commande. Vous recevrez un numero de suivi par courriel des l'expedition de votre colis.",
       },
       {
         question: "Acceptez-vous les retours?",

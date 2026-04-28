@@ -1,4 +1,5 @@
 import prisma from "./prisma";
+import { COMPANY_INFO } from "./company-info";
 
 const MIN_INVOICE_NUMBER = 150;
 
@@ -173,7 +174,7 @@ export async function getWorkOrderSettings() {
     labor_rate_per_hour: "85.00",
     tps_number: "",
     tvq_number: "",
-    rbq_number: "",
+    rbq_number: COMPANY_INFO.rbqNumber,
     tps_rate: "0.05",
     tvq_rate: "0.09975",
     work_order_prefix: "VOT",

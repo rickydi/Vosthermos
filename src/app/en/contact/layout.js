@@ -1,10 +1,11 @@
 import { COMPANY_INFO } from "@/lib/company-info";
+
 export const metadata = {
-  title: "Contact Vosthermos | Soumission gratuite portes & fenêtres — Montréal, Rive-Sud, Laval",
+  title: "Contact Vosthermos | Free Quote for Door and Window Repair",
   description:
-    `Contactez Vosthermos pour une soumission gratuite en 24h. Réparation de portes, fenêtres et vitres thermos. 15 ans d'expérience, garantie 10 ans. Montréal, Laval, Longueuil, Rive-Sud ☎ ${COMPANY_INFO.phone}`,
+    `Contact Vosthermos for a free quote within 24 hours. Door, window, patio door and sealed glass repair across Montreal and the South Shore. ${COMPANY_INFO.phone}`,
   alternates: {
-    canonical: "https://www.vosthermos.com/contact",
+    canonical: "https://www.vosthermos.com/en/contact",
     languages: {
       "fr-CA": "https://www.vosthermos.com/contact",
       "en-CA": "https://www.vosthermos.com/en/contact",
@@ -13,18 +14,18 @@ export const metadata = {
   },
   openGraph: {
     type: "website",
-    url: "https://www.vosthermos.com/contact",
+    url: "https://www.vosthermos.com/en/contact",
     siteName: "Vosthermos",
-    title: `Contact Vosthermos | Soumission gratuite 24h — ${COMPANY_INFO.phone}`,
+    title: `Contact Vosthermos | Free Quote - ${COMPANY_INFO.phone}`,
     description:
-      "Soumission gratuite en 24h pour réparation de vos portes, fenêtres et vitres thermos. Montréal, Laval, Rive-Sud. 15 ans d'expérience.",
+      "Free quote within 24 hours for door, window and sealed glass repairs in Montreal and the South Shore.",
     images: [{ url: "https://www.vosthermos.com/images/Vos-Thermos-Logo.png" }],
-    locale: "fr_CA",
+    locale: "en_CA",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Contact Vosthermos | Soumission gratuite 24h",
-    description: `Réparation portes & fenêtres — Montréal, Laval, Rive-Sud ☎ ${COMPANY_INFO.phone}`,
+    title: "Contact Vosthermos | Free Quote",
+    description: `Door and window repair - Montreal and South Shore - ${COMPANY_INFO.phone}`,
     images: ["https://www.vosthermos.com/images/Vos-Thermos-Logo.png"],
   },
   robots: "index, follow",
@@ -33,11 +34,11 @@ export const metadata = {
 const contactJsonLd = {
   "@context": "https://schema.org",
   "@type": "ContactPage",
-  "@id": "https://www.vosthermos.com/contact#page",
-  url: "https://www.vosthermos.com/contact",
+  "@id": "https://www.vosthermos.com/en/contact#page",
+  url: "https://www.vosthermos.com/en/contact",
   name: "Contact Vosthermos",
   description:
-    "Page de contact Vosthermos pour soumission gratuite de réparation de portes, fenêtres et vitres thermos.",
+    "Vosthermos contact page for free door, window and sealed glass repair quotes.",
   mainEntity: {
     "@type": "LocalBusiness",
     "@id": "https://www.vosthermos.com/#business",
@@ -73,12 +74,12 @@ const breadcrumbJsonLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   itemListElement: [
-    { "@type": "ListItem", position: 1, name: "Accueil", item: "https://www.vosthermos.com/" },
-    { "@type": "ListItem", position: 2, name: "Contact", item: "https://www.vosthermos.com/contact" },
+    { "@type": "ListItem", position: 1, name: "Home", item: "https://www.vosthermos.com/en/" },
+    { "@type": "ListItem", position: 2, name: "Contact", item: "https://www.vosthermos.com/en/contact" },
   ],
 };
 
-export default function ContactLayout({ children }) {
+export default function ContactEnLayout({ children }) {
   return (
     <>
       <script

@@ -15,7 +15,7 @@ export async function generateMetadata() {
     description:
       `Experts en reparation de portes et fenetres depuis 2010. Remplacement de vitres thermos, quincaillerie, portes-patio, moustiquaires et boutique de pieces. ${co.phone}`,
     keywords:
-      "reparation portes fenetres, vitre thermos, remplacement thermos, remplacement quincaillerie, moustiquaire sur mesure, porte-patio, porte en bois, calfeutrage fenetres, desembuage, coupe-froid, insertion porte, boutique pieces portes fenetres, quincaillerie porte fenetre en ligne, Saint-Francois-Xavier, Montreal, Rive-Sud, Laval, Longueuil, Brossard, Granby, Saint-Hyacinthe, Terrebonne, Repentigny",
+      "reparation portes fenetres, vitre thermos, remplacement thermos, remplacement quincaillerie, moustiquaire sur mesure, porte-patio, porte en bois, calfeutrage fenetres, desembuage, coupe-froid, insertion porte, boutique pieces portes fenetres, quincaillerie porte fenetre en ligne, Delson, Montreal, Rive-Sud, Laval, Longueuil, Brossard, Granby, Saint-Hyacinthe, Terrebonne, Repentigny",
     authors: [{ name: "Vosthermos" }],
     robots: "index, follow",
     metadataBase: new URL("https://www.vosthermos.com"),
@@ -65,7 +65,7 @@ function buildLocalBusinessJsonLd(co) {
     postalCode: co.postalCode,
     addressCountry: "CA",
   },
-  geo: { "@type": "GeoCoordinates", latitude: 45.371, longitude: -73.457 },
+  geo: { "@type": "GeoCoordinates", latitude: 45.3669, longitude: -73.5492 },
   areaServed: [
     { "@type": "City", name: "Montreal" },
     { "@type": "City", name: "Laval" },
@@ -81,7 +81,7 @@ function buildLocalBusinessJsonLd(co) {
     { "@type": "City", name: "Blainville" },
     { "@type": "City", name: "Chateauguay" },
     { "@type": "City", name: "Mascouche" },
-    { "@type": "GeoCircle", geoMidpoint: { "@type": "GeoCoordinates", latitude: 45.371, longitude: -73.457 }, geoRadius: "100000" },
+    { "@type": "GeoCircle", geoMidpoint: { "@type": "GeoCoordinates", latitude: 45.3669, longitude: -73.5492 }, geoRadius: "100000" },
   ],
   openingHoursSpecification: {
     "@type": "OpeningHoursSpecification",
@@ -181,6 +181,9 @@ function buildLocalBusinessJsonLd(co) {
     "Novatech", "Fenplast", "Lepage Millwork", "Jeld-Wen", "Kohltech",
   ],
   slogan: "Reparer au lieu de remplacer - Economies jusqu'a 70%",
+  identifier: co.rbqNumber
+    ? { "@type": "PropertyValue", name: "Licence RBQ", value: co.rbqNumber }
+    : undefined,
   foundingDate: "2010",
   numberOfEmployees: { "@type": "QuantitativeValue", minValue: 5, maxValue: 20 },
   };

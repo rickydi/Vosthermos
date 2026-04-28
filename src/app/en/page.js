@@ -70,7 +70,7 @@ export default async function HomeEn() {
     name: "How to get your doors and windows repaired with Vosthermos",
     description: "A simple 3-step process to get your doors and windows repaired by experts.",
     step: [
-      { "@type": "HowToStep", name: "Contact us", text: `Call us at ${COMPANY_INFO.phone} or fill out our online form. Describe your need and we'll respond quickly.`, url: "https://www.vosthermos.com/en/#contact" },
+      { "@type": "HowToStep", name: "Contact us", text: `Call us at ${COMPANY_INFO.phone} or fill out our online form. Describe your need and we'll respond quickly.`, url: "https://www.vosthermos.com/en/contact" },
       { "@type": "HowToStep", name: "Free estimate", text: "We assess your needs and provide a clear, detailed quote with no surprises or hidden fees." },
       { "@type": "HowToStep", name: "Quick service", text: "Our team comes to your home or business with all the materials needed for quality work." },
     ],
@@ -90,7 +90,7 @@ export default async function HomeEn() {
       {
         "@type": "Question",
         name: "What areas do you serve?",
-        acceptedAnswer: { "@type": "Answer", text: "We serve Montreal, Laval, Longueuil, Brossard, Saint-Hyacinthe, Granby, Terrebonne, Repentigny and the entire region within a 100km radius of Saint-Francois-Xavier." },
+        acceptedAnswer: { "@type": "Answer", text: "We serve Montreal, Laval, Longueuil, Brossard, Saint-Hyacinthe, Granby, Terrebonne, Repentigny and the entire region within a 100km radius of Delson." },
       },
       {
         "@type": "Question",
@@ -361,7 +361,7 @@ export default async function HomeEn() {
               We serve <span className="text-[var(--color-red)]">your area</span>
             </h2>
             <p className="text-[var(--color-muted)] mt-3 max-w-2xl mx-auto">
-              Our team travels within a 100km radius of Saint-Francois-Xavier to offer our services.
+              Our team travels within a 100km radius of Delson to offer our services.
             </p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
@@ -391,7 +391,7 @@ export default async function HomeEn() {
           <div className="space-y-4">
             {[
               { q: "What is the warranty on sealed glass units?", a: "All our sealed glass unit replacements are covered by a professional guaranteed service. This warranty is transferable to the next owner if you sell your property." },
-              { q: "What areas do you serve?", a: "We serve Montreal, Laval, Longueuil, Brossard, Saint-Hyacinthe, Granby, Terrebonne, Repentigny and the entire region within a 100km radius of Saint-Francois-Xavier." },
+              { q: "What areas do you serve?", a: "We serve Montreal, Laval, Longueuil, Brossard, Saint-Hyacinthe, Granby, Terrebonne, Repentigny and the entire region within a 100km radius of Delson." },
               { q: "How much does a sealed glass replacement cost?", a: "The price varies depending on dimensions and glass type. Our replacements start at $150 per installed unit. Contact us for a free and accurate quote." },
               { q: "Can I buy parts online?", a: "Yes! Our online store offers over 740 replacement parts for doors, windows and screen doors. Secure credit card payment and fast delivery." },
               { q: "What is the response time?", a: "Our team generally responds within days of your request. For emergencies, we do our best to respond as quickly as possible." },
@@ -426,7 +426,7 @@ export default async function HomeEn() {
             Free quote, fast and guaranteed service. Our team is ready to help.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="#contact" className="inline-flex items-center justify-center gap-2 bg-white text-[var(--color-teal-dark)] px-8 py-4 rounded-full font-bold hover:bg-gray-100 transition-all">
+            <a href="/en/contact" className="inline-flex items-center justify-center gap-2 bg-white text-[var(--color-teal-dark)] px-8 py-4 rounded-full font-bold hover:bg-gray-100 transition-all">
               Request a quote
             </a>
             <a href={`tel:${COMPANY_INFO.phoneTel}`} className="inline-flex items-center justify-center gap-2 bg-transparent text-white border-2 border-white/40 px-8 py-4 rounded-full font-bold hover:border-white hover:bg-white/10 transition-all">
@@ -487,7 +487,7 @@ export default async function HomeEn() {
             </div>
             <div className="rounded-xl overflow-hidden shadow-sm border border-[var(--color-border)]">
               <iframe
-                src="https://maps.google.com/maps?q=330+Chemin+Saint-Francois-Xavier+Saint-Francois-Xavier-de-Brompton+QC+Canada&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                src="https://maps.google.com/maps?q=330+Chemin+Saint-Francois-Xavier+local+104+Delson+QC+J5B+1Y1+Canada&t=&z=15&ie=UTF8&iwloc=&output=embed"
                 width="100%"
                 height="100%"
                 style={{ border: 0, minHeight: "350px" }}

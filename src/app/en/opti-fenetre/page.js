@@ -127,7 +127,7 @@ export default function OptiFenetrePage() {
                 {COMPANY_INFO.phone}
               </a>
               <Link
-                href="/en/#contact"
+                href="/en/contact"
                 className="inline-flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm text-white font-bold px-8 py-4 rounded-xl hover:bg-white/20 transition-colors text-lg"
               >
                 <i className="fas fa-file-alt"></i>
@@ -351,7 +351,7 @@ export default function OptiFenetrePage() {
               {COMPANY_INFO.phone}
             </a>
             <Link
-              href="/en/#contact"
+              href="/en/contact"
               className="inline-flex items-center justify-center gap-2 bg-white/20 text-white font-bold px-8 py-4 rounded-xl hover:bg-white/30 transition-colors text-lg"
             >
               <i className="fas fa-calendar-alt"></i>

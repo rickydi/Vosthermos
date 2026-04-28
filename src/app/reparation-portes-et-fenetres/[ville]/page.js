@@ -69,7 +69,7 @@ export default async function ReparationVillePage({ params }) {
     address: {
       "@type": "PostalAddress",
       streetAddress: COMPANY_INFO.address,
-      addressLocality: "Saint-Francois-Xavier",
+      addressLocality: COMPANY_INFO.city,
       addressRegion: "QC",
       postalCode: COMPANY_INFO.postalCode,
       addressCountry: "CA",

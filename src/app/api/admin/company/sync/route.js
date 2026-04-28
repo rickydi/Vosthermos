@@ -17,6 +17,7 @@ const KEY_MAP = {
   company_phone: "phone",
   company_email: "email",
   company_web: "web",
+  rbq_number: "rbqNumber",
 };
 
 function toTelFormat(phone) {
@@ -37,16 +38,17 @@ function buildFileContent(values) {
 export const COMPANY_INFO = {
   legalName: "${esc(v.legalName || "Vosthermos")}",
   neq: "${esc(v.neq || "")}",
-  address: "${esc(v.address || "330 Ch. St-Francois-Xavier, Local 104")}",
-  city: "${esc(v.city || "Saint-Francois-Xavier-de-Brompton")}",
-  cityShort: "${esc((v.city || "Saint-Francois-Xavier-de-Brompton").split(",")[0].split("-de-")[0])}",
+  address: "${esc(v.address || "330 Chem. Saint-François-Xavier, local 104")}",
+  city: "${esc(v.city || "Delson")}",
+  cityShort: "${esc((v.city || "Delson").split(",")[0].split("-de-")[0])}",
   province: "${esc(v.province || "QC")}",
-  postalCode: "${esc(v.postalCode || "J5B 1C9")}",
+  postalCode: "${esc(v.postalCode || "J5B 1Y1")}",
   phone: "${esc(v.phone || "514-825-8411")}",
   phoneTel: "${esc(toTelFormat(v.phone))}",
   email: "${esc(v.email || "info@vosthermos.com")}",
   web: "${esc(v.web || "vosthermos.com")}",
   url: "https://www.${esc(v.web || "vosthermos.com")}",
+  rbqNumber: "${esc(v.rbqNumber || "5820-0684-01")}",
   facebook: "https://www.facebook.com/profile.php?id=61562303553558",
   instagram: "https://instagram.com/vosthermos/",
   logo: "https://www.vosthermos.com/images/Vos-Thermos-Logo.png",

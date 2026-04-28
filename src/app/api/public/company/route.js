@@ -24,6 +24,7 @@ export async function GET() {
       postalCode: company.postalCode,
       web: company.web,
       url: company.url,
+      rbqNumber: company.rbqNumber,
       logo: company.logo,
       facebook: company.facebook,
       instagram: company.instagram,

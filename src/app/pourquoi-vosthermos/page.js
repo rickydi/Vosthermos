@@ -42,7 +42,7 @@ const jsonLd = {
   address: {
     "@type": "PostalAddress",
     streetAddress: COMPANY_INFO.address,
-    addressLocality: "Saint-Francois-Xavier",
+    addressLocality: COMPANY_INFO.city,
     addressRegion: "QC",
     postalCode: COMPANY_INFO.postalCode,
     addressCountry: "CA",
@@ -53,8 +53,8 @@ const jsonLd = {
     "@type": "GeoCircle",
     geoMidpoint: {
       "@type": "GeoCoordinates",
-      latitude: 45.371,
-      longitude: -73.457,
+      latitude: 45.3669,
+      longitude: -73.5492,
     },
     geoRadius: "100000",
   },
@@ -93,7 +93,7 @@ const differenciateurs = [
     icon: "fa-truck",
     title: "Service rapide dans un rayon de 100km",
     description:
-      "Notre equipe se deplace dans un rayon de 100km autour de Saint-Francois-Xavier, couvrant Montreal, Laval, la Rive-Sud et les regions environnantes.",
+      "Notre equipe se deplace dans un rayon de 100km autour de Delson, couvrant Montreal, Laval, la Rive-Sud et les regions environnantes.",
   },
   {
     icon: "fa-file-invoice",

@@ -214,7 +214,7 @@ export default async function BlogPageEn({ searchParams }) {
               {COMPANY_INFO.phone}
             </a>
             <Link
-              href="/en/#contact"
+              href="/en/contact"
               className="inline-flex items-center justify-center gap-2 bg-white/10 text-white font-bold px-8 py-3 rounded-xl hover:bg-white/20 transition-colors"
             >
               <i className="fas fa-envelope"></i>

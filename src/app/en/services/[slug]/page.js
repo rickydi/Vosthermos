@@ -177,7 +177,7 @@ export default async function ServicePageEn({ params }) {
               <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
             </a>
             <Link
-              href="/en/#contact"
+              href="/en/contact"
               className="inline-flex items-center justify-center gap-2 bg-transparent text-white border-2 border-white/30 px-8 py-4 rounded-full font-bold hover:border-white hover:bg-white/10 transition-all"
             >
               Free quote
@@ -287,7 +287,7 @@ export default async function ServicePageEn({ params }) {
                 <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
               </a>
               <Link
-                href="/en/#contact"
+                href="/en/contact"
                 className="inline-flex items-center justify-center gap-2 text-[var(--color-muted)] hover:text-[var(--color-teal)] border border-[var(--color-border)] hover:border-[var(--color-teal)]/30 px-8 py-4 rounded-full font-bold transition-all"
               >
                 Request a quote
@@ -379,7 +379,7 @@ export default async function ServicePageEn({ params }) {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="/en/#contact"
+              href="/en/contact"
               className="inline-flex items-center justify-center gap-2 bg-white text-[var(--color-teal-dark)] px-8 py-4 rounded-full font-bold hover:bg-gray-100 transition-all"
             >
               Request a quote

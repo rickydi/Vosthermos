@@ -102,7 +102,7 @@ export default function ServicesPage() {
             Vosthermos offre 10 services spécialisés pour réparer vos portes et fenêtres
             sans avoir à les remplacer. Remplacement de vitres thermos dès 150$,
             quincaillerie, portes-patio, portes en bois, moustiquaires, calfeutrage et plus.
-            Service professionnel avec garantie 10 ans, 15 ans d'expérience.
+            Service professionnel avec garantie 10 ans, 15 ans d&apos;expérience.
           </p>
           <div className="flex flex-wrap gap-3 mt-6">
             <a
@@ -159,11 +159,11 @@ export default function ServicesPage() {
             <div>
               <h3 className="font-bold text-[var(--color-primary)] mb-2">
                 <i className="fas fa-dollar-sign mr-2" aria-hidden="true"></i>
-                Économies jusqu'à 70%
+                Économies jusqu&apos;à 70%
               </h3>
               <p>
                 Remplacer seulement la vitre thermos ou la quincaillerie coûte une fraction
-                du prix d'une porte ou fenêtre neuve.
+                du prix d&apos;une porte ou fenêtre neuve.
               </p>
             </div>
             <div>
@@ -172,7 +172,7 @@ export default function ServicesPage() {
                 Geste écologique
               </h3>
               <p>
-                Moins de matériel envoyé aux déchets, moins d'émissions liées à la
+                Moins de matériel envoyé aux déchets, moins d&apos;émissions liées à la
                 fabrication de nouveaux cadres.
               </p>
             </div>
@@ -193,7 +193,7 @@ export default function ServicesPage() {
           <h2 className="text-2xl font-bold mb-4">Secteurs desservis</h2>
           <p className="text-[var(--color-muted)] mb-6">
             Nos services sont disponibles dans plus de 25 villes de la grande région de
-            Montréal, dans un rayon de 100 km autour de Saint-François-Xavier.
+            Montréal, dans un rayon de 100 km autour de Delson.
           </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {topCities.map((c) => (
@@ -214,7 +214,7 @@ export default function ServicesPage() {
         </section>
 
         <section className="bg-[var(--color-primary)] text-white rounded-xl p-10 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-3">Besoin d'une soumission?</h2>
+          <h2 className="text-2xl md:text-3xl font-bold mb-3">Besoin d&apos;une soumission?</h2>
           <p className="mb-6 opacity-90 max-w-2xl mx-auto">
             Soumission gratuite en 24h. Notre équipe se déplace gratuitement pour évaluer
             vos besoins et vous fournir un devis clair et précis, sans engagement.

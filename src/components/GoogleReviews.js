@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 const GOOGLE_REVIEW_URL = "https://g.page/r/CbC4-Lf0RLscEBM/review";
 const GOOGLE_BUSINESS_URL = "https://www.google.com/search?q=Vosthermos";
@@ -68,7 +69,7 @@ export default function GoogleReviews() {
             <div className="w-12 h-12 rounded-full bg-[var(--color-teal)]/10 flex items-center justify-center mx-auto mb-3">
               <i className="fas fa-award text-[var(--color-teal)] text-lg" aria-hidden="true"></i>
             </div>
-            <strong className="block text-sm font-bold mb-1">15+ ans d'expérience</strong>
+            <strong className="block text-sm font-bold mb-1">15+ ans d&apos;expérience</strong>
             <span className="text-xs text-[var(--color-muted)]">
               Spécialistes des portes et fenêtres depuis 2010
             </span>
@@ -86,7 +87,7 @@ export default function GoogleReviews() {
             <div className="w-12 h-12 rounded-full bg-[var(--color-teal)]/10 flex items-center justify-center mx-auto mb-3">
               <i className="fas fa-id-badge text-[var(--color-teal)] text-lg" aria-hidden="true"></i>
             </div>
-            <strong className="block text-sm font-bold mb-1">RBQ 5790-9498-01</strong>
+            <strong className="block text-sm font-bold mb-1">RBQ {COMPANY_INFO.rbqNumber}</strong>
             <span className="text-xs text-[var(--color-muted)]">
               Licence valide, entreprise enregistrée au Québec
             </span>

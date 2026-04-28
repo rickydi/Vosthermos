@@ -10,10 +10,10 @@ export { COMPANY_INFO };
 export const DEFAULT_COMPANY = {
   legalName: "Vosthermos",
   neq: "",
-  address: "330 Ch. St-Francois-Xavier, Local 104",
-  city: "Saint-Francois-Xavier-de-Brompton",
+  address: COMPANY_INFO.address,
+  city: "Delson",
   province: "QC",
-  postalCode: "J5B 1C9",
+  postalCode: COMPANY_INFO.postalCode,
   phone: "514-825-8411",
   phoneTel: "+15148258411", // canonical format for tel: links + schema.org
   email: "info@vosthermos.com",
@@ -21,6 +21,7 @@ export const DEFAULT_COMPANY = {
   url: "https://www.vosthermos.com",
   tpsNumber: "",
   tvqNumber: "",
+  rbqNumber: COMPANY_INFO.rbqNumber,
   // Static / brand:
   logo: "https://www.vosthermos.com/images/Vos-Thermos-Logo.png",
   facebook: "https://www.facebook.com/profile.php?id=61562303553558",

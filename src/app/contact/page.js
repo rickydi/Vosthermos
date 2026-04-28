@@ -311,7 +311,7 @@ function ContactContent() {
                     <span className="contact-list-value">
                       {COMPANY_INFO.address}
                       <br />
-                      {COMPANY_INFO.cityShort}, {COMPANY_INFO.province} {COMPANY_INFO.postalCode}
+                      {COMPANY_INFO.city}, {COMPANY_INFO.province} {COMPANY_INFO.postalCode}
                     </span>
                   </div>
                 </li>

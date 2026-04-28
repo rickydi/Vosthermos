@@ -247,7 +247,7 @@ export default function CalculateurPage() {
                     <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
                   </a>
                   <Link
-                    href="/en/#contact"
+                    href="/en/contact"
                     className="inline-flex items-center justify-center gap-2 bg-white/10 text-white font-bold px-8 py-4 rounded-xl hover:bg-white/20 transition-colors"
                   >
                     <i className="fas fa-calendar-alt"></i> Book an appointment

@@ -5,16 +5,16 @@ import { useEffect, useState } from "react";
 const FIELDS = [
   { key: "company_legal_name", label: "Nom legal (raison sociale)", placeholder: "9999-9999 Quebec inc." },
   { key: "company_neq", label: "NEQ (numero d'entreprise Quebec)", placeholder: "1234567890" },
-  { key: "company_address", label: "Adresse", placeholder: "330 Ch. St-Francois-Xavier, Local 104" },
-  { key: "company_city", label: "Ville", placeholder: "Saint-Francois-Xavier-de-Brompton" },
+  { key: "company_address", label: "Adresse", placeholder: "330 Chem. Saint-François-Xavier, local 104" },
+  { key: "company_city", label: "Ville", placeholder: "Delson" },
   { key: "company_province", label: "Province", placeholder: "QC" },
-  { key: "company_postal_code", label: "Code postal", placeholder: "J5B 1C9" },
+  { key: "company_postal_code", label: "Code postal", placeholder: "J5B 1Y1" },
   { key: "company_phone", label: "Telephone", placeholder: "514-825-8411" },
   { key: "company_email", label: "Email", placeholder: "info@vosthermos.com" },
   { key: "company_web", label: "Site web", placeholder: "vosthermos.com" },
   { key: "tps_number", label: "Numero TPS", placeholder: "123456789 RT0001" },
   { key: "tvq_number", label: "Numero TVQ", placeholder: "1234567890 TQ0001" },
-  { key: "rbq_number", label: "Licence RBQ", placeholder: "5790-9498-01" },
+  { key: "rbq_number", label: "Licence RBQ", placeholder: "5820-0684-01" },
 ];
 
 export default function CompanyInfoSection() {

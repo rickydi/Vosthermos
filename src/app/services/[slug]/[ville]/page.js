@@ -74,7 +74,7 @@ export default async function ServiceCityPage({ params }) {
       address: {
         "@type": "PostalAddress",
         streetAddress: COMPANY_INFO.address,
-        addressLocality: "Saint-Francois-Xavier",
+        addressLocality: COMPANY_INFO.city,
         addressRegion: "QC",
         addressCountry: "CA",
       },

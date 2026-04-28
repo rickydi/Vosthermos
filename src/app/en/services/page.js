@@ -83,7 +83,7 @@ export default function ServicesPageEn() {
             defogging, door inserts and weatherstripping across Greater Montreal.
           </p>
           <div className="flex flex-wrap gap-3">
-            <Link href="/en/#contact" className="bg-white text-[var(--color-teal-dark)] px-6 py-3 rounded-xl font-bold hover:bg-white/90 transition-colors">
+            <Link href="/en/contact" className="bg-white text-[var(--color-teal-dark)] px-6 py-3 rounded-xl font-bold hover:bg-white/90 transition-colors">
               Free quote
             </Link>
             <a href={`tel:${COMPANY_INFO.phoneTel}`} className="border border-white/40 px-6 py-3 rounded-xl font-bold hover:bg-white/10 transition-colors">

@@ -151,7 +151,7 @@ export default async function BoutiquePageEn() {
                 Our categories include window handles and mechanisms, patio door rollers and carriages, weatherstripping and seals, replacement screen doors, and all the hardware needed to repair your doors and windows yourself.
               </p>
               <p>
-                Need help identifying your part? <Link href="/en/#contact" className="text-[var(--color-teal)] font-semibold hover:underline">Contact our experts</Link> at {COMPANY_INFO.phone} or send us a photo. We also offer a <Link href="/en/services/hardware-replacement" className="text-[var(--color-teal)] font-semibold hover:underline">professional installation service</Link> throughout Montreal and the South Shore.
+                Need help identifying your part? <Link href="/en/contact" className="text-[var(--color-teal)] font-semibold hover:underline">Contact our experts</Link> at {COMPANY_INFO.phone} or send us a photo. We also offer a <Link href="/en/services/hardware-replacement" className="text-[var(--color-teal)] font-semibold hover:underline">professional installation service</Link> throughout Montreal and the South Shore.
               </p>
             </div>
           </div>

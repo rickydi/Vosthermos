@@ -53,7 +53,7 @@ export async function POST(request) {
         enabled: true,
         invoice_data: {
           description: "Commande Vosthermos — Pieces de portes et fenetres",
-          footer: `Vosthermos — ${COMPANY_INFO.address} — RBQ: 5790-9498-01 — ${COMPANY_INFO.phone}`,
+          footer: `Vosthermos — ${COMPANY_INFO.address} — RBQ: ${COMPANY_INFO.rbqNumber} — ${COMPANY_INFO.phone}`,
         },
       },
     });

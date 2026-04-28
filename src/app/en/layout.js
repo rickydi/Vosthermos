@@ -3,7 +3,7 @@ export const metadata = {
   robots: "index, follow",
   other: {
     "geo.region": "CA-QC",
-    "geo.placename": "Saint-Francois-Xavier",
+    "geo.placename": COMPANY_INFO.city,
   },
 };
 
@@ -28,7 +28,7 @@ const jsonLd = {
     postalCode: COMPANY_INFO.postalCode,
     addressCountry: "CA",
   },
-  geo: { "@type": "GeoCoordinates", latitude: 45.371, longitude: -73.457 },
+  geo: { "@type": "GeoCoordinates", latitude: 45.3669, longitude: -73.5492 },
   areaServed: [
     { "@type": "City", name: "Montreal" },
     { "@type": "City", name: "Laval" },
@@ -46,7 +46,7 @@ const jsonLd = {
     { "@type": "City", name: "Mascouche" },
     {
       "@type": "GeoCircle",
-      geoMidpoint: { "@type": "GeoCoordinates", latitude: 45.371, longitude: -73.457 },
+      geoMidpoint: { "@type": "GeoCoordinates", latitude: 45.3669, longitude: -73.5492 },
       geoRadius: "100000",
     },
   ],
@@ -59,6 +59,9 @@ const jsonLd = {
   priceRange: "$$",
   currenciesAccepted: "CAD",
   paymentAccepted: "Cash, Credit Card, Debit Card",
+  identifier: COMPANY_INFO.rbqNumber
+    ? { "@type": "PropertyValue", name: "RBQ licence", value: COMPANY_INFO.rbqNumber }
+    : undefined,
   sameAs: [
     "https://www.facebook.com/profile.php?id=61562303553558",
     "https://instagram.com/vosthermos/",

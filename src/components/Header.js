@@ -64,7 +64,7 @@ export default function Header({ company }) {
       }
       return frPath || "/";
     }
-    if (pathname === "/contact" || pathname === "/rendez-vous") return "/en/#contact";
+    if (pathname === "/contact" || pathname === "/rendez-vous") return "/en/contact";
     if (pathname === "/realisations" || pathname.startsWith("/realisations/")) return "/en/#gallery";
     if (pathname === "/panier" || pathname.startsWith("/checkout")) return pathname;
     // FR → EN : mapper slug service si applicable
@@ -81,8 +81,9 @@ export default function Header({ company }) {
 
   // Prefix for internal links
   const prefix = isEnglish ? "/en" : "";
-  const bookNowHref = isEnglish ? (isHome ? "#contact" : "/en/#contact") : "/rendez-vous";
+  const bookNowHref = isEnglish ? "/en/contact" : "/rendez-vous";
   const projectsHref = isEnglish ? (isHome ? "#gallery" : "/en/#gallery") : "/realisations";
+  const contactHref = isEnglish ? "/en/contact" : "/contact";
   const cartHref = "/panier";
 
   // Navigation labels
@@ -146,7 +147,7 @@ export default function Header({ company }) {
               { href: `${prefix}/opti-fenetre`, label: labels.optiFenetre, match: ["/opti-fenetre", "/en/opti-fenetre"] },
               { href: bookNowHref, label: labels.rendezvous, match: ["/rendez-vous"] },
               { href: projectsHref, label: labels.realisations, match: ["/realisations"] },
-              { href: isHome ? "#contact" : `${prefix || ""}/#contact`, label: labels.contact, match: null },
+              { href: contactHref, label: labels.contact, match: ["/contact", "/en/contact"] },
             ].map((item) => {
               const isActive = item.match && item.match.some((m) => pathname.startsWith(m));
               return (
@@ -227,7 +228,7 @@ export default function Header({ company }) {
           <Link href={projectsHref} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.realisations}</Link>
           <Link href={`${prefix}/faq`} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.faq}</Link>
           <Link href={isHome ? "#secteurs" : `${prefix || ""}/#secteurs`} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.secteurs}</Link>
-          <Link href={isHome ? "#contact" : `${prefix || ""}/#contact`} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.contact}</Link>
+          <Link href={contactHref} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.contact}</Link>
           <Link href={cartHref} className="text-white font-medium" onClick={() => setMenuOpen(false)}>
             {labels.panier} {loaded && itemCount > 0 && `(${itemCount})`}
           </Link>
