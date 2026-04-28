@@ -156,7 +156,12 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
         {/* SIDEBAR */}
         <aside className={"gm-sidebar" + (sidebarOpen ? " open" : "")}>
           <div className="gm-brand">
-            <div className="gm-logo">VOS<span>THERMOS</span></div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              className="gm-logo-img"
+              src="/images/Vos-Thermos-Logo_Blanc.png"
+              alt="Vosthermos"
+            />
           </div>
           <div>
             <div className="gm-tag"><i className="fas fa-building" style={{ fontSize: "10px", marginRight: 4 }}></i> Portail Gestionnaire</div>
