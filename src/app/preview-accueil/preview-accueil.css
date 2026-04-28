@@ -349,9 +349,10 @@
   position: relative;
   z-index: 2;
   margin-top: -1px;
-  padding: 18px 0;
+  padding: 22px 0;
   color: #fff;
-  background: linear-gradient(90deg, var(--hp-teal-dark), var(--hp-teal), var(--hp-teal-dark));
+  background: linear-gradient(90deg, var(--hp-red-dark), var(--hp-teal) 42%, var(--hp-teal-dark));
+  box-shadow: 0 18px 40px rgba(6, 29, 36, .18);
 }
 
 .hp-manager-inner {
@@ -380,7 +381,7 @@
 }
 
 .hp-manager-inner strong {
-  font-size: 16px;
+  font-size: 18px;
 }
 
 .hp-manager-inner p {
@@ -391,9 +392,22 @@
 
 .hp-manager-inner a {
   flex: none;
-  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--hp-teal-dark);
   font-size: 14px;
   font-weight: 850;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, .16);
+}
+
+.hp-manager-inner a:hover {
+  transform: translateY(-1px);
+  color: var(--hp-red-dark);
 }
 
 .hp-section {

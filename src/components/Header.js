@@ -84,6 +84,7 @@ export default function Header({ company }) {
   const bookNowHref = isEnglish ? "/en/contact" : "/rendez-vous";
   const projectsHref = isEnglish ? (isHome ? "#gallery" : "/en/#gallery") : "/realisations";
   const contactHref = isEnglish ? "/en/contact" : "/contact";
+  const portalHref = isEnglish ? "/en/contact?subject=portal-demo" : "/portail-gestionnaire";
   const areasHref = isEnglish
     ? (isHome ? "#areas" : "/en/#areas")
     : (isHome ? "#secteurs" : "/#secteurs");
@@ -96,6 +97,7 @@ export default function Header({ company }) {
         boutique: "Shop",
         blogue: "Blog",
         optiFenetre: "OPTI-FENETRE",
+        portal: "Managers",
         rendezvous: "Book Now",
         realisations: "Projects",
         contact: "Contact",
@@ -111,6 +113,7 @@ export default function Header({ company }) {
         boutique: "Boutique",
         blogue: "Blogue",
         optiFenetre: "OPTI-FENETRE",
+        portal: "Gestionnaires",
         rendezvous: "Rendez-vous",
         realisations: "Realisations",
         contact: "Contact",
@@ -148,6 +151,7 @@ export default function Header({ company }) {
               { href: `${prefix}/boutique`, label: labels.boutique, match: ["/boutique", "/produit", "/en/boutique", "/en/produit"] },
               { href: `${prefix}/blogue`, label: labels.blogue, match: ["/blogue", "/en/blogue"] },
               { href: `${prefix}/opti-fenetre`, label: labels.optiFenetre, match: ["/opti-fenetre", "/en/opti-fenetre"] },
+              { href: portalHref, label: labels.portal, match: ["/portail-gestionnaire"], featured: true, icon: "fas fa-building" },
               { href: bookNowHref, label: labels.rendezvous, match: ["/rendez-vous"] },
               { href: projectsHref, label: labels.realisations, match: ["/realisations"] },
               { href: contactHref, label: labels.contact, match: ["/contact", "/en/contact"] },
@@ -157,12 +161,15 @@ export default function Header({ company }) {
                 <Link
                   key={item.label}
                   href={item.href}
-                  className={`px-3 py-1.5 rounded-lg text-[13px] font-semibold transition-all ${
-                    isActive
-                      ? "bg-white/15 text-white"
-                      : "text-white/70 hover:text-white hover:bg-white/10"
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-semibold transition-all ${
+                    item.featured
+                      ? "bg-[var(--color-red)] text-white shadow-sm hover:bg-[var(--color-red-dark)]"
+                      : isActive
+                        ? "bg-white/15 text-white"
+                        : "text-white/70 hover:text-white hover:bg-white/10"
                   }`}
                 >
+                  {item.icon && <i className={`${item.icon} text-[11px]`}></i>}
                   {item.label}
                 </Link>
               );
@@ -226,6 +233,10 @@ export default function Header({ company }) {
           <Link href={`${prefix}/boutique`} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.boutique}</Link>
           <Link href={`${prefix}/blogue`} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.blogue}</Link>
           <Link href={`${prefix}/opti-fenetre`} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.optiFenetre}</Link>
+          <Link href={portalHref} className="inline-flex items-center gap-2 bg-[var(--color-red)] text-white font-bold px-5 py-2.5 rounded-full" onClick={() => setMenuOpen(false)}>
+            <i className="fas fa-building text-sm"></i>
+            {labels.portal}
+          </Link>
           <Link href={bookNowHref} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.rendezvous}</Link>
           <Link href={`${prefix}/garantie`} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.garantie}</Link>
           <Link href={projectsHref} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.realisations}</Link>
