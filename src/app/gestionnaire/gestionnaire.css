@@ -182,16 +182,17 @@
 
 .gm-photo-strip {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
 }
 .gm-photo-tile {
   position: relative;
   overflow: hidden;
   border-radius: 8px;
   border: 1px solid var(--border);
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 16 / 10;
   background: var(--bg);
+  max-height: 130px;
 }
 .gm-photo-tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .gm-photo-caption {
@@ -199,7 +200,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 18px 10px 9px;
+  padding: 16px 9px 8px;
   color: #fff;
   background: linear-gradient(to top, rgba(15,23,32,0.78), rgba(15,23,32,0));
   display: flex;
@@ -425,7 +426,7 @@
 .gm-unit-history-row span:not(.gm-tag) { display: block; font-size: 11px; color: var(--text-muted); margin-top: 2px; line-height: 1.35; }
 .gm-unit-gallery {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(110px, 150px));
   gap: 8px;
 }
 .gm-unit-gallery figure {
@@ -437,7 +438,7 @@
 }
 .gm-unit-gallery img {
   width: 100%;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 16 / 10;
   object-fit: cover;
   display: block;
   background: var(--bg);
@@ -743,7 +744,7 @@
 @media (max-width: 1000px) {
   .gm-app { grid-template-columns: 1fr; }
   .gm-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .gm-photo-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gm-photo-strip { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
   .gm-report-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .gm-sidebar {
     position: fixed; top: 0; left: 0;
@@ -762,7 +763,8 @@
   .gm-hero { flex-direction: column; padding: 18px; }
   .gm-hero h1 { font-size: 24px; }
   .gm-hero-actions { width: 100%; justify-content: flex-start; }
-  .gm-kpi-grid, .gm-photo-strip, .gm-report-grid, .gm-unit-summary { grid-template-columns: 1fr; }
+  .gm-kpi-grid, .gm-report-grid, .gm-unit-summary { grid-template-columns: 1fr; }
+  .gm-photo-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .gm-timeline { grid-template-columns: 1fr; gap: 8px; }
   .gm-timeline.compact { max-width: none; }
   .gm-tl-label { white-space: normal; }
