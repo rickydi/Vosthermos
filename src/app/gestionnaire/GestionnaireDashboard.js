@@ -105,6 +105,7 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
     : openInvoiceCount > 0
       ? `${openInvoiceCount} facture${openInvoiceCount > 1 ? "s" : ""} à régler`
       : "Aucun dossier urgent";
+  const activeClientLogoUrl = !isGlobal ? activeClient?.portalLogoUrl : null;
 
   useEffect(() => {
     const onClickOutside = () => setOpenMenu(null);
@@ -163,6 +164,13 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
               alt="Vosthermos"
             />
           </div>
+          {activeClientLogoUrl && (
+            <div className="gm-client-brand">
+              <div className="gm-client-brand-label">Client</div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={activeClientLogoUrl} alt={activeClient?.name || "Logo client"} />
+            </div>
+          )}
           <div>
             <div className="gm-tag"><i className="fas fa-building" style={{ fontSize: "10px", marginRight: 4 }}></i> Portail Gestionnaire</div>
           </div>
@@ -207,7 +215,14 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                   className={"synd-btn" + (!isGlobal && activeClient && c.clientId === activeClient.id ? " active" : "")}
                   onClick={() => switchClient(c.clientId)}
                 >
-                  <div className="sb-emblem">{clientInitials(c.clientName)}</div>
+                  {c.portalLogoUrl ? (
+                    <span className="sb-logo-thumb">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={c.portalLogoUrl} alt="" />
+                    </span>
+                  ) : (
+                    <div className="sb-emblem">{clientInitials(c.clientName)}</div>
+                  )}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div className="synd-name">{c.clientName}</div>
                     <div className="synd-sub">{c.city || "—"}</div>
@@ -272,11 +287,21 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
             <div className="gm-content">
               <div className="gm-hero">
                 <div className="gm-hero-main">
-                  <div className="gm-eyebrow">{isGlobal ? "Vue globale" : activeClient.name}</div>
-                  <h1>Bonjour {firstName},</h1>
-                  <p>
-                    {focusLine}. Votre parc contient {stats.totalUnits} unité{stats.totalUnits > 1 ? "s" : ""} et {stats.totalOpenings || 0} ouverture{stats.totalOpenings !== 1 ? "s" : ""} suivie{stats.totalOpenings !== 1 ? "s" : ""}.
-                  </p>
+                  <div className="gm-hero-heading">
+                    {activeClientLogoUrl && (
+                      <div className="gm-hero-client-logo">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={activeClientLogoUrl} alt={activeClient?.name || "Logo client"} />
+                      </div>
+                    )}
+                    <div>
+                      <div className="gm-eyebrow">{isGlobal ? "Vue globale" : activeClient.name}</div>
+                      <h1>Bonjour {firstName},</h1>
+                      <p>
+                        {focusLine}. Votre parc contient {stats.totalUnits} unité{stats.totalUnits > 1 ? "s" : ""} et {stats.totalOpenings || 0} ouverture{stats.totalOpenings !== 1 ? "s" : ""} suivie{stats.totalOpenings !== 1 ? "s" : ""}.
+                      </p>
+                    </div>
+                  </div>
                 </div>
                 <div className="gm-hero-actions">
                   {canRequest && (
@@ -2087,6 +2112,10 @@ function ParametresTab({ manager, activeClient, clients, isGlobal, canManageUnit
   const [renameCity, setRenameCity] = useState(activeClient?.city || "");
   const [savingRename, setSavingRename] = useState(false);
   const [renameMsg, setRenameMsg] = useState("");
+  const [logoPreview, setLogoPreview] = useState(activeClient?.portalLogoUrl || "");
+  const [logoFile, setLogoFile] = useState(null);
+  const [savingLogo, setSavingLogo] = useState(false);
+  const [logoMsg, setLogoMsg] = useState("");
 
   useEffect(() => {
     fetch("/api/manager/profile")
@@ -2099,6 +2128,9 @@ function ParametresTab({ manager, activeClient, clients, isGlobal, canManageUnit
     setRenameValue(activeClient?.name || "");
     setRenameAddress(activeClient?.address || "");
     setRenameCity(activeClient?.city || "");
+    setLogoPreview(activeClient?.portalLogoUrl || "");
+    setLogoFile(null);
+    setLogoMsg("");
   }, [activeClient]);
 
   async function saveProfile() {
@@ -2141,6 +2173,56 @@ function ParametresTab({ manager, activeClient, clients, isGlobal, canManageUnit
       setRenameMsg(err.message);
     }
     setSavingRename(false);
+  }
+
+  function selectLogo(file) {
+    if (!file) return;
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+    setLogoMsg("");
+  }
+
+  async function saveLogo() {
+    if (!activeClient?.id || !logoFile) return;
+    setSavingLogo(true);
+    setLogoMsg("");
+    try {
+      const fd = new FormData();
+      fd.append("logo", logoFile);
+      const res = await fetch(`/api/manager/clients/${activeClient.id}/logo`, {
+        method: "POST",
+        body: fd,
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || "Erreur");
+      setLogoPreview(d.logoUrl || "");
+      setLogoFile(null);
+      setLogoMsg("Logo enregistré ✓");
+      setTimeout(() => setLogoMsg(""), 2500);
+      onClientRenamed();
+    } catch (err) {
+      setLogoMsg(err.message);
+    }
+    setSavingLogo(false);
+  }
+
+  async function removeLogo() {
+    if (!activeClient?.id) return;
+    setSavingLogo(true);
+    setLogoMsg("");
+    try {
+      const res = await fetch(`/api/manager/clients/${activeClient.id}/logo`, { method: "DELETE" });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || "Erreur");
+      setLogoPreview("");
+      setLogoFile(null);
+      setLogoMsg("Logo retiré ✓");
+      setTimeout(() => setLogoMsg(""), 2500);
+      onClientRenamed();
+    } catch (err) {
+      setLogoMsg(err.message);
+    }
+    setSavingLogo(false);
   }
 
   if (!profile) {
@@ -2216,25 +2298,64 @@ function ParametresTab({ manager, activeClient, clients, isGlobal, canManageUnit
       </div>
 
       {/* Copropriété active */}
-      {!isGlobal && activeClient && canManageUnits && (
+      {!isGlobal && activeClient && (
         <>
           <div className="gm-section-head">
             <div className="gm-section-title">Copropriété · {activeClient.name}</div>
           </div>
           <div className="gm-card" style={{ padding: 20 }}>
             <div className="gm-form" style={{ maxWidth: 560 }}>
-              <TextInput label="Nom de la copropriété" value={renameValue} onChange={setRenameValue} placeholder="Ex: Le Marronnier" required />
-              <TextInput label="Adresse" value={renameAddress} onChange={setRenameAddress} placeholder="1500 Montée Monette" />
-              <TextInput label="Ville" value={renameCity} onChange={setRenameCity} placeholder="Laval" />
-              <div className="gm-form-actions" style={{ marginTop: 8 }}>
-                <button type="button" onClick={saveCopro} disabled={savingRename} className="gm-btn gm-btn-sm gm-btn-primary">
-                  {savingRename ? "Enregistrement..." : "Enregistrer la copropriété"}
-                </button>
-                {renameMsg && <span style={{ fontSize: 12, color: renameMsg.includes("✓") ? "var(--green)" : "var(--red)", marginLeft: 10, alignSelf: "center" }}>{renameMsg}</span>}
+              <div className="gm-client-logo-editor">
+                <div className="gm-client-logo-preview">
+                  {logoPreview ? (
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={logoPreview} alt={activeClient.name} />
+                    </>
+                  ) : (
+                    <span>{clientInitials(activeClient.name)}</span>
+                  )}
+                </div>
+                <div className="gm-client-logo-controls">
+                  <div className="gm-client-logo-title">Logo du client</div>
+                  <div className="gm-client-logo-actions">
+                    <label className="gm-btn gm-btn-sm">
+                      <i className="fas fa-image"></i>Choisir
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,image/gif"
+                        onChange={(e) => selectLogo(e.target.files?.[0])}
+                      />
+                    </label>
+                    <button type="button" className="gm-btn gm-btn-sm gm-btn-primary" onClick={saveLogo} disabled={!logoFile || savingLogo}>
+                      {savingLogo ? "Enregistrement..." : "Enregistrer logo"}
+                    </button>
+                    {logoPreview && !logoFile && (
+                      <button type="button" className="gm-btn gm-btn-sm" onClick={removeLogo} disabled={savingLogo}>
+                        Retirer
+                      </button>
+                    )}
+                  </div>
+                  <div className="gm-client-logo-help">PNG, JPG, WebP ou GIF. Il s&apos;affiche dans le portail de cette copropriété.</div>
+                  {logoMsg && <div className={"gm-client-logo-msg" + (logoMsg.includes("✓") ? " ok" : " err")}>{logoMsg}</div>}
+                </div>
               </div>
-              <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>
-                Les modifications s&apos;appliquent à toutes les factures et documents de cette copropriété.
-              </div>
+              {canManageUnits && (
+                <>
+                  <TextInput label="Nom de la copropriété" value={renameValue} onChange={setRenameValue} placeholder="Ex: Le Marronnier" required />
+                  <TextInput label="Adresse" value={renameAddress} onChange={setRenameAddress} placeholder="1500 Montée Monette" />
+                  <TextInput label="Ville" value={renameCity} onChange={setRenameCity} placeholder="Laval" />
+                  <div className="gm-form-actions" style={{ marginTop: 8 }}>
+                    <button type="button" onClick={saveCopro} disabled={savingRename} className="gm-btn gm-btn-sm gm-btn-primary">
+                      {savingRename ? "Enregistrement..." : "Enregistrer la copropriété"}
+                    </button>
+                    {renameMsg && <span style={{ fontSize: 12, color: renameMsg.includes("✓") ? "var(--green)" : "var(--red)", marginLeft: 10, alignSelf: "center" }}>{renameMsg}</span>}
+                  </div>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>
+                    Les modifications s&apos;appliquent à toutes les factures et documents de cette copropriété.
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </>

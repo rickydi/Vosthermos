@@ -9,6 +9,10 @@ function unitStatusKey(clientId, unitCode) {
   return `${Number(clientId)}:${String(unitCode || "").trim()}`;
 }
 
+function clientLogoKey(clientId) {
+  return `manager_client_logo_${Number(clientId)}`;
+}
+
 export default async function GestionnairePage({ searchParams }) {
   const sp = await searchParams;
   const manager = await getManagerFromCookie();
@@ -38,6 +42,7 @@ export default async function GestionnairePage({ searchParams }) {
 
   const allClientIds = manager.clients.map((c) => c.clientId);
   const clientIdsFilter = isGlobal ? allClientIds : [activeClient.clientId];
+  const logoKeys = allClientIds.map(clientLogoKey);
 
   // Permission-scoped client IDs: only clients where manager has the specific permission
   const woClientIds = clientIdsFilter.filter((cid) => {
@@ -50,7 +55,10 @@ export default async function GestionnairePage({ searchParams }) {
   });
 
   // Fetch data scoped to selected client(s) + permissions + visibleAuClient
-  const [buildings, unitsRaw, activeWOs, recentWOs, pendingInvoicesCount, invoicedWOs] = await Promise.all([
+  const [logoSettings, buildings, unitsRaw, activeWOs, recentWOs, pendingInvoicesCount, invoicedWOs] = await Promise.all([
+    logoKeys.length === 0 ? Promise.resolve([]) : prisma.siteSetting.findMany({
+      where: { key: { in: logoKeys } },
+    }),
     prisma.building.findMany({
       where: { clientId: { in: clientIdsFilter } },
       include: { client: { select: { name: true } } },
@@ -109,6 +117,12 @@ export default async function GestionnairePage({ searchParams }) {
       take: 50,
     }),
   ]);
+
+  const logoByClientId = {};
+  for (const setting of logoSettings) {
+    const clientId = Number(setting.key.replace("manager_client_logo_", ""));
+    if (clientId && setting.value) logoByClientId[clientId] = setting.value;
+  }
 
   // Group units by building
   const unitsByBuilding = {};
@@ -285,6 +299,7 @@ export default async function GestionnairePage({ searchParams }) {
         clientId: c.clientId,
         clientName: c.client.name,
         city: c.client.city,
+        portalLogoUrl: logoByClientId[c.clientId] || null,
         permissions: c.permissions,
       }))}
       isGlobal={isGlobal}
@@ -293,6 +308,7 @@ export default async function GestionnairePage({ searchParams }) {
         name: activeClient.client.name,
         city: activeClient.client.city,
         address: activeClient.client.address,
+        portalLogoUrl: logoByClientId[activeClient.clientId] || null,
         permissions: activeClient.permissions || [],
       } : null}
       buildings={buildings.map((b) => {
