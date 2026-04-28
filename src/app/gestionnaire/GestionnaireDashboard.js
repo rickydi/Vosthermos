@@ -99,10 +99,13 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
   const activeWorkOrders = interventions?.active || [];
   const recentWorkOrders = interventions?.recent || [];
   const openInvoiceCount = invoices.filter((i) => i.statut === "invoiced").length;
+  const overdueInvoiceCount = invoices.filter((i) => i.statut === "invoiced" && i.dueDate && new Date(i.dueDate) < new Date()).length;
   const firstName = manager.firstName || "Bonjour";
   const focusLine = activeWorkOrders.length > 0
     ? `${activeWorkOrders.length} intervention${activeWorkOrders.length > 1 ? "s" : ""} à suivre`
-    : openInvoiceCount > 0
+    : overdueInvoiceCount > 0
+      ? `${overdueInvoiceCount} facture${overdueInvoiceCount > 1 ? "s" : ""} en retard`
+      : openInvoiceCount > 0
       ? `${openInvoiceCount} facture${openInvoiceCount > 1 ? "s" : ""} à régler`
       : "Aucun dossier urgent";
   const activeClientLogoUrl = !isGlobal ? activeClient?.portalLogoUrl : null;
@@ -312,8 +315,14 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                 <MetricCard icon="fa-building" label="Copropriétés" value={isGlobal ? clients.length : 1} detail={isGlobal ? "Portefeuille complet" : activeClient.city || "Copropriété active"} />
                 <MetricCard icon="fa-door-open" label="Unités" value={stats.totalUnits} detail={`${stats.buildingsCount} bâtiment${stats.buildingsCount > 1 ? "s" : ""}`} />
                 <MetricCard icon="fa-window-maximize" label="Ouvertures" value={stats.totalOpenings || 0} detail="Fenêtres et portes suivies" />
-                <MetricCard icon="fa-clipboard-list" label="En cours" value={stats.activeWOsCount} detail={stats.activeWOsCount ? "Interventions à suivre" : "Aucun dossier actif"} tone={stats.activeWOsCount ? "red" : "green"} />
-                <MetricCard icon="fa-file-invoice-dollar" label="À payer" value={stats.invoicedCount} detail={fmtMoney(invoicesTotals.toPay)} tone={stats.invoicedCount ? "amber" : "green"} />
+                <MetricCard icon="fa-clipboard-list" label="En cours" value={stats.activeWOsCount} detail={stats.activeWOsCount ? "Interventions à suivre" : "Aucun dossier actif"} />
+                <MetricCard
+                  icon="fa-file-invoice-dollar"
+                  label="À payer"
+                  value={stats.invoicedCount}
+                  detail={overdueInvoiceCount > 0 ? `${overdueInvoiceCount} en retard · ${fmtMoney(invoicesTotals.toPay)}` : fmtMoney(invoicesTotals.toPay)}
+                  tone={overdueInvoiceCount > 0 ? "red" : ""}
+                />
               </div>
 
               {/* Notifications */}
@@ -686,15 +695,15 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
 
               <div className="gm-grid" style={{ marginBottom: 16 }}>
                 <div className="gm-card" style={{ gridColumn: "span 4" }}>
-                  <div style={{ fontSize: 32, fontWeight: 700, color: "var(--red)" }}>{fmtMoney(invoicesTotals.toPay)}</div>
+                  <div style={{ fontSize: 32, fontWeight: 700, color: overdueInvoiceCount > 0 ? "var(--red)" : "var(--text)" }}>{fmtMoney(invoicesTotals.toPay)}</div>
                   <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".1em", marginTop: 4 }}>Total à payer</div>
                 </div>
                 <div className="gm-card" style={{ gridColumn: "span 4" }}>
-                  <div style={{ fontSize: 32, fontWeight: 700, color: "var(--green)" }}>{fmtMoney(invoicesTotals.paid)}</div>
+                  <div style={{ fontSize: 32, fontWeight: 700, color: "var(--text)" }}>{fmtMoney(invoicesTotals.paid)}</div>
                   <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".1em", marginTop: 4 }}>Payé</div>
                 </div>
                 <div className="gm-card" style={{ gridColumn: "span 4" }}>
-                  <div style={{ fontSize: 32, fontWeight: 700, color: "var(--teal-dark)" }}>{invoices.length}</div>
+                  <div style={{ fontSize: 32, fontWeight: 700, color: "var(--text)" }}>{invoices.length}</div>
                   <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".1em", marginTop: 4 }}>Factures · 12 mois</div>
                 </div>
               </div>
@@ -742,7 +751,7 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                           </td>
                           <td style={{ padding: "14px 16px", textAlign: "right", fontWeight: 700, fontSize: 14 }}>{fmtMoney(inv.total)}</td>
                           <td style={{ padding: "14px 16px" }}>
-                            <span className={"gm-tag " + (inv.statut === "paid" ? "green" : isOverdue ? "red" : "amber")}>
+                            <span className={"gm-tag " + (inv.statut === "paid" ? "green" : isOverdue ? "red" : "gray")}>
                               {inv.statut === "paid" ? "Payé" : isOverdue ? "En retard" : "À payer"}
                             </span>
                           </td>
@@ -1183,8 +1192,8 @@ function ClientReportModal({ manager, stats, isGlobal, activeClient, clients, in
         <div className="gm-report-grid">
           <MetricCard icon="fa-building" label="Copropriétés" value={isGlobal ? clients.length : 1} detail="Portée du résumé" />
           <MetricCard icon="fa-door-open" label="Unités" value={stats.totalUnits} detail={`${stats.totalOpenings || 0} ouvertures`} />
-          <MetricCard icon="fa-clipboard-check" label="Terminées" value={stats.completedCount} detail="Historique récent" tone="green" />
-          <MetricCard icon="fa-file-invoice-dollar" label="Factures dues" value={fmtMoney(invoicesTotals.toPay)} detail={`${stats.invoicedCount} facture${stats.invoicedCount > 1 ? "s" : ""}`} tone={stats.invoicedCount ? "amber" : "green"} />
+          <MetricCard icon="fa-clipboard-check" label="Terminées" value={stats.completedCount} detail="Historique récent" />
+          <MetricCard icon="fa-file-invoice-dollar" label="Factures dues" value={fmtMoney(invoicesTotals.toPay)} detail={`${stats.invoicedCount} facture${stats.invoicedCount > 1 ? "s" : ""}`} />
         </div>
 
         <div className="gm-report-section">
