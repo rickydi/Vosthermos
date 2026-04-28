@@ -50,14 +50,15 @@ const nextConfig = {
       { source: "/blog/:slug*", destination: "/blogue/:slug*", permanent: true },
 
       // EN: pages qui n'existent pas mais Google les demande (content FR dans path EN)
-      { source: "/en/blogue/:slug*", destination: "/blogue/:slug*", permanent: true },
+      { source: "/en/blogue/:slug", destination: "/blogue/:slug", permanent: true },
+      { source: "/en/blogue/:slug/:rest*", destination: "/blogue/:slug/:rest*", permanent: true },
       { source: "/en/secteurs/:ville", destination: "/en", permanent: true },
       { source: "/en/secteurs", destination: "/en", permanent: true },
       { source: "/en/villes/:ville.html", destination: "/en", permanent: true },
       { source: "/en/villes/:ville", destination: "/en", permanent: true },
-      { source: "/en/carrieres", destination: "/carrieres", permanent: true },
+      { source: "/en/carrieres", destination: "/en/contact?subject=careers", permanent: true },
       { source: "/en/panier", destination: "/panier", permanent: true },
-      { source: "/en/rendez-vous", destination: "/rendez-vous", permanent: true },
+      { source: "/en/rendez-vous", destination: "/en/contact", permanent: true },
 
       // Slugs anglais -> francais (pas de version EN dediee)
       { source: "/services/door-insert", destination: "/services/insertion-porte", permanent: true },
