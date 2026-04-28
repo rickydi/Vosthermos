@@ -65,6 +65,7 @@ export default function Header({ company }) {
       return frPath || "/";
     }
     if (pathname === "/contact" || pathname === "/rendez-vous") return "/en/contact";
+    if (pathname === "/portail-gestionnaire") return "/en/contact?subject=portal-demo";
     if (pathname === "/realisations" || pathname.startsWith("/realisations/")) return "/en/#gallery";
     if (pathname === "/panier" || pathname.startsWith("/checkout")) return pathname;
     // FR → EN : mapper slug service si applicable

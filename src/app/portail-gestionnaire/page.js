@@ -7,9 +7,9 @@ const PAGE_URL = "https://www.vosthermos.com/portail-gestionnaire";
 export const metadata = {
   title: "Portail Gestionnaire de Copropriétés pour Fenêtres | Vosthermos",
   description:
-    "Plateforme numérique pour gestionnaires de condos : bons de travail numériques, suivi temps réel, plans pluriannuels, facturation centralisée. Démo gratuite.",
+    "Plateforme numérique pour gestionnaires de condos : bons de travail numériques, suivi temps réel, historique par unité, photos et facturation centralisée. Démo gratuite.",
   keywords:
-    "portail gestionnaire fenêtres copropriété, logiciel suivi travaux fenêtres, app gestion condos entrepreneur fenêtres, bon de travail numérique fenêtres Québec, entrepreneur fenêtres plateforme suivi, gestion parc fenêtres copropriété, entrepreneur connecté fenêtres Québec, plan pluriannuel fenêtres",
+    "portail gestionnaire fenêtres copropriété, logiciel suivi travaux fenêtres, app gestion condos entrepreneur fenêtres, bon de travail numérique fenêtres Québec, entrepreneur fenêtres plateforme suivi, gestion parc fenêtres copropriété, entrepreneur connecté fenêtres Québec, suivi fenêtres copropriété",
   alternates: { canonical: PAGE_URL },
   openGraph: {
     type: "website",
@@ -17,13 +17,22 @@ export const metadata = {
     url: PAGE_URL,
     title: "Portail Gestionnaire de Copropriétés pour Fenêtres | Vosthermos",
     description:
-      "Plateforme numérique pour gestionnaires de condos : bons de travail numériques, suivi temps réel, plans pluriannuels.",
+      "Plateforme numérique pour gestionnaires de condos : bons de travail numériques, suivi temps réel, photos et facturation centralisée.",
     images: [
       {
-        url: "https://www.vosthermos.com/images/Vos-Thermos-Logo.png",
-        alt: "Vosthermos Portail Gestionnaire",
+        url: "https://www.vosthermos.com/portail-gestionnaire/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Aperçu du portail gestionnaire Vosthermos",
       },
     ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Portail Gestionnaire de Copropriétés pour Fenêtres | Vosthermos",
+    description:
+      "Bons de travail numériques, suivi temps réel, photos et facturation centralisée pour copropriétés.",
+    images: ["https://www.vosthermos.com/portail-gestionnaire/opengraph-image"],
   },
 };
 
@@ -34,7 +43,7 @@ const FAQS = [
   },
   {
     q: "Est-ce que mes propriétaires ont accès au portail ?",
-    a: "Oui, avec un niveau d'accès limité à leur unité seulement : historique, interventions en cours, signalement d'un problème.",
+    a: "Pas pour le moment. Le portail est pensé pour les gestionnaires et syndicats; les demandes des propriétaires peuvent être centralisées par votre équipe.",
   },
   {
     q: "Combien de temps pour mettre en place ?",
@@ -54,11 +63,11 @@ const FAQS = [
   },
   {
     q: "Comment nos techniciens utilisent le portail sur le terrain ?",
-    a: "Samsung Tab Active5 fournie (ou BYOD). Application mobile avec mode hors ligne : sync dès que le technicien retrouve le réseau.",
+    a: "Tablette fournie ou BYOD. Le portail web est adapté au mobile pour centraliser les photos, notes et rapports directement sur le terrain.",
   },
   {
     q: "Intégration avec nos logiciels existants (Condo Manager, etc.) ?",
-    a: "API ouverte et exports automatiques. Intégrations sur demande pour Condo Manager, Hopem, et autres plateformes de gestion immobilière.",
+    a: "Exports CSV et Excel disponibles pour conserver vos données et les remettre dans vos dossiers ou logiciels de gestion. Aucune API publique n'est annoncée pour le moment.",
   },
 ];
 
@@ -68,7 +77,7 @@ export default function PortailGestionnairePage() {
     "@type": "SoftwareApplication",
     name: "Vosthermos Portail Gestionnaire",
     applicationCategory: "BusinessApplication",
-    operatingSystem: "Web, iOS, Android",
+    operatingSystem: "Web",
     offers: {
       "@type": "Offer",
       priceCurrency: "CAD",
@@ -79,7 +88,7 @@ export default function PortailGestionnairePage() {
       "Bons de travail numériques",
       "Dashboard multi-unités",
       "Historique complet par fenêtre",
-      "Plan pluriannuel d'entretien",
+      "Suivi des priorités d'entretien",
       "Suivi temps réel",
       "Facturation centralisée",
     ],
@@ -127,11 +136,6 @@ export default function PortailGestionnairePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
-      <link
-        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap"
-        rel="stylesheet"
-      />
-
       <div className="portail-page">
         {/* HERO */}
         <section className="pg-hero">
@@ -149,7 +153,7 @@ export default function PortailGestionnairePage() {
               <span className="pg-h1-accent pg-h1-break">pour vos travaux de fenêtres.</span>
             </h1>
             <p className="pg-hero-sub">
-              Bons de travail numériques, suivi en temps réel, plans pluriannuels. Tout votre parc
+              Bons de travail numériques, suivi en temps réel et historique par unité. Tout votre parc
               de fenêtres centralisé. <strong>Une plateforme, zéro appel téléphonique.</strong>
             </p>
             <div className="pg-hero-ctas">
@@ -219,7 +223,7 @@ export default function PortailGestionnairePage() {
                       <span className="pg-badge accent">3</span>
                     </a>
                     <a>
-                      <i className="fas fa-calendar-check"></i> Plan pluriannuel
+                      <i className="fas fa-calendar-check"></i> Priorités
                     </a>
                     <a>
                       <i className="fas fa-file-invoice-dollar"></i> Facturation
@@ -269,7 +273,7 @@ export default function PortailGestionnairePage() {
                       </div>
                     </div>
                     <div className="pg-kpi">
-                      <div className="pg-kpi-label">Budget entretien 2026</div>
+                      <div className="pg-kpi-label">Priorités entretien 2026</div>
                       <div className="pg-kpi-value">
                         18 400 <small>$</small>
                       </div>
@@ -281,7 +285,7 @@ export default function PortailGestionnairePage() {
                       </div>
                     </div>
                     <div className="pg-kpi">
-                      <div className="pg-kpi-label">À approuver</div>
+                      <div className="pg-kpi-label">À confirmer</div>
                       <div className="pg-kpi-value accent">3</div>
                       <div className="pg-kpi-trend">
                         <i className="fas fa-circle-exclamation"></i> bons de travail
@@ -335,7 +339,7 @@ export default function PortailGestionnairePage() {
                               <span className="pg-tech">MD</span> M. Dubé
                             </td>
                             <td>
-                              <span className="pg-pill wait">À approuver</span>
+                              <span className="pg-pill wait">À confirmer</span>
                             </td>
                           </tr>
                           <tr>
@@ -354,7 +358,7 @@ export default function PortailGestionnairePage() {
                     </div>
                     <div className="pg-panel">
                       <div className="pg-panel-head">
-                        <h4>Plan pluriannuel · 2026 – 2030</h4>
+                        <h4>Priorités d&apos;entretien · 2026</h4>
                         <span className="pg-panel-tag">Projection</span>
                       </div>
                       <div className="pg-plan-chart" aria-hidden="true">
@@ -435,7 +439,7 @@ export default function PortailGestionnairePage() {
                     </span>
                   </div>
                   <div className="pg-phone-kpi-main">
-                    <div className="pg-phone-kpi-label">À approuver</div>
+                    <div className="pg-phone-kpi-label">À confirmer</div>
                     <div className="pg-phone-kpi-value">3</div>
                     <div className="pg-phone-kpi-sub">bons de travail en attente</div>
                   </div>
@@ -462,12 +466,12 @@ export default function PortailGestionnairePage() {
                       <b>Unité 102 · salon</b>
                       <div className="pg-phone-item-sub">
                         <span>Ajustement quincaillerie</span>
-                        <span>À approuver</span>
+                        <span>À confirmer</span>
                       </div>
                     </div>
                   </div>
                   <button className="pg-phone-approve">
-                    <i className="fas fa-check"></i> Approuver 3 bons de travail
+                    <i className="fas fa-check"></i> Confirmer 3 bons de travail
                   </button>
                 </div>
               </div>
@@ -483,7 +487,7 @@ export default function PortailGestionnairePage() {
               </div>
               <div className="pg-tb-sep"></div>
               <div>
-                <b>Application mobile</b> iOS · Android
+                <b>Portail web</b> ordinateur · tablette · mobile
               </div>
             </div>
           </div>
@@ -507,11 +511,11 @@ export default function PortailGestionnairePage() {
                 ],
                 [
                   "Impossible de prévoir les coûts d'entretien annuels devant le CA.",
-                  "Plan pluriannuel fenêtres généré automatiquement, budget sur 5 à 15 ans.",
+                  "Priorités d'entretien, historique par unité et budget indicatif pour mieux planifier.",
                 ],
                 [
                   "Facturation éparpillée, approbations manuelles par courriels croisés.",
-                  "Factures regroupées, approbation en un clic, archivage automatique.",
+                  "Factures regroupées, export CSV, archivage automatique.",
                 ],
               ].map(([problem, solution], i) => (
                 <div className="pg-ps-row" key={i}>
@@ -681,10 +685,10 @@ export default function PortailGestionnairePage() {
                     <span>2035</span>
                   </div>
                 </div>
-                <h3>Plan pluriannuel d&apos;entretien</h3>
+                <h3>Priorités d&apos;entretien</h3>
                 <p>
-                  Anticipez les remplacements sur 5, 10, 15 ans. Budget projeté par année, priorités
-                  automatiques selon l&apos;âge et l&apos;état de chaque fenêtre.
+                  Repérez les remplacements à prévoir, classez les priorités et gardez un budget
+                  indicatif par immeuble selon l&apos;âge et l&apos;état de chaque fenêtre.
                 </p>
               </article>
               <article className="pg-feat">
@@ -718,8 +722,8 @@ export default function PortailGestionnairePage() {
                 </div>
                 <h3>Suivi temps réel</h3>
                 <p>
-                  Sachez exactement quand le technicien arrive, progresse, termine. Notifications
-                  automatiques par courriel ou SMS aux locataires concernés.
+                  Sachez quand le technicien arrive, progresse et termine. Le dossier reste clair
+                  pour votre équipe et votre conseil d&apos;administration.
                 </p>
               </article>
               <article className="pg-feat">
@@ -749,8 +753,8 @@ export default function PortailGestionnairePage() {
                 </div>
                 <h3>Facturation centralisée</h3>
                 <p>
-                  Une seule facture mensuelle consolidée. Export CSV pour votre comptabilité.
-                  Approbation en ligne en un clic.
+                  Une seule facture mensuelle consolidée. Export CSV pour votre comptabilité et
+                  archivage dans le dossier de la copropriété.
                 </p>
               </article>
             </div>
@@ -772,11 +776,11 @@ export default function PortailGestionnairePage() {
             </p>
             <ol className="pg-timeline">
               {[
-                ["Signalement", "Le locataire signale une fenêtre embuée via le portail, photo à l'appui."],
-                ["Approbation", "Le gestionnaire approuve l'intervention en un clic depuis son tableau de bord."],
+                ["Signalement", "Le gestionnaire saisit la demande avec photo et unité concernée."],
+                ["Confirmation", "Vosthermos reçoit la demande et confirme la suite directement dans le dossier."],
                 ["Intervention", "Le technicien reçoit le bon de travail sur sa tablette et intervient sur place."],
                 ["Rapport", "Rapport signé et photos avant / après téléversés automatiquement."],
-                ["Facture", "Facture générée, approuvée, archivée. Historique mis à jour."],
+                ["Facture", "Facture générée, archivée et liée au bon de travail. Historique mis à jour."],
               ].map(([title, desc], i) => (
                 <li className="pg-tl-step" key={i}>
                   <div className="pg-tl-dot">
@@ -832,7 +836,7 @@ export default function PortailGestionnairePage() {
                       ["Portail web 24/7", "yes", "no", "no"],
                       ["Bon de travail numérique", "yes", "no", "no"],
                       ["Historique par unité", "yes", "maybe", "no"],
-                      ["Plan pluriannuel", "yes", "no", "no"],
+                      ["Priorités d'entretien", "yes", "no", "no"],
                       ["Notifications automatiques", "yes", "no", "no"],
                       ["Factures consolidées", "yes", "maybe", "no"],
                       ["Photos avant / après archivées", "yes", "no", "no"],
@@ -914,11 +918,10 @@ export default function PortailGestionnairePage() {
               <div className="pg-story-col after">
                 <div className="pg-story-label">Avec le portail</div>
                 <p>
-                  Mardi 14 h. Le locataire signale la fenêtre via le portail, photo jointe. Le
-                  gestionnaire approuve en 30 secondes depuis son téléphone. Jeudi matin, le
-                  technicien intervient, téléverse rapport et photos signés sur place. Vendredi, la
-                  facture consolidée apparaît, approuvée en un clic. Le dossier de l&apos;unité 301
-                  est à jour automatiquement.
+                  Mardi 14 h. Le gestionnaire saisit la fenêtre problématique dans le portail, photo
+                  jointe. Vosthermos confirme la suite dans le dossier. Jeudi matin, le technicien
+                  intervient et ajoute rapport et photos. Vendredi, la facture consolidée apparaît.
+                  Le dossier de l&apos;unité 301 reste à jour.
                 </p>
                 <ul className="pg-story-metrics">
                   <li>
@@ -977,7 +980,7 @@ export default function PortailGestionnairePage() {
                 <div className="pg-team-info">
                   <h3 className="pg-team-name">Conseiller technique</h3>
                   <p className="pg-team-role">
-                    Plans pluriannuels et parcs importants de 50 fenêtres et plus.
+                    Priorités d&apos;entretien et parcs importants de 50 fenêtres et plus.
                   </p>
                   <p className="pg-team-spec">
                     Montérégie · Rive-Sud · Estrie

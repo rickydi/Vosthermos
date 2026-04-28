@@ -5,6 +5,7 @@ import { getTransporter } from "@/lib/mail";
 import { COMPANY_INFO } from "@/lib/company-info";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.vosthermos.com";
+const isProduction = process.env.NODE_ENV === "production";
 
 export async function POST(req) {
   try {
@@ -25,6 +26,10 @@ export async function POST(req) {
     const loginUrl = `${SITE_URL}/api/manager/auth/verify?token=${token}`;
 
     if (!process.env.SMTP_HOST) {
+      if (isProduction) {
+        console.error("Manager magic link requested but SMTP_HOST is not configured.");
+        return NextResponse.json({ error: "Envoi du lien temporairement indisponible" }, { status: 503 });
+      }
       console.log(`[DEV] Magic link for ${normalized}: ${loginUrl}`);
       return NextResponse.json({ ok: true, message: "Lien envoyé (mode dev, voir les logs)", devLink: loginUrl });
     }

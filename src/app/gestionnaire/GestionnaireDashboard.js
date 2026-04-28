@@ -46,7 +46,9 @@ function hasPerm(activeClient, perm) {
 export default function GestionnaireDashboard({ manager, clients, isGlobal, activeClient, buildings, orphanUnits, stats, notifs, interventions, invoices, invoicesTotals }) {
   const router = useRouter();
   const sp = useSearchParams();
-  const [activeTab, setActiveTab] = useState(sp.get("tab") || "dashboard");
+  const requestedTab = sp.get("tab");
+  const availableTabs = ["dashboard", "interventions", "factures", "parametres"];
+  const [activeTab, setActiveTab] = useState(availableTabs.includes(requestedTab) ? requestedTab : "dashboard");
   const [openMenu, setOpenMenu] = useState(null);
   const [selectedUnit, setSelectedUnit] = useState(null);
   const [openingEditor, setOpeningEditor] = useState(null);
@@ -95,9 +97,7 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
   const crumbs = {
     dashboard: "Tableau de bord",
     interventions: "Interventions",
-    plan: "Plan pluriannuel",
     factures: "Factures",
-    documents: "Documents",
     parametres: "Paramètres",
   };
 
@@ -127,9 +127,7 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
               {[
                 { id: "dashboard", icon: "fa-th-large", label: "Tableau de bord" },
                 { id: "interventions", icon: "far fa-calendar", label: "Interventions", badge: stats.activeWOsCount },
-                { id: "plan", icon: "far fa-chart-bar", label: "Plan pluriannuel" },
                 { id: "factures", icon: "far fa-file", label: "Factures", badge: stats.invoicedCount },
-                { id: "documents", icon: "far fa-folder", label: "Documents" },
                 { id: "parametres", icon: "fas fa-cog", label: "Paramètres" },
               ].map((item) => (
                 <button
@@ -673,22 +671,6 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
             />
           )}
 
-          {/* PLAN / DOCUMENTS — placeholders */}
-          {(activeTab === "plan" || activeTab === "documents") && (
-            <div className="gm-content">
-              <div className="gm-page-head gm-page-head-compact">
-                <div className="gm-page-sub">Section en cours de développement</div>
-              </div>
-              <div className="gm-card" style={{ textAlign: "center", padding: 60 }}>
-                <i className="fas fa-tools" style={{ fontSize: 36, color: "var(--border-strong)", marginBottom: 12 }}></i>
-                <div style={{ fontWeight: 700, marginBottom: 6 }}>Section bientôt disponible</div>
-                <div style={{ color: "var(--text-muted)", fontSize: 13 }}>
-                  {activeTab === "plan" && "Plan pluriannuel et budget prévisionnel 5 ans."}
-                  {activeTab === "documents" && "Rapports, plans et attestations Loi 25."}
-                </div>
-              </div>
-            </div>
-          )}
         </main>
       </div>
 
@@ -826,7 +808,7 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                     // we need immediate visual feedback, we can leave it to the re-render from server.
                   }}
                 >
-                  <i className="fas fa-trash"></i>Supprimer l'unité
+                  <i className="fas fa-trash"></i>Supprimer l&apos;unité
                 </button>
               ) : <div />}
               <div style={{ display: "flex", gap: 8 }}>

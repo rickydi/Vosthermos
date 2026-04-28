@@ -9,6 +9,7 @@ import { COMPANY_INFO } from "@/lib/company-info";
 export const dynamic = "force-dynamic";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.vosthermos.com";
+const isProduction = process.env.NODE_ENV === "production";
 
 export async function GET(req, { params }) {
   try { await requireAdmin(); }
@@ -109,9 +110,12 @@ export async function POST(req, { params }) {
     if (!manager.isActive) return NextResponse.json({ error: "Compte desactive" }, { status: 400 });
 
     const token = await createMagicToken(manager);
-    const loginUrl = `${SITE_URL}/gestionnaire/verify?token=${token}`;
+    const loginUrl = `${SITE_URL}/api/manager/auth/verify?token=${token}`;
 
     if (!process.env.SMTP_HOST) {
+      if (isProduction) {
+        return NextResponse.json({ error: "SMTP non configure" }, { status: 503 });
+      }
       return NextResponse.json({ ok: true, devLink: loginUrl });
     }
 

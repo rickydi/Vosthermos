@@ -4,6 +4,15 @@ import { getManagerFromCookie, hasPermission, canAccessClient } from "@/lib/mana
 
 export const dynamic = "force-dynamic";
 
+async function validateBuildingForClient(buildingId, clientId) {
+  if (!buildingId) return null;
+  const building = await prisma.building.findFirst({
+    where: { id: Number(buildingId), clientId: Number(clientId) },
+    select: { id: true },
+  });
+  return building ? building.id : false;
+}
+
 async function authorize(id, manager) {
   const unit = await prisma.clientUnit.findUnique({
     where: { id: Number(id) },
@@ -27,8 +36,31 @@ export async function PUT(req, { params }) {
 
   const body = await req.json().catch(() => ({}));
   const data = {};
-  if (body.buildingId !== undefined) data.buildingId = body.buildingId ? Number(body.buildingId) : null;
-  if (body.code !== undefined) data.code = String(body.code).trim();
+  if (body.buildingId !== undefined) {
+    const validBuildingId = await validateBuildingForClient(body.buildingId, auth.unit.clientId);
+    if (validBuildingId === false) {
+      return NextResponse.json({ error: "Bâtiment invalide pour cette copropriété" }, { status: 400 });
+    }
+    data.buildingId = validBuildingId;
+  }
+  if (body.code !== undefined) {
+    const code = String(body.code).trim();
+    if (!code) return NextResponse.json({ error: "Code d'unité requis" }, { status: 400 });
+
+    const existing = await prisma.clientUnit.findFirst({
+      where: {
+        clientId: auth.unit.clientId,
+        code,
+        id: { not: Number(id) },
+      },
+      select: { id: true },
+    });
+    if (existing) {
+      return NextResponse.json({ error: "Une unité avec ce code existe déjà" }, { status: 400 });
+    }
+
+    data.code = code;
+  }
   if (body.description !== undefined) data.description = body.description?.trim() || null;
   if (body.notes !== undefined) data.notes = body.notes?.trim() || null;
 

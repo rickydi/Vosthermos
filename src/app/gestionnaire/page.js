@@ -5,6 +5,10 @@ import GestionnaireDashboard from "./GestionnaireDashboard";
 
 export const dynamic = "force-dynamic";
 
+function unitStatusKey(clientId, unitCode) {
+  return `${Number(clientId)}:${String(unitCode || "").trim()}`;
+}
+
 export default async function GestionnairePage({ searchParams }) {
   const sp = await searchParams;
   const manager = await getManagerFromCookie();
@@ -117,7 +121,7 @@ export default async function GestionnairePage({ searchParams }) {
   const unitStatusMap = {};
   for (const wo of activeWOs) {
     for (const sec of wo.sections || []) {
-      unitStatusMap[sec.unitCode] = {
+      unitStatusMap[unitStatusKey(wo.clientId, sec.unitCode)] = {
         status: "active",
         wo,
         dateLabel: wo.date ? new Date(wo.date).toLocaleDateString("fr-CA", { day: "2-digit", month: "short" }).toUpperCase() : "À VENIR",
@@ -126,8 +130,9 @@ export default async function GestionnairePage({ searchParams }) {
   }
   for (const wo of recentWOs) {
     for (const sec of wo.sections || []) {
-      if (!unitStatusMap[sec.unitCode]) {
-        unitStatusMap[sec.unitCode] = { status: "done", dateLabel: "TERMINÉ" };
+      const key = unitStatusKey(wo.clientId, sec.unitCode);
+      if (!unitStatusMap[key]) {
+        unitStatusMap[key] = { status: "done", dateLabel: "TERMINÉ" };
       }
     }
   }
@@ -229,8 +234,8 @@ export default async function GestionnairePage({ searchParams }) {
       } : null}
       buildings={buildings.map((b) => {
         const bUnits = unitsByBuilding[b.id]?.units || [];
-        const done = bUnits.filter((u) => unitStatusMap[u.code]?.status === "done").length;
-        const active = bUnits.filter((u) => unitStatusMap[u.code]?.status === "active").length;
+        const done = bUnits.filter((u) => unitStatusMap[unitStatusKey(u.clientId, u.code)]?.status === "done").length;
+        const active = bUnits.filter((u) => unitStatusMap[unitStatusKey(u.clientId, u.code)]?.status === "active").length;
         return {
           id: b.id,
           code: b.code,
@@ -240,8 +245,8 @@ export default async function GestionnairePage({ searchParams }) {
           units: bUnits.map((u) => ({
             id: u.id,
             code: u.code,
-            status: unitStatusMap[u.code]?.status || "none",
-            statusLabel: unitStatusMap[u.code]?.dateLabel || "—",
+            status: unitStatusMap[unitStatusKey(u.clientId, u.code)]?.status || "none",
+            statusLabel: unitStatusMap[unitStatusKey(u.clientId, u.code)]?.dateLabel || "—",
             openings: u.openings,
           })),
         };
@@ -249,8 +254,8 @@ export default async function GestionnairePage({ searchParams }) {
       orphanUnits={orphanUnits.map((u) => ({
         id: u.id,
         code: u.code,
-        status: unitStatusMap[u.code]?.status || "none",
-        statusLabel: unitStatusMap[u.code]?.dateLabel || "—",
+        status: unitStatusMap[unitStatusKey(u.clientId, u.code)]?.status || "none",
+        statusLabel: unitStatusMap[unitStatusKey(u.clientId, u.code)]?.dateLabel || "—",
         openings: u.openings,
       }))}
       stats={stats}
