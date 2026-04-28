@@ -84,6 +84,9 @@ export default function Header({ company }) {
   const bookNowHref = isEnglish ? "/en/contact" : "/rendez-vous";
   const projectsHref = isEnglish ? (isHome ? "#gallery" : "/en/#gallery") : "/realisations";
   const contactHref = isEnglish ? "/en/contact" : "/contact";
+  const areasHref = isEnglish
+    ? (isHome ? "#areas" : "/en/#areas")
+    : (isHome ? "#secteurs" : "/#secteurs");
   const cartHref = "/panier";
 
   // Navigation labels
@@ -227,7 +230,7 @@ export default function Header({ company }) {
           <Link href={`${prefix}/garantie`} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.garantie}</Link>
           <Link href={projectsHref} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.realisations}</Link>
           <Link href={`${prefix}/faq`} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.faq}</Link>
-          <Link href={isHome ? "#secteurs" : `${prefix || ""}/#secteurs`} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.secteurs}</Link>
+          <Link href={areasHref} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.secteurs}</Link>
           <Link href={contactHref} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.contact}</Link>
           <Link href={cartHref} className="text-white font-medium" onClick={() => setMenuOpen(false)}>
             {labels.panier} {loaded && itemCount > 0 && `(${itemCount})`}

@@ -1,277 +1,322 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
+import DiagnosticToolEn from "@/components/DiagnosticToolEn";
 import { COMPANY_INFO } from "@/lib/company-info";
 
-const steps = [
+export const metadata = {
+  title: "Free Diagnostic - Is Your Sealed Glass Unit Failing? | Vosthermos",
+  description:
+    "Free diagnostic tool to evaluate your sealed glass units. Answer 6 questions and get an instant diagnostic with price estimate. Service in Montreal and the South Shore.",
+  keywords:
+    "sealed glass diagnostic, foggy window what to do, how to know if sealed unit failed, broken thermal window, window thermos test",
+  alternates: {
+    canonical: "https://www.vosthermos.com/en/diagnostic",
+    languages: {
+      "fr-CA": "https://www.vosthermos.com/diagnostic",
+      "en-CA": "https://www.vosthermos.com/en/diagnostic",
+    },
+  },
+  openGraph: {
+    title: "Free Diagnostic - Is Your Sealed Glass Unit Failing? | Vosthermos",
+    description:
+      "Answer 6 questions and get an instant diagnostic with a price estimate for your sealed glass units.",
+    url: "https://www.vosthermos.com/en/diagnostic",
+    siteName: "Vosthermos",
+    locale: "en_CA",
+    type: "website",
+  },
+};
+
+const howToSteps = [
   {
-    question: "What type of opening has a problem?",
-    options: [
-      { label: "Window", icon: "fas fa-th-large", value: "fenetre" },
-      { label: "Patio door", icon: "fas fa-door-open", value: "porte-patio" },
-      { label: "Entry door", icon: "fas fa-door-closed", value: "porte-entree" },
-      { label: "Screen", icon: "fas fa-border-all", value: "moustiquaire" },
-    ],
+    icon: "fas fa-mouse-pointer",
+    title: "Answer 6 questions",
+    description:
+      "Simple questions about your windows: fog, age, drafts, deposits and operation.",
   },
   {
-    question: "What is the main symptom?",
-    optionsMap: {
-      fenetre: [
-        { label: "Fog or condensation between the panes", icon: "fas fa-cloud", value: "buee" },
-        { label: "Draft or whistling", icon: "fas fa-wind", value: "courant-air" },
-        { label: "Hard to open or close", icon: "fas fa-lock", value: "mecanique" },
-        { label: "Cracked or broken glass", icon: "fas fa-exclamation-triangle", value: "brise" },
-        { label: "Frost or ice in winter", icon: "fas fa-snowflake", value: "givre" },
-        { label: "Outside noise coming through", icon: "fas fa-volume-up", value: "bruit" },
-        { label: "Damaged wood frame", icon: "fas fa-tree", value: "bois" },
-        { label: "Water infiltration", icon: "fas fa-water", value: "eau" },
-      ],
-      "porte-patio": [
-        { label: "Stuck or slides poorly", icon: "fas fa-arrows-alt-h", value: "coince" },
-        { label: "Lock or handle broken", icon: "fas fa-key", value: "serrure" },
-        { label: "Lets cold air through", icon: "fas fa-wind", value: "air-froid" },
-        { label: "Foggy glass", icon: "fas fa-cloud", value: "buee-patio" },
-      ],
-      "porte-entree": [
-        { label: "Door sticks or rubs", icon: "fas fa-compress-alt", value: "colle" },
-        { label: "Rotted wood at the bottom", icon: "fas fa-bug", value: "pourri" },
-        { label: "Foggy or broken glass insert", icon: "fas fa-th-large", value: "vitrage" },
-        { label: "Hard to close in winter", icon: "fas fa-snowflake", value: "hiver" },
-      ],
-      moustiquaire: [
-        { label: "Torn or ripped mesh", icon: "fas fa-cut", value: "dechiree" },
-        { label: "Won't stay in place", icon: "fas fa-arrow-down", value: "tombe" },
-        { label: "Bent or twisted frame", icon: "fas fa-compress-alt", value: "tordu" },
-      ],
-    },
+    icon: "fas fa-chart-bar",
+    title: "Get your diagnostic",
+    description:
+      "The tool analyzes your answers and estimates the wear level of your sealed glass units.",
+  },
+  {
+    icon: "fas fa-file-invoice-dollar",
+    title: "Receive an estimate",
+    description:
+      "Price estimate, potential energy savings and personalized recommendations for your windows.",
   },
 ];
 
-const results = {
-  "fenetre-buee": { title: "Defective sealed unit", desc: "The seal on your thermal unit is broken. The fog will not go away on its own.", problem: "fenetre-embuee", service: "remplacement-vitre-thermos", pricing: "remplacement-thermos", cost: "$150 - $350", urgency: "modere" },
-  "fenetre-courant-air": { title: "Worn weatherstripping", desc: "The sealing gaskets on your window are worn and letting air through.", problem: "courant-air-fenetre", service: "coupe-froid", pricing: "coupe-froid", cost: "$30 - $80", urgency: "eleve" },
-  "fenetre-mecanique": { title: "Defective hardware", desc: "The opening or closing mechanism is worn or broken.", problem: "fenetre-difficile-ouvrir", service: "remplacement-quincaillerie", pricing: "reparation-porte-patio", cost: "$50 - $200", urgency: "modere" },
-  "fenetre-brise": { title: "Broken glass — emergency", desc: "Your glass is cracked or broken. Quick action is needed for safety and insulation.", problem: "double-vitrage-brise", service: "remplacement-vitre-thermos", pricing: "remplacement-thermos", cost: "$150 - $400", urgency: "urgent" },
-  "fenetre-givre": { title: "Insulation problem", desc: "Frost indicates severe cold air infiltration. Weatherstripping and/or sealed unit needs inspection.", problem: "fenetre-givre-interieur", service: "coupe-froid", pricing: "coupe-froid", cost: "$50 - $350", urgency: "urgent" },
-  "fenetre-bruit": { title: "Insufficient sound insulation", desc: "Your sealed unit no longer blocks noise. A Low-E sealed unit with argon will fix the problem.", problem: "fenetre-bruyante", service: "remplacement-vitre-thermos", pricing: "remplacement-thermos", cost: "$200 - $500", urgency: "faible" },
-  "fenetre-bois": { title: "Wood repair", desc: "The wood frame of your window needs repair or restoration.", problem: "cadre-fenetre-pourri", service: "reparation-portes-bois", pricing: "reparation-portes-bois", cost: "$150 - $600", urgency: "eleve" },
-  "fenetre-eau": { title: "Water infiltration — emergency", desc: "Water is leaking around your window. The caulking is likely deteriorated.", problem: "infiltration-eau-fenetre", service: "calfeutrage", pricing: "calfeutrage-fenetres", cost: "$100 - $500", urgency: "urgent" },
-  "porte-patio-coince": { title: "Worn rollers", desc: "In 80% of cases, a stuck patio door has worn rollers. Simple and effective repair.", problem: "porte-patio-coince", service: "remplacement-quincaillerie", pricing: "reparation-porte-patio", cost: "$75 - $200", urgency: "modere" },
-  "porte-patio-serrure": { title: "Lock or handle to replace", desc: "The hardware on your patio door is defective. We have the compatible part.", problem: "serrure-porte-patio-bloquee", service: "remplacement-quincaillerie", pricing: "reparation-porte-patio", cost: "$30 - $250", urgency: "eleve" },
-  "porte-patio-air-froid": { title: "Patio door weatherstripping", desc: "The seals on your patio door are no longer doing their job. Simple replacement.", problem: "porte-patio-laisse-passer-air", service: "coupe-froid", pricing: "coupe-froid", cost: "$50 - $200", urgency: "eleve" },
-  "porte-patio-buee-patio": { title: "Patio door sealed unit", desc: "The sealed unit on your patio door is foggy. Sealed unit replacement is necessary.", problem: "vitre-thermos-embuee", service: "remplacement-vitre-thermos", pricing: "remplacement-thermos", cost: "$200 - $400", urgency: "modere" },
-  "porte-entree-colle": { title: "Swollen wood door", desc: "Your door swells with humidity. Planing and wood treatment will fix the problem.", problem: "porte-bois-qui-colle", service: "reparation-portes-bois", pricing: "reparation-portes-bois", cost: "$75 - $250", urgency: "faible" },
-  "porte-entree-pourri": { title: "Rotted wood — urgent repair", desc: "The bottom of your door is rotted. The longer you wait, the more the damage spreads.", problem: "porte-bois-pourri-bas", service: "reparation-portes-bois", pricing: "reparation-portes-bois", cost: "$150 - $450", urgency: "urgent" },
-  "porte-entree-vitrage": { title: "Door insert to replace", desc: "The glass insert in your door is foggy or broken. No need to change the entire door!", problem: "insertion-porte-embuee", service: "insertion-porte", pricing: "insertion-porte", cost: "$200 - $700", urgency: "modere" },
-  "porte-entree-hiver": { title: "Winter adjustment", desc: "Freezing and humidity cause wood to shift. Hinge and weatherstripping adjustment needed.", problem: "porte-entree-difficile-fermer", service: "reparation-portes-bois", pricing: "reparation-portes-bois", cost: "$75 - $250", urgency: "eleve" },
-  "moustiquaire-dechiree": { title: "Mesh replacement", desc: "Your screen mesh is torn. Quick replacement in the existing frame.", problem: "moustiquaire-dechiree", service: "moustiquaires-sur-mesure", pricing: "moustiquaires", cost: "$25 - $100", urgency: "faible" },
-  "moustiquaire-tombe": { title: "Defective clips", desc: "The clips or springs on your screen are worn. Simple repair.", problem: "moustiquaire-qui-tombe", service: "moustiquaires-sur-mesure", pricing: "moustiquaires", cost: "$15 - $75", urgency: "faible" },
-  "moustiquaire-tordu": { title: "Frame to straighten or replace", desc: "Your screen frame is deformed. We can straighten it or build a new one.", problem: "moustiquaire-cadre-tordu", service: "moustiquaires-sur-mesure", pricing: "moustiquaires", cost: "$30 - $100", urgency: "faible" },
-};
+const faqItems = [
+  {
+    question: "How do I know if my sealed glass unit is finished?",
+    answer:
+      "The main signs are permanent fog between panes, white deposits, drafts even when the window is closed, and a noticeable increase in heating costs. This free tool helps you evaluate the condition in about two minutes.",
+  },
+  {
+    question: "Is the online diagnostic reliable?",
+    answer:
+      "The online diagnostic is based on the same criteria our technicians use during an in-home inspection. It gives a strong first indication. For a final evaluation, we recommend a free inspection or a photo-based quote.",
+  },
+  {
+    question: "How much does sealed glass replacement cost after the diagnostic?",
+    answer:
+      "Sealed glass replacement starts at $150 per installed unit, including measuring, custom manufacturing and professional installation. The final cost depends on size and glass type.",
+  },
+  {
+    question: "Can a foggy sealed unit be repaired instead of replaced?",
+    answer:
+      "Defogging can be a temporary option, but it does not restore the full energy performance of the unit. In most cases, replacing the sealed unit is the most economical long-term solution.",
+  },
+];
 
-function getResultKey(answers) {
-  const type = answers[0];
-  const symptom = answers[1];
-  return `${type}-${symptom}`;
-}
+export default function DiagnosticPageEn() {
+  const howToJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    name: "How to diagnose a failing sealed glass unit",
+    description:
+      "A 6-step diagnostic tool to evaluate your sealed glass units and determine whether replacement is needed.",
+    totalTime: "PT2M",
+    step: [
+      {
+        "@type": "HowToStep",
+        name: "Check for fog",
+        text: "Look for fog between the two panes of your sealed glass unit.",
+        position: 1,
+      },
+      {
+        "@type": "HowToStep",
+        name: "Evaluate window age",
+        text: "Estimate the age of the windows to understand their remaining lifespan.",
+        position: 2,
+      },
+      {
+        "@type": "HowToStep",
+        name: "Test for drafts",
+        text: "Check whether you feel cold air near the closed window.",
+        position: 3,
+      },
+      {
+        "@type": "HowToStep",
+        name: "Look for deposits",
+        text: "Check whether white deposits or stains are visible between the panes.",
+        position: 4,
+      },
+      {
+        "@type": "HowToStep",
+        name: "Test the mechanism",
+        text: "Check whether the window opens and closes easily.",
+        position: 5,
+      },
+      {
+        "@type": "HowToStep",
+        name: "Count affected windows",
+        text: "Count how many windows have these symptoms to get a global estimate.",
+        position: 6,
+      },
+    ],
+  };
 
-const urgencyStyles = {
-  urgent: { bg: "bg-red-100", text: "text-red-700", label: "High urgency" },
-  eleve: { bg: "bg-orange-100", text: "text-orange-700", label: "High priority" },
-  modere: { bg: "bg-yellow-100", text: "text-yellow-700", label: "Moderate priority" },
-  faible: { bg: "bg-green-100", text: "text-green-700", label: "Low urgency" },
-};
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqItems.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: { "@type": "Answer", text: item.answer },
+    })),
+  };
 
-const serviceSlugEn = {
-  "remplacement-vitre-thermos": "sealed-glass-replacement",
-  "remplacement-quincaillerie": "hardware-replacement",
-  "reparation-portes-bois": "wooden-door-repair",
-  "moustiquaires-sur-mesure": "custom-screen-doors",
-  calfeutrage: "caulking",
-  desembuage: "defogging",
-  "insertion-porte": "door-insert",
-  "coupe-froid": "weatherstripping",
-};
-
-export default function DiagnosticPage() {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [answers, setAnswers] = useState([]);
-
-  function selectOption(value) {
-    const newAnswers = [...answers, value];
-    setAnswers(newAnswers);
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      setCurrentStep(steps.length); // show result
-    }
-  }
-
-  function reset() {
-    setCurrentStep(0);
-    setAnswers([]);
-  }
-
-  const resultKey = answers.length === 2 ? getResultKey(answers) : null;
-  const result = resultKey ? results[resultKey] : null;
-  const urg = result ? urgencyStyles[result.urgency] || urgencyStyles.modere : null;
-  const serviceHref = result ? `/en/services/${serviceSlugEn[result.service] || result.service}` : "/en/services";
-
-  const currentOptions =
-    currentStep === 1 && steps[1].optionsMap
-      ? steps[1].optionsMap[answers[0]] || []
-      : currentStep === 0
-        ? steps[0].options
-        : [];
+  const interactionJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "Free sealed glass diagnostic - Vosthermos",
+    description:
+      "Interactive diagnostic tool to evaluate sealed glass units in 6 questions.",
+    url: "https://www.vosthermos.com/en/diagnostic",
+    applicationCategory: "UtilityApplication",
+    operatingSystem: "Web",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "CAD",
+    },
+    provider: {
+      "@type": "LocalBusiness",
+      name: "Vosthermos",
+      telephone: COMPANY_INFO.phoneTel,
+      url: "https://www.vosthermos.com",
+    },
+  };
 
   return (
-    <div className="pt-[80px] min-h-screen bg-gray-50">
-      {/* Hero */}
-      <div className="bg-[var(--color-teal-dark)] py-12">
-        <div className="max-w-[700px] mx-auto px-6 text-center">
-          <div className="inline-flex items-center gap-2 bg-white/10 rounded-full px-4 py-1.5 mb-4">
-            <i className="fas fa-stethoscope text-white/70 text-sm"></i>
-            <span className="text-white/80 text-sm">Free tool</span>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(howToJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(interactionJsonLd) }}
+      />
+
+      <section className="bg-[var(--color-teal-dark)] pt-[80px]">
+        <div className="max-w-[1200px] mx-auto px-6 py-16 lg:py-20">
+          <div className="flex items-center gap-2 text-sm text-white/50 mb-4">
+            <Link href="/en" className="hover:text-white transition-colors">
+              Home
+            </Link>
+            <span>/</span>
+            <span className="text-white">Diagnostic</span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-white mb-3">
-            Door and window diagnostic
-          </h1>
-          <p className="text-white/60">
-            Answer 2 questions and discover the solution to your problem, the estimated cost and the service you need.
-          </p>
-        </div>
-      </div>
 
-      <div className="max-w-[700px] mx-auto px-6 py-12">
-        {/* Progress */}
-        <div className="flex items-center gap-2 mb-8">
-          {[0, 1, 2].map((i) => (
-            <div key={i} className="flex-1 h-2 rounded-full overflow-hidden bg-gray-200">
-              <div
-                className="h-full bg-[var(--color-teal)] transition-all duration-500"
-                style={{ width: currentStep > i ? "100%" : currentStep === i ? "50%" : "0%" }}
-              />
-            </div>
-          ))}
-        </div>
-
-        {/* Question */}
-        {currentStep < steps.length && (
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 mb-6">
-              <span className="text-[var(--color-teal)] mr-2">Question {currentStep + 1}/2</span>
-              {currentStep === 1 ? steps[1].question : steps[currentStep].question}
-            </h2>
-            <div className="grid grid-cols-2 gap-4">
-              {currentOptions.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => selectOption(opt.value)}
-                  className="flex flex-col items-center gap-3 p-6 bg-white rounded-2xl border-2 border-gray-100 hover:border-[var(--color-teal)] hover:shadow-lg transition-all group text-center"
-                >
-                  <div className="w-14 h-14 rounded-xl bg-gray-50 group-hover:bg-[var(--color-teal)]/10 flex items-center justify-center transition-colors">
-                    <i className={`${opt.icon} text-xl text-gray-400 group-hover:text-[var(--color-teal)] transition-colors`}></i>
-                  </div>
-                  <span className="text-sm font-medium text-gray-700 group-hover:text-[var(--color-teal)] transition-colors">
-                    {opt.label}
-                  </span>
-                </button>
-              ))}
-            </div>
-            {currentStep > 0 && (
-              <button onClick={reset} className="mt-6 text-sm text-gray-400 hover:text-gray-600 transition-colors">
-                <i className="fas fa-arrow-left mr-1"></i> Start over
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* Result */}
-        {currentStep >= steps.length && result && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
-              <div className="flex items-center gap-3 mb-4">
-                <div className={`px-3 py-1 rounded-full text-xs font-bold ${urg.bg} ${urg.text}`}>
-                  {urg.label}
-                </div>
-              </div>
-              <h2 className="text-2xl font-extrabold text-gray-900 mb-2">
-                {result.title}
-              </h2>
-              <p className="text-gray-600 mb-6">{result.desc}</p>
-
-              <div className="bg-green-50 rounded-xl p-4 mb-6">
-                <p className="text-sm text-gray-600">Estimated cost:</p>
-                <p className="text-2xl font-black text-green-700">{result.cost}</p>
-              </div>
-
-              <div className="grid sm:grid-cols-3 gap-3">
-                <Link
-                  href={`/en/problemes/${result.problem}`}
-                  className="flex flex-col items-center gap-2 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors text-center"
-                >
-                  <i className="fas fa-search text-[var(--color-red)]"></i>
-                  <span className="text-xs font-medium text-gray-700">Learn more</span>
-                </Link>
-                <Link
-                  href={`/en/prix/${result.pricing}`}
-                  className="flex flex-col items-center gap-2 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors text-center"
-                >
-                  <i className="fas fa-dollar-sign text-green-600"></i>
-                  <span className="text-xs font-medium text-gray-700">View pricing</span>
-                </Link>
-                <Link
-                  href={serviceHref}
-                  className="flex flex-col items-center gap-2 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors text-center"
-                >
-                  <i className="fas fa-wrench text-[var(--color-teal)]"></i>
-                  <span className="text-xs font-medium text-gray-700">View service</span>
-                </Link>
-              </div>
-            </div>
-
-            {/* CTA */}
-            <div className="bg-[var(--color-teal-dark)] rounded-2xl p-8 text-center text-white">
-              <h3 className="text-xl font-bold mb-2">Ready to fix the problem?</h3>
-              <p className="text-white/60 text-sm mb-6">Free quote with no obligation</p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="grid lg:grid-cols-2 gap-10 items-center">
+            <div>
+              <span className="inline-block bg-white/10 text-[var(--color-red-light)] text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full mb-6">
+                <i className="fas fa-stethoscope mr-1"></i> Free 2-minute tool
+              </span>
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-6">
+                Is your sealed glass unit{" "}
+                <span className="text-[var(--color-red)]">finished?</span>
+              </h1>
+              <p className="text-white/70 text-lg leading-relaxed mb-8">
+                Answer 6 simple questions and get an instant diagnostic: wear level,
+                estimated price, potential energy savings and the right next step.
+              </p>
+              <div className="flex flex-wrap gap-4">
                 <a
                   href={`tel:${COMPANY_INFO.phoneTel}`}
-                  className="inline-flex items-center justify-center gap-2 bg-[var(--color-red)] text-white font-bold px-6 py-3 rounded-xl hover:bg-[var(--color-red-light)] transition-colors"
+                  className="inline-flex items-center justify-center gap-2 bg-[var(--color-red)] text-white px-8 py-4 rounded-full font-bold hover:bg-[var(--color-red-dark)] transition-all shadow-lg"
                 >
                   <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
                 </a>
                 <Link
-                  href="/en/contact"
-                  className="inline-flex items-center justify-center gap-2 bg-white/10 text-white font-bold px-6 py-3 rounded-xl hover:bg-white/20 transition-colors"
+                  href="#diagnostic-tool"
+                  className="inline-flex items-center justify-center gap-2 bg-transparent text-white border-2 border-white/30 px-8 py-4 rounded-full font-bold hover:border-white hover:bg-white/10 transition-all"
                 >
-                  <i className="fas fa-calendar-alt"></i> Book an appointment
+                  <i className="fas fa-play"></i> Start diagnostic
                 </Link>
               </div>
             </div>
 
-            {/* OPTI-FENETRE */}
-            <Link
-              href="/en/opti-fenetre"
-              className="block bg-gradient-to-r from-[var(--color-teal-dark)] to-[var(--color-teal)] rounded-2xl p-6 text-white hover:shadow-xl transition-all"
-            >
-              <div className="flex items-center gap-3">
-                <i className="fas fa-star text-yellow-400 text-xl"></i>
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/10">
+              <div className="grid grid-cols-2 gap-4 text-center">
                 <div>
-                  <h3 className="font-bold">Multiple problems? OPTI-FENETRE Program</h3>
-                  <p className="text-white/60 text-sm">Turnkey package — up to 70% savings</p>
+                  <strong className="block text-3xl font-extrabold text-[var(--color-red-light)]">2 min</strong>
+                  <span className="text-white/50 text-xs uppercase tracking-wider">duration</span>
                 </div>
-                <i className="fas fa-arrow-right ml-auto"></i>
+                <div>
+                  <strong className="block text-3xl font-extrabold text-[var(--color-red-light)]">$150+</strong>
+                  <span className="text-white/50 text-xs uppercase tracking-wider">starting price</span>
+                </div>
+                <div>
+                  <strong className="block text-3xl font-extrabold text-[var(--color-red-light)]">6</strong>
+                  <span className="text-white/50 text-xs uppercase tracking-wider">questions</span>
+                </div>
+                <div>
+                  <strong className="block text-3xl font-extrabold text-[var(--color-red-light)]">Free</strong>
+                  <span className="text-white/50 text-xs uppercase tracking-wider">inspection</span>
+                </div>
               </div>
-            </Link>
-
-            <button onClick={reset} className="w-full text-center text-sm text-gray-400 hover:text-gray-600 transition-colors py-2">
-              <i className="fas fa-redo mr-1"></i> Redo the diagnostic
-            </button>
+            </div>
           </div>
-        )}
-      </div>
-    </div>
+        </div>
+      </section>
+
+      <section className="bg-white py-16 border-b border-[var(--color-border)]">
+        <div className="max-w-[1200px] mx-auto px-6">
+          <div className="text-center mb-12">
+            <span className="section-tag">How it works</span>
+            <h2 className="text-3xl font-extrabold mt-2">
+              A simple diagnostic in{" "}
+              <span className="text-[var(--color-red)]">3 steps</span>
+            </h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {howToSteps.map((step, index) => (
+              <div key={step.title} className="bg-[var(--color-background)] rounded-xl p-6 border border-[var(--color-border)]">
+                <div className="w-12 h-12 rounded-xl bg-[var(--color-teal)]/10 flex items-center justify-center mb-5">
+                  <i className={`${step.icon} text-xl text-[var(--color-teal)]`}></i>
+                </div>
+                <span className="text-[var(--color-red)] font-extrabold text-sm">0{index + 1}</span>
+                <h3 className="font-bold text-lg mt-2 mb-3">{step.title}</h3>
+                <p className="text-sm text-[var(--color-muted)] leading-relaxed">
+                  {step.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="diagnostic-tool" className="bg-[var(--color-background)] py-20">
+        <div className="max-w-[1200px] mx-auto px-6">
+          <div className="text-center mb-12">
+            <span className="section-tag">Online diagnostic</span>
+            <h2 className="text-3xl md:text-4xl font-extrabold mt-2">
+              Start the diagnostic
+            </h2>
+            <p className="text-[var(--color-muted)] mt-3 max-w-2xl mx-auto">
+              Your answers stay on this page. No account is required.
+            </p>
+          </div>
+          <DiagnosticToolEn />
+        </div>
+      </section>
+
+      <section className="bg-white py-20">
+        <div className="max-w-[1000px] mx-auto px-6">
+          <div className="text-center mb-12">
+            <span className="section-tag">FAQ</span>
+            <h2 className="text-3xl font-extrabold mt-2">
+              Common questions
+            </h2>
+          </div>
+          <div className="space-y-4">
+            {faqItems.map((item) => (
+              <details key={item.question} className="group bg-[var(--color-background)] rounded-xl border border-[var(--color-border)] overflow-hidden">
+                <summary className="flex items-center justify-between gap-4 p-6 cursor-pointer font-bold text-gray-900">
+                  {item.question}
+                  <i className="fas fa-chevron-down text-[var(--color-muted)] group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <p className="px-6 pb-6 text-[var(--color-muted)] leading-relaxed">
+                  {item.answer}
+                </p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-[var(--color-teal-dark)] py-16">
+        <div className="max-w-[1200px] mx-auto px-6 text-center">
+          <h2 className="text-3xl font-extrabold text-white mb-4">
+            Prefer a technician&apos;s opinion?
+          </h2>
+          <p className="text-white/60 mb-8 max-w-2xl mx-auto">
+            Send photos or call us. We will confirm whether repair or replacement is the right option.
+          </p>
+          <div className="flex flex-wrap justify-center gap-4">
+            <a
+              href={`tel:${COMPANY_INFO.phoneTel}`}
+              className="inline-flex items-center gap-2 bg-[var(--color-red)] text-white px-8 py-4 rounded-full font-bold hover:bg-[var(--color-red-dark)] transition-colors"
+            >
+              <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
+            </a>
+            <Link
+              href="/en/contact"
+              className="inline-flex items-center gap-2 bg-white/10 text-white px-8 py-4 rounded-full font-bold hover:bg-white/20 transition-colors"
+            >
+              Send photos
+            </Link>
+          </div>
+        </div>
+      </section>
+    </>
   );
 }

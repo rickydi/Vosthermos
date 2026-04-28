@@ -9,8 +9,80 @@ const inputWrap = "relative";
 const inputClass = "w-full bg-white border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:border-[var(--color-red)] transition-colors pr-10";
 const checkClass = "absolute right-3 top-1/2 -translate-y-1/2 text-green-500 text-sm pointer-events-none";
 
-export default function QuoteForm({ compact = false, theme = "dark" }) {
+export default function QuoteForm({ compact = false, theme = "dark", lang = "fr" }) {
   const lightTheme = theme === "light";
+  const isEn = lang === "en";
+  const labels = isEn
+    ? {
+        fullName: "Full name",
+        servicePlaceholder: "Select a service",
+        messagePlaceholder: "Describe what you need...",
+        attach: "Attach photo or video (max 25 MB)",
+        sending: "Sending...",
+        submit: "Send request",
+        error: "Error. Call us at",
+        successCompact: "We are on it. We will contact you quickly.",
+        successTitle: "Request sent!",
+        successBody: "We received your request and will contact you quickly.",
+        successReset: "Send another request",
+        callPrefix: "or call us ",
+        fileTooLarge: "Some files are over 25 MB and were ignored.",
+        quoteTitle: "Free quote",
+        messagePrefix: "[Quote]",
+        services: {
+          quincaillerie: "Hardware",
+          "vitre-thermos": "Sealed glass unit",
+          "portes-bois": "Wood doors",
+          moustiquaire: "Screens",
+          calfeutrage: "Caulking",
+          "coupe-froid": "Weatherstripping",
+          desembuage: "Defogging",
+          "insertion-porte": "Door insert",
+          "opti-fenetre": "OPTI-FENETRE Program",
+          autre: "Other",
+        },
+      }
+    : {
+        fullName: "Nom complet",
+        servicePlaceholder: "Selectionnez un service",
+        messagePlaceholder: "Decrivez votre besoin...",
+        attach: "Joindre photo ou video (max 25 MB)",
+        sending: "Envoi...",
+        submit: "Envoyer la demande",
+        error: "Erreur. Appelez-nous au",
+        successCompact: "On s'en occupe! Nous vous contacterons rapidement.",
+        successTitle: "Demande envoyee!",
+        successBody: "Nous avons bien recu votre demande et vous contacterons rapidement.",
+        successReset: "Envoyer une autre demande",
+        callPrefix: "ou appelez-nous ",
+        fileTooLarge: "Certains fichiers depassent 25 MB et ont ete ignores.",
+        quoteTitle: "Soumission gratuite",
+        messagePrefix: "[Soumission]",
+        services: {
+          quincaillerie: "Quincaillerie",
+          "vitre-thermos": "Vitre thermos",
+          "portes-bois": "Portes en bois",
+          moustiquaire: "Moustiquaires",
+          calfeutrage: "Calfeutrage",
+          "coupe-froid": "Coupe-froid",
+          desembuage: "Desembuage",
+          "insertion-porte": "Insertion de porte",
+          "opti-fenetre": "Programme OPTI-FENETRE",
+          autre: "Autre",
+        },
+      };
+  const serviceOptions = [
+    { v: "quincaillerie", l: labels.services.quincaillerie },
+    { v: "vitre-thermos", l: labels.services["vitre-thermos"] },
+    { v: "portes-bois", l: labels.services["portes-bois"] },
+    { v: "moustiquaire", l: labels.services.moustiquaire },
+    { v: "calfeutrage", l: labels.services.calfeutrage },
+    { v: "coupe-froid", l: labels.services["coupe-froid"] },
+    { v: "desembuage", l: labels.services.desembuage },
+    { v: "insertion-porte", l: labels.services["insertion-porte"] },
+    { v: "opti-fenetre", l: labels.services["opti-fenetre"] },
+    { v: "autre", l: labels.services.autre },
+  ];
   const [status, setStatus] = useState("");
   const [sending, setSending] = useState(false);
   const [name, setName] = useState("");
@@ -68,7 +140,7 @@ export default function QuoteForm({ compact = false, theme = "dark" }) {
   function handleFileSelect(e) {
     const selected = Array.from(e.target.files || []);
     const valid = selected.filter((f) => f.size <= 25 * 1024 * 1024);
-    if (valid.length < selected.length) alert("Certains fichiers depassent 25 MB et ont ete ignores.");
+    if (valid.length < selected.length) alert(labels.fileTooLarge);
     setFiles((prev) => [...prev, ...valid]);
     e.target.value = "";
   }
@@ -117,12 +189,7 @@ export default function QuoteForm({ compact = false, theme = "dark" }) {
       const { id } = await chatRes.json();
 
       // Build message content
-      const serviceLabels = {
-        quincaillerie: "Quincaillerie", "vitre-thermos": "Vitre thermos", "portes-bois": "Portes en bois",
-        moustiquaire: "Moustiquaires", calfeutrage: "Calfeutrage", "coupe-froid": "Coupe-froid",
-        desembuage: "Désembuage", "insertion-porte": "Insertion de porte", "opti-fenetre": "Programme OPTI-FENÊTRE", autre: "Autre",
-      };
-      let content = `[Soumission] Service: ${serviceLabels[service] || service}`;
+      let content = `${labels.messagePrefix} Service: ${labels.services[service] || service}`;
       if (message.trim()) content += `\n\n${message.trim()}`;
 
       // Send message (text)
@@ -160,7 +227,7 @@ export default function QuoteForm({ compact = false, theme = "dark" }) {
             <span className="text-green-400 text-2xl">&#10003;</span>
           </div>
           <p className={`${compactSuccessText} text-sm text-center`}>
-            On s&apos;en occupe! Nous vous contacterons rapidement.
+            {labels.successCompact}
           </p>
           <a href={`tel:${COMPANY_INFO.phoneTel}`} className={compactSuccessPhone}>
             <i className="fas fa-phone text-[10px] mr-1"></i>{COMPANY_INFO.phone}
@@ -169,7 +236,7 @@ export default function QuoteForm({ compact = false, theme = "dark" }) {
             onClick={() => setStatus("")}
             className={compactSuccessReset}
           >
-            Envoyer une autre demande
+            {labels.successReset}
           </button>
         </div>
       );
@@ -181,19 +248,19 @@ export default function QuoteForm({ compact = false, theme = "dark" }) {
           <div className="w-14 h-14 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4 animate-[fadeIn_0.5s_ease-out]">
             <span className="text-green-400 text-3xl">&#10003;</span>
           </div>
-          <h3 className="text-lg font-bold text-white mb-2">Demande envoyee!</h3>
+          <h3 className="text-lg font-bold text-white mb-2">{labels.successTitle}</h3>
           <p className="text-white/50 text-sm mb-4">
-            Nous avons bien recu votre demande et vous contacterons rapidement.
+            {labels.successBody}
           </p>
           <button
             onClick={() => setStatus("")}
             className="text-white/40 hover:text-white text-xs underline transition-colors"
           >
-            Envoyer une autre demande
+            {labels.successReset}
           </button>
         </div>
         <div className="text-center mt-3">
-          <span className="text-white/50 text-xs">ou appelez-nous </span>
+          <span className="text-white/50 text-xs">{labels.callPrefix}</span>
           <a href={`tel:${COMPANY_INFO.phoneTel}`} className="text-white font-semibold text-sm hover:text-[var(--color-red-light)]">
             <i className="fas fa-phone text-xs"></i> {COMPANY_INFO.phone}
           </a>
@@ -205,7 +272,7 @@ export default function QuoteForm({ compact = false, theme = "dark" }) {
   const formContent = (
     <form onSubmit={handleSubmit} className={compact ? "space-y-2.5 flex flex-col flex-1" : "space-y-3"}>
       <div className={inputWrap}>
-        <input type="text" placeholder="Nom complet" required value={name}
+        <input type="text" placeholder={labels.fullName} required value={name}
           onFocus={() => trackFieldFocus("name")}
           onChange={(e) => { setName(e.target.value); trackFieldValue("name", e.target.value); }}
           className={inputClass} />
@@ -231,18 +298,12 @@ export default function QuoteForm({ compact = false, theme = "dark" }) {
         <div
           onClick={() => { setDropdownOpen(!dropdownOpen); trackFieldFocus("service"); }}
           className={`${inputClass} cursor-pointer select-none ${!service ? "!text-gray-400" : "!text-gray-900"}`}>
-          {service ? { quincaillerie: "Quincaillerie", "vitre-thermos": "Vitre thermos", "portes-bois": "Portes en bois", moustiquaire: "Moustiquaires", calfeutrage: "Calfeutrage", "coupe-froid": "Coupe-froid", desembuage: "Desembuage", "insertion-porte": "Insertion de porte", "opti-fenetre": "Programme OPTI-FENETRE", autre: "Autre" }[service] : "Selectionnez un service"}
+          {service ? labels.services[service] : labels.servicePlaceholder}
           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"><i className={`fas fa-chevron-down transition-transform ${dropdownOpen ? "rotate-180" : ""}`} /></span>
         </div>
         {dropdownOpen && (
           <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mt-1 z-20 py-1 max-h-52 overflow-y-auto">
-            {[
-              { v: "quincaillerie", l: "Quincaillerie" }, { v: "vitre-thermos", l: "Vitre thermos" },
-              { v: "portes-bois", l: "Portes en bois" }, { v: "moustiquaire", l: "Moustiquaires" },
-              { v: "calfeutrage", l: "Calfeutrage" }, { v: "coupe-froid", l: "Coupe-froid" },
-              { v: "desembuage", l: "Desembuage" }, { v: "insertion-porte", l: "Insertion de porte" },
-              { v: "opti-fenetre", l: "Programme OPTI-FENETRE" }, { v: "autre", l: "Autre" },
-            ].map((opt) => (
+            {serviceOptions.map((opt) => (
               <div key={opt.v}
                 onMouseEnter={() => trackHover("service", opt.v)}
                 onClick={() => { setService(opt.v); trackFieldValue("service", opt.v); setDropdownOpen(false); }}
@@ -255,7 +316,7 @@ export default function QuoteForm({ compact = false, theme = "dark" }) {
         {serviceValid && <span className={checkClass}>&#10003;</span>}
       </div>
       <div className={inputWrap}>
-        <textarea ref={textareaRef} placeholder="Decrivez votre besoin..." rows={compact ? 2 : 3} value={message}
+        <textarea ref={textareaRef} placeholder={labels.messagePlaceholder} rows={compact ? 2 : 3} value={message}
           onFocus={() => trackFieldFocus("message")}
           onChange={handleMessageChange}
           className={`${inputClass} resize-none overflow-hidden ${compact ? "min-h-[48px]" : "min-h-[72px]"}`}
@@ -268,7 +329,7 @@ export default function QuoteForm({ compact = false, theme = "dark" }) {
         <button type="button" onClick={() => fileInputRef.current?.click()}
           className={uploadButtonClass}>
           <i className="fas fa-paperclip"></i>
-          Joindre photo ou video (max 25 MB)
+          {labels.attach}
         </button>
         <input ref={fileInputRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={handleFileSelect} />
         {files.length > 0 && (
@@ -288,10 +349,10 @@ export default function QuoteForm({ compact = false, theme = "dark" }) {
 
       <button type="submit" disabled={sending}
         className="w-full bg-[var(--color-red)] text-white py-2.5 rounded-full font-bold text-sm hover:bg-[var(--color-red-dark)] transition-all disabled:opacity-50 shadow-lg">
-        {sending ? "Envoi..." : "Envoyer la demande"}
+        {sending ? labels.sending : labels.submit}
       </button>
       {status === "error" && (
-        <p className="text-red-400 text-xs text-center">Erreur. Appelez-nous au {COMPANY_INFO.phone}.</p>
+        <p className="text-red-400 text-xs text-center">{labels.error} {COMPANY_INFO.phone}.</p>
       )}
     </form>
   );
@@ -300,10 +361,10 @@ export default function QuoteForm({ compact = false, theme = "dark" }) {
 
   return (
     <div className="bg-white/[0.06] backdrop-blur-md rounded-xl p-6 border border-white/[0.08]">
-      <h2 className="text-white font-bold text-lg mb-4">Soumission gratuite</h2>
+      <h2 className="text-white font-bold text-lg mb-4">{labels.quoteTitle}</h2>
       {formContent}
       <div className="text-center mt-3">
-        <span className="text-white/50 text-xs">ou appelez-nous </span>
+        <span className="text-white/50 text-xs">{labels.callPrefix}</span>
         <a href={`tel:${COMPANY_INFO.phoneTel}`} className="text-white font-semibold text-sm hover:text-[var(--color-red-light)]">
           <i className="fas fa-phone text-xs"></i> {COMPANY_INFO.phone}
         </a>

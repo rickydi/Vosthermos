@@ -36,8 +36,8 @@ export default function Footer({ company }) {
         thermos: "/en/services/sealed-glass-replacement",
         hardware: "/en/services/hardware-replacement",
         woodDoors: "/en/services/wooden-door-repair",
-        patio: "/services/reparation-porte-patio",
-        frenchDoor: "/services/reparation-porte-fenetre",
+        patio: "/en/services/hardware-replacement",
+        frenchDoor: "/en/services/door-insert",
         screens: "/en/services/custom-screen-doors",
         caulking: "/en/services/caulking",
         defogging: "/en/services/defogging",
@@ -178,7 +178,7 @@ export default function Footer({ company }) {
               <li><Link href={`${p}/garantie`} className="hover:text-white transition-colors">{labels.warranty}</Link></li>
               <li><Link href={`${p}/blogue`} className="hover:text-white transition-colors">{labels.blog}</Link></li>
               <li><Link href={`${p}/faq`} className="hover:text-white transition-colors">{labels.faq}</Link></li>
-              <li><Link href={isEn ? "/carrieres" : "/carrieres"} className="hover:text-white transition-colors">{labels.careers}</Link></li>
+              <li><Link href={isEn ? "/en/contact?subject=careers" : "/carrieres"} className="hover:text-white transition-colors">{labels.careers}</Link></li>
               <li><Link href={isEn ? "/en/prix" : "/prix"} className="hover:text-white transition-colors">{isEn ? "Pricing" : "Prix et tarifs"}</Link></li>
               <li><Link href={isEn ? "/en/problemes" : "/problemes"} className="hover:text-white transition-colors">{isEn ? "Common problems" : "Problemes courants"}</Link></li>
               <li><Link href={isEn ? "/en/diagnostic" : "/diagnostic"} className="hover:text-white transition-colors">{isEn ? "Free diagnostic" : "Diagnostic gratuit"}</Link></li>
@@ -241,7 +241,7 @@ export default function Footer({ company }) {
           <span>&copy; {new Date().getFullYear()} Vosthermos. {labels.rights}</span>
           <span>
             RBQ : {co.rbqNumber} |{" "}
-            <Link href="/politique-confidentialite" className="hover:text-white transition-colors">
+            <Link href={isEn ? "/en/politique-confidentialite" : "/politique-confidentialite"} className="hover:text-white transition-colors">
               {labels.privacy}
             </Link>
           </span>

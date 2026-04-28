@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { SERVICES_EN, getServiceEn } from "@/lib/services-data-en";
 import { CITIES, getCity } from "@/lib/cities";
+import QuoteForm from "@/components/QuoteForm";
 import { COMPANY_INFO } from "@/lib/company-info";
 
 export function generateStaticParams() {
@@ -124,28 +125,51 @@ export default async function ServiceCityPage({ params }) {
             <span>/</span>
             <span className="text-white/70">{city.name}</span>
           </div>
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-4">
-            {service.shortTitle} in {city.name}
-          </h1>
-          <p className="text-white/60 text-lg max-w-3xl mb-8">
-            Professional {service.shortTitle.toLowerCase()} service in {city.name} and the {city.region} area.
-            Our experts travel to {city.name} ({city.distance} from our workshop) for fast and guaranteed work.
-          </p>
-          <div className="flex flex-wrap gap-4">
-            <a
-              href={`tel:${COMPANY_INFO.phoneTel}`}
-              className="inline-flex items-center gap-2 bg-[var(--color-red)] text-white font-bold px-6 py-3 rounded-xl hover:bg-[var(--color-red-light)] transition-colors"
-            >
-              <i className="fas fa-phone"></i>
-              {COMPANY_INFO.phone}
-            </a>
-            <Link
-              href="/en/contact"
-              className="inline-flex items-center gap-2 bg-white/10 text-white font-bold px-6 py-3 rounded-xl hover:bg-white/20 transition-colors"
-            >
-              <i className="fas fa-file-alt"></i>
-              Free quote
-            </Link>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+            <div className="flex flex-col justify-center">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-4">
+                {service.shortTitle} in {city.name}
+              </h1>
+              <p className="text-white/60 text-lg mb-6">
+                Professional {service.shortTitle.toLowerCase()} service in {city.name} and the {city.region} area.
+                Our experts travel to {city.name} ({city.distance} from our workshop) for fast and guaranteed work.
+              </p>
+              <div className="flex items-center gap-2 text-white/70 text-sm mb-6">
+                <i className="fas fa-clock text-[var(--color-red-light)]"></i>
+                <span>Mon-Fri 8am-5pm &bull; Sat 9am-1pm</span>
+              </div>
+              <div className="flex flex-wrap gap-4">
+                <a
+                  href={`tel:${COMPANY_INFO.phoneTel}`}
+                  className="inline-flex items-center gap-2 bg-[var(--color-red)] text-white font-bold px-6 py-3 rounded-xl hover:bg-[var(--color-red-light)] transition-colors"
+                >
+                  <i className="fas fa-phone"></i>
+                  {COMPANY_INFO.phone}
+                </a>
+                <Link
+                  href="/en/contact"
+                  className="inline-flex items-center gap-2 bg-white/10 text-white font-bold px-6 py-3 rounded-xl hover:bg-white/20 transition-colors"
+                >
+                  <i className="fas fa-file-alt"></i>
+                  Free quote
+                </Link>
+              </div>
+            </div>
+
+            <div className="bg-white/[0.06] backdrop-blur-md rounded-2xl p-8 border border-white/[0.08] flex flex-col justify-center">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </span>
+                <span className="text-green-400 text-[10px] font-semibold uppercase tracking-wider">Service available</span>
+              </div>
+              <h2 className="text-white font-bold text-xl mb-1">Free quote</h2>
+              <p className="text-white/50 text-sm mb-5">
+                {service.shortTitle} in {city.name} - fast response.
+              </p>
+              <QuoteForm compact lang="en" />
+            </div>
           </div>
         </div>
       </div>
