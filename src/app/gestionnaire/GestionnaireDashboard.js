@@ -43,7 +43,40 @@ function hasPerm(activeClient, perm) {
   return activeClient?.permissions?.includes(perm) || false;
 }
 
-export default function GestionnaireDashboard({ manager, clients, isGlobal, activeClient, buildings, orphanUnits, stats, notifs, interventions, invoices, invoicesTotals }) {
+const STATUS_META = {
+  draft: { label: "Demande reçue", tag: "amber", tone: "pending" },
+  scheduled: { label: "Planifié", tag: "red", tone: "scheduled" },
+  in_progress: { label: "En cours", tag: "green", tone: "active" },
+  completed: { label: "Terminé", tag: "green", tone: "done" },
+  invoiced: { label: "Facturé", tag: "amber", tone: "billing" },
+  paid: { label: "Payé", tag: "green", tone: "paid" },
+};
+
+const TIMELINE_STEPS = [
+  { key: "draft", label: "Reçue", icon: "fa-inbox" },
+  { key: "scheduled", label: "Planifiée", icon: "fa-calendar-check" },
+  { key: "in_progress", label: "Terrain", icon: "fa-screwdriver-wrench" },
+  { key: "completed", label: "Rapport", icon: "fa-clipboard-check" },
+  { key: "invoiced", label: "Facture", icon: "fa-file-invoice-dollar" },
+];
+
+function statusMeta(status) {
+  return STATUS_META[status] || { label: status || "À confirmer", tag: "gray", tone: "pending" };
+}
+
+function timelineIndex(status) {
+  if (status === "paid") return TIMELINE_STEPS.length - 1;
+  const idx = TIMELINE_STEPS.findIndex((s) => s.key === status);
+  return idx >= 0 ? idx : 0;
+}
+
+function countPhotos(unit) {
+  const openingPhotos = (unit.openings || []).filter((o) => o.photoUrl).length;
+  const historyPhotos = (unit.history || []).reduce((sum, wo) => sum + (wo.photos?.length || 0), 0);
+  return openingPhotos + historyPhotos;
+}
+
+export default function GestionnaireDashboard({ manager, clients, isGlobal, activeClient, buildings, orphanUnits, stats, notifs, interventions, invoices, invoicesTotals, recentPhotos = [], reportSummary }) {
   const router = useRouter();
   const sp = useSearchParams();
   const requestedTab = sp.get("tab");
@@ -59,9 +92,19 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
   const [bonsActifsOpen, setBonsActifsOpen] = useState(false);
   const [requestModal, setRequestModal] = useState(null); // null | { unitCode? }
   const [viewRequestId, setViewRequestId] = useState(null);
+  const [reportOpen, setReportOpen] = useState(false);
   const canManageOpenings = !isGlobal && hasPerm(activeClient, "manage_openings");
   const canManageUnits = !isGlobal && hasPerm(activeClient, "manage_units");
   const canRequest = !isGlobal && hasPerm(activeClient, "request_intervention");
+  const activeWorkOrders = interventions?.active || [];
+  const recentWorkOrders = interventions?.recent || [];
+  const openInvoiceCount = invoices.filter((i) => i.statut === "invoiced").length;
+  const firstName = manager.firstName || "Bonjour";
+  const focusLine = activeWorkOrders.length > 0
+    ? `${activeWorkOrders.length} intervention${activeWorkOrders.length > 1 ? "s" : ""} à suivre`
+    : openInvoiceCount > 0
+      ? `${openInvoiceCount} facture${openInvoiceCount > 1 ? "s" : ""} à régler`
+      : "Aucun dossier urgent";
 
   useEffect(() => {
     const onClickOutside = () => setOpenMenu(null);
@@ -100,8 +143,6 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
     factures: "Factures",
     parametres: "Paramètres",
   };
-
-  const totalActiveWOs = clients.reduce((sum) => sum, stats.activeWOsCount);
 
   return (
     <div className="gm-root">
@@ -224,12 +265,32 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
           {/* DASHBOARD TAB */}
           {activeTab === "dashboard" && (
             <div className="gm-content">
-              <div className="gm-page-head gm-page-head-compact">
-                <div className="gm-page-sub">
-                  {isGlobal ? `${clients.length} copropriétés · ${stats.totalUnits} unités` : activeClient.name}
-                  {stats.activeWOsCount > 0 && <> · <strong>{stats.activeWOsCount} bon{stats.activeWOsCount > 1 ? "s" : ""} actif{stats.activeWOsCount > 1 ? "s" : ""}</strong></>}
-                  {stats.invoicedCount > 0 && <> · {stats.invoicedCount} facture{stats.invoicedCount > 1 ? "s" : ""} due{stats.invoicedCount > 1 ? "s" : ""}</>}
+              <div className="gm-hero">
+                <div className="gm-hero-main">
+                  <div className="gm-eyebrow">{isGlobal ? "Vue globale" : activeClient.name}</div>
+                  <h1>Bonjour {firstName},</h1>
+                  <p>
+                    {focusLine}. Votre parc contient {stats.totalUnits} unité{stats.totalUnits > 1 ? "s" : ""} et {stats.totalOpenings || 0} ouverture{stats.totalOpenings !== 1 ? "s" : ""} suivie{stats.totalOpenings !== 1 ? "s" : ""}.
+                  </p>
                 </div>
+                <div className="gm-hero-actions">
+                  {canRequest && (
+                    <button className="gm-btn gm-btn-primary" onClick={() => setRequestModal({})}>
+                      <i className="fas fa-plus"></i>Nouvelle demande
+                    </button>
+                  )}
+                  <button className="gm-btn" onClick={() => setReportOpen(true)}>
+                    <i className="fas fa-file-lines"></i>Résumé CA
+                  </button>
+                </div>
+              </div>
+
+              <div className="gm-kpi-grid">
+                <MetricCard icon="fa-building" label="Copropriétés" value={isGlobal ? clients.length : 1} detail={isGlobal ? "Portefeuille complet" : activeClient.city || "Copropriété active"} />
+                <MetricCard icon="fa-door-open" label="Unités" value={stats.totalUnits} detail={`${stats.buildingsCount} bâtiment${stats.buildingsCount > 1 ? "s" : ""}`} />
+                <MetricCard icon="fa-window-maximize" label="Ouvertures" value={stats.totalOpenings || 0} detail="Fenêtres et portes suivies" />
+                <MetricCard icon="fa-clipboard-list" label="En cours" value={stats.activeWOsCount} detail={stats.activeWOsCount ? "Interventions à suivre" : "Aucun dossier actif"} tone={stats.activeWOsCount ? "red" : "green"} />
+                <MetricCard icon="fa-file-invoice-dollar" label="À payer" value={stats.invoicedCount} detail={fmtMoney(invoicesTotals.toPay)} tone={stats.invoicedCount ? "amber" : "green"} />
               </div>
 
               {/* Notifications */}
@@ -275,6 +336,29 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                         );
                       })}
                     </div>
+                  </div>
+                </>
+              )}
+
+              {recentPhotos.length > 0 && (
+                <>
+                  <div className="gm-section-head">
+                    <div className="gm-section-title">Photos récentes · {recentPhotos.length}</div>
+                    <button className="gm-btn gm-btn-sm" onClick={() => setActiveTab("interventions")}>
+                      <i className="fas fa-images"></i>Voir les dossiers
+                    </button>
+                  </div>
+                  <div className="gm-photo-strip">
+                    {recentPhotos.map((photo, i) => (
+                      <div key={`${photo.url}-${i}`} className="gm-photo-tile">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={photo.url} alt={photo.sub || photo.label || "Photo de chantier"} />
+                        <div className="gm-photo-caption">
+                          <strong>{photo.label}</strong>
+                          <span>{photo.sub}</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </>
               )}
@@ -356,6 +440,7 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                                     )}
                                   </div>
                                 )}
+                                <WorkOrderTimeline status={wo.statut} compact />
                               </div>
                               <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                                 <span className={"gm-tag " + statusConfig.tag}>{statusConfig.label}</span>
@@ -382,9 +467,12 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
 
               <div className="gm-card" style={{ padding: 24 }}>
                 {buildings.length === 0 && orphanUnits.length === 0 && (
-                  <div style={{ textAlign: "center", padding: 40, color: "var(--text-muted)" }}>
-                    Aucun bâtiment enregistré. Contactez Vosthermos pour configurer votre parc.
-                  </div>
+                  <EmptyState
+                    icon="fa-building-circle-exclamation"
+                    title="Aucun bâtiment configuré"
+                    text="Ajoutez vos bâtiments et unités pour commencer à suivre le parc de fenêtres."
+                    action={canManageUnits ? <button className="gm-btn gm-btn-primary" onClick={() => setBuildingEditor({ code: "", name: "", address: "" })}><i className="fas fa-plus"></i>Ajouter un bâtiment</button> : null}
+                  />
                 )}
                 {buildings.map((b) => (
                   <div key={b.id} className="bldg">
@@ -481,9 +569,12 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                 <div className="gm-section-title">À venir / en cours</div>
               </div>
               {!interventions?.active?.length ? (
-                <div className="gm-card" style={{ textAlign: "center", padding: 48, color: "var(--text-muted)" }}>
-                  Aucune intervention planifiée
-                </div>
+                <EmptyState
+                  icon="fa-calendar-check"
+                  title="Aucune intervention active"
+                  text="Les demandes et visites confirmées apparaîtront ici avec leur progression."
+                  action={canRequest ? <button className="gm-btn gm-btn-primary" onClick={() => setRequestModal({})}><i className="fas fa-plus"></i>Créer une demande</button> : null}
+                />
               ) : (
                 interventions.active.map((wo) => (
                   <div
@@ -529,6 +620,7 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                           )}
                         </div>
                       )}
+                      <WorkOrderTimeline status={wo.statut} compact />
                     </div>
                     <div style={{ display: "flex", gap: 6, alignItems: "center" }} onClick={(e) => e.stopPropagation()}>
                       <span className={"gm-tag " + (wo.statut === "in_progress" ? "green" : wo.statut === "draft" ? "amber" : "red")}>
@@ -586,7 +678,11 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
 
               <div className="gm-card" style={{ padding: 0, overflow: "hidden" }}>
                 {invoices.length === 0 ? (
-                  <div style={{ textAlign: "center", padding: 48, color: "var(--text-muted)" }}>Aucune facture</div>
+                  <EmptyState
+                    icon="fa-file-invoice"
+                    title="Aucune facture"
+                    text="Les factures émises par Vosthermos seront classées ici avec leur échéance et leur statut."
+                  />
                 ) : (
                   <table style={{ width: "100%", borderCollapse: "collapse" }}>
                     <thead>
@@ -733,6 +829,20 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
         />
       )}
 
+      {reportOpen && (
+        <ClientReportModal
+          manager={manager}
+          stats={stats}
+          isGlobal={isGlobal}
+          activeClient={activeClient}
+          clients={clients}
+          invoicesTotals={invoicesTotals}
+          reportSummary={reportSummary}
+          interventions={interventions}
+          onClose={() => setReportOpen(false)}
+        />
+      )}
+
       {/* Modal unité */}
       {selectedUnit && (
         <div className="gm-modal-backdrop open" onClick={(e) => { if (e.target.classList.contains("gm-modal-backdrop")) setSelectedUnit(null); }}>
@@ -756,6 +866,39 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                 {selectedUnit.status === "none" && <span className="gm-tag gray">Aucune intervention</span>}
               </span></div>
               <div className="modal-kv"><span className="k">Ouvertures</span><span className="v">{selectedUnit.openings.length || "Aucune renseignée"}</span></div>
+
+              <div className="gm-unit-summary">
+                <div>
+                  <strong>{selectedUnit.openings.length}</strong>
+                  <span>Ouvertures</span>
+                </div>
+                <div>
+                  <strong>{countPhotos(selectedUnit)}</strong>
+                  <span>Photos</span>
+                </div>
+                <div>
+                  <strong>{selectedUnit.history?.length || 0}</strong>
+                  <span>Dossiers</span>
+                </div>
+              </div>
+
+              {selectedUnit.history?.[0] && (
+                <div className="gm-unit-current">
+                  <div className="modal-section-title" style={{ marginTop: 0 }}>Dernier suivi</div>
+                  <div className="gm-unit-history-card">
+                    <div>
+                      <div className="li-title">{selectedUnit.history[0].number}</div>
+                      <div className="li-text">
+                        {fmtDate(selectedUnit.history[0].date)} · {selectedUnit.history[0].description?.slice(0, 110) || "Intervention Vosthermos"}
+                      </div>
+                    </div>
+                    <span className={"gm-tag " + statusMeta(selectedUnit.history[0].statut).tag}>
+                      {statusMeta(selectedUnit.history[0].statut).label}
+                    </span>
+                  </div>
+                  <WorkOrderTimeline status={selectedUnit.history[0].statut} compact />
+                </div>
+              )}
 
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 20, marginBottom: 10 }}>
                 <div className="modal-section-title" style={{ margin: 0 }}>Détail des ouvertures</div>
@@ -791,6 +934,50 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                   ))}
                 </div>
               )}
+
+              {(selectedUnit.history || []).length > 0 && (
+                <>
+                  <div className="modal-section-title">Historique de l&apos;unité</div>
+                  <div className="gm-unit-history">
+                    {selectedUnit.history.slice(0, 6).map((wo) => (
+                      <button
+                        key={wo.id}
+                        type="button"
+                        className="gm-unit-history-row"
+                        onClick={() => setViewRequestId(wo.id)}
+                      >
+                        <div>
+                          <strong>{wo.number}</strong>
+                          <span>{fmtDate(wo.date)} · {wo.description?.slice(0, 90) || "Intervention Vosthermos"}</span>
+                        </div>
+                        <span className={"gm-tag " + statusMeta(wo.statut).tag}>{statusMeta(wo.statut).label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {countPhotos(selectedUnit) > 0 && (
+                <>
+                  <div className="modal-section-title">Galerie photos</div>
+                  <div className="gm-unit-gallery">
+                    {(selectedUnit.openings || []).filter((o) => o.photoUrl).map((o) => (
+                      <figure key={`opening-${o.id}`}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={o.photoUrl} alt={o.location || "Ouverture"} />
+                        <figcaption>{o.location || o.type}</figcaption>
+                      </figure>
+                    ))}
+                    {(selectedUnit.history || []).flatMap((wo) => (wo.photos || []).map((url, i) => ({ url, number: wo.number, id: `${wo.id}-${i}` }))).slice(0, 8).map((photo) => (
+                      <figure key={`wo-${photo.id}`}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={photo.url} alt={`Photo ${photo.number}`} />
+                        <figcaption>{photo.number}</figcaption>
+                      </figure>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
             <div className="gm-modal-foot gm-form-actions-split">
               {canManageUnits ? (
@@ -812,9 +999,6 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                 </button>
               ) : <div />}
               <div style={{ display: "flex", gap: 8 }}>
-                <button className="gm-btn gm-btn-sm">
-                  <i className="fas fa-history"></i>Historique
-                </button>
                 {canRequest && (
                   <button
                     className="gm-btn gm-btn-sm gm-btn-primary"
@@ -903,6 +1087,119 @@ function ModalShell({ icon, title, subtitle, onClose, level = 2, maxWidth = 560,
         {children}
       </div>
     </div>
+  );
+}
+
+function MetricCard({ icon, label, value, detail, tone = "" }) {
+  return (
+    <div className={"gm-kpi-card " + tone}>
+      <div className="gm-kpi-icon"><i className={"fas " + icon}></i></div>
+      <div>
+        <div className="gm-kpi-value">{value}</div>
+        <div className="gm-kpi-label">{label}</div>
+        {detail && <div className="gm-kpi-detail">{detail}</div>}
+      </div>
+    </div>
+  );
+}
+
+function WorkOrderTimeline({ status, compact = false }) {
+  const current = timelineIndex(status);
+  return (
+    <div className={"gm-timeline" + (compact ? " compact" : "")}>
+      {TIMELINE_STEPS.map((step, i) => {
+        const done = i <= current;
+        const active = i === current;
+        return (
+          <div key={step.key} className={"gm-tl-step" + (done ? " done" : "") + (active ? " current" : "")}>
+            <div className="gm-tl-dot"><i className={"fas " + step.icon}></i></div>
+            <div className="gm-tl-label">{step.label}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function EmptyState({ icon, title, text, action }) {
+  return (
+    <div className="gm-empty">
+      <div className="gm-empty-icon"><i className={"fas " + icon}></i></div>
+      <div className="gm-empty-title">{title}</div>
+      <div className="gm-empty-text">{text}</div>
+      {action && <div className="gm-empty-action">{action}</div>}
+    </div>
+  );
+}
+
+function ClientReportModal({ manager, stats, isGlobal, activeClient, clients, invoicesTotals, reportSummary, interventions, onClose }) {
+  const recent = reportSummary?.recentInterventions || interventions?.recent || [];
+  const scopeName = reportSummary?.scopeName || (isGlobal ? "Vue globale" : activeClient?.name || "Copropriété");
+  return (
+    <ModalShell
+      icon={<i className="fas fa-file-lines"></i>}
+      title="Résumé CA"
+      subtitle="Version imprimable"
+      onClose={onClose}
+      level={3}
+      maxWidth={860}
+    >
+      <div className="gm-modal-body gm-report-print">
+        <div className="gm-report-head">
+          <div>
+            <div className="gm-eyebrow">Vosthermos · Portail gestionnaire</div>
+            <h2>Résumé pour conseil d&apos;administration</h2>
+            <p>{scopeName}{reportSummary?.city ? ` · ${reportSummary.city}` : ""}</p>
+          </div>
+          <div className="gm-report-meta">
+            <strong>{fmtDate(reportSummary?.generatedAt)}</strong>
+            <span>Préparé pour {manager.firstName} {manager.lastName}</span>
+          </div>
+        </div>
+
+        <div className="gm-report-grid">
+          <MetricCard icon="fa-building" label="Copropriétés" value={isGlobal ? clients.length : 1} detail="Portée du résumé" />
+          <MetricCard icon="fa-door-open" label="Unités" value={stats.totalUnits} detail={`${stats.totalOpenings || 0} ouvertures`} />
+          <MetricCard icon="fa-clipboard-check" label="Terminées" value={stats.completedCount} detail="Historique récent" tone="green" />
+          <MetricCard icon="fa-file-invoice-dollar" label="Factures dues" value={fmtMoney(invoicesTotals.toPay)} detail={`${stats.invoicedCount} facture${stats.invoicedCount > 1 ? "s" : ""}`} tone={stats.invoicedCount ? "amber" : "green"} />
+        </div>
+
+        <div className="gm-report-section">
+          <h3>État opérationnel</h3>
+          <p>
+            {stats.activeWOsCount > 0
+              ? `${stats.activeWOsCount} intervention${stats.activeWOsCount > 1 ? "s sont" : " est"} en cours ou à confirmer.`
+              : "Aucune intervention active au moment du résumé."}
+            {" "}Les dossiers terminés et les factures restent accessibles dans le portail.
+          </p>
+        </div>
+
+        <div className="gm-report-section">
+          <h3>Derniers travaux</h3>
+          {recent.length === 0 ? (
+            <p>Aucun travail récent affiché.</p>
+          ) : (
+            <div className="gm-report-list">
+              {recent.map((wo) => (
+                <div key={wo.id} className="gm-report-row">
+                  <div>
+                    <strong>{wo.number}</strong>
+                    <span>{fmtDate(wo.date)} · {wo.sections?.length ? `Unités ${wo.sections.join(", ")}` : "Intervention générale"}</span>
+                  </div>
+                  <b>{fmtMoney(wo.total)}</b>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="gm-modal-foot no-print">
+        <button className="gm-btn gm-btn-sm" onClick={onClose}>Fermer</button>
+        <button className="gm-btn gm-btn-sm gm-btn-primary" onClick={() => window.print()}>
+          <i className="fas fa-print"></i>Imprimer / PDF
+        </button>
+      </div>
+    </ModalShell>
   );
 }
 
@@ -1146,6 +1443,7 @@ function RequestDetailModal({ requestId, onClose, onDeleted }) {
               Date souhaitée : {data.date ? new Date(data.date).toLocaleDateString("fr-CA", { day: "numeric", month: "long", year: "numeric" }) : "—"}
             </span>
           </div>
+          <WorkOrderTimeline status={data.statut} />
 
           <div className="modal-section-title" style={{ marginTop: 0 }}>Description du problème</div>
           <div style={{ padding: 12, background: "var(--bg)", borderRadius: 6, fontSize: 13, lineHeight: 1.5, whiteSpace: "pre-wrap" }}>
@@ -1170,6 +1468,21 @@ function RequestDetailModal({ requestId, onClose, onDeleted }) {
                     <div style={{ fontWeight: 700, marginBottom: 4 }}>{s.unitCode}</div>
                     <div style={{ color: "var(--text-muted)", whiteSpace: "pre-wrap" }}>{s.notes || "—"}</div>
                   </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {data.photos && data.photos.length > 0 && (
+            <>
+              <div className="modal-section-title">Photos du dossier · {data.photos.length}</div>
+              <div className="gm-unit-gallery">
+                {data.photos.map((url, i) => (
+                  <figure key={`${url}-${i}`}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={url} alt={`Photo ${data.number} ${i + 1}`} />
+                    <figcaption>{data.number}</figcaption>
+                  </figure>
                 ))}
               </div>
             </>
@@ -1235,7 +1548,7 @@ function RequestDetailModal({ requestId, onClose, onDeleted }) {
 
       <div className="gm-modal-foot gm-form-actions-split">
         <div>
-          {data?.statut === "draft" && (
+          {data?.statut === "draft" && data?.isManagerRequest && (
             <button
               className="gm-btn gm-btn-sm"
               style={{ color: "var(--red)", borderColor: "rgba(227,7,24,0.3)" }}

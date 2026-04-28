@@ -20,10 +20,6 @@ async function authorize(id, manager) {
   if (!hasPermission(mc, "view_work_orders") && !hasPermission(mc, "request_intervention")) {
     return { error: "Permission refusée", status: 403 };
   }
-  // Vérif: c'est bien une demande créée par un gestionnaire
-  if (!wo.notes?.startsWith("Demande du gestionnaire")) {
-    return { error: "Ce bon n'est pas une demande gestionnaire", status: 403 };
-  }
   return { wo, mc };
 }
 
@@ -53,6 +49,8 @@ export async function GET(req, { params }) {
     description: wo.description,
     notes: wo.notes,
     statut: wo.statut,
+    photos: wo.photos || [],
+    isManagerRequest: (wo.notes || "").startsWith("Demande du gestionnaire"),
     createdAt: wo.createdAt.toISOString(),
     sections: wo.sections.map((s) => ({ id: s.id, unitCode: s.unitCode, notes: s.notes })),
     technician: wo.technician ? {
@@ -80,6 +78,9 @@ export async function DELETE(req, { params }) {
 
   if (auth.wo.statut !== "draft") {
     return NextResponse.json({ error: "Impossible d'annuler — l'intervention a déjà été planifiée ou traitée par Vosthermos" }, { status: 400 });
+  }
+  if (!(auth.wo.notes || "").startsWith("Demande du gestionnaire")) {
+    return NextResponse.json({ error: "Seule une demande créée dans le portail peut être annulée ici" }, { status: 400 });
   }
 
   await prisma.workOrder.delete({ where: { id: Number(id) } });

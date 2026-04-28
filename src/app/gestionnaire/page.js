@@ -83,8 +83,13 @@ export default async function GestionnairePage({ searchParams }) {
         visibleAuClient: true,
         statut: { in: ["completed", "invoiced", "paid"] },
       },
+      include: {
+        sections: true,
+        technician: { select: { id: true, name: true, phone: true, photoUrl: true } },
+        client: { select: { name: true } },
+      },
       orderBy: { date: "desc" },
-      take: 5,
+      take: 12,
     }),
     invoiceClientIds.length === 0 ? Promise.resolve(0) : prisma.workOrder.count({
       where: {
@@ -139,11 +144,33 @@ export default async function GestionnairePage({ searchParams }) {
 
   const stats = {
     totalUnits: unitsRaw.length,
+    totalOpenings: unitsRaw.reduce((sum, u) => sum + (u.openings?.length || 0), 0),
     buildingsCount: buildings.length,
     activeWOsCount: activeWOs.length,
     invoicedCount: pendingInvoicesCount,
     completedCount: recentWOs.length,
   };
+
+  const unitHistoryMap = {};
+  for (const wo of [...activeWOs, ...recentWOs]) {
+    for (const sec of wo.sections || []) {
+      const key = unitStatusKey(wo.clientId, sec.unitCode);
+      if (!unitHistoryMap[key]) unitHistoryMap[key] = [];
+      unitHistoryMap[key].push({
+        id: wo.id,
+        number: wo.number,
+        date: wo.date?.toISOString() || null,
+        statut: wo.statut,
+        description: wo.description,
+        total: Number(wo.total),
+        technicianName: wo.technician?.name || null,
+        photos: wo.photos || [],
+      });
+    }
+  }
+  for (const key of Object.keys(unitHistoryMap)) {
+    unitHistoryMap[key].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+  }
 
   // Pre-serialize interventions for client
   const interventions = {
@@ -159,6 +186,8 @@ export default async function GestionnairePage({ searchParams }) {
       technicianPhotoUrl: wo.technician?.photoUrl || null,
       clientName: wo.client?.name || "",
       sections: wo.sections?.map((s) => s.unitCode) || [],
+      sectionDetails: wo.sections?.map((s) => ({ id: s.id, unitCode: s.unitCode, notes: s.notes })) || [],
+      photos: wo.photos || [],
       total: Number(wo.total),
       isManagerRequest: (wo.notes || "").startsWith("Demande du gestionnaire"),
       notes: wo.notes,
@@ -170,9 +199,43 @@ export default async function GestionnairePage({ searchParams }) {
       date: wo.date?.toISOString() || null,
       statut: wo.statut,
       description: wo.description,
+      technicianName: wo.technician?.name || null,
+      clientName: wo.client?.name || "",
+      sections: wo.sections?.map((s) => s.unitCode) || [],
+      sectionDetails: wo.sections?.map((s) => ({ id: s.id, unitCode: s.unitCode, notes: s.notes })) || [],
+      photos: wo.photos || [],
       total: Number(wo.total),
     })),
   };
+
+  const recentPhotos = [];
+  for (const wo of [...activeWOs, ...recentWOs]) {
+    for (const photoUrl of wo.photos || []) {
+      recentPhotos.push({
+        url: photoUrl,
+        label: wo.number,
+        sub: wo.sections?.map((s) => s.unitCode).filter(Boolean).join(", ") || wo.client?.name || "Intervention",
+        date: wo.date?.toISOString() || null,
+      });
+      if (recentPhotos.length >= 8) break;
+    }
+    if (recentPhotos.length >= 8) break;
+  }
+  if (recentPhotos.length < 8) {
+    for (const u of unitsRaw) {
+      for (const o of u.openings || []) {
+        if (!o.photoUrl) continue;
+        recentPhotos.push({
+          url: o.photoUrl,
+          label: `Unité ${u.code}`,
+          sub: o.location || o.type,
+          date: o.updatedAt?.toISOString() || null,
+        });
+        if (recentPhotos.length >= 8) break;
+      }
+      if (recentPhotos.length >= 8) break;
+    }
+  }
 
   const invoices = invoicedWOs.map((wo) => {
     const termsDays = wo.client?.paymentTermsDays ?? 30;
@@ -245,24 +308,41 @@ export default async function GestionnairePage({ searchParams }) {
           units: bUnits.map((u) => ({
             id: u.id,
             code: u.code,
+            description: u.description,
+            notes: u.notes,
             status: unitStatusMap[unitStatusKey(u.clientId, u.code)]?.status || "none",
             statusLabel: unitStatusMap[unitStatusKey(u.clientId, u.code)]?.dateLabel || "—",
             openings: u.openings,
+            history: unitHistoryMap[unitStatusKey(u.clientId, u.code)] || [],
           })),
         };
       })}
       orphanUnits={orphanUnits.map((u) => ({
         id: u.id,
         code: u.code,
+        description: u.description,
+        notes: u.notes,
         status: unitStatusMap[unitStatusKey(u.clientId, u.code)]?.status || "none",
         statusLabel: unitStatusMap[unitStatusKey(u.clientId, u.code)]?.dateLabel || "—",
         openings: u.openings,
+        history: unitHistoryMap[unitStatusKey(u.clientId, u.code)] || [],
       }))}
       stats={stats}
       notifs={notifs}
       interventions={interventions}
       invoices={invoices}
       invoicesTotals={{ toPay: toPayTotal, paid: paidTotal }}
+      recentPhotos={recentPhotos}
+      reportSummary={{
+        generatedAt: new Date().toISOString(),
+        scopeName: isGlobal ? "Vue globale" : activeClient.client.name,
+        city: isGlobal ? "" : activeClient.client.city,
+        activeCount: activeWOs.length,
+        completedCount: recentWOs.length,
+        invoiceToPay: toPayTotal,
+        invoicePaid: paidTotal,
+        recentInterventions: interventions.recent.slice(0, 8),
+      }}
     />
   );
 }
