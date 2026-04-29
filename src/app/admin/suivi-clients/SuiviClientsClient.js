@@ -424,6 +424,17 @@ export default function SuiviClientsClient() {
           box-shadow: 0 24px 55px rgba(8, 145, 178, 0.24);
           border-color: rgba(103, 232, 249, 0.8);
         }
+        .kanban-drag-image {
+          position: fixed;
+          top: -1000px;
+          left: -1000px;
+          width: 290px;
+          z-index: 9999;
+          pointer-events: none;
+          transform: rotate(1.5deg) scale(1.035);
+          box-shadow: 0 28px 70px rgba(8, 145, 178, 0.38), 0 0 0 2px rgba(103, 232, 249, 0.62);
+          border-color: rgba(103, 232, 249, 0.9) !important;
+        }
         .kanban-card-pressed {
           transform: translateY(-4px) scale(1.018);
           box-shadow: 0 16px 34px rgba(8, 145, 178, 0.18);
@@ -441,6 +452,9 @@ export default function SuiviClientsClient() {
           transform: translateX(-120%);
           animation: kanban-card-sheen 760ms ease-out;
         }
+        .kanban-drop-badge {
+          animation: kanban-drop-badge 980ms ease-out both;
+        }
         @keyframes kanban-card-drop {
           0% { transform: translateY(-18px) scale(1.04); box-shadow: 0 26px 60px rgba(8, 145, 178, 0.30); }
           44% { transform: translateY(3px) scale(0.992); }
@@ -450,6 +464,12 @@ export default function SuiviClientsClient() {
         @keyframes kanban-card-sheen {
           0% { transform: translateX(-120%); }
           100% { transform: translateX(120%); }
+        }
+        @keyframes kanban-drop-badge {
+          0% { opacity: 0; transform: translateY(-8px) scale(0.92); }
+          18% { opacity: 1; transform: translateY(0) scale(1.04); }
+          78% { opacity: 1; transform: translateY(0) scale(1); }
+          100% { opacity: 0; transform: translateY(-4px) scale(0.98); }
         }
       `}</style>
       <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-6">
@@ -696,6 +716,7 @@ function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, onDragStar
         setPressed(false);
         e.dataTransfer.effectAllowed = "move";
         e.dataTransfer.setData("text/plain", String(followUp.id));
+        setKanbanDragImage(e);
         onDragStart(followUp.id);
       }}
       onDragEnd={() => {
@@ -714,6 +735,16 @@ function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, onDragStar
         highlighted ? "kanban-card-dropped ring-2 ring-cyan-300/80" : ""
       }`}
     >
+      {isDragging && (
+        <div className="absolute inset-x-3 top-3 z-10 rounded-lg border border-cyan-300/45 bg-cyan-500/15 px-3 py-2 text-xs font-extrabold text-cyan-100 shadow-[0_0_24px_rgba(34,211,238,0.28)]">
+          <i className="fas fa-hand-pointer mr-2"></i>Carte en deplacement
+        </div>
+      )}
+      {highlighted && (
+        <div className="kanban-drop-badge absolute right-3 top-3 z-10 rounded-full bg-cyan-500 px-3 py-1 text-[10px] font-extrabold text-slate-950 shadow-[0_0_22px_rgba(34,211,238,0.35)]">
+          <i className="fas fa-check mr-1"></i>Deposee
+        </div>
+      )}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="admin-text font-extrabold truncate">{clientName}</p>
@@ -778,6 +809,18 @@ function MiniCount({ icon, value, label }) {
       {value} {label}
     </span>
   );
+}
+
+function setKanbanDragImage(event) {
+  if (!event.dataTransfer || typeof document === "undefined") return;
+  const source = event.currentTarget;
+  const rect = source.getBoundingClientRect();
+  const ghost = source.cloneNode(true);
+  ghost.classList.add("kanban-drag-image");
+  ghost.style.width = `${Math.min(rect.width, 320)}px`;
+  document.body.appendChild(ghost);
+  event.dataTransfer.setDragImage(ghost, Math.min(rect.width / 2, 150), 34);
+  window.setTimeout(() => ghost.remove(), 0);
 }
 
 function CentralModal({ followUp, columns, onSaveNotes, onClose }) {
