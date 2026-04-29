@@ -8,6 +8,8 @@ import ThemeToggle from "./ThemeToggle";
 
 const DEFAULT_NAV_ITEMS = [
   { href: "/admin", label: "Tableau de bord", icon: "fa-tachometer-alt", exact: true },
+  { section: "VENTE" },
+  { href: "/admin/vendeur", label: "Vendeur", icon: "fa-handshake" },
   { section: "BOUTIQUE" },
   { href: "/admin/commandes", label: "Commandes", icon: "fa-shopping-bag" },
   { href: "/admin/produits", label: "Produits", icon: "fa-boxes" },
