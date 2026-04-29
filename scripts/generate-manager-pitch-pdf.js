@@ -5,9 +5,11 @@ const { pathToFileURL } = require("url");
 
 const root = path.resolve(__dirname, "..");
 const docsDir = path.join(root, "docs");
+const publicDocsDir = path.join(root, "public", "documents");
 const tempDir = path.join(docsDir, ".pitch-tmp");
 const htmlPath = path.join(tempDir, "pitch-vente-portail-gestionnaires-vosthermos.html");
 const pdfPath = path.join(docsDir, "pitch-vente-portail-gestionnaires-vosthermos.pdf");
+const publicPdfPath = path.join(publicDocsDir, "pitch-vente-portail-gestionnaires-vosthermos.pdf");
 const keepTemp = process.env.KEEP_PITCH_TEMP === "1";
 
 function toFileUrl(filePath) {
@@ -131,6 +133,7 @@ function createPortalShots(chrome) {
 function buildHtml(company, shots) {
   const logoRed = toFileUrl(path.join(root, "public", "images", "Vos-Thermos-Logo.png"));
   const logoWhite = toFileUrl(path.join(root, "public", "images", "Vos-Thermos-Logo_Blanc.png"));
+  const portalUrl = "https://www.vosthermos.com/portail-gestionnaire";
   const tutorialUrl = "https://www.vosthermos.com/portail-gestionnaire/tutoriel.html";
 
   return `<!doctype html>
@@ -207,12 +210,18 @@ function buildHtml(company, shots) {
   .cover-stat { background: rgba(255,255,255,.11); border-radius: .12in; padding: .18in; min-height: .86in; }
   .cover-stat b { display: block; font-size: 19pt; color: #fff; margin-bottom: .04in; }
   .cover-stat span { display: block; font-size: 8.7pt; color: #cfe3e7; line-height: 1.25; }
+  .cover-link-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .14in;
+    margin-top: .28in;
+  }
   .cover-link {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
     justify-content: space-between;
     gap: .18in;
-    margin-top: .28in;
     padding: .15in .18in;
     border-radius: .12in;
     background: #e30718;
@@ -221,7 +230,9 @@ function buildHtml(company, shots) {
     line-height: 1.2;
     font-weight: 800;
     text-decoration: none;
+    min-height: .72in;
   }
+  .cover-link strong { display: block; font-size: 13pt; letter-spacing: .04em; text-transform: uppercase; margin-bottom: .04in; }
   .cover-link span { color: rgba(255,255,255,.84); font-size: 8.5pt; font-weight: 700; }
   .footer {
     position: absolute;
@@ -365,6 +376,16 @@ function buildHtml(company, shots) {
   .quick-row b { color: #bde1e7; font-size: 8.6pt; text-transform: uppercase; letter-spacing: .06em; }
   .quick-row span { color: #fff; font-size: 10.1pt; font-weight: 800; line-height: 1.2; }
   .quick-row a { color: #fff; text-decoration: none; font-size: 10.1pt; font-weight: 800; line-height: 1.2; }
+  .quick-click {
+    display: inline-block;
+    background: #e30718;
+    color: #fff;
+    border-radius: .09in;
+    padding: .08in .12in;
+    margin-bottom: .05in;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
   .contact-bar {
     position: absolute;
     left: .62in;
@@ -403,10 +424,18 @@ function buildHtml(company, shots) {
     <div class="cover-stat"><b>Gratuit</b><span>inclus avec le service Vosthermos</span></div>
     <div class="cover-stat"><b>B2B</b><span>gestionnaires, syndicats, manufacturiers</span></div>
   </div>
-  <a class="cover-link" href="${tutorialUrl}">
-    Voir le tutoriel animé du portail
-    <span>${tutorialUrl}</span>
-  </a>
+  <div class="cover-link-grid">
+    <a class="cover-link" href="${portalUrl}">
+      <strong>Cliquez ici</strong>
+      Voir la page du portail
+      <span>${portalUrl}</span>
+    </a>
+    <a class="cover-link" href="${tutorialUrl}" style="background:#0a697e;">
+      <strong>Cliquez ici</strong>
+      Voir le tutoriel animé
+      <span>${tutorialUrl}</span>
+    </a>
+  </div>
   <div class="footer"><span>${company.address}</span><span>${company.rbq}</span></div>
 </section>
 
@@ -568,10 +597,11 @@ function buildHtml(company, shots) {
   <div class="quick-grid">
     <div class="quick-row"><b>On vend quoi?</b><span>Un service Vosthermos de réparation et suivi, avec portail client gratuit.</span></div>
     <div class="quick-row"><b>À qui?</b><span>Gestionnaires, syndicats, CA, maintenance et manufacturiers/installateurs sans service de réparation.</span></div>
-    <div class="quick-row"><b>Douleur client</b><span>Courriels, photos, unités, suivis et factures dispersés.</span></div>
+    <div class="quick-row"><b>Enjeu client</b><span>Courriels, photos, unités, suivis et factures dispersés.</span></div>
     <div class="quick-row"><b>Promesse</b><span>Moins de suivis manuels, dossiers plus clairs, historique propre.</span></div>
     <div class="quick-row"><b>Démo gagnante</b><span>Tableau de bord, parc de fenêtres, demande, factures, résumé CA.</span></div>
-    <div class="quick-row"><b>Tutoriel animé</b><a href="${tutorialUrl}">${tutorialUrl}</a></div>
+    <div class="quick-row"><b>Page portail</b><a href="${portalUrl}"><span class="quick-click">Cliquez ici</span><br>${portalUrl}</a></div>
+    <div class="quick-row"><b>Tutoriel animé</b><a href="${tutorialUrl}"><span class="quick-click">Cliquez ici</span><br>${tutorialUrl}</a></div>
     <div class="quick-row"><b>Manufacturier</b><span>Vosthermos devient le partenaire de réparation et de suivi après-vente.</span></div>
     <div class="quick-row"><b>Closing</b><span>Proposer une copropriété pilote ou un partenariat de références.</span></div>
   </div>
@@ -583,6 +613,7 @@ function buildHtml(company, shots) {
 }
 
 fs.mkdirSync(docsDir, { recursive: true });
+fs.mkdirSync(publicDocsDir, { recursive: true });
 resetTempDir();
 
 try {
@@ -604,7 +635,9 @@ try {
     toFileUrl(htmlPath),
   ], { stdio: "inherit", timeout: 60000 });
 
+  fs.copyFileSync(pdfPath, publicPdfPath);
   console.log(pdfPath);
+  console.log(publicPdfPath);
   if (keepTemp) console.log(`Preview HTML kept: ${htmlPath}`);
 } finally {
   cleanupTempDir();
