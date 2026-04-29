@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import ClientPicker from "@/components/admin/ClientPicker";
 
@@ -417,6 +418,34 @@ export default function SuiviClientsClient() {
 
   return (
     <div className="p-6 lg:p-8">
+      <style jsx global>{`
+        .kanban-card-lifted {
+          transform: translateY(-10px) scale(1.035) rotate(0.7deg);
+          box-shadow: 0 24px 55px rgba(8, 145, 178, 0.24);
+          border-color: rgba(103, 232, 249, 0.8);
+        }
+        .kanban-card-dropped {
+          animation: kanban-card-drop 900ms cubic-bezier(0.2, 0.85, 0.2, 1);
+        }
+        .kanban-card-dropped::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          background: linear-gradient(90deg, transparent, rgba(103, 232, 249, 0.18), transparent);
+          transform: translateX(-120%);
+          animation: kanban-card-sheen 760ms ease-out;
+        }
+        @keyframes kanban-card-drop {
+          0% { transform: translateY(-14px) scale(1.035); box-shadow: 0 24px 55px rgba(8, 145, 178, 0.26); }
+          54% { transform: translateY(2px) scale(0.995); }
+          100% { transform: translateY(0) scale(1); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
+        }
+        @keyframes kanban-card-sheen {
+          0% { transform: translateX(-120%); }
+          100% { transform: translateX(120%); }
+        }
+      `}</style>
       <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-6">
         <div>
           <h1 className="admin-text text-2xl font-extrabold">Suivi clients</h1>
@@ -656,12 +685,16 @@ function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, onDragStar
   return (
     <article
       draggable
-      onDragStart={() => onDragStart(followUp.id)}
+      onDragStart={(e) => {
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", String(followUp.id));
+        onDragStart(followUp.id);
+      }}
       onDragEnd={onDragEnd}
-      className={`rounded-xl border admin-border admin-bg p-4 shadow-sm cursor-grab active:cursor-grabbing hover:ring-2 ${t.ring} transition-all duration-300 ${
-        isDragging ? "opacity-70 ring-2 ring-cyan-300/80 shadow-[0_0_32px_rgba(34,211,238,0.32)] scale-[1.02]" : ""
+      className={`relative overflow-hidden rounded-xl border admin-border admin-bg p-4 shadow-sm cursor-grab active:cursor-grabbing hover:ring-2 ${t.ring} transition-all duration-300 ${
+        isDragging ? "kanban-card-lifted opacity-85 ring-2 ring-cyan-300/80" : ""
       } ${
-        highlighted ? "ring-2 ring-cyan-300/80 shadow-[0_0_32px_rgba(34,211,238,0.32)] scale-[1.02]" : ""
+        highlighted ? "kanban-card-dropped ring-2 ring-cyan-300/80" : ""
       }`}
     >
       <div className="flex items-start justify-between gap-3">
@@ -694,6 +727,7 @@ function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, onDragStar
           <MiniCount icon="fa-comments" value={counts.chats} label="chats" />
           <MiniCount icon="fa-clipboard-list" value={counts.workOrders} label="bons" />
           <MiniCount icon="fa-calendar-check" value={counts.appointments} label="rdv" />
+          <MiniCount icon="fa-images" value={counts.photos || 0} label="photos" />
         </div>
       </button>
 
@@ -731,15 +765,18 @@ function MiniCount({ icon, value, label }) {
 
 function CentralModal({ followUp, columns, onSaveNotes, onClose }) {
   const activity = followUp.activity || {};
-  const counts = activity.counts || { chats: 0, workOrders: 0, appointments: 0, total: 0 };
+  const counts = activity.counts || { chats: 0, workOrders: 0, appointments: 0, photos: 0, total: 0 };
+  const photos = activity.photos || [];
   const name = followUp.client?.name || followUp.contactName || followUp.title;
   const phone = followUp.phone || followUp.client?.phone;
   const email = followUp.email || followUp.client?.email;
   const meta = columnMeta(columns, followUp.status);
+  const [activeTab, setActiveTab] = useState("suivi");
   const [notesDraft, setNotesDraft] = useState(followUp.notes || "");
   const [noteState, setNoteState] = useState("idle");
   const [noteError, setNoteError] = useState("");
   const [embeddedView, setEmbeddedView] = useState(null);
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
   const savedTimer = useRef(null);
   const notesDirty = notesDraft !== (followUp.notes || "");
 
@@ -792,13 +829,38 @@ function CentralModal({ followUp, columns, onSaveNotes, onClose }) {
         </div>
 
         <div className="p-5 space-y-6">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
             <CentralStat label="Chats" value={counts.chats} icon="fa-comments" />
             <CentralStat label="Bons" value={counts.workOrders} icon="fa-clipboard-list" />
             <CentralStat label="Rendez-vous" value={counts.appointments} icon="fa-calendar-check" />
+            <CentralStat label="Photos" value={counts.photos || photos.length} icon="fa-images" />
             <CentralStat label="Total activites" value={counts.total} icon="fa-layer-group" />
           </div>
 
+          <div className="flex flex-wrap gap-2 border-b admin-border">
+            {[
+              { key: "suivi", label: "Suivi", icon: "fa-list-check" },
+              { key: "photos", label: `Photos (${photos.length})`, icon: "fa-images" },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setActiveTab(tab.key)}
+                className={`px-4 py-2.5 text-sm font-bold border-b-2 transition-colors ${
+                  activeTab === tab.key
+                    ? "border-cyan-300 text-cyan-200"
+                    : "border-transparent admin-text-muted hover:admin-text"
+                }`}
+              >
+                <i className={`fas ${tab.icon} mr-2`}></i>{tab.label}
+              </button>
+            ))}
+          </div>
+
+          {activeTab === "photos" ? (
+            <PhotoTab photos={photos} onSelect={setSelectedPhoto} />
+          ) : (
+            <>
           <div className="grid lg:grid-cols-[1fr_1.2fr] gap-5">
             <div className="admin-card border rounded-xl p-4">
               <h3 className="admin-text font-bold mb-3">Suivi courant</h3>
@@ -941,10 +1003,15 @@ function CentralModal({ followUp, columns, onSaveNotes, onClose }) {
               )}
             />
           </div>
+            </>
+          )}
         </div>
 
         {embeddedView && (
           <EmbeddedActivityPanel view={embeddedView} onClose={() => setEmbeddedView(null)} />
+        )}
+        {selectedPhoto && (
+          <PhotoViewer photo={selectedPhoto} onClose={() => setSelectedPhoto(null)} />
         )}
       </div>
     </div>
@@ -1000,6 +1067,90 @@ function ActivitySection({ title, icon, items, empty, render }) {
       ) : (
         <p className="admin-text-muted text-sm">{empty}</p>
       )}
+    </div>
+  );
+}
+
+function PhotoTab({ photos, onSelect }) {
+  if (!photos.length) {
+    return (
+      <div className="admin-card border rounded-xl p-10 text-center">
+        <div className="mx-auto mb-3 w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-300 flex items-center justify-center">
+          <i className="fas fa-images text-lg"></i>
+        </div>
+        <p className="admin-text font-bold">Aucune photo reliee a ce client</p>
+        <p className="admin-text-muted text-sm mt-1">Les photos des ouvertures, des bons et des chats apparaitront ici automatiquement.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h3 className="admin-text font-bold">Photos client</h3>
+          <p className="admin-text-muted text-sm">{photos.length} photo{photos.length > 1 ? "s" : ""} reliee{photos.length > 1 ? "s" : ""}</p>
+        </div>
+      </div>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {photos.map((photo) => (
+          <button
+            key={photo.id}
+            type="button"
+            onClick={() => onSelect(photo)}
+            className="group admin-card border admin-border rounded-xl overflow-hidden text-left hover:ring-2 hover:ring-cyan-300/45 transition-all"
+          >
+            <div className="relative aspect-[4/3] bg-black/20 overflow-hidden">
+              <Image
+                src={photo.url}
+                alt={photo.title || "Photo client"}
+                fill
+                sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                className="object-cover transition-transform duration-300 group-hover:scale-[1.035]"
+                unoptimized
+              />
+            </div>
+            <div className="p-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="admin-text font-bold text-sm truncate">{photo.title || "Photo"}</p>
+                <span className="rounded-full bg-cyan-500/10 text-cyan-300 px-2 py-1 text-[10px] font-bold shrink-0">
+                  {photo.source || photo.type}
+                </span>
+              </div>
+              {photo.subtitle && <p className="admin-text-muted text-xs truncate mt-1">{photo.subtitle}</p>}
+              <p className="admin-text-muted text-[10px] mt-2">{formatDate(photo.date)}</p>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PhotoViewer({ photo, onClose }) {
+  return (
+    <div className="fixed inset-0 z-[80] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+      <div className="w-full max-w-6xl max-h-[92vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div className="min-w-0">
+            <h3 className="text-white font-extrabold truncate">{photo.title || "Photo client"}</h3>
+            <p className="text-white/65 text-sm truncate">{[photo.source, photo.subtitle].filter(Boolean).join(" | ")}</p>
+          </div>
+          <button type="button" onClick={onClose} className="w-10 h-10 rounded-lg bg-white/10 hover:bg-white/15 text-white">
+            <i className="fas fa-times"></i>
+          </button>
+        </div>
+        <div className="relative rounded-xl overflow-hidden bg-black/40 flex-1 min-h-[70vh]">
+          <Image
+            src={photo.url}
+            alt={photo.title || "Photo client"}
+            fill
+            sizes="100vw"
+            className="object-contain"
+            unoptimized
+          />
+        </div>
+      </div>
     </div>
   );
 }

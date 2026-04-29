@@ -82,6 +82,11 @@ async function attachCentralActivity(followUps) {
   for (const email of emails) clientOr.push({ client: { email: { equals: email, mode: "insensitive" } } });
   for (const suffix of phoneSuffixes) clientOr.push({ client: { phone: { contains: suffix } } });
 
+  const clientMatchOr = [];
+  if (clientIds.length) clientMatchOr.push({ id: { in: clientIds } });
+  for (const email of emails) clientMatchOr.push({ email: { equals: email, mode: "insensitive" } });
+  for (const suffix of phoneSuffixes) clientMatchOr.push({ phone: { contains: suffix } });
+
   const contactOr = [];
   for (const email of emails) contactOr.push({ email: { equals: email, mode: "insensitive" } });
   for (const suffix of phoneSuffixes) contactOr.push({ phone: { contains: suffix } });
@@ -90,7 +95,7 @@ async function attachCentralActivity(followUps) {
   for (const email of emails) chatOr.push({ clientEmail: { equals: email, mode: "insensitive" } });
   for (const suffix of phoneSuffixes) chatOr.push({ clientPhone: { contains: suffix } });
 
-  const [workOrders, appointments, chats] = await Promise.all([
+  const [workOrders, appointments, chats, openings] = await Promise.all([
     clientOr.length ? prisma.workOrder.findMany({
       where: { OR: clientOr },
       select: {
@@ -103,6 +108,7 @@ async function attachCentralActivity(followUps) {
         updatedAt: true,
         total: true,
         description: true,
+        photos: true,
         client: { select: { id: true, name: true, phone: true, email: true, city: true } },
         technician: { select: { name: true } },
       },
@@ -138,12 +144,35 @@ async function attachCentralActivity(followUps) {
         lastMessageAt: true,
         createdAt: true,
         messages: {
-          take: 1,
+          take: 8,
           orderBy: { createdAt: "desc" },
-          select: { content: true, senderType: true, createdAt: true },
+          select: { content: true, senderType: true, imageUrl: true, createdAt: true },
         },
       },
       orderBy: { lastMessageAt: "desc" },
+      take: 500,
+    }) : [],
+    clientMatchOr.length ? prisma.unitOpening.findMany({
+      where: {
+        photoUrl: { not: null },
+        unit: { client: { OR: clientMatchOr } },
+      },
+      select: {
+        id: true,
+        type: true,
+        location: true,
+        description: true,
+        photoUrl: true,
+        updatedAt: true,
+        unit: {
+          select: {
+            code: true,
+            clientId: true,
+            client: { select: { id: true, name: true, phone: true, email: true } },
+          },
+        },
+      },
+      orderBy: { updatedAt: "desc" },
       take: 500,
     }) : [],
   ]);
@@ -160,6 +189,51 @@ async function attachCentralActivity(followUps) {
     const relatedChats = chats
       .filter((chat) => sameContact(contact, { phone: chat.clientPhone, email: chat.clientEmail }))
       .slice(0, 20);
+    const relatedOpenings = openings
+      .filter((opening) => sameContact(contact, {
+        clientId: opening.unit?.clientId,
+        phone: opening.unit?.client?.phone,
+        email: opening.unit?.client?.email,
+      }))
+      .slice(0, 50);
+
+    const relatedPhotos = [
+      ...relatedOpenings
+        .filter((opening) => opening.photoUrl)
+        .map((opening) => activityItem({
+          id: `opening-${opening.id}`,
+          type: "opening",
+          source: "Ouverture",
+          title: [opening.unit?.code && `Unite ${opening.unit.code}`, opening.location].filter(Boolean).join(" | ") || "Ouverture",
+          subtitle: [opening.type, opening.description].filter(Boolean).join(" | "),
+          url: opening.photoUrl,
+          date: opening.updatedAt,
+        })),
+      ...relatedWorkOrders.flatMap((wo) => (wo.photos || []).filter(Boolean).map((url, index) => activityItem({
+        id: `work-order-${wo.id}-${index}`,
+        type: "work_order",
+        source: `Bon ${wo.number}`,
+        title: `Photo du bon ${wo.number}`,
+        subtitle: wo.description || wo.statut,
+        url,
+        date: wo.updatedAt || wo.date || wo.createdAt,
+        href: `/admin/bons/${wo.id}`,
+      }))),
+      ...relatedChats.flatMap((chat) => (chat.messages || [])
+        .filter((message) => message.imageUrl)
+        .map((message) => activityItem({
+          id: `chat-${chat.id}-${message.createdAt?.getTime?.() || message.imageUrl}`,
+          type: "chat",
+          source: "Chat",
+          title: chat.clientName || "Photo chat",
+          subtitle: message.content || chat.clientPhone,
+          url: message.imageUrl,
+          date: message.createdAt,
+          href: `/admin/chat/${chat.id}`,
+        }))),
+    ]
+      .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+      .slice(0, 80);
 
     const recentActivity = [
       ...relatedWorkOrders.map((wo) => activityItem({
@@ -201,8 +275,10 @@ async function attachCentralActivity(followUps) {
           chats: relatedChats.length,
           workOrders: relatedWorkOrders.length,
           appointments: relatedAppointments.length,
+          photos: relatedPhotos.length,
           total: relatedChats.length + relatedWorkOrders.length + relatedAppointments.length,
         },
+        photos: relatedPhotos,
         recent: recentActivity,
         chats: relatedChats.map((chat) => ({
           id: chat.id,
