@@ -865,9 +865,29 @@ function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, isDragging
           <p className="admin-text text-sm font-extrabold truncate">{clientName}</p>
           <p className="admin-text-muted text-[11px] truncate mt-0.5">{followUp.service || "Service non precise"}</p>
         </div>
-        <span className={`text-[9px] font-bold rounded-full px-1.5 py-0.5 shrink-0 ${t.badge}`}>
-          {meta.label}
-        </span>
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          <span className={`text-[9px] font-bold rounded-full px-1.5 py-0.5 ${t.badge}`}>
+            {meta.label}
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => onEdit(followUp)}
+              className="admin-text-muted hover:admin-text text-[11px]"
+              title="Modifier"
+            >
+              <i className="fas fa-pen"></i>
+            </button>
+            <button
+              type="button"
+              onClick={() => onDelete(followUp)}
+              className="text-amber-300 hover:text-amber-200 text-[11px]"
+              title="Supprimer"
+            >
+              <i className="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="mt-2 space-y-0.5 text-[11px]">
@@ -883,38 +903,16 @@ function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, isDragging
         <p className="text-[11px] line-clamp-1 mt-1">{followUp.nextAction || "-"}</p>
       </div>
 
-      <button
-        type="button"
-        onClick={() => onCentral(followUp)}
-        className="mt-2 w-full text-left rounded-lg admin-hover px-1.5 py-1.5"
-      >
-        <div className="flex flex-wrap gap-1">
-          <MiniCount icon="fa-comments" value={counts.chats} label="chats" />
-          <MiniCount icon="fa-clipboard-list" value={counts.workOrders} label="bons" />
-          <MiniCount icon="fa-calendar-check" value={counts.appointments} label="rdv" />
-          <MiniCount icon="fa-images" value={counts.photos || 0} label="photos" />
-        </div>
-      </button>
+      <div className="mt-2 flex flex-wrap gap-1">
+        <MiniCount icon="fa-comments" value={counts.chats} label="chats" />
+        <MiniCount icon="fa-clipboard-list" value={counts.workOrders} label="bons" />
+        <MiniCount icon="fa-calendar-check" value={counts.appointments} label="rdv" />
+        <MiniCount icon="fa-images" value={counts.photos || 0} label="photos" />
+      </div>
 
       {followUp.estimateAmount ? (
         <p className="admin-text text-xs font-bold mt-1.5">{Number(followUp.estimateAmount).toFixed(2)} $</p>
       ) : null}
-
-      <div className="mt-3 flex items-center justify-between gap-2">
-        {followUp.client?.id ? (
-          <Link href={`/admin/clients/${followUp.client.id}`} className="admin-text-muted hover:admin-text text-[11px]">
-            Fiche client
-          </Link>
-        ) : <span />}
-        <div className="flex items-center gap-2.5">
-          <button onClick={() => onEdit(followUp)} className="admin-text-muted hover:admin-text text-[11px]" title="Modifier">
-            <i className="fas fa-pen"></i>
-          </button>
-          <button onClick={() => onDelete(followUp)} className="text-amber-300 hover:text-amber-200 text-[11px]" title="Supprimer">
-            <i className="fas fa-trash"></i>
-          </button>
-        </div>
-      </div>
     </article>
   );
 }
@@ -1104,8 +1102,12 @@ function CentralModal({ followUp, columns, onSaveNotes, onSaveFollowUp, onPhotoA
               {phone && <a href={`tel:${phone}`} className="text-sky-300 hover:underline">{phone}</a>}
               {email && <a href={`mailto:${email}`} className="admin-text-muted hover:admin-text">{email}</a>}
               {followUp.client?.id && (
-                <Link href={`/admin/clients/${followUp.client.id}`} className="admin-text-muted hover:admin-text">
-                  Fiche client
+                <Link
+                  href={`/admin/clients/${followUp.client.id}`}
+                  className="inline-flex items-center gap-1 rounded-md bg-cyan-500/10 px-2 py-1 font-bold text-cyan-200 hover:bg-cyan-500/15"
+                >
+                  <i className="fas fa-address-card text-[10px]"></i>
+                  Ouvrir fiche client
                 </Link>
               )}
             </div>
