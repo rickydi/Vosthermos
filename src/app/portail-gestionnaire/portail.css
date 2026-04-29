@@ -159,6 +159,8 @@
 .pg-live-demo { background: linear-gradient(180deg, #f7fafb, #fff); border-bottom: 1px solid var(--pg-line); }
 .pg-live-head { text-align: center; max-width: 880px; margin: 0 auto; }
 .pg-live-actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 28px; }
+.pg-tutorial-embed { margin: 52px auto 0; width: 100%; max-width: 1160px; aspect-ratio: 16 / 9; border-radius: 20px; overflow: hidden; border: 1px solid #cfdfe4; background: #dfe8ec; box-shadow: 0 30px 90px -44px rgba(0,37,48,.56); }
+.pg-tutorial-embed iframe { width: 100%; height: 100%; border: 0; display: block; background: #dfe8ec; }
 .pg-demo-visual { margin-top: 52px; display: grid; grid-template-columns: minmax(0, 1.18fr) minmax(260px, .62fr); gap: 24px; align-items: end; }
 .pg-demo-device { position: relative; }
 .pg-demo-desktop { border-radius: 22px; padding: 14px; background: #0a3039; border: 1px solid #d4e3e7; box-shadow: 0 26px 70px -34px rgba(0,37,48,.55); }
@@ -492,6 +494,7 @@
   .pg-real-card img { aspect-ratio: 14 / 9; }
   .pg-live-demo .pg-container { width: 100vw; max-width: 100vw; margin-inline: 0; overflow: hidden; }
   .pg-live-demo .pg-section-title, .pg-live-demo .pg-section-lede { width: 100%; max-width: 100%; overflow-wrap: break-word; }
+  .pg-tutorial-embed { margin-top: 34px; border-radius: 12px; width: calc(100vw - 24px); max-width: none; }
   .pg-live-actions { flex-direction: column; align-items: stretch; }
   .pg-live-actions .pg-btn { width: 100%; min-width: 0; white-space: normal; text-align: center; line-height: 1.25; }
   .pg-demo-visual { gap: 20px; }

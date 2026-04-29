@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { COMPANY_INFO } from "@/lib/company-info";
-import PortalDemoVisual from "./PortalDemoVisual";
 import "./portail.css";
 
 const PAGE_URL = "https://www.vosthermos.com/portail-gestionnaire";
@@ -173,9 +172,6 @@ export default function PortailGestionnairePage() {
                   />
                 </svg>
               </Link>
-              <a href="/portail-gestionnaire/tutoriel.html" className="pg-btn pg-btn-secondary pg-btn-lg">
-                Voir le tutoriel animé
-              </a>
               <a href="#features" className="pg-btn pg-btn-secondary pg-btn-lg">
                 Voir les fonctionnalités
               </a>
@@ -257,22 +253,20 @@ export default function PortailGestionnairePage() {
                 <span className="pg-eyebrow-dot"></span>PORTAIL EN IMAGES
               </span>
               <h2 className="pg-section-title">
-                Les visuels montrent le vrai portail, pas un dashboard inventé.
+                Le tutoriel animé est intégré directement dans la page.
               </h2>
               <p className="pg-section-lede">
-                Les captures reprennent le parcours présenté dans le tutoriel animé : tableau de bord,
-                fiche unité, interventions et factures, avec une navigation complète sur ordinateur et mobile.
+                Le client voit le parcours complet sans ouvrir une autre page : création de copropriété,
+                unités, demande d&apos;intervention, suivi, factures et version mobile.
               </p>
-              <div className="pg-live-actions">
-                <a href="/portail-gestionnaire/tutoriel.html" className="pg-btn pg-btn-primary pg-btn-lg">
-                  Voir le tutoriel animé
-                </a>
-                <Link href="/contact?sujet=portail-demo" className="pg-btn pg-btn-light pg-btn-lg">
-                  Demander une démo
-                </Link>
-              </div>
             </div>
-            <PortalDemoVisual />
+            <div className="pg-tutorial-embed" aria-label="Tutoriel animé du portail gestionnaire Vosthermos">
+              <iframe
+                src="/portail-gestionnaire/tutoriel.html"
+                title="Tutoriel animé du portail gestionnaire Vosthermos"
+                allowFullScreen
+              />
+            </div>
           </div>
         </section>
 
