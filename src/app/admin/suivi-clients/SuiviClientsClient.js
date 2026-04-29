@@ -424,8 +424,13 @@ export default function SuiviClientsClient() {
           box-shadow: 0 24px 55px rgba(8, 145, 178, 0.24);
           border-color: rgba(103, 232, 249, 0.8);
         }
+        .kanban-card-pressed {
+          transform: translateY(-4px) scale(1.018);
+          box-shadow: 0 16px 34px rgba(8, 145, 178, 0.18);
+          border-color: rgba(103, 232, 249, 0.55);
+        }
         .kanban-card-dropped {
-          animation: kanban-card-drop 900ms cubic-bezier(0.2, 0.85, 0.2, 1);
+          animation: kanban-card-drop 980ms cubic-bezier(0.2, 0.85, 0.2, 1);
         }
         .kanban-card-dropped::after {
           content: "";
@@ -437,8 +442,9 @@ export default function SuiviClientsClient() {
           animation: kanban-card-sheen 760ms ease-out;
         }
         @keyframes kanban-card-drop {
-          0% { transform: translateY(-14px) scale(1.035); box-shadow: 0 24px 55px rgba(8, 145, 178, 0.26); }
-          54% { transform: translateY(2px) scale(0.995); }
+          0% { transform: translateY(-18px) scale(1.04); box-shadow: 0 26px 60px rgba(8, 145, 178, 0.30); }
+          44% { transform: translateY(3px) scale(0.992); }
+          68% { transform: translateY(-2px) scale(1.006); }
           100% { transform: translateY(0) scale(1); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
         }
         @keyframes kanban-card-sheen {
@@ -674,6 +680,7 @@ function KanbanColumn({
 }
 
 function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, onDragStart, onDragEnd, isDragging, highlighted }) {
+  const [pressed, setPressed] = useState(false);
   const meta = columnMeta(columns, followUp.status);
   const t = toneClasses(meta.tone);
   const late = isLate(followUp.nextActionDate) && !TERMINAL.has(followUp.status);
@@ -686,13 +693,23 @@ function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, onDragStar
     <article
       draggable
       onDragStart={(e) => {
+        setPressed(false);
         e.dataTransfer.effectAllowed = "move";
         e.dataTransfer.setData("text/plain", String(followUp.id));
         onDragStart(followUp.id);
       }}
-      onDragEnd={onDragEnd}
+      onDragEnd={() => {
+        setPressed(false);
+        onDragEnd();
+      }}
+      onPointerDown={() => setPressed(true)}
+      onPointerUp={() => setPressed(false)}
+      onPointerLeave={() => setPressed(false)}
+      onPointerCancel={() => setPressed(false)}
       className={`relative overflow-hidden rounded-xl border admin-border admin-bg p-4 shadow-sm cursor-grab active:cursor-grabbing hover:ring-2 ${t.ring} transition-all duration-300 ${
         isDragging ? "kanban-card-lifted opacity-85 ring-2 ring-cyan-300/80" : ""
+      } ${
+        pressed && !isDragging ? "kanban-card-pressed ring-2 ring-cyan-300/55" : ""
       } ${
         highlighted ? "kanban-card-dropped ring-2 ring-cyan-300/80" : ""
       }`}
@@ -806,7 +823,7 @@ function CentralModal({ followUp, columns, onSaveNotes, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="admin-bg admin-border border rounded-xl w-full max-w-6xl max-h-[92vh] overflow-y-auto shadow-2xl"
+        className="admin-bg admin-border border rounded-xl w-full max-w-6xl h-[92vh] flex flex-col overflow-hidden shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-4 border-b admin-border flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
@@ -828,7 +845,7 @@ function CentralModal({ followUp, columns, onSaveNotes, onClose }) {
           </button>
         </div>
 
-        <div className="p-5 space-y-6">
+        <div className="p-5 space-y-6 flex-1 overflow-y-auto min-h-0">
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
             <CentralStat label="Chats" value={counts.chats} icon="fa-comments" />
             <CentralStat label="Bons" value={counts.workOrders} icon="fa-clipboard-list" />
