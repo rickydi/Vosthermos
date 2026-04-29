@@ -313,13 +313,25 @@ export default function SuiviClientsClient() {
     if (!status || followUp.status === status) return;
     const previous = followUps;
     setFollowUps((items) => items.map((item) => item.id === followUp.id ? { ...item, status } : item));
-    const res = await fetch(`/api/admin/follow-ups/${followUp.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status }),
-    });
-    if (!res.ok) setFollowUps(previous);
-    else load(search);
+    try {
+      const res = await fetch(`/api/admin/follow-ups/${followUp.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) {
+        setFollowUps(previous);
+        return;
+      }
+      const updated = await res.json().catch(() => null);
+      if (updated) {
+        setFollowUps((items) => items.map((item) => item.id === followUp.id
+          ? { ...item, ...updated, status, activity: item.activity || updated.activity }
+          : item));
+      }
+    } catch {
+      setFollowUps(previous);
+    }
   }
 
   async function deleteFollowUp(followUp) {
