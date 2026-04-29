@@ -3,6 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import {
+  DEFAULT_MANAGER_PERMISSIONS,
+  hasCoreManagerAccess,
+  hasDefaultManagerAccess,
+} from "@/lib/manager-permissions";
 
 const ALL_PERMISSIONS = [
   { key: "view_work_orders", label: "Voir bons de travail" },
@@ -17,6 +22,16 @@ const ALL_PERMISSIONS = [
 function formatDate(iso) {
   if (!iso) return "—";
   return new Date(iso).toLocaleString("fr-CA");
+}
+
+function getAccessSummary(permissions = []) {
+  if (hasDefaultManagerAccess(permissions)) {
+    return { label: "Acces complet", className: "bg-emerald-500/15 text-emerald-300 border-emerald-500/20" };
+  }
+  if (hasCoreManagerAccess(permissions)) {
+    return { label: "Acces operationnel", className: "bg-blue-500/15 text-blue-300 border-blue-500/20" };
+  }
+  return { label: "Acces limite", className: "bg-amber-500/15 text-amber-300 border-amber-500/20" };
 }
 
 export default function ManagerEdit({ manager, allClients }) {
@@ -64,7 +79,7 @@ export default function ManagerEdit({ manager, allClients }) {
       clientPostalCode: c?.postalCode || "",
       clientPhone: "",
       clientEmail: "",
-      permissions: ["view_work_orders", "view_invoices", "request_intervention"],
+      permissions: [...DEFAULT_MANAGER_PERMISSIONS],
       paymentTermsDays: c?.paymentTermsDays ?? 30,
     }]);
   }
@@ -125,6 +140,16 @@ export default function ManagerEdit({ manager, allClients }) {
     else alert(data.devLink ? "Lien dev: " + data.devLink : "Lien envoye par email.");
   }
 
+  async function openPreview() {
+    const res = await fetch(`/api/admin/managers/${manager.id}?action=preview-link`, { method: "POST" });
+    const data = await res.json();
+    if (!res.ok) {
+      alert("Erreur: " + (data.error || "?"));
+      return;
+    }
+    window.open(data.url, "_blank", "noopener,noreferrer");
+  }
+
   return (
     <div className="p-6 lg:p-8">
       <div className="flex items-center gap-3 mb-6">
@@ -140,12 +165,7 @@ export default function ManagerEdit({ manager, allClients }) {
         </div>
         <div className="flex gap-2">
           <button
-            onClick={async () => {
-              const res = await fetch(`/api/admin/managers/${manager.id}?action=impersonate`, { method: "POST" });
-              const d = await res.json();
-              if (res.ok && d.redirect) window.open(d.redirect, "_blank");
-              else alert("Erreur: " + (d.error || "?"));
-            }}
+            onClick={openPreview}
             className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-medium"
           >
             <i className="fas fa-eye mr-2"></i>Voir le portail
@@ -221,6 +241,7 @@ export default function ManagerEdit({ manager, allClients }) {
         <div className="space-y-4">
           {links.map((link) => {
             const c = allClients.find((x) => x.id === link.clientId);
+            const access = getAccessSummary(link.permissions || []);
             return (
               <div key={link.clientId} className="admin-bg border admin-border rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
@@ -284,7 +305,12 @@ export default function ManagerEdit({ manager, allClients }) {
                   </div>
                 </div>
 
-                <div className="admin-text-muted text-xs font-bold uppercase tracking-wider mb-2">Permissions portail gestionnaire</div>
+                <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                  <div className="admin-text-muted text-xs font-bold uppercase tracking-wider">Permissions portail gestionnaire</div>
+                  <span className={`inline-block px-2 py-0.5 border text-[11px] font-bold rounded ${access.className}`}>
+                    {access.label}
+                  </span>
+                </div>
                 <div className="grid md:grid-cols-2 gap-2">
                   {ALL_PERMISSIONS.map((p) => (
                     <label key={p.key} className="flex items-center gap-2 text-sm cursor-pointer">

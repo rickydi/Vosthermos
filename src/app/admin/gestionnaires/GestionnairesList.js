@@ -2,15 +2,29 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { hasCoreManagerAccess, hasDefaultManagerAccess } from "@/lib/manager-permissions";
 
 function formatDate(iso) {
   if (!iso) return "—";
   return new Date(iso).toLocaleDateString("fr-CA", { year: "numeric", month: "short", day: "2-digit" });
 }
 
+function getAccessSummary(manager) {
+  if (!manager.clients.length) return null;
+  const allFull = manager.clients.every((client) => hasDefaultManagerAccess(client.permissions || []));
+  if (allFull) {
+    return { label: "Acces complet", className: "bg-emerald-500/15 text-emerald-300 border-emerald-500/20" };
+  }
+
+  const allCore = manager.clients.every((client) => hasCoreManagerAccess(client.permissions || []));
+  if (allCore) {
+    return { label: "Acces operationnel", className: "bg-blue-500/15 text-blue-300 border-blue-500/20" };
+  }
+
+  return { label: "Acces limite", className: "bg-amber-500/15 text-amber-300 border-amber-500/20" };
+}
+
 export default function GestionnairesList({ initialManagers, clients }) {
-  const router = useRouter();
   const [managers, setManagers] = useState(initialManagers);
   const [showNew, setShowNew] = useState(false);
   const [form, setForm] = useState({
@@ -25,6 +39,13 @@ export default function GestionnairesList({ initialManagers, clients }) {
     setManagers(data);
   }
 
+  async function requestMagicLink(id) {
+    const res = await fetch(`/api/admin/managers/${id}?action=send-link`, { method: "POST" });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Lien non envoye");
+    return data;
+  }
+
   async function createManager(e) {
     e.preventDefault();
     setSaving(true);
@@ -37,9 +58,19 @@ export default function GestionnairesList({ initialManagers, clients }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erreur");
+      let message = "Gestionnaire cree.";
+      try {
+        const link = await requestMagicLink(data.manager.id);
+        message = link.devLink
+          ? `Gestionnaire cree. Lien dev: ${link.devLink}`
+          : "Gestionnaire cree et lien envoye par email.";
+      } catch (linkError) {
+        message = `Gestionnaire cree, mais lien non envoye: ${linkError.message}`;
+      }
       await refresh();
       setShowNew(false);
       setForm({ email: "", firstName: "", lastName: "", phone: "", clientIds: [] });
+      alert(message);
     } catch (e) {
       setErr(e.message);
     }
@@ -49,10 +80,19 @@ export default function GestionnairesList({ initialManagers, clients }) {
   async function sendLink(id) {
     if (!confirm("Envoyer un nouveau lien d'acces par email?")) return;
     try {
-      const res = await fetch(`/api/admin/managers/${id}?action=send-link`, { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      const data = await requestMagicLink(id);
       alert(data.devLink || "Lien envoye par email.");
+    } catch (e) {
+      alert("Erreur: " + e.message);
+    }
+  }
+
+  async function openPreview(id) {
+    try {
+      const res = await fetch(`/api/admin/managers/${id}?action=preview-link`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erreur");
+      window.open(data.url, "_blank", "noopener,noreferrer");
     } catch (e) {
       alert("Erreur: " + e.message);
     }
@@ -155,7 +195,7 @@ export default function GestionnairesList({ initialManagers, clients }) {
               <div className="grid md:grid-cols-2 gap-2 max-h-60 overflow-y-auto p-2 admin-bg border admin-border rounded-lg">
                 {clients.length === 0 && (
                   <p className="admin-text-muted text-sm italic p-3">
-                    Aucun client de type "gestionnaire" dans la base. Creez d'abord un client gestionnaire dans `/admin/clients`.
+                    Aucun client gestionnaire dans la base. Creez le client dans `/admin/clients`.
                   </p>
                 )}
                 {clients.map((c) => (
@@ -202,11 +242,13 @@ export default function GestionnairesList({ initialManagers, clients }) {
             {managers.length === 0 && (
               <tr>
                 <td colSpan="6" className="text-center py-12 admin-text-muted">
-                  Aucun gestionnaire enregistre. Clique "Nouveau gestionnaire" pour commencer.
+                  Aucun gestionnaire enregistre. Clique Nouveau gestionnaire pour commencer.
                 </td>
               </tr>
             )}
-            {managers.map((m) => (
+            {managers.map((m) => {
+              const access = getAccessSummary(m);
+              return (
               <tr key={m.id} className="border-b admin-border last:border-0 hover:bg-white/5">
                 <td className="px-4 py-3">
                   <Link href={`/admin/gestionnaires/${m.id}`} className="admin-text font-bold hover:text-[var(--color-red)]">
@@ -219,12 +261,19 @@ export default function GestionnairesList({ initialManagers, clients }) {
                   {m.clients.length === 0 ? (
                     <span className="admin-text-muted text-xs italic">Aucune</span>
                   ) : (
-                    <div className="flex flex-wrap gap-1">
-                      {m.clients.map((c) => (
-                        <span key={c.clientId} className="inline-block px-2 py-0.5 bg-[var(--color-red)]/10 text-[var(--color-red)] text-xs font-bold rounded">
-                          {c.clientName}
+                    <div>
+                      <div className="flex flex-wrap gap-1">
+                        {m.clients.map((c) => (
+                          <span key={c.clientId} className="inline-block px-2 py-0.5 bg-[var(--color-red)]/10 text-[var(--color-red)] text-xs font-bold rounded">
+                            {c.clientName}
+                          </span>
+                        ))}
+                      </div>
+                      {access && (
+                        <span className={`inline-block mt-2 px-2 py-0.5 border text-[11px] font-bold rounded ${access.className}`}>
+                          {access.label}
                         </span>
-                      ))}
+                      )}
                     </div>
                   )}
                 </td>
@@ -239,12 +288,7 @@ export default function GestionnairesList({ initialManagers, clients }) {
                 <td className="px-4 py-3 text-right">
                   <div className="flex gap-1 justify-end">
                     <button
-                      onClick={async () => {
-                        const res = await fetch(`/api/admin/managers/${m.id}?action=impersonate`, { method: "POST" });
-                        const d = await res.json();
-                        if (res.ok && d.redirect) window.open(d.redirect, "_blank");
-                        else alert("Erreur: " + (d.error || "?"));
-                      }}
+                      onClick={() => openPreview(m.id)}
                       title="Voir le portail comme ce gestionnaire (nouvel onglet)"
                       className="w-8 h-8 rounded admin-card border admin-border hover:bg-white/10 inline-flex items-center justify-center"
                     >
@@ -265,7 +309,8 @@ export default function GestionnairesList({ initialManagers, clients }) {
                   </div>
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>

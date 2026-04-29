@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { createMagicToken, createSession, MANAGER_COOKIE } from "@/lib/manager-auth";
+import { DEFAULT_MANAGER_PERMISSIONS } from "@/lib/manager-permissions";
 import { getTransporter } from "@/lib/mail";
 import { COMPANY_INFO } from "@/lib/company-info";
 
@@ -60,7 +61,7 @@ export async function PUT(req, { params }) {
         data: clients.map((c) => ({
           managerId: Number(id),
           clientId: Number(c.clientId),
-          permissions: c.permissions || ["view_work_orders", "view_invoices", "request_intervention"],
+          permissions: c.permissions || [...DEFAULT_MANAGER_PERMISSIONS],
         })),
       });
     }
@@ -102,6 +103,18 @@ export async function POST(req, { params }) {
     });
 
     return NextResponse.json({ ok: true, redirect: "/gestionnaire" });
+  }
+
+  if (action === "preview-link") {
+    const manager = await prisma.managerUser.findUnique({ where: { id: Number(id) } });
+    if (!manager) return NextResponse.json({ error: "Non trouve" }, { status: 404 });
+    if (!manager.isActive) return NextResponse.json({ error: "Compte desactive" }, { status: 400 });
+
+    const token = await createMagicToken(manager);
+    return NextResponse.json({
+      ok: true,
+      url: `${SITE_URL}/api/manager/auth/verify?token=${token}`,
+    });
   }
 
   if (action === "send-link") {

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getManagerFromCookie } from "@/lib/manager-auth";
+import { DEFAULT_MANAGER_PERMISSIONS } from "@/lib/manager-permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -39,11 +40,7 @@ export async function POST(req) {
       data: {
         managerId: manager.id,
         clientId: client.id,
-        permissions: [
-          "view_work_orders", "view_invoices", "view_quotes",
-          "request_intervention", "approve_quotes",
-          "manage_units", "manage_openings",
-        ],
+        permissions: [...DEFAULT_MANAGER_PERMISSIONS],
       },
     });
 

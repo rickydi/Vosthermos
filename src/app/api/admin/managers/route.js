@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
+import { DEFAULT_MANAGER_PERMISSIONS } from "@/lib/manager-permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -58,7 +59,7 @@ export async function POST(req) {
       clients: clientIds.length > 0 ? {
         create: clientIds.map((id) => ({
           clientId: Number(id),
-          permissions: ["view_work_orders", "view_invoices", "request_intervention"],
+          permissions: [...DEFAULT_MANAGER_PERMISSIONS],
         })),
       } : undefined,
     },

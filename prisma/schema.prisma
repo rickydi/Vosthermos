@@ -396,7 +396,7 @@ model ManagerClient {
   manager     ManagerUser @relation(fields: [managerId], references: [id], onDelete: Cascade)
   clientId    Int
   client      Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  permissions String[]    @default(["view_work_orders","view_invoices","request_intervention"])
+  permissions String[]    @default(["view_work_orders","view_invoices","view_quotes","request_intervention","approve_quotes","manage_units","manage_openings"])
   createdAt   DateTime    @default(now())
 
   @@id([managerId, clientId])
