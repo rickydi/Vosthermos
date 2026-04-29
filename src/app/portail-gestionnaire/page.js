@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { COMPANY_INFO } from "@/lib/company-info";
+import PortalDemoVisual from "./PortalDemoVisual";
 import "./portail.css";
 
 const PAGE_URL = "https://www.vosthermos.com/portail-gestionnaire";
@@ -490,6 +491,33 @@ export default function PortailGestionnairePage() {
                 <b>Portail web</b> ordinateur · tablette · mobile
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* INTERACTIVE DEMO */}
+        <section className="pg-live-demo" id="demo-live">
+          <div className="pg-container">
+            <div className="pg-live-head">
+              <span className="pg-eyebrow pg-eyebrow-dark">
+                <span className="pg-eyebrow-dot"></span>DÉMO INTERACTIVE
+              </span>
+              <h2 className="pg-section-title">
+                Le client voit exactement comment le portail fonctionne, sur ordinateur et mobile.
+              </h2>
+              <p className="pg-section-lede">
+                La démo montre la saisie réelle, le clic sur le bouton, puis la version mobile pour prouver
+                que le gestionnaire peut suivre ses dossiers même hors bureau.
+              </p>
+              <div className="pg-live-actions">
+                <a href="/portail-gestionnaire/tutoriel.html" className="pg-btn pg-btn-primary pg-btn-lg">
+                  Voir le tutoriel animé
+                </a>
+                <Link href="/contact?sujet=portail-demo" className="pg-btn pg-btn-light pg-btn-lg">
+                  Demander une démo
+                </Link>
+              </div>
+            </div>
+            <PortalDemoVisual />
           </div>
         </section>
 
