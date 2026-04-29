@@ -1,17 +1,23 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { consumeMagicToken, createSession, MANAGER_COOKIE, SESSION_DAYS } from "@/lib/manager-auth";
+import { consumeMagicToken, createSession, MANAGER_COOKIE } from "@/lib/manager-auth";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.vosthermos.com";
+
+function redirectTo(path) {
+  return NextResponse.redirect(new URL(path, SITE_URL));
+}
 
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const token = searchParams.get("token");
   if (!token) {
-    return NextResponse.redirect(new URL("/gestionnaire/login?error=missing", req.url));
+    return redirectTo("/gestionnaire/login?error=missing");
   }
 
   const { manager, error } = await consumeMagicToken(token);
   if (error) {
-    return NextResponse.redirect(new URL(`/gestionnaire/login?error=${encodeURIComponent(error)}`, req.url));
+    return redirectTo(`/gestionnaire/login?error=${encodeURIComponent(error)}`);
   }
 
   const { token: sessionToken, expiresAt } = await createSession(manager.id, req);
@@ -24,5 +30,5 @@ export async function GET(req) {
     expires: expiresAt,
   });
 
-  return NextResponse.redirect(new URL("/gestionnaire", req.url));
+  return redirectTo("/gestionnaire");
 }
