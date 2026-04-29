@@ -65,7 +65,7 @@ export default function Header({ company }) {
       return frPath || "/";
     }
     if (pathname === "/contact" || pathname === "/rendez-vous") return "/en/contact";
-    if (pathname === "/portail-gestionnaire") return "/en/contact?subject=portal-demo";
+    if (pathname === "/portail-gestionnaire") return "/en/portail-gestionnaire";
     if (pathname === "/realisations" || pathname.startsWith("/realisations/")) return "/en/#gallery";
     if (pathname === "/panier" || pathname.startsWith("/checkout")) return pathname;
     // FR → EN : mapper slug service si applicable
@@ -85,7 +85,7 @@ export default function Header({ company }) {
   const bookNowHref = isEnglish ? "/en/contact" : "/rendez-vous";
   const projectsHref = isEnglish ? (isHome ? "#gallery" : "/en/#gallery") : "/realisations";
   const contactHref = isEnglish ? "/en/contact" : "/contact";
-  const portalHref = isEnglish ? "/en/contact?subject=portal-demo" : "/portail-gestionnaire";
+  const portalHref = isEnglish ? "/en/portail-gestionnaire" : "/portail-gestionnaire";
   const areasHref = isEnglish
     ? (isHome ? "#areas" : "/en/#areas")
     : (isHome ? "#secteurs" : "/#secteurs");
@@ -152,7 +152,7 @@ export default function Header({ company }) {
               { href: `${prefix}/boutique`, label: labels.boutique, match: ["/boutique", "/produit", "/en/boutique", "/en/produit"] },
               { href: `${prefix}/blogue`, label: labels.blogue, match: ["/blogue", "/en/blogue"] },
               { href: `${prefix}/opti-fenetre`, label: labels.optiFenetre, match: ["/opti-fenetre", "/en/opti-fenetre"] },
-              { href: portalHref, label: labels.portal, match: ["/portail-gestionnaire"], featured: true, icon: "fas fa-building" },
+              { href: portalHref, label: labels.portal, match: ["/portail-gestionnaire", "/en/portail-gestionnaire"], featured: true, icon: "fas fa-building" },
               { href: bookNowHref, label: labels.rendezvous, match: ["/rendez-vous"] },
               { href: projectsHref, label: labels.realisations, match: ["/realisations"] },
               { href: contactHref, label: labels.contact, match: ["/contact", "/en/contact"] },

@@ -11,7 +11,13 @@ export const metadata = {
     "Portail gratuit pour clients gestionnaires : copropriétés, bâtiments, unités, demandes d'intervention, suivis, photos et factures au même endroit.",
   keywords:
     "portail gestionnaire fenêtres copropriété, logiciel suivi travaux fenêtres, app gestion condos entrepreneur fenêtres, bon de travail numérique fenêtres Québec, entrepreneur fenêtres plateforme suivi, gestion parc fenêtres copropriété, entrepreneur connecté fenêtres Québec, suivi fenêtres copropriété",
-  alternates: { canonical: PAGE_URL },
+  alternates: {
+    canonical: PAGE_URL,
+    languages: {
+      fr: PAGE_URL,
+      en: "https://www.vosthermos.com/en/portail-gestionnaire",
+    },
+  },
   openGraph: {
     type: "website",
     locale: "fr_CA",

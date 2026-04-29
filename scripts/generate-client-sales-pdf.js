@@ -203,6 +203,36 @@ function buildHtml(company) {
     font-weight: 800;
     line-height: 1.32;
   }
+  .service-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .12in;
+    margin-top: .18in;
+  }
+  .service-card {
+    display: grid;
+    grid-template-columns: .36in 1fr;
+    gap: .11in;
+    min-height: .80in;
+    padding: .13in;
+    border: 1px solid #d8e1e5;
+    border-radius: .11in;
+    background: #f6fafb;
+  }
+  .service-icon {
+    width: .30in;
+    height: .30in;
+    border-radius: .08in;
+    background: #003845;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8pt;
+    font-weight: 800;
+  }
+  .service-card b { display: block; font-size: 9.8pt; color: #10252e; margin-bottom: .03in; }
+  .service-card span { display: block; font-size: 8.3pt; line-height: 1.28; color: #5f6f78; }
   .steps { display: grid; grid-template-columns: 1fr 1fr; gap: .13in; margin-top: .18in; }
   .step { display: grid; grid-template-columns: .40in 1fr; gap: .12in; align-items: start; padding: .14in; border-radius: .11in; background: #f4f8fa; border: 1px solid #d8e1e5; min-height: 1.08in; }
   .num { width: .34in; height: .34in; border-radius: .09in; background: #003845; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 9pt; }
@@ -263,7 +293,7 @@ function buildHtml(company) {
   </div>
   <div class="eyebrow">Portail gestionnaires de copropriétés</div>
   <h1>Un suivi plus clair pour vos fenêtres, vos unités et vos interventions.</h1>
-  <p class="intro">Vosthermos accompagne les gestionnaires, syndicats et partenaires en fenestration avec un portail gratuit inclus avec nos services : copropriétés, bâtiments, unités, demandes, photos, interventions et factures au même endroit.</p>
+  <p class="intro">Vosthermos accompagne les gestionnaires, syndicats et partenaires en fenestration avec un portail gratuit inclus avec nos services de réparation, entretien et suivi : copropriétés, bâtiments, unités, demandes, photos, interventions et factures au même endroit.</p>
   <div class="hero-box">
     <strong>Moins de courriels éparpillés. Moins de relances. Plus de visibilité pour votre équipe.</strong>
   </div>
@@ -282,7 +312,7 @@ function buildHtml(company) {
 <section class="page">
   <div class="topline"><img class="logo" src="${logoRed}" alt="Vosthermos"><div class="pill">Pourquoi</div></div>
   <div class="eyebrow">Le problème que l'on règle</div>
-  <h1 class="tight">La réparation de fenêtres est simple. Le suivi peut devenir compliqué.</h1>
+  <h1 class="tight">Les travaux de portes et fenêtres sont simples. Le suivi peut devenir compliqué.</h1>
   <p class="intro">Quand les demandes arrivent par téléphone, courriel, texto ou photo isolée, il devient difficile de savoir quelle unité est touchée, ce qui a été fait et où retrouver les preuves.</p>
   <div class="two-col">
     <div class="card red">
@@ -311,6 +341,25 @@ function buildHtml(company) {
 </section>
 
 <section class="page">
+  <div class="topline"><img class="logo" src="${logoRed}" alt="Vosthermos"><div class="pill">Services</div></div>
+  <div class="eyebrow">Ce que Vosthermos peut prendre en charge</div>
+  <h1 class="tight">Plus qu'un remplacement de thermos.</h1>
+  <p class="intro">Le portail sert à suivre l'ensemble des interventions Vosthermos sur les portes et fenêtres d'une copropriété. Le client voit les demandes, photos, statuts et documents, peu importe le type de service.</p>
+  <div class="service-grid">
+    <div class="service-card"><div class="service-icon">01</div><div><b>Thermos et vitrages scellés</b><span>Remplacement de thermos embués, fissurés ou en perte d'efficacité.</span></div></div>
+    <div class="service-card"><div class="service-icon">02</div><div><b>Quincaillerie</b><span>Poignées, roulettes, serrures, mécanismes et ajustements de portes-patio.</span></div></div>
+    <div class="service-card"><div class="service-icon">03</div><div><b>Portes-patio et portes-fenêtres</b><span>Réparation, ajustement, roulement, glissement et étanchéité.</span></div></div>
+    <div class="service-card"><div class="service-icon">04</div><div><b>Portes et fenêtres en bois</b><span>Restauration, réparation ciblée et conservation quand c'est pertinent.</span></div></div>
+    <div class="service-card"><div class="service-icon">05</div><div><b>Calfeutrage et infiltration</b><span>Diagnostic d'eau, joints extérieurs et corrections d'étanchéité.</span></div></div>
+    <div class="service-card"><div class="service-icon">06</div><div><b>Coupe-froid</b><span>Amélioration du confort, réduction des courants d'air et ajustements.</span></div></div>
+    <div class="service-card"><div class="service-icon">07</div><div><b>Moustiquaires</b><span>Fabrication et remplacement de moustiquaires sur mesure.</span></div></div>
+    <div class="service-card"><div class="service-icon">08</div><div><b>Désembuage et diagnostic</b><span>Inspection, recommandation et priorisation des travaux à faire.</span></div></div>
+  </div>
+  <div class="quote">Le client n'achète pas seulement une intervention : il obtient un fournisseur de portes et fenêtres plus facile à suivre.</div>
+  <div class="footer"><span>Présentation client | Services Vosthermos</span><span>3</span></div>
+</section>
+
+<section class="page">
   <div class="topline"><img class="logo" src="${logoRed}" alt="Vosthermos"><div class="pill">Fonctionnement</div></div>
   <div class="eyebrow">Comment ça marche</div>
   <h1 class="tight">Un parcours simple, pensé pour les gestionnaires.</h1>
@@ -324,7 +373,7 @@ function buildHtml(company) {
     <div class="step"><div class="num">6</div><div><h3>Présenter au conseil</h3><p>Le gestionnaire dispose d'un historique plus clair pour répondre au CA.</p></div></div>
   </div>
   <a class="link-box" href="${tutorialUrl}" style="background:#003845;"><strong>Cliquez ici</strong>Voir le tutoriel animé<span>${tutorialUrl}</span></a>
-  <div class="footer"><span>Présentation client | Vosthermos</span><span>3</span></div>
+  <div class="footer"><span>Présentation client | Vosthermos</span><span>4</span></div>
 </section>
 
 <section class="page">
@@ -338,7 +387,7 @@ function buildHtml(company) {
     <div class="mini"><b>Unités structurées</b><span>Chaque unité est liée à une copropriété et un bâtiment.</span></div>
     <div class="mini"><b>Accès rapide</b><span>Le client peut créer une demande et ouvrir ses suivis.</span></div>
   </div>
-  <div class="footer"><span>Présentation client | Vosthermos</span><span>4</span></div>
+  <div class="footer"><span>Présentation client | Vosthermos</span><span>5</span></div>
 </section>
 
 <section class="page">
@@ -352,7 +401,7 @@ function buildHtml(company) {
     <div class="screen-card"><img src="${invoices}" alt="Capture des factures"><h3>Factures</h3><p>Montants, statuts et documents PDF consultables au même endroit.</p></div>
     <div class="screen-card"><img src="${dashboard}" alt="Capture du portail"><h3>Résumé</h3><p>Une vision plus claire pour la gestion interne et les rencontres du conseil.</p></div>
   </div>
-  <div class="footer"><span>Présentation client | Vosthermos</span><span>5</span></div>
+  <div class="footer"><span>Présentation client | Vosthermos</span><span>6</span></div>
 </section>
 
 <section class="page dark">

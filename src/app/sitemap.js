@@ -176,6 +176,7 @@ export default async function sitemap() {
     { url: `${BASE}/en`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE}/en/services`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.85 },
     { url: `${BASE}/en/contact`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.75 },
+    { url: `${BASE}/en/portail-gestionnaire`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
     { url: `${BASE}/en/opti-fenetre`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.85 },
     { url: `${BASE}/en/diagnostic`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
     { url: `${BASE}/en/calculateur`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
