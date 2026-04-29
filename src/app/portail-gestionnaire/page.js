@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { COMPANY_INFO } from "@/lib/company-info";
 import PortalDemoVisual from "./PortalDemoVisual";
 import "./portail.css";
@@ -8,7 +9,7 @@ const PAGE_URL = "https://www.vosthermos.com/portail-gestionnaire";
 export const metadata = {
   title: "Portail Gestionnaire de Copropriétés pour Fenêtres | Vosthermos",
   description:
-    "Plateforme numérique pour gestionnaires de condos : bons de travail numériques, suivi temps réel, historique par unité, photos et facturation centralisée. Démo gratuite.",
+    "Portail gratuit pour clients gestionnaires : copropriétés, bâtiments, unités, demandes d'intervention, suivis, photos et factures au même endroit.",
   keywords:
     "portail gestionnaire fenêtres copropriété, logiciel suivi travaux fenêtres, app gestion condos entrepreneur fenêtres, bon de travail numérique fenêtres Québec, entrepreneur fenêtres plateforme suivi, gestion parc fenêtres copropriété, entrepreneur connecté fenêtres Québec, suivi fenêtres copropriété",
   alternates: { canonical: PAGE_URL },
@@ -18,7 +19,7 @@ export const metadata = {
     url: PAGE_URL,
     title: "Portail Gestionnaire de Copropriétés pour Fenêtres | Vosthermos",
     description:
-      "Plateforme numérique pour gestionnaires de condos : bons de travail numériques, suivi temps réel, photos et facturation centralisée.",
+      "Portail gratuit pour clients gestionnaires : copropriétés, bâtiments, unités, demandes, suivis et factures au même endroit.",
     images: [
       {
         url: "https://www.vosthermos.com/portail-gestionnaire/opengraph-image",
@@ -32,7 +33,7 @@ export const metadata = {
     card: "summary_large_image",
     title: "Portail Gestionnaire de Copropriétés pour Fenêtres | Vosthermos",
     description:
-      "Bons de travail numériques, suivi temps réel, photos et facturation centralisée pour copropriétés.",
+      "Copropriétés, bâtiments, unités, demandes, suivis et factures centralisés pour gestionnaires.",
     images: ["https://www.vosthermos.com/portail-gestionnaire/opengraph-image"],
   },
 };
@@ -56,7 +57,7 @@ const FAQS = [
   },
   {
     q: "Peut-on exporter nos données ?",
-    a: "Oui, exports CSV et Excel disponibles en tout temps. Aucun vendor lock-in : vos données restent les vôtres.",
+    a: "Les dossiers restent centralisés dans le portail. Si un client a besoin d'un export précis pour ses archives ou son logiciel de gestion, Vosthermos peut l'accompagner selon le format requis.",
   },
   {
     q: "Quelles copropriétés sont éligibles ?",
@@ -64,11 +65,11 @@ const FAQS = [
   },
   {
     q: "Comment nos techniciens utilisent le portail sur le terrain ?",
-    a: "Tablette fournie ou BYOD. Le portail web est adapté au mobile pour centraliser les photos, notes et rapports directement sur le terrain.",
+    a: "Le portail est web et adapté au mobile. Il permet de consulter les dossiers, demandes, photos et suivis sans dépendre d'un poste fixe.",
   },
   {
     q: "Intégration avec nos logiciels existants (Condo Manager, etc.) ?",
-    a: "Exports CSV et Excel disponibles pour conserver vos données et les remettre dans vos dossiers ou logiciels de gestion. Aucune API publique n'est annoncée pour le moment.",
+    a: "Aucune API publique n'est annoncée pour le moment. Le portail sert surtout de source centrale pour vos copropriétés, unités, interventions et documents Vosthermos.",
   },
 ];
 
@@ -86,12 +87,12 @@ export default function PortailGestionnairePage() {
       description: "Sur devis — inclus avec contrat d'entretien",
     },
     featureList: [
-      "Bons de travail numériques",
-      "Dashboard multi-unités",
-      "Historique complet par fenêtre",
-      "Suivi des priorités d'entretien",
-      "Suivi temps réel",
-      "Facturation centralisée",
+      "Création de copropriétés, bâtiments et unités",
+      "Fiches unité avec photos et notes",
+      "Demandes d'intervention structurées",
+      "Suivi des bons actifs et terminés",
+      "Factures et documents PDF au même endroit",
+      "Affichage ordinateur et mobile",
     ],
     provider: {
       "@type": "Organization",
@@ -154,8 +155,9 @@ export default function PortailGestionnairePage() {
               <span className="pg-h1-accent pg-h1-break">pour vos travaux de fenêtres.</span>
             </h1>
             <p className="pg-hero-sub">
-              Bons de travail numériques, suivi en temps réel et historique par unité. Tout votre parc
-              de fenêtres centralisé. <strong>Une plateforme, zéro appel téléphonique.</strong>
+              Copropriétés, bâtiments, unités, demandes d&apos;intervention, suivis et factures
+              dans un même portail. Le gestionnaire comprend l&apos;état des dossiers sans courir
+              après les courriels.
             </p>
             <div className="pg-hero-ctas">
               <Link href="/contact?sujet=portail-demo" className="pg-btn pg-btn-primary pg-btn-lg">
@@ -171,309 +173,62 @@ export default function PortailGestionnairePage() {
                   />
                 </svg>
               </Link>
+              <a href="/portail-gestionnaire/tutoriel.html" className="pg-btn pg-btn-secondary pg-btn-lg">
+                Voir le tutoriel animé
+              </a>
               <a href="#features" className="pg-btn pg-btn-secondary pg-btn-lg">
                 Voir les fonctionnalités
               </a>
             </div>
 
-            {/* Dashboard mockup */}
             <div
-              className="pg-mockup-frame"
+              className="pg-real-preview"
               role="img"
-              aria-label="Tableau de bord du portail gestionnaire"
+              aria-label="Captures réelles du portail gestionnaire Vosthermos"
             >
-              <div className="pg-mockup-chrome">
-                <span className="pg-dot r"></span>
-                <span className="pg-dot y"></span>
-                <span className="pg-dot g"></span>
-                <div className="pg-mockup-url">
-                  <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
-                    <path
-                      d="M3 5V4a3 3 0 0 1 6 0v1m-7 0h8v6H2z"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.2"
-                    />
-                  </svg>
-                  portail.vosthermos.com / <b>demo</b>
+              <div className="pg-real-main">
+                <div className="pg-real-frame">
+                  <div className="pg-real-label">Capture réelle du portail · tableau de bord</div>
+                  <Image
+                    src="/portail-gestionnaire/tutoriel-assets/capture-dashboard.png"
+                    alt="Capture réelle du tableau de bord du portail gestionnaire Vosthermos"
+                    width={1280}
+                    height={900}
+                    priority
+                    sizes="(max-width: 980px) 100vw, 760px"
+                  />
                 </div>
               </div>
-              <div className="pg-dash">
-                <aside className="pg-dash-side">
-                  <div className="pg-dash-account">
-                    <img
-                      className="pg-avatar-photo"
-                      src="/images/personas/gestionnaire-marie.jpg"
-                      alt="Avatar gestionnaire"
-                    />
-                    <div>
-                      <div className="pg-dash-owner">Marie L.</div>
-                      <div className="pg-dash-org">Les Jardins Fleuris · 24 u.</div>
-                    </div>
-                  </div>
-                  <nav className="pg-dash-nav">
-                    <a className="active">
-                      <i className="fas fa-chart-pie"></i> Tableau de bord
-                    </a>
-                    <a>
-                      <i className="fas fa-building"></i> Parc de fenêtres{" "}
-                      <span className="pg-badge">247</span>
-                    </a>
-                    <a>
-                      <i className="fas fa-clipboard-list"></i> Bons de travail{" "}
-                      <span className="pg-badge accent">3</span>
-                    </a>
-                    <a>
-                      <i className="fas fa-calendar-check"></i> Priorités
-                    </a>
-                    <a>
-                      <i className="fas fa-file-invoice-dollar"></i> Facturation
-                    </a>
-                    <a>
-                      <i className="fas fa-user-friends"></i> Propriétaires
-                    </a>
-                  </nav>
-                  <div className="pg-dash-footer-tag">
-                    <span className="pg-status-dot"></span> Synchronisé · il y a 2 min
-                  </div>
-                </aside>
-                <section className="pg-dash-main">
-                  <header className="pg-dash-header">
-                    <div>
-                      <div className="pg-dash-crumb">
-                        Copropriété · <b>Les Jardins Fleuris</b>
-                      </div>
-                      <h3 className="pg-dash-title">Tableau de bord</h3>
-                    </div>
-                    <div className="pg-dash-head-right">
-                      <div className="pg-search">
-                        <i className="fas fa-magnifying-glass"></i>
-                        <span>Rechercher une fenêtre, unité, facture…</span>
-                      </div>
-                      <button className="pg-btn-icon" aria-label="Notifications">
-                        <i className="fas fa-bell"></i>
-                        <span className="pg-dot-badge"></span>
-                      </button>
-                    </div>
-                  </header>
-                  <div className="pg-kpis">
-                    <div className="pg-kpi">
-                      <div className="pg-kpi-label">Parc total</div>
-                      <div className="pg-kpi-value">
-                        247 <small>fenêtres</small>
-                      </div>
-                      <div className="pg-kpi-trend">
-                        <i className="fas fa-arrow-trend-up"></i> 18 unités · 4 bâtiments
-                      </div>
-                    </div>
-                    <div className="pg-kpi">
-                      <div className="pg-kpi-label">Interventions — 30 j.</div>
-                      <div className="pg-kpi-value">12</div>
-                      <div className="pg-kpi-trend up">
-                        <i className="fas fa-arrow-up"></i> 3 vs. période préc.
-                      </div>
-                    </div>
-                    <div className="pg-kpi">
-                      <div className="pg-kpi-label">Priorités entretien 2026</div>
-                      <div className="pg-kpi-value">
-                        18 400 <small>$</small>
-                      </div>
-                      <div className="pg-kpi-trend">
-                        <i className="fas fa-chart-line"></i> 62 % utilisé
-                      </div>
-                      <div className="pg-kpi-bar">
-                        <span style={{ width: "62%" }}></span>
-                      </div>
-                    </div>
-                    <div className="pg-kpi">
-                      <div className="pg-kpi-label">À confirmer</div>
-                      <div className="pg-kpi-value accent">3</div>
-                      <div className="pg-kpi-trend">
-                        <i className="fas fa-circle-exclamation"></i> bons de travail
-                      </div>
-                    </div>
-                  </div>
-                  <div className="pg-dash-grid">
-                    <div className="pg-panel">
-                      <div className="pg-panel-head">
-                        <h4>Bons de travail récents</h4>
-                        <a className="pg-panel-link">Tout voir →</a>
-                      </div>
-                      <table className="pg-wo-table">
-                        <thead>
-                          <tr>
-                            <th>#</th>
-                            <th>Unité</th>
-                            <th>Intervention</th>
-                            <th>Technicien</th>
-                            <th>Statut</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr>
-                            <td>BT-2187</td>
-                            <td>301 · cuisine</td>
-                            <td>Remplacement scellé · fenêtre embuée</td>
-                            <td>
-                              <span className="pg-tech">MD</span> M. Dubé
-                            </td>
-                            <td>
-                              <span className="pg-pill ok">Terminé</span>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>BT-2186</td>
-                            <td>204 · chambre</td>
-                            <td>Inspection annuelle (2 fenêtres)</td>
-                            <td>
-                              <span className="pg-tech">JP</span> J. Pelletier
-                            </td>
-                            <td>
-                              <span className="pg-pill prog">En cours</span>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>BT-2185</td>
-                            <td>102 · salon</td>
-                            <td>Ajustement quincaillerie + joint</td>
-                            <td>
-                              <span className="pg-tech">MD</span> M. Dubé
-                            </td>
-                            <td>
-                              <span className="pg-pill wait">À confirmer</span>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>BT-2184</td>
-                            <td>415 · balcon</td>
-                            <td>Remplacement cadre complet</td>
-                            <td>
-                              <span className="pg-tech">AL</span> A. Lavoie
-                            </td>
-                            <td>
-                              <span className="pg-pill plan">Planifié 14 mai</span>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                    <div className="pg-panel">
-                      <div className="pg-panel-head">
-                        <h4>Priorités d&apos;entretien · 2026</h4>
-                        <span className="pg-panel-tag">Projection</span>
-                      </div>
-                      <div className="pg-plan-chart" aria-hidden="true">
-                        <svg viewBox="0 0 300 140" preserveAspectRatio="none" width="100%" height="140">
-                          <defs>
-                            <linearGradient id="pgBarG" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor="#6fb7c7" />
-                              <stop offset="100%" stopColor="#004d5e" />
-                            </linearGradient>
-                          </defs>
-                          <g>
-                            <line x1="0" y1="120" x2="300" y2="120" stroke="rgba(255,255,255,.1)" />
-                            <line x1="0" y1="80" x2="300" y2="80" stroke="rgba(255,255,255,.06)" />
-                            <line x1="0" y1="40" x2="300" y2="40" stroke="rgba(255,255,255,.06)" />
-                          </g>
-                          <g fill="url(#pgBarG)">
-                            <rect x="22" y="70" width="32" height="50" rx="3" />
-                            <rect x="78" y="52" width="32" height="68" rx="3" />
-                            <rect x="134" y="28" width="32" height="92" rx="3" />
-                            <rect x="190" y="46" width="32" height="74" rx="3" />
-                            <rect x="246" y="62" width="32" height="58" rx="3" />
-                          </g>
-                          <g fill="rgba(255,255,255,.55)" fontFamily="Montserrat" fontSize="8" textAnchor="middle">
-                            <text x="38" y="134">2026</text>
-                            <text x="94" y="134">2027</text>
-                            <text x="150" y="134">2028</text>
-                            <text x="206" y="134">2029</text>
-                            <text x="262" y="134">2030</text>
-                          </g>
-                        </svg>
-                      </div>
-                      <div className="pg-plan-legend">
-                        <div>
-                          <b>18 400 $</b>
-                          <span>2026 — courant</span>
-                        </div>
-                        <div>
-                          <b>24 800 $</b>
-                          <span>2028 — pic remplacements</span>
-                        </div>
-                        <div>
-                          <b>89 400 $</b>
-                          <span>Total 5 ans projeté</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </section>
-              </div>
-            </div>
-
-            {/* Phone mockup (mobile only, replaces desktop mockup < 980px) */}
-            <div className="pg-phone-mockup" aria-hidden="true">
-              <div className="pg-phone">
-                <div className="pg-phone-screen">
-                  <div className="pg-phone-status">
-                    <span>9 h 41</span>
-                    <span className="pg-sig">
-                      <span></span>
-                      <span></span>
-                      <span></span>
-                      <span></span>
-                    </span>
-                  </div>
-                  <div className="pg-phone-app-header">
-                    <img
-                      className="pg-avatar-photo"
-                      src="/images/personas/gestionnaire-marie.jpg"
-                      alt="Avatar gestionnaire"
-                      style={{ width: 30, height: 30, borderRadius: 8 }}
-                    />
-                    <div>
-                      <h4>Marie L.</h4>
-                      <p>Les Jardins Fleuris</p>
-                    </div>
-                    <span className="pg-phone-burger">
-                      <i className="fas fa-bars"></i>
-                    </span>
-                  </div>
-                  <div className="pg-phone-kpi-main">
-                    <div className="pg-phone-kpi-label">À confirmer</div>
-                    <div className="pg-phone-kpi-value">3</div>
-                    <div className="pg-phone-kpi-sub">bons de travail en attente</div>
-                  </div>
-                  <div className="pg-phone-list-head">
-                    <span>Récents</span>
-                    <span>Voir tout</span>
-                  </div>
-                  <div className="pg-phone-list">
-                    <div className="pg-phone-item">
-                      <b>Unité 301 · cuisine</b>
-                      <div className="pg-phone-item-sub">
-                        <span>Remplacement scellé</span>
-                        <span>14 h 22</span>
-                      </div>
-                    </div>
-                    <div className="pg-phone-item">
-                      <b>Unité 204 · chambre</b>
-                      <div className="pg-phone-item-sub">
-                        <span>Inspection (2 fenêtres)</span>
-                        <span>En cours</span>
-                      </div>
-                    </div>
-                    <div className="pg-phone-item">
-                      <b>Unité 102 · salon</b>
-                      <div className="pg-phone-item-sub">
-                        <span>Ajustement quincaillerie</span>
-                        <span>À confirmer</span>
-                      </div>
-                    </div>
-                  </div>
-                  <button className="pg-phone-approve">
-                    <i className="fas fa-check"></i> Confirmer 3 bons de travail
-                  </button>
+              <div className="pg-real-side">
+                <div className="pg-real-card">
+                  <span>Fiche unité</span>
+                  <Image
+                    src="/portail-gestionnaire/tutoriel-assets/capture-unit-detail.png"
+                    alt="Capture réelle d'une fiche unité dans le portail"
+                    width={1280}
+                    height={900}
+                    sizes="(max-width: 980px) 100vw, 320px"
+                  />
+                </div>
+                <div className="pg-real-card">
+                  <span>Interventions</span>
+                  <Image
+                    src="/portail-gestionnaire/tutoriel-assets/capture-interventions.png"
+                    alt="Capture réelle du suivi des interventions dans le portail"
+                    width={1280}
+                    height={900}
+                    sizes="(max-width: 980px) 100vw, 320px"
+                  />
+                </div>
+                <div className="pg-real-card">
+                  <span>Factures</span>
+                  <Image
+                    src="/portail-gestionnaire/tutoriel-assets/capture-factures.png"
+                    alt="Capture réelle de la section factures dans le portail"
+                    width={1280}
+                    height={900}
+                    sizes="(max-width: 980px) 100vw, 320px"
+                  />
                 </div>
               </div>
             </div>
@@ -499,14 +254,14 @@ export default function PortailGestionnairePage() {
           <div className="pg-container">
             <div className="pg-live-head">
               <span className="pg-eyebrow pg-eyebrow-dark">
-                <span className="pg-eyebrow-dot"></span>DÉMO INTERACTIVE
+                <span className="pg-eyebrow-dot"></span>PORTAIL EN IMAGES
               </span>
               <h2 className="pg-section-title">
-                Le client voit exactement comment le portail fonctionne, sur ordinateur et mobile.
+                Les visuels montrent le vrai portail, pas un dashboard inventé.
               </h2>
               <p className="pg-section-lede">
-                La démo montre la saisie réelle, le clic sur le bouton, puis la version mobile pour prouver
-                que le gestionnaire peut suivre ses dossiers même hors bureau.
+                Les captures reprennent le parcours présenté dans le tutoriel animé : tableau de bord,
+                fiche unité, interventions et factures, avec une navigation complète sur ordinateur et mobile.
               </p>
               <div className="pg-live-actions">
                 <a href="/portail-gestionnaire/tutoriel.html" className="pg-btn pg-btn-primary pg-btn-lg">
@@ -529,21 +284,22 @@ export default function PortailGestionnairePage() {
             </h2>
             <p className="pg-section-lede">
               Le portail gestionnaire copropriété fenêtres remplace la paperasse, les vocaux sans
-              suite et les tableurs éparpillés par une seule source de vérité.
+              suite et les tableurs éparpillés par une vue structurée des copropriétés, unités,
+              demandes, suivis et factures.
             </p>
             <div className="pg-ps-grid">
               {[
                 [
                   "Appels perdus, dossiers papier, historique flou d'une année à l'autre.",
-                  "Dashboard centralisé avec historique complet par unité et par fenêtre.",
+                  "Tableau de bord centralisé par copropriété, bâtiment et unité.",
                 ],
                 [
                   "Impossible de prévoir les coûts d'entretien annuels devant le CA.",
-                  "Priorités d'entretien, historique par unité et budget indicatif pour mieux planifier.",
+                  "Bons actifs, unités touchées et dossiers terminés visibles au même endroit.",
                 ],
                 [
                   "Facturation éparpillée, approbations manuelles par courriels croisés.",
-                  "Factures regroupées, export CSV, archivage automatique.",
+                  "Factures et documents PDF rattachés au dossier client.",
                 ],
               ].map(([problem, solution], i) => (
                 <div className="pg-ps-row" key={i}>
@@ -589,24 +345,23 @@ export default function PortailGestionnairePage() {
                   <div className="pg-wo-mini">
                     <div className="pg-wo-mini-head">
                       <span>BT-2187</span>
-                      <span className="pg-pill ok sm">Signé</span>
+                      <span className="pg-pill ok sm">En suivi</span>
                     </div>
                     <div className="pg-wo-mini-row">
-                      <i className="fas fa-camera"></i> 4 photos avant / après
+                      <i className="fas fa-camera"></i> Photo rattachée
                     </div>
                     <div className="pg-wo-mini-row">
-                      <i className="fas fa-signature"></i> Signature technicien
+                      <i className="fas fa-clipboard-list"></i> Note d&apos;intervention
                     </div>
                     <div className="pg-wo-mini-row">
-                      <i className="fas fa-cloud-arrow-up"></i> Sync · 14 h 22
+                      <i className="fas fa-circle-check"></i> Statut visible
                     </div>
                   </div>
                 </div>
                 <h3>Bon de travail numérique</h3>
                 <p>
-                  Vos techniciens créent des bons de travail sur tablette Samsung Tab Active5.
-                  Photos avant / après, signatures électroniques, synchronisation immédiate dans
-                  votre portail.
+                  Les demandes et bons actifs restent structurés par copropriété, bâtiment,
+                  unité et ouverture. Les photos et notes peuvent être rattachées au dossier.
                 </p>
               </article>
               <article className="pg-feat">
@@ -643,8 +398,8 @@ export default function PortailGestionnairePage() {
                 </div>
                 <h3>Dashboard multi-unités</h3>
                 <p>
-                  Vue globale de votre parc : 10, 50 ou 500 fenêtres. Filtres par immeuble, étage,
-                  type de fenêtre, âge, dernière intervention.
+                  Vue globale de vos copropriétés : bâtiments, unités, dossiers actifs,
+                  interventions terminées et factures à consulter.
                 </p>
               </article>
               <article className="pg-feat">
@@ -670,15 +425,15 @@ export default function PortailGestionnairePage() {
                   <div className="pg-hist-row active">
                     <span className="pg-hist-dot"></span>
                     <div>
-                      <b>2026 · Remplacement scellé</b>
-                      <span>Garantie 10 ans</span>
+                      <b>2026 · Demande ouverte</b>
+                      <span>Photo et notes rattachées</span>
                     </div>
                   </div>
                 </div>
                 <h3>Historique complet par unité</h3>
                 <p>
-                  Chaque fenêtre a son dossier : interventions passées, photos, pièces remplacées,
-                  garanties, date de prochaine inspection.
+                  Chaque unité garde ses informations utiles : ouvertures, notes, photos,
+                  demandes et interventions liées au dossier.
                 </p>
               </article>
               <article className="pg-feat">
@@ -715,8 +470,8 @@ export default function PortailGestionnairePage() {
                 </div>
                 <h3>Priorités d&apos;entretien</h3>
                 <p>
-                  Repérez les remplacements à prévoir, classez les priorités et gardez un budget
-                  indicatif par immeuble selon l&apos;âge et l&apos;état de chaque fenêtre.
+                  Les bons actifs et demandes à traiter restent visibles, ce qui aide l&apos;équipe
+                  à suivre les dossiers importants sans perdre le contexte.
                 </p>
               </article>
               <article className="pg-feat">
@@ -748,18 +503,18 @@ export default function PortailGestionnairePage() {
                     <small>—</small>
                   </div>
                 </div>
-                <h3>Suivi temps réel</h3>
+                <h3>Suivi des interventions</h3>
                 <p>
-                  Sachez quand le technicien arrive, progresse et termine. Le dossier reste clair
-                  pour votre équipe et votre conseil d&apos;administration.
+                  Suivez les interventions planifiées et complétées, avec date, statut,
+                  technicien assigné lorsque disponible et notes rattachées au dossier.
                 </p>
               </article>
               <article className="pg-feat">
                 <div className="pg-feat-visual pg-feat-visual-invoice">
                   <div className="pg-inv">
                     <div className="pg-inv-head">
-                      <b>Facture consolidée · avril</b>
-                      <span className="pg-pill ok sm">Approuvée</span>
+                      <b>Facture PDF · avril</b>
+                      <span className="pg-pill ok sm">Disponible</span>
                     </div>
                     <div className="pg-inv-line">
                       <span>Unité 102 — 2 interventions</span>
@@ -781,8 +536,8 @@ export default function PortailGestionnairePage() {
                 </div>
                 <h3>Facturation centralisée</h3>
                 <p>
-                  Une seule facture mensuelle consolidée. Export CSV pour votre comptabilité et
-                  archivage dans le dossier de la copropriété.
+                  Les factures et documents PDF sont retrouvables dans le portail pour éviter
+                  de fouiller dans les courriels ou dossiers partagés.
                 </p>
               </article>
             </div>
@@ -800,15 +555,16 @@ export default function PortailGestionnairePage() {
               <em>tout se passe ici.</em>
             </h2>
             <p className="pg-section-lede light">
-              App de gestion condos entrepreneur : un flux continu, traçable, sans courriel perdu.
+              Un parcours simple : créer la copropriété, ouvrir les unités, envoyer une demande,
+              suivre le statut et retrouver les documents.
             </p>
             <ol className="pg-timeline">
               {[
-                ["Signalement", "Le gestionnaire saisit la demande avec photo et unité concernée."],
-                ["Confirmation", "Vosthermos reçoit la demande et confirme la suite directement dans le dossier."],
-                ["Intervention", "Le technicien reçoit le bon de travail sur sa tablette et intervient sur place."],
-                ["Rapport", "Rapport signé et photos avant / après téléversés automatiquement."],
-                ["Facture", "Facture générée, archivée et liée au bon de travail. Historique mis à jour."],
+                ["Copropriété", "Le client crée sa copropriété, ses bâtiments et ses unités sans devoir envoyer une demande à l'administration."],
+                ["Fiche unité", "Il ouvre une unité, ajoute les informations utiles et garde les photos au bon endroit."],
+                ["Demande", "Il crée une demande d'intervention structurée avec l'unité et le contexte du problème."],
+                ["Suivi", "Vosthermos met le dossier à jour avec le statut, les dates, les notes et le technicien si assigné."],
+                ["Facture", "Les factures et PDF restent accessibles dans le portail pour consultation et archivage."],
               ].map(([title, desc], i) => (
                 <li className="pg-tl-step" key={i}>
                   <div className="pg-tl-dot">
@@ -862,13 +618,12 @@ export default function PortailGestionnairePage() {
                   <tbody>
                     {[
                       ["Portail web 24/7", "yes", "no", "no"],
-                      ["Bon de travail numérique", "yes", "no", "no"],
-                      ["Historique par unité", "yes", "maybe", "no"],
-                      ["Priorités d'entretien", "yes", "no", "no"],
-                      ["Notifications automatiques", "yes", "no", "no"],
-                      ["Factures consolidées", "yes", "maybe", "no"],
-                      ["Photos avant / après archivées", "yes", "no", "no"],
-                      ["Garanties trackées numériquement", "yes", "no", "no"],
+                      ["Copropriétés et unités créables par client", "yes", "no", "no"],
+                      ["Demandes d'intervention structurées", "yes", "maybe", "no"],
+                      ["Fiches unité avec notes et photos", "yes", "maybe", "no"],
+                      ["Suivi des bons actifs et terminés", "yes", "maybe", "no"],
+                      ["Factures et PDF centralisés", "yes", "maybe", "no"],
+                      ["Vue ordinateur et mobile", "yes", "maybe", "no"],
                     ].map(([feat, us, trad, phone], i) => {
                       const Icon = ({ state }) => {
                         if (state === "yes") {
@@ -905,7 +660,7 @@ export default function PortailGestionnairePage() {
                 <div className="pg-cmp-footer">
                   Seul <strong>Vosthermos Portail</strong>
                   <span className="pg-cmp-arrow"> → </span>
-                  coche toutes les cases pour les gestionnaires de copropriétés modernes.
+                  centralise les dossiers de fenêtres avec les captures et documents au même endroit.
                 </div>
               </div>
             </div>
@@ -933,13 +688,13 @@ export default function PortailGestionnairePage() {
                 </p>
                 <ul className="pg-story-metrics">
                   <li>
-                    <b>≥ 6</b> échanges téléphoniques
+                    <b>+</b> relances et recherches
                   </li>
                   <li>
-                    <b>21 j.</b> entre signalement et facture
+                    <b>?</b> statut difficile à confirmer
                   </li>
                   <li>
-                    <b>0</b> photo archivée
+                    <b>0</b> dossier centralisé
                   </li>
                 </ul>
               </div>
@@ -947,19 +702,19 @@ export default function PortailGestionnairePage() {
                 <div className="pg-story-label">Avec le portail</div>
                 <p>
                   Mardi 14 h. Le gestionnaire saisit la fenêtre problématique dans le portail, photo
-                  jointe. Vosthermos confirme la suite dans le dossier. Jeudi matin, le technicien
-                  intervient et ajoute rapport et photos. Vendredi, la facture consolidée apparaît.
-                  Le dossier de l&apos;unité 301 reste à jour.
+                  jointe. Vosthermos confirme la suite dans le dossier. Le statut, les notes et les
+                  documents restent liés à l&apos;unité. Quand la facture est disponible, elle se retrouve
+                  dans le portail avec les autres documents.
                 </p>
                 <ul className="pg-story-metrics">
                   <li>
-                    <b>0</b> appel téléphonique
+                    <b>-</b> moins de suivis éparpillés
                   </li>
                   <li>
-                    <b>3 j.</b> du signalement à la facture
+                    <b>1</b> dossier clair par unité
                   </li>
                   <li>
-                    <b>4</b> photos archivées, garantie enregistrée
+                    <b>PDF</b> et photos centralisés
                   </li>
                 </ul>
               </div>
@@ -1043,7 +798,7 @@ export default function PortailGestionnairePage() {
               <h2 className="pg-section-title">Questions fréquentes des gestionnaires.</h2>
               <p className="pg-section-lede">
                 Tout ce que vous devez savoir sur le portail. Vous ne trouvez pas votre
-                réponse&nbsp;? Contactez Marie ou Jean-Pierre plus haut.
+                réponse&nbsp;? Contactez l&apos;équipe Vosthermos plus haut.
               </p>
             </div>
             <div className="pg-faq-list">
