@@ -1022,7 +1022,7 @@
       </div>
     </section>
 
-    <section class="slide light" data-theme="light" data-duration="5600">
+    <section class="slide light" data-theme="light" data-duration="5600" data-skip="true">
       <div class="slide-inner">
         <div>
           <img class="logo-red" src="../public/images/Vos-Thermos-Logo.png" alt="Vosthermos">
@@ -1071,7 +1071,7 @@
       </div>
     </section>
 
-    <section class="slide light" data-theme="light" data-duration="5400">
+    <section class="slide light" data-theme="light" data-duration="5400" data-skip="true">
       <div class="slide-inner">
         <div>
           <img class="logo-red" src="../public/images/Vos-Thermos-Logo.png" alt="Vosthermos">
@@ -1121,7 +1121,7 @@
       <div class="slide-inner">
         <div>
           <img class="logo-red" src="../public/images/Vos-Thermos-Logo.png" alt="Vosthermos">
-          <div class="eyebrow">Étape 3 · ajouter des unités</div>
+          <div class="eyebrow">Étape 1 · ajouter des unités</div>
           <h2>Après ça, on ajoute les unités.</h2>
           <p>Chaque unité devient cliquable. C'est là qu'on pourra attacher les fenêtres, portes-patio, photos et interventions.</p>
           <div class="callouts">
@@ -1177,7 +1177,7 @@
       <div class="slide-inner">
         <div>
           <img class="logo-red" src="../public/images/Vos-Thermos-Logo.png" alt="Vosthermos">
-          <div class="eyebrow">Étape 4 · clic sur une unité</div>
+          <div class="eyebrow">Étape 2 · clic sur une unité</div>
           <h2>Le client part du tableau de bord.</h2>
           <p>Il voit les priorités, puis clique sur une unité pour ouvrir le dossier détaillé.</p>
           <div class="callouts">
@@ -1220,7 +1220,7 @@
       <div class="slide-inner">
         <div>
           <img class="logo-red" src="../public/images/Vos-Thermos-Logo.png" alt="Vosthermos">
-          <div class="eyebrow">Étape 5 · fiche ouverte</div>
+          <div class="eyebrow">Étape 3 · fiche ouverte</div>
           <h2>La fiche de l'unité s'ouvre.</h2>
           <p>Le client voit les ouvertures, les notes et l'historique sans demander un suivi par courriel.</p>
           <div class="callouts">
@@ -1262,7 +1262,7 @@
       <div class="slide-inner">
         <div>
           <img class="logo-red" src="../public/images/Vos-Thermos-Logo.png" alt="Vosthermos">
-          <div class="eyebrow">Étape 6 · créer une demande</div>
+          <div class="eyebrow">Étape 4 · créer une demande</div>
           <h2>On peut demander une intervention.</h2>
           <p>Le gestionnaire choisit les unités ou ouvertures concernées, ajoute la priorité, puis décrit le problème.</p>
           <div class="callouts">
@@ -1314,7 +1314,7 @@
       <div class="slide-inner">
         <div>
           <img class="logo-red" src="../public/images/Vos-Thermos-Logo.png" alt="Vosthermos">
-          <div class="eyebrow">Étape 7 · section interventions</div>
+          <div class="eyebrow">Étape 5 · section interventions</div>
           <h2>Ensuite il va dans Interventions.</h2>
           <p>Le client voit les dates, les unités concernées, le technicien et l'historique sans relancer par téléphone.</p>
           <div class="callouts">
@@ -1353,7 +1353,7 @@
       <div class="slide-inner">
         <div>
           <img class="logo-red" src="../public/images/Vos-Thermos-Logo.png" alt="Vosthermos">
-          <div class="eyebrow">Étape 8 · section factures</div>
+          <div class="eyebrow">Étape 6 · section factures</div>
           <h2>Puis il retrouve ses factures.</h2>
           <p>Le portail réduit les demandes de renvoi par courriel et donne une vue claire pour la comptabilité.</p>
           <div class="callouts">
@@ -1392,7 +1392,7 @@
       <div class="slide-inner">
         <div>
           <img class="logo-red" src="../public/images/Vos-Thermos-Logo.png" alt="Vosthermos">
-          <div class="eyebrow">Étape 9 · version mobile</div>
+          <div class="eyebrow">Étape 7 · version mobile</div>
           <h2>Le même portail fonctionne aussi sur mobile.</h2>
           <p>Le gestionnaire peut montrer le suivi au CA, vérifier une unité ou envoyer une demande même quand il n'est pas au bureau.</p>
           <div class="callouts">
@@ -1456,7 +1456,7 @@
   </main>
 
 <script>
-  const slides = [...document.querySelectorAll(".slide")];
+  const slides = [...document.querySelectorAll(".slide:not([data-skip='true'])")];
   const dotsWrap = document.querySelector(".dots");
   const fill = document.querySelector(".progress-fill");
   const toggle = document.getElementById("toggle");
