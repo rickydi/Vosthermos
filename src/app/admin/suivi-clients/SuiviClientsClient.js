@@ -399,6 +399,15 @@ export default function SuiviClientsClient() {
     }
   }
 
+  function handleDragStart(id) {
+    setDraggedId(id);
+  }
+
+  function handleDragEnd() {
+    setDraggedId(null);
+    setDragOverColumn(null);
+  }
+
   function handleDrop(columnKey) {
     const followUp = followUps.find((f) => f.id === draggedId);
     setDraggedId(null);
@@ -485,11 +494,13 @@ export default function SuiviClientsClient() {
                 onEdit={openEdit}
                 onDelete={deleteFollowUp}
                 onCentral={setCentralFollowUp}
-                onDragStart={setDraggedId}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
                 onDragEnter={setDragOverColumn}
                 onDragLeave={() => setDragOverColumn(null)}
                 onDrop={handleDrop}
                 isDragOver={dragOverColumn === column.key}
+                draggedId={draggedId}
                 recentlyMovedId={recentlyMovedId}
               />
             ))}
@@ -566,10 +577,12 @@ function KanbanColumn({
   onDelete,
   onCentral,
   onDragStart,
+  onDragEnd,
   onDragEnter,
   onDragLeave,
   onDrop,
   isDragOver,
+  draggedId,
   recentlyMovedId,
 }) {
   const t = toneClasses(column.tone);
@@ -578,7 +591,7 @@ function KanbanColumn({
   return (
     <section
       className={`admin-card border ${t.border} rounded-xl min-h-[560px] flex flex-col transition-all duration-200 ${
-        isDragOver ? "ring-2 ring-cyan-300/60 bg-cyan-500/5 shadow-[0_0_28px_rgba(34,211,238,0.16)]" : ""
+        isDragOver ? "ring-1 ring-cyan-300/35 bg-cyan-500/5" : ""
       }`}
       onDragEnter={() => onDragEnter(column.key)}
       onDragOver={(e) => e.preventDefault()}
@@ -620,6 +633,8 @@ function KanbanColumn({
               onDelete={onDelete}
               onCentral={onCentral}
               onDragStart={onDragStart}
+              onDragEnd={onDragEnd}
+              isDragging={draggedId === followUp.id}
               highlighted={recentlyMovedId === followUp.id}
             />
           ))
@@ -629,7 +644,7 @@ function KanbanColumn({
   );
 }
 
-function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, onDragStart, highlighted }) {
+function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, onDragStart, onDragEnd, isDragging, highlighted }) {
   const meta = columnMeta(columns, followUp.status);
   const t = toneClasses(meta.tone);
   const late = isLate(followUp.nextActionDate) && !TERMINAL.has(followUp.status);
@@ -642,8 +657,11 @@ function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, onDragStar
     <article
       draggable
       onDragStart={() => onDragStart(followUp.id)}
+      onDragEnd={onDragEnd}
       className={`rounded-xl border admin-border admin-bg p-4 shadow-sm cursor-grab active:cursor-grabbing hover:ring-2 ${t.ring} transition-all duration-300 ${
-        highlighted ? "ring-2 ring-cyan-300/80 shadow-[0_0_28px_rgba(34,211,238,0.28)] scale-[1.015]" : ""
+        isDragging ? "opacity-70 ring-2 ring-cyan-300/80 shadow-[0_0_32px_rgba(34,211,238,0.32)] scale-[1.02]" : ""
+      } ${
+        highlighted ? "ring-2 ring-cyan-300/80 shadow-[0_0_32px_rgba(34,211,238,0.32)] scale-[1.02]" : ""
       }`}
     >
       <div className="flex items-start justify-between gap-3">
@@ -721,6 +739,7 @@ function CentralModal({ followUp, columns, onSaveNotes, onClose }) {
   const [notesDraft, setNotesDraft] = useState(followUp.notes || "");
   const [noteState, setNoteState] = useState("idle");
   const [noteError, setNoteError] = useState("");
+  const [embeddedView, setEmbeddedView] = useState(null);
   const savedTimer = useRef(null);
   const notesDirty = notesDraft !== (followUp.notes || "");
 
@@ -740,6 +759,11 @@ function CentralModal({ followUp, columns, onSaveNotes, onClose }) {
       setNoteState("idle");
       setNoteError(err.message || "Erreur lors de la sauvegarde");
     }
+  }
+
+  function openEmbeddedView(view) {
+    if (!view?.href) return;
+    setEmbeddedView(view);
   }
 
   return (
@@ -811,7 +835,17 @@ function CentralModal({ followUp, columns, onSaveNotes, onClose }) {
               {activity.recent?.length > 0 ? (
                 <div className="space-y-2">
                   {activity.recent.map((item) => (
-                    <Link key={`${item.type}-${item.id}`} href={item.href} className="flex items-start gap-3 rounded-lg admin-hover px-3 py-2">
+                    <button
+                      key={`${item.type}-${item.id}`}
+                      type="button"
+                      onClick={() => openEmbeddedView({
+                        href: item.href,
+                        title: item.title,
+                        subtitle: item.subtitle || item.status || "",
+                        type: item.type,
+                      })}
+                      className="flex w-full items-start gap-3 rounded-lg admin-hover px-3 py-2 text-left"
+                    >
                       <ActivityIcon type={item.type} />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-3">
@@ -820,7 +854,7 @@ function CentralModal({ followUp, columns, onSaveNotes, onClose }) {
                         </div>
                         <p className="admin-text-muted text-xs truncate">{item.subtitle || item.status || "-"}</p>
                       </div>
-                    </Link>
+                    </button>
                   ))}
                 </div>
               ) : (
@@ -836,11 +870,20 @@ function CentralModal({ followUp, columns, onSaveNotes, onClose }) {
               items={activity.chats || []}
               empty="Aucun chat lie"
               render={(chat) => (
-                <Link href={chat.href} className="block rounded-lg admin-hover px-3 py-2">
+                <button
+                  type="button"
+                  onClick={() => openEmbeddedView({
+                    href: chat.href,
+                    title: "Chat client",
+                    subtitle: chat.clientName || chat.clientPhone || "",
+                    type: "chat",
+                  })}
+                  className="block w-full rounded-lg admin-hover px-3 py-2 text-left"
+                >
                   <p className="admin-text font-semibold text-sm truncate">{chat.clientName}</p>
                   <p className="admin-text-muted text-xs truncate">{chat.lastMessage || chat.clientPhone}</p>
                   <p className="admin-text-muted text-[10px] mt-1">{formatDate(chat.lastMessageAt)}{chat.unreadCount > 0 ? ` | ${chat.unreadCount} non-lu` : ""}</p>
-                </Link>
+                </button>
               )}
             />
             <ActivitySection
@@ -849,14 +892,23 @@ function CentralModal({ followUp, columns, onSaveNotes, onClose }) {
               items={activity.workOrders || []}
               empty="Aucun bon lie"
               render={(wo) => (
-                <Link href={wo.href} className="block rounded-lg admin-hover px-3 py-2">
+                <button
+                  type="button"
+                  onClick={() => openEmbeddedView({
+                    href: wo.href,
+                    title: `Bon ${wo.number}`,
+                    subtitle: [wo.statut, wo.technicianName].filter(Boolean).join(" | "),
+                    type: "work_order",
+                  })}
+                  className="block w-full rounded-lg admin-hover px-3 py-2 text-left"
+                >
                   <div className="flex items-center justify-between gap-2">
                     <p className="admin-text font-semibold text-sm">{wo.number}</p>
                     <p className="admin-text-muted text-xs">{wo.total ? `${Number(wo.total).toFixed(2)} $` : "-"}</p>
                   </div>
                   <p className="admin-text-muted text-xs">{wo.statut}{wo.technicianName ? ` | ${wo.technicianName}` : ""}</p>
                   <p className="admin-text-muted text-[10px] mt-1">{formatDate(wo.date || wo.updatedAt)}</p>
-                </Link>
+                </button>
               )}
             />
             <ActivitySection
@@ -865,18 +917,31 @@ function CentralModal({ followUp, columns, onSaveNotes, onClose }) {
               items={activity.appointments || []}
               empty="Aucun rendez-vous lie"
               render={(appt) => (
-                <Link href={appt.href} className="block rounded-lg admin-hover px-3 py-2">
+                <button
+                  type="button"
+                  onClick={() => openEmbeddedView({
+                    href: appt.href,
+                    title: `Rendez-vous ${appt.timeSlot}`,
+                    subtitle: appt.serviceType || appt.status || "",
+                    type: "appointment",
+                  })}
+                  className="block w-full rounded-lg admin-hover px-3 py-2 text-left"
+                >
                   <div className="flex items-center justify-between gap-2">
                     <p className="admin-text font-semibold text-sm">{appt.timeSlot}</p>
                     <p className="admin-text-muted text-xs">{appt.status}</p>
                   </div>
                   <p className="admin-text-muted text-xs truncate">{appt.serviceType}</p>
                   <p className="admin-text-muted text-[10px] mt-1">{formatDate(appt.date)}</p>
-                </Link>
+                </button>
               )}
             />
           </div>
         </div>
+
+        {embeddedView && (
+          <EmbeddedActivityPanel view={embeddedView} onClose={() => setEmbeddedView(null)} />
+        )}
       </div>
     </div>
   );
@@ -931,6 +996,42 @@ function ActivitySection({ title, icon, items, empty, render }) {
       ) : (
         <p className="admin-text-muted text-sm">{empty}</p>
       )}
+    </div>
+  );
+}
+
+function EmbeddedActivityPanel({ view, onClose }) {
+  const icon = view.type === "chat"
+    ? "fa-comments"
+    : view.type === "appointment"
+      ? "fa-calendar-check"
+      : "fa-clipboard-list";
+
+  return (
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-3 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="admin-bg admin-border border rounded-xl shadow-2xl w-full max-w-7xl h-[92vh] flex flex-col overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 px-4 py-3 border-b admin-border">
+          <div className="min-w-0">
+            <p className="admin-text-muted text-xs uppercase tracking-wider font-bold">Ouvert dans la centrale</p>
+            <h3 className="admin-text font-extrabold truncate">
+              <i className={`fas ${icon} text-cyan-300 mr-2`}></i>{view.title}
+            </h3>
+            {view.subtitle && <p className="admin-text-muted text-xs truncate mt-0.5">{view.subtitle}</p>}
+          </div>
+          <button type="button" onClick={onClose} className="inline-flex items-center justify-center gap-2 rounded-lg admin-hover admin-text-muted px-3 py-2 text-sm font-bold">
+            <i className="fas fa-arrow-left"></i>
+            Retour centrale
+          </button>
+        </div>
+        <iframe
+          src={view.href}
+          title={view.title}
+          className="w-full flex-1 border-0 bg-white"
+        />
+      </div>
     </div>
   );
 }
