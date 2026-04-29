@@ -2,6 +2,33 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 
+export async function GET(_request, { params }) {
+  try {
+    await requireAdmin();
+    const { id } = await params;
+
+    const appointment = await prisma.appointment.findUnique({
+      where: { id: parseInt(id) },
+    });
+
+    if (!appointment) {
+      return NextResponse.json({ error: "Rendez-vous introuvable" }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      ...appointment,
+      date: appointment.date.toISOString(),
+      createdAt: appointment.createdAt.toISOString(),
+    });
+  } catch (err) {
+    if (err.message === "Unauthorized") {
+      return NextResponse.json({ error: "Non autorise" }, { status: 401 });
+    }
+    console.error("GET /api/admin/appointments/[id] error:", err);
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+  }
+}
+
 export async function PUT(request, { params }) {
   try {
     await requireAdmin();

@@ -839,6 +839,7 @@ function CentralModal({ followUp, columns, onSaveNotes, onClose }) {
                       key={`${item.type}-${item.id}`}
                       type="button"
                       onClick={() => openEmbeddedView({
+                        id: item.id,
                         href: item.href,
                         title: item.title,
                         subtitle: item.subtitle || item.status || "",
@@ -873,6 +874,7 @@ function CentralModal({ followUp, columns, onSaveNotes, onClose }) {
                 <button
                   type="button"
                   onClick={() => openEmbeddedView({
+                    id: chat.id,
                     href: chat.href,
                     title: "Chat client",
                     subtitle: chat.clientName || chat.clientPhone || "",
@@ -895,6 +897,7 @@ function CentralModal({ followUp, columns, onSaveNotes, onClose }) {
                 <button
                   type="button"
                   onClick={() => openEmbeddedView({
+                    id: wo.id,
                     href: wo.href,
                     title: `Bon ${wo.number}`,
                     subtitle: [wo.statut, wo.technicianName].filter(Boolean).join(" | "),
@@ -920,6 +923,7 @@ function CentralModal({ followUp, columns, onSaveNotes, onClose }) {
                 <button
                   type="button"
                   onClick={() => openEmbeddedView({
+                    id: appt.id,
                     href: appt.href,
                     title: `Rendez-vous ${appt.timeSlot}`,
                     subtitle: appt.serviceType || appt.status || "",
@@ -1000,17 +1004,130 @@ function ActivitySection({ title, icon, items, empty, render }) {
   );
 }
 
+function detailApiUrl(view) {
+  if (view.type === "chat") return `/api/admin/chat/${view.id}`;
+  if (view.type === "work_order") return `/api/admin/work-orders/${view.id}`;
+  if (view.type === "appointment") return `/api/admin/appointments/${view.id}`;
+  return null;
+}
+
+function money(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? `${number.toFixed(2)} $` : "-";
+}
+
 function EmbeddedActivityPanel({ view, onClose }) {
   const icon = view.type === "chat"
     ? "fa-comments"
     : view.type === "appointment"
       ? "fa-calendar-check"
       : "fa-clipboard-list";
+  const [detail, setDetail] = useState(null);
+  const [loadingDetail, setLoadingDetail] = useState(true);
+  const [detailError, setDetailError] = useState("");
+  const [reply, setReply] = useState("");
+  const [sendingReply, setSendingReply] = useState(false);
+  const [savingDetail, setSavingDetail] = useState(false);
+
+  async function loadDetail() {
+    const url = detailApiUrl(view);
+    if (!url) {
+      setDetailError("Detail indisponible");
+      setLoadingDetail(false);
+      return;
+    }
+    setLoadingDetail(true);
+    setDetailError("");
+    try {
+      const res = await fetch(url, { cache: "no-store" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Impossible de charger le detail");
+      setDetail(data);
+    } catch (err) {
+      setDetailError(err.message || "Impossible de charger le detail");
+    } finally {
+      setLoadingDetail(false);
+    }
+  }
+
+  useEffect(() => {
+    loadDetail();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view.type, view.id]);
+
+  async function sendChatReply(e) {
+    e.preventDefault();
+    const content = reply.trim();
+    if (!content || sendingReply) return;
+    setSendingReply(true);
+    setDetailError("");
+    try {
+      const res = await fetch(`/api/admin/chat/${view.id}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Impossible d'envoyer le message");
+      setReply("");
+      await loadDetail();
+    } catch (err) {
+      setDetailError(err.message || "Impossible d'envoyer le message");
+    } finally {
+      setSendingReply(false);
+    }
+  }
+
+  async function updateWorkOrder(patch) {
+    if (!detail || savingDetail) return;
+    setSavingDetail(true);
+    setDetailError("");
+    const optimistic = { ...detail, ...patch };
+    setDetail(optimistic);
+    try {
+      const res = await fetch(`/api/admin/work-orders/${view.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Impossible de sauvegarder le bon");
+      setDetail(data);
+    } catch (err) {
+      setDetail(detail);
+      setDetailError(err.message || "Impossible de sauvegarder le bon");
+    } finally {
+      setSavingDetail(false);
+    }
+  }
+
+  async function updateAppointmentStatus(status) {
+    if (!status || savingDetail) return;
+    setSavingDetail(true);
+    setDetailError("");
+    const previous = detail;
+    setDetail((current) => ({ ...current, status }));
+    try {
+      const res = await fetch(`/api/admin/appointments/${view.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Impossible de sauvegarder le rendez-vous");
+      setDetail(data);
+    } catch (err) {
+      setDetail(previous);
+      setDetailError(err.message || "Impossible de sauvegarder le rendez-vous");
+    } finally {
+      setSavingDetail(false);
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-3 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="admin-bg admin-border border rounded-xl shadow-2xl w-full max-w-7xl h-[92vh] flex flex-col overflow-hidden"
+        className="admin-bg admin-border border rounded-xl shadow-2xl w-full max-w-6xl max-h-[92vh] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 px-4 py-3 border-b admin-border">
@@ -1026,11 +1143,258 @@ function EmbeddedActivityPanel({ view, onClose }) {
             Retour centrale
           </button>
         </div>
-        <iframe
-          src={view.href}
-          title={view.title}
-          className="w-full flex-1 border-0 bg-white"
+        <div className="p-4 overflow-y-auto">
+          {detailError && (
+            <div className="mb-4 rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
+              {detailError}
+            </div>
+          )}
+          {loadingDetail ? (
+            <DetailSkeleton />
+          ) : view.type === "chat" ? (
+            <ChatDetail detail={detail} reply={reply} setReply={setReply} sending={sendingReply} onSend={sendChatReply} />
+          ) : view.type === "work_order" ? (
+            <WorkOrderDetail detail={detail} saving={savingDetail} onPatch={updateWorkOrder} />
+          ) : (
+            <AppointmentDetail detail={detail} saving={savingDetail} onStatus={updateAppointmentStatus} />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DetailSkeleton() {
+  return (
+    <div className="space-y-3">
+      <div className="h-16 rounded-xl bg-white/5 animate-pulse"></div>
+      <div className="grid md:grid-cols-3 gap-3">
+        <div className="h-28 rounded-xl bg-white/5 animate-pulse"></div>
+        <div className="h-28 rounded-xl bg-white/5 animate-pulse"></div>
+        <div className="h-28 rounded-xl bg-white/5 animate-pulse"></div>
+      </div>
+      <div className="h-64 rounded-xl bg-white/5 animate-pulse"></div>
+    </div>
+  );
+}
+
+function DetailRow({ label, value }) {
+  return (
+    <div className="rounded-lg bg-white/5 px-3 py-2">
+      <p className="admin-text-muted text-[10px] uppercase tracking-wider font-bold">{label}</p>
+      <p className="admin-text text-sm mt-1 whitespace-pre-wrap">{value || "-"}</p>
+    </div>
+  );
+}
+
+function DetailPill({ children, tone = "cyan" }) {
+  const colors = {
+    cyan: "bg-cyan-500/10 text-cyan-300",
+    amber: "bg-amber-500/10 text-amber-300",
+    emerald: "bg-emerald-500/10 text-emerald-300",
+    slate: "bg-slate-500/15 text-slate-300",
+  };
+  return <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-bold ${colors[tone] || colors.slate}`}>{children}</span>;
+}
+
+function ChatDetail({ detail, reply, setReply, sending, onSend }) {
+  const messages = detail?.messages || [];
+
+  return (
+    <div className="grid lg:grid-cols-[320px_1fr] gap-4">
+      <div className="admin-card border rounded-xl p-4 space-y-3">
+        <div>
+          <p className="admin-text-muted text-xs uppercase tracking-wider font-bold">Client</p>
+          <h4 className="admin-text text-lg font-extrabold mt-1">{detail?.clientName || "-"}</h4>
+        </div>
+        <DetailRow label="Telephone" value={detail?.clientPhone} />
+        <DetailRow label="Courriel" value={detail?.clientEmail} />
+        <DetailRow label="Dernier message" value={formatDate(detail?.lastMessageAt)} />
+        <div className="flex flex-wrap gap-2">
+          <DetailPill tone={detail?.isArchived ? "slate" : "emerald"}>{detail?.isArchived ? "Archive" : "Actif"}</DetailPill>
+          <DetailPill tone={detail?.unreadCount > 0 ? "amber" : "cyan"}>{detail?.unreadCount || 0} non-lu</DetailPill>
+        </div>
+      </div>
+
+      <div className="admin-card border rounded-xl overflow-hidden flex flex-col min-h-[520px]">
+        <div className="px-4 py-3 border-b admin-border">
+          <h4 className="admin-text font-bold">Conversation</h4>
+        </div>
+        <div className="flex-1 p-4 space-y-3 overflow-y-auto max-h-[520px]">
+          {messages.length === 0 ? (
+            <p className="admin-text-muted text-sm">Aucun message.</p>
+          ) : messages.map((message) => {
+            const isAdmin = message.senderType === "ADMIN";
+            return (
+              <div key={message.id} className={`flex ${isAdmin ? "justify-end" : "justify-start"}`}>
+                <div className={`max-w-[82%] rounded-xl px-3 py-2 ${isAdmin ? "bg-cyan-700 text-white" : "bg-white/5 admin-text"}`}>
+                  <p className="text-[10px] font-bold opacity-75 mb-1">{message.senderName || message.senderType} | {formatDate(message.createdAt)}</p>
+                  {message.content && <p className="text-sm whitespace-pre-wrap">{message.content}</p>}
+                  {message.imageUrl && (
+                    <a href={message.imageUrl} target="_blank" className="mt-2 block text-xs underline">
+                      Voir la piece jointe
+                    </a>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <form onSubmit={onSend} className="border-t admin-border p-3 flex flex-col md:flex-row gap-2">
+          <textarea
+            value={reply}
+            onChange={(e) => setReply(e.target.value)}
+            rows={2}
+            placeholder="Repondre au client..."
+            className="admin-input border rounded-lg px-3 py-2 text-sm flex-1 min-h-12"
+          />
+          <button type="submit" disabled={!reply.trim() || sending} className="px-4 py-2 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white text-sm font-bold disabled:opacity-45">
+            <i className={`fas ${sending ? "fa-spinner fa-spin" : "fa-paper-plane"} mr-2`}></i>
+            Envoyer
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function WorkOrderDetail({ detail, saving, onPatch }) {
+  const sections = detail?.sections || [];
+  const looseItems = detail?.items || [];
+  const [notesDraft, setNotesDraft] = useState(detail?.notes || "");
+
+  return (
+    <div className="space-y-4">
+      <div className="grid lg:grid-cols-[1.2fr_0.8fr] gap-4">
+        <div className="admin-card border rounded-xl p-4">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+            <div>
+              <p className="admin-text-muted text-xs uppercase tracking-wider font-bold">Bon de travail</p>
+              <h4 className="admin-text text-xl font-extrabold mt-1">{detail?.number || "-"}</h4>
+              <p className="admin-text-muted text-sm mt-1">{detail?.client?.name || "-"}</p>
+            </div>
+            <select
+              value={detail?.statut || "draft"}
+              disabled={saving}
+              onChange={(e) => onPatch({ statut: e.target.value })}
+              className="admin-input border rounded-lg px-3 py-2 text-sm min-w-44"
+            >
+              <option value="draft">Brouillon</option>
+              <option value="scheduled">Planifie</option>
+              <option value="in_progress">En cours</option>
+              <option value="sent">Envoye</option>
+              <option value="invoiced">Facture</option>
+              <option value="paid">Paye</option>
+              <option value="completed">Complete</option>
+            </select>
+          </div>
+          <div className="grid md:grid-cols-3 gap-3 mt-4">
+            <DetailRow label="Date" value={formatDate(detail?.date)} />
+            <DetailRow label="Technicien" value={detail?.technician?.name} />
+            <DetailRow label="Total" value={money(detail?.total)} />
+          </div>
+          <div className="grid md:grid-cols-2 gap-3 mt-3">
+            <DetailRow label="Adresse" value={[detail?.interventionAddress, detail?.interventionCity, detail?.interventionPostalCode].filter(Boolean).join(", ")} />
+            <DetailRow label="Description" value={detail?.description} />
+          </div>
+        </div>
+
+        <div className="admin-card border rounded-xl p-4">
+          <h4 className="admin-text font-bold mb-3">Totaux</h4>
+          <DetailRow label="Pieces" value={money(detail?.totalPieces)} />
+          <div className="mt-2"><DetailRow label="Main-d'oeuvre" value={money(detail?.totalLabor)} /></div>
+          <div className="mt-2"><DetailRow label="Sous-total" value={money(detail?.subtotal)} /></div>
+          <div className="mt-2"><DetailRow label="TPS / TVQ" value={`${money(detail?.tps)} / ${money(detail?.tvq)}`} /></div>
+          <p className="admin-text text-2xl font-extrabold mt-3">{money(detail?.total)}</p>
+        </div>
+      </div>
+
+      <div className="admin-card border rounded-xl p-4">
+        <div className="flex items-center justify-between gap-3 mb-2">
+          <h4 className="admin-text font-bold">Notes du bon</h4>
+          <button
+            type="button"
+            disabled={saving || notesDraft === (detail?.notes || "")}
+            onClick={() => onPatch({ notes: notesDraft })}
+            className="px-3 py-1.5 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white text-xs font-bold disabled:opacity-45"
+          >
+            <i className={`fas ${saving ? "fa-spinner fa-spin" : "fa-save"} mr-2`}></i>Sauvegarder
+          </button>
+        </div>
+        <textarea
+          value={notesDraft}
+          onChange={(e) => setNotesDraft(e.target.value)}
+          rows={4}
+          className="admin-input border rounded-lg px-3 py-2 text-sm w-full"
         />
+      </div>
+
+      <div className="admin-card border rounded-xl p-4">
+        <h4 className="admin-text font-bold mb-3">Lignes</h4>
+        {sections.length === 0 && looseItems.length === 0 ? (
+          <p className="admin-text-muted text-sm">Aucune ligne.</p>
+        ) : (
+          <div className="space-y-3">
+            {sections.map((section) => (
+              <div key={section.id} className="rounded-xl border admin-border p-3">
+                <p className="admin-text font-bold mb-2">Unite {section.unitCode}</p>
+                {(section.items || []).map((item) => <WorkOrderItemLine key={item.id} item={item} />)}
+              </div>
+            ))}
+            {looseItems.map((item) => <WorkOrderItemLine key={item.id} item={item} />)}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function WorkOrderItemLine({ item }) {
+  return (
+    <div className="grid grid-cols-[1fr_auto_auto] gap-3 py-2 border-b admin-border last:border-b-0 text-sm">
+      <p className="admin-text truncate">{item.description || item.product?.name || "-"}</p>
+      <p className="admin-text-muted">{Number(item.quantity || 0).toString()}</p>
+      <p className="admin-text font-bold">{money(item.totalPrice)}</p>
+    </div>
+  );
+}
+
+function AppointmentDetail({ detail, saving, onStatus }) {
+  return (
+    <div className="grid lg:grid-cols-[1fr_320px] gap-4">
+      <div className="admin-card border rounded-xl p-4">
+        <p className="admin-text-muted text-xs uppercase tracking-wider font-bold">Rendez-vous</p>
+        <h4 className="admin-text text-xl font-extrabold mt-1">{detail?.name || "-"}</h4>
+        <div className="grid md:grid-cols-2 gap-3 mt-4">
+          <DetailRow label="Telephone" value={detail?.phone} />
+          <DetailRow label="Courriel" value={detail?.email} />
+          <DetailRow label="Date" value={formatDate(detail?.date)} />
+          <DetailRow label="Plage" value={detail?.timeSlot} />
+          <DetailRow label="Service" value={detail?.serviceType} />
+          <DetailRow label="Adresse" value={[detail?.address, detail?.city].filter(Boolean).join(", ")} />
+        </div>
+        <div className="mt-3">
+          <DetailRow label="Notes" value={detail?.notes} />
+        </div>
+      </div>
+
+      <div className="admin-card border rounded-xl p-4 space-y-3">
+        <h4 className="admin-text font-bold">Statut</h4>
+        <select
+          value={detail?.status || "pending"}
+          disabled={saving}
+          onChange={(e) => onStatus(e.target.value)}
+          className="admin-input border rounded-lg px-3 py-2 text-sm w-full"
+        >
+          <option value="pending">En attente</option>
+          <option value="waiting_client">Attend client</option>
+          <option value="confirmed">Confirme</option>
+          <option value="completed">Complete</option>
+          <option value="cancelled">Annule</option>
+        </select>
+        <DetailPill tone={detail?.status === "completed" ? "emerald" : detail?.status === "cancelled" ? "slate" : "cyan"}>
+          {detail?.status || "pending"}
+        </DetailPill>
       </div>
     </div>
   );
