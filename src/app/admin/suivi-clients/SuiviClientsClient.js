@@ -177,7 +177,11 @@ export default function SuiviClientsClient() {
   const [columns, setColumns] = useState(DEFAULT_COLUMNS);
   const [showColumns, setShowColumns] = useState(false);
   const [draggedId, setDraggedId] = useState(null);
+  const [dragOverColumn, setDragOverColumn] = useState(null);
+  const [recentlyMovedId, setRecentlyMovedId] = useState(null);
+  const [moveFeedback, setMoveFeedback] = useState(null);
   const timer = useRef(null);
+  const moveTimer = useRef(null);
 
   function load(q = search) {
     setLoading(true);
@@ -201,6 +205,10 @@ export default function SuiviClientsClient() {
       })
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    return () => clearTimeout(moveTimer.current);
   }, []);
 
   useEffect(() => {
@@ -313,6 +321,13 @@ export default function SuiviClientsClient() {
     if (!status || followUp.status === status) return;
     const previous = followUps;
     setFollowUps((items) => items.map((item) => item.id === followUp.id ? { ...item, status } : item));
+    setRecentlyMovedId(followUp.id);
+    setMoveFeedback({ id: followUp.id, label: columnMeta(columns, status).label });
+    clearTimeout(moveTimer.current);
+    moveTimer.current = setTimeout(() => {
+      setRecentlyMovedId(null);
+      setMoveFeedback(null);
+    }, 1400);
     try {
       const res = await fetch(`/api/admin/follow-ups/${followUp.id}`, {
         method: "PUT",
@@ -320,6 +335,9 @@ export default function SuiviClientsClient() {
         body: JSON.stringify({ status }),
       });
       if (!res.ok) {
+        clearTimeout(moveTimer.current);
+        setRecentlyMovedId(null);
+        setMoveFeedback(null);
         setFollowUps(previous);
         return;
       }
@@ -330,6 +348,9 @@ export default function SuiviClientsClient() {
           : item));
       }
     } catch {
+      clearTimeout(moveTimer.current);
+      setRecentlyMovedId(null);
+      setMoveFeedback(null);
       setFollowUps(previous);
     }
   }
@@ -350,9 +371,38 @@ export default function SuiviClientsClient() {
     }).catch(() => {});
   }
 
+  async function saveCentralNotes(followUp, notes) {
+    const previousFollowUps = followUps;
+    const previousCentral = centralFollowUp;
+    setFollowUps((items) => items.map((item) => item.id === followUp.id ? { ...item, notes } : item));
+    setCentralFollowUp((current) => current?.id === followUp.id ? { ...current, notes } : current);
+    try {
+      const res = await fetch(`/api/admin/follow-ups/${followUp.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes }),
+      });
+      const updated = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(updated?.error || "Erreur lors de la sauvegarde");
+      if (updated) {
+        setFollowUps((items) => items.map((item) => item.id === followUp.id
+          ? { ...item, ...updated, activity: item.activity || updated.activity }
+          : item));
+        setCentralFollowUp((current) => current?.id === followUp.id
+          ? { ...current, ...updated, activity: current.activity || updated.activity }
+          : current);
+      }
+    } catch (err) {
+      setFollowUps(previousFollowUps);
+      setCentralFollowUp(previousCentral);
+      throw err;
+    }
+  }
+
   function handleDrop(columnKey) {
     const followUp = followUps.find((f) => f.id === draggedId);
     setDraggedId(null);
+    setDragOverColumn(null);
     if (followUp) quickStatus(followUp, columnKey);
   }
 
@@ -382,6 +432,13 @@ export default function SuiviClientsClient() {
           </button>
         </div>
       </div>
+
+      {moveFeedback && (
+        <div className="mb-4 inline-flex items-center gap-2 rounded-lg border border-cyan-400/30 bg-cyan-500/10 px-3 py-2 text-sm font-bold text-cyan-200 shadow-[0_0_24px_rgba(34,211,238,0.16)]">
+          <i className="fas fa-arrows-alt"></i>
+          Carte deplacee vers {moveFeedback.label}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mb-6">
         <StatCard label="Suivis actifs" value={stats.active} icon="fa-list-check" tone="sky" />
@@ -429,7 +486,11 @@ export default function SuiviClientsClient() {
                 onDelete={deleteFollowUp}
                 onCentral={setCentralFollowUp}
                 onDragStart={setDraggedId}
+                onDragEnter={setDragOverColumn}
+                onDragLeave={() => setDragOverColumn(null)}
                 onDrop={handleDrop}
+                isDragOver={dragOverColumn === column.key}
+                recentlyMovedId={recentlyMovedId}
               />
             ))}
           </div>
@@ -459,7 +520,13 @@ export default function SuiviClientsClient() {
       />
 
       {centralFollowUp && (
-        <CentralModal followUp={centralFollowUp} columns={columns} onClose={() => setCentralFollowUp(null)} />
+        <CentralModal
+          key={centralFollowUp.id}
+          followUp={centralFollowUp}
+          columns={columns}
+          onSaveNotes={saveCentralNotes}
+          onClose={() => setCentralFollowUp(null)}
+        />
       )}
 
       {showColumns && (
@@ -490,14 +557,34 @@ function StatCard({ label, value, icon, tone }) {
   );
 }
 
-function KanbanColumn({ column, items, columns, onAdd, onEdit, onDelete, onCentral, onDragStart, onDrop }) {
+function KanbanColumn({
+  column,
+  items,
+  columns,
+  onAdd,
+  onEdit,
+  onDelete,
+  onCentral,
+  onDragStart,
+  onDragEnter,
+  onDragLeave,
+  onDrop,
+  isDragOver,
+  recentlyMovedId,
+}) {
   const t = toneClasses(column.tone);
   const totalEstimate = items.reduce((sum, item) => sum + (Number(item.estimateAmount) || 0), 0);
 
   return (
     <section
-      className={`admin-card border ${t.border} rounded-xl min-h-[560px] flex flex-col`}
+      className={`admin-card border ${t.border} rounded-xl min-h-[560px] flex flex-col transition-all duration-200 ${
+        isDragOver ? "ring-2 ring-cyan-300/60 bg-cyan-500/5 shadow-[0_0_28px_rgba(34,211,238,0.16)]" : ""
+      }`}
+      onDragEnter={() => onDragEnter(column.key)}
       onDragOver={(e) => e.preventDefault()}
+      onDragLeave={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget)) onDragLeave();
+      }}
       onDrop={() => onDrop(column.key)}
     >
       <div className="p-4 border-b admin-border">
@@ -533,6 +620,7 @@ function KanbanColumn({ column, items, columns, onAdd, onEdit, onDelete, onCentr
               onDelete={onDelete}
               onCentral={onCentral}
               onDragStart={onDragStart}
+              highlighted={recentlyMovedId === followUp.id}
             />
           ))
         )}
@@ -541,7 +629,7 @@ function KanbanColumn({ column, items, columns, onAdd, onEdit, onDelete, onCentr
   );
 }
 
-function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, onDragStart }) {
+function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, onDragStart, highlighted }) {
   const meta = columnMeta(columns, followUp.status);
   const t = toneClasses(meta.tone);
   const late = isLate(followUp.nextActionDate) && !TERMINAL.has(followUp.status);
@@ -554,7 +642,9 @@ function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, onDragStar
     <article
       draggable
       onDragStart={() => onDragStart(followUp.id)}
-      className={`rounded-xl border admin-border admin-bg p-4 shadow-sm cursor-grab active:cursor-grabbing hover:ring-2 ${t.ring} transition-all`}
+      className={`rounded-xl border admin-border admin-bg p-4 shadow-sm cursor-grab active:cursor-grabbing hover:ring-2 ${t.ring} transition-all duration-300 ${
+        highlighted ? "ring-2 ring-cyan-300/80 shadow-[0_0_28px_rgba(34,211,238,0.28)] scale-[1.015]" : ""
+      }`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -621,13 +711,36 @@ function MiniCount({ icon, value, label }) {
   );
 }
 
-function CentralModal({ followUp, columns, onClose }) {
+function CentralModal({ followUp, columns, onSaveNotes, onClose }) {
   const activity = followUp.activity || {};
   const counts = activity.counts || { chats: 0, workOrders: 0, appointments: 0, total: 0 };
   const name = followUp.client?.name || followUp.contactName || followUp.title;
   const phone = followUp.phone || followUp.client?.phone;
   const email = followUp.email || followUp.client?.email;
   const meta = columnMeta(columns, followUp.status);
+  const [notesDraft, setNotesDraft] = useState(followUp.notes || "");
+  const [noteState, setNoteState] = useState("idle");
+  const [noteError, setNoteError] = useState("");
+  const savedTimer = useRef(null);
+  const notesDirty = notesDraft !== (followUp.notes || "");
+
+  useEffect(() => {
+    return () => clearTimeout(savedTimer.current);
+  }, []);
+
+  async function saveNotes() {
+    setNoteState("saving");
+    setNoteError("");
+    try {
+      await onSaveNotes(followUp, notesDraft);
+      setNoteState("saved");
+      clearTimeout(savedTimer.current);
+      savedTimer.current = setTimeout(() => setNoteState("idle"), 1400);
+    } catch (err) {
+      setNoteState("idle");
+      setNoteError(err.message || "Erreur lors de la sauvegarde");
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
@@ -669,12 +782,28 @@ function CentralModal({ followUp, columns, onClose }) {
               <InfoLine label="Prochaine action" value={followUp.nextAction || "-"} />
               <InfoLine label="Date de suivi" value={formatDate(followUp.nextActionDate)} />
               <InfoLine label="Estime" value={followUp.estimateAmount ? `${Number(followUp.estimateAmount).toFixed(2)} $` : "-"} />
-              {followUp.notes && (
-                <div className="mt-3">
-                  <p className="admin-text-muted text-xs uppercase tracking-wider font-bold mb-1">Notes</p>
-                  <p className="admin-text text-sm whitespace-pre-wrap">{followUp.notes}</p>
+              <div className="mt-4">
+                <div className="flex items-center justify-between gap-3 mb-2">
+                  <p className="admin-text-muted text-xs uppercase tracking-wider font-bold">Notes client</p>
+                  <button
+                    type="button"
+                    onClick={saveNotes}
+                    disabled={!notesDirty || noteState === "saving"}
+                    className="inline-flex items-center gap-2 rounded-lg bg-cyan-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-cyan-600 disabled:opacity-45 disabled:hover:bg-cyan-700"
+                  >
+                    <i className={`fas ${noteState === "saving" ? "fa-spinner fa-spin" : noteState === "saved" ? "fa-check" : "fa-save"}`}></i>
+                    {noteState === "saving" ? "Sauvegarde..." : noteState === "saved" ? "Enregistre" : "Sauvegarder"}
+                  </button>
                 </div>
-              )}
+                <textarea
+                  value={notesDraft}
+                  onChange={(e) => setNotesDraft(e.target.value)}
+                  rows={7}
+                  placeholder="Ajouter une note: appel, reponse du client, prochaines consignes..."
+                  className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full resize-y min-h-36"
+                />
+                {noteError && <p className="mt-2 text-xs text-amber-300">{noteError}</p>}
+              </div>
             </div>
 
             <div className="admin-card border rounded-xl p-4">
