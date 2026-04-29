@@ -74,6 +74,7 @@ export default function SuiviClientsClient() {
   const [clientPickerOpen, setClientPickerOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [centralFollowUp, setCentralFollowUp] = useState(null);
   const timer = useRef(null);
 
   function load(q = search) {
@@ -115,6 +116,7 @@ export default function SuiviClientsClient() {
       toCall: followUps.filter((f) => f.status === "to_call").length,
       estimates: followUps.filter((f) => f.status === "estimate_sent").length,
       late: active.filter((f) => isLate(f.nextActionDate)).length,
+      activities: followUps.reduce((sum, f) => sum + (f.activity?.counts?.total || 0), 0),
     };
   }, [followUps]);
 
@@ -211,7 +213,7 @@ export default function SuiviClientsClient() {
         <div>
           <h1 className="admin-text text-2xl font-extrabold">Suivi clients</h1>
           <p className="admin-text-muted text-sm mt-1">
-            Appels, estimes, acceptations, refus et jobs faits au meme endroit.
+            Centrale client: appels, chats, rendez-vous, bons, estimes, refus et jobs faits au meme endroit.
           </p>
         </div>
         <button
@@ -223,11 +225,12 @@ export default function SuiviClientsClient() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mb-6">
         <StatCard label="Suivis actifs" value={stats.active} icon="fa-list-check" tone="text-blue-400 bg-blue-500/10" />
         <StatCard label="A appeler" value={stats.toCall} icon="fa-phone" tone="text-red-400 bg-red-500/10" />
         <StatCard label="Estimes envoyes" value={stats.estimates} icon="fa-file-invoice-dollar" tone="text-yellow-400 bg-yellow-500/10" />
         <StatCard label="En retard" value={stats.late} icon="fa-bell" tone="text-orange-400 bg-orange-500/10" />
+        <StatCard label="Activites liees" value={stats.activities} icon="fa-layer-group" tone="text-emerald-400 bg-emerald-500/10" />
       </div>
 
       <div className="admin-card border rounded-xl p-4 mb-6 space-y-4">
@@ -276,6 +279,7 @@ export default function SuiviClientsClient() {
                   <th className="px-4 py-3 min-w-[240px]">Client</th>
                   <th className="px-4 py-3 min-w-[150px]">Statut</th>
                   <th className="px-4 py-3 min-w-[170px]">Prochain suivi</th>
+                  <th className="px-4 py-3 min-w-[170px]">Centrale</th>
                   <th className="px-4 py-3 min-w-[130px]">Estime</th>
                   <th className="px-4 py-3 min-w-[150px]">Source</th>
                   <th className="px-4 py-3 min-w-[220px]">Notes</th>
@@ -290,6 +294,7 @@ export default function SuiviClientsClient() {
                     onEdit={openEdit}
                     onDelete={deleteFollowUp}
                     onStatus={quickStatus}
+                    onCentral={setCentralFollowUp}
                   />
                 ))}
               </tbody>
@@ -318,6 +323,10 @@ export default function SuiviClientsClient() {
         onClose={() => setClientPickerOpen(false)}
         onPick={applyClient}
       />
+
+      {centralFollowUp && (
+        <CentralModal followUp={centralFollowUp} onClose={() => setCentralFollowUp(null)} />
+      )}
     </div>
   );
 }
@@ -338,12 +347,13 @@ function StatCard({ label, value, icon, tone }) {
   );
 }
 
-function FollowUpRow({ followUp, onEdit, onDelete, onStatus }) {
+function FollowUpRow({ followUp, onEdit, onDelete, onStatus, onCentral }) {
   const status = STATUS_BY_KEY[followUp.status] || STATUS_BY_KEY.to_call;
   const late = isLate(followUp.nextActionDate) && !TERMINAL.has(followUp.status);
   const clientName = followUp.client?.name || followUp.contactName || followUp.title;
   const phone = followUp.phone || followUp.client?.phone;
   const email = followUp.email || followUp.client?.email;
+  const counts = followUp.activity?.counts || { chats: 0, workOrders: 0, appointments: 0, total: 0 };
 
   return (
     <tr className={`border-b admin-border admin-hover ${late ? "bg-orange-500/5" : ""}`}>
@@ -385,6 +395,22 @@ function FollowUpRow({ followUp, onEdit, onDelete, onStatus }) {
         <p className="admin-text-muted text-xs line-clamp-2">{followUp.nextAction || "-"}</p>
       </td>
       <td className="px-4 py-3 align-top">
+        <button
+          type="button"
+          onClick={() => onCentral(followUp)}
+          className="text-left w-full rounded-lg admin-hover px-2 py-1"
+        >
+          <div className="flex flex-wrap gap-1.5">
+            <MiniCount icon="fa-comments" value={counts.chats} label="chats" />
+            <MiniCount icon="fa-clipboard-list" value={counts.workOrders} label="bons" />
+            <MiniCount icon="fa-calendar-check" value={counts.appointments} label="rdv" />
+          </div>
+          <p className="admin-text-muted text-[10px] mt-1">
+            {counts.total > 0 ? "Ouvrir la centrale" : "Aucune activite liee"}
+          </p>
+        </button>
+      </td>
+      <td className="px-4 py-3 align-top">
         <p className="admin-text font-bold">
           {followUp.estimateAmount ? `${Number(followUp.estimateAmount).toFixed(2)} $` : "-"}
         </p>
@@ -406,6 +432,199 @@ function FollowUpRow({ followUp, onEdit, onDelete, onStatus }) {
         </button>
       </td>
     </tr>
+  );
+}
+
+function MiniCount({ icon, value, label }) {
+  return (
+    <span className={`inline-flex items-center gap-1 rounded px-2 py-1 text-[10px] font-bold ${value > 0 ? "bg-[var(--color-red)]/10 text-[var(--color-red)]" : "bg-white/5 admin-text-muted"}`}>
+      <i className={`fas ${icon}`}></i>
+      {value} {label}
+    </span>
+  );
+}
+
+function CentralModal({ followUp, onClose }) {
+  const activity = followUp.activity || {};
+  const counts = activity.counts || { chats: 0, workOrders: 0, appointments: 0, total: 0 };
+  const name = followUp.client?.name || followUp.contactName || followUp.title;
+  const phone = followUp.phone || followUp.client?.phone;
+  const email = followUp.email || followUp.client?.email;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="admin-bg admin-border border rounded-xl w-full max-w-6xl max-h-[92vh] overflow-y-auto shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="px-5 py-4 border-b admin-border flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+          <div>
+            <p className="admin-text-muted text-xs uppercase tracking-wider font-bold">Centrale client</p>
+            <h2 className="admin-text text-xl font-extrabold">{name}</h2>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs mt-1">
+              {phone && <a href={`tel:${phone}`} className="text-[var(--color-red)] hover:underline">{phone}</a>}
+              {email && <a href={`mailto:${email}`} className="admin-text-muted hover:admin-text">{email}</a>}
+              {followUp.client?.id && (
+                <Link href={`/admin/clients/${followUp.client.id}`} className="admin-text-muted hover:admin-text">
+                  Fiche client
+                </Link>
+              )}
+            </div>
+          </div>
+          <button onClick={onClose} className="admin-text-muted hover:admin-text self-start lg:self-center">
+            <i className="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div className="p-5 space-y-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <CentralStat label="Chats" value={counts.chats} icon="fa-comments" />
+            <CentralStat label="Bons" value={counts.workOrders} icon="fa-clipboard-list" />
+            <CentralStat label="Rendez-vous" value={counts.appointments} icon="fa-calendar-check" />
+            <CentralStat label="Total activites" value={counts.total} icon="fa-layer-group" />
+          </div>
+
+          <div className="grid lg:grid-cols-[1fr_1.2fr] gap-5">
+            <div className="admin-card border rounded-xl p-4">
+              <h3 className="admin-text font-bold mb-3">Suivi courant</h3>
+              <InfoLine label="Statut" value={STATUS_BY_KEY[followUp.status]?.label || followUp.status} />
+              <InfoLine label="Prochaine action" value={followUp.nextAction || "-"} />
+              <InfoLine label="Date de suivi" value={formatDate(followUp.nextActionDate)} />
+              <InfoLine label="Estime" value={followUp.estimateAmount ? `${Number(followUp.estimateAmount).toFixed(2)} $` : "-"} />
+              {followUp.notes && (
+                <div className="mt-3">
+                  <p className="admin-text-muted text-xs uppercase tracking-wider font-bold mb-1">Notes</p>
+                  <p className="admin-text text-sm whitespace-pre-wrap">{followUp.notes}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="admin-card border rounded-xl p-4">
+              <h3 className="admin-text font-bold mb-3">Activite recente</h3>
+              {activity.recent?.length > 0 ? (
+                <div className="space-y-2">
+                  {activity.recent.map((item) => (
+                    <Link key={`${item.type}-${item.id}`} href={item.href} className="flex items-start gap-3 rounded-lg admin-hover px-3 py-2">
+                      <ActivityIcon type={item.type} />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="admin-text font-semibold text-sm truncate">{item.title}</p>
+                          <p className="admin-text-muted text-xs shrink-0">{formatDate(item.date)}</p>
+                        </div>
+                        <p className="admin-text-muted text-xs truncate">{item.subtitle || item.status || "-"}</p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <p className="admin-text-muted text-sm">Aucune activite reliee pour le moment.</p>
+              )}
+            </div>
+          </div>
+
+          <div className="grid lg:grid-cols-3 gap-5">
+            <ActivitySection
+              title="Chats"
+              icon="fa-comments"
+              items={activity.chats || []}
+              empty="Aucun chat lie"
+              render={(chat) => (
+                <Link href={chat.href} className="block rounded-lg admin-hover px-3 py-2">
+                  <p className="admin-text font-semibold text-sm truncate">{chat.clientName}</p>
+                  <p className="admin-text-muted text-xs truncate">{chat.lastMessage || chat.clientPhone}</p>
+                  <p className="admin-text-muted text-[10px] mt-1">{formatDate(chat.lastMessageAt)}{chat.unreadCount > 0 ? ` | ${chat.unreadCount} non-lu` : ""}</p>
+                </Link>
+              )}
+            />
+            <ActivitySection
+              title="Bons de travail"
+              icon="fa-clipboard-list"
+              items={activity.workOrders || []}
+              empty="Aucun bon lie"
+              render={(wo) => (
+                <Link href={wo.href} className="block rounded-lg admin-hover px-3 py-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="admin-text font-semibold text-sm">{wo.number}</p>
+                    <p className="admin-text-muted text-xs">{wo.total ? `${Number(wo.total).toFixed(2)} $` : "-"}</p>
+                  </div>
+                  <p className="admin-text-muted text-xs">{wo.statut}{wo.technicianName ? ` | ${wo.technicianName}` : ""}</p>
+                  <p className="admin-text-muted text-[10px] mt-1">{formatDate(wo.date || wo.updatedAt)}</p>
+                </Link>
+              )}
+            />
+            <ActivitySection
+              title="Rendez-vous"
+              icon="fa-calendar-check"
+              items={activity.appointments || []}
+              empty="Aucun rendez-vous lie"
+              render={(appt) => (
+                <Link href={appt.href} className="block rounded-lg admin-hover px-3 py-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="admin-text font-semibold text-sm">{appt.timeSlot}</p>
+                    <p className="admin-text-muted text-xs">{appt.status}</p>
+                  </div>
+                  <p className="admin-text-muted text-xs truncate">{appt.serviceType}</p>
+                  <p className="admin-text-muted text-[10px] mt-1">{formatDate(appt.date)}</p>
+                </Link>
+              )}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CentralStat({ label, value, icon }) {
+  return (
+    <div className="admin-card border rounded-xl p-4">
+      <div className="flex items-center gap-3">
+        <div className="w-9 h-9 rounded-lg bg-[var(--color-red)]/10 text-[var(--color-red)] flex items-center justify-center">
+          <i className={`fas ${icon}`}></i>
+        </div>
+        <div>
+          <p className="admin-text-muted text-xs uppercase tracking-wider font-bold">{label}</p>
+          <p className="admin-text text-xl font-extrabold">{value}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InfoLine({ label, value }) {
+  return (
+    <div className="flex items-start justify-between gap-3 border-b admin-border py-2 last:border-b-0">
+      <p className="admin-text-muted text-xs uppercase tracking-wider font-bold">{label}</p>
+      <p className="admin-text text-sm text-right">{value}</p>
+    </div>
+  );
+}
+
+function ActivityIcon({ type }) {
+  const icon = type === "chat" ? "fa-comments" : type === "appointment" ? "fa-calendar-check" : "fa-clipboard-list";
+  return (
+    <span className="w-8 h-8 rounded-lg bg-[var(--color-red)]/10 text-[var(--color-red)] flex items-center justify-center shrink-0">
+      <i className={`fas ${icon} text-xs`}></i>
+    </span>
+  );
+}
+
+function ActivitySection({ title, icon, items, empty, render }) {
+  return (
+    <div className="admin-card border rounded-xl p-4">
+      <h3 className="admin-text font-bold mb-3">
+        <i className={`fas ${icon} text-[var(--color-red)] mr-2`}></i>{title}
+      </h3>
+      {items.length > 0 ? (
+        <div className="space-y-1 max-h-80 overflow-y-auto">
+          {items.map((item) => (
+            <div key={item.id}>{render(item)}</div>
+          ))}
+        </div>
+      ) : (
+        <p className="admin-text-muted text-sm">{empty}</p>
+      )}
+    </div>
   );
 }
 

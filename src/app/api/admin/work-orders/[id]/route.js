@@ -9,6 +9,7 @@ import {
   flattenSectionsBody,
   attachSectionsAndItems,
 } from "@/lib/work-order-utils";
+import { createOrTouchFollowUpFromWorkOrder } from "@/lib/follow-up-utils";
 
 export async function GET(_req, { params }) {
   try { await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
@@ -141,6 +142,12 @@ export async function PUT(req, { params }) {
       },
     });
   });
+
+  try {
+    await createOrTouchFollowUpFromWorkOrder({ workOrder: wo, client: wo.client });
+  } catch (err) {
+    console.error("[work-orders] follow-up sync error:", err?.message || err);
+  }
 
   const ser = (i) => ({
     ...i,

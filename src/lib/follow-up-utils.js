@@ -18,6 +18,12 @@ export function serializeFollowUp(followUp) {
   };
 }
 
+export function normalizePhoneDigits(phone) {
+  if (!phone) return null;
+  const digits = String(phone).replace(/\D/g, "").slice(-10);
+  return digits.length >= 7 ? digits : null;
+}
+
 function cleanText(value) {
   if (value === undefined || value === null) return null;
   const text = String(value).trim();
@@ -83,6 +89,56 @@ export async function createOrTouchFollowUpFromLead({ client, source, notes, ser
       service: serviceText,
       nextAction: "Appeler le client",
       notes: leadNote || null,
+    },
+  });
+}
+
+function followUpStatusFromWorkOrder(statut) {
+  if (statut === "scheduled" || statut === "in_progress") return "scheduled";
+  if (statut === "completed" || statut === "invoiced" || statut === "sent" || statut === "paid") return "completed";
+  return "to_call";
+}
+
+export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client } = {}) {
+  if (!client?.id || !workOrder?.id) return null;
+
+  const status = followUpStatusFromWorkOrder(workOrder.statut);
+  const existing = await prisma.clientFollowUp.findFirst({
+    where: {
+      clientId: client.id,
+      status: { notIn: FOLLOW_UP_TERMINAL_STATUSES },
+    },
+    orderBy: { updatedAt: "desc" },
+  });
+
+  const note = `[auto: bon de travail ${workOrder.number || `#${workOrder.id}`} ${new Date().toISOString().slice(0, 10)}]`;
+
+  if (existing) {
+    return prisma.clientFollowUp.update({
+      where: { id: existing.id },
+      data: {
+        source: existing.source || "bon de travail",
+        status: status === "completed" ? existing.status : status,
+        contactName: existing.contactName || client.name || null,
+        phone: existing.phone || client.phone || null,
+        email: existing.email || client.email || null,
+        nextAction: existing.nextAction || (status === "scheduled" ? "Suivre le bon planifie" : "Faire le suivi du bon"),
+        notes: appendNote(existing.notes, note),
+      },
+    });
+  }
+
+  return prisma.clientFollowUp.create({
+    data: {
+      clientId: client.id,
+      title: `${client.name || "Client"} - ${workOrder.number || "bon de travail"}`,
+      source: "bon de travail",
+      status,
+      contactName: client.name || null,
+      phone: client.phone || null,
+      email: client.email || null,
+      nextAction: status === "scheduled" ? "Suivre le bon planifie" : "Appeler le client",
+      notes: note,
     },
   });
 }
