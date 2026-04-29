@@ -5,7 +5,7 @@ import { requireAdmin } from "@/lib/admin-auth";
 export default async function AdminDashboard() {
   await requireAdmin();
 
-  const [totalProducts, totalCategories, totalOrders, recentOrders] = await Promise.all([
+  const [totalProducts, totalCategories, totalOrders, recentOrders, activeManagers] = await Promise.all([
     prisma.product.count(),
     prisma.category.count({ where: { parentId: null } }),
     prisma.order.count(),
@@ -13,6 +13,7 @@ export default async function AdminDashboard() {
       orderBy: { createdAt: "desc" },
       take: 5,
     }),
+    prisma.managerUser.count({ where: { isActive: true } }),
   ]);
 
   const pendingOrders = await prisma.order.count({ where: { status: "pending" } });
@@ -36,6 +37,27 @@ export default async function AdminDashboard() {
   return (
     <div className="p-6 lg:p-8">
       <h1 className="text-2xl font-extrabold admin-text mb-8">Tableau de bord</h1>
+
+      <div className="admin-card rounded-xl border p-5 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-[var(--color-red)]/10 text-[var(--color-red)] flex items-center justify-center">
+            <i className="fas fa-door-open text-lg"></i>
+          </div>
+          <div>
+            <h2 className="admin-text font-bold">Acces direct au portail gestionnaire</h2>
+            <p className="admin-text-muted text-sm">
+              {activeManagers} compte{activeManagers > 1 ? "s" : ""} actif{activeManagers > 1 ? "s" : ""}. Ouvre la page et clique sur l&apos;oeil du gestionnaire.
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/admin/gestionnaires"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[var(--color-red)] text-white rounded-lg text-sm font-bold"
+        >
+          <i className="fas fa-user-tie"></i>
+          Ouvrir les acces
+        </Link>
+      </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

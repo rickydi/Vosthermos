@@ -11,6 +11,7 @@ const pageTitles = {
   "/admin/promotions": "Promotions",
   "/admin/parametres": "Parametres",
   "/admin/utilisateurs": "Utilisateurs",
+  "/admin/gestionnaires": "Acces gestionnaires",
 };
 
 export default function AdminHeader() {
@@ -21,6 +22,7 @@ export default function AdminHeader() {
   let title = pageTitles[pathname];
   if (!title) {
     if (pathname.startsWith("/admin/produits/")) title = "Editer un produit";
+    else if (pathname.startsWith("/admin/gestionnaires/")) title = "Gestionnaire";
     else title = "Administration";
   }
 
