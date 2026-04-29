@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 
-export const FOLLOW_UP_TERMINAL_STATUSES = ["lost", "completed"];
+export const FOLLOW_UP_TERMINAL_STATUSES = ["lost", "completed", "archived"];
 
 function dateOnlyIso(value) {
   return value?.toISOString?.().slice(0, 10) || null;

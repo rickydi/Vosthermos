@@ -15,7 +15,7 @@ import {
 import ClientPicker from "@/components/admin/ClientPicker";
 
 const SETTINGS_KEY = "admin_follow_up_columns";
-const TERMINAL = new Set(["lost", "completed"]);
+const TERMINAL = new Set(["lost", "completed", "archived"]);
 
 const DEFAULT_COLUMNS = [
   { key: "to_call", label: "A appeler", icon: "fa-phone", tone: "sky", visible: true, locked: true },
@@ -98,6 +98,7 @@ const ICON_OPTIONS = [
   "fa-comments",
   "fa-clipboard-list",
   "fa-hourglass-half",
+  "fa-archive",
 ];
 
 const EMPTY_FORM = {
@@ -115,6 +116,19 @@ const EMPTY_FORM = {
   lostReason: "",
   notes: "",
 };
+
+const FIREWORK_PARTICLES = [
+  { angle: 0, distance: 54, delay: 0 },
+  { angle: 32, distance: 62, delay: 20 },
+  { angle: 65, distance: 50, delay: 45 },
+  { angle: 98, distance: 58, delay: 10 },
+  { angle: 132, distance: 66, delay: 35 },
+  { angle: 170, distance: 48, delay: 0 },
+  { angle: 210, distance: 59, delay: 55 },
+  { angle: 246, distance: 52, delay: 25 },
+  { angle: 286, distance: 64, delay: 40 },
+  { angle: 322, distance: 56, delay: 15 },
+];
 
 function toInputDate(value) {
   if (!value) return "";
@@ -237,8 +251,11 @@ export default function SuiviClientsClient() {
   const [dragOverColumn, setDragOverColumn] = useState(null);
   const [recentlyMovedId, setRecentlyMovedId] = useState(null);
   const [moveFeedback, setMoveFeedback] = useState(null);
+  const [celebratingId, setCelebratingId] = useState(null);
+  const [archivingLost, setArchivingLost] = useState(false);
   const timer = useRef(null);
   const moveTimer = useRef(null);
+  const celebrationTimer = useRef(null);
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 8 },
@@ -270,7 +287,10 @@ export default function SuiviClientsClient() {
   }, []);
 
   useEffect(() => {
-    return () => clearTimeout(moveTimer.current);
+    return () => {
+      clearTimeout(moveTimer.current);
+      clearTimeout(celebrationTimer.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -388,14 +408,22 @@ export default function SuiviClientsClient() {
   async function quickStatus(followUp, status) {
     if (!status || followUp.status === status) return;
     const previous = followUps;
+    const accepted = status === "won";
     setFollowUps((items) => items.map((item) => item.id === followUp.id ? { ...item, status } : item));
     setRecentlyMovedId(followUp.id);
-    setMoveFeedback({ id: followUp.id, label: columnMeta(columns, status).label });
+    setMoveFeedback({ id: followUp.id, label: columnMeta(columns, status).label, accepted });
     clearTimeout(moveTimer.current);
     moveTimer.current = setTimeout(() => {
       setRecentlyMovedId(null);
       setMoveFeedback(null);
     }, 1400);
+    clearTimeout(celebrationTimer.current);
+    if (accepted) {
+      setCelebratingId(followUp.id);
+      celebrationTimer.current = setTimeout(() => setCelebratingId(null), 1850);
+    } else {
+      setCelebratingId(null);
+    }
     try {
       const res = await fetch(`/api/admin/follow-ups/${followUp.id}`, {
         method: "PUT",
@@ -404,8 +432,10 @@ export default function SuiviClientsClient() {
       });
       if (!res.ok) {
         clearTimeout(moveTimer.current);
+        clearTimeout(celebrationTimer.current);
         setRecentlyMovedId(null);
         setMoveFeedback(null);
+        setCelebratingId(null);
         setFollowUps(previous);
         return;
       }
@@ -417,9 +447,43 @@ export default function SuiviClientsClient() {
       }
     } catch {
       clearTimeout(moveTimer.current);
+      clearTimeout(celebrationTimer.current);
       setRecentlyMovedId(null);
       setMoveFeedback(null);
+      setCelebratingId(null);
       setFollowUps(previous);
+    }
+  }
+
+  async function archiveLostFollowUps(items) {
+    const targets = items.filter((item) => item.status === "lost");
+    if (!targets.length || archivingLost) return;
+    const countLabel = `${targets.length} carte${targets.length > 1 ? "s" : ""}`;
+    if (!confirm(`Archiver ${countLabel} dans Perdu / refuse? Elles seront cachees du kanban.`)) return;
+
+    const previous = followUps;
+    const ids = new Set(targets.map((item) => item.id));
+    setArchivingLost(true);
+    setFollowUps((current) => current.map((item) => ids.has(item.id) ? { ...item, status: "archived" } : item));
+    setCentralFollowUp((current) => current && ids.has(current.id) ? null : current);
+    setRecentlyMovedId(null);
+    setMoveFeedback({ id: null, label: "Archive", archived: true, count: targets.length });
+    clearTimeout(moveTimer.current);
+
+    try {
+      const responses = await Promise.all(targets.map((item) => fetch(`/api/admin/follow-ups/${item.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "archived" }),
+      })));
+      if (responses.some((res) => !res.ok)) throw new Error("archive_failed");
+      moveTimer.current = setTimeout(() => setMoveFeedback(null), 1600);
+    } catch {
+      setFollowUps(previous);
+      setMoveFeedback(null);
+      alert("L'archive n'a pas fonctionne. Les cartes perdues sont remises dans la colonne.");
+    } finally {
+      setArchivingLost(false);
     }
   }
 
@@ -554,6 +618,66 @@ export default function SuiviClientsClient() {
         .kanban-drop-badge {
           animation: kanban-drop-badge 980ms ease-out both;
         }
+        .kanban-card-accepted-burst {
+          animation: kanban-card-drop 980ms cubic-bezier(0.2, 0.85, 0.2, 1), kanban-accepted-glow 1250ms ease-out both;
+        }
+        .kanban-mini-fireworks {
+          position: absolute;
+          inset: 0;
+          z-index: 20;
+          pointer-events: none;
+          overflow: hidden;
+        }
+        .kanban-firework-ring,
+        .kanban-firework-core,
+        .kanban-firework-particle {
+          position: absolute;
+          left: 62%;
+          top: 34%;
+        }
+        .kanban-firework-ring {
+          width: 18px;
+          height: 18px;
+          border: 2px solid rgba(110, 231, 183, 0.82);
+          border-radius: 999px;
+          transform: translate(-50%, -50%) scale(0.2);
+          animation: kanban-firework-ring 760ms ease-out both;
+        }
+        .kanban-firework-core {
+          width: 9px;
+          height: 9px;
+          border-radius: 999px;
+          background: rgb(103, 232, 249);
+          box-shadow: 0 0 18px rgba(103, 232, 249, 0.92), 0 0 26px rgba(110, 231, 183, 0.72);
+          transform: translate(-50%, -50%) scale(0.2);
+          animation: kanban-firework-core 680ms ease-out both;
+        }
+        .kanban-firework-particle {
+          width: 5px;
+          height: 5px;
+          border-radius: 999px;
+          background: rgb(103, 232, 249);
+          box-shadow: 0 0 12px currentColor;
+          transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0) scale(0.35);
+          animation: kanban-firework-particle 920ms ease-out var(--delay) both;
+        }
+        .kanban-firework-particle.particle-1 { background: rgb(110, 231, 183); color: rgb(110, 231, 183); }
+        .kanban-firework-particle.particle-2 { background: rgb(251, 191, 36); color: rgb(251, 191, 36); }
+        .kanban-firework-particle.particle-3 { background: rgb(125, 211, 252); color: rgb(125, 211, 252); }
+        .kanban-firework-particle.particle-4 { background: rgb(196, 181, 253); color: rgb(196, 181, 253); }
+        .kanban-win-badge {
+          position: absolute;
+          right: 8px;
+          top: 8px;
+          border-radius: 999px;
+          background: rgb(16, 185, 129);
+          color: rgb(2, 6, 23);
+          padding: 2px 8px;
+          font-size: 9px;
+          font-weight: 900;
+          box-shadow: 0 0 24px rgba(16, 185, 129, 0.45);
+          animation: kanban-win-badge 1350ms ease-out both;
+        }
         @keyframes kanban-overlay-in {
           0% { opacity: 0.72; transform: scale(0.96) rotate(0deg); }
           100% { opacity: 1; transform: scale(1.035) rotate(1.15deg); }
@@ -573,6 +697,32 @@ export default function SuiviClientsClient() {
           18% { opacity: 1; transform: translateY(0) scale(1.04); }
           78% { opacity: 1; transform: translateY(0) scale(1); }
           100% { opacity: 0; transform: translateY(-4px) scale(0.98); }
+        }
+        @keyframes kanban-accepted-glow {
+          0% { box-shadow: 0 0 0 rgba(16, 185, 129, 0); border-color: rgba(110, 231, 183, 0.85); }
+          28% { box-shadow: 0 22px 58px rgba(16, 185, 129, 0.22), 0 0 0 1px rgba(103, 232, 249, 0.36); }
+          100% { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
+        }
+        @keyframes kanban-firework-ring {
+          0% { opacity: 0; transform: translate(-50%, -50%) scale(0.2); }
+          20% { opacity: 1; }
+          100% { opacity: 0; transform: translate(-50%, -50%) scale(5.2); }
+        }
+        @keyframes kanban-firework-core {
+          0% { opacity: 0; transform: translate(-50%, -50%) scale(0.2); }
+          26% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+          100% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+        }
+        @keyframes kanban-firework-particle {
+          0% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0) scale(0.35); }
+          18% { opacity: 1; }
+          100% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--angle)) translateX(var(--distance)) scale(0.1); }
+        }
+        @keyframes kanban-win-badge {
+          0% { opacity: 0; transform: translateY(-8px) scale(0.86); }
+          18% { opacity: 1; transform: translateY(0) scale(1.05); }
+          72% { opacity: 1; transform: translateY(0) scale(1); }
+          100% { opacity: 0; transform: translateY(-6px) scale(0.96); }
         }
       `}</style>
       <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-6">
@@ -601,9 +751,19 @@ export default function SuiviClientsClient() {
       </div>
 
       {moveFeedback && (
-        <div className="mb-4 inline-flex items-center gap-2 rounded-lg border border-cyan-400/30 bg-cyan-500/10 px-3 py-2 text-sm font-bold text-cyan-200 shadow-[0_0_24px_rgba(34,211,238,0.16)]">
-          <i className="fas fa-arrows-alt"></i>
-          Carte deplacee vers {moveFeedback.label}
+        <div className={`mb-4 inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-bold shadow-[0_0_24px_rgba(34,211,238,0.16)] ${
+          moveFeedback.accepted
+            ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-200"
+            : moveFeedback.archived
+              ? "border-slate-400/30 bg-slate-500/10 text-slate-200"
+              : "border-cyan-400/30 bg-cyan-500/10 text-cyan-200"
+        }`}>
+          <i className={`fas ${moveFeedback.accepted ? "fa-star" : moveFeedback.archived ? "fa-archive" : "fa-arrows-alt"}`}></i>
+          {moveFeedback.accepted
+            ? "Carte acceptee"
+            : moveFeedback.archived
+              ? `${moveFeedback.count || 0} carte${moveFeedback.count > 1 ? "s" : ""} archivee${moveFeedback.count > 1 ? "s" : ""}`
+              : `Carte deplacee vers ${moveFeedback.label}`}
         </div>
       )}
 
@@ -660,9 +820,12 @@ export default function SuiviClientsClient() {
                   onEdit={openEdit}
                   onDelete={deleteFollowUp}
                   onCentral={setCentralFollowUp}
+                  onArchiveLost={archiveLostFollowUps}
                   isDragOver={dragOverColumn === column.key}
                   activeDragId={activeDragId}
                   recentlyMovedId={recentlyMovedId}
+                  celebratingId={celebratingId}
+                  archivingLost={archivingLost}
                 />
               ))}
             </div>
@@ -749,9 +912,12 @@ function KanbanColumn({
   onEdit,
   onDelete,
   onCentral,
+  onArchiveLost,
   isDragOver,
   activeDragId,
   recentlyMovedId,
+  celebratingId,
+  archivingLost,
 }) {
   const { isOver, setNodeRef } = useDroppable({ id: column.key });
   const t = toneClasses(column.tone);
@@ -778,9 +944,23 @@ function KanbanColumn({
               {items.length} carte{items.length > 1 ? "s" : ""}{totalEstimate > 0 ? ` | ${totalEstimate.toFixed(2)} $` : ""}
             </p>
           </div>
-          <button onClick={onAdd} className="w-7 h-7 rounded-lg admin-hover admin-text-muted hover:admin-text shrink-0" title="Ajouter">
-            <i className="fas fa-plus text-xs"></i>
-          </button>
+          <div className="flex items-center gap-1 shrink-0">
+            {column.key === "lost" && items.length > 0 && (
+              <button
+                type="button"
+                onClick={() => onArchiveLost(items)}
+                disabled={archivingLost}
+                className="h-7 rounded-lg bg-slate-500/15 px-2 text-[10px] font-bold text-slate-200 hover:bg-slate-500/25 disabled:opacity-50"
+                title="Archiver les cartes perdues"
+              >
+                <i className={`fas ${archivingLost ? "fa-spinner fa-spin" : "fa-archive"} mr-1`}></i>
+                Archive
+              </button>
+            )}
+            <button onClick={onAdd} className="w-7 h-7 rounded-lg admin-hover admin-text-muted hover:admin-text" title="Ajouter">
+              <i className="fas fa-plus text-xs"></i>
+            </button>
+          </div>
         </div>
       </div>
       <div className="flex-1 p-2.5 space-y-2 overflow-y-auto">
@@ -799,6 +979,7 @@ function KanbanColumn({
               onCentral={onCentral}
               isDragging={activeDragId === followUp.id}
               highlighted={recentlyMovedId === followUp.id}
+              celebrating={celebratingId === followUp.id}
             />
           ))
         )}
@@ -811,7 +992,7 @@ function isInteractiveTarget(target) {
   return Boolean(target?.closest?.("a,button,input,textarea,select,label"));
 }
 
-function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, isDragging, highlighted }) {
+function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, isDragging, highlighted, celebrating }) {
   const [pressed, setPressed] = useState(false);
   const didDrag = useRef(false);
   const {
@@ -863,8 +1044,11 @@ function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, isDragging
         pressed && !dragging ? "kanban-card-pressed ring-2 ring-cyan-300/55" : ""
       } ${
         highlighted ? "kanban-card-dropped ring-2 ring-cyan-300/80" : ""
+      } ${
+        celebrating ? "kanban-card-accepted-burst ring-2 ring-emerald-300/80" : ""
       }`}
     >
+      {celebrating && <MiniFireworks />}
       {dragging && (
         <div className="absolute inset-x-2 top-2 z-10 rounded-lg border border-cyan-300/35 bg-cyan-500/10 px-2 py-1.5 text-[11px] font-extrabold text-cyan-100">
           <i className="fas fa-hand-pointer mr-2"></i>En mouvement
@@ -975,6 +1159,29 @@ function KanbanCardPreview({ followUp, columns }) {
         <MiniCount icon="fa-calendar-check" value={counts.appointments} label="rdv" />
         <MiniCount icon="fa-images" value={counts.photos || 0} label="photos" />
       </div>
+    </div>
+  );
+}
+
+function MiniFireworks() {
+  return (
+    <div className="kanban-mini-fireworks" aria-hidden="true">
+      <span className="kanban-firework-ring"></span>
+      <span className="kanban-firework-core"></span>
+      {FIREWORK_PARTICLES.map((particle, index) => (
+        <span
+          key={`${particle.angle}-${particle.distance}`}
+          className={`kanban-firework-particle particle-${index % 5}`}
+          style={{
+            "--angle": `${particle.angle}deg`,
+            "--distance": `${particle.distance}px`,
+            "--delay": `${particle.delay}ms`,
+          }}
+        />
+      ))}
+      <span className="kanban-win-badge">
+        <i className="fas fa-check mr-1"></i>Accepte
+      </span>
     </div>
   );
 }
@@ -2478,34 +2685,45 @@ function ColumnEditor({ columns, onSave, onClose }) {
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${t.soft}`}>
                   <i className={`fas ${column.icon}`}></i>
                 </div>
-                <input
-                  value={column.label}
-                  onChange={(e) => updateColumn(index, { label: e.target.value })}
-                  className="admin-input border rounded-lg px-3 py-2 text-sm w-full"
-                />
-                <select
-                  value={column.icon}
-                  onChange={(e) => updateColumn(index, { icon: e.target.value })}
-                  className="admin-input border rounded-lg px-3 py-2 text-sm"
-                >
-                  {ICON_OPTIONS.map((icon) => <option key={icon} value={icon}>{icon.replace("fa-", "")}</option>)}
-                </select>
-                <select
-                  value={column.tone}
-                  onChange={(e) => updateColumn(index, { tone: e.target.value })}
-                  className="admin-input border rounded-lg px-3 py-2 text-sm"
-                >
-                  {Object.entries(TONES).map(([key, tone]) => <option key={key} value={key}>{tone.label}</option>)}
-                </select>
+                <label className="min-w-0">
+                  <span className="admin-text-muted text-[10px] uppercase tracking-wider font-bold mb-1 block">Nom de la colonne</span>
+                  <input
+                    value={column.label}
+                    onChange={(e) => updateColumn(index, { label: e.target.value })}
+                    className="admin-input border rounded-lg px-3 py-2 text-sm w-full"
+                  />
+                </label>
+                <label>
+                  <span className="admin-text-muted text-[10px] uppercase tracking-wider font-bold mb-1 block">Icone</span>
+                  <select
+                    value={column.icon}
+                    onChange={(e) => updateColumn(index, { icon: e.target.value })}
+                    className="admin-input border rounded-lg px-3 py-2 text-sm w-full"
+                  >
+                    {ICON_OPTIONS.map((icon) => <option key={icon} value={icon}>{icon.replace("fa-", "")}</option>)}
+                  </select>
+                </label>
+                <label>
+                  <span className="admin-text-muted text-[10px] uppercase tracking-wider font-bold mb-1 block">Couleur</span>
+                  <select
+                    value={column.tone}
+                    onChange={(e) => updateColumn(index, { tone: e.target.value })}
+                    className="admin-input border rounded-lg px-3 py-2 text-sm w-full"
+                  >
+                    {Object.entries(TONES).map(([key, tone]) => <option key={key} value={key}>{tone.label}</option>)}
+                  </select>
+                </label>
                 <div className="flex items-center justify-end gap-2">
                   <button type="button" onClick={() => updateColumn(index, { visible: !column.visible })} className={`w-9 h-9 rounded-lg ${column.visible ? "bg-emerald-500/15 text-emerald-300" : "bg-white/5 admin-text-muted"}`} title="Afficher / masquer">
                     <i className={`fas ${column.visible ? "fa-eye" : "fa-eye-slash"}`}></i>
                   </button>
-                  <button type="button" onClick={() => move(index, -1)} className="w-9 h-9 rounded-lg admin-hover admin-text-muted" title="Monter">
+                  <button type="button" onClick={() => move(index, -1)} disabled={index === 0} className="h-9 rounded-lg admin-hover admin-text-muted px-2 disabled:opacity-35" title="Deplacer vers la gauche">
                     <i className="fas fa-arrow-left"></i>
+                    <span className="hidden xl:inline ml-1 text-xs font-bold">Gauche</span>
                   </button>
-                  <button type="button" onClick={() => move(index, 1)} className="w-9 h-9 rounded-lg admin-hover admin-text-muted" title="Descendre">
+                  <button type="button" onClick={() => move(index, 1)} disabled={index === draft.length - 1} className="h-9 rounded-lg admin-hover admin-text-muted px-2 disabled:opacity-35" title="Deplacer vers la droite">
                     <i className="fas fa-arrow-right"></i>
+                    <span className="hidden xl:inline ml-1 text-xs font-bold">Droite</span>
                   </button>
                   {!column.locked && (
                     <button type="button" onClick={() => setDraft((items) => items.filter((_, i) => i !== index))} className="w-9 h-9 rounded-lg text-amber-300 hover:bg-amber-500/10" title="Retirer">
