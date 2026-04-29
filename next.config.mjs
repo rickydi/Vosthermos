@@ -59,7 +59,6 @@ const nextConfig = {
       { source: "/en/carrieres", destination: "/en/contact?subject=careers", permanent: true },
       { source: "/en/panier", destination: "/panier", permanent: true },
       { source: "/en/rendez-vous", destination: "/en/contact", permanent: true },
-      { source: "/en/portail-gestionnaire", destination: "/en/contact?subject=portal-demo", permanent: true },
 
       // Slugs anglais -> francais (pas de version EN dediee)
       { source: "/services/door-insert", destination: "/services/insertion-porte", permanent: true },
