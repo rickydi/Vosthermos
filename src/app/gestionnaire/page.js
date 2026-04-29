@@ -13,6 +13,23 @@ function clientLogoKey(clientId) {
   return `manager_client_logo_${Number(clientId)}`;
 }
 
+function dateOnlyTime(value) {
+  if (!value) return null;
+  if (typeof value === "string") {
+    const m = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])).getTime();
+  }
+  const d = new Date(value);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+}
+
+function isInvoiceOverdue(invoice) {
+  if (invoice?.statut !== "invoiced" || !invoice.dueDate) return false;
+  const due = dateOnlyTime(invoice.dueDate);
+  const today = dateOnlyTime(new Date());
+  return due !== null && today !== null && due < today;
+}
+
 export default async function GestionnairePage({ searchParams }) {
   const sp = await searchParams;
   const manager = await getManagerFromCookie();
@@ -273,16 +290,19 @@ export default async function GestionnairePage({ searchParams }) {
 
   const toPayTotal = invoices.filter((i) => i.statut === "invoiced").reduce((s, i) => s + i.total, 0);
   const paidTotal = invoices.filter((i) => i.statut === "paid").reduce((s, i) => s + i.total, 0);
+  const overdueInvoicesCount = invoices.filter(isInvoiceOverdue).length;
 
   // Notifications (derived from WOs + invoices) — only urgent/info, not per-WO
   const notifs = [];
   if (pendingInvoicesCount > 0) {
     notifs.push({
-      kind: "urgent",
+      kind: overdueInvoicesCount > 0 ? "urgent" : "info",
       icon: "fa-file-invoice-dollar",
-      name: "Facture à régler",
+      name: overdueInvoicesCount > 0 ? "Facture en retard" : "Facture à régler",
       time: "Récent",
-      text: `${pendingInvoicesCount} facture${pendingInvoicesCount > 1 ? "s" : ""} en attente de paiement`,
+      text: overdueInvoicesCount > 0
+        ? `${overdueInvoicesCount} facture${overdueInvoicesCount > 1 ? "s" : ""} en retard`
+        : `${pendingInvoicesCount} facture${pendingInvoicesCount > 1 ? "s" : ""} en attente de paiement`,
       tab: "factures",
     });
   }
