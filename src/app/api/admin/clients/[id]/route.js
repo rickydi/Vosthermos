@@ -9,6 +9,34 @@ export async function GET(_req, { params }) {
   const client = await prisma.client.findUnique({
     where: { id: parseInt(id) },
     include: {
+      _count: {
+        select: {
+          buildings: true,
+          units: true,
+          workOrders: true,
+          followUps: true,
+          photos: true,
+        },
+      },
+      buildings: {
+        orderBy: { position: "asc" },
+        include: { _count: { select: { units: true } } },
+      },
+      units: {
+        where: { isActive: true },
+        orderBy: [{ buildingId: "asc" }, { code: "asc" }],
+        include: {
+          openings: {
+            orderBy: { position: "asc" },
+            select: { id: true, type: true, location: true, status: true, photoUrl: true },
+          },
+        },
+      },
+      managers: {
+        include: {
+          manager: { select: { id: true, firstName: true, lastName: true, email: true } },
+        },
+      },
       workOrders: {
         include: { technician: { select: { name: true } } },
         orderBy: { date: "desc" },

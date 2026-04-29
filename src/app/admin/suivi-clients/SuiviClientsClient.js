@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import {
   closestCorners,
   DndContext,
@@ -324,9 +323,9 @@ export default function SuiviClientsClient() {
       status: followUp.status || columns[0]?.key || "to_call",
       priority: followUp.priority || "normal",
       source: followUp.source || "",
-      contactName: followUp.contactName || followUp.client?.name || "",
-      phone: followUp.phone || followUp.client?.phone || "",
-      email: followUp.email || followUp.client?.email || "",
+      contactName: followUp.client?.name || followUp.contactName || "",
+      phone: followUp.client?.phone || followUp.phone || "",
+      email: followUp.client?.email || followUp.email || "",
       service: followUp.service || "",
       estimateAmount: followUp.estimateAmount ?? "",
       nextAction: followUp.nextAction || "",
@@ -481,6 +480,15 @@ export default function SuiviClientsClient() {
       : item));
     setCentralFollowUp((current) => current?.id === followUpId
       ? { ...current, activity: removePhotoFromActivity(current.activity, photoId) }
+      : current);
+  }
+
+  function handleCentralClientUpdated(followUpId, client) {
+    setFollowUps((items) => items.map((item) => item.id === followUpId
+      ? { ...item, client: { ...(item.client || {}), ...client } }
+      : item));
+    setCentralFollowUp((current) => current?.id === followUpId
+      ? { ...current, client: { ...(current.client || {}), ...client } }
       : current);
   }
 
@@ -692,6 +700,7 @@ export default function SuiviClientsClient() {
           columns={columns}
           onSaveNotes={saveCentralNotes}
           onSaveFollowUp={saveCentralFollowUp}
+          onClientUpdated={handleCentralClientUpdated}
           onPhotoAdded={handleCentralPhotoAdded}
           onPhotoDeleted={handleCentralPhotoDeleted}
           onClose={() => setCentralFollowUp(null)}
@@ -809,8 +818,8 @@ function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, isDragging
   const t = toneClasses(meta.tone);
   const late = isLate(followUp.nextActionDate) && !TERMINAL.has(followUp.status);
   const clientName = followUp.client?.name || followUp.contactName || followUp.title;
-  const phone = followUp.phone || followUp.client?.phone;
-  const email = followUp.email || followUp.client?.email;
+  const phone = followUp.client?.phone || followUp.phone;
+  const email = followUp.client?.email || followUp.email;
   const counts = followUp.activity?.counts || { chats: 0, workOrders: 0, appointments: 0, total: 0 };
   const dragging = isDragging || dndDragging;
   const dragListeners = { ...(listeners || {}) };
@@ -922,8 +931,8 @@ function KanbanCardPreview({ followUp, columns }) {
   const t = toneClasses(meta.tone);
   const late = isLate(followUp.nextActionDate) && !TERMINAL.has(followUp.status);
   const clientName = followUp.client?.name || followUp.contactName || followUp.title;
-  const phone = followUp.phone || followUp.client?.phone;
-  const email = followUp.email || followUp.client?.email;
+  const phone = followUp.client?.phone || followUp.phone;
+  const email = followUp.client?.email || followUp.email;
   const counts = followUp.activity?.counts || { chats: 0, workOrders: 0, appointments: 0, total: 0 };
 
   return (
@@ -973,13 +982,29 @@ function MiniCount({ icon, value, label }) {
   );
 }
 
-function CentralModal({ followUp, columns, onSaveNotes, onSaveFollowUp, onPhotoAdded, onPhotoDeleted, onClose }) {
+function clientFormFrom(client = {}) {
+  return {
+    name: client.name || "",
+    type: client.type || "particulier",
+    company: client.company || "",
+    phone: client.phone || "",
+    email: client.email || "",
+    address: client.address || "",
+    city: client.city || "",
+    province: client.province || "QC",
+    postalCode: client.postalCode || "",
+    paymentTermsDays: client.paymentTermsDays ?? 30,
+    notes: client.notes || "",
+  };
+}
+
+function CentralModal({ followUp, columns, onSaveNotes, onSaveFollowUp, onClientUpdated, onPhotoAdded, onPhotoDeleted, onClose }) {
   const activity = followUp.activity || {};
   const counts = activity.counts || { chats: 0, workOrders: 0, appointments: 0, photos: 0, total: 0 };
   const photos = activity.photos || [];
   const name = followUp.client?.name || followUp.contactName || followUp.title;
-  const phone = followUp.phone || followUp.client?.phone;
-  const email = followUp.email || followUp.client?.email;
+  const phone = followUp.client?.phone || followUp.phone;
+  const email = followUp.client?.email || followUp.email;
   const meta = columnMeta(columns, followUp.status);
   const [activeTab, setActiveTab] = useState("suivi");
   const [notesDraft, setNotesDraft] = useState(followUp.notes || "");
@@ -1101,15 +1126,7 @@ function CentralModal({ followUp, columns, onSaveNotes, onSaveFollowUp, onPhotoA
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs mt-1">
               {phone && <a href={`tel:${phone}`} className="text-sky-300 hover:underline">{phone}</a>}
               {email && <a href={`mailto:${email}`} className="admin-text-muted hover:admin-text">{email}</a>}
-              {followUp.client?.id && (
-                <Link
-                  href={`/admin/clients/${followUp.client.id}`}
-                  className="inline-flex items-center gap-1 rounded-md bg-cyan-500/10 px-2 py-1 font-bold text-cyan-200 hover:bg-cyan-500/15"
-                >
-                  <i className="fas fa-address-card text-[10px]"></i>
-                  Ouvrir fiche client
-                </Link>
-              )}
+              {followUp.client?.id && <span className="admin-text-muted">BD client #{followUp.client.id}</span>}
             </div>
           </div>
           <button onClick={onClose} className="admin-text-muted hover:admin-text self-start lg:self-center">
@@ -1129,6 +1146,7 @@ function CentralModal({ followUp, columns, onSaveNotes, onSaveFollowUp, onPhotoA
           <div className="flex flex-wrap gap-2 border-b admin-border">
             {[
               { key: "suivi", label: "Suivi", icon: "fa-list-check" },
+              { key: "client", label: "Fiche BD", icon: "fa-database" },
               { key: "photos", label: `Photos (${photos.length})`, icon: "fa-images" },
             ].map((tab) => (
               <button
@@ -1170,6 +1188,11 @@ function CentralModal({ followUp, columns, onSaveNotes, onSaveFollowUp, onPhotoA
                 onDelete={deletePhoto}
               />
             </>
+          ) : activeTab === "client" ? (
+            <ClientDatabaseTab
+              followUp={followUp}
+              onClientUpdated={(client) => onClientUpdated(followUp.id, client)}
+            />
           ) : (
             <>
           <div className="grid lg:grid-cols-[1fr_1.2fr] gap-5">
@@ -1414,6 +1437,233 @@ function ActivitySection({ title, icon, items, empty, render }) {
       ) : (
         <p className="admin-text-muted text-sm">{empty}</p>
       )}
+    </div>
+  );
+}
+
+function ClientDatabaseTab({ followUp, onClientUpdated }) {
+  const clientId = followUp.client?.id;
+  const [client, setClient] = useState(followUp.client || null);
+  const [form, setForm] = useState(clientFormFrom(followUp.client));
+  const [loading, setLoading] = useState(Boolean(clientId));
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    if (!clientId) {
+      setLoading(false);
+      return;
+    }
+    let active = true;
+    setLoading(true);
+    setMessage("");
+    fetch(`/api/admin/clients/${clientId}`, { cache: "no-store" })
+      .then((res) => res.json().then((data) => ({ ok: res.ok, data })))
+      .then(({ ok, data }) => {
+        if (!active) return;
+        if (!ok) throw new Error(data.error || "Impossible de charger la fiche BD");
+        setClient(data);
+        setForm(clientFormFrom(data));
+      })
+      .catch((err) => {
+        if (active) setMessage(err.message || "Impossible de charger la fiche BD");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => { active = false; };
+  }, [clientId]);
+
+  async function saveClient(e) {
+    e.preventDefault();
+    if (!clientId || saving) return;
+    setSaving(true);
+    setMessage("");
+    try {
+      const payload = {
+        ...form,
+        paymentTermsDays: Number(form.paymentTermsDays) || 30,
+      };
+      const res = await fetch(`/api/admin/clients/${clientId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Erreur lors de la sauvegarde");
+      const updated = { ...(client || {}), ...data, _count: client?._count, workOrders: client?.workOrders || [] };
+      setClient(updated);
+      setForm(clientFormFrom(updated));
+      onClientUpdated(updated);
+      setMessage("Fiche BD enregistree");
+      setTimeout(() => setMessage(""), 1800);
+    } catch (err) {
+      setMessage(err.message || "Erreur lors de la sauvegarde");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (!clientId) {
+    return (
+      <div className="admin-card border rounded-xl p-8 text-center">
+        <div className="mx-auto mb-3 w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-300 flex items-center justify-center">
+          <i className="fas fa-database"></i>
+        </div>
+        <p className="admin-text font-bold">Aucune fiche client BD liee</p>
+        <p className="admin-text-muted text-sm mt-1">Cette carte garde seulement les coordonnees du suivi.</p>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="admin-card border rounded-xl p-10 text-center admin-text-muted">
+        <i className="fas fa-spinner fa-spin text-2xl"></i>
+      </div>
+    );
+  }
+
+  const dbCounts = client?._count || {};
+  const workOrders = client?.workOrders || [];
+
+  return (
+    <div className="grid xl:grid-cols-[1.35fr_0.85fr] gap-5">
+      <form onSubmit={saveClient} className="admin-card border rounded-xl p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <div>
+            <h3 className="admin-text font-bold">Fiche client BD</h3>
+            <p className="admin-text-muted text-xs mt-1">Source client #{clientId}</p>
+          </div>
+          <button
+            type="submit"
+            disabled={saving}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-cyan-700 px-4 py-2 text-sm font-bold text-white hover:bg-cyan-600 disabled:opacity-50 disabled:hover:bg-cyan-700"
+          >
+            <i className={`fas ${saving ? "fa-spinner fa-spin" : "fa-save"}`}></i>
+            {saving ? "Sauvegarde..." : "Sauvegarder"}
+          </button>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-3">
+          <div className="md:col-span-2 flex gap-2">
+            {[
+              { value: "particulier", label: "Particulier", icon: "fa-user" },
+              { value: "gestionnaire", label: "Gestionnaire", icon: "fa-building" },
+            ].map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setForm({ ...form, type: option.value })}
+                className={`flex-1 rounded-lg border px-3 py-2 text-sm font-bold transition-colors ${
+                  form.type === option.value
+                    ? "border-cyan-300/45 bg-cyan-500/15 text-cyan-100"
+                    : "admin-border admin-card admin-text-muted hover:admin-text"
+                }`}
+              >
+                <i className={`fas ${option.icon} mr-2`}></i>{option.label}
+              </button>
+            ))}
+          </div>
+          <ClientField label="Nom" value={form.name} onChange={(value) => setForm({ ...form, name: value })} className="md:col-span-2" required />
+          <ClientField label="Compagnie" value={form.company} onChange={(value) => setForm({ ...form, company: value })} className="md:col-span-2" />
+          <ClientField label="Telephone" value={form.phone} onChange={(value) => setForm({ ...form, phone: value })} />
+          <ClientField label="Email" type="email" value={form.email} onChange={(value) => setForm({ ...form, email: value })} />
+          <ClientField label="Adresse" value={form.address} onChange={(value) => setForm({ ...form, address: value })} className="md:col-span-2" />
+          <ClientField label="Ville" value={form.city} onChange={(value) => setForm({ ...form, city: value })} />
+          <div className="grid grid-cols-[0.7fr_1fr] gap-3">
+            <ClientField label="Province" value={form.province} onChange={(value) => setForm({ ...form, province: value })} />
+            <ClientField label="Code postal" value={form.postalCode} onChange={(value) => setForm({ ...form, postalCode: value })} />
+          </div>
+          <div>
+            <label className="admin-text-muted text-xs font-bold block mb-1">Termes paiement</label>
+            <select
+              value={form.paymentTermsDays}
+              onChange={(e) => setForm({ ...form, paymentTermsDays: Number(e.target.value) })}
+              className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full"
+            >
+              <option value="15">Net 15 jours</option>
+              <option value="30">Net 30 jours</option>
+              <option value="45">Net 45 jours</option>
+              <option value="60">Net 60 jours</option>
+            </select>
+          </div>
+          <div className="md:col-span-2">
+            <label className="admin-text-muted text-xs font-bold block mb-1">Notes BD client</label>
+            <textarea
+              value={form.notes}
+              onChange={(e) => setForm({ ...form, notes: e.target.value })}
+              rows={5}
+              className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full resize-y min-h-28"
+            />
+          </div>
+        </div>
+        {message && <p className="mt-3 text-sm font-semibold text-cyan-200">{message}</p>}
+      </form>
+
+      <div className="space-y-4">
+        <div className="admin-card border rounded-xl p-4">
+          <h3 className="admin-text font-bold mb-3">References BD</h3>
+          <div className="grid grid-cols-2 gap-2">
+            <DbPill label="Bons" value={dbCounts.workOrders ?? workOrders.length} icon="fa-clipboard-list" />
+            <DbPill label="Suivis" value={dbCounts.followUps ?? 0} icon="fa-list-check" />
+            <DbPill label="Photos" value={dbCounts.photos ?? 0} icon="fa-images" />
+            <DbPill label="Unites" value={dbCounts.units ?? 0} icon="fa-door-open" />
+            <DbPill label="Batiments" value={dbCounts.buildings ?? 0} icon="fa-building" />
+            <DbPill label="Gestionnaires" value={client?.managers?.length || 0} icon="fa-users" />
+          </div>
+        </div>
+
+        <div className="admin-card border rounded-xl p-4">
+          <h3 className="admin-text font-bold mb-3">Derniers bons</h3>
+          {workOrders.length ? (
+            <div className="space-y-2 max-h-80 overflow-y-auto">
+              {workOrders.slice(0, 8).map((wo) => (
+                <div key={wo.id} className="rounded-lg bg-white/5 px-3 py-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="admin-text text-sm font-bold truncate">{wo.number}</p>
+                    <p className="admin-text-muted text-xs shrink-0">{money(wo.total)}</p>
+                  </div>
+                  <p className="admin-text-muted text-xs truncate">{wo.statut}{wo.technician?.name ? ` | ${wo.technician.name}` : ""}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="admin-text-muted text-sm">Aucun bon relie dans la BD.</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ClientField({ label, value, onChange, type = "text", className = "", required = false }) {
+  return (
+    <div className={className}>
+      <label className="admin-text-muted text-xs font-bold block mb-1">{label}</label>
+      <input
+        type={type}
+        required={required}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full"
+      />
+    </div>
+  );
+}
+
+function DbPill({ label, value, icon }) {
+  return (
+    <div className="rounded-lg bg-white/5 px-3 py-2">
+      <div className="flex items-center gap-2">
+        <span className="w-7 h-7 rounded-lg bg-cyan-500/10 text-cyan-300 flex items-center justify-center">
+          <i className={`fas ${icon} text-xs`}></i>
+        </span>
+        <div>
+          <p className="admin-text text-sm font-extrabold">{value}</p>
+          <p className="admin-text-muted text-[10px] uppercase tracking-wider font-bold">{label}</p>
+        </div>
+      </div>
     </div>
   );
 }
