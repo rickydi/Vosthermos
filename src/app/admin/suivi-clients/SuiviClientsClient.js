@@ -520,7 +520,7 @@ export default function SuiviClientsClient() {
           border-color: rgba(103, 232, 249, 0.68);
         }
         .kanban-drag-overlay {
-          width: min(330px, calc(100vw - 32px));
+          width: min(285px, calc(100vw - 32px));
           transform-origin: center;
           animation: kanban-overlay-in 140ms ease-out both;
           box-shadow: 0 30px 75px rgba(8, 145, 178, 0.34), 0 0 0 1px rgba(103, 232, 249, 0.5);
@@ -635,7 +635,7 @@ export default function SuiviClientsClient() {
             onDragCancel={handleDragCancel}
             onDragEnd={handleDragEnd}
           >
-            <div className="grid auto-cols-[minmax(290px,1fr)] grid-flow-col gap-4 min-h-[560px]">
+            <div className="grid auto-cols-[minmax(255px,0.9fr)] grid-flow-col gap-3 min-h-[540px]">
               {visibleColumns.map((column) => (
                 <KanbanColumn
                   key={column.key}
@@ -746,31 +746,31 @@ function KanbanColumn({
   return (
     <section
       ref={setNodeRef}
-      className={`admin-card border ${t.border} rounded-xl min-h-[560px] flex flex-col transition-all duration-200 ${
+      className={`admin-card border ${t.border} rounded-xl min-h-[540px] flex flex-col transition-all duration-200 ${
         active ? "ring-2 ring-cyan-300/40 bg-cyan-500/5 shadow-[0_0_30px_rgba(34,211,238,0.08)]" : ""
       }`}
     >
-      <div className="p-4 border-b admin-border">
-        <div className="flex items-start justify-between gap-3">
+      <div className="p-3 border-b admin-border">
+        <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${t.soft}`}>
+              <span className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${t.soft}`}>
                 <i className={`fas ${column.icon} text-xs`}></i>
               </span>
-              <h2 className="admin-text font-extrabold truncate">{column.label}</h2>
+              <h2 className="admin-text text-sm font-extrabold truncate">{column.label}</h2>
             </div>
-            <p className="admin-text-muted text-xs mt-2">
+            <p className="admin-text-muted text-[11px] mt-1.5">
               {items.length} carte{items.length > 1 ? "s" : ""}{totalEstimate > 0 ? ` | ${totalEstimate.toFixed(2)} $` : ""}
             </p>
           </div>
-          <button onClick={onAdd} className="w-8 h-8 rounded-lg admin-hover admin-text-muted hover:admin-text shrink-0" title="Ajouter">
-            <i className="fas fa-plus"></i>
+          <button onClick={onAdd} className="w-7 h-7 rounded-lg admin-hover admin-text-muted hover:admin-text shrink-0" title="Ajouter">
+            <i className="fas fa-plus text-xs"></i>
           </button>
         </div>
       </div>
-      <div className="flex-1 p-3 space-y-3 overflow-y-auto">
+      <div className="flex-1 p-2.5 space-y-2 overflow-y-auto">
         {items.length === 0 ? (
-          <div className="border border-dashed admin-border rounded-xl min-h-32 flex items-center justify-center admin-text-muted text-sm">
+          <div className="border border-dashed admin-border rounded-lg min-h-24 flex items-center justify-center admin-text-muted text-xs">
             Glisser ici
           </div>
         ) : (
@@ -842,7 +842,7 @@ function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, isDragging
         }
         onCentral(followUp);
       }}
-      className={`relative overflow-hidden rounded-xl border admin-border admin-bg p-4 shadow-sm cursor-grab active:cursor-grabbing hover:ring-2 ${t.ring} transition-all duration-300 ${
+      className={`relative overflow-hidden rounded-lg border admin-border admin-bg p-3 shadow-sm cursor-grab active:cursor-grabbing hover:ring-2 ${t.ring} transition-all duration-300 ${
         dragging ? "kanban-card-source-dragging ring-2 ring-cyan-300/70" : ""
       } ${
         pressed && !dragging ? "kanban-card-pressed ring-2 ring-cyan-300/55" : ""
@@ -851,42 +851,44 @@ function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, isDragging
       }`}
     >
       {dragging && (
-        <div className="absolute inset-x-3 top-3 z-10 rounded-lg border border-cyan-300/35 bg-cyan-500/10 px-3 py-2 text-xs font-extrabold text-cyan-100">
+        <div className="absolute inset-x-2 top-2 z-10 rounded-lg border border-cyan-300/35 bg-cyan-500/10 px-2 py-1.5 text-[11px] font-extrabold text-cyan-100">
           <i className="fas fa-hand-pointer mr-2"></i>En mouvement
         </div>
       )}
       {highlighted && (
-        <div className="kanban-drop-badge absolute right-3 top-3 z-10 rounded-full bg-cyan-500 px-3 py-1 text-[10px] font-extrabold text-slate-950 shadow-[0_0_22px_rgba(34,211,238,0.35)]">
+        <div className="kanban-drop-badge absolute right-2 top-2 z-10 rounded-full bg-cyan-500 px-2 py-0.5 text-[9px] font-extrabold text-slate-950 shadow-[0_0_22px_rgba(34,211,238,0.35)]">
           <i className="fas fa-check mr-1"></i>Deposee
         </div>
       )}
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="admin-text font-extrabold truncate">{clientName}</p>
-          <p className="admin-text-muted text-xs truncate mt-1">{followUp.service || "Service non precise"}</p>
+          <p className="admin-text text-sm font-extrabold truncate">{clientName}</p>
+          <p className="admin-text-muted text-[11px] truncate mt-0.5">{followUp.service || "Service non precise"}</p>
         </div>
-        <span className={`text-[10px] font-bold rounded-full px-2 py-1 shrink-0 ${t.badge}`}>
+        <span className={`text-[9px] font-bold rounded-full px-1.5 py-0.5 shrink-0 ${t.badge}`}>
           {meta.label}
         </span>
       </div>
 
-      <div className="mt-3 space-y-1 text-xs">
+      <div className="mt-2 space-y-0.5 text-[11px]">
         {phone && <a href={`tel:${phone}`} className="text-sky-300 hover:underline block truncate">{phone}</a>}
         {email && <a href={`mailto:${email}`} className="admin-text-muted hover:admin-text block truncate">{email}</a>}
       </div>
 
-      <div className={`mt-3 rounded-lg px-3 py-2 ${late ? "bg-amber-500/10 text-amber-300" : "bg-white/5 admin-text-muted"}`}>
-        <p className="text-[10px] uppercase tracking-wider font-bold">Prochain suivi</p>
-        <p className="text-xs font-semibold mt-0.5">{formatDate(followUp.nextActionDate)}</p>
-        <p className="text-xs line-clamp-2 mt-1">{followUp.nextAction || "-"}</p>
+      <div className={`mt-2 rounded-lg px-2.5 py-1.5 ${late ? "bg-amber-500/10 text-amber-300" : "bg-white/5 admin-text-muted"}`}>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-[9px] uppercase tracking-wider font-bold">Prochain suivi</p>
+          <p className="text-[11px] font-semibold shrink-0">{formatDate(followUp.nextActionDate)}</p>
+        </div>
+        <p className="text-[11px] line-clamp-1 mt-1">{followUp.nextAction || "-"}</p>
       </div>
 
       <button
         type="button"
         onClick={() => onCentral(followUp)}
-        className="mt-3 w-full text-left rounded-lg admin-hover px-2 py-2"
+        className="mt-2 w-full text-left rounded-lg admin-hover px-1.5 py-1.5"
       >
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1">
           <MiniCount icon="fa-comments" value={counts.chats} label="chats" />
           <MiniCount icon="fa-clipboard-list" value={counts.workOrders} label="bons" />
           <MiniCount icon="fa-calendar-check" value={counts.appointments} label="rdv" />
@@ -895,20 +897,20 @@ function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, isDragging
       </button>
 
       {followUp.estimateAmount ? (
-        <p className="admin-text text-sm font-bold mt-2">{Number(followUp.estimateAmount).toFixed(2)} $</p>
+        <p className="admin-text text-xs font-bold mt-1.5">{Number(followUp.estimateAmount).toFixed(2)} $</p>
       ) : null}
 
-      <div className="mt-4 flex items-center justify-between gap-2">
+      <div className="mt-3 flex items-center justify-between gap-2">
         {followUp.client?.id ? (
-          <Link href={`/admin/clients/${followUp.client.id}`} className="admin-text-muted hover:admin-text text-xs">
+          <Link href={`/admin/clients/${followUp.client.id}`} className="admin-text-muted hover:admin-text text-[11px]">
             Fiche client
           </Link>
         ) : <span />}
-        <div className="flex items-center gap-3">
-          <button onClick={() => onEdit(followUp)} className="admin-text-muted hover:admin-text text-xs" title="Modifier">
+        <div className="flex items-center gap-2.5">
+          <button onClick={() => onEdit(followUp)} className="admin-text-muted hover:admin-text text-[11px]" title="Modifier">
             <i className="fas fa-pen"></i>
           </button>
-          <button onClick={() => onDelete(followUp)} className="text-amber-300 hover:text-amber-200 text-xs" title="Supprimer">
+          <button onClick={() => onDelete(followUp)} className="text-amber-300 hover:text-amber-200 text-[11px]" title="Supprimer">
             <i className="fas fa-trash"></i>
           </button>
         </div>
@@ -927,32 +929,34 @@ function KanbanCardPreview({ followUp, columns }) {
   const counts = followUp.activity?.counts || { chats: 0, workOrders: 0, appointments: 0, total: 0 };
 
   return (
-    <div className={`kanban-drag-overlay relative overflow-hidden rounded-xl border ${t.border} admin-bg p-4 pointer-events-none`}>
-      <div className="absolute right-3 top-3 z-10 rounded-full bg-cyan-400 px-3 py-1 text-[10px] font-extrabold text-slate-950 shadow-[0_0_24px_rgba(34,211,238,0.35)]">
+    <div className={`kanban-drag-overlay relative overflow-hidden rounded-lg border ${t.border} admin-bg p-3 pointer-events-none`}>
+      <div className="absolute right-2 top-2 z-10 rounded-full bg-cyan-400 px-2 py-0.5 text-[9px] font-extrabold text-slate-950 shadow-[0_0_24px_rgba(34,211,238,0.35)]">
         <i className="fas fa-arrows-alt mr-1"></i>Deplacement
       </div>
-      <div className="flex items-start justify-between gap-3 pr-20">
+      <div className="flex items-start justify-between gap-2 pr-16">
         <div className="min-w-0">
-          <p className="admin-text font-extrabold truncate">{clientName}</p>
-          <p className="admin-text-muted text-xs truncate mt-1">{followUp.service || "Service non precise"}</p>
+          <p className="admin-text text-sm font-extrabold truncate">{clientName}</p>
+          <p className="admin-text-muted text-[11px] truncate mt-0.5">{followUp.service || "Service non precise"}</p>
         </div>
-        <span className={`text-[10px] font-bold rounded-full px-2 py-1 shrink-0 ${t.badge}`}>
+        <span className={`text-[9px] font-bold rounded-full px-1.5 py-0.5 shrink-0 ${t.badge}`}>
           {meta.label}
         </span>
       </div>
 
-      <div className="mt-3 space-y-1 text-xs">
+      <div className="mt-2 space-y-0.5 text-[11px]">
         {phone && <p className="text-sky-300 truncate">{phone}</p>}
         {email && <p className="admin-text-muted truncate">{email}</p>}
       </div>
 
-      <div className={`mt-3 rounded-lg px-3 py-2 ${late ? "bg-amber-500/10 text-amber-300" : "bg-white/5 admin-text-muted"}`}>
-        <p className="text-[10px] uppercase tracking-wider font-bold">Prochain suivi</p>
-        <p className="text-xs font-semibold mt-0.5">{formatDate(followUp.nextActionDate)}</p>
-        <p className="text-xs line-clamp-2 mt-1">{followUp.nextAction || "-"}</p>
+      <div className={`mt-2 rounded-lg px-2.5 py-1.5 ${late ? "bg-amber-500/10 text-amber-300" : "bg-white/5 admin-text-muted"}`}>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-[9px] uppercase tracking-wider font-bold">Prochain suivi</p>
+          <p className="text-[11px] font-semibold shrink-0">{formatDate(followUp.nextActionDate)}</p>
+        </div>
+        <p className="text-[11px] line-clamp-1 mt-1">{followUp.nextAction || "-"}</p>
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-1.5">
+      <div className="mt-2 flex flex-wrap gap-1">
         <MiniCount icon="fa-comments" value={counts.chats} label="chats" />
         <MiniCount icon="fa-clipboard-list" value={counts.workOrders} label="bons" />
         <MiniCount icon="fa-calendar-check" value={counts.appointments} label="rdv" />
@@ -964,7 +968,7 @@ function KanbanCardPreview({ followUp, columns }) {
 
 function MiniCount({ icon, value, label }) {
   return (
-    <span className={`inline-flex items-center gap-1 rounded px-2 py-1 text-[10px] font-bold ${value > 0 ? "bg-cyan-500/10 text-cyan-300" : "bg-white/5 admin-text-muted"}`}>
+    <span className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[9px] font-bold ${value > 0 ? "bg-cyan-500/10 text-cyan-300" : "bg-white/5 admin-text-muted"}`}>
       <i className={`fas ${icon}`}></i>
       {value} {label}
     </span>
