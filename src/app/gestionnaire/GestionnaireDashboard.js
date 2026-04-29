@@ -32,6 +32,23 @@ function fmtDateTime(iso) {
   return d.toLocaleDateString("fr-CA", { day: "numeric", month: "short", year: "numeric" }) + " à " + d.toLocaleTimeString("fr-CA", { hour: "2-digit", minute: "2-digit" });
 }
 
+function dateOnlyTime(value) {
+  if (!value) return null;
+  if (typeof value === "string") {
+    const m = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])).getTime();
+  }
+  const d = new Date(value);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+}
+
+function isInvoiceOverdue(invoice) {
+  if (invoice?.statut !== "invoiced" || !invoice.dueDate) return false;
+  const due = dateOnlyTime(invoice.dueDate);
+  const today = dateOnlyTime(new Date());
+  return due !== null && today !== null && due < today;
+}
+
 const OPENING_TYPES = [
   { value: "fenetre", label: "Fenêtre" },
   { value: "porte", label: "Porte" },
@@ -99,7 +116,7 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
   const activeWorkOrders = interventions?.active || [];
   const recentWorkOrders = interventions?.recent || [];
   const openInvoiceCount = invoices.filter((i) => i.statut === "invoiced").length;
-  const overdueInvoiceCount = invoices.filter((i) => i.statut === "invoiced" && i.dueDate && new Date(i.dueDate) < new Date()).length;
+  const overdueInvoiceCount = invoices.filter(isInvoiceOverdue).length;
   const firstName = manager.firstName || "Bonjour";
   const focusLine = activeWorkOrders.length > 0
     ? `${activeWorkOrders.length} intervention${activeWorkOrders.length > 1 ? "s" : ""} à suivre`
@@ -730,7 +747,7 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                     </thead>
                     <tbody>
                       {invoices.map((inv) => {
-                        const isOverdue = inv.statut === "invoiced" && inv.dueDate && new Date(inv.dueDate) < new Date();
+                        const isOverdue = isInvoiceOverdue(inv);
                         const openInvoice = () => window.open(`/gestionnaire/factures/${inv.id}`, "_blank", "noopener,noreferrer");
                         return (
                         <tr
