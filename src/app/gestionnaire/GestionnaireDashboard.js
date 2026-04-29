@@ -338,7 +338,6 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                   label="À payer"
                   value={stats.invoicedCount}
                   detail={overdueInvoiceCount > 0 ? `${overdueInvoiceCount} en retard · ${fmtMoney(invoicesTotals.toPay)}` : fmtMoney(invoicesTotals.toPay)}
-                  tone={overdueInvoiceCount > 0 ? "red" : ""}
                 />
               </div>
 
@@ -712,7 +711,7 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
 
               <div className="gm-grid" style={{ marginBottom: 16 }}>
                 <div className="gm-card" style={{ gridColumn: "span 4" }}>
-                  <div style={{ fontSize: 32, fontWeight: 700, color: overdueInvoiceCount > 0 ? "var(--red)" : "var(--text)" }}>{fmtMoney(invoicesTotals.toPay)}</div>
+                  <div style={{ fontSize: 32, fontWeight: 700, color: "var(--text)" }}>{fmtMoney(invoicesTotals.toPay)}</div>
                   <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".1em", marginTop: 4 }}>Total à payer</div>
                 </div>
                 <div className="gm-card" style={{ gridColumn: "span 4" }}>
