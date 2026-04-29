@@ -308,10 +308,41 @@ model Client {
   units          ClientUnit[]
   buildings      Building[]
   managers       ManagerClient[]
+  followUps      ClientFollowUp[]
 
   @@index([phone])
   @@index([type])
   @@map("clients")
+}
+
+model ClientFollowUp {
+  id              Int       @id @default(autoincrement())
+  clientId        Int?
+  client          Client?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  title           String
+  source          String?
+  status          String    @default("to_call")
+  priority        String    @default("normal")
+  contactName     String?
+  phone           String?
+  email           String?
+  service         String?
+  estimateAmount  Decimal?  @db.Decimal(10, 2)
+  estimateSentAt  DateTime?
+  acceptedAt      DateTime?
+  jobCompletedAt  DateTime?
+  nextAction      String?
+  nextActionDate  DateTime?
+  lostReason      String?
+  notes           String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([clientId])
+  @@index([status])
+  @@index([nextActionDate])
+  @@index([updatedAt])
+  @@map("client_follow_ups")
 }
 
 model ClientUnit {

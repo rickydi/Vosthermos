@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import Link from "next/link";
 
 const EMPTY_FORM = {
   name: "",
@@ -45,20 +46,19 @@ export default function ClientsPage() {
   const [editUnitCode, setEditUnitCode] = useState("");
   const [editUnitDesc, setEditUnitDesc] = useState("");
 
-  function load(q = "", sortValue = sort) {
+  const load = useCallback((q = "", sortValue = "updated_desc") => {
     setLoading(true);
     fetch(`/api/admin/clients?q=${encodeURIComponent(q)}&sort=${sortValue}`)
       .then((r) => r.json())
       .then((data) => { setClients(data.clients || []); setLoading(false); })
       .catch(() => setLoading(false));
-  }
-
-  useEffect(() => { load(search, sort); }, []);
+  }, []);
 
   useEffect(() => {
     clearTimeout(timer.current);
     timer.current = setTimeout(() => load(search, sort), 300);
-  }, [search, sort]);
+    return () => clearTimeout(timer.current);
+  }, [load, search, sort]);
 
   async function handleDelete(client) {
     if (!confirm(`Supprimer le client "${client.name}"? Cette action est irreversible.`)) return;
@@ -180,7 +180,7 @@ export default function ClientsPage() {
       }
       resetForm();
       setShowForm(false);
-      load(search);
+      load(search, sort);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -379,7 +379,9 @@ export default function ClientsPage() {
                 <tr key={c.id} className="border-b admin-border admin-hover">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <p className="admin-text font-medium">{c.name}</p>
+                      <Link href={`/admin/clients/${c.id}`} className="admin-text font-medium hover:text-[var(--color-red)]">
+                        {c.name}
+                      </Link>
                       {c.type === "gestionnaire" && (
                         <span className="text-[10px] uppercase bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">
                           B2B
@@ -393,6 +395,10 @@ export default function ClientsPage() {
                   <td className="px-4 py-3 admin-text-muted">{c.city || "—"}</td>
                   <td className="px-4 py-3 admin-text">{c._count?.workOrders || 0}</td>
                   <td className="px-4 py-3 text-right whitespace-nowrap">
+                    <Link href={`/admin/clients/${c.id}`}
+                      className="admin-text-muted hover:admin-text text-xs mr-4" title="Ouvrir la fiche">
+                      <i className="fas fa-eye"></i>
+                    </Link>
                     <button onClick={() => startEdit(c)}
                       className="admin-text-muted hover:admin-text text-xs mr-4" title="Modifier">
                       <i className="fas fa-pen"></i>

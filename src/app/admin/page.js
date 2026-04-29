@@ -5,7 +5,10 @@ import { requireAdmin } from "@/lib/admin-auth";
 export default async function AdminDashboard() {
   await requireAdmin();
 
-  const [totalProducts, totalCategories, totalOrders, recentOrders, activeManagers] = await Promise.all([
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const [totalProducts, totalCategories, totalOrders, recentOrders, activeManagers, activeFollowUps, overdueFollowUps] = await Promise.all([
     prisma.product.count(),
     prisma.category.count({ where: { parentId: null } }),
     prisma.order.count(),
@@ -14,6 +17,13 @@ export default async function AdminDashboard() {
       take: 5,
     }),
     prisma.managerUser.count({ where: { isActive: true } }),
+    prisma.clientFollowUp.count({ where: { status: { notIn: ["lost", "completed"] } } }),
+    prisma.clientFollowUp.count({
+      where: {
+        status: { notIn: ["lost", "completed"] },
+        nextActionDate: { lt: today },
+      },
+    }),
   ]);
 
   const pendingOrders = await prisma.order.count({ where: { status: "pending" } });
@@ -37,6 +47,28 @@ export default async function AdminDashboard() {
   return (
     <div className="p-6 lg:p-8">
       <h1 className="text-2xl font-extrabold admin-text mb-8">Tableau de bord</h1>
+
+      <div className="admin-card rounded-xl border p-5 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-[var(--color-red)]/10 text-[var(--color-red)] flex items-center justify-center">
+            <i className="fas fa-list-check text-lg"></i>
+          </div>
+          <div>
+            <h2 className="admin-text font-bold">Suivi clients</h2>
+            <p className="admin-text-muted text-sm">
+              {activeFollowUps} suivi{activeFollowUps > 1 ? "s" : ""} actif{activeFollowUps > 1 ? "s" : ""}.
+              {overdueFollowUps > 0 ? ` ${overdueFollowUps} en retard a relancer.` : " Aucun retard de relance."}
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/admin/suivi-clients"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[var(--color-red)] text-white rounded-lg text-sm font-bold"
+        >
+          <i className="fas fa-phone"></i>
+          Ouvrir le suivi
+        </Link>
+      </div>
 
       <div className="admin-card rounded-xl border p-5 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-4">

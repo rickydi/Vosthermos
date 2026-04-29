@@ -7,6 +7,7 @@ const pageTitles = {
   "/admin/commandes": "Commandes",
   "/admin/produits": "Produits",
   "/admin/categories": "Categories",
+  "/admin/suivi-clients": "Suivi clients",
   "/admin/analytics": "Analytics",
   "/admin/promotions": "Promotions",
   "/admin/parametres": "Parametres",

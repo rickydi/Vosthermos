@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { createOrTouchFollowUpFromLead } from "@/lib/follow-up-utils";
 
 function normalizePhoneDigits(phone) {
   if (!phone) return null;
@@ -17,6 +18,14 @@ function pickFilled(existingValue, newValue) {
   const trimmed = typeof newValue === "string" ? newValue.trim() : newValue;
   if (trimmed === "" || trimmed === null) return existingValue;
   return existingValue && String(existingValue).trim() ? existingValue : trimmed;
+}
+
+async function tryCreateFollowUpFromLead(args) {
+  try {
+    await createOrTouchFollowUpFromLead(args);
+  } catch (err) {
+    console.error("[upsertClientFromLead] follow-up error:", err?.message || err);
+  }
 }
 
 export async function upsertClientFromLead({
@@ -62,7 +71,7 @@ export async function upsertClientFromLead({
         return joined || existing.notes;
       })();
 
-      return await prisma.client.update({
+      const updated = await prisma.client.update({
         where: { id: existing.id },
         data: {
           name: pickFilled(existing.name, cleanName) || existing.name,
@@ -76,9 +85,11 @@ export async function upsertClientFromLead({
           notes: mergedNotes,
         },
       });
+      await tryCreateFollowUpFromLead({ client: updated, source, notes });
+      return updated;
     }
 
-    return await prisma.client.create({
+    const created = await prisma.client.create({
       data: {
         name: cleanName || "Sans nom",
         email: cleanEmail,
@@ -91,6 +102,8 @@ export async function upsertClientFromLead({
         notes: [sourceNote, notes].filter(Boolean).join("\n") || null,
       },
     });
+    await tryCreateFollowUpFromLead({ client: created, source, notes });
+    return created;
   } catch (err) {
     console.error("[upsertClientFromLead] error:", err?.message || err);
     return null;

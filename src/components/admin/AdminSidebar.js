@@ -13,6 +13,7 @@ const DEFAULT_NAV_ITEMS = [
   { href: "/admin/produits", label: "Produits", icon: "fa-boxes" },
   { href: "/admin/categories", label: "Categories", icon: "fa-folder-open" },
   { section: "GESTION" },
+  { href: "/admin/suivi-clients", label: "Suivi clients", icon: "fa-list-check" },
   { href: "/admin/chat", label: "Chat clients", icon: "fa-comments" },
   { href: "/admin/analytics", label: "Analytics", icon: "fa-chart-line" },
   { href: "/admin/promotions", label: "Promotions", icon: "fa-tag" },
