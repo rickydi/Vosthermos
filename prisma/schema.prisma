@@ -309,6 +309,7 @@ model Client {
   buildings      Building[]
   managers       ManagerClient[]
   followUps      ClientFollowUp[]
+  photos         ClientPhoto[]
 
   @@index([phone])
   @@index([type])
@@ -337,12 +338,31 @@ model ClientFollowUp {
   notes           String?   @db.Text
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+  photos          ClientPhoto[]
 
   @@index([clientId])
   @@index([status])
   @@index([nextActionDate])
   @@index([updatedAt])
   @@map("client_follow_ups")
+}
+
+model ClientPhoto {
+  id         Int             @id @default(autoincrement())
+  clientId   Int?
+  client     Client?         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  followUpId Int?
+  followUp   ClientFollowUp? @relation(fields: [followUpId], references: [id], onDelete: SetNull)
+  title      String?
+  notes      String?         @db.Text
+  url        String
+  source     String          @default("admin")
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@index([clientId])
+  @@index([followUpId])
+  @@map("client_photos")
 }
 
 model ClientUnit {

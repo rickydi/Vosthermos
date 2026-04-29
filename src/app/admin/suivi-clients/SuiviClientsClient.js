@@ -3,6 +3,16 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import {
+  closestCorners,
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useDraggable,
+  useDroppable,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 import ClientPicker from "@/components/admin/ClientPicker";
 
 const SETTINGS_KEY = "admin_follow_up_columns";
@@ -163,6 +173,31 @@ function toneClasses(tone) {
   return TONES[tone] || TONES.slate;
 }
 
+function addPhotoToActivity(activity = {}, photo) {
+  const existingPhotos = activity.photos || [];
+  const photos = [photo, ...existingPhotos.filter((item) => item.id !== photo.id)];
+  return {
+    ...activity,
+    photos,
+    counts: {
+      ...(activity.counts || {}),
+      photos: photos.length,
+    },
+  };
+}
+
+function removePhotoFromActivity(activity = {}, photoId) {
+  const photos = (activity.photos || []).filter((item) => item.photoId !== photoId);
+  return {
+    ...activity,
+    photos,
+    counts: {
+      ...(activity.counts || {}),
+      photos: photos.length,
+    },
+  };
+}
+
 export default function SuiviClientsClient() {
   const [followUps, setFollowUps] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -177,12 +212,17 @@ export default function SuiviClientsClient() {
   const [centralFollowUp, setCentralFollowUp] = useState(null);
   const [columns, setColumns] = useState(DEFAULT_COLUMNS);
   const [showColumns, setShowColumns] = useState(false);
-  const [draggedId, setDraggedId] = useState(null);
+  const [activeDragId, setActiveDragId] = useState(null);
   const [dragOverColumn, setDragOverColumn] = useState(null);
   const [recentlyMovedId, setRecentlyMovedId] = useState(null);
   const [moveFeedback, setMoveFeedback] = useState(null);
   const timer = useRef(null);
   const moveTimer = useRef(null);
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    })
+  );
 
   function load(q = search) {
     setLoading(true);
@@ -220,6 +260,7 @@ export default function SuiviClientsClient() {
   }, [search]);
 
   const visibleColumns = useMemo(() => columns.filter((c) => c.visible), [columns]);
+  const visibleColumnKeys = useMemo(() => new Set(visibleColumns.map((c) => c.key)), [visibleColumns]);
 
   const visibleFollowUps = useMemo(() => {
     const allowed = new Set(visibleColumns.map((c) => c.key));
@@ -245,6 +286,11 @@ export default function SuiviClientsClient() {
       activities: followUps.reduce((sum, f) => sum + (f.activity?.counts?.total || 0), 0),
     };
   }, [followUps]);
+
+  const activeDragItem = useMemo(
+    () => followUps.find((followUp) => followUp.id === activeDragId) || null,
+    [followUps, activeDragId]
+  );
 
   function openCreate(status = columns[0]?.key || "to_call") {
     setEditing(null);
@@ -400,45 +446,64 @@ export default function SuiviClientsClient() {
     }
   }
 
-  function handleDragStart(id) {
-    setDraggedId(id);
+  function handleCentralPhotoAdded(followUpId, photo) {
+    setFollowUps((items) => items.map((item) => item.id === followUpId
+      ? { ...item, activity: addPhotoToActivity(item.activity, photo) }
+      : item));
+    setCentralFollowUp((current) => current?.id === followUpId
+      ? { ...current, activity: addPhotoToActivity(current.activity, photo) }
+      : current);
   }
 
-  function handleDragEnd() {
-    setDraggedId(null);
+  function handleCentralPhotoDeleted(followUpId, photoId) {
+    setFollowUps((items) => items.map((item) => item.id === followUpId
+      ? { ...item, activity: removePhotoFromActivity(item.activity, photoId) }
+      : item));
+    setCentralFollowUp((current) => current?.id === followUpId
+      ? { ...current, activity: removePhotoFromActivity(current.activity, photoId) }
+      : current);
+  }
+
+  function handleDragStart(event) {
+    setActiveDragId(Number(event.active.id));
+  }
+
+  function handleDragOver(event) {
+    const columnKey = event.over?.id ? String(event.over.id) : null;
+    setDragOverColumn(columnKey && visibleColumnKeys.has(columnKey) ? columnKey : null);
+  }
+
+  function handleDragCancel() {
+    setActiveDragId(null);
     setDragOverColumn(null);
   }
 
-  function handleDrop(columnKey) {
-    const followUp = followUps.find((f) => f.id === draggedId);
-    setDraggedId(null);
+  function handleDragEnd(event) {
+    const followUp = followUps.find((f) => f.id === Number(event.active.id));
+    const columnKey = event.over?.id ? String(event.over.id) : null;
+    setActiveDragId(null);
     setDragOverColumn(null);
-    if (followUp) quickStatus(followUp, columnKey);
+    if (followUp && visibleColumnKeys.has(columnKey)) quickStatus(followUp, columnKey);
   }
 
   return (
     <div className="p-6 lg:p-8">
       <style jsx global>{`
-        .kanban-card-lifted {
-          transform: translateY(-10px) scale(1.035) rotate(0.7deg);
-          box-shadow: 0 24px 55px rgba(8, 145, 178, 0.24);
-          border-color: rgba(103, 232, 249, 0.8);
-        }
-        .kanban-drag-image {
-          position: fixed;
-          top: -1000px;
-          left: -1000px;
-          width: 290px;
-          z-index: 9999;
-          pointer-events: none;
-          transform: rotate(1.5deg) scale(1.035);
-          box-shadow: 0 28px 70px rgba(8, 145, 178, 0.38), 0 0 0 2px rgba(103, 232, 249, 0.62);
-          border-color: rgba(103, 232, 249, 0.9) !important;
-        }
         .kanban-card-pressed {
           transform: translateY(-4px) scale(1.018);
           box-shadow: 0 16px 34px rgba(8, 145, 178, 0.18);
           border-color: rgba(103, 232, 249, 0.55);
+        }
+        .kanban-card-source-dragging {
+          transform: scale(0.985);
+          opacity: 0.34;
+          border-color: rgba(103, 232, 249, 0.68);
+        }
+        .kanban-drag-overlay {
+          width: min(330px, calc(100vw - 32px));
+          transform-origin: center;
+          animation: kanban-overlay-in 140ms ease-out both;
+          box-shadow: 0 30px 75px rgba(8, 145, 178, 0.34), 0 0 0 1px rgba(103, 232, 249, 0.5);
         }
         .kanban-card-dropped {
           animation: kanban-card-drop 980ms cubic-bezier(0.2, 0.85, 0.2, 1);
@@ -454,6 +519,10 @@ export default function SuiviClientsClient() {
         }
         .kanban-drop-badge {
           animation: kanban-drop-badge 980ms ease-out both;
+        }
+        @keyframes kanban-overlay-in {
+          0% { opacity: 0.72; transform: scale(0.96) rotate(0deg); }
+          100% { opacity: 1; transform: scale(1.035) rotate(1.15deg); }
         }
         @keyframes kanban-card-drop {
           0% { transform: translateY(-18px) scale(1.04); box-shadow: 0 26px 60px rgba(8, 145, 178, 0.30); }
@@ -538,28 +607,39 @@ export default function SuiviClientsClient() {
         </div>
       ) : (
         <div className="overflow-x-auto pb-3">
-          <div className="grid auto-cols-[minmax(290px,1fr)] grid-flow-col gap-4 min-h-[560px]">
-            {visibleColumns.map((column) => (
-              <KanbanColumn
-                key={column.key}
-                column={column}
-                items={byColumn.get(column.key) || []}
-                columns={columns}
-                onAdd={() => openCreate(column.key)}
-                onEdit={openEdit}
-                onDelete={deleteFollowUp}
-                onCentral={setCentralFollowUp}
-                onDragStart={handleDragStart}
-                onDragEnd={handleDragEnd}
-                onDragEnter={setDragOverColumn}
-                onDragLeave={() => setDragOverColumn(null)}
-                onDrop={handleDrop}
-                isDragOver={dragOverColumn === column.key}
-                draggedId={draggedId}
-                recentlyMovedId={recentlyMovedId}
-              />
-            ))}
-          </div>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCorners}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragCancel={handleDragCancel}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="grid auto-cols-[minmax(290px,1fr)] grid-flow-col gap-4 min-h-[560px]">
+              {visibleColumns.map((column) => (
+                <KanbanColumn
+                  key={column.key}
+                  column={column}
+                  items={byColumn.get(column.key) || []}
+                  columns={columns}
+                  onAdd={() => openCreate(column.key)}
+                  onEdit={openEdit}
+                  onDelete={deleteFollowUp}
+                  onCentral={setCentralFollowUp}
+                  isDragOver={dragOverColumn === column.key}
+                  activeDragId={activeDragId}
+                  recentlyMovedId={recentlyMovedId}
+                />
+              ))}
+            </div>
+            <DragOverlay
+              adjustScale={false}
+              dropAnimation={{ duration: 260, easing: "cubic-bezier(0.2, 0.85, 0.2, 1)" }}
+              zIndex={70}
+            >
+              {activeDragItem ? <KanbanCardPreview followUp={activeDragItem} columns={columns} /> : null}
+            </DragOverlay>
+          </DndContext>
         </div>
       )}
 
@@ -591,6 +671,8 @@ export default function SuiviClientsClient() {
           followUp={centralFollowUp}
           columns={columns}
           onSaveNotes={saveCentralNotes}
+          onPhotoAdded={handleCentralPhotoAdded}
+          onPhotoDeleted={handleCentralPhotoDeleted}
           onClose={() => setCentralFollowUp(null)}
         />
       )}
@@ -631,29 +713,21 @@ function KanbanColumn({
   onEdit,
   onDelete,
   onCentral,
-  onDragStart,
-  onDragEnd,
-  onDragEnter,
-  onDragLeave,
-  onDrop,
   isDragOver,
-  draggedId,
+  activeDragId,
   recentlyMovedId,
 }) {
+  const { isOver, setNodeRef } = useDroppable({ id: column.key });
   const t = toneClasses(column.tone);
   const totalEstimate = items.reduce((sum, item) => sum + (Number(item.estimateAmount) || 0), 0);
+  const active = isDragOver || isOver;
 
   return (
     <section
+      ref={setNodeRef}
       className={`admin-card border ${t.border} rounded-xl min-h-[560px] flex flex-col transition-all duration-200 ${
-        isDragOver ? "ring-1 ring-cyan-300/35 bg-cyan-500/5" : ""
+        active ? "ring-2 ring-cyan-300/40 bg-cyan-500/5 shadow-[0_0_30px_rgba(34,211,238,0.08)]" : ""
       }`}
-      onDragEnter={() => onDragEnter(column.key)}
-      onDragOver={(e) => e.preventDefault()}
-      onDragLeave={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget)) onDragLeave();
-      }}
-      onDrop={() => onDrop(column.key)}
     >
       <div className="p-4 border-b admin-border">
         <div className="flex items-start justify-between gap-3">
@@ -687,9 +761,7 @@ function KanbanColumn({
               onEdit={onEdit}
               onDelete={onDelete}
               onCentral={onCentral}
-              onDragStart={onDragStart}
-              onDragEnd={onDragEnd}
-              isDragging={draggedId === followUp.id}
+              isDragging={activeDragId === followUp.id}
               highlighted={recentlyMovedId === followUp.id}
             />
           ))
@@ -699,8 +771,19 @@ function KanbanColumn({
   );
 }
 
-function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, onDragStart, onDragEnd, isDragging, highlighted }) {
+function isInteractiveTarget(target) {
+  return Boolean(target?.closest?.("a,button,input,textarea,select,label"));
+}
+
+function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, isDragging, highlighted }) {
   const [pressed, setPressed] = useState(false);
+  const didDrag = useRef(false);
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    isDragging: dndDragging,
+  } = useDraggable({ id: followUp.id });
   const meta = columnMeta(columns, followUp.status);
   const t = toneClasses(meta.tone);
   const late = isLate(followUp.nextActionDate) && !TERMINAL.has(followUp.status);
@@ -708,36 +791,47 @@ function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, onDragStar
   const phone = followUp.phone || followUp.client?.phone;
   const email = followUp.email || followUp.client?.email;
   const counts = followUp.activity?.counts || { chats: 0, workOrders: 0, appointments: 0, total: 0 };
+  const dragging = isDragging || dndDragging;
+  const dragListeners = { ...(listeners || {}) };
+  const startPointerDrag = dragListeners.onPointerDown;
+  delete dragListeners.onPointerDown;
+
+  useEffect(() => {
+    if (dragging) didDrag.current = true;
+  }, [dragging]);
 
   return (
     <article
-      draggable
-      onDragStart={(e) => {
-        setPressed(false);
-        e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain", String(followUp.id));
-        setKanbanDragImage(e);
-        onDragStart(followUp.id);
+      ref={setNodeRef}
+      {...attributes}
+      {...dragListeners}
+      onPointerDown={(e) => {
+        if (isInteractiveTarget(e.target)) return;
+        setPressed(true);
+        startPointerDrag?.(e);
       }}
-      onDragEnd={() => {
-        setPressed(false);
-        onDragEnd();
-      }}
-      onPointerDown={() => setPressed(true)}
       onPointerUp={() => setPressed(false)}
       onPointerLeave={() => setPressed(false)}
       onPointerCancel={() => setPressed(false)}
+      onClick={(e) => {
+        if (isInteractiveTarget(e.target)) return;
+        if (didDrag.current) {
+          didDrag.current = false;
+          return;
+        }
+        onCentral(followUp);
+      }}
       className={`relative overflow-hidden rounded-xl border admin-border admin-bg p-4 shadow-sm cursor-grab active:cursor-grabbing hover:ring-2 ${t.ring} transition-all duration-300 ${
-        isDragging ? "kanban-card-lifted opacity-85 ring-2 ring-cyan-300/80" : ""
+        dragging ? "kanban-card-source-dragging ring-2 ring-cyan-300/70" : ""
       } ${
-        pressed && !isDragging ? "kanban-card-pressed ring-2 ring-cyan-300/55" : ""
+        pressed && !dragging ? "kanban-card-pressed ring-2 ring-cyan-300/55" : ""
       } ${
         highlighted ? "kanban-card-dropped ring-2 ring-cyan-300/80" : ""
       }`}
     >
-      {isDragging && (
-        <div className="absolute inset-x-3 top-3 z-10 rounded-lg border border-cyan-300/45 bg-cyan-500/15 px-3 py-2 text-xs font-extrabold text-cyan-100 shadow-[0_0_24px_rgba(34,211,238,0.28)]">
-          <i className="fas fa-hand-pointer mr-2"></i>Carte en deplacement
+      {dragging && (
+        <div className="absolute inset-x-3 top-3 z-10 rounded-lg border border-cyan-300/35 bg-cyan-500/10 px-3 py-2 text-xs font-extrabold text-cyan-100">
+          <i className="fas fa-hand-pointer mr-2"></i>En mouvement
         </div>
       )}
       {highlighted && (
@@ -802,6 +896,51 @@ function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, onDragStar
   );
 }
 
+function KanbanCardPreview({ followUp, columns }) {
+  const meta = columnMeta(columns, followUp.status);
+  const t = toneClasses(meta.tone);
+  const late = isLate(followUp.nextActionDate) && !TERMINAL.has(followUp.status);
+  const clientName = followUp.client?.name || followUp.contactName || followUp.title;
+  const phone = followUp.phone || followUp.client?.phone;
+  const email = followUp.email || followUp.client?.email;
+  const counts = followUp.activity?.counts || { chats: 0, workOrders: 0, appointments: 0, total: 0 };
+
+  return (
+    <div className={`kanban-drag-overlay relative overflow-hidden rounded-xl border ${t.border} admin-bg p-4 pointer-events-none`}>
+      <div className="absolute right-3 top-3 z-10 rounded-full bg-cyan-400 px-3 py-1 text-[10px] font-extrabold text-slate-950 shadow-[0_0_24px_rgba(34,211,238,0.35)]">
+        <i className="fas fa-arrows-alt mr-1"></i>Deplacement
+      </div>
+      <div className="flex items-start justify-between gap-3 pr-20">
+        <div className="min-w-0">
+          <p className="admin-text font-extrabold truncate">{clientName}</p>
+          <p className="admin-text-muted text-xs truncate mt-1">{followUp.service || "Service non precise"}</p>
+        </div>
+        <span className={`text-[10px] font-bold rounded-full px-2 py-1 shrink-0 ${t.badge}`}>
+          {meta.label}
+        </span>
+      </div>
+
+      <div className="mt-3 space-y-1 text-xs">
+        {phone && <p className="text-sky-300 truncate">{phone}</p>}
+        {email && <p className="admin-text-muted truncate">{email}</p>}
+      </div>
+
+      <div className={`mt-3 rounded-lg px-3 py-2 ${late ? "bg-amber-500/10 text-amber-300" : "bg-white/5 admin-text-muted"}`}>
+        <p className="text-[10px] uppercase tracking-wider font-bold">Prochain suivi</p>
+        <p className="text-xs font-semibold mt-0.5">{formatDate(followUp.nextActionDate)}</p>
+        <p className="text-xs line-clamp-2 mt-1">{followUp.nextAction || "-"}</p>
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        <MiniCount icon="fa-comments" value={counts.chats} label="chats" />
+        <MiniCount icon="fa-clipboard-list" value={counts.workOrders} label="bons" />
+        <MiniCount icon="fa-calendar-check" value={counts.appointments} label="rdv" />
+        <MiniCount icon="fa-images" value={counts.photos || 0} label="photos" />
+      </div>
+    </div>
+  );
+}
+
 function MiniCount({ icon, value, label }) {
   return (
     <span className={`inline-flex items-center gap-1 rounded px-2 py-1 text-[10px] font-bold ${value > 0 ? "bg-cyan-500/10 text-cyan-300" : "bg-white/5 admin-text-muted"}`}>
@@ -811,19 +950,7 @@ function MiniCount({ icon, value, label }) {
   );
 }
 
-function setKanbanDragImage(event) {
-  if (!event.dataTransfer || typeof document === "undefined") return;
-  const source = event.currentTarget;
-  const rect = source.getBoundingClientRect();
-  const ghost = source.cloneNode(true);
-  ghost.classList.add("kanban-drag-image");
-  ghost.style.width = `${Math.min(rect.width, 320)}px`;
-  document.body.appendChild(ghost);
-  event.dataTransfer.setDragImage(ghost, Math.min(rect.width / 2, 150), 34);
-  window.setTimeout(() => ghost.remove(), 0);
-}
-
-function CentralModal({ followUp, columns, onSaveNotes, onClose }) {
+function CentralModal({ followUp, columns, onSaveNotes, onPhotoAdded, onPhotoDeleted, onClose }) {
   const activity = followUp.activity || {};
   const counts = activity.counts || { chats: 0, workOrders: 0, appointments: 0, photos: 0, total: 0 };
   const photos = activity.photos || [];
@@ -837,6 +964,11 @@ function CentralModal({ followUp, columns, onSaveNotes, onClose }) {
   const [noteError, setNoteError] = useState("");
   const [embeddedView, setEmbeddedView] = useState(null);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [photoTitle, setPhotoTitle] = useState("");
+  const [photoNotes, setPhotoNotes] = useState("");
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [photoError, setPhotoError] = useState("");
+  const photoInputRef = useRef(null);
   const savedTimer = useRef(null);
   const notesDirty = notesDraft !== (followUp.notes || "");
 
@@ -861,6 +993,50 @@ function CentralModal({ followUp, columns, onSaveNotes, onClose }) {
   function openEmbeddedView(view) {
     if (!view?.href) return;
     setEmbeddedView(view);
+  }
+
+  async function uploadPhotos(e) {
+    const files = Array.from(e.target.files || []);
+    e.target.value = "";
+    if (!files.length) return;
+    setPhotoUploading(true);
+    setPhotoError("");
+    try {
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append("photo", file);
+        if (files.length === 1 && photoTitle.trim()) formData.append("title", photoTitle.trim());
+        if (photoNotes.trim()) formData.append("notes", photoNotes.trim());
+        const res = await fetch(`/api/admin/follow-ups/${followUp.id}/photos`, {
+          method: "POST",
+          body: formData,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Erreur upload photo");
+        onPhotoAdded(followUp.id, data);
+      }
+      setPhotoTitle("");
+      setPhotoNotes("");
+    } catch (err) {
+      setPhotoError(err.message || "Erreur upload photo");
+    } finally {
+      setPhotoUploading(false);
+    }
+  }
+
+  async function deletePhoto(photo) {
+    if (!photo?.photoId || !photo.canDelete) return;
+    if (!confirm("Supprimer cette photo du suivi client?")) return;
+    setPhotoError("");
+    try {
+      const res = await fetch(`/api/admin/client-photos/${photo.photoId}`, { method: "DELETE" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Erreur suppression photo");
+      onPhotoDeleted(followUp.id, photo.photoId);
+      if (selectedPhoto?.photoId === photo.photoId) setSelectedPhoto(null);
+    } catch (err) {
+      setPhotoError(err.message || "Erreur suppression photo");
+    }
   }
 
   return (
@@ -918,7 +1094,29 @@ function CentralModal({ followUp, columns, onSaveNotes, onClose }) {
           </div>
 
           {activeTab === "photos" ? (
-            <PhotoTab photos={photos} onSelect={setSelectedPhoto} />
+            <>
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={uploadPhotos}
+                disabled={photoUploading}
+              />
+              <PhotoTab
+                photos={photos}
+                onSelect={setSelectedPhoto}
+                onUpload={() => photoInputRef.current?.click()}
+                uploading={photoUploading}
+                error={photoError}
+                photoTitle={photoTitle}
+                setPhotoTitle={setPhotoTitle}
+                photoNotes={photoNotes}
+                setPhotoNotes={setPhotoNotes}
+                onDelete={deletePhoto}
+              />
+            </>
           ) : (
             <>
           <div className="grid lg:grid-cols-[1fr_1.2fr] gap-5">
@@ -1131,58 +1329,118 @@ function ActivitySection({ title, icon, items, empty, render }) {
   );
 }
 
-function PhotoTab({ photos, onSelect }) {
-  if (!photos.length) {
-    return (
-      <div className="admin-card border rounded-xl p-10 text-center">
-        <div className="mx-auto mb-3 w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-300 flex items-center justify-center">
-          <i className="fas fa-images text-lg"></i>
-        </div>
-        <p className="admin-text font-bold">Aucune photo reliee a ce client</p>
-        <p className="admin-text-muted text-sm mt-1">Les photos des ouvertures, des bons et des chats apparaitront ici automatiquement.</p>
-      </div>
-    );
-  }
-
+function PhotoTab({
+  photos,
+  onSelect,
+  onUpload,
+  uploading,
+  error,
+  photoTitle,
+  setPhotoTitle,
+  photoNotes,
+  setPhotoNotes,
+  onDelete,
+}) {
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h3 className="admin-text font-bold">Photos client</h3>
-          <p className="admin-text-muted text-sm">{photos.length} photo{photos.length > 1 ? "s" : ""} reliee{photos.length > 1 ? "s" : ""}</p>
-        </div>
-      </div>
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {photos.map((photo) => (
-          <button
-            key={photo.id}
-            type="button"
-            onClick={() => onSelect(photo)}
-            className="group admin-card border admin-border rounded-xl overflow-hidden text-left hover:ring-2 hover:ring-cyan-300/45 transition-all"
-          >
-            <div className="relative aspect-[4/3] bg-black/20 overflow-hidden">
-              <Image
-                src={photo.url}
-                alt={photo.title || "Photo client"}
-                fill
-                sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                className="object-cover transition-transform duration-300 group-hover:scale-[1.035]"
-                unoptimized
+      <div className="admin-card border rounded-xl p-4">
+        <div className="flex flex-col xl:flex-row xl:items-end gap-3">
+          <div className="min-w-0 flex-1">
+            <h3 className="admin-text font-bold">Ajouter des photos</h3>
+            <p className="admin-text-muted text-sm mt-1">Choisir une ou plusieurs images; elles seront rattachees a ce client.</p>
+            <div className="grid md:grid-cols-[0.9fr_1.4fr] gap-3 mt-3">
+              <input
+                type="text"
+                value={photoTitle}
+                onChange={(e) => setPhotoTitle(e.target.value)}
+                placeholder="Titre optionnel"
+                className="admin-input border rounded-lg px-3 py-2.5 text-sm"
+                disabled={uploading}
+              />
+              <input
+                type="text"
+                value={photoNotes}
+                onChange={(e) => setPhotoNotes(e.target.value)}
+                placeholder="Note optionnelle"
+                className="admin-input border rounded-lg px-3 py-2.5 text-sm"
+                disabled={uploading}
               />
             </div>
-            <div className="p-3">
-              <div className="flex items-center justify-between gap-2">
-                <p className="admin-text font-bold text-sm truncate">{photo.title || "Photo"}</p>
-                <span className="rounded-full bg-cyan-500/10 text-cyan-300 px-2 py-1 text-[10px] font-bold shrink-0">
-                  {photo.source || photo.type}
-                </span>
-              </div>
-              {photo.subtitle && <p className="admin-text-muted text-xs truncate mt-1">{photo.subtitle}</p>}
-              <p className="admin-text-muted text-[10px] mt-2">{formatDate(photo.date)}</p>
-            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onUpload}
+            disabled={uploading}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-cyan-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-cyan-600 disabled:opacity-50 disabled:hover:bg-cyan-700"
+          >
+            <i className={`fas ${uploading ? "fa-spinner fa-spin" : "fa-upload"}`}></i>
+            {uploading ? "Upload..." : "Choisir photos"}
           </button>
-        ))}
+        </div>
+        {error && <p className="mt-3 text-sm font-semibold text-amber-300">{error}</p>}
       </div>
+
+      {!photos.length ? (
+        <div className="admin-card border rounded-xl p-10 text-center">
+          <div className="mx-auto mb-3 w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-300 flex items-center justify-center">
+            <i className="fas fa-images text-lg"></i>
+          </div>
+          <p className="admin-text font-bold">Aucune photo reliee a ce client</p>
+          <p className="admin-text-muted text-sm mt-1">Les photos ajoutees ici, les photos des bons et les photos des chats apparaitront au meme endroit.</p>
+        </div>
+      ) : (
+        <>
+          <div>
+            <h3 className="admin-text font-bold">Photos client</h3>
+            <p className="admin-text-muted text-sm">{photos.length} photo{photos.length > 1 ? "s" : ""} reliee{photos.length > 1 ? "s" : ""}</p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {photos.map((photo) => (
+              <div
+                key={photo.id}
+                className="group relative admin-card border admin-border rounded-xl overflow-hidden hover:ring-2 hover:ring-cyan-300/45 transition-all"
+              >
+                {photo.canDelete && (
+                  <button
+                    type="button"
+                    onClick={() => onDelete(photo)}
+                    className="absolute right-2 top-2 z-10 w-8 h-8 rounded-lg bg-slate-950/75 text-white/80 hover:text-white hover:bg-slate-900"
+                    title="Supprimer"
+                  >
+                    <i className="fas fa-trash text-xs"></i>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => onSelect(photo)}
+                  className="block w-full text-left"
+                >
+                  <div className="relative aspect-[4/3] bg-black/20 overflow-hidden">
+                    <Image
+                      src={photo.url}
+                      alt={photo.title || "Photo client"}
+                      fill
+                      sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                      className="object-cover transition-transform duration-300 group-hover:scale-[1.035]"
+                      unoptimized
+                    />
+                  </div>
+                  <div className="p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="admin-text font-bold text-sm truncate">{photo.title || "Photo"}</p>
+                      <span className="rounded-full bg-cyan-500/10 text-cyan-300 px-2 py-1 text-[10px] font-bold shrink-0">
+                        {photo.source || photo.type}
+                      </span>
+                    </div>
+                    {photo.subtitle && <p className="admin-text-muted text-xs truncate mt-1">{photo.subtitle}</p>}
+                    <p className="admin-text-muted text-[10px] mt-2">{formatDate(photo.date)}</p>
+                  </div>
+                </button>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

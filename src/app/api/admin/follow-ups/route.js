@@ -72,6 +72,7 @@ function activityItem(item) {
 async function attachCentralActivity(followUps) {
   if (followUps.length === 0) return followUps;
 
+  const followUpIds = followUps.map((followUp) => followUp.id).filter(Boolean);
   const contacts = followUps.map(contactForFollowUp);
   const clientIds = [...new Set(contacts.map((c) => c.clientId).filter(Boolean))];
   const phoneSuffixes = [...new Set(contacts.flatMap((c) => c.phones.map((p) => p.slice(-7))).filter(Boolean))];
@@ -95,7 +96,7 @@ async function attachCentralActivity(followUps) {
   for (const email of emails) chatOr.push({ clientEmail: { equals: email, mode: "insensitive" } });
   for (const suffix of phoneSuffixes) chatOr.push({ clientPhone: { contains: suffix } });
 
-  const [workOrders, appointments, chats, openings] = await Promise.all([
+  const [workOrders, appointments, chats, openings, clientPhotos] = await Promise.all([
     clientOr.length ? prisma.workOrder.findMany({
       where: { OR: clientOr },
       select: {
@@ -175,6 +176,28 @@ async function attachCentralActivity(followUps) {
       orderBy: { updatedAt: "desc" },
       take: 500,
     }) : [],
+    (followUpIds.length || clientIds.length) ? prisma.clientPhoto.findMany({
+      where: {
+        OR: [
+          followUpIds.length ? { followUpId: { in: followUpIds } } : null,
+          clientIds.length ? { clientId: { in: clientIds } } : null,
+        ].filter(Boolean),
+      },
+      select: {
+        id: true,
+        clientId: true,
+        followUpId: true,
+        title: true,
+        notes: true,
+        url: true,
+        source: true,
+        createdAt: true,
+        updatedAt: true,
+        client: { select: { id: true, name: true, phone: true, email: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 500,
+    }) : [],
   ]);
 
   return followUps.map((followUp) => {
@@ -196,8 +219,26 @@ async function attachCentralActivity(followUps) {
         email: opening.unit?.client?.email,
       }))
       .slice(0, 50);
+    const relatedClientPhotos = clientPhotos
+      .filter((photo) => photo.followUpId === followUp.id || sameContact(contact, {
+        clientId: photo.clientId,
+        phone: photo.client?.phone,
+        email: photo.client?.email,
+      }))
+      .slice(0, 80);
 
     const relatedPhotos = [
+      ...relatedClientPhotos.map((photo) => activityItem({
+        id: `client-photo-${photo.id}`,
+        photoId: photo.id,
+        type: "client_photo",
+        source: photo.source === "admin" ? "Ajout admin" : photo.source,
+        title: photo.title || "Photo client",
+        subtitle: photo.notes || photo.client?.name || "",
+        url: photo.url,
+        date: photo.createdAt || photo.updatedAt,
+        canDelete: true,
+      })),
       ...relatedOpenings
         .filter((opening) => opening.photoUrl)
         .map((opening) => activityItem({
