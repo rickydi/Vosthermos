@@ -119,19 +119,35 @@ const EMPTY_FORM = {
 
 function toInputDate(value) {
   if (!value) return "";
-  return new Date(value).toISOString().slice(0, 10);
+  if (typeof value === "string") {
+    const match = value.match(/^(\d{4}-\d{2}-\d{2})/);
+    if (match) return match[1];
+  }
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
+}
+
+function dateOnly(value) {
+  const input = toInputDate(value);
+  if (!input) return null;
+  const [year, month, day] = input.split("-").map(Number);
+  if (!year || !month || !day) return null;
+  return new Date(year, month - 1, day);
 }
 
 function formatDate(value) {
   if (!value) return "-";
-  return new Date(value).toLocaleDateString("fr-CA", { day: "2-digit", month: "short", year: "numeric" });
+  const date = dateOnly(value) || new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleDateString("fr-CA", { day: "2-digit", month: "short", year: "numeric" });
 }
 
 function isLate(value) {
   if (!value) return false;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  return new Date(value) < today;
+  const date = dateOnly(value);
+  return date ? date < today : false;
 }
 
 function slugify(value) {

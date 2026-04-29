@@ -2,6 +2,10 @@ import prisma from "@/lib/prisma";
 
 export const FOLLOW_UP_TERMINAL_STATUSES = ["lost", "completed"];
 
+function dateOnlyIso(value) {
+  return value?.toISOString?.().slice(0, 10) || null;
+}
+
 export function serializeFollowUp(followUp) {
   if (!followUp) return null;
   return {
@@ -12,7 +16,7 @@ export function serializeFollowUp(followUp) {
     estimateSentAt: followUp.estimateSentAt?.toISOString() || null,
     acceptedAt: followUp.acceptedAt?.toISOString() || null,
     jobCompletedAt: followUp.jobCompletedAt?.toISOString() || null,
-    nextActionDate: followUp.nextActionDate?.toISOString() || null,
+    nextActionDate: dateOnlyIso(followUp.nextActionDate),
     createdAt: followUp.createdAt?.toISOString() || null,
     updatedAt: followUp.updatedAt?.toISOString() || null,
   };

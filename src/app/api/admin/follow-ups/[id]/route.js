@@ -6,6 +6,9 @@ import { serializeFollowUp } from "@/lib/follow-up-utils";
 function dateOrNull(value) {
   if (value === undefined) return undefined;
   if (!value) return null;
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return new Date(`${value}T12:00:00.000Z`);
+  }
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? null : date;
 }
