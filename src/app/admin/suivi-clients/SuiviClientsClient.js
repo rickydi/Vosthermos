@@ -419,15 +419,19 @@ export default function SuiviClientsClient() {
   }
 
   async function saveCentralNotes(followUp, notes) {
+    return saveCentralFollowUp(followUp, { notes });
+  }
+
+  async function saveCentralFollowUp(followUp, patch) {
     const previousFollowUps = followUps;
     const previousCentral = centralFollowUp;
-    setFollowUps((items) => items.map((item) => item.id === followUp.id ? { ...item, notes } : item));
-    setCentralFollowUp((current) => current?.id === followUp.id ? { ...current, notes } : current);
+    setFollowUps((items) => items.map((item) => item.id === followUp.id ? { ...item, ...patch } : item));
+    setCentralFollowUp((current) => current?.id === followUp.id ? { ...current, ...patch } : current);
     try {
       const res = await fetch(`/api/admin/follow-ups/${followUp.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notes }),
+        body: JSON.stringify(patch),
       });
       const updated = await res.json().catch(() => null);
       if (!res.ok) throw new Error(updated?.error || "Erreur lors de la sauvegarde");
@@ -671,6 +675,7 @@ export default function SuiviClientsClient() {
           followUp={centralFollowUp}
           columns={columns}
           onSaveNotes={saveCentralNotes}
+          onSaveFollowUp={saveCentralFollowUp}
           onPhotoAdded={handleCentralPhotoAdded}
           onPhotoDeleted={handleCentralPhotoDeleted}
           onClose={() => setCentralFollowUp(null)}
@@ -950,7 +955,7 @@ function MiniCount({ icon, value, label }) {
   );
 }
 
-function CentralModal({ followUp, columns, onSaveNotes, onPhotoAdded, onPhotoDeleted, onClose }) {
+function CentralModal({ followUp, columns, onSaveNotes, onSaveFollowUp, onPhotoAdded, onPhotoDeleted, onClose }) {
   const activity = followUp.activity || {};
   const counts = activity.counts || { chats: 0, workOrders: 0, appointments: 0, photos: 0, total: 0 };
   const photos = activity.photos || [];
@@ -960,6 +965,10 @@ function CentralModal({ followUp, columns, onSaveNotes, onPhotoAdded, onPhotoDel
   const meta = columnMeta(columns, followUp.status);
   const [activeTab, setActiveTab] = useState("suivi");
   const [notesDraft, setNotesDraft] = useState(followUp.notes || "");
+  const [nextActionDraft, setNextActionDraft] = useState(followUp.nextAction || "");
+  const [nextActionDateDraft, setNextActionDateDraft] = useState(toInputDate(followUp.nextActionDate));
+  const [trackingState, setTrackingState] = useState("idle");
+  const [trackingError, setTrackingError] = useState("");
   const [noteState, setNoteState] = useState("idle");
   const [noteError, setNoteError] = useState("");
   const [embeddedView, setEmbeddedView] = useState(null);
@@ -970,10 +979,15 @@ function CentralModal({ followUp, columns, onSaveNotes, onPhotoAdded, onPhotoDel
   const [photoError, setPhotoError] = useState("");
   const photoInputRef = useRef(null);
   const savedTimer = useRef(null);
+  const trackingTimer = useRef(null);
   const notesDirty = notesDraft !== (followUp.notes || "");
+  const trackingDirty = nextActionDraft !== (followUp.nextAction || "") || nextActionDateDraft !== toInputDate(followUp.nextActionDate);
 
   useEffect(() => {
-    return () => clearTimeout(savedTimer.current);
+    return () => {
+      clearTimeout(savedTimer.current);
+      clearTimeout(trackingTimer.current);
+    };
   }, []);
 
   async function saveNotes() {
@@ -993,6 +1007,23 @@ function CentralModal({ followUp, columns, onSaveNotes, onPhotoAdded, onPhotoDel
   function openEmbeddedView(view) {
     if (!view?.href) return;
     setEmbeddedView(view);
+  }
+
+  async function saveTracking() {
+    setTrackingState("saving");
+    setTrackingError("");
+    try {
+      await onSaveFollowUp(followUp, {
+        nextAction: nextActionDraft,
+        nextActionDate: nextActionDateDraft || null,
+      });
+      setTrackingState("saved");
+      clearTimeout(trackingTimer.current);
+      trackingTimer.current = setTimeout(() => setTrackingState("idle"), 1400);
+    } catch (err) {
+      setTrackingState("idle");
+      setTrackingError(err.message || "Erreur lors de la sauvegarde");
+    }
   }
 
   async function uploadPhotos(e) {
@@ -1123,9 +1154,45 @@ function CentralModal({ followUp, columns, onSaveNotes, onPhotoAdded, onPhotoDel
             <div className="admin-card border rounded-xl p-4">
               <h3 className="admin-text font-bold mb-3">Suivi courant</h3>
               <InfoLine label="Statut" value={meta.label} />
-              <InfoLine label="Prochaine action" value={followUp.nextAction || "-"} />
-              <InfoLine label="Date de suivi" value={formatDate(followUp.nextActionDate)} />
               <InfoLine label="Estime" value={followUp.estimateAmount ? `${Number(followUp.estimateAmount).toFixed(2)} $` : "-"} />
+
+              <div className="mt-4 rounded-xl border admin-border bg-white/5 p-3">
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <p className="admin-text-muted text-xs uppercase tracking-wider font-bold">Prochain suivi</p>
+                  <button
+                    type="button"
+                    onClick={saveTracking}
+                    disabled={!trackingDirty || trackingState === "saving"}
+                    className="inline-flex items-center gap-2 rounded-lg bg-cyan-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-cyan-600 disabled:opacity-45 disabled:hover:bg-cyan-700"
+                  >
+                    <i className={`fas ${trackingState === "saving" ? "fa-spinner fa-spin" : trackingState === "saved" ? "fa-check" : "fa-save"}`}></i>
+                    {trackingState === "saving" ? "Sauvegarde..." : trackingState === "saved" ? "Enregistre" : "Sauvegarder"}
+                  </button>
+                </div>
+                <div className="grid sm:grid-cols-[170px_1fr] gap-3">
+                  <div>
+                    <label className="admin-text-muted text-xs font-bold block mb-1">Date</label>
+                    <input
+                      type="date"
+                      value={nextActionDateDraft}
+                      onChange={(e) => setNextActionDateDraft(e.target.value)}
+                      className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="admin-text-muted text-xs font-bold block mb-1">Action a faire</label>
+                    <textarea
+                      value={nextActionDraft}
+                      onChange={(e) => setNextActionDraft(e.target.value)}
+                      rows={3}
+                      placeholder="Ex: Rappeler le client, envoyer l'estime, confirmer le rendez-vous..."
+                      className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full resize-y min-h-24"
+                    />
+                  </div>
+                </div>
+                {trackingError && <p className="mt-2 text-xs text-amber-300">{trackingError}</p>}
+              </div>
+
               <div className="mt-4">
                 <div className="flex items-center justify-between gap-3 mb-2">
                   <p className="admin-text-muted text-xs uppercase tracking-wider font-bold">Notes client</p>
