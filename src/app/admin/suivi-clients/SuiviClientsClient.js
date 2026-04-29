@@ -149,6 +149,12 @@ function isLate(value) {
   return date ? date < today : false;
 }
 
+function priorityLabel(value) {
+  if (value === "high") return "Haute";
+  if (value === "low") return "Basse";
+  return "Normale";
+}
+
 function slugify(value) {
   return String(value || "")
     .normalize("NFD")
@@ -1025,6 +1031,12 @@ function CentralModal({ followUp, columns, onSaveNotes, onSaveFollowUp, onClient
   const trackingTimer = useRef(null);
   const notesDirty = notesDraft !== (followUp.notes || "");
   const trackingDirty = nextActionDraft !== (followUp.nextAction || "") || nextActionDateDraft !== toInputDate(followUp.nextActionDate);
+  const hasEstimate = followUp.estimateAmount !== null && followUp.estimateAmount !== undefined && followUp.estimateAmount !== "";
+  const estimateLabel = hasEstimate ? `${Number(followUp.estimateAmount).toFixed(2)} $` : "Aucun estime";
+  const nextActionLate = isLate(nextActionDateDraft);
+  const nextActionStatus = nextActionDateDraft ? (nextActionLate ? "A reprendre" : "Planifie") : "A planifier";
+  const saveTrackingLabel = trackingState === "saving" ? "Sauvegarde..." : trackingState === "saved" ? "Enregistre" : trackingDirty ? "Sauvegarder" : "A jour";
+  const saveNotesLabel = noteState === "saving" ? "Sauvegarde..." : noteState === "saved" ? "Enregistre" : notesDirty ? "Sauvegarder" : "A jour";
 
   useEffect(() => {
     return () => {
@@ -1195,70 +1207,114 @@ function CentralModal({ followUp, columns, onSaveNotes, onSaveFollowUp, onClient
             />
           ) : (
             <>
-          <div className="grid lg:grid-cols-[1fr_1.2fr] gap-5">
-            <div className="admin-card border rounded-xl p-4">
-              <h3 className="admin-text font-bold mb-3">Suivi courant</h3>
-              <InfoLine label="Statut" value={meta.label} />
-              <InfoLine label="Estime" value={followUp.estimateAmount ? `${Number(followUp.estimateAmount).toFixed(2)} $` : "-"} />
+          <div className="grid xl:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)] gap-5">
+            <div className="space-y-5 min-w-0">
+              <div className="admin-card border rounded-xl overflow-hidden">
+                <div className="border-b admin-border bg-white/[0.03] px-4 py-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="admin-text-muted text-xs uppercase tracking-wider font-bold">Plan de suivi</p>
+                      <h3 className="admin-text text-lg font-extrabold mt-0.5">Prochaine action client</h3>
+                    </div>
+                    <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold ${
+                      nextActionLate
+                        ? "bg-amber-500/15 text-amber-300"
+                        : nextActionDateDraft
+                          ? "bg-emerald-500/15 text-emerald-300"
+                          : "bg-slate-500/15 text-slate-300"
+                    }`}>
+                      <i className={`fas ${nextActionLate ? "fa-clock" : nextActionDateDraft ? "fa-calendar-check" : "fa-calendar-plus"}`}></i>
+                      {nextActionStatus}
+                    </span>
+                  </div>
+                </div>
 
-              <div className="mt-4 rounded-xl border admin-border bg-white/5 p-3">
-                <div className="flex items-center justify-between gap-3 mb-3">
-                  <p className="admin-text-muted text-xs uppercase tracking-wider font-bold">Prochain suivi</p>
-                  <button
-                    type="button"
-                    onClick={saveTracking}
-                    disabled={!trackingDirty || trackingState === "saving"}
-                    className="inline-flex items-center gap-2 rounded-lg bg-cyan-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-cyan-600 disabled:opacity-45 disabled:hover:bg-cyan-700"
-                  >
-                    <i className={`fas ${trackingState === "saving" ? "fa-spinner fa-spin" : trackingState === "saved" ? "fa-check" : "fa-save"}`}></i>
-                    {trackingState === "saving" ? "Sauvegarde..." : trackingState === "saved" ? "Enregistre" : "Sauvegarder"}
-                  </button>
-                </div>
-                <div className="grid sm:grid-cols-[170px_1fr] gap-3">
-                  <div>
-                    <label className="admin-text-muted text-xs font-bold block mb-1">Date</label>
-                    <input
-                      type="date"
-                      value={nextActionDateDraft}
-                      onChange={(e) => setNextActionDateDraft(e.target.value)}
-                      className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full"
-                    />
+                <div className="p-4 space-y-4">
+                  <div className="grid lg:grid-cols-[190px_1fr] gap-4">
+                    <div>
+                      <label className="admin-text-muted text-xs font-bold block mb-1">Date du prochain suivi</label>
+                      <div className="relative">
+                        <i className="fas fa-calendar-day absolute left-3 top-1/2 -translate-y-1/2 text-cyan-300 text-xs"></i>
+                        <input
+                          type="date"
+                          value={nextActionDateDraft}
+                          onChange={(e) => setNextActionDateDraft(e.target.value)}
+                          className="admin-input border rounded-lg pl-9 pr-3 py-2.5 text-sm w-full"
+                        />
+                      </div>
+                      <p className="admin-text-muted text-xs mt-2">
+                        {nextActionDateDraft ? formatDate(nextActionDateDraft) : "Aucune date choisie"}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="admin-text-muted text-xs font-bold block mb-1">Action a faire</label>
+                      <textarea
+                        value={nextActionDraft}
+                        onChange={(e) => setNextActionDraft(e.target.value)}
+                        rows={4}
+                        placeholder="Rappeler le client, envoyer l'estime, confirmer le rendez-vous..."
+                        className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full resize-y min-h-28"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="admin-text-muted text-xs font-bold block mb-1">Action a faire</label>
-                    <textarea
-                      value={nextActionDraft}
-                      onChange={(e) => setNextActionDraft(e.target.value)}
-                      rows={3}
-                      placeholder="Ex: Rappeler le client, envoyer l'estime, confirmer le rendez-vous..."
-                      className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full resize-y min-h-24"
-                    />
+
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className="admin-text-muted text-xs">
+                      {trackingDirty ? "Modification non sauvegardee" : "Plan de suivi a jour"}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={saveTracking}
+                      disabled={!trackingDirty || trackingState === "saving"}
+                      className="inline-flex items-center gap-2 rounded-lg bg-cyan-700 px-3.5 py-2 text-xs font-bold text-white hover:bg-cyan-600 disabled:opacity-45 disabled:hover:bg-cyan-700"
+                    >
+                      <i className={`fas ${trackingState === "saving" ? "fa-spinner fa-spin" : trackingState === "saved" ? "fa-check" : "fa-save"}`}></i>
+                      {saveTrackingLabel}
+                    </button>
+                  </div>
+                  {trackingError && <p className="text-xs text-amber-300">{trackingError}</p>}
+                </div>
+
+                <div className="border-t admin-border bg-white/[0.02] p-4">
+                  <p className="admin-text-muted text-xs uppercase tracking-wider font-bold mb-3">Resume client</p>
+                  <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                    <FollowUpMetric label="Etape" value={meta.label} icon={meta.icon} tone={meta.tone} />
+                    <FollowUpMetric label="Estime" value={estimateLabel} icon="fa-file-invoice-dollar" tone="amber" />
+                    <FollowUpMetric label="Priorite" value={priorityLabel(followUp.priority)} icon="fa-signal" tone={followUp.priority === "high" ? "amber" : "sky"} />
+                    <FollowUpMetric label="Service" value={followUp.service || "Non precise"} icon="fa-tools" tone="teal" />
+                    <FollowUpMetric label="Source" value={followUp.source || "Non precisee"} icon="fa-map-marker-alt" tone="slate" />
+                    <FollowUpMetric label="Contact" value={phone || email || "Non precise"} icon="fa-address-book" tone="blue" />
                   </div>
                 </div>
-                {trackingError && <p className="mt-2 text-xs text-amber-300">{trackingError}</p>}
               </div>
 
-              <div className="mt-4">
-                <div className="flex items-center justify-between gap-3 mb-2">
-                  <p className="admin-text-muted text-xs uppercase tracking-wider font-bold">Notes client</p>
+              <div className="admin-card border rounded-xl p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                  <div>
+                    <p className="admin-text-muted text-xs uppercase tracking-wider font-bold">Notes de suivi</p>
+                    <h3 className="admin-text font-bold mt-0.5">Notes internes du client</h3>
+                  </div>
                   <button
                     type="button"
                     onClick={saveNotes}
                     disabled={!notesDirty || noteState === "saving"}
-                    className="inline-flex items-center gap-2 rounded-lg bg-cyan-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-cyan-600 disabled:opacity-45 disabled:hover:bg-cyan-700"
+                    className="inline-flex items-center gap-2 rounded-lg bg-cyan-700 px-3.5 py-2 text-xs font-bold text-white hover:bg-cyan-600 disabled:opacity-45 disabled:hover:bg-cyan-700"
                   >
                     <i className={`fas ${noteState === "saving" ? "fa-spinner fa-spin" : noteState === "saved" ? "fa-check" : "fa-save"}`}></i>
-                    {noteState === "saving" ? "Sauvegarde..." : noteState === "saved" ? "Enregistre" : "Sauvegarder"}
+                    {saveNotesLabel}
                   </button>
                 </div>
                 <textarea
                   value={notesDraft}
                   onChange={(e) => setNotesDraft(e.target.value)}
-                  rows={7}
+                  rows={6}
                   placeholder="Ajouter une note: appel, reponse du client, prochaines consignes..."
-                  className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full resize-y min-h-36"
+                  className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full resize-y min-h-32"
                 />
-                {noteError && <p className="mt-2 text-xs text-amber-300">{noteError}</p>}
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+                  <p className="admin-text-muted text-xs">{notesDirty ? "Note non sauvegardee" : "Notes a jour"}</p>
+                  {noteError && <p className="text-xs text-amber-300">{noteError}</p>}
+                </div>
               </div>
             </div>
 
@@ -1404,11 +1460,19 @@ function CentralStat({ label, value, icon }) {
   );
 }
 
-function InfoLine({ label, value }) {
+function FollowUpMetric({ label, value, icon, tone = "slate" }) {
+  const colors = toneClasses(tone);
   return (
-    <div className="flex items-start justify-between gap-3 border-b admin-border py-2 last:border-b-0">
-      <p className="admin-text-muted text-xs uppercase tracking-wider font-bold">{label}</p>
-      <p className="admin-text text-sm text-right">{value}</p>
+    <div className="min-w-0 rounded-lg border admin-border bg-white/[0.03] p-3">
+      <div className="flex items-center gap-2 min-w-0">
+        <span className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${colors.soft}`}>
+          <i className={`fas ${icon} text-xs`}></i>
+        </span>
+        <div className="min-w-0">
+          <p className="admin-text-muted text-[10px] uppercase tracking-wider font-bold">{label}</p>
+          <p className="admin-text text-sm font-bold truncate">{value || "-"}</p>
+        </div>
+      </div>
     </div>
   );
 }
