@@ -79,10 +79,6 @@ function googleSearchUrl(query) {
   return `https://www.google.com/search?q=${encodeURIComponent(query)}&gl=ca&hl=fr`;
 }
 
-function gscInspectUrl(pathOrUrl) {
-  return `https://search.google.com/search-console/inspect?resource_id=sc-domain%3Avosthermos.com&id=${encodeURIComponent(publicUrl(pathOrUrl))}`;
-}
-
 function positionClass(position) {
   if (position == null) return "bg-slate-500/20 text-slate-300";
   if (position <= 3) return "bg-emerald-500/20 text-emerald-300";
@@ -213,7 +209,56 @@ function EmptyReading({ loading }) {
   );
 }
 
-function InvestigationDetails({ row }) {
+function verdictClass(value) {
+  if (!value) return "admin-text-muted";
+  if (["PASS", "VERDICT_PASS"].includes(value)) return "text-emerald-300";
+  if (["PARTIAL", "VERDICT_PARTIAL"].includes(value)) return "text-amber-300";
+  return "text-orange-300";
+}
+
+function InspectionResult({ inspection, loading, error }) {
+  if (loading) {
+    return <p className="admin-text-muted mt-2 text-xs"><i className="fas fa-spinner fa-spin mr-2"></i>Inspection en cours...</p>;
+  }
+  if (error) {
+    return <p className="mt-2 rounded-lg bg-orange-500/10 px-3 py-2 text-xs text-orange-300">{error}</p>;
+  }
+  if (!inspection) return null;
+
+  const index = inspection.result?.indexStatusResult || {};
+  return (
+    <div className="mt-3 rounded-lg bg-white/5 px-3 py-2 text-xs">
+      <div className={`font-bold ${verdictClass(index.verdict)}`}>
+        {index.verdict || "Verdict inconnu"} - {index.coverageState || "etat non fourni"}
+      </div>
+      <div className="admin-text-muted mt-1 space-y-0.5">
+        <p>Dernier crawl: {index.lastCrawlTime ? formatDate(index.lastCrawlTime) : "non fourni"}</p>
+        <p>Canonique Google: {shortUrl(index.googleCanonical) || "non fourni"}</p>
+        <p>Canonique page: {shortUrl(index.userCanonical) || "non fourni"}</p>
+      </div>
+    </div>
+  );
+}
+
+function InspectionButton({ url, inspection, loading, error, onInspect }) {
+  if (!url) return null;
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => onInspect(url)}
+        disabled={loading}
+        className="inline-flex items-center rounded-lg border px-3 py-2 text-xs font-bold admin-border admin-text hover:bg-white/5 disabled:opacity-40"
+      >
+        <i className={`fas ${loading ? "fa-spinner fa-spin" : "fa-circle-check"} mr-2`}></i>
+        Inspection
+      </button>
+      <InspectionResult inspection={inspection} loading={loading} error={error} />
+    </div>
+  );
+}
+
+function InvestigationDetails({ row, inspectionState, onInspect }) {
   const live = row.latestSerper;
   const gsc28 = row.gsc?.current28;
   const history = live?.history || [];
@@ -221,6 +266,7 @@ function InvestigationDetails({ row }) {
   const expected = row.expectedPaths || [];
   const visibleUrl = live?.url || gsc28?.bestPage || gsc28?.page || "";
   const expectedUrl = expected[0] ? publicUrl(expected[0]) : "";
+  const inspection = inspectionState[expectedUrl] || {};
 
   return (
     <div className="grid gap-4 p-4 md:grid-cols-3">
@@ -232,7 +278,15 @@ function InvestigationDetails({ row }) {
         <div className="mt-3 flex flex-wrap gap-2">
           <LinkButton href={googleSearchUrl(row.query)} icon="fa-magnifying-glass">Google</LinkButton>
           <LinkButton href={expectedUrl} icon="fa-up-right-from-square">Page cible</LinkButton>
-          <LinkButton href={expectedUrl ? gscInspectUrl(expectedUrl) : ""} icon="fa-circle-check">Inspection</LinkButton>
+        </div>
+        <div className="mt-3">
+          <InspectionButton
+            url={expectedUrl}
+            inspection={inspection.data}
+            loading={inspection.loading}
+            error={inspection.error}
+            onInspect={onInspect}
+          />
         </div>
       </div>
 
@@ -317,6 +371,7 @@ export default function GscTab() {
   const [scanning, setScanning] = useState(false);
   const [savingKeywords, setSavingKeywords] = useState(false);
   const [error, setError] = useState("");
+  const [inspectionState, setInspectionState] = useState({});
 
   const queryString = useMemo(() => {
     const params = new URLSearchParams();
@@ -468,6 +523,26 @@ export default function GscTab() {
     });
     const date = new Date().toISOString().slice(0, 10);
     exportCsv(`seo-suivi-${selectedCity}-${date}.csv`, exportRows);
+  }
+
+  async function inspectUrl(url) {
+    if (!url) return;
+    setInspectionState((prev) => ({ ...prev, [url]: { loading: true, error: "", data: null } }));
+    try {
+      const res = await fetch("/api/admin/seo/url-inspection", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      const body = await res.json();
+      if (!res.ok || body.error) throw new Error(body.error || "Erreur inspection URL");
+      setInspectionState((prev) => ({ ...prev, [url]: { loading: false, error: "", data: body } }));
+    } catch (err) {
+      setInspectionState((prev) => ({
+        ...prev,
+        [url]: { loading: false, error: err.message || "Erreur inspection URL", data: null },
+      }));
+    }
   }
 
   return (
@@ -698,7 +773,11 @@ export default function GscTab() {
                       {isOpen && (
                         <tr className="border-b bg-black/10" style={{ borderColor: "var(--admin-border)" }}>
                           <td colSpan={8}>
-                            <InvestigationDetails row={row} />
+                            <InvestigationDetails
+                              row={row}
+                              inspectionState={inspectionState}
+                              onInspect={inspectUrl}
+                            />
                           </td>
                         </tr>
                       )}
