@@ -621,6 +621,8 @@ function statusClass(level) {
   if (level === "ok") return "bg-blue-500/20 text-blue-400";
   if (level === "weak") return "bg-orange-500/20 text-orange-400";
   if (level === "page") return "bg-yellow-500/20 text-yellow-300";
+  if (level === "not-found") return "bg-orange-500/20 text-orange-300";
+  if (level === "unscanned") return "bg-gray-500/20 text-gray-400";
   return "bg-gray-500/20 text-gray-400";
 }
 
