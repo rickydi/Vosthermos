@@ -99,8 +99,8 @@ async function checkRankingSerper(cityName, keywordBase) {
         }
       }
 
-      // If this page has fewer than 10 results, no point paginating further
-      if ((data.organic || []).length < 10) break;
+      // Keep checking page 2. Serper can return fewer than 10 organic items
+      // on page 1 when Google shows local packs or other modules.
     }
 
     return { position: null, aiMention, url: null };
@@ -142,7 +142,6 @@ async function debugSerper(cityName, keywordBase) {
         const vt = organic.find(o => o.isVosthermos);
         if (vt) vosthermosFound = vt;
       }
-      if (organic.length < 10) break;
     }
 
     return {
