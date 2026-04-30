@@ -77,6 +77,52 @@ function pageMatchesCity(page, citySlug) {
   }
 }
 
+function normalizeForMatch(value) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/['’]/g, " ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function compactForMatch(value) {
+  return normalizeForMatch(value).replace(/\s+/g, "");
+}
+
+function cityMatchTerms(city) {
+  return [
+    normalizeForMatch(city.name),
+    normalizeForMatch(city.slug.replace(/-/g, " ")),
+    compactForMatch(city.name),
+    compactForMatch(city.slug),
+  ].filter((term, index, terms) => term.length >= 3 && terms.indexOf(term) === index);
+}
+
+function queryCityScore(query, city) {
+  const normalizedQuery = normalizeForMatch(query);
+  const compactQuery = compactForMatch(query);
+  const queryTokens = normalizedQuery.split(/\s+/);
+  let score = 0;
+
+  for (const term of city.terms || cityMatchTerms(city)) {
+    const matches = term.includes(" ")
+      ? normalizedQuery.includes(term)
+      : queryTokens.includes(term) || (term.length >= 8 && compactQuery.includes(term));
+    if (matches) score = Math.max(score, term.length);
+  }
+
+  return score;
+}
+
+function findQueryCity(query, cities) {
+  return cities
+    .map((city) => ({ city, score: queryCityScore(query, city) }))
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score)[0]?.city || null;
+}
+
 export async function GET(request) {
   try {
     await requireAdmin();
@@ -182,7 +228,7 @@ export async function GET(request) {
         requestBody: {
           startDate: isoDate(startDate),
           endDate: isoDate(endDate),
-          dimensions: ["page"],
+          dimensions: ["query", "page"],
           dimensionFilterGroups: filters,
           rowLimit: 25000,
           type: "web",
@@ -190,9 +236,13 @@ export async function GET(request) {
       });
 
       const rows = response.data.rows || [];
+      const cityMeta = CITIES.map((city) => ({
+        ...city,
+        terms: cityMatchTerms(city),
+      }));
 
       const cityResults = {};
-      for (const c of CITIES) {
+      for (const c of cityMeta) {
         cityResults[c.slug] = {
           slug: c.slug,
           name: c.name,
@@ -211,22 +261,21 @@ export async function GET(request) {
       };
 
       for (const row of rows) {
-        const page = row.keys[0];
-        let matched = false;
-        for (const c of CITIES) {
-          if (pageMatchesCity(page, c.slug)) {
-            const cr = cityResults[c.slug];
-            cr.totalClicks += row.clicks;
-            cr.totalImpressions += row.impressions;
-            if (cr.bestPosition === null || row.position < cr.bestPosition) {
-              cr.bestPosition = Math.round(row.position * 10) / 10;
-              cr.bestPage = page;
-            }
-            matched = true;
-            break;
+        const query = row.keys[0];
+        const page = row.keys[1];
+        const queryCity = findQueryCity(query, cityMeta);
+        const pageCity = queryCity ? null : cityMeta.find((c) => pageMatchesCity(page, c.slug));
+        const matchedCity = queryCity || pageCity;
+
+        if (matchedCity) {
+          const cr = cityResults[matchedCity.slug];
+          cr.totalClicks += row.clicks;
+          cr.totalImpressions += row.impressions;
+          if (cr.bestPosition === null || row.position < cr.bestPosition) {
+            cr.bestPosition = Math.round(row.position * 10) / 10;
+            cr.bestPage = page;
           }
-        }
-        if (!matched) {
+        } else {
           const g = cityResults["_general"];
           g.totalClicks += row.clicks;
           g.totalImpressions += row.impressions;
