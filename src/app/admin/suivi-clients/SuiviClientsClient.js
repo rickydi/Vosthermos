@@ -375,11 +375,25 @@ export default function SuiviClientsClient() {
     }));
   }
 
+  function showAcceptedCelebration(followUpId) {
+    setRecentlyMovedId(followUpId);
+    setMoveFeedback({ id: followUpId, label: columnMeta(columns, "won").label, accepted: true });
+    clearTimeout(moveTimer.current);
+    moveTimer.current = setTimeout(() => {
+      setRecentlyMovedId(null);
+      setMoveFeedback(null);
+    }, 1600);
+    clearTimeout(celebrationTimer.current);
+    setCelebratingId(followUpId);
+    celebrationTimer.current = setTimeout(() => setCelebratingId(null), 1850);
+  }
+
   async function saveFollowUp(e) {
     e.preventDefault();
     setSaving(true);
     setError("");
     try {
+      const shouldCelebrateAccepted = editing?.id && form.status === "won" && editing.status !== "won";
       const payload = {
         ...form,
         clientId: selectedClient?.id || null,
@@ -397,7 +411,14 @@ export default function SuiviClientsClient() {
       setShowForm(false);
       setEditing(null);
       setSelectedClient(null);
-      load(search);
+      if (shouldCelebrateAccepted) {
+        setFollowUps((items) => items.map((item) => item.id === editing.id
+          ? { ...item, ...data, status: "won", activity: item.activity || data.activity }
+          : item));
+        showAcceptedCelebration(editing.id);
+      } else {
+        load(search);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -410,18 +431,17 @@ export default function SuiviClientsClient() {
     const previous = followUps;
     const accepted = status === "won";
     setFollowUps((items) => items.map((item) => item.id === followUp.id ? { ...item, status } : item));
-    setRecentlyMovedId(followUp.id);
-    setMoveFeedback({ id: followUp.id, label: columnMeta(columns, status).label, accepted });
-    clearTimeout(moveTimer.current);
-    moveTimer.current = setTimeout(() => {
-      setRecentlyMovedId(null);
-      setMoveFeedback(null);
-    }, 1400);
-    clearTimeout(celebrationTimer.current);
     if (accepted) {
-      setCelebratingId(followUp.id);
-      celebrationTimer.current = setTimeout(() => setCelebratingId(null), 1850);
+      showAcceptedCelebration(followUp.id);
     } else {
+      setRecentlyMovedId(followUp.id);
+      setMoveFeedback({ id: followUp.id, label: columnMeta(columns, status).label });
+      clearTimeout(moveTimer.current);
+      moveTimer.current = setTimeout(() => {
+        setRecentlyMovedId(null);
+        setMoveFeedback(null);
+      }, 1400);
+      clearTimeout(celebrationTimer.current);
       setCelebratingId(null);
     }
     try {
@@ -735,10 +755,10 @@ export default function SuiviClientsClient() {
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setShowColumns(true)}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-bold"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm font-bold"
           >
             <i className="fas fa-sliders"></i>
-            Colonnes
+            Modifier colonnes
           </button>
           <button
             onClick={() => openCreate()}
@@ -945,16 +965,16 @@ function KanbanColumn({
             </p>
           </div>
           <div className="flex items-center gap-1 shrink-0">
-            {column.key === "lost" && items.length > 0 && (
+            {column.key === "lost" && (
               <button
                 type="button"
                 onClick={() => onArchiveLost(items)}
-                disabled={archivingLost}
+                disabled={archivingLost || items.length === 0}
                 className="h-7 rounded-lg bg-slate-500/15 px-2 text-[10px] font-bold text-slate-200 hover:bg-slate-500/25 disabled:opacity-50"
                 title="Archiver les cartes perdues"
               >
                 <i className={`fas ${archivingLost ? "fa-spinner fa-spin" : "fa-archive"} mr-1`}></i>
-                Archive
+                Archive{items.length > 0 ? ` (${items.length})` : ""}
               </button>
             )}
             <button onClick={onAdd} className="w-7 h-7 rounded-lg admin-hover admin-text-muted hover:admin-text" title="Ajouter">
