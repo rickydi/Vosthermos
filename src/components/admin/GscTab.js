@@ -331,7 +331,7 @@ export default function GscTab() {
       </div>
 
       <p className="admin-text-muted text-xs mb-4">
-        Donnees reelles Google (cache 1h). Clics/impressions = 28j. Les periodes excluent les donnees GSC non finalisees.
+        Donnees reelles Google (cache 1h). Position = moyenne ponderee par impressions. Les periodes excluent les donnees GSC non finalisees.
       </p>
 
       {/* Summary */}
@@ -373,7 +373,7 @@ export default function GscTab() {
             <div className="w-[55px] text-center admin-text-muted text-[10px] font-bold uppercase tracking-wider">Clics</div>
             <div className="w-[55px] text-center admin-text-muted text-[10px] font-bold uppercase tracking-wider">Impr.</div>
             <div className="w-[55px] text-center admin-text-muted text-[10px] font-bold uppercase tracking-wider">CTR</div>
-            <div className="w-[250px] shrink-0 admin-text-muted text-[10px] font-bold uppercase tracking-wider">Meilleure page</div>
+            <div className="w-[250px] shrink-0 admin-text-muted text-[10px] font-bold uppercase tracking-wider">Page principale</div>
           </div>
 
           {mergedCities.map((city) => {

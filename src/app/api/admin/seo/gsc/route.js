@@ -252,12 +252,16 @@ export async function GET(request) {
           totalImpressions: 0,
           ctr: 0,
           bestPage: null,
+          _positionWeightedSum: 0,
+          _positionImpressions: 0,
+          _pageImpressions: {},
         };
       }
       cityResults["_general"] = {
         slug: "_general", name: "General (sans ville)",
         population: 0, bestPosition: null,
         totalClicks: 0, totalImpressions: 0, ctr: 0, bestPage: null,
+        _positionWeightedSum: 0, _positionImpressions: 0, _pageImpressions: {},
       };
 
       for (const row of rows) {
@@ -271,26 +275,32 @@ export async function GET(request) {
           const cr = cityResults[matchedCity.slug];
           cr.totalClicks += row.clicks;
           cr.totalImpressions += row.impressions;
-          if (cr.bestPosition === null || row.position < cr.bestPosition) {
-            cr.bestPosition = Math.round(row.position * 10) / 10;
-            cr.bestPage = page;
-          }
+          cr._positionWeightedSum += row.position * row.impressions;
+          cr._positionImpressions += row.impressions;
+          cr._pageImpressions[page] = (cr._pageImpressions[page] || 0) + row.impressions;
         } else {
           const g = cityResults["_general"];
           g.totalClicks += row.clicks;
           g.totalImpressions += row.impressions;
-          if (g.bestPosition === null || row.position < g.bestPosition) {
-            g.bestPosition = Math.round(row.position * 10) / 10;
-            g.bestPage = page;
-          }
+          g._positionWeightedSum += row.position * row.impressions;
+          g._positionImpressions += row.impressions;
+          g._pageImpressions[page] = (g._pageImpressions[page] || 0) + row.impressions;
         }
       }
 
-      // Compute CTR per city
+      // Compute CTR and representative position per city.
       for (const c of Object.values(cityResults)) {
         c.ctr = c.totalImpressions > 0
           ? Math.round((c.totalClicks / c.totalImpressions) * 1000) / 10
           : 0;
+        c.bestPosition = c._positionImpressions > 0
+          ? Math.round((c._positionWeightedSum / c._positionImpressions) * 10) / 10
+          : null;
+        c.bestPage = Object.entries(c._pageImpressions)
+          .sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+        delete c._positionWeightedSum;
+        delete c._positionImpressions;
+        delete c._pageImpressions;
       }
 
       const cities = Object.values(cityResults);
