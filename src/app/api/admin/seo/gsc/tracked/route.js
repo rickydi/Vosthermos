@@ -92,6 +92,17 @@ function buildFilters({ keyword, device, branded, country }) {
   return groups;
 }
 
+function cityQueryExpressions(city) {
+  return [
+    city.name,
+    city.name.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
+    city.slug.replace(/-/g, " "),
+    city.slug,
+  ]
+    .map((value) => String(value || "").trim())
+    .filter((value, index, values) => value.length >= 3 && values.indexOf(value) === index);
+}
+
 function makeWindow(endDate, days) {
   const startDate = new Date(endDate);
   startDate.setDate(startDate.getDate() - (days - 1));
@@ -127,6 +138,28 @@ async function fetchRows(searchconsole, { startDate, endDate, filters }) {
   }
 
   return rows;
+}
+
+function rowKey(row) {
+  return `${row.keys?.[0] || ""}||${row.keys?.[1] || ""}`;
+}
+
+async function fetchRowsForCity(searchconsole, { startDate, endDate, filters, city }) {
+  const rowIndex = new Map();
+
+  for (const expression of cityQueryExpressions(city)) {
+    const scopedFilters = [
+      ...filters,
+      { filters: [{ dimension: "query", operator: "contains", expression }] },
+    ];
+    const rows = await fetchRows(searchconsole, { startDate, endDate, filters: scopedFilters });
+
+    for (const row of rows) {
+      rowIndex.set(rowKey(row), row);
+    }
+  }
+
+  return [...rowIndex.values()];
 }
 
 function createBucket(label) {
@@ -284,10 +317,10 @@ export async function GET(request) {
 
     const { fromCache, data } = await withCache("tracked-city-queries", cacheParams, async () => {
       const [rows7, rows28, rows90, rowsPrev28] = await Promise.all([
-        fetchRows(searchconsole, { ...current7, filters }),
-        fetchRows(searchconsole, { ...current28, filters }),
-        fetchRows(searchconsole, { ...current90, filters }),
-        fetchRows(searchconsole, { ...previous28, filters }),
+        fetchRowsForCity(searchconsole, { ...current7, filters, city: cityWithTerms }),
+        fetchRowsForCity(searchconsole, { ...current28, filters, city: cityWithTerms }),
+        fetchRowsForCity(searchconsole, { ...current90, filters, city: cityWithTerms }),
+        fetchRowsForCity(searchconsole, { ...previous28, filters, city: cityWithTerms }),
       ]);
 
       const aggs = {
