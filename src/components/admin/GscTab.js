@@ -102,6 +102,9 @@ export default function GscTab() {
   const [loading, setLoading] = useState(true);
   const [tracked, setTracked] = useState(null);
   const [trackedLoading, setTrackedLoading] = useState(false);
+  const [keywordTracker, setKeywordTracker] = useState(null);
+  const [keywordTrackerLoading, setKeywordTrackerLoading] = useState(false);
+  const [keywordTrackerScanning, setKeywordTrackerScanning] = useState(false);
   const [trackedCity, setTrackedCity] = useState("delson");
   const [keyword, setKeyword] = useState("");
   const [device, setDevice] = useState("ALL");
@@ -173,6 +176,45 @@ export default function GscTab() {
     const t = setTimeout(() => { fetchTracked(); }, 0);
     return () => clearTimeout(t);
   }, [fetchTracked]);
+
+  const fetchKeywordTracker = useCallback(async () => {
+    setKeywordTrackerLoading(true);
+    try {
+      const res = await fetch(`/api/admin/seo/keyword-tracker?${buildQuery({ city: trackedCity })}`);
+      const d = await res.json();
+      setKeywordTracker(d.error ? null : d);
+    } catch (err) {
+      console.error("SEO keyword tracker fetch error:", err);
+      setKeywordTracker(null);
+    }
+    setKeywordTrackerLoading(false);
+  }, [buildQuery, trackedCity]);
+
+  useEffect(() => {
+    const t = setTimeout(() => { fetchKeywordTracker(); }, 0);
+    return () => clearTimeout(t);
+  }, [fetchKeywordTracker]);
+
+  async function scanKeywordTrackerCity() {
+    setKeywordTrackerScanning(true);
+    try {
+      const res = await fetch("/api/admin/seo/keyword-tracker", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          city: trackedCity,
+          device,
+          branded,
+          country: country === "ALL" ? "" : country,
+        }),
+      });
+      const d = await res.json();
+      if (!d.error) setKeywordTracker(d);
+    } catch (err) {
+      console.error("SEO keyword tracker scan error:", err);
+    }
+    setKeywordTrackerScanning(false);
+  }
 
   const fetchCityQueries = useCallback(async (slug) => {
     if (cityQueries[slug]?.pages || cityQueries[slug]?.queries) return;
@@ -369,6 +411,15 @@ export default function GscTab() {
         </div>
       )}
 
+      <KeywordTrackerSection
+        data={keywordTracker}
+        loading={keywordTrackerLoading}
+        scanning={keywordTrackerScanning}
+        selectedCity={trackedCity}
+        onCityChange={setTrackedCity}
+        onScan={scanKeywordTrackerCity}
+      />
+
       <TrackedQueriesSection
         data={tracked}
         loading={trackedLoading}
@@ -561,6 +612,157 @@ function TrackedMetric({ metric }) {
     <div className="text-center">
       <PositionPill position={metric?.position ?? null} />
       <div className="admin-text-muted text-[10px] mt-0.5">{formatNumber(metric?.impressions)}i</div>
+    </div>
+  );
+}
+
+function statusClass(level) {
+  if (level === "strong") return "bg-green-500/20 text-green-400";
+  if (level === "ok") return "bg-blue-500/20 text-blue-400";
+  if (level === "weak") return "bg-orange-500/20 text-orange-400";
+  if (level === "page") return "bg-yellow-500/20 text-yellow-300";
+  return "bg-gray-500/20 text-gray-400";
+}
+
+function formatDate(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return `${date.getDate()}/${date.getMonth() + 1} ${String(date.getHours()).padStart(2, "0")}h${String(date.getMinutes()).padStart(2, "0")}`;
+}
+
+function KeywordTrackerSection({ data, loading, scanning, selectedCity, onCityChange, onScan }) {
+  const cityOptions = [...(data?.cities || [])].sort((a, b) => a.name.localeCompare(b.name, "fr"));
+  const rows = data?.rows || [];
+  const period = data?.periods?.current28;
+  const summary = data?.summary;
+
+  return (
+    <div className="admin-card border rounded-2xl p-5 mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div>
+          <h3 className="admin-text font-bold text-sm uppercase tracking-wider">
+            <i className="fas fa-crosshairs text-cyan-400 mr-2"></i>Mots-cles a pousser
+          </h3>
+          <p className="admin-text-muted text-[10px] mt-1">
+            Lecture par mot-cle cible: position Google live, page qui sort, GSC 28j et page attendue.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {(loading || scanning) && <i className="fas fa-spinner fa-spin admin-text-muted text-xs"></i>}
+          <select
+            value={selectedCity}
+            onChange={(e) => onCityChange(e.target.value)}
+            className="admin-input border rounded-lg px-3 py-2 text-sm cursor-pointer min-w-[180px]"
+          >
+            {cityOptions.length === 0 && <option value={selectedCity}>{selectedCity}</option>}
+            {cityOptions.map((city) => (
+              <option key={city.slug} value={city.slug}>{city.name}</option>
+            ))}
+          </select>
+          <button
+            onClick={onScan}
+            disabled={scanning}
+            className="px-3 py-2 rounded-lg text-sm font-bold bg-white/5 border admin-border admin-text hover:bg-white/10 transition-all disabled:opacity-40"
+          >
+            <i className={`fas fa-sync-alt mr-2 ${scanning ? "fa-spin" : ""}`}></i>
+            {scanning ? "Scan..." : "Scanner cette ville"}
+          </button>
+        </div>
+      </div>
+
+      {summary && (
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
+          <SummaryCard label="Mots-cles" value={summary.total} color="admin-text" />
+          <SummaryCard label="Top 3 live" value={summary.top3} color="text-green-400" />
+          <SummaryCard label="Top 10 live" value={summary.top10} color="text-blue-400" />
+          <SummaryCard label="A travailler" value={summary.needsWork} color="text-orange-400" />
+          <SummaryCard label="Page a verifier" value={summary.pageIssues} color="text-yellow-300" />
+        </div>
+      )}
+
+      {period && (
+        <p className="admin-text-muted text-[10px] mb-3">
+          GSC 28j: {period.startDate} → {period.endDate}. Le scan live cherche jusqu&apos;au top 100 Google Canada.
+        </p>
+      )}
+
+      {!data && loading ? (
+        <p className="admin-text-muted text-xs py-5">
+          <i className="fas fa-spinner fa-spin mr-2"></i>Chargement des mots-cles...
+        </p>
+      ) : rows.length === 0 ? (
+        <p className="admin-text-muted text-xs py-5">Aucun mot-cle configure.</p>
+      ) : (
+        <div className="overflow-x-auto border rounded-xl" style={{ borderColor: "var(--admin-border)" }}>
+          <table className="w-full text-xs" style={{ minWidth: "1320px" }}>
+            <thead>
+              <tr className="admin-text-muted border-b" style={{ borderColor: "var(--admin-border)" }}>
+                <th className="text-left px-3 py-2 font-bold uppercase tracking-wider">Mot-cle</th>
+                <th className="px-3 py-2 font-bold uppercase tracking-wider">Live</th>
+                <th className="px-3 py-2 font-bold uppercase tracking-wider">Delta</th>
+                <th className="px-3 py-2 font-bold uppercase tracking-wider">GSC 28j</th>
+                <th className="px-3 py-2 font-bold uppercase tracking-wider">GSC 90j</th>
+                <th className="text-left px-3 py-2 font-bold uppercase tracking-wider">Page qui sort</th>
+                <th className="text-left px-3 py-2 font-bold uppercase tracking-wider">Page attendue</th>
+                <th className="px-3 py-2 font-bold uppercase tracking-wider">Lecture</th>
+                <th className="text-left px-3 py-2 font-bold uppercase tracking-wider">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => {
+                const live = row.latestSerper;
+                const gsc28 = row.gsc?.current28;
+                const gsc90 = row.gsc?.current90;
+                const visiblePage = live?.url || gsc28?.bestPage || gsc28?.page;
+                const expected = row.expectedPaths?.[0] || "";
+                return (
+                  <tr key={row.query} className="border-b last:border-0 hover:bg-white/5" style={{ borderColor: "var(--admin-border)" }}>
+                    <td className="px-3 py-2 admin-text font-medium">
+                      <div className="truncate max-w-[240px]" title={row.query}>{row.query}</div>
+                      {gsc28?.query && <div className="admin-text-muted text-[10px] mt-0.5 truncate max-w-[240px]">GSC: {gsc28.query}</div>}
+                    </td>
+                    <td className="px-3 py-2 text-center">
+                      <PositionPill position={live?.position ?? null} />
+                      <div className="admin-text-muted text-[10px] mt-0.5">{live?.checkedAt ? formatDate(live.checkedAt) : "pas scanne"}</div>
+                    </td>
+                    <td className="px-3 py-2 text-center">
+                      <DeltaBadge delta={live?.delta ?? null} better="lower" />
+                    </td>
+                    <td className="px-3 py-2">
+                      <TrackedMetric metric={gsc28} />
+                    </td>
+                    <td className="px-3 py-2">
+                      <TrackedMetric metric={gsc90} />
+                    </td>
+                    <td className="px-3 py-2">
+                      {visiblePage ? (
+                        <a href={visiblePage} target="_blank" rel="noopener noreferrer"
+                          className="text-blue-400 hover:text-blue-300 truncate block max-w-[245px]" title={visiblePage}>
+                          {shortUrl(visiblePage)}
+                        </a>
+                      ) : <span className="admin-text-muted">—</span>}
+                    </td>
+                    <td className="px-3 py-2">
+                      <span className="admin-text-muted truncate block max-w-[230px]" title={(row.expectedPaths || []).join(", ")}>
+                        {expected || "—"}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 text-center">
+                      <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${statusClass(row.status?.level)}`}>
+                        {row.status?.label || "—"}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 admin-text-muted">
+                      <span className="truncate block max-w-[240px]" title={row.status?.action}>{row.status?.action || "—"}</span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
