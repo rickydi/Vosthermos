@@ -169,6 +169,25 @@ function priorityLabel(value) {
   return "Normale";
 }
 
+function columnSearchText(column = {}) {
+  return slugify([column.key, column.label].filter(Boolean).join(" "));
+}
+
+function isAcceptedStatus(columns, status) {
+  if (status === "won") return true;
+  const text = columnSearchText(columnMeta(columns, status));
+  return text.includes("accept") || text.includes("gagne") || text.includes("pris");
+}
+
+function isLostColumn(column) {
+  const text = columnSearchText(column);
+  return column.key === "lost" || text.includes("perdu") || text.includes("refus") || text.includes("lost");
+}
+
+function isLostStatus(columns, status) {
+  return isLostColumn(columnMeta(columns, status));
+}
+
 function slugify(value) {
   return String(value || "")
     .normalize("NFD")
@@ -302,6 +321,10 @@ export default function SuiviClientsClient() {
 
   const visibleColumns = useMemo(() => columns.filter((c) => c.visible), [columns]);
   const visibleColumnKeys = useMemo(() => new Set(visibleColumns.map((c) => c.key)), [visibleColumns]);
+  const lostFollowUps = useMemo(
+    () => followUps.filter((followUp) => followUp.status !== "archived" && isLostStatus(columns, followUp.status)),
+    [followUps, columns]
+  );
 
   const visibleFollowUps = useMemo(() => {
     const allowed = new Set(visibleColumns.map((c) => c.key));
@@ -375,9 +398,9 @@ export default function SuiviClientsClient() {
     }));
   }
 
-  function showAcceptedCelebration(followUpId) {
+  function showAcceptedCelebration(followUpId, status = "won") {
     setRecentlyMovedId(followUpId);
-    setMoveFeedback({ id: followUpId, label: columnMeta(columns, "won").label, accepted: true });
+    setMoveFeedback({ id: followUpId, label: columnMeta(columns, status).label, accepted: true });
     clearTimeout(moveTimer.current);
     moveTimer.current = setTimeout(() => {
       setRecentlyMovedId(null);
@@ -393,7 +416,8 @@ export default function SuiviClientsClient() {
     setSaving(true);
     setError("");
     try {
-      const shouldCelebrateAccepted = editing?.id && form.status === "won" && editing.status !== "won";
+      const shouldCelebrateAccepted = editing?.id && isAcceptedStatus(columns, form.status) && !isAcceptedStatus(columns, editing.status);
+      const shouldCelebrateCreatedAccepted = !editing?.id && isAcceptedStatus(columns, form.status);
       const payload = {
         ...form,
         clientId: selectedClient?.id || null,
@@ -413,9 +437,12 @@ export default function SuiviClientsClient() {
       setSelectedClient(null);
       if (shouldCelebrateAccepted) {
         setFollowUps((items) => items.map((item) => item.id === editing.id
-          ? { ...item, ...data, status: "won", activity: item.activity || data.activity }
+          ? { ...item, ...data, status: data.status || form.status, activity: item.activity || data.activity }
           : item));
-        showAcceptedCelebration(editing.id);
+        showAcceptedCelebration(editing.id, form.status);
+      } else if (shouldCelebrateCreatedAccepted && data?.id) {
+        setFollowUps((items) => [{ ...data, activity: data.activity || {} }, ...items]);
+        showAcceptedCelebration(data.id, form.status);
       } else {
         load(search);
       }
@@ -429,10 +456,10 @@ export default function SuiviClientsClient() {
   async function quickStatus(followUp, status) {
     if (!status || followUp.status === status) return;
     const previous = followUps;
-    const accepted = status === "won";
+    const accepted = isAcceptedStatus(columns, status);
     setFollowUps((items) => items.map((item) => item.id === followUp.id ? { ...item, status } : item));
     if (accepted) {
-      showAcceptedCelebration(followUp.id);
+      showAcceptedCelebration(followUp.id, status);
     } else {
       setRecentlyMovedId(followUp.id);
       setMoveFeedback({ id: followUp.id, label: columnMeta(columns, status).label });
@@ -476,7 +503,7 @@ export default function SuiviClientsClient() {
   }
 
   async function archiveLostFollowUps(items) {
-    const targets = items.filter((item) => item.status === "lost");
+    const targets = items.filter((item) => item.status !== "archived");
     if (!targets.length || archivingLost) return;
     const countLabel = `${targets.length} carte${targets.length > 1 ? "s" : ""}`;
     if (!confirm(`Archiver ${countLabel} dans Perdu / refuse? Elles seront cachees du kanban.`)) return;
@@ -698,6 +725,30 @@ export default function SuiviClientsClient() {
           box-shadow: 0 0 24px rgba(16, 185, 129, 0.45);
           animation: kanban-win-badge 1350ms ease-out both;
         }
+        .kanban-board-fireworks {
+          position: fixed;
+          top: 86px;
+          right: 24px;
+          width: min(240px, calc(100vw - 32px));
+          height: 150px;
+          z-index: 80;
+          pointer-events: none;
+        }
+        .kanban-board-fireworks .kanban-mini-fireworks {
+          border-radius: 18px;
+          background: radial-gradient(circle at 62% 34%, rgba(16, 185, 129, 0.18), rgba(15, 23, 42, 0.05) 58%, transparent 72%);
+        }
+        .kanban-board-fireworks .kanban-firework-ring,
+        .kanban-board-fireworks .kanban-firework-core,
+        .kanban-board-fireworks .kanban-firework-particle {
+          left: 50%;
+          top: 52%;
+        }
+        .kanban-board-fireworks .kanban-win-badge {
+          right: 50%;
+          top: 16px;
+          transform: translateX(50%);
+        }
         @keyframes kanban-overlay-in {
           0% { opacity: 0.72; transform: scale(0.96) rotate(0deg); }
           100% { opacity: 1; transform: scale(1.035) rotate(1.15deg); }
@@ -761,6 +812,15 @@ export default function SuiviClientsClient() {
             Modifier colonnes
           </button>
           <button
+            onClick={() => archiveLostFollowUps(lostFollowUps)}
+            disabled={archivingLost || lostFollowUps.length === 0}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-slate-700/80 hover:bg-slate-600 text-white rounded-lg text-sm font-bold disabled:opacity-45 disabled:hover:bg-slate-700/80"
+            title="Archiver les cartes perdues ou refusees"
+          >
+            <i className={`fas ${archivingLost ? "fa-spinner fa-spin" : "fa-archive"}`}></i>
+            Archiver perdus{lostFollowUps.length > 0 ? ` (${lostFollowUps.length})` : ""}
+          </button>
+          <button
             onClick={() => openCreate()}
             className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-cyan-700 hover:bg-cyan-600 text-white rounded-lg text-sm font-bold"
           >
@@ -784,6 +844,11 @@ export default function SuiviClientsClient() {
             : moveFeedback.archived
               ? `${moveFeedback.count || 0} carte${moveFeedback.count > 1 ? "s" : ""} archivee${moveFeedback.count > 1 ? "s" : ""}`
               : `Carte deplacee vers ${moveFeedback.label}`}
+        </div>
+      )}
+      {moveFeedback?.accepted && (
+        <div className="kanban-board-fireworks">
+          <MiniFireworks />
         </div>
       )}
 
@@ -943,6 +1008,7 @@ function KanbanColumn({
   const t = toneClasses(column.tone);
   const totalEstimate = items.reduce((sum, item) => sum + (Number(item.estimateAmount) || 0), 0);
   const active = isDragOver || isOver;
+  const archiveColumn = isLostColumn(column);
 
   return (
     <section
@@ -965,7 +1031,7 @@ function KanbanColumn({
             </p>
           </div>
           <div className="flex items-center gap-1 shrink-0">
-            {column.key === "lost" && (
+            {archiveColumn && (
               <button
                 type="button"
                 onClick={() => onArchiveLost(items)}
