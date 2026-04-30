@@ -6,7 +6,7 @@ import fs from "fs";
 
 export const dynamic = "force-dynamic";
 
-const SITE_URL = "sc-domain:vosthermos.com";
+const SITE_URL = "https://www.vosthermos.com/";
 
 async function getAuthClient() {
   const configPath = path.join(process.cwd(), "config", "google-service-account.json");
