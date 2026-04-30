@@ -100,9 +100,12 @@ export default function GscTab() {
   const [opportunities, setOpportunities] = useState(null);
   const [trends, setTrends] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [tracked, setTracked] = useState(null);
+  const [trackedLoading, setTrackedLoading] = useState(false);
+  const [trackedCity, setTrackedCity] = useState("delson");
   const [keyword, setKeyword] = useState("");
   const [device, setDevice] = useState("ALL");
-  const [branded, setBranded] = useState("all");
+  const [branded, setBranded] = useState("exclude");
   const [country, setCountry] = useState("ALL");
   const [expandedCities, setExpandedCities] = useState(new Set());
   const [cityQueries, setCityQueries] = useState({});
@@ -152,6 +155,24 @@ export default function GscTab() {
     const t = setTimeout(() => { fetchAll(); }, 0);
     return () => clearTimeout(t);
   }, [fetchAll]);
+
+  const fetchTracked = useCallback(async () => {
+    setTrackedLoading(true);
+    try {
+      const res = await fetch(`/api/admin/seo/gsc/tracked?${buildQuery({ city: trackedCity })}`);
+      const d = await res.json();
+      setTracked(d.error ? null : d);
+    } catch (err) {
+      console.error("GSC tracked fetch error:", err);
+      setTracked(null);
+    }
+    setTrackedLoading(false);
+  }, [buildQuery, trackedCity]);
+
+  useEffect(() => {
+    const t = setTimeout(() => { fetchTracked(); }, 0);
+    return () => clearTimeout(t);
+  }, [fetchTracked]);
 
   const fetchCityQueries = useCallback(async (slug) => {
     if (cityQueries[slug]?.pages || cityQueries[slug]?.queries) return;
@@ -348,6 +369,13 @@ export default function GscTab() {
         </div>
       )}
 
+      <TrackedQueriesSection
+        data={tracked}
+        loading={trackedLoading}
+        selectedCity={trackedCity}
+        onCityChange={setTrackedCity}
+      />
+
       {/* Opportunités */}
       <OpportunitiesSection data={opportunities} />
 
@@ -504,6 +532,135 @@ function SummaryCard({ label, value, color }) {
     <div className="admin-card border rounded-2xl p-4">
       <p className="admin-text-muted text-[10px] font-bold uppercase tracking-wider mb-1">{label}</p>
       <p className={`text-2xl font-extrabold ${color}`}>{value}</p>
+    </div>
+  );
+}
+
+function formatNumber(value) {
+  return (value || 0).toLocaleString("fr-CA");
+}
+
+function shortUrl(url) {
+  if (!url) return "";
+  const path = url
+    .replace("https://www.vosthermos.com", "")
+    .replace("https://vosthermos.com", "");
+  return path || "/";
+}
+
+function PositionPill({ position }) {
+  return (
+    <span className={`inline-block px-1.5 py-0.5 rounded-full text-xs font-extrabold ${posColor(position != null ? Math.round(position) : null)}`}>
+      {position != null ? `#${position}` : "—"}
+    </span>
+  );
+}
+
+function TrackedMetric({ metric }) {
+  return (
+    <div className="text-center">
+      <PositionPill position={metric?.position ?? null} />
+      <div className="admin-text-muted text-[10px] mt-0.5">{formatNumber(metric?.impressions)}i</div>
+    </div>
+  );
+}
+
+function TrackedQueriesSection({ data, loading, selectedCity, onCityChange }) {
+  const cityOptions = [...(data?.cities || [])].sort((a, b) => a.name.localeCompare(b.name, "fr"));
+  const rows = data?.summary ? [data.summary, ...(data.queries || [])] : [];
+  const period = data?.periods?.current28;
+
+  return (
+    <div className="admin-card border rounded-2xl p-5 mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div>
+          <h3 className="admin-text font-bold text-sm uppercase tracking-wider">
+            <i className="fas fa-map-marker-alt text-cyan-400 mr-2"></i>Suivi GSC par requete
+          </h3>
+          <p className="admin-text-muted text-[10px] mt-1">
+            Ville detectee dans la requete. Delta 28j positif = meilleure position que les 28j precedents.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {loading && <i className="fas fa-spinner fa-spin admin-text-muted text-xs"></i>}
+          <select
+            value={selectedCity}
+            onChange={(e) => onCityChange(e.target.value)}
+            className="admin-input border rounded-lg px-3 py-2 text-sm cursor-pointer min-w-[180px]"
+          >
+            {cityOptions.length === 0 && <option value={selectedCity}>{selectedCity}</option>}
+            {cityOptions.map((city) => (
+              <option key={city.slug} value={city.slug}>{city.name}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {period && (
+        <p className="admin-text-muted text-[10px] mb-3">
+          Periode 28j: {period.startDate} → {period.endDate}. Les termes de marque sont exclus par defaut.
+        </p>
+      )}
+
+      {!data && loading ? (
+        <p className="admin-text-muted text-xs py-5">
+          <i className="fas fa-spinner fa-spin mr-2"></i>Chargement du suivi...
+        </p>
+      ) : rows.length === 0 ? (
+        <p className="admin-text-muted text-xs py-5">Aucune requete GSC detectee pour cette ville.</p>
+      ) : (
+        <div className="overflow-x-auto border rounded-xl" style={{ borderColor: "var(--admin-border)" }}>
+          <table className="w-full text-xs" style={{ minWidth: "1040px" }}>
+            <thead>
+              <tr className="admin-text-muted border-b" style={{ borderColor: "var(--admin-border)" }}>
+                <th className="text-left px-3 py-2 font-bold uppercase tracking-wider">Requete</th>
+                <th className="px-3 py-2 font-bold uppercase tracking-wider">7j</th>
+                <th className="px-3 py-2 font-bold uppercase tracking-wider">28j</th>
+                <th className="px-3 py-2 font-bold uppercase tracking-wider">90j</th>
+                <th className="px-3 py-2 font-bold uppercase tracking-wider">Delta 28j</th>
+                <th className="px-3 py-2 font-bold uppercase tracking-wider">Clics</th>
+                <th className="px-3 py-2 font-bold uppercase tracking-wider">Impr.</th>
+                <th className="px-3 py-2 font-bold uppercase tracking-wider">CTR</th>
+                <th className="text-left px-3 py-2 font-bold uppercase tracking-wider">Meilleure page</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, index) => {
+                const isSummary = row.key === "_all";
+                const current = row.current28 || {};
+                return (
+                  <tr key={row.key || row.query} className={`border-b last:border-0 ${isSummary ? "bg-white/10" : "hover:bg-white/5"}`}
+                    style={{ borderColor: "var(--admin-border)" }}>
+                    <td className="px-3 py-2 admin-text font-medium">
+                      <div className="truncate max-w-[270px]" title={row.query}>
+                        {isSummary ? <span className="font-extrabold">{row.query}</span> : row.query}
+                      </div>
+                      {index === 0 && <div className="admin-text-muted text-[10px] mt-0.5">resume fiable pour cette ville</div>}
+                    </td>
+                    <td className="px-3 py-2"><TrackedMetric metric={row.current7} /></td>
+                    <td className="px-3 py-2"><TrackedMetric metric={row.current28} /></td>
+                    <td className="px-3 py-2"><TrackedMetric metric={row.current90} /></td>
+                    <td className="px-3 py-2 text-center"><DeltaBadge delta={row.delta28} better="lower" /></td>
+                    <td className="px-3 py-2 text-center admin-text font-bold">{formatNumber(current.clicks)}</td>
+                    <td className="px-3 py-2 text-center admin-text-muted">{formatNumber(current.impressions)}</td>
+                    <td className={`px-3 py-2 text-center font-bold ${ctrColor(current.ctr, current.position)}`}>
+                      {current.impressions > 0 ? `${current.ctr}%` : "—"}
+                    </td>
+                    <td className="px-3 py-2">
+                      {current.page ? (
+                        <a href={current.page} target="_blank" rel="noopener noreferrer"
+                          className="text-blue-400 hover:text-blue-300 truncate block max-w-[240px]" title={current.page}>
+                          {shortUrl(current.page)}
+                        </a>
+                      ) : <span className="admin-text-muted">—</span>}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
