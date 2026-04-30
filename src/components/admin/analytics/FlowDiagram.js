@@ -41,19 +41,19 @@ function getLabel(page) {
   return page.length > 16 ? page.substring(0, 16) + "…" : page;
 }
 
-export default function FlowDiagram({ days }) {
+export default function FlowDiagram({ query }) {
   const [flows, setFlows] = useState([]);
   const [entries, setEntries] = useState([]);
 
   useEffect(() => {
-    fetch(`/api/admin/analytics/flow?days=${days}`)
+    fetch(`/api/admin/analytics/flow?${query || "days=7"}`)
       .then((r) => r.json())
       .then((d) => {
         setFlows(d.flows || []);
         setEntries(d.entries || []);
       })
       .catch(() => {});
-  }, [days]);
+  }, [query]);
 
   if (entries.length === 0) {
     return (

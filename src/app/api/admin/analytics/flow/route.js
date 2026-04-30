@@ -1,21 +1,18 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
+import { analyticsDateRange } from "@/lib/analytics-date-range";
 
 export async function GET(request) {
   try {
     await requireAdmin();
     const { searchParams } = new URL(request.url);
-    const days = parseInt(searchParams.get("days") || "7");
-    const since = new Date();
-    if (days === 0) {
-      since.setHours(0, 0, 0, 0);
-    } else {
-      since.setDate(since.getDate() - days);
-    }
+    const range = analyticsDateRange(searchParams);
+    const startedAt = { gte: range.since };
+    if (range.until) startedAt.lt = range.until;
 
     const sessions = await prisma.analyticsSession.findMany({
-      where: { startedAt: { gte: since } },
+      where: { startedAt },
       include: {
         pageViews: { orderBy: { enteredAt: "asc" } },
       },

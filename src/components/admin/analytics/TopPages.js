@@ -1,6 +1,6 @@
 "use client";
 
-export default function TopPages({ topPages, totalPageViews, formatDuration }) {
+export default function TopPages({ topPages = [], totalPageViews = 0, formatDuration }) {
   return (
     <div className="admin-card rounded-xl p-6 border">
       <h2 className="admin-text-muted text-xs font-bold uppercase tracking-wider mb-4">TOP PAGES</h2>

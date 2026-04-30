@@ -9,7 +9,7 @@ const SERVICE_LABELS = {
   desembuage: "Desembuage", "insertion-porte": "Insertion de porte", "opti-fenetre": "Programme OPTI-FENETRE", autre: "Autre",
 };
 
-export default function FormTimeline({ days: initialDays }) {
+export default function FormTimeline({ query }) {
   const [replays, setReplays] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeReplay, setActiveReplay] = useState(null);
@@ -17,21 +17,30 @@ export default function FormTimeline({ days: initialDays }) {
   const [formState, setFormState] = useState({});
   const [focusedField, setFocusedField] = useState(null);
   const [progress, setProgress] = useState(0);
+  const [currentStep, setCurrentStep] = useState(0);
   const [speed, setSpeed] = useState(1);
   const [hoveredOption, setHoveredOption] = useState(null);
-  const [replayDays, setReplayDays] = useState(7);
-  const [customDate, setCustomDate] = useState("");
   const timerRef = useRef(null);
-  const stepRef = useRef(0);
 
   useEffect(() => {
-    setLoading(true);
-    fetch(`/api/admin/analytics/forms?days=${replayDays}`)
+    let cancelled = false;
+
+    fetch(`/api/admin/analytics/forms?${query || "days=7"}`, { cache: "no-store" })
       .then((r) => r.json())
-      .then((d) => setReplays(d.replays || []))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [replayDays]);
+      .then((d) => {
+        if (!cancelled) setReplays(d.replays || []);
+      })
+      .catch(() => {
+        if (!cancelled) setReplays([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [query]);
 
   const stopPlayback = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -44,7 +53,7 @@ export default function FormTimeline({ days: initialDays }) {
     setFormState({});
     setFocusedField(null);
     setProgress(0);
-    stepRef.current = 0;
+    setCurrentStep(0);
 
     setTimeout(() => playFromStep(replay, 0), 300);
   }
@@ -54,17 +63,18 @@ export default function FormTimeline({ days: initialDays }) {
     if (!interactions || interactions.length === 0) return;
 
     setPlaying(true);
-    stepRef.current = startStep;
+    setCurrentStep(startStep);
 
     function executeStep(i) {
       if (i >= interactions.length) {
         setPlaying(false);
         setProgress(100);
+        setCurrentStep(interactions.length);
         return;
       }
 
       const ev = interactions[i];
-      stepRef.current = i;
+      setCurrentStep(i);
       setProgress(Math.round((i / interactions.length) * 100));
 
       if (ev.a === "f") {
@@ -86,6 +96,7 @@ export default function FormTimeline({ days: initialDays }) {
         setTimeout(() => {
           setPlaying(false);
           setProgress(100);
+          setCurrentStep(interactions.length);
         }, 500);
       }
     }
@@ -119,18 +130,6 @@ export default function FormTimeline({ days: initialDays }) {
     <div className="admin-card rounded-xl p-6 border">
       <div className="flex items-center justify-between mb-4">
         <h2 className="admin-text-muted text-xs font-bold uppercase tracking-wider">REPLAY FORMULAIRE</h2>
-        {!activeReplay && (
-          <div className="flex items-center gap-1">
-            {[{ k: 0, l: "Auj" }, { k: 7, l: "7j" }, { k: 30, l: "30j" }, { k: 90, l: "90j" }].map((d) => (
-              <button key={d.k} onClick={() => setReplayDays(d.k)}
-                className={`px-2 py-1 rounded text-[10px] font-bold transition-all ${replayDays === d.k ? "bg-[var(--color-red)] text-white" : "admin-text-muted hover:bg-white/5"}`}>
-                {d.l}
-              </button>
-            ))}
-            <input type="date" value={customDate} onChange={(e) => { setCustomDate(e.target.value); if (e.target.value) setReplayDays(1); }}
-              className="admin-input rounded text-[10px] px-1 py-0.5 w-28" />
-          </div>
-        )}
       </div>
 
       {/* Replay list */}
@@ -184,13 +183,13 @@ export default function FormTimeline({ days: initialDays }) {
             </div>
             {!playing ? (
               <div className="flex items-center gap-1">
-                {stepRef.current > 0 && (
-                  <button onClick={() => playFromStep(activeReplay, stepRef.current)}
+                {currentStep > 0 && (
+                  <button onClick={() => playFromStep(activeReplay, currentStep)}
                     className="w-7 h-7 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center hover:bg-green-500/30 text-xs" title="Reprendre">
                     <i className="fas fa-play" />
                   </button>
                 )}
-                <button onClick={() => { setFormState({}); setFocusedField(null); setHoveredOption(null); playFromStep(activeReplay, 0); }}
+                <button onClick={() => { setFormState({}); setFocusedField(null); setHoveredOption(null); setCurrentStep(0); playFromStep(activeReplay, 0); }}
                   className="w-7 h-7 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center hover:bg-blue-500/30 text-xs" title="Rejouer">
                   <i className="fas fa-redo" />
                 </button>
@@ -222,7 +221,7 @@ export default function FormTimeline({ days: initialDays }) {
               setFormState(newState);
               setFocusedField(newFocus);
               setProgress(Math.round((targetStep / activeReplay.interactions.length) * 100));
-              stepRef.current = targetStep;
+              setCurrentStep(targetStep);
               setHoveredOption(null);
             }}>
             <div className="bg-blue-500 h-2 rounded-full transition-all" style={{ width: `${progress}%` }} />

@@ -3,39 +3,51 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-export default function RecentVisitors({ initialVisitors, formatDuration }) {
+function queryForFilter(filter, customDate) {
+  if (filter === "today") return "days=0";
+  if (filter === "7") return "days=7";
+  if (filter === "30") return "days=30";
+  if (filter === "custom" && customDate) return `date=${encodeURIComponent(customDate)}`;
+  return null;
+}
+
+export default function RecentVisitors({ initialVisitors = [], formatDuration }) {
   const [filter, setFilter] = useState("all");
   const [customDate, setCustomDate] = useState("");
-  const [visitors, setVisitors] = useState(initialVisitors || []);
+  const [filteredVisitors, setFilteredVisitors] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const query = queryForFilter(filter, customDate);
+  const visitors = filter === "all" ? initialVisitors : query ? filteredVisitors : [];
+
   useEffect(() => {
-    if (filter === "all") {
-      setVisitors(initialVisitors || []);
-      return;
-    }
+    if (!query) return undefined;
+    let cancelled = false;
 
     async function fetchFiltered() {
-      setLoading(true);
-      let days = 7;
-      if (filter === "today") days = 1;
-      else if (filter === "30") days = 30;
-
-      let url = `/api/admin/analytics?days=${days}`;
-      if (filter === "custom" && customDate) {
-        url = `/api/admin/analytics?days=1&date=${customDate}`;
-      }
-
       try {
-        const res = await fetch(url);
-        const data = await res.json();
-        setVisitors(data.recentVisitors || []);
-      } catch {}
-      setLoading(false);
+        const res = await fetch(`/api/admin/analytics?${query}`, { cache: "no-store" });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.error) throw new Error(data.error || "Erreur analytics");
+        if (!cancelled) setFilteredVisitors(data.recentVisitors || []);
+      } catch {
+        if (!cancelled) setFilteredVisitors([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     }
 
     fetchFiltered();
-  }, [filter, customDate]);
+    return () => {
+      cancelled = true;
+    };
+  }, [query]);
+
+  function selectFilter(nextFilter) {
+    setFilter(nextFilter);
+    if (nextFilter !== "custom") setCustomDate("");
+    setLoading(nextFilter !== "all");
+  }
 
   const deviceEmoji = (d) =>
     d === "Mobile" ? "\u{1F4F1}" : d === "Tablette" ? "\u{1F4BB}" : "\u{1F5A5}\u{FE0F}";
@@ -53,7 +65,7 @@ export default function RecentVisitors({ initialVisitors, formatDuration }) {
           ].map((f) => (
             <button
               key={f.key}
-              onClick={() => setFilter(f.key)}
+              onClick={() => selectFilter(f.key)}
               className={`px-2 py-1 rounded text-[10px] font-bold transition-all ${
                 filter === f.key ? "bg-[var(--color-red)] text-white" : "admin-text-muted hover:bg-white/5"
               }`}
@@ -65,8 +77,10 @@ export default function RecentVisitors({ initialVisitors, formatDuration }) {
             type="date"
             value={customDate}
             onChange={(e) => {
-              setCustomDate(e.target.value);
+              const value = e.target.value;
+              setCustomDate(value);
               setFilter("custom");
+              setLoading(Boolean(value));
             }}
             className="admin-input rounded text-[10px] px-1 py-0.5 w-28"
           />
@@ -103,7 +117,7 @@ export default function RecentVisitors({ initialVisitors, formatDuration }) {
                   <td className="py-2.5 text-xs">
                     {deviceEmoji(v.device)} {v.device}
                   </td>
-                  <td className="py-2.5 admin-text-muted text-xs">{v.city ? `${v.city}${v.region ? `, ${v.region}` : ""}` : "—"}</td>
+                  <td className="py-2.5 admin-text-muted text-xs">{v.city ? `${v.city}${v.region ? `, ${v.region}` : ""}` : "-"}</td>
                   <td className="py-2.5 admin-text-muted text-xs">{v.browser}</td>
                   <td className="py-2.5 text-right admin-text text-xs font-bold">{v.pages}</td>
                   <td className="py-2.5 text-right admin-text-muted text-xs">{formatDuration(v.duration)}</td>

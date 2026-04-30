@@ -1,6 +1,6 @@
 "use client";
 
-export default function BreakdownCards({ devices, browsers, topReferrers }) {
+export default function BreakdownCards({ devices = {}, browsers = {}, topReferrers = [] }) {
   const deviceIcon = (d) =>
     d === "Mobile" ? "fa-mobile-alt" : d === "Tablette" ? "fa-tablet-alt" : "fa-desktop";
 

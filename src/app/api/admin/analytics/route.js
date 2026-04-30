@@ -1,22 +1,19 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
+import { analyticsDailyKeys, analyticsDateRange, toMontrealDate } from "@/lib/analytics-date-range";
 
 export async function GET(request) {
   try {
     await requireAdmin();
     const { searchParams } = new URL(request.url);
-    const days = parseInt(searchParams.get("days") || "7");
-    const since = new Date();
-    if (days === 0) {
-      since.setHours(0, 0, 0, 0);
-    } else {
-      since.setDate(since.getDate() - days);
-    }
+    const range = analyticsDateRange(searchParams);
+    const startedAt = { gte: range.since };
+    if (range.until) startedAt.lt = range.until;
 
     // Total visitors (unique visitorIds)
     const sessions = await prisma.analyticsSession.findMany({
-      where: { startedAt: { gte: since } },
+      where: { startedAt },
       include: { pageViews: true },
     });
 
@@ -48,9 +45,6 @@ export async function GET(request) {
       .slice(0, 10);
 
     // Daily visitors (use Montreal timezone for day mapping)
-    function toMontrealDate(d) {
-      return new Date(d).toLocaleDateString("en-CA", { timeZone: "America/Montreal" });
-    }
     const dailyMap = {};
     for (const s of sessions) {
       const day = toMontrealDate(s.startedAt);
@@ -58,18 +52,11 @@ export async function GET(request) {
       dailyMap[day].visitors.add(s.visitorId);
       dailyMap[day].pageViews += s.pageViews.length;
     }
-    const daily = [];
-    const loopDays = days === 0 ? 1 : days;
-    for (let i = loopDays - 1; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const key = toMontrealDate(d);
-      daily.push({
-        date: key,
-        visitors: dailyMap[key]?.visitors.size || 0,
-        pageViews: dailyMap[key]?.pageViews || 0,
-      });
-    }
+    const daily = analyticsDailyKeys(range).map((key) => ({
+      date: key,
+      visitors: dailyMap[key]?.visitors.size || 0,
+      pageViews: dailyMap[key]?.pageViews || 0,
+    }));
 
     // Device breakdown (unique visitors per device)
     const deviceVisitors = {};
@@ -163,6 +150,7 @@ export async function GET(request) {
       topReferrers,
       totalSessions: sessions.length,
       recentVisitors,
+      range: { date: range.date, days: range.days },
     });
   } catch (err) {
     if (err.message === "Unauthorized") return NextResponse.json({ error: "Non autorise" }, { status: 401 });

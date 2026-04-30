@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export default function DailyChart({ daily }) {
+export default function DailyChart({ daily = [] }) {
   const [tooltip, setTooltip] = useState(null);
   const maxVisitors = Math.max(...daily.map((d) => d.visitors), 1);
   const chartHeight = 160;

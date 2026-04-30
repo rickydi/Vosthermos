@@ -1,11 +1,11 @@
 "use client";
 
-export default function StatsCards({ data, formatDuration }) {
+export default function StatsCards({ data = {}, formatDuration }) {
   const stats = [
-    { label: "VISITEURS", value: data.uniqueVisitors, icon: "fa-users", color: "text-blue-400" },
-    { label: "PAGES VUES", value: data.totalPageViews, icon: "fa-eye", color: "text-green-400" },
-    { label: "TEMPS MOYEN", value: formatDuration(data.avgDuration), icon: "fa-clock", color: "text-purple-400" },
-    { label: "SESSIONS", value: data.totalSessions, icon: "fa-chart-line", color: "text-orange-400" },
+    { label: "VISITEURS", value: data.uniqueVisitors || 0, icon: "fa-users", color: "text-blue-400" },
+    { label: "PAGES VUES", value: data.totalPageViews || 0, icon: "fa-eye", color: "text-green-400" },
+    { label: "TEMPS MOYEN", value: formatDuration(data.avgDuration || 0), icon: "fa-clock", color: "text-purple-400" },
+    { label: "SESSIONS", value: data.totalSessions || 0, icon: "fa-chart-line", color: "text-orange-400" },
   ];
 
   return (
