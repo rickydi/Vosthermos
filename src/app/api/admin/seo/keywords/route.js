@@ -2,7 +2,16 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 
-const DEFAULT_KEYWORDS = ["remplacement vitre thermos"];
+const DEFAULT_KEYWORDS = [
+  "remplacement vitre thermos",
+  "reparation de portes et fenetres",
+  "calfeutrage",
+  "vitre thermos embuee",
+  "remplacement thermos",
+  "reparation fenetre",
+  "remplacement quincaillerie fenetre",
+  "reparation porte patio",
+];
 
 // GET: return saved keywords
 export async function GET() {

@@ -60,8 +60,8 @@ export default function IndexNowPanel() {
       <div className="flex items-start justify-between mb-4 flex-wrap gap-3">
         <div>
           <h2 className="admin-text font-extrabold text-lg mb-1">
-            <i className="fas fa-bolt mr-2 text-[var(--color-red)]"></i>
-            IndexNow — Bing + Yandex
+            <i className="fas fa-bolt mr-2 text-cyan-300"></i>
+            IndexNow - Bing + Yandex
           </h2>
           <p className="admin-text-muted text-sm max-w-2xl">
             Notifie Bing, Yandex, Seznam et DuckDuckGo qu&apos;une page a ete modifiee.
@@ -83,7 +83,7 @@ export default function IndexNowPanel() {
           <button
             onClick={pingAll}
             disabled={loading}
-            className="w-full px-4 py-2.5 bg-[var(--color-red)] text-white rounded-lg text-sm font-bold disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full px-4 py-2.5 bg-cyan-500/20 text-cyan-100 rounded-lg text-sm font-bold disabled:opacity-50 flex items-center justify-center gap-2 hover:bg-cyan-500/30"
           >
             {loading ? <><i className="fas fa-spinner fa-spin"></i> Soumission...</> :
               <><i className="fas fa-globe"></i> Soumettre toutes les URLs</>}
@@ -111,7 +111,7 @@ export default function IndexNowPanel() {
       </div>
 
       {error && (
-        <div className="mb-3 px-4 py-3 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg text-sm">
+        <div className="mb-3 px-4 py-3 bg-orange-500/10 border border-orange-500/30 text-orange-300 rounded-lg text-sm">
           <i className="fas fa-exclamation-triangle mr-2"></i>{error}
         </div>
       )}
@@ -125,7 +125,7 @@ export default function IndexNowPanel() {
             </p>
             <div className="flex gap-2 text-xs">
               <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded-full font-bold">OK: {result.okCount}</span>
-              {result.failCount > 0 && <span className="px-2 py-1 bg-red-500/20 text-red-400 rounded-full font-bold">Fail: {result.failCount}</span>}
+              {result.failCount > 0 && <span className="px-2 py-1 bg-orange-500/20 text-orange-300 rounded-full font-bold">Fail: {result.failCount}</span>}
               <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded-full font-bold">Total: {result.totalSubmitted}</span>
             </div>
           </div>
@@ -136,7 +136,7 @@ export default function IndexNowPanel() {
             <div className="mt-2 space-y-1">
               {result.batches?.map((b, i) => (
                 <div key={i} className="flex items-center gap-2 text-xs font-mono">
-                  <span className={`px-2 py-0.5 rounded ${b.ok ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}>
+                  <span className={`px-2 py-0.5 rounded ${b.ok ? "bg-green-500/20 text-green-400" : "bg-orange-500/20 text-orange-300"}`}>
                     {b.status || "?"}
                   </span>
                   <span className="admin-text-muted">Batch {i + 1}: {b.count} URLs</span>

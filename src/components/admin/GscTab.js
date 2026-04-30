@@ -1,91 +1,19 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 
-// ─── Helpers ──────────────────────────────────────────────────────
-function posColor(pos) {
-  if (pos == null) return "bg-gray-500/20 text-gray-400";
-  const p = Math.round(pos);
-  if (p <= 3) return "bg-green-500/20 text-green-400";
-  if (p <= 10) return "bg-blue-500/20 text-blue-400";
-  if (p <= 20) return "bg-orange-500/20 text-orange-400";
-  return "bg-red-500/20 text-red-400";
-}
-
-function DeltaBadge({ delta, better = "lower" }) {
-  // better="lower" for position (smaller is better)
-  // better="higher" for clicks/impressions (higher is better)
-  if (delta == null || delta === 0) return <span className="text-white/30 text-[10px]">—</span>;
-  const isUp = delta > 0;
-  const isGood = better === "lower" ? delta > 0 : delta > 0; // delta already expresses "improvement" when computed correctly
-  const cls = isGood ? "text-green-400" : "text-red-400";
-  const icon = isUp ? "fa-arrow-up" : "fa-arrow-down";
-  const abs = Math.abs(delta);
-  const val = Number.isInteger(abs) ? abs : abs.toFixed(1);
-  return <span className={`${cls} text-[10px] font-bold whitespace-nowrap`}>
-    <i className={`fas ${icon} mr-0.5`}></i>{val}
-  </span>;
-}
-
-// CTR "acceptable" by position bucket (for color flag)
-function expectedCtr(pos) {
-  if (pos == null) return 0;
-  const p = Math.round(pos);
-  if (p === 1) return 27;
-  if (p === 2) return 15;
-  if (p === 3) return 11;
-  if (p <= 5) return 6;
-  if (p <= 10) return 2.5;
-  return 1;
-}
-function ctrColor(ctr, pos) {
-  if (!ctr || !pos) return "admin-text-muted";
-  const exp = expectedCtr(pos);
-  if (ctr >= exp * 0.9) return "text-green-400";
-  if (ctr >= exp * 0.5) return "text-orange-400";
-  return "text-red-400";
-}
-
-// CSV export helper
-function downloadCsv(filename, rows) {
-  if (!rows.length) return;
-  const headers = Object.keys(rows[0]);
-  const escape = (v) => {
-    const s = v == null ? "" : String(v);
-    return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
-  const csv = [headers.join(","), ...rows.map((r) => headers.map((h) => escape(r[h])).join(","))].join("\n");
-  const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-const PERIODS = [
-  { days: 3, label: "3j" },
-  { days: 7, label: "7j" },
-  { days: 28, label: "28j" },
-  { days: 90, label: "90j" },
-  { days: 180, label: "6m" },
-  { days: 365, label: "1an" },
-];
-const PRIMARY = 2; // 28j
+const DEFAULT_CITY = "delson";
+const SITE = "https://www.vosthermos.com";
 
 const DEVICES = [
   { value: "ALL", label: "Tous" },
   { value: "DESKTOP", label: "Desktop" },
   { value: "MOBILE", label: "Mobile" },
-  { value: "TABLET", label: "Tablette" },
 ];
 
 const BRANDED = [
-  { value: "all", label: "Tous" },
   { value: "exclude", label: "Sans marque" },
+  { value: "all", label: "Tous" },
   { value: "only", label: "Marque" },
 ];
 
@@ -94,894 +22,700 @@ const COUNTRIES = [
   { value: "can", label: "Canada" },
 ];
 
-// ─── Main component ───────────────────────────────────────────────
-export default function GscTab() {
-  const [allData, setAllData] = useState(null);
-  const [opportunities, setOpportunities] = useState(null);
-  const [trends, setTrends] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [tracked, setTracked] = useState(null);
-  const [trackedLoading, setTrackedLoading] = useState(false);
-  const [keywordTracker, setKeywordTracker] = useState(null);
-  const [keywordTrackerLoading, setKeywordTrackerLoading] = useState(false);
-  const [keywordTrackerScanning, setKeywordTrackerScanning] = useState(false);
-  const [trackedCity, setTrackedCity] = useState("delson");
-  const [keyword, setKeyword] = useState("");
-  const [device, setDevice] = useState("ALL");
-  const [branded, setBranded] = useState("exclude");
-  const [country, setCountry] = useState("ALL");
-  const [expandedCities, setExpandedCities] = useState(new Set());
-  const [cityQueries, setCityQueries] = useState({});
-  const [sortMode, setSortMode] = useState("position");
+const FILTERS = [
+  { value: "all", label: "Tout" },
+  { value: "work", label: "A travailler" },
+  { value: "page", label: "Mauvaise page" },
+  { value: "missing", label: "Aucune lecture" },
+  { value: "good", label: "OK" },
+];
 
-  const buildQuery = useCallback((extra = {}) => {
-    const p = new URLSearchParams();
-    if (keyword) p.set("keyword", keyword);
-    if (device !== "ALL") p.set("device", device);
-    if (branded !== "all") p.set("branded", branded);
-    if (country !== "ALL") p.set("country", country);
-    for (const [k, v] of Object.entries(extra)) p.set(k, v);
-    return p.toString();
-  }, [keyword, device, branded, country]);
-
-  const fetchAll = useCallback(async () => {
-    setLoading(true);
-    try {
-      const results = await Promise.all(
-        PERIODS.map((p) =>
-          fetch(`/api/admin/seo/gsc?${buildQuery({ days: p.days })}`)
-            .then((r) => r.json())
-            .then((d) => (d.error ? null : d))
-            .catch(() => null),
-        ),
-      );
-      setAllData(results);
-
-      // Opportunités (28j, exclude branded by default)
-      const oppRes = await fetch(`/api/admin/seo/gsc/opportunities?${buildQuery({ days: 28 })}`)
-        .then((r) => r.json())
-        .catch(() => ({ opportunities: [] }));
-      setOpportunities(oppRes.opportunities || []);
-
-      // Tendances (7j vs 7j précédents)
-      const trRes = await fetch(`/api/admin/seo/gsc/trends?${buildQuery({ window: 7 })}`)
-        .then((r) => r.json())
-        .catch(() => ({ rising: [], falling: [] }));
-      setTrends(trRes);
-    } catch (err) {
-      console.error("GSC fetch error:", err);
-    }
-    setLoading(false);
-  }, [buildQuery]);
-
-  useEffect(() => {
-    const t = setTimeout(() => { fetchAll(); }, 0);
-    return () => clearTimeout(t);
-  }, [fetchAll]);
-
-  const fetchTracked = useCallback(async () => {
-    setTrackedLoading(true);
-    try {
-      const res = await fetch(`/api/admin/seo/gsc/tracked?${buildQuery({ city: trackedCity })}`);
-      const d = await res.json();
-      setTracked(d.error ? null : d);
-    } catch (err) {
-      console.error("GSC tracked fetch error:", err);
-      setTracked(null);
-    }
-    setTrackedLoading(false);
-  }, [buildQuery, trackedCity]);
-
-  useEffect(() => {
-    const t = setTimeout(() => { fetchTracked(); }, 0);
-    return () => clearTimeout(t);
-  }, [fetchTracked]);
-
-  const fetchKeywordTracker = useCallback(async () => {
-    setKeywordTrackerLoading(true);
-    try {
-      const res = await fetch(`/api/admin/seo/keyword-tracker?${buildQuery({ city: trackedCity })}`);
-      const d = await res.json();
-      setKeywordTracker(d.error ? null : d);
-    } catch (err) {
-      console.error("SEO keyword tracker fetch error:", err);
-      setKeywordTracker(null);
-    }
-    setKeywordTrackerLoading(false);
-  }, [buildQuery, trackedCity]);
-
-  useEffect(() => {
-    const t = setTimeout(() => { fetchKeywordTracker(); }, 0);
-    return () => clearTimeout(t);
-  }, [fetchKeywordTracker]);
-
-  async function scanKeywordTrackerCity() {
-    setKeywordTrackerScanning(true);
-    try {
-      const res = await fetch("/api/admin/seo/keyword-tracker", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          city: trackedCity,
-          device,
-          branded,
-          country: country === "ALL" ? "" : country,
-        }),
-      });
-      const d = await res.json();
-      if (!d.error) setKeywordTracker(d);
-    } catch (err) {
-      console.error("SEO keyword tracker scan error:", err);
-    }
-    setKeywordTrackerScanning(false);
-  }
-
-  const fetchCityQueries = useCallback(async (slug) => {
-    if (cityQueries[slug]?.pages || cityQueries[slug]?.queries) return;
-    setCityQueries((prev) => ({ ...prev, [slug]: { loading: true, pages: [], queries: [] } }));
-    try {
-      const res = await fetch(`/api/admin/seo/gsc?days=28&city=${slug}&${buildQuery()}`);
-      const d = await res.json();
-      setCityQueries((prev) => ({
-        ...prev,
-        [slug]: { loading: false, pages: d.pages || [], queries: d.queries || [] },
-      }));
-    } catch {
-      setCityQueries((prev) => ({ ...prev, [slug]: { loading: false, pages: [], queries: [] } }));
-    }
-  }, [buildQuery, cityQueries]);
-
-  function toggleCity(slug) {
-    setExpandedCities((prev) => {
-      const next = new Set(prev);
-      if (next.has(slug)) next.delete(slug);
-      else { next.add(slug); fetchCityQueries(slug); }
-      return next;
-    });
-  }
-
-  const mergedCities = useMemo(() => {
-    if (!allData) return [];
-    const map = {};
-    PERIODS.forEach((p, i) => {
-      const d = allData[i];
-      if (!d) return;
-      for (const c of d.cities) {
-        if (!map[c.slug]) {
-          map[c.slug] = {
-            slug: c.slug,
-            name: c.name,
-            population: c.population || 0,
-            positions: {},
-            totalClicks: 0,
-            totalImpressions: 0,
-            ctr: 0,
-            bestPage: null,
-          };
-        }
-        map[c.slug].positions[p.label] = c.bestPosition;
-        if (i === PRIMARY) {
-          map[c.slug].totalClicks = c.totalClicks;
-          map[c.slug].totalImpressions = c.totalImpressions;
-          map[c.slug].ctr = c.ctr;
-          map[c.slug].bestPage = c.bestPage;
-        }
-      }
-    });
-    const arr = Object.values(map);
-    if (sortMode === "alpha") arr.sort((a, b) => a.name.localeCompare(b.name, "fr"));
-    else if (sortMode === "population") arr.sort((a, b) => (b.population || 0) - (a.population || 0));
-    else if (sortMode === "clicks") arr.sort((a, b) => (b.totalClicks || 0) - (a.totalClicks || 0));
-    else arr.sort((a, b) => (a.positions["28j"] ?? 999) - (b.positions["28j"] ?? 999));
-    return arr;
-  }, [allData, sortMode]);
-
-  const primaryData = allData?.[PRIMARY] || allData?.find((d) => d) || null;
-  const summary = primaryData?.summary;
-
-  function handleExport() {
-    const rows = mergedCities.map((c) => ({
-      Ville: c.name,
-      Population: c.population || "",
-      ...Object.fromEntries(PERIODS.map((p) => [p.label, c.positions[p.label] ?? ""])),
-      "Delta_7j_vs_28j": c.positions["28j"] != null && c.positions["7j"] != null
-        ? Math.round((c.positions["28j"] - c.positions["7j"]) * 10) / 10
-        : "",
-      Clics_28j: c.totalClicks,
-      Impressions_28j: c.totalImpressions,
-      "CTR%_28j": c.ctr,
-      Meilleure_page: c.bestPage || "",
-    }));
-    const today = new Date().toISOString().slice(0, 10);
-    downloadCsv(`gsc-villes-${today}.csv`, rows);
-  }
-
-  const allExpanded = mergedCities.length > 0 && expandedCities.size >= mergedCities.length;
-
-  function toggleAll() {
-    if (allExpanded) {
-      setExpandedCities(new Set());
-    } else {
-      const all = new Set(mergedCities.map((c) => c.slug));
-      setExpandedCities(all);
-      for (const c of mergedCities) {
-        if (!cityQueries[c.slug]?.queries) fetchCityQueries(c.slug);
-      }
-    }
-  }
-
-  if (loading && !allData) {
-    return <p className="admin-text-muted text-center py-12">
-      <i className="fas fa-spinner fa-spin mr-2"></i>Chargement Google Search Console...
-    </p>;
-  }
-  if (!primaryData) {
-    return <p className="admin-text-muted text-center py-12">Erreur de connexion a Google Search Console</p>;
-  }
-
-  return (
-    <div>
-      {/* Filters */}
-      <div className="admin-card border rounded-2xl p-4 mb-5 space-y-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <input
-            type="text" value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            placeholder="Filtrer par mot cle (contient)..."
-            className="admin-input border rounded-lg px-4 py-2 text-sm flex-1 min-w-[200px]"
-          />
-          <select value={sortMode} onChange={(e) => setSortMode(e.target.value)}
-            className="admin-input border rounded-lg px-3 py-2 text-sm cursor-pointer">
-            <option value="position">Tri: Position</option>
-            <option value="clicks">Tri: Clics</option>
-            <option value="alpha">Tri: A → Z</option>
-            <option value="population">Tri: Population</option>
-          </select>
-          <button onClick={handleExport}
-            className="px-3 py-2 rounded-lg text-sm font-bold bg-white/5 border admin-border admin-text hover:bg-white/10 transition-all">
-            <i className="fas fa-file-csv mr-2"></i>Export CSV
-          </button>
-          <button onClick={toggleAll}
-            className="px-3 py-2 rounded-lg text-sm font-bold bg-white/5 border admin-border admin-text-muted hover:admin-text transition-all">
-            <i className={`fas fa-${allExpanded ? "compress-alt" : "expand-alt"} mr-2`}></i>
-            {allExpanded ? "Fermer" : "Ouvrir"} tout
-          </button>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-1.5">
-            <span className="admin-text-muted text-[10px] font-bold uppercase tracking-wider">Appareil</span>
-            <div className="flex gap-1">
-              {DEVICES.map((d) => (
-                <button key={d.value} onClick={() => setDevice(d.value)}
-                  className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all ${
-                    device === d.value ? "bg-[var(--color-red)] text-white" : "bg-white/5 admin-text-muted hover:bg-white/10"
-                  }`}>
-                  {d.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <span className="admin-text-muted text-[10px] font-bold uppercase tracking-wider">Marque</span>
-            <div className="flex gap-1">
-              {BRANDED.map((b) => (
-                <button key={b.value} onClick={() => setBranded(b.value)}
-                  className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all ${
-                    branded === b.value ? "bg-[var(--color-red)] text-white" : "bg-white/5 admin-text-muted hover:bg-white/10"
-                  }`}>
-                  {b.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <span className="admin-text-muted text-[10px] font-bold uppercase tracking-wider">Pays</span>
-            <div className="flex gap-1">
-              {COUNTRIES.map((c) => (
-                <button key={c.value} onClick={() => setCountry(c.value)}
-                  className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all ${
-                    country === c.value ? "bg-[var(--color-red)] text-white" : "bg-white/5 admin-text-muted hover:bg-white/10"
-                  }`}>
-                  {c.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <p className="admin-text-muted text-xs mb-4">
-        Donnees reelles Google (cache 1h). Position = moyenne ponderee par impressions. Les periodes excluent les donnees GSC non finalisees.
-      </p>
-
-      {/* Summary */}
-      {summary && (
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-6">
-          <SummaryCard label="#1" value={summary.inTop1} color="text-green-400" />
-          <SummaryCard label="Top 3" value={summary.inTop3} color="text-green-400" />
-          <SummaryCard label="Top 10" value={summary.inTop10} color="text-blue-400" />
-          <SummaryCard label="Pos. moy." value={summary.avgPosition ?? "—"} color="text-orange-400" />
-          <SummaryCard label="Clics" value={summary.totalClicks} color="text-purple-400" />
-          <SummaryCard label="Impress." value={(summary.totalImpressions || 0).toLocaleString()} color="admin-text" />
-          <SummaryCard label="CTR moy." value={`${summary.ctr ?? 0}%`} color="text-cyan-400" />
-          <SummaryCard label="Villes" value={summary.citiesWithData} color="admin-text" />
-        </div>
-      )}
-
-      <KeywordTrackerSection
-        data={keywordTracker}
-        loading={keywordTrackerLoading}
-        scanning={keywordTrackerScanning}
-        selectedCity={trackedCity}
-        onCityChange={setTrackedCity}
-        onScan={scanKeywordTrackerCity}
-      />
-
-      <TrackedQueriesSection
-        data={tracked}
-        loading={trackedLoading}
-        selectedCity={trackedCity}
-        onCityChange={setTrackedCity}
-      />
-
-      {/* Opportunités */}
-      <OpportunitiesSection data={opportunities} />
-
-      {/* Tendances */}
-      <TrendsSection data={trends} />
-
-      {/* Cities table */}
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="admin-text font-bold text-sm uppercase tracking-wider">Positions par ville</h2>
-      </div>
-
-      <div className="admin-card border rounded-2xl overflow-x-auto">
-        <div style={{ minWidth: "1280px" }}>
-          {/* Header */}
-          <div className="flex items-center px-4 py-3 border-b gap-1" style={{ borderColor: "var(--admin-border)" }}>
-            <div className="w-[150px] shrink-0 admin-text-muted text-[10px] font-bold uppercase tracking-wider">Ville</div>
-            {PERIODS.map((p) => (
-              <div key={p.label} className="flex-1 text-center admin-text-muted text-[10px] font-bold uppercase tracking-wider">
-                {p.label}
-              </div>
-            ))}
-            <div className="w-[65px] text-center admin-text-muted text-[10px] font-bold uppercase tracking-wider">Δ 7/28j</div>
-            <div className="w-[55px] text-center admin-text-muted text-[10px] font-bold uppercase tracking-wider">Clics</div>
-            <div className="w-[55px] text-center admin-text-muted text-[10px] font-bold uppercase tracking-wider">Impr.</div>
-            <div className="w-[55px] text-center admin-text-muted text-[10px] font-bold uppercase tracking-wider">CTR</div>
-            <div className="w-[250px] shrink-0 admin-text-muted text-[10px] font-bold uppercase tracking-wider">Page principale</div>
-          </div>
-
-          {mergedCities.map((city) => {
-            const isExpanded = expandedCities.has(city.slug);
-            const pos7 = city.positions["7j"];
-            const pos28 = city.positions["28j"];
-            const delta7v28 = (pos7 != null && pos28 != null)
-              ? Math.round((pos28 - pos7) * 10) / 10
-              : null;
-            const pageUrl = city.bestPage;
-
-            return (
-              <div key={city.slug} className="border-b last:border-0" style={{ borderColor: "var(--admin-border)" }}>
-                <div className="flex items-center px-4 py-2.5 gap-1 cursor-pointer hover:bg-white/5 transition-colors" onClick={() => toggleCity(city.slug)}>
-                  <div className="w-[150px] shrink-0 admin-text text-sm font-medium flex items-center gap-1.5">
-                    <i className={`fas fa-chevron-right text-[9px] admin-text-muted transition-transform duration-300 ${isExpanded ? "rotate-90" : ""}`}></i>
-                    <span className="truncate">{city.name}</span>
-                  </div>
-                  {PERIODS.map((p) => {
-                    const pos = city.positions[p.label];
-                    return (
-                      <div key={p.label} className="flex-1 text-center">
-                        <span className={`inline-block px-1.5 py-0.5 rounded-full text-xs font-extrabold ${posColor(pos != null ? Math.round(pos) : null)}`}>
-                          {pos != null ? `#${pos}` : "—"}
-                        </span>
-                      </div>
-                    );
-                  })}
-                  <div className="w-[65px] text-center">
-                    <DeltaBadge delta={delta7v28} better="lower" />
-                  </div>
-                  <div className="w-[55px] text-center admin-text text-xs font-bold">{city.totalClicks}</div>
-                  <div className="w-[55px] text-center admin-text-muted text-xs">{city.totalImpressions}</div>
-                  <div className={`w-[55px] text-center text-xs font-bold ${ctrColor(city.ctr, pos28)}`}>
-                    {city.totalImpressions > 0 ? `${city.ctr}%` : "—"}
-                  </div>
-                  <div className="w-[250px] shrink-0 truncate text-[10px]">
-                    {pageUrl ? (
-                      <a href={pageUrl} target="_blank" rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className="text-blue-400 hover:text-blue-300" title={pageUrl}>
-                        {pageUrl.replace("https://www.vosthermos.com", "").replace("https://vosthermos.com", "")}
-                      </a>
-                    ) : <span className="admin-text-muted">—</span>}
-                  </div>
-                </div>
-
-                {/* Expanded */}
-                <div className="overflow-hidden transition-all duration-[1500ms] ease-in-out"
-                  style={{ maxHeight: isExpanded ? "1200px" : "0px", opacity: isExpanded ? 1 : 0 }}>
-                  <div className="px-5 pb-4 pt-3 border-t" style={{ borderColor: "var(--admin-border)" }}>
-                    {/* Positions per period */}
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {PERIODS.map((p) => {
-                        const pos = city.positions[p.label];
-                        return (
-                          <div key={p.label} className="admin-card border rounded-xl px-3 py-2 text-center min-w-[70px]">
-                            <p className="admin-text-muted text-[9px] font-bold uppercase tracking-wider mb-0.5">{p.label}</p>
-                            <span className={`text-lg font-extrabold ${pos != null
-                              ? (Math.round(pos) <= 3 ? "text-green-400" : Math.round(pos) <= 10 ? "text-blue-400" : Math.round(pos) <= 20 ? "text-orange-400" : "text-red-400")
-                              : "admin-text-muted"}`}>
-                              {pos != null ? `#${pos}` : "—"}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {cityQueries[city.slug]?.loading ? (
-                      <p className="admin-text-muted text-xs"><i className="fas fa-spinner fa-spin mr-1"></i>Chargement...</p>
-                    ) : (
-                      <>
-                        <p className="admin-text text-sm font-bold mb-2">Pages</p>
-                        {!cityQueries[city.slug]?.pages?.length ? (
-                          <p className="admin-text-muted text-xs mb-4">Aucune page indexee</p>
-                        ) : (
-                          <div className="space-y-1.5 mb-4 max-h-[200px] overflow-y-auto">
-                            {cityQueries[city.slug].pages.map((p, i) => (
-                              <div key={i} className="flex items-center gap-3 text-xs bg-white/5 rounded-lg px-3 py-2">
-                                <span className={`px-2 py-0.5 rounded-full font-bold ${posColor(Math.round(p.position))}`}>#{p.position}</span>
-                                <a href={p.page} target="_blank" rel="noopener noreferrer"
-                                  className="admin-text flex-1 truncate font-mono hover:text-blue-400" title={p.page}>
-                                  {p.page.replace("https://www.vosthermos.com", "")}
-                                </a>
-                                <span className="text-purple-400 font-bold">{p.clicks}c</span>
-                                <span className="admin-text-muted">{p.impressions}i</span>
-                                <span className={`font-bold ${ctrColor(p.ctr, p.position)}`}>{p.ctr}%</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="admin-text text-sm font-bold">Requetes</p>
-                          <p className="admin-text-muted text-[10px] italic">Google anonymise certaines requetes</p>
-                        </div>
-                        {!cityQueries[city.slug]?.queries?.length ? (
-                          <p className="admin-text-muted text-xs">Aucune requete revelee par Google</p>
-                        ) : (
-                          <div className="space-y-1.5 max-h-[300px] overflow-y-auto">
-                            {cityQueries[city.slug].queries.sort((a, b) => a.position - b.position).map((q, i) => (
-                              <div key={i} className="flex items-center gap-3 text-xs bg-white/5 rounded-lg px-3 py-2">
-                                <span className={`px-2 py-0.5 rounded-full font-bold ${posColor(Math.round(q.position))}`}>#{q.position}</span>
-                                <span className="admin-text flex-1 truncate">{q.query}</span>
-                                <span className="text-purple-400 font-bold">{q.clicks}c</span>
-                                <span className="admin-text-muted">{q.impressions}i</span>
-                                <span className={`font-bold ${ctrColor(q.ctr, q.position)}`}>{q.ctr}%</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Subcomponents ───────────────────────────────────────────────
-function SummaryCard({ label, value, color }) {
-  return (
-    <div className="admin-card border rounded-2xl p-4">
-      <p className="admin-text-muted text-[10px] font-bold uppercase tracking-wider mb-1">{label}</p>
-      <p className={`text-2xl font-extrabold ${color}`}>{value}</p>
-    </div>
-  );
-}
+const STATUS_ORDER = {
+  "not-found": 0,
+  page: 1,
+  weak: 2,
+  "no-data": 3,
+  unscanned: 3,
+  ok: 4,
+  strong: 5,
+};
 
 function formatNumber(value) {
-  return (value || 0).toLocaleString("fr-CA");
+  return Number(value || 0).toLocaleString("fr-CA");
+}
+
+function roundPosition(value) {
+  if (value == null) return null;
+  return Number.isInteger(value) ? value : value.toFixed(1);
+}
+
+function formatDate(value) {
+  if (!value) return "Jamais";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Jamais";
+  return date.toLocaleString("fr-CA", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function shortUrl(url) {
   if (!url) return "";
-  const path = url
-    .replace("https://www.vosthermos.com", "")
-    .replace("https://vosthermos.com", "");
-  return path || "/";
+  return String(url)
+    .replace(SITE, "")
+    .replace("https://vosthermos.com", "")
+    .replace(/\/$/, "") || "/";
 }
 
-function PositionPill({ position }) {
+function publicUrl(pathOrUrl) {
+  if (!pathOrUrl) return "";
+  if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
+  return `${SITE}${pathOrUrl.startsWith("/") ? pathOrUrl : `/${pathOrUrl}`}`;
+}
+
+function googleSearchUrl(query) {
+  return `https://www.google.com/search?q=${encodeURIComponent(query)}&gl=ca&hl=fr`;
+}
+
+function gscInspectUrl(pathOrUrl) {
+  return `https://search.google.com/search-console/inspect?resource_id=sc-domain%3Avosthermos.com&id=${encodeURIComponent(publicUrl(pathOrUrl))}`;
+}
+
+function positionClass(position) {
+  if (position == null) return "bg-slate-500/20 text-slate-300";
+  if (position <= 3) return "bg-emerald-500/20 text-emerald-300";
+  if (position <= 10) return "bg-sky-500/20 text-sky-300";
+  if (position <= 20) return "bg-amber-500/20 text-amber-300";
+  return "bg-orange-500/20 text-orange-300";
+}
+
+function statusClass(level) {
+  if (level === "strong") return "bg-emerald-500/20 text-emerald-300";
+  if (level === "ok") return "bg-sky-500/20 text-sky-300";
+  if (level === "page") return "bg-violet-500/20 text-violet-300";
+  if (level === "weak") return "bg-amber-500/20 text-amber-300";
+  if (level === "not-found") return "bg-orange-500/20 text-orange-300";
+  return "bg-slate-500/20 text-slate-300";
+}
+
+function hasGscReading(metric) {
+  return Boolean(metric && metric.impressions > 0);
+}
+
+function getRowPriority(row) {
+  const level = row.status?.level || "no-data";
+  return STATUS_ORDER[level] ?? 9;
+}
+
+function matchesFilter(row, filter) {
+  const level = row.status?.level || "no-data";
+  if (filter === "all") return true;
+  if (filter === "work") return ["not-found", "page", "weak", "no-data", "unscanned"].includes(level);
+  if (filter === "page") return level === "page";
+  if (filter === "missing") return ["not-found", "no-data", "unscanned"].includes(level);
+  if (filter === "good") return ["ok", "strong"].includes(level);
+  return true;
+}
+
+function exportCsv(filename, rows) {
+  if (!rows.length) return;
+  const headers = Object.keys(rows[0]);
+  const escape = (value) => {
+    const text = value == null ? "" : String(value);
+    return /[",\n;]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+  };
+  const csv = [headers.join(","), ...rows.map((row) => headers.map((header) => escape(row[header])).join(","))].join("\n");
+  const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  URL.revokeObjectURL(url);
+}
+
+function PositionBadge({ position }) {
   return (
-    <span className={`inline-block px-1.5 py-0.5 rounded-full text-xs font-extrabold ${posColor(position != null ? Math.round(position) : null)}`}>
-      {position != null ? `#${position}` : "—"}
+    <span className={`inline-flex min-w-[48px] justify-center rounded-full px-2 py-1 text-xs font-extrabold ${positionClass(position)}`}>
+      {position == null ? "N/A" : `#${roundPosition(position)}`}
     </span>
   );
 }
 
-function TrackedMetric({ metric }) {
-  return (
-    <div className="text-center">
-      <PositionPill position={metric?.position ?? null} />
-      <div className="admin-text-muted text-[10px] mt-0.5">{formatNumber(metric?.impressions)}i</div>
-    </div>
-  );
-}
-
-function statusClass(level) {
-  if (level === "strong") return "bg-green-500/20 text-green-400";
-  if (level === "ok") return "bg-blue-500/20 text-blue-400";
-  if (level === "weak") return "bg-orange-500/20 text-orange-400";
-  if (level === "page") return "bg-yellow-500/20 text-yellow-300";
-  if (level === "not-found") return "bg-orange-500/20 text-orange-300";
-  if (level === "unscanned") return "bg-gray-500/20 text-gray-400";
-  return "bg-gray-500/20 text-gray-400";
-}
-
-function formatDate(value) {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  return `${date.getDate()}/${date.getMonth() + 1} ${String(date.getHours()).padStart(2, "0")}h${String(date.getMinutes()).padStart(2, "0")}`;
-}
-
-function KeywordTrackerSection({ data, loading, scanning, selectedCity, onCityChange, onScan }) {
-  const cityOptions = [...(data?.cities || [])].sort((a, b) => a.name.localeCompare(b.name, "fr"));
-  const rows = data?.rows || [];
-  const period = data?.periods?.current28;
-  const summary = data?.summary;
-
-  return (
-    <div className="admin-card border rounded-2xl p-5 mb-6">
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <div>
-          <h3 className="admin-text font-bold text-sm uppercase tracking-wider">
-            <i className="fas fa-crosshairs text-cyan-400 mr-2"></i>Mots-cles a pousser
-          </h3>
-          <p className="admin-text-muted text-[10px] mt-1">
-            Lecture par mot-cle cible: position Google live, page qui sort, GSC 28j et page attendue.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {(loading || scanning) && <i className="fas fa-spinner fa-spin admin-text-muted text-xs"></i>}
-          <select
-            value={selectedCity}
-            onChange={(e) => onCityChange(e.target.value)}
-            className="admin-input border rounded-lg px-3 py-2 text-sm cursor-pointer min-w-[180px]"
-          >
-            {cityOptions.length === 0 && <option value={selectedCity}>{selectedCity}</option>}
-            {cityOptions.map((city) => (
-              <option key={city.slug} value={city.slug}>{city.name}</option>
-            ))}
-          </select>
-          <button
-            onClick={onScan}
-            disabled={scanning}
-            className="px-3 py-2 rounded-lg text-sm font-bold bg-white/5 border admin-border admin-text hover:bg-white/10 transition-all disabled:opacity-40"
-          >
-            <i className={`fas fa-sync-alt mr-2 ${scanning ? "fa-spin" : ""}`}></i>
-            {scanning ? "Scan..." : "Scanner cette ville"}
-          </button>
-        </div>
-      </div>
-
-      {summary && (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
-          <SummaryCard label="Mots-cles" value={summary.total} color="admin-text" />
-          <SummaryCard label="Top 3 live" value={summary.top3} color="text-green-400" />
-          <SummaryCard label="Top 10 live" value={summary.top10} color="text-blue-400" />
-          <SummaryCard label="A travailler" value={summary.needsWork} color="text-orange-400" />
-          <SummaryCard label="Page a verifier" value={summary.pageIssues} color="text-yellow-300" />
-        </div>
-      )}
-
-      {period && (
-        <p className="admin-text-muted text-[10px] mb-3">
-          GSC 28j: {period.startDate} → {period.endDate}. Le scan live cherche jusqu&apos;au top 100 Google Canada.
-        </p>
-      )}
-
-      {!data && loading ? (
-        <p className="admin-text-muted text-xs py-5">
-          <i className="fas fa-spinner fa-spin mr-2"></i>Chargement des mots-cles...
-        </p>
-      ) : rows.length === 0 ? (
-        <p className="admin-text-muted text-xs py-5">Aucun mot-cle configure.</p>
-      ) : (
-        <div className="overflow-x-auto border rounded-xl" style={{ borderColor: "var(--admin-border)" }}>
-          <table className="w-full text-xs" style={{ minWidth: "1320px" }}>
-            <thead>
-              <tr className="admin-text-muted border-b" style={{ borderColor: "var(--admin-border)" }}>
-                <th className="text-left px-3 py-2 font-bold uppercase tracking-wider">Mot-cle</th>
-                <th className="px-3 py-2 font-bold uppercase tracking-wider">Live</th>
-                <th className="px-3 py-2 font-bold uppercase tracking-wider">Delta</th>
-                <th className="px-3 py-2 font-bold uppercase tracking-wider">GSC 28j</th>
-                <th className="px-3 py-2 font-bold uppercase tracking-wider">GSC 90j</th>
-                <th className="text-left px-3 py-2 font-bold uppercase tracking-wider">Page qui sort</th>
-                <th className="text-left px-3 py-2 font-bold uppercase tracking-wider">Page attendue</th>
-                <th className="px-3 py-2 font-bold uppercase tracking-wider">Lecture</th>
-                <th className="text-left px-3 py-2 font-bold uppercase tracking-wider">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => {
-                const live = row.latestSerper;
-                const gsc28 = row.gsc?.current28;
-                const gsc90 = row.gsc?.current90;
-                const visiblePage = live?.url || gsc28?.bestPage || gsc28?.page;
-                const expected = row.expectedPaths?.[0] || "";
-                return (
-                  <tr key={row.query} className="border-b last:border-0 hover:bg-white/5" style={{ borderColor: "var(--admin-border)" }}>
-                    <td className="px-3 py-2 admin-text font-medium">
-                      <div className="truncate max-w-[240px]" title={row.query}>{row.query}</div>
-                      {gsc28?.query && <div className="admin-text-muted text-[10px] mt-0.5 truncate max-w-[240px]">GSC: {gsc28.query}</div>}
-                    </td>
-                    <td className="px-3 py-2 text-center">
-                      <PositionPill position={live?.position ?? null} />
-                      <div className="admin-text-muted text-[10px] mt-0.5">{live?.checkedAt ? formatDate(live.checkedAt) : "pas scanne"}</div>
-                    </td>
-                    <td className="px-3 py-2 text-center">
-                      <DeltaBadge delta={live?.delta ?? null} better="lower" />
-                    </td>
-                    <td className="px-3 py-2">
-                      <TrackedMetric metric={gsc28} />
-                    </td>
-                    <td className="px-3 py-2">
-                      <TrackedMetric metric={gsc90} />
-                    </td>
-                    <td className="px-3 py-2">
-                      {visiblePage ? (
-                        <a href={visiblePage} target="_blank" rel="noopener noreferrer"
-                          className="text-blue-400 hover:text-blue-300 truncate block max-w-[245px]" title={visiblePage}>
-                          {shortUrl(visiblePage)}
-                        </a>
-                      ) : <span className="admin-text-muted">—</span>}
-                    </td>
-                    <td className="px-3 py-2">
-                      <span className="admin-text-muted truncate block max-w-[230px]" title={(row.expectedPaths || []).join(", ")}>
-                        {expected || "—"}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 text-center">
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${statusClass(row.status?.level)}`}>
-                        {row.status?.label || "—"}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 admin-text-muted">
-                      <span className="truncate block max-w-[240px]" title={row.status?.action}>{row.status?.action || "—"}</span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function TrackedQueriesSection({ data, loading, selectedCity, onCityChange }) {
-  const cityOptions = [...(data?.cities || [])].sort((a, b) => a.name.localeCompare(b.name, "fr"));
-  const rows = data?.summary ? [data.summary, ...(data.queries || [])] : [];
-  const period = data?.periods?.current28;
-
-  return (
-    <div className="admin-card border rounded-2xl p-5 mb-6">
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-        <div>
-          <h3 className="admin-text font-bold text-sm uppercase tracking-wider">
-            <i className="fas fa-map-marker-alt text-cyan-400 mr-2"></i>Suivi GSC par requete
-          </h3>
-          <p className="admin-text-muted text-[10px] mt-1">
-            Ville detectee dans la requete. Delta 28j positif = meilleure position que les 28j precedents.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {loading && <i className="fas fa-spinner fa-spin admin-text-muted text-xs"></i>}
-          <select
-            value={selectedCity}
-            onChange={(e) => onCityChange(e.target.value)}
-            className="admin-input border rounded-lg px-3 py-2 text-sm cursor-pointer min-w-[180px]"
-          >
-            {cityOptions.length === 0 && <option value={selectedCity}>{selectedCity}</option>}
-            {cityOptions.map((city) => (
-              <option key={city.slug} value={city.slug}>{city.name}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {period && (
-        <p className="admin-text-muted text-[10px] mb-3">
-          Periode 28j: {period.startDate} → {period.endDate}. Les termes de marque sont exclus par defaut.
-        </p>
-      )}
-
-      {!data && loading ? (
-        <p className="admin-text-muted text-xs py-5">
-          <i className="fas fa-spinner fa-spin mr-2"></i>Chargement du suivi...
-        </p>
-      ) : rows.length === 0 ? (
-        <p className="admin-text-muted text-xs py-5">Aucune requete GSC detectee pour cette ville.</p>
-      ) : (
-        <div className="overflow-x-auto border rounded-xl" style={{ borderColor: "var(--admin-border)" }}>
-          <table className="w-full text-xs" style={{ minWidth: "1040px" }}>
-            <thead>
-              <tr className="admin-text-muted border-b" style={{ borderColor: "var(--admin-border)" }}>
-                <th className="text-left px-3 py-2 font-bold uppercase tracking-wider">Requete</th>
-                <th className="px-3 py-2 font-bold uppercase tracking-wider">7j</th>
-                <th className="px-3 py-2 font-bold uppercase tracking-wider">28j</th>
-                <th className="px-3 py-2 font-bold uppercase tracking-wider">90j</th>
-                <th className="px-3 py-2 font-bold uppercase tracking-wider">Delta 28j</th>
-                <th className="px-3 py-2 font-bold uppercase tracking-wider">Clics</th>
-                <th className="px-3 py-2 font-bold uppercase tracking-wider">Impr.</th>
-                <th className="px-3 py-2 font-bold uppercase tracking-wider">CTR</th>
-                <th className="text-left px-3 py-2 font-bold uppercase tracking-wider">Meilleure page</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row, index) => {
-                const isSummary = row.key === "_all";
-                const current = row.current28 || {};
-                return (
-                  <tr key={row.key || row.query} className={`border-b last:border-0 ${isSummary ? "bg-white/10" : "hover:bg-white/5"}`}
-                    style={{ borderColor: "var(--admin-border)" }}>
-                    <td className="px-3 py-2 admin-text font-medium">
-                      <div className="truncate max-w-[270px]" title={row.query}>
-                        {isSummary ? <span className="font-extrabold">{row.query}</span> : row.query}
-                      </div>
-                      {index === 0 && <div className="admin-text-muted text-[10px] mt-0.5">resume fiable pour cette ville</div>}
-                    </td>
-                    <td className="px-3 py-2"><TrackedMetric metric={row.current7} /></td>
-                    <td className="px-3 py-2"><TrackedMetric metric={row.current28} /></td>
-                    <td className="px-3 py-2"><TrackedMetric metric={row.current90} /></td>
-                    <td className="px-3 py-2 text-center"><DeltaBadge delta={row.delta28} better="lower" /></td>
-                    <td className="px-3 py-2 text-center admin-text font-bold">{formatNumber(current.clicks)}</td>
-                    <td className="px-3 py-2 text-center admin-text-muted">{formatNumber(current.impressions)}</td>
-                    <td className={`px-3 py-2 text-center font-bold ${ctrColor(current.ctr, current.position)}`}>
-                      {current.impressions > 0 ? `${current.ctr}%` : "—"}
-                    </td>
-                    <td className="px-3 py-2">
-                      {current.page ? (
-                        <a href={current.page} target="_blank" rel="noopener noreferrer"
-                          className="text-blue-400 hover:text-blue-300 truncate block max-w-[240px]" title={current.page}>
-                          {shortUrl(current.page)}
-                        </a>
-                      ) : <span className="admin-text-muted">—</span>}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function OpportunitiesSection({ data }) {
-  if (!data) return null;
-  if (data.length === 0) {
-    return (
-      <div className="admin-card border rounded-2xl p-5 mb-6">
-        <h3 className="admin-text font-bold text-sm uppercase tracking-wider mb-2">
-          <i className="fas fa-bullseye text-yellow-400 mr-2"></i>Opportunites
-        </h3>
-        <p className="admin-text-muted text-xs">Aucune requete entre pos 4-20 avec ≥50 impressions sur 28j.</p>
-      </div>
-    );
+function DeltaBadge({ delta }) {
+  if (delta == null || delta === 0) {
+    return <span className="admin-text-muted text-[10px]">stable</span>;
   }
+  const good = delta > 0;
   return (
-    <div className="admin-card border rounded-2xl p-5 mb-6">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="admin-text font-bold text-sm uppercase tracking-wider">
-          <i className="fas fa-bullseye text-yellow-400 mr-2"></i>Opportunites ({data.length})
-        </h3>
-        <p className="admin-text-muted text-[10px]">Pos 4-20, impressions ≥ 50, 28j, sans marque</p>
+    <span className={`text-[10px] font-bold ${good ? "text-emerald-300" : "text-amber-300"}`}>
+      <i className={`fas ${good ? "fa-arrow-up" : "fa-arrow-down"} mr-1`}></i>
+      {good ? "+" : ""}{delta}
+    </span>
+  );
+}
+
+function MetricStack({ metric }) {
+  const hasData = hasGscReading(metric);
+  return (
+    <div className="min-w-[86px] text-center">
+      <PositionBadge position={metric?.position ?? null} />
+      <div className="admin-text-muted mt-1 text-[10px]">
+        {hasData ? `${formatNumber(metric.impressions)} imp.` : "aucune lecture"}
       </div>
-      <div className="space-y-1.5 max-h-[280px] overflow-y-auto">
-        {data.map((o, i) => (
-          <div key={i} className="flex items-center gap-3 text-xs bg-white/5 rounded-lg px-3 py-2">
-            <span className={`px-2 py-0.5 rounded-full font-bold ${posColor(Math.round(o.position))}`}>#{o.position}</span>
-            <span className="admin-text flex-1 truncate" title={o.query}>{o.query}</span>
-            <span className="admin-text-muted text-[10px] truncate hidden md:inline max-w-[180px]" title={o.page}>
-              {(o.page || "").replace("https://www.vosthermos.com", "")}
-            </span>
-            <span className="text-purple-400">{o.clicks}c</span>
-            <span className="admin-text-muted">{o.impressions}i</span>
-            {o.potentialClicks > 0 && (
-              <span className="text-green-400 font-bold whitespace-nowrap">
-                <i className="fas fa-arrow-up mr-0.5"></i>+{o.potentialClicks} si top 3
-              </span>
-            )}
-            <a href={o.page} target="_blank" rel="noopener noreferrer" className="text-blue-400 text-[10px] px-2">
-              <i className="fas fa-external-link-alt"></i>
-            </a>
+      {hasData && (
+        <div className="admin-text-muted text-[10px]">
+          {formatNumber(metric.clicks)} clics / {metric.ctr || 0}%
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SummaryTile({ label, value, tone = "admin-text", icon }) {
+  return (
+    <div className="admin-card rounded-xl border p-4">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <p className="admin-text-muted text-[10px] font-bold uppercase tracking-wider">{label}</p>
+        {icon && <i className={`fas ${icon} admin-text-muted text-xs`}></i>}
+      </div>
+      <p className={`text-2xl font-extrabold ${tone}`}>{value}</p>
+    </div>
+  );
+}
+
+function LinkButton({ href, children, icon }) {
+  if (!href) return null;
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center rounded-lg border px-3 py-2 text-xs font-bold admin-border admin-text hover:bg-white/5"
+    >
+      {icon && <i className={`fas ${icon} mr-2`}></i>}
+      {children}
+    </a>
+  );
+}
+
+function EmptyReading({ loading }) {
+  return (
+    <div className="admin-card rounded-xl border p-8 text-center">
+      <i className={`fas ${loading ? "fa-spinner fa-spin" : "fa-search"} mb-3 block text-2xl admin-text-muted`}></i>
+      <p className="admin-text font-bold">{loading ? "Chargement du suivi SEO..." : "Aucune donnee a afficher"}</p>
+      {!loading && <p className="admin-text-muted mt-1 text-sm">Choisis une ville ou lance un scan live.</p>}
+    </div>
+  );
+}
+
+function InvestigationDetails({ row }) {
+  const live = row.latestSerper;
+  const gsc28 = row.gsc?.current28;
+  const history = live?.history || [];
+  const gscQueries = gsc28?.queries || [];
+  const expected = row.expectedPaths || [];
+  const visibleUrl = live?.url || gsc28?.bestPage || gsc28?.page || "";
+  const expectedUrl = expected[0] ? publicUrl(expected[0]) : "";
+
+  return (
+    <div className="grid gap-4 p-4 md:grid-cols-3">
+      <div>
+        <p className="admin-text-muted mb-2 text-[10px] font-bold uppercase tracking-wider">Diagnostic</p>
+        <p className="admin-text text-sm font-bold">{row.status?.label || "Aucune lecture"}</p>
+        <p className="admin-text-muted mt-1 text-xs">{row.status?.action || "A verifier avec un scan live."}</p>
+        <p className="admin-text-muted mt-3 text-[10px] font-mono">{row.query}</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <LinkButton href={googleSearchUrl(row.query)} icon="fa-magnifying-glass">Google</LinkButton>
+          <LinkButton href={expectedUrl} icon="fa-up-right-from-square">Page cible</LinkButton>
+          <LinkButton href={expectedUrl ? gscInspectUrl(expectedUrl) : ""} icon="fa-circle-check">Inspection</LinkButton>
+        </div>
+      </div>
+
+      <div>
+        <p className="admin-text-muted mb-2 text-[10px] font-bold uppercase tracking-wider">Historique live</p>
+        {history.length === 0 ? (
+          <p className="admin-text-muted text-xs">Aucun scan live enregistre.</p>
+        ) : (
+          <div className="space-y-2">
+            {history.slice(0, 5).map((item) => (
+              <div key={`${item.checkedAt}-${item.position}-${item.url}`} className="flex items-center gap-2 text-xs">
+                <PositionBadge position={item.position} />
+                <span className="admin-text-muted min-w-[76px]">{formatDate(item.checkedAt)}</span>
+                <span className="admin-text truncate" title={item.url || ""}>{shortUrl(item.url) || "absent top 100"}</span>
+              </div>
+            ))}
           </div>
+        )}
+      </div>
+
+      <div>
+        <p className="admin-text-muted mb-2 text-[10px] font-bold uppercase tracking-wider">GSC revele</p>
+        {gscQueries.length === 0 ? (
+          <p className="admin-text-muted text-xs">Google Search Console ne revele pas encore de requete utile.</p>
+        ) : (
+          <div className="space-y-2">
+            {gscQueries.map((query) => (
+              <div key={query.query} className="rounded-lg bg-white/5 px-3 py-2 text-xs">
+                <div className="admin-text truncate" title={query.query}>{query.query}</div>
+                <div className="admin-text-muted mt-1">
+                  #{roundPosition(query.position)} / {formatNumber(query.impressions)} imp. / {formatNumber(query.clicks)} clics
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        {visibleUrl && (
+          <div className="mt-3">
+            <LinkButton href={visibleUrl} icon="fa-link">Page qui sort</LinkButton>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SegmentedControl({ label, value, options, onChange }) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="admin-text-muted text-[10px] font-bold uppercase tracking-wider">{label}</span>
+      <div className="flex rounded-lg bg-white/5 p-1">
+        {options.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => onChange(option.value)}
+            className={`rounded-md px-2.5 py-1 text-xs font-bold ${
+              value === option.value
+                ? "bg-cyan-500/20 text-cyan-200"
+                : "admin-text-muted hover:bg-white/5"
+            }`}
+          >
+            {option.label}
+          </button>
         ))}
       </div>
     </div>
   );
 }
 
-function TrendsSection({ data }) {
-  if (!data) return null;
-  const { rising = [], falling = [] } = data;
-  if (rising.length === 0 && falling.length === 0) {
-    return (
-      <div className="admin-card border rounded-2xl p-5 mb-6">
-        <h3 className="admin-text font-bold text-sm uppercase tracking-wider mb-2">
-          <i className="fas fa-chart-line text-cyan-400 mr-2"></i>Tendances 7j
-        </h3>
-        <p className="admin-text-muted text-xs">Pas assez de donnees pour comparer les 2 semaines.</p>
-      </div>
-    );
-  }
-  return (
-    <div className="admin-card border rounded-2xl p-5 mb-6">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="admin-text font-bold text-sm uppercase tracking-wider">
-          <i className="fas fa-chart-line text-cyan-400 mr-2"></i>Tendances 7j vs 7j precedents
-        </h3>
-        <p className="admin-text-muted text-[10px]">
-          {data.windows?.current?.start} → {data.windows?.current?.end} vs {data.windows?.previous?.start} → {data.windows?.previous?.end}
-        </p>
-      </div>
-      <div className="grid md:grid-cols-2 gap-4">
-        <div>
-          <p className="admin-text-muted text-xs font-bold mb-2">
-            <i className="fas fa-arrow-up text-green-400 mr-1"></i>En hausse ({rising.length})
-          </p>
-          <div className="space-y-1 max-h-[240px] overflow-y-auto">
-            {rising.length === 0 ? (
-              <p className="admin-text-muted text-xs">Aucune</p>
-            ) : rising.map((t, i) => <TrendRow key={i} t={t} direction="up" />)}
-          </div>
-        </div>
-        <div>
-          <p className="admin-text-muted text-xs font-bold mb-2">
-            <i className="fas fa-arrow-down text-red-400 mr-1"></i>En chute ({falling.length})
-          </p>
-          <div className="space-y-1 max-h-[240px] overflow-y-auto">
-            {falling.length === 0 ? (
-              <p className="admin-text-muted text-xs">Aucune</p>
-            ) : falling.map((t, i) => <TrendRow key={i} t={t} direction="down" />)}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+export default function GscTab() {
+  const [data, setData] = useState(null);
+  const [keywords, setKeywords] = useState([]);
+  const [selectedCity, setSelectedCity] = useState(DEFAULT_CITY);
+  const [device, setDevice] = useState("ALL");
+  const [branded, setBranded] = useState("exclude");
+  const [country, setCountry] = useState("ALL");
+  const [statusFilter, setStatusFilter] = useState("work");
+  const [newKeyword, setNewKeyword] = useState("");
+  const [openRow, setOpenRow] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [scanning, setScanning] = useState(false);
+  const [savingKeywords, setSavingKeywords] = useState(false);
+  const [error, setError] = useState("");
 
-function TrendRow({ t, direction }) {
-  const deltaClicksCls = t.deltaClicks > 0 ? "text-green-400" : t.deltaClicks < 0 ? "text-red-400" : "admin-text-muted";
+  const queryString = useMemo(() => {
+    const params = new URLSearchParams();
+    params.set("city", selectedCity);
+    if (device !== "ALL") params.set("device", device);
+    if (branded !== "all") params.set("branded", branded);
+    if (country !== "ALL") params.set("country", country);
+    return params.toString();
+  }, [branded, country, device, selectedCity]);
+
+  const fetchKeywords = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/seo/keywords");
+      const body = await res.json();
+      setKeywords(body.keywords || []);
+    } catch {
+      setKeywords([]);
+    }
+  }, []);
+
+  const fetchTracker = useCallback(async ({ keepLoading = false } = {}) => {
+    if (!keepLoading) setLoading(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/admin/seo/keyword-tracker?${queryString}`);
+      const body = await res.json();
+      if (!res.ok || body.error) throw new Error(body.error || "Erreur suivi SEO");
+      setData(body);
+      setKeywords(body.keywords || []);
+      setOpenRow("");
+    } catch (err) {
+      setError(err.message || "Erreur suivi SEO");
+    } finally {
+      setLoading(false);
+    }
+  }, [queryString]);
+
+  useEffect(() => {
+    fetchKeywords();
+  }, [fetchKeywords]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => { fetchTracker(); }, 0);
+    return () => clearTimeout(timer);
+  }, [fetchTracker]);
+
+  const cityOptions = useMemo(() => {
+    const cities = data?.cities || [];
+    return [...cities].sort((a, b) => a.name.localeCompare(b.name, "fr"));
+  }, [data]);
+
+  const rows = useMemo(() => {
+    return [...(data?.rows || [])]
+      .filter((row) => matchesFilter(row, statusFilter))
+      .sort((a, b) => getRowPriority(a) - getRowPriority(b) || a.keyword.localeCompare(b.keyword, "fr"));
+  }, [data, statusFilter]);
+
+  const summary = data?.summary || {};
+  const lastScan = useMemo(() => {
+    const dates = (data?.rows || [])
+      .map((row) => row.latestSerper?.checkedAt)
+      .filter(Boolean)
+      .map((value) => new Date(value).getTime())
+      .filter((value) => !Number.isNaN(value));
+    if (dates.length === 0) return "Jamais";
+    return formatDate(new Date(Math.max(...dates)).toISOString());
+  }, [data]);
+
+  async function scanCity() {
+    setScanning(true);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/seo/keyword-tracker", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          city: selectedCity,
+          device,
+          branded,
+          country: country === "ALL" ? "" : country,
+        }),
+      });
+      const body = await res.json();
+      if (!res.ok || body.error) throw new Error(body.error || "Erreur scan SEO");
+      setData(body);
+      setKeywords(body.keywords || []);
+      setOpenRow("");
+    } catch (err) {
+      setError(err.message || "Erreur scan SEO");
+    } finally {
+      setScanning(false);
+      setLoading(false);
+    }
+  }
+
+  async function saveKeywords(nextKeywords) {
+    setSavingKeywords(true);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/seo/keywords", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ keywords: nextKeywords }),
+      });
+      const body = await res.json();
+      if (!res.ok || body.error) throw new Error(body.error || "Erreur mots-cles");
+      setKeywords(body.keywords || nextKeywords);
+      await fetchTracker({ keepLoading: true });
+    } catch (err) {
+      setError(err.message || "Erreur mots-cles");
+    } finally {
+      setSavingKeywords(false);
+    }
+  }
+
+  async function addKeyword() {
+    const keyword = newKeyword.trim().toLowerCase();
+    if (!keyword || keywords.includes(keyword)) return;
+    setNewKeyword("");
+    await saveKeywords([...keywords, keyword]);
+  }
+
+  async function removeKeyword(keyword) {
+    if (keywords.length <= 1) return;
+    await saveKeywords(keywords.filter((item) => item !== keyword));
+  }
+
+  function downloadCurrentCsv() {
+    const cityName = data?.city?.name || selectedCity;
+    const exportRows = (data?.rows || []).map((row) => {
+      const live = row.latestSerper;
+      const gsc28 = row.gsc?.current28 || {};
+      const gsc90 = row.gsc?.current90 || {};
+      return {
+        ville: cityName,
+        mot_cle: row.keyword,
+        requete: row.query,
+        live_position: live?.position ?? "",
+        live_page: live?.url || "",
+        live_scan: live?.checkedAt || "",
+        gsc_28j_position: gsc28.position ?? "",
+        gsc_28j_impressions: gsc28.impressions || 0,
+        gsc_90j_position: gsc90.position ?? "",
+        gsc_90j_impressions: gsc90.impressions || 0,
+        page_attendue: (row.expectedPaths || []).join(" | "),
+        statut: row.status?.label || "",
+        action: row.status?.action || "",
+      };
+    });
+    const date = new Date().toISOString().slice(0, 10);
+    exportCsv(`seo-suivi-${selectedCity}-${date}.csv`, exportRows);
+  }
+
   return (
-    <div className="flex items-center gap-2 text-xs bg-white/5 rounded-lg px-2.5 py-1.5">
-      <span className="admin-text flex-1 truncate" title={t.query}>{t.query}</span>
-      {t.posNow != null && (
-        <span className={`px-1.5 py-0.5 rounded-full font-bold text-[10px] ${posColor(Math.round(t.posNow))}`}>#{t.posNow}</span>
+    <div className="space-y-5">
+      <div className="admin-card rounded-xl border p-4">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 className="admin-text text-lg font-extrabold">Centrale de suivi SEO</h2>
+            <p className="admin-text-muted mt-1 max-w-3xl text-sm">
+              Une ville, tous les mots-cles vises, la position live Google, la lecture GSC et la page a pousser.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {(loading || scanning || savingKeywords) && <i className="fas fa-spinner fa-spin admin-text-muted"></i>}
+            <button
+              onClick={() => fetchTracker()}
+              disabled={loading || scanning}
+              className="rounded-lg border px-3 py-2 text-sm font-bold admin-border admin-text hover:bg-white/5 disabled:opacity-40"
+            >
+              <i className="fas fa-rotate mr-2"></i>Rafraichir
+            </button>
+            <button
+              onClick={scanCity}
+              disabled={scanning || loading}
+              className="rounded-lg bg-cyan-500/20 px-4 py-2 text-sm font-extrabold text-cyan-200 hover:bg-cyan-500/30 disabled:opacity-40"
+            >
+              <i className={`fas fa-satellite-dish mr-2 ${scanning ? "fa-spin" : ""}`}></i>
+              {scanning ? "Scan live..." : "Scanner cette ville"}
+            </button>
+            <button
+              onClick={downloadCurrentCsv}
+              disabled={!data?.rows?.length}
+              className="rounded-lg border px-3 py-2 text-sm font-bold admin-border admin-text hover:bg-white/5 disabled:opacity-40"
+            >
+              <i className="fas fa-file-csv mr-2"></i>CSV
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(220px,1fr)_auto_auto_auto]">
+          <select
+            value={selectedCity}
+            onChange={(event) => setSelectedCity(event.target.value)}
+            className="admin-input rounded-lg border px-3 py-2 text-sm"
+          >
+            {cityOptions.length === 0 && <option value={selectedCity}>{selectedCity}</option>}
+            {cityOptions.map((city) => (
+              <option key={city.slug} value={city.slug}>{city.name}</option>
+            ))}
+          </select>
+
+          <SegmentedControl label="Appareil" value={device} options={DEVICES} onChange={setDevice} />
+          <SegmentedControl label="Marque" value={branded} options={BRANDED} onChange={setBranded} />
+          <SegmentedControl label="Pays" value={country} options={COUNTRIES} onChange={setCountry} />
+        </div>
+
+        {error && (
+          <div className="mt-4 rounded-lg border border-orange-400/30 bg-orange-500/10 px-3 py-2 text-sm text-orange-200">
+            <i className="fas fa-triangle-exclamation mr-2"></i>{error}
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+        <SummaryTile label="Mots-cles" value={summary.total ?? 0} icon="fa-list-check" />
+        <SummaryTile label="Top 3 live" value={summary.top3 ?? 0} tone="text-emerald-300" icon="fa-trophy" />
+        <SummaryTile label="Top 10 live" value={summary.top10 ?? 0} tone="text-sky-300" icon="fa-ranking-star" />
+        <SummaryTile label="A travailler" value={summary.needsWork ?? 0} tone="text-amber-300" icon="fa-screwdriver-wrench" />
+        <SummaryTile label="Mauvaise page" value={summary.pageIssues ?? 0} tone="text-violet-300" icon="fa-route" />
+        <SummaryTile label="Dernier scan" value={lastScan} icon="fa-clock" />
+      </div>
+
+      <div className="admin-card rounded-xl border p-4">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <p className="admin-text text-sm font-bold uppercase tracking-wider">Mots-cles suivis</p>
+          <div className="flex flex-wrap gap-1">
+            {FILTERS.map((filter) => (
+              <button
+                key={filter.value}
+                onClick={() => setStatusFilter(filter.value)}
+                className={`rounded-lg px-3 py-1.5 text-xs font-bold ${
+                  statusFilter === filter.value
+                    ? "bg-cyan-500/20 text-cyan-200"
+                    : "bg-white/5 admin-text-muted hover:bg-white/10"
+                }`}
+              >
+                {filter.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-3 flex flex-wrap gap-2">
+          {keywords.map((keyword) => (
+            <span key={keyword} className="inline-flex items-center gap-2 rounded-lg bg-white/5 px-3 py-1.5 text-xs font-bold admin-text">
+              {keyword}
+              {keywords.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeKeyword(keyword)}
+                  disabled={savingKeywords}
+                  className="admin-text-muted hover:text-white disabled:opacity-40"
+                  title="Retirer ce mot-cle"
+                >
+                  <i className="fas fa-xmark"></i>
+                </button>
+              )}
+            </span>
+          ))}
+        </div>
+
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={newKeyword}
+            onChange={(event) => setNewKeyword(event.target.value)}
+            onKeyDown={(event) => { if (event.key === "Enter") addKeyword(); }}
+            placeholder="Ajouter un mot-cle cible"
+            className="admin-input min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm"
+          />
+          <button
+            onClick={addKeyword}
+            disabled={!newKeyword.trim() || savingKeywords}
+            className="rounded-lg bg-white/10 px-4 py-2 text-sm font-bold admin-text hover:bg-white/15 disabled:opacity-40"
+          >
+            <i className="fas fa-plus mr-2"></i>Ajouter
+          </button>
+        </div>
+      </div>
+
+      {(!data && loading) || (!data?.rows?.length && !loading) ? (
+        <EmptyReading loading={loading} />
+      ) : (
+        <div className="admin-card overflow-hidden rounded-xl border">
+          {rows.length === 0 && (
+            <div className="border-b px-4 py-5 text-sm admin-text-muted" style={{ borderColor: "var(--admin-border)" }}>
+              Aucune ligne dans ce filtre. Change le filtre ou lance un scan live pour cette ville.
+            </div>
+          )}
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs" style={{ minWidth: "1180px" }}>
+              <thead>
+                <tr className="border-b admin-text-muted" style={{ borderColor: "var(--admin-border)" }}>
+                  <th className="px-3 py-3 text-left font-bold uppercase tracking-wider">Mot-cle</th>
+                  <th className="px-3 py-3 text-center font-bold uppercase tracking-wider">Live Google</th>
+                  <th className="px-3 py-3 text-center font-bold uppercase tracking-wider">GSC 28j</th>
+                  <th className="px-3 py-3 text-center font-bold uppercase tracking-wider">GSC 90j</th>
+                  <th className="px-3 py-3 text-left font-bold uppercase tracking-wider">Page qui sort</th>
+                  <th className="px-3 py-3 text-left font-bold uppercase tracking-wider">Page a pousser</th>
+                  <th className="px-3 py-3 text-center font-bold uppercase tracking-wider">Lecture</th>
+                  <th className="px-3 py-3 text-left font-bold uppercase tracking-wider">Prochaine action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row) => {
+                  const live = row.latestSerper;
+                  const gsc28 = row.gsc?.current28;
+                  const gsc90 = row.gsc?.current90;
+                  const visibleUrl = live?.url || gsc28?.bestPage || gsc28?.page || "";
+                  const expectedPath = row.expectedPaths?.[0] || "";
+                  const isOpen = openRow === row.query;
+                  const livePosition = live?.position ?? null;
+
+                  return (
+                    <Fragment key={row.query}>
+                      <tr
+                        onClick={() => setOpenRow(isOpen ? "" : row.query)}
+                        className={`cursor-pointer border-b transition-colors hover:bg-white/5 ${isOpen ? "bg-white/5" : ""}`}
+                        style={{ borderColor: "var(--admin-border)" }}
+                      >
+                        <td className="px-3 py-3">
+                          <div className="admin-text flex items-center gap-2 font-bold">
+                            <i className={`fas fa-chevron-right text-[10px] admin-text-muted transition-transform ${isOpen ? "rotate-90" : ""}`}></i>
+                            <span>{row.keyword}</span>
+                          </div>
+                          <div className="admin-text-muted mt-1 truncate font-mono text-[10px]" title={row.query}>{row.query}</div>
+                        </td>
+                        <td className="px-3 py-3 text-center">
+                          <PositionBadge position={livePosition} />
+                          <div className="admin-text-muted mt-1 text-[10px]">{formatDate(live?.checkedAt)}</div>
+                          <DeltaBadge delta={live?.delta ?? null} />
+                        </td>
+                        <td className="px-3 py-3"><MetricStack metric={gsc28} /></td>
+                        <td className="px-3 py-3"><MetricStack metric={gsc90} /></td>
+                        <td className="px-3 py-3">
+                          {visibleUrl ? (
+                            <a
+                              href={visibleUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(event) => event.stopPropagation()}
+                              className="block max-w-[230px] truncate text-sky-300 hover:text-sky-200"
+                              title={visibleUrl}
+                            >
+                              {shortUrl(visibleUrl)}
+                            </a>
+                          ) : (
+                            <span className="admin-text-muted">Aucune</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-3">
+                          {expectedPath ? (
+                            <a
+                              href={publicUrl(expectedPath)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(event) => event.stopPropagation()}
+                              className="block max-w-[230px] truncate admin-text hover:text-cyan-200"
+                              title={expectedPath}
+                            >
+                              {expectedPath}
+                            </a>
+                          ) : (
+                            <span className="admin-text-muted">A definir</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-3 text-center">
+                          <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-extrabold ${statusClass(row.status?.level)}`}>
+                            {row.status?.label || "Aucune lecture"}
+                          </span>
+                        </td>
+                        <td className="px-3 py-3">
+                          <div className="admin-text-muted max-w-[230px] truncate" title={row.status?.action || ""}>
+                            {row.status?.action || "Ouvrir le dossier."}
+                          </div>
+                        </td>
+                      </tr>
+                      {isOpen && (
+                        <tr className="border-b bg-black/10" style={{ borderColor: "var(--admin-border)" }}>
+                          <td colSpan={8}>
+                            <InvestigationDetails row={row} />
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
-      <span className={`font-bold whitespace-nowrap ${deltaClicksCls}`}>
-        {t.deltaClicks > 0 ? "+" : ""}{t.deltaClicks}c
-      </span>
-      {t.deltaPos != null && t.deltaPos !== 0 && (
-        <span className={`text-[10px] whitespace-nowrap ${t.deltaPos > 0 ? "text-green-400" : "text-red-400"}`}>
-          <i className={`fas fa-arrow-${t.deltaPos > 0 ? "up" : "down"} mr-0.5`}></i>{Math.abs(t.deltaPos)}
-        </span>
+
+      {data?.periods?.current28 && (
+        <p className="admin-text-muted text-xs">
+          GSC 28j: {data.periods.current28.startDate} -&gt; {data.periods.current28.endDate}. Le scan live cherche Vosthermos dans le top 100 Google Canada.
+        </p>
       )}
-      <a href={t.page} target="_blank" rel="noopener noreferrer" className="text-blue-400 text-[10px]">
-        <i className="fas fa-external-link-alt"></i>
-      </a>
     </div>
   );
 }

@@ -468,18 +468,18 @@ function rowStatus({ latestSerper, currentGsc, expected }) {
     if (hasLiveScan) {
       return {
         level: "not-found",
-        label: "Non trouve top 100",
-        action: "Vosthermos absent du top 100 live et aucune lecture GSC utile",
+        label: "Absent top 100",
+        action: "Vosthermos est absent du scan live top 100. Travailler la page cible et les liens internes",
       };
     }
     return {
-      level: "unscanned",
-      label: "Pas encore scanne",
-      action: "Cliquer Scanner cette ville ou attendre des impressions GSC",
+      level: "no-data",
+      label: "Aucune lecture",
+      action: "Aucun scan live et aucune impression GSC utile. Lancer le scan de cette ville",
     };
   }
   if (!correctPage) {
-    return { level: "page", label: "Page a clarifier", action: "Renforcer la page attendue et les liens internes" };
+    return { level: "page", label: "Mauvaise page", action: "Google choisit une autre page. Renforcer la page attendue et ses liens internes" };
   }
   if (effectivePosition <= 3) {
     return { level: "strong", label: "Fort", action: "Surveiller et garder la page active" };
@@ -554,7 +554,7 @@ async function buildTrackerData({ citySlug, device, branded, country }) {
     total: rows.length,
     top3: rows.filter((row) => (row.latestSerper?.position ?? 999) <= 3).length,
     top10: rows.filter((row) => (row.latestSerper?.position ?? 999) <= 10).length,
-    needsWork: rows.filter((row) => ["weak", "page", "missing", "unscanned", "not-found"].includes(row.status.level)).length,
+    needsWork: rows.filter((row) => ["weak", "page", "missing", "unscanned", "not-found", "no-data"].includes(row.status.level)).length,
     pageIssues: rows.filter((row) => row.status.level === "page").length,
   };
 
