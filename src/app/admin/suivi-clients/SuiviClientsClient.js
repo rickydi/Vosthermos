@@ -117,18 +117,25 @@ const EMPTY_FORM = {
   notes: "",
 };
 
-const FIREWORK_PARTICLES = [
-  { angle: 0, distance: 54, delay: 0 },
-  { angle: 32, distance: 62, delay: 20 },
-  { angle: 65, distance: 50, delay: 45 },
-  { angle: 98, distance: 58, delay: 10 },
-  { angle: 132, distance: 66, delay: 35 },
-  { angle: 170, distance: 48, delay: 0 },
-  { angle: 210, distance: 59, delay: 55 },
-  { angle: 246, distance: 52, delay: 25 },
-  { angle: 286, distance: 64, delay: 40 },
-  { angle: 322, distance: 56, delay: 15 },
+const FIREWORK_BURSTS = [
+  { x: "26%", y: "42%", delay: 0, scale: 1 },
+  { x: "54%", y: "30%", delay: 260, scale: 1.18 },
+  { x: "76%", y: "48%", delay: 520, scale: 0.96 },
+  { x: "42%", y: "68%", delay: 760, scale: 0.82 },
 ];
+
+const FIREWORK_SPARKS = Array.from({ length: 30 }, (_, index) => {
+  const angle = (index * 12) + (index % 2 ? 4 : -3);
+  const radians = (angle * Math.PI) / 180;
+  const distance = 68 + (index % 6) * 9;
+  return {
+    angle,
+    dx: Math.cos(radians) * distance,
+    dy: Math.sin(radians) * distance,
+    fall: 18 + (index % 5) * 5,
+    delay: (index % 4) * 18,
+  };
+});
 
 function toInputDate(value) {
   if (!value) return "";
@@ -405,10 +412,10 @@ export default function SuiviClientsClient() {
     moveTimer.current = setTimeout(() => {
       setRecentlyMovedId(null);
       setMoveFeedback(null);
-    }, 1600);
+    }, 2600);
     clearTimeout(celebrationTimer.current);
     setCelebratingId(followUpId);
-    celebrationTimer.current = setTimeout(() => setCelebratingId(null), 1850);
+    celebrationTimer.current = setTimeout(() => setCelebratingId(null), 2850);
   }
 
   async function saveFollowUp(e) {
@@ -727,27 +734,129 @@ export default function SuiviClientsClient() {
         }
         .kanban-board-fireworks {
           position: fixed;
-          top: 86px;
-          right: 24px;
-          width: min(240px, calc(100vw - 32px));
-          height: 150px;
+          inset: 0;
           z-index: 80;
           pointer-events: none;
+          overflow: hidden;
         }
-        .kanban-board-fireworks .kanban-mini-fireworks {
-          border-radius: 18px;
-          background: radial-gradient(circle at 62% 34%, rgba(16, 185, 129, 0.18), rgba(15, 23, 42, 0.05) 58%, transparent 72%);
+        .kanban-real-fireworks {
+          position: absolute;
+          inset: 0;
+          z-index: 20;
+          pointer-events: none;
+          overflow: hidden;
         }
-        .kanban-board-fireworks .kanban-firework-ring,
-        .kanban-board-fireworks .kanban-firework-core,
-        .kanban-board-fireworks .kanban-firework-particle {
+        .kanban-real-fireworks:not(.compact) {
+          background:
+            radial-gradient(circle at 52% 34%, rgba(16, 185, 129, 0.16), transparent 24%),
+            radial-gradient(circle at 78% 48%, rgba(103, 232, 249, 0.13), transparent 22%),
+            linear-gradient(180deg, rgba(2, 6, 23, 0.10), transparent 58%);
+          animation: kanban-fireworks-stage 2850ms ease-out both;
+        }
+        .kanban-real-fireworks.compact {
+          border-radius: inherit;
+          background: radial-gradient(circle at 55% 36%, rgba(16, 185, 129, 0.22), transparent 62%);
+        }
+        .kanban-firework-burst {
+          position: absolute;
+          left: var(--x);
+          top: var(--y);
+          width: 1px;
+          height: 1px;
+          transform: scale(var(--scale));
+          animation: kanban-burst-pop 1260ms ease-out var(--delay) both;
+        }
+        .kanban-real-fireworks.compact .kanban-firework-burst {
+          left: 62%;
+          top: 36%;
+          transform: scale(0.68);
+        }
+        .kanban-real-fireworks.compact .kanban-firework-burst:nth-child(n+3) {
+          display: none;
+        }
+        .kanban-firework-launch {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 2px;
+          height: 95px;
+          border-radius: 999px;
+          background: linear-gradient(180deg, rgba(251, 191, 36, 0), rgba(251, 191, 36, 0.92), rgba(103, 232, 249, 0));
+          box-shadow: 0 0 16px rgba(251, 191, 36, 0.45);
+          transform: translate(-50%, 42px) scaleY(0);
+          animation: kanban-firework-launch 660ms ease-out var(--delay) both;
+        }
+        .kanban-firework-flash {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 15px;
+          height: 15px;
+          border-radius: 999px;
+          background: rgb(236, 253, 245);
+          box-shadow: 0 0 18px rgba(236, 253, 245, 0.95), 0 0 38px rgba(103, 232, 249, 0.68), 0 0 58px rgba(16, 185, 129, 0.48);
+          transform: translate(-50%, -50%) scale(0.15);
+          animation: kanban-firework-flash 1180ms ease-out var(--delay) both;
+        }
+        .kanban-firework-halo {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 40px;
+          height: 40px;
+          border-radius: 999px;
+          border: 2px solid rgba(103, 232, 249, 0.52);
+          box-shadow: 0 0 24px rgba(103, 232, 249, 0.28), inset 0 0 22px rgba(110, 231, 183, 0.18);
+          transform: translate(-50%, -50%) scale(0.08);
+          animation: kanban-firework-halo 1240ms cubic-bezier(0.06, 0.72, 0.28, 1) var(--delay) both;
+        }
+        .kanban-firework-spark {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 5px;
+          height: 5px;
+          border-radius: 999px;
+          background: currentColor;
+          color: rgb(103, 232, 249);
+          box-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
+          transform: translate(-50%, -50%) translate(0, 0) scale(0.2);
+          animation: kanban-real-spark 1420ms cubic-bezier(0.08, 0.78, 0.18, 1) calc(var(--delay) + var(--spark-delay)) both;
+        }
+        .kanban-firework-spark::after {
+          content: "";
+          position: absolute;
+          right: 4px;
+          top: 50%;
+          width: 20px;
+          height: 2px;
+          border-radius: 999px;
+          background: linear-gradient(90deg, transparent, currentColor);
+          opacity: 0.62;
+          transform: translateY(-50%);
+        }
+        .kanban-firework-spark.spark-1 { color: rgb(110, 231, 183); }
+        .kanban-firework-spark.spark-2 { color: rgb(251, 191, 36); }
+        .kanban-firework-spark.spark-3 { color: rgb(125, 211, 252); }
+        .kanban-firework-spark.spark-4 { color: rgb(196, 181, 253); }
+        .kanban-firework-spark.spark-5 { color: rgb(190, 242, 100); }
+        .kanban-fireworks-badge {
+          position: absolute;
           left: 50%;
-          top: 52%;
+          top: 22px;
+          transform: translateX(-50%);
+          border-radius: 999px;
+          background: rgba(16, 185, 129, 0.94);
+          color: rgb(2, 6, 23);
+          padding: 7px 14px;
+          font-size: 12px;
+          font-weight: 900;
+          letter-spacing: 0;
+          box-shadow: 0 0 34px rgba(16, 185, 129, 0.48);
+          animation: kanban-fireworks-badge 2500ms ease-out both;
         }
-        .kanban-board-fireworks .kanban-win-badge {
-          right: 50%;
-          top: 16px;
-          transform: translateX(50%);
+        .kanban-real-fireworks.compact .kanban-fireworks-badge {
+          display: none;
         }
         @keyframes kanban-overlay-in {
           0% { opacity: 0.72; transform: scale(0.96) rotate(0deg); }
@@ -794,6 +903,61 @@ export default function SuiviClientsClient() {
           18% { opacity: 1; transform: translateY(0) scale(1.05); }
           72% { opacity: 1; transform: translateY(0) scale(1); }
           100% { opacity: 0; transform: translateY(-6px) scale(0.96); }
+        }
+        @keyframes kanban-fireworks-stage {
+          0% { opacity: 0; }
+          8% { opacity: 1; }
+          82% { opacity: 1; }
+          100% { opacity: 0; }
+        }
+        @keyframes kanban-burst-pop {
+          0% { opacity: 0; filter: blur(0); }
+          8% { opacity: 1; }
+          88% { opacity: 1; filter: blur(0); }
+          100% { opacity: 0; filter: blur(2px); }
+        }
+        @keyframes kanban-firework-launch {
+          0% { opacity: 0; transform: translate(-50%, 120px) scaleY(0); }
+          18% { opacity: 0.92; transform: translate(-50%, 80px) scaleY(0.58); }
+          74% { opacity: 0.72; transform: translate(-50%, 8px) scaleY(1); }
+          100% { opacity: 0; transform: translate(-50%, -4px) scaleY(0.18); }
+        }
+        @keyframes kanban-firework-flash {
+          0% { opacity: 0; transform: translate(-50%, -50%) scale(0.12); }
+          18% { opacity: 0; transform: translate(-50%, -50%) scale(0.12); }
+          26% { opacity: 1; transform: translate(-50%, -50%) scale(1.4); }
+          48% { opacity: 0.62; transform: translate(-50%, -50%) scale(0.72); }
+          100% { opacity: 0; transform: translate(-50%, -50%) scale(0.12); }
+        }
+        @keyframes kanban-firework-halo {
+          0% { opacity: 0; transform: translate(-50%, -50%) scale(0.08); }
+          20% { opacity: 0; transform: translate(-50%, -50%) scale(0.08); }
+          34% { opacity: 0.86; transform: translate(-50%, -50%) scale(1.4); }
+          100% { opacity: 0; transform: translate(-50%, -50%) scale(5.6); }
+        }
+        @keyframes kanban-real-spark {
+          0% {
+            opacity: 0;
+            transform: translate(-50%, -50%) translate(0, 0) scale(0.18);
+          }
+          18% {
+            opacity: 0;
+            transform: translate(-50%, -50%) translate(0, 0) scale(0.22);
+          }
+          28% {
+            opacity: 1;
+            transform: translate(-50%, -50%) translate(var(--start-dx), var(--start-dy)) scale(1);
+          }
+          100% {
+            opacity: 0;
+            transform: translate(-50%, -50%) translate(var(--dx), calc(var(--dy) + var(--fall))) scale(0.05);
+          }
+        }
+        @keyframes kanban-fireworks-badge {
+          0% { opacity: 0; transform: translateX(-50%) translateY(-10px) scale(0.88); }
+          18% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1.04); }
+          76% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+          100% { opacity: 0; transform: translateX(-50%) translateY(-8px) scale(0.96); }
         }
       `}</style>
       <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-6">
@@ -848,7 +1012,7 @@ export default function SuiviClientsClient() {
       )}
       {moveFeedback?.accepted && (
         <div className="kanban-board-fireworks">
-          <MiniFireworks />
+          <FireworksShow />
         </div>
       )}
 
@@ -1134,7 +1298,7 @@ function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, isDragging
         celebrating ? "kanban-card-accepted-burst ring-2 ring-emerald-300/80" : ""
       }`}
     >
-      {celebrating && <MiniFireworks />}
+      {celebrating && <FireworksShow compact />}
       {dragging && (
         <div className="absolute inset-x-2 top-2 z-10 rounded-lg border border-cyan-300/35 bg-cyan-500/10 px-2 py-1.5 text-[11px] font-extrabold text-cyan-100">
           <i className="fas fa-hand-pointer mr-2"></i>En mouvement
@@ -1249,23 +1413,40 @@ function KanbanCardPreview({ followUp, columns }) {
   );
 }
 
-function MiniFireworks() {
+function FireworksShow({ compact = false }) {
   return (
-    <div className="kanban-mini-fireworks" aria-hidden="true">
-      <span className="kanban-firework-ring"></span>
-      <span className="kanban-firework-core"></span>
-      {FIREWORK_PARTICLES.map((particle, index) => (
+    <div className={`kanban-real-fireworks ${compact ? "compact" : ""}`} aria-hidden="true">
+      {FIREWORK_BURSTS.map((burst, burstIndex) => (
         <span
-          key={`${particle.angle}-${particle.distance}`}
-          className={`kanban-firework-particle particle-${index % 5}`}
+          key={`${burst.x}-${burst.y}`}
+          className="kanban-firework-burst"
           style={{
-            "--angle": `${particle.angle}deg`,
-            "--distance": `${particle.distance}px`,
-            "--delay": `${particle.delay}ms`,
+            "--x": burst.x,
+            "--y": burst.y,
+            "--delay": `${compact ? Math.min(burst.delay, 180) : burst.delay}ms`,
+            "--scale": compact ? Math.min(burst.scale, 0.78) : burst.scale,
           }}
-        />
+        >
+          <span className="kanban-firework-launch"></span>
+          <span className="kanban-firework-flash"></span>
+          <span className="kanban-firework-halo"></span>
+          {FIREWORK_SPARKS.map((spark, sparkIndex) => (
+            <span
+              key={`${burstIndex}-${spark.angle}`}
+              className={`kanban-firework-spark spark-${sparkIndex % 6}`}
+              style={{
+                "--dx": `${compact ? spark.dx * 0.46 : spark.dx}px`,
+                "--dy": `${compact ? spark.dy * 0.46 : spark.dy}px`,
+                "--start-dx": `${compact ? spark.dx * 0.0736 : spark.dx * 0.16}px`,
+                "--start-dy": `${compact ? spark.dy * 0.0736 : spark.dy * 0.16}px`,
+                "--fall": `${compact ? spark.fall * 0.38 : spark.fall}px`,
+                "--spark-delay": `${spark.delay}ms`,
+              }}
+            />
+          ))}
+        </span>
       ))}
-      <span className="kanban-win-badge">
+      <span className="kanban-fireworks-badge">
         <i className="fas fa-check mr-1"></i>Accepte
       </span>
     </div>
