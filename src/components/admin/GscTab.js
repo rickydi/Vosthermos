@@ -100,6 +100,85 @@ function hasGscReading(metric) {
   return Boolean(metric && metric.impressions > 0);
 }
 
+function formatPromptMetric(metric) {
+  if (!metric || !metric.impressions) return "aucune lecture";
+  return `position #${roundPosition(metric.position)}, ${formatNumber(metric.impressions)} impressions, ${formatNumber(metric.clicks)} clics, CTR ${metric.ctr || 0}%`;
+}
+
+function formatPromptInspection(inspection) {
+  if (!inspection) return "inspection non lancee dans l'admin";
+  const index = inspection.result?.indexStatusResult || {};
+  return [
+    `verdict: ${index.verdict || "non fourni"}`,
+    `etat: ${index.coverageState || "non fourni"}`,
+    `dernier crawl: ${index.lastCrawlTime || "non fourni"}`,
+    `canonique Google: ${shortUrl(index.googleCanonical) || "non fourni"}`,
+    `canonique page: ${shortUrl(index.userCanonical) || "non fourni"}`,
+  ].join("\n");
+}
+
+function buildSeoPrompt({ row, cityName, periods, inspection }) {
+  const live = row.latestSerper;
+  const gsc28 = row.gsc?.current28;
+  const gsc90 = row.gsc?.current90;
+  const visibleUrl = live?.url || gsc28?.bestPage || gsc28?.page || "";
+  const expectedPath = row.expectedPaths?.[0] || "";
+  const expectedUrl = expectedPath ? publicUrl(expectedPath) : "";
+  const history = live?.history || [];
+  const historyText = history.length
+    ? history.slice(0, 6).map((item) => {
+      const position = item.position == null ? "absent top 100" : `#${item.position}`;
+      return `- ${formatDate(item.checkedAt)}: ${position} ${shortUrl(item.url) || ""}`.trim();
+    }).join("\n")
+    : "- aucun historique live";
+  const gscQueries = gsc28?.queries?.length
+    ? gsc28.queries.map((query) => (
+      `- "${query.query}" (#${roundPosition(query.position)}, ${formatNumber(query.impressions)} impressions, ${formatNumber(query.clicks)} clics)`
+    )).join("\n")
+    : "- aucune requete GSC revelee";
+
+  return `On travaille sur le site Vosthermos.
+
+Je veux une enquete SEO tres ciblee, pas une analyse generale.
+
+Situation:
+- Ville: ${cityName || "non fournie"}
+- Mot-cle cible: ${row.keyword}
+- Requete live testee: ${row.query}
+- Diagnostic actuel: ${row.status?.label || "non fourni"}
+- Action suggeree par le tableau: ${row.status?.action || "non fournie"}
+- Position live Google Canada: ${live?.position == null ? "absent / non scanne" : `#${live.position}`}
+- Delta live: ${live?.delta == null ? "non fourni" : live.delta}
+- Date du scan live: ${live?.checkedAt ? formatDate(live.checkedAt) : "non scanne"}
+
+Pages:
+- Page qui sort actuellement: ${visibleUrl ? `${shortUrl(visibleUrl)} (${visibleUrl})` : "aucune"}
+- Page que je veux pousser: ${expectedUrl ? `${shortUrl(expectedUrl)} (${expectedUrl})` : "non definie"}
+
+GSC:
+- Periode 28j: ${periods?.current28?.startDate || "?"} -> ${periods?.current28?.endDate || "?"}
+- GSC 28j: ${formatPromptMetric(gsc28)}
+- GSC 90j: ${formatPromptMetric(gsc90)}
+- Requetes GSC revelees:
+${gscQueries}
+
+Inspection Search Console de la page cible:
+${formatPromptInspection(inspection)}
+
+Historique live:
+${historyText}
+
+Objectif:
+Trouver pourquoi Google choisit la mauvaise page et proposer une correction precise pour que la page cible devienne la bonne page pour cette requete, sans reduire la force de la page qui sort actuellement.
+
+Contraintes:
+- Ne propose pas de strategie SEO generale.
+- Ne propose pas de backlinks ou de contenu vague.
+- Donne les causes probables dans l'ordre.
+- Propose les changements exacts a faire dans le site: liens internes, ancre, titre/H1, sections locales, schema, canonical ou cannibalisation si necessaire.
+- Si tu as acces au repo, inspecte les fichiers pertinents et propose ou applique un patch cible.`;
+}
+
 function getRowPriority(row) {
   const level = row.status?.level || "no-data";
   return STATUS_ORDER[level] ?? 9;
@@ -258,7 +337,40 @@ function InspectionButton({ url, inspection, loading, error, onInspect }) {
   );
 }
 
-function InvestigationDetails({ row, inspectionState, onInspect }) {
+function PromptButton({ row, inspection, promptState, onCopyPrompt }) {
+  const state = promptState[row.query] || {};
+  return (
+    <div className="mt-3">
+      <button
+        type="button"
+        onClick={() => onCopyPrompt(row, inspection)}
+        className="inline-flex items-center rounded-lg bg-cyan-500/20 px-3 py-2 text-xs font-extrabold text-cyan-100 hover:bg-cyan-500/30"
+      >
+        <i className="fas fa-copy mr-2"></i>
+        Copier prompt IA
+      </button>
+      {state.copied && (
+        <p className="mt-2 text-xs text-emerald-300">
+          <i className="fas fa-check mr-1"></i>Prompt copie. Colle-le ici pour lancer l&apos;enquete.
+        </p>
+      )}
+      {state.error && (
+        <p className="mt-2 text-xs text-orange-300">{state.error}</p>
+      )}
+      {state.text && (
+        <textarea
+          readOnly
+          value={state.text}
+          className="admin-input mt-2 h-32 w-full rounded-lg border px-3 py-2 text-[11px] font-mono"
+          onClick={(event) => event.currentTarget.select()}
+          aria-label={`Prompt SEO ${row.query}`}
+        />
+      )}
+    </div>
+  );
+}
+
+function InvestigationDetails({ row, cityName, periods, inspectionState, promptState, onInspect, onCopyPrompt }) {
   const live = row.latestSerper;
   const gsc28 = row.gsc?.current28;
   const history = live?.history || [];
@@ -286,6 +398,12 @@ function InvestigationDetails({ row, inspectionState, onInspect }) {
             loading={inspection.loading}
             error={inspection.error}
             onInspect={onInspect}
+          />
+          <PromptButton
+            row={row}
+            inspection={inspection.data}
+            promptState={promptState}
+            onCopyPrompt={onCopyPrompt}
           />
         </div>
       </div>
@@ -372,6 +490,7 @@ export default function GscTab() {
   const [savingKeywords, setSavingKeywords] = useState(false);
   const [error, setError] = useState("");
   const [inspectionState, setInspectionState] = useState({});
+  const [promptState, setPromptState] = useState({});
 
   const queryString = useMemo(() => {
     const params = new URLSearchParams();
@@ -541,6 +660,37 @@ export default function GscTab() {
       setInspectionState((prev) => ({
         ...prev,
         [url]: { loading: false, error: err.message || "Erreur inspection URL", data: null },
+      }));
+    }
+  }
+
+  async function copySeoPrompt(row, inspection) {
+    const prompt = buildSeoPrompt({
+      row,
+      cityName: data?.city?.name,
+      periods: data?.periods,
+      inspection,
+    });
+
+    setPromptState((prev) => ({
+      ...prev,
+      [row.query]: { text: prompt, copied: false, error: "" },
+    }));
+
+    try {
+      await navigator.clipboard.writeText(prompt);
+      setPromptState((prev) => ({
+        ...prev,
+        [row.query]: { text: prompt, copied: true, error: "" },
+      }));
+    } catch {
+      setPromptState((prev) => ({
+        ...prev,
+        [row.query]: {
+          text: prompt,
+          copied: false,
+          error: "Copie automatique bloquee. Selectionne le texte ci-dessous.",
+        },
       }));
     }
   }
@@ -775,8 +925,12 @@ export default function GscTab() {
                           <td colSpan={8}>
                             <InvestigationDetails
                               row={row}
+                              cityName={data?.city?.name}
+                              periods={data?.periods}
                               inspectionState={inspectionState}
+                              promptState={promptState}
                               onInspect={inspectUrl}
+                              onCopyPrompt={copySeoPrompt}
                             />
                           </td>
                         </tr>
