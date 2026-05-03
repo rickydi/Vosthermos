@@ -140,6 +140,26 @@ function LaborHoursSelect({ value, onChange }) {
   );
 }
 
+function LaborRateInput({ value, onChange, onBlur }) {
+  return (
+    <div className="flex items-center gap-2">
+      <label htmlFor="labor-rate" className="admin-text-muted text-xs font-bold whitespace-nowrap">Taux</label>
+      <div className="relative">
+        <input
+          id="labor-rate"
+          type="text"
+          inputMode="decimal"
+          value={value}
+          onBlur={onBlur}
+          onChange={(e) => onChange(e.target.value)}
+          className="admin-input border rounded-lg pl-3 pr-10 py-2.5 text-sm w-28"
+        />
+        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 admin-text-muted text-xs">$/h</span>
+      </div>
+    </div>
+  );
+}
+
 function HelpBubble({ text }) {
   return (
     <span className="relative inline-flex items-center">
@@ -212,9 +232,31 @@ function NouveauBonAdmin() {
 
   const [laborHours, setLaborHours] = useState(0);
   const [laborRate, setLaborRate] = useState(85);
+  const [laborRateText, setLaborRateText] = useState("85.00");
   const [settings, setSettings] = useState({ labor_rate_per_hour: 85, tps_rate: 0.05, tvq_rate: 0.09975 });
 
   const isB2B = selectedClient?.type === "gestionnaire";
+
+  function setLaborRateValue(value) {
+    const parsedRate = Number(value);
+    const nextRate = Number.isFinite(parsedRate) && parsedRate > 0 ? parsedRate : 85;
+    setLaborRate(nextRate);
+    setLaborRateText(nextRate.toFixed(2));
+  }
+
+  function handleLaborRateInput(rawValue) {
+    const raw = rawValue.replace(/[^0-9.,]/g, "");
+    setLaborRateText(raw);
+    const nextRate = Number(raw.replace(",", "."));
+    if (raw !== "" && Number.isFinite(nextRate) && nextRate > 0) {
+      setLaborRate(nextRate);
+    }
+  }
+
+  function commitLaborRateInput() {
+    const nextRate = Number(String(laborRateText).replace(",", "."));
+    setLaborRateValue(Number.isFinite(nextRate) && nextRate > 0 ? nextRate : laborRate);
+  }
 
   useEffect(() => {
     fetch("/api/admin/technicians")
@@ -233,7 +275,7 @@ function NouveauBonAdmin() {
               if (draft.laborRate !== undefined) shouldUseSettingsRate = false;
             } catch {}
           }
-          if (shouldUseSettingsRate) setLaborRate(nextLaborRate);
+          if (shouldUseSettingsRate) setLaborRateValue(nextLaborRate);
           setSettings({
             labor_rate_per_hour: nextLaborRate,
             tps_rate: parseFloat(data.tps_rate || 0.05),
@@ -273,7 +315,7 @@ function NouveauBonAdmin() {
       if (Array.isArray(draft.items)) setItems(draft.items);
       if (Array.isArray(draft.sections)) setSections(draft.sections);
       if (draft.laborHours !== undefined) setLaborHours(draft.laborHours);
-      if (draft.laborRate !== undefined) setLaborRate(Number(draft.laborRate) || 85);
+      if (draft.laborRate !== undefined) setLaborRateValue(Number(draft.laborRate) || 85);
     } catch {
       window.localStorage.removeItem(DRAFT_KEY);
     } finally {
@@ -371,7 +413,7 @@ function NouveauBonAdmin() {
         })) : []);
         // Reverse-compute laborHours from the rate frozen on this work order.
         const rate = Number(wo.laborRate) || settings.labor_rate_per_hour || 85;
-        setLaborRate(rate);
+        setLaborRateValue(rate);
         setLaborHours(rate > 0 ? Math.round((Number(wo.totalLabor) / rate) * 100) / 100 : 0);
       } catch (err) {
         setError(err.message || "Erreur chargement");
@@ -1189,11 +1231,13 @@ function NouveauBonAdmin() {
           </div>
           <div className="flex items-center gap-3 flex-wrap">
             <LaborHoursSelect value={laborHours} onChange={setLaborHours} />
-            <span className="admin-text-muted text-sm">{formatLaborHours(laborHours)} x {laborRate.toFixed(2)}$/h</span>
+            <span className="admin-text-muted text-sm">x</span>
+            <LaborRateInput value={laborRateText} onChange={handleLaborRateInput} onBlur={commitLaborRateInput} />
             <Link href="/admin/parametres#bons-travail"
               className="px-3 py-2 border admin-border rounded-lg admin-text-muted text-xs admin-hover inline-flex items-center">
               <i className="fas fa-gear mr-1"></i>Ajuster le taux
             </Link>
+            <span className="admin-text-muted text-sm">{formatLaborHours(laborHours)} x {laborRate.toFixed(2)}$/h</span>
             <span className="ml-auto font-bold text-[var(--color-red)]">{totalLabor.toFixed(2)}$</span>
           </div>
 
