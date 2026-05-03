@@ -16,21 +16,7 @@ export async function GET() {
       },
     });
 
-    // Fetch lastSeenAt via raw query (column not in Prisma schema)
-    let lastSeenMap = {};
-    try {
-      const rows = await prisma.$queryRawUnsafe(
-        `SELECT id, "lastSeenAt" FROM chat_conversations WHERE "lastSeenAt" IS NOT NULL`
-      );
-      for (const r of rows) lastSeenMap[r.id] = r.lastSeenAt;
-    } catch {}
-
-    const enriched = conversations.map((c) => ({
-      ...c,
-      lastSeenAt: lastSeenMap[c.id] || null,
-    }));
-
-    return NextResponse.json(enriched);
+    return NextResponse.json(conversations);
   } catch {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

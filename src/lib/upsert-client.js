@@ -39,6 +39,7 @@ export async function upsertClientFromLead({
   postalCode,
   notes,
   source,
+  service,
 } = {}) {
   try {
     const cleanName = name?.trim() || null;
@@ -55,7 +56,10 @@ export async function upsertClientFromLead({
     if (!existing && phoneDigits) {
       existing = await prisma.client.findFirst({
         where: {
-          phone: { contains: phoneDigits.slice(-7) },
+          OR: [
+            { phone: { contains: phoneDigits.slice(-7) } },
+            { secondaryPhone: { contains: phoneDigits.slice(-7) } },
+          ],
         },
       });
     }
@@ -71,12 +75,23 @@ export async function upsertClientFromLead({
         return joined || existing.notes;
       })();
 
+      const existingPhoneDigits = normalizePhoneDigits(existing.phone);
+      const existingSecondaryDigits = normalizePhoneDigits(existing.secondaryPhone);
+      const shouldStoreSecondaryPhone =
+        cleanPhone &&
+        existing.phone &&
+        existingPhoneDigits !== phoneDigits &&
+        existingSecondaryDigits !== phoneDigits;
+
       const updated = await prisma.client.update({
         where: { id: existing.id },
         data: {
           name: pickFilled(existing.name, cleanName) || existing.name,
           email: existing.email || cleanEmail,
           phone: pickFilled(existing.phone, cleanPhone),
+          secondaryPhone: shouldStoreSecondaryPhone
+            ? pickFilled(existing.secondaryPhone, cleanPhone)
+            : existing.secondaryPhone,
           company: pickFilled(existing.company, company),
           address: pickFilled(existing.address, address),
           city: pickFilled(existing.city, city),
@@ -85,7 +100,7 @@ export async function upsertClientFromLead({
           notes: mergedNotes,
         },
       });
-      await tryCreateFollowUpFromLead({ client: updated, source, notes });
+      await tryCreateFollowUpFromLead({ client: updated, source, notes, service });
       return updated;
     }
 
@@ -102,7 +117,7 @@ export async function upsertClientFromLead({
         notes: [sourceNote, notes].filter(Boolean).join("\n") || null,
       },
     });
-    await tryCreateFollowUpFromLead({ client: created, source, notes });
+    await tryCreateFollowUpFromLead({ client: created, source, notes, service });
     return created;
   } catch (err) {
     console.error("[upsertClientFromLead] error:", err?.message || err);

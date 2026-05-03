@@ -75,7 +75,18 @@ function ChatBubbleInner() {
     } catch {}
   }, [conversationId, isOpen]);
 
+  const pingPresence = useCallback(() => {
+    if (!conversationId || document.hidden) return;
+    fetch(`/api/public/chat/${conversationId}/ping`, { method: "POST" }).catch(() => {});
+  }, [conversationId]);
+
   useEffect(() => { if (conversationId) fetchMessages(); }, [conversationId, fetchMessages]);
+  useEffect(() => {
+    if (!conversationId) return;
+    pingPresence();
+    const interval = setInterval(pingPresence, 30000);
+    return () => clearInterval(interval);
+  }, [conversationId, pingPresence]);
   useEffect(() => {
     if (!isOpen || !conversationId) return;
     const interval = setInterval(fetchMessages, 4000);

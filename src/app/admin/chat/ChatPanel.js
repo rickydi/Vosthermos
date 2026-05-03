@@ -15,6 +15,13 @@ function timeAgo(dateStr) {
   return new Date(dateStr).toLocaleDateString("fr-CA", { day: "2-digit", month: "short" });
 }
 
+function clientPresence(conversation) {
+  if (!conversation?.lastSeenAt) return { online: false, label: "Hors ligne" };
+  const diff = Date.now() - new Date(conversation.lastSeenAt).getTime();
+  if (diff < 5 * 60 * 1000) return { online: true, label: "En ligne" };
+  return { online: false, label: `Vu ${timeAgo(conversation.lastSeenAt)}` };
+}
+
 const WHATSAPP_RECIPIENTS = {
   jason: "15148258411",
   caren: "14502750200",
@@ -93,7 +100,7 @@ export default function ChatPanel({ initialConversationId }) {
     fetchConversations().then(() => {
       if (initialConversationId) openConversation(initialConversationId, true);
     });
-  }, []);
+  }, [fetchConversations, initialConversationId, openConversation]);
 
   useEffect(() => {
     const msgs = selected?.messages || [];
@@ -258,7 +265,7 @@ export default function ChatPanel({ initialConversationId }) {
               className={`w-full text-left px-4 py-3 rounded-xl transition-colors ${selected?.id === c.id ? "bg-[var(--color-red)]/10 border border-[var(--color-red)]" : "admin-card border admin-hover"} ${c.isArchived ? "opacity-50" : ""}`}>
               <div className="flex items-center justify-between mb-1">
                 <span className="admin-text text-sm font-semibold truncate flex items-center gap-1.5">
-                  {c.lastSeenAt && (Date.now() - new Date(c.lastSeenAt).getTime()) < 300000 ? (
+                  {clientPresence(c).online ? (
                     <span className="relative flex h-2 w-2 shrink-0">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
@@ -313,21 +320,21 @@ export default function ChatPanel({ initialConversationId }) {
                   </div>
                   {(() => {
                     const conv = conversations.find((c) => c.id === selected.id);
-                    const isOnline = conv?.lastSeenAt && (Date.now() - new Date(conv.lastSeenAt).getTime()) < 300000;
+                    const presence = clientPresence(conv || selected);
                     return (
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        {isOnline ? (
+                        {presence.online ? (
                           <>
                             <span className="relative flex h-2 w-2">
                               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                               <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                             </span>
-                            <span className="text-xs text-green-400">En ligne</span>
+                            <span className="text-xs text-green-400">{presence.label}</span>
                           </>
                         ) : (
                           <>
                             <span className="inline-flex rounded-full h-2 w-2 bg-gray-500"></span>
-                            <span className="text-xs admin-text-muted">Hors ligne</span>
+                            <span className="text-xs admin-text-muted">{presence.label}</span>
                           </>
                         )}
                       </div>

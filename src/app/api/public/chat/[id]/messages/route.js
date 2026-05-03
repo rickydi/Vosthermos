@@ -2,6 +2,22 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { sendSms } from "@/lib/twilio";
 import { formatPhone } from "@/lib/phone";
+import { upsertClientFromLead } from "@/lib/upsert-client";
+
+function serviceFromMessage(content) {
+  const serviceMatch = content?.match(/Service:\s*([^\n]+)/i);
+  if (serviceMatch?.[1]) return serviceMatch[1].trim();
+  if (content?.includes("[Formulaire contact]")) return "Formulaire contact";
+  if (content?.includes("[Soumission]") || content?.includes("[Quote]")) return "Soumission";
+  return "Chat client";
+}
+
+function followUpNoteFromMessage({ content, imageUrl }) {
+  const parts = ["Message chat client:"];
+  if (content) parts.push(content);
+  if (imageUrl) parts.push(`Photo: https://www.vosthermos.com${imageUrl}`);
+  return parts.join("\n");
+}
 
 export async function POST(req, { params }) {
   try {
@@ -32,7 +48,20 @@ export async function POST(req, { params }) {
 
     await prisma.chatConversation.update({
       where: { id },
-      data: { lastMessageAt: new Date(), unreadCount: { increment: 1 } },
+      data: {
+        lastMessageAt: new Date(),
+        lastSeenAt: new Date(),
+        unreadCount: { increment: 1 },
+      },
+    });
+
+    await upsertClientFromLead({
+      name: conversation.clientName,
+      phone: conversation.clientPhone,
+      email: conversation.clientEmail,
+      source: "chat",
+      service: serviceFromMessage(message.content),
+      notes: followUpNoteFromMessage({ content: message.content, imageUrl: message.imageUrl }),
     });
 
     // SMS notification throttle (2 min)

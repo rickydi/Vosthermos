@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-// NOTE: Requires SQL migration:
-// ALTER TABLE chat_conversations ADD COLUMN IF NOT EXISTS "lastSeenAt" TIMESTAMPTZ;
-
 export async function GET(_req, { params }) {
   try {
     const { id } = await params;
@@ -22,13 +19,10 @@ export async function GET(_req, { params }) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    // Update lastSeenAt when client fetches messages (online presence)
-    try {
-      await prisma.$executeRawUnsafe(
-        `UPDATE chat_conversations SET "lastSeenAt" = NOW() WHERE id = $1`,
-        id
-      );
-    } catch {}
+    await prisma.chatConversation.update({
+      where: { id },
+      data: { lastSeenAt: new Date() },
+    });
 
     return NextResponse.json({
       id: conversation.id,

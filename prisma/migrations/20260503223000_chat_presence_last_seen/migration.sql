@@ -1,0 +1,2 @@
+ALTER TABLE IF EXISTS "chat_conversations"
+  ADD COLUMN IF NOT EXISTS "lastSeenAt" TIMESTAMP(3);
