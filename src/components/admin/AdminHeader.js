@@ -12,6 +12,7 @@ const pageTitles = {
   "/admin/analytics": "Analytics",
   "/admin/promotions": "Promotions",
   "/admin/parametres": "Parametres",
+  "/admin/activite": "Activite admin",
   "/admin/utilisateurs": "Utilisateurs",
   "/admin/gestionnaires": "Acces gestionnaires",
 };

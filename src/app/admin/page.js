@@ -2,13 +2,33 @@ import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin-auth";
 
+const ACTIVITY_ACTIONS = {
+  login: "Connexion",
+  logout: "Deconnexion",
+  create: "Creation",
+  update: "Modification",
+  delete: "Suppression",
+  send: "Envoi",
+  archive: "Archivage",
+  unarchive: "Desarchivage",
+};
+
+function formatActivityDate(value) {
+  if (!value) return "-";
+  return new Intl.DateTimeFormat("fr-CA", {
+    dateStyle: "short",
+    timeStyle: "short",
+    timeZone: "America/Toronto",
+  }).format(value);
+}
+
 export default async function AdminDashboard() {
   await requireAdmin();
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const [totalProducts, totalCategories, totalOrders, recentOrders, activeManagers, activeFollowUps, overdueFollowUps] = await Promise.all([
+  const [totalProducts, totalCategories, totalOrders, recentOrders, activeManagers, activeFollowUps, overdueFollowUps, recentActivities] = await Promise.all([
     prisma.product.count(),
     prisma.category.count({ where: { parentId: null } }),
     prisma.order.count(),
@@ -23,6 +43,11 @@ export default async function AdminDashboard() {
         status: { notIn: ["lost", "completed"] },
         nextActionDate: { lt: today },
       },
+    }),
+    prisma.adminActivityLog.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 8,
+      include: { adminUser: { select: { email: true } } },
     }),
   ]);
 
@@ -89,6 +114,37 @@ export default async function AdminDashboard() {
           <i className="fas fa-user-tie"></i>
           Ouvrir les acces
         </Link>
+      </div>
+
+      <div className="admin-card rounded-xl border p-5 mb-6">
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <div>
+            <h2 className="admin-text font-bold">Dernieres activites</h2>
+            <p className="admin-text-muted text-sm">Ce que les utilisateurs admin font dans le systeme.</p>
+          </div>
+          <Link href="/admin/activite" className="text-sm font-semibold text-cyan-300 hover:text-cyan-200">
+            Voir tout
+          </Link>
+        </div>
+        {recentActivities.length === 0 ? (
+          <p className="admin-text-muted text-sm">Aucune activite encore.</p>
+        ) : (
+          <div className="divide-y admin-border">
+            {recentActivities.map((activity) => (
+              <div key={activity.id} className="py-3 flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="admin-text text-sm font-semibold truncate">
+                    {ACTIVITY_ACTIONS[activity.action] || activity.action} - {activity.label || activity.entityType}
+                  </p>
+                  <p className="admin-text-muted text-xs truncate">
+                    {activity.adminUser?.email || activity.adminEmail || "Utilisateur supprime"}
+                  </p>
+                </div>
+                <span className="admin-text-muted text-xs shrink-0">{formatActivityDate(activity.createdAt)}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Stats */}

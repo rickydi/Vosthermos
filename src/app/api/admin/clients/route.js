@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { createOrTouchFollowUpFromLead } from "@/lib/follow-up-utils";
+import { logAdminActivity } from "@/lib/admin-activity";
 
 export async function GET(req) {
   try { await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
@@ -49,7 +50,8 @@ export async function GET(req) {
 }
 
 export async function POST(req) {
-  try { await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
+  let session;
+  try { session = await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
 
   const body = await req.json();
   const client = await prisma.client.create({
@@ -77,6 +79,14 @@ export async function POST(req) {
   } catch (err) {
     console.error("[admin clients] follow-up creation error:", err?.message || err);
   }
+
+  await logAdminActivity(req, session, {
+    action: "create",
+    entityType: "client",
+    entityId: client.id,
+    label: `Client cree: ${client.name}`,
+    metadata: { email: client.email, phone: client.phone, type: client.type },
+  });
 
   return NextResponse.json(client);
 }

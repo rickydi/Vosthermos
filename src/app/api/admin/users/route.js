@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { requireAdmin } from "@/lib/admin-auth";
+import { logAdminActivity } from "@/lib/admin-activity";
 
 export async function POST(request) {
   try {
-    await requireAdmin();
+    const session = await requireAdmin();
     const { email, password } = await request.json();
 
     if (!email || !password || password.length < 6) {
@@ -20,6 +21,14 @@ export async function POST(request) {
     const passwordHash = await bcrypt.hash(password, 12);
     const user = await prisma.adminUser.create({
       data: { email, passwordHash },
+    });
+
+    await logAdminActivity(request, session, {
+      action: "create",
+      entityType: "admin_user",
+      entityId: user.id,
+      label: `Admin cree: ${user.email}`,
+      metadata: { email: user.email },
     });
 
     return NextResponse.json({ id: user.id, email: user.email });

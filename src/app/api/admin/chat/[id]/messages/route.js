@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { sendSms } from "@/lib/twilio";
+import { logAdminActivity } from "@/lib/admin-activity";
 
 export async function POST(req, { params }) {
   try {
@@ -46,6 +47,19 @@ export async function POST(req, { params }) {
         data: { lastNotifiedAt: new Date() },
       });
     }
+
+    await logAdminActivity(req, session, {
+      action: "send",
+      entityType: "chat",
+      entityId: id,
+      label: `Reponse chat: ${conversation.clientName}`,
+      metadata: {
+        clientPhone: conversation.clientPhone,
+        clientEmail: conversation.clientEmail,
+        hasImage: !!message.imageUrl,
+        preview: message.content?.slice(0, 120) || "",
+      },
+    });
 
     return NextResponse.json({ id: message.id }, { status: 201 });
   } catch (error) {

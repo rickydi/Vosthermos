@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { savePhotoFromFormData, deletePhotoFile } from "@/lib/upload-photo";
+import { logAdminActivity } from "@/lib/admin-activity";
 
 function clean(value) {
   if (value === undefined || value === null) return null;
@@ -29,7 +30,8 @@ function serializePhoto(photo) {
 }
 
 export async function POST(req, { params }) {
-  try { await requireAdmin(); }
+  let session;
+  try { session = await requireAdmin(); }
   catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
 
   const { id } = await params;
@@ -58,6 +60,14 @@ export async function POST(req, { params }) {
         source: "admin",
       },
       include: { client: { select: { name: true } } },
+    });
+
+    await logAdminActivity(req, session, {
+      action: "create",
+      entityType: "client_photo",
+      entityId: photo.id,
+      label: `Photo ajoutee: ${photo.title || followUp.title}`,
+      metadata: { clientId: photo.clientId, followUpId: followUp.id, url: photo.url },
     });
 
     return NextResponse.json(serializePhoto(photo));

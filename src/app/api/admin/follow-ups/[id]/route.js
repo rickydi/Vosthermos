@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { serializeFollowUp } from "@/lib/follow-up-utils";
+import { changedFields, logAdminActivity } from "@/lib/admin-activity";
 
 function dateOrNull(value) {
   if (value === undefined) return undefined;
@@ -28,7 +29,8 @@ function cleanOrNull(value) {
 }
 
 export async function PUT(req, { params }) {
-  try { await requireAdmin(); }
+  let session;
+  try { session = await requireAdmin(); }
   catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
 
   const { id } = await params;
@@ -82,14 +84,36 @@ export async function PUT(req, { params }) {
     },
   });
 
+  await logAdminActivity(req, session, {
+    action: "update",
+    entityType: "follow_up",
+    entityId: followUp.id,
+    label: `Suivi modifie: ${followUp.title}`,
+    metadata: {
+      changedFields: changedFields(existing, followUp, Object.keys(data)),
+      statusFrom: existing.status,
+      statusTo: followUp.status,
+      clientId: followUp.clientId,
+    },
+  });
+
   return NextResponse.json(serializeFollowUp(followUp));
 }
 
-export async function DELETE(_req, { params }) {
-  try { await requireAdmin(); }
+export async function DELETE(req, { params }) {
+  let session;
+  try { session = await requireAdmin(); }
   catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
 
   const { id } = await params;
+  const existing = await prisma.clientFollowUp.findUnique({ where: { id: Number(id) } });
   await prisma.clientFollowUp.delete({ where: { id: Number(id) } });
+  await logAdminActivity(req, session, {
+    action: "delete",
+    entityType: "follow_up",
+    entityId: id,
+    label: `Suivi supprime: ${existing?.title || id}`,
+    metadata: { status: existing?.status, clientId: existing?.clientId },
+  });
   return NextResponse.json({ ok: true });
 }

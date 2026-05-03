@@ -13,6 +13,7 @@ import {
 } from "@/lib/work-order-utils";
 import { createOrTouchFollowUpFromWorkOrder } from "@/lib/follow-up-utils";
 import { parseDateOnly } from "@/lib/date-only";
+import { logAdminActivity } from "@/lib/admin-activity";
 
 export async function GET(req) {
   try { await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
@@ -67,7 +68,8 @@ export async function GET(req) {
 }
 
 export async function POST(req) {
-  try { await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
+  let session;
+  try { session = await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
 
   const body = await req.json();
   if (!body.clientId) return NextResponse.json({ error: "Client requis" }, { status: 400 });
@@ -132,6 +134,20 @@ export async function POST(req) {
   } catch (err) {
     console.error("[work-orders] follow-up sync error:", err?.message || err);
   }
+
+  await logAdminActivity(req, session, {
+    action: "create",
+    entityType: "work_order",
+    entityId: workOrder.id,
+    label: `Bon cree: ${workOrder.number}`,
+    metadata: {
+      number: workOrder.number,
+      clientId: workOrder.clientId,
+      clientName: workOrder.client?.name,
+      status: workOrder.statut,
+      total: Number(workOrder.total),
+    },
+  });
 
   return NextResponse.json({
     ...workOrder,

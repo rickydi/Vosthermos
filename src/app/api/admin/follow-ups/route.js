@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { FOLLOW_UP_TERMINAL_STATUSES, normalizePhoneDigits, serializeFollowUp } from "@/lib/follow-up-utils";
+import { logAdminActivity } from "@/lib/admin-activity";
 
 export const dynamic = "force-dynamic";
 
@@ -427,7 +428,8 @@ export async function GET(req) {
 }
 
 export async function POST(req) {
-  try { await requireAdmin(); }
+  let session;
+  try { session = await requireAdmin(); }
   catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
 
   const body = await req.json().catch(() => ({}));
@@ -473,6 +475,19 @@ export async function POST(req) {
           _count: { select: { workOrders: true } },
         },
       },
+    },
+  });
+
+  await logAdminActivity(req, session, {
+    action: "create",
+    entityType: "follow_up",
+    entityId: followUp.id,
+    label: `Suivi cree: ${followUp.title}`,
+    metadata: {
+      status: followUp.status,
+      clientId: followUp.clientId,
+      phone: followUp.phone,
+      email: followUp.email,
     },
   });
 

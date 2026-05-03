@@ -13,6 +13,7 @@ import {
 } from "@/lib/work-order-utils";
 import { createOrTouchFollowUpFromWorkOrder } from "@/lib/follow-up-utils";
 import { parseDateOnly } from "@/lib/date-only";
+import { changedFields, logAdminActivity } from "@/lib/admin-activity";
 
 export async function GET(_req, { params }) {
   try { await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
@@ -63,7 +64,8 @@ export async function GET(_req, { params }) {
 }
 
 export async function PUT(req, { params }) {
-  try { await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
+  let session;
+  try { session = await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
 
   const { id } = await params;
   const woId = parseInt(id);
@@ -161,6 +163,23 @@ export async function PUT(req, { params }) {
     console.error("[work-orders] follow-up sync error:", err?.message || err);
   }
 
+  await logAdminActivity(req, session, {
+    action: "update",
+    entityType: "work_order",
+    entityId: wo.id,
+    label: `Bon modifie: ${wo.number}`,
+    metadata: {
+      number: wo.number,
+      changedFields: changedFields(existing, wo, [
+        "clientId", "technicianId", "appointmentId", "date", "interventionAddress",
+        "interventionCity", "description", "notes", "statut", "visibleAuClient",
+      ]),
+      statusFrom: existing.statut,
+      statusTo: wo.statut,
+      total: Number(wo.total),
+    },
+  });
+
   const ser = (i) => ({
     ...i,
     quantity: Number(i.quantity),
@@ -182,10 +201,27 @@ export async function PUT(req, { params }) {
   });
 }
 
-export async function DELETE(_req, { params }) {
-  try { await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
+export async function DELETE(req, { params }) {
+  let session;
+  try { session = await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
 
   const { id } = await params;
+  const existing = await prisma.workOrder.findUnique({
+    where: { id: parseInt(id) },
+    select: { id: true, number: true, clientId: true, total: true, statut: true },
+  });
   await prisma.workOrder.delete({ where: { id: parseInt(id) } });
+  await logAdminActivity(req, session, {
+    action: "delete",
+    entityType: "work_order",
+    entityId: id,
+    label: `Bon supprime: ${existing?.number || id}`,
+    metadata: {
+      number: existing?.number,
+      clientId: existing?.clientId,
+      status: existing?.statut,
+      total: existing?.total === undefined || existing?.total === null ? null : Number(existing.total),
+    },
+  });
   return NextResponse.json({ ok: true });
 }

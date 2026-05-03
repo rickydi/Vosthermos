@@ -30,6 +30,7 @@ const DEFAULT_NAV_ITEMS = [
   { section: "B2B · PORTAIL" },
   { href: "/admin/gestionnaires", label: "Acces gestionnaires", icon: "fa-door-open" },
   { section: "SYSTEME" },
+  { href: "/admin/activite", label: "Activite admin", icon: "fa-history" },
   { href: "/admin/parametres", label: "Parametres", icon: "fa-cog" },
   { href: "/admin/utilisateurs", label: "Utilisateurs", icon: "fa-users" },
 ];

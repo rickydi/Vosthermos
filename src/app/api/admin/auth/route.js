@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-import { signToken, COOKIE_NAME } from "@/lib/admin-auth";
+import { signToken, COOKIE_NAME, getAdminSession } from "@/lib/admin-auth";
+import { logAdminActivity } from "@/lib/admin-activity";
 
 export async function POST(request) {
   try {
@@ -18,6 +19,13 @@ export async function POST(request) {
     }
 
     const token = signToken({ id: user.id, email: user.email });
+    await logAdminActivity(request, { id: user.id, email: user.email }, {
+      action: "login",
+      entityType: "auth",
+      entityId: user.id,
+      label: "Connexion admin",
+      metadata: { email: user.email },
+    });
 
     const response = NextResponse.json({ success: true });
     response.cookies.set(COOKIE_NAME, token, {
@@ -34,7 +42,17 @@ export async function POST(request) {
   }
 }
 
-export async function DELETE() {
+export async function DELETE(request) {
+  const session = await getAdminSession();
+  if (session) {
+    await logAdminActivity(request, session, {
+      action: "logout",
+      entityType: "auth",
+      entityId: session.id,
+      label: "Deconnexion admin",
+      metadata: { email: session.email },
+    });
+  }
   const response = NextResponse.json({ success: true });
   response.cookies.set(COOKIE_NAME, "", { maxAge: 0, path: "/" });
   return response;

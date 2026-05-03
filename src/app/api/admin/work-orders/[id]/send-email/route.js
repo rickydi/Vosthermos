@@ -5,6 +5,7 @@ import { getTransporter } from "@/lib/mail";
 import { getWorkOrderSettings } from "@/lib/work-order-utils";
 import { generateInvoicePdf } from "@/lib/invoice-pdf";
 import { formatDateOnly } from "@/lib/date-only";
+import { logAdminActivity } from "@/lib/admin-activity";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.vosthermos.com";
 const LOGO_URL = `${SITE_URL}/images/Vos-Thermos-Logo_Blanc.png`;
@@ -148,7 +149,8 @@ ${SITE_URL}
 }
 
 export async function POST(req, { params }) {
-  try { await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
+  let session;
+  try { session = await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
 
   if (!process.env.SMTP_HOST) {
     return NextResponse.json({ error: "SMTP non configure (SMTP_HOST manquant)" }, { status: 500 });
@@ -240,6 +242,14 @@ export async function POST(req, { params }) {
     await prisma.workOrder.update({
       where: { id: wo.id },
       data: { statut: "sent" },
+    });
+
+    await logAdminActivity(req, session, {
+      action: "send",
+      entityType: "work_order",
+      entityId: wo.id,
+      label: `Facture envoyee: ${wo.number}`,
+      metadata: { number: wo.number, to, clientId: wo.clientId },
     });
 
     return NextResponse.json({ ok: true, to });
