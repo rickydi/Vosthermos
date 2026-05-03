@@ -109,6 +109,17 @@ function TimeSelect({ label, value, onChange }) {
   );
 }
 
+function HelpBubble({ text }) {
+  return (
+    <span className="relative inline-flex items-center">
+      <i className="fas fa-circle-question text-[11px] opacity-70"></i>
+      <span className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 hidden w-64 -translate-x-1/2 rounded-lg border admin-border bg-neutral-950 px-3 py-2 text-left text-[11px] font-normal leading-snug text-white shadow-xl group-hover:block group-focus-visible:block">
+        {text}
+      </span>
+    </span>
+  );
+}
+
 export default function NouveauBonPage() {
   return (
     <Suspense fallback={<div className="p-6 lg:p-8 admin-text-muted"><i className="fas fa-spinner fa-spin mr-2"></i>Chargement...</div>}>
@@ -1098,12 +1109,22 @@ function NouveauBonAdmin() {
               </button>
             )}
             <button type="button" onClick={() => addDiscount("percent")}
-              className="py-2.5 border-2 border-dashed border-green-500/30 rounded-lg text-green-600 text-sm hover:bg-green-500/5">
-              <i className="fas fa-percent mr-2"></i>Escompte %
+              title="Enleve un pourcentage du total des pieces. Exemple: 10% sur 500$ enleve 50$."
+              className="group relative py-2.5 border-2 border-dashed border-green-500/30 rounded-lg text-green-600 text-sm hover:bg-green-500/5">
+              <span className="inline-flex items-center justify-center gap-2">
+                <i className="fas fa-percent"></i>
+                <span>Escompte %</span>
+                <HelpBubble text="Enleve un pourcentage du total des pieces. Exemple: 10% sur 500$ enleve 50$." />
+              </span>
             </button>
             <button type="button" onClick={() => addDiscount("amount")}
-              className="py-2.5 border-2 border-dashed border-green-500/30 rounded-lg text-green-600 text-sm hover:bg-green-500/5">
-              <i className="fas fa-dollar-sign mr-2"></i>Reduction $
+              title="Enleve un montant fixe. Exemple: 25$ enleve exactement 25$."
+              className="group relative py-2.5 border-2 border-dashed border-green-500/30 rounded-lg text-green-600 text-sm hover:bg-green-500/5">
+              <span className="inline-flex items-center justify-center gap-2">
+                <i className="fas fa-dollar-sign"></i>
+                <span>Reduction $</span>
+                <HelpBubble text="Enleve un montant fixe. Exemple: 25$ enleve exactement 25$." />
+              </span>
             </button>
           </div>
         </div>
