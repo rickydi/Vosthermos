@@ -42,17 +42,24 @@ function normalizeTimeInput(value) {
   return `${pad2(hours)}:${pad2(minutes)}`;
 }
 
-function currentTimeValue() {
-  const now = new Date();
-  return `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
-}
+const TIME_OPTIONS = Array.from({ length: 24 * 4 }, (_, index) => {
+  const totalMinutes = index * 15;
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  const value = `${pad2(hours)}:${pad2(minutes)}`;
+  const suffix = hours < 12 ? "AM" : "PM";
+  const hour12 = hours % 12 || 12;
+  return {
+    value,
+    label: `${hour12}:${pad2(minutes)} ${suffix} (${pad2(hours)}h${pad2(minutes)})`,
+  };
+});
 
-function shiftTime(value, deltaMinutes) {
-  const normalized = normalizeTimeInput(value) || currentTimeValue();
-  const [hours, minutes] = normalized.split(":").map(Number);
-  const date = new Date();
-  date.setHours(hours, minutes + deltaMinutes, 0, 0);
-  return `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+function timeLabel(value) {
+  const normalized = normalizeTimeInput(value);
+  const found = TIME_OPTIONS.find((option) => option.value === normalized);
+  if (found) return found.label;
+  return normalized ? `${normalized} (heure existante)` : "";
 }
 
 function normalizeWorkItem(it) {
@@ -80,45 +87,24 @@ function normalizeWorkItem(it) {
   };
 }
 
-function TimeField({ label, value, onChange }) {
-  const invalid = Boolean(String(value || "").trim()) && !normalizeTimeInput(value);
+function TimeSelect({ label, value, onChange }) {
+  const normalizedValue = normalizeTimeInput(value);
+  const hasCustomValue = normalizedValue && !TIME_OPTIONS.some((option) => option.value === normalizedValue);
 
   return (
     <div>
       <label className="admin-text-muted text-xs mb-1 block">{label}</label>
-      <div className={`admin-input border rounded-lg px-2 py-2 ${invalid ? "border-orange-500" : ""}`}>
-        <input
-          type="text"
-          inputMode="numeric"
-          placeholder="8h30"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onBlur={() => {
-            const next = normalizeTimeInput(value);
-            if (next || !String(value || "").trim()) onChange(next);
-          }}
-          className="bg-transparent outline-none admin-text text-sm w-full"
-        />
-        <div className="flex items-center gap-1 mt-2">
-          <button type="button" onClick={() => onChange(currentTimeValue())}
-            className="px-2 py-1 rounded border admin-border admin-text-muted text-[11px] admin-hover">
-            Maintenant
-          </button>
-          <button type="button" onClick={() => onChange(shiftTime(value, -15))}
-            className="px-2 py-1 rounded border admin-border admin-text-muted text-[11px] admin-hover">
-            -15
-          </button>
-          <button type="button" onClick={() => onChange(shiftTime(value, 15))}
-            className="px-2 py-1 rounded border admin-border admin-text-muted text-[11px] admin-hover">
-            +15
-          </button>
-          <button type="button" onClick={() => onChange("")}
-            className="ml-auto px-2 py-1 rounded border admin-border admin-text-muted text-[11px] admin-hover">
-            Effacer
-          </button>
-        </div>
-      </div>
-      {invalid && <p className="text-orange-500 text-[11px] mt-1">Exemples acceptes : 8h30, 830, 08:30.</p>}
+      <select
+        value={normalizedValue}
+        onChange={(e) => onChange(e.target.value)}
+        className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full"
+      >
+        <option value="">Aucune heure</option>
+        {hasCustomValue && <option value={normalizedValue}>{timeLabel(normalizedValue)}</option>}
+        {TIME_OPTIONS.map((option) => (
+          <option key={option.value} value={option.value}>{option.label}</option>
+        ))}
+      </select>
     </div>
   );
 }
@@ -489,6 +475,42 @@ function NouveauBonAdmin() {
   const tvq = subtotal * settings.tvq_rate;
   const total = subtotal + tps + tvq;
 
+  function fillInterventionFromClient(client, previousClient = null, force = false) {
+    if (!client) return;
+    const nextAddress = client.address || "";
+    const nextCity = client.city || "";
+    const nextPostal = client.postalCode || "";
+    const previousAddress = previousClient?.address || "";
+    const previousCity = previousClient?.city || "";
+    const previousPostal = previousClient?.postalCode || "";
+
+    setInterventionAddress((current) => (
+      force || !current || (previousClient && current === previousAddress) ? nextAddress : current
+    ));
+    setInterventionCity((current) => (
+      force || !current || (previousClient && current === previousCity) ? nextCity : current
+    ));
+    setInterventionPostalCode((current) => (
+      force || !current || (previousClient && current === previousPostal) ? nextPostal : current
+    ));
+  }
+
+  function selectClient(client) {
+    const previousClient = selectedClient;
+    setSelectedClient(client);
+    fillInterventionFromClient(client, previousClient);
+  }
+
+  function clearSelectedClient() {
+    const previousClient = selectedClient;
+    if (previousClient) {
+      setInterventionAddress((current) => current === (previousClient.address || "") ? "" : current);
+      setInterventionCity((current) => current === (previousClient.city || "") ? "" : current);
+      setInterventionPostalCode((current) => current === (previousClient.postalCode || "") ? "" : current);
+    }
+    setSelectedClient(null);
+  }
+
   async function createQuickClient() {
     if (!quickClient.name.trim()) {
       setError("Nom du client requis");
@@ -516,7 +538,7 @@ function NouveauBonAdmin() {
         throw new Error(data.error || "Erreur creation client");
       }
       const client = await res.json();
-      setSelectedClient(client);
+      selectClient(client);
       setClientSearch("");
       setClientResults([]);
       setQuickClientOpen(false);
@@ -678,7 +700,7 @@ function NouveauBonAdmin() {
                     <button
                       type="button"
                       key={c.id}
-                      onClick={() => { setSelectedClient(c); setClientSearch(""); setClientResults([]); setQuickClientOpen(false); }}
+                      onClick={() => { selectClient(c); setClientSearch(""); setClientResults([]); setQuickClientOpen(false); }}
                       className="w-full text-left px-4 py-3 border-b admin-border admin-hover last:border-b-0"
                     >
                       <p className="admin-text font-medium text-sm">{c.name}</p>
@@ -739,7 +761,7 @@ function NouveauBonAdmin() {
                 <p className="admin-text-muted text-sm">{selectedClient.phone || "—"}</p>
                 {selectedClient.address && <p className="admin-text-muted text-sm">{selectedClient.address}{selectedClient.city ? `, ${selectedClient.city}` : ""}</p>}
               </div>
-              <button type="button" onClick={() => setSelectedClient(null)} className="text-xs text-[var(--color-red)]">
+              <button type="button" onClick={clearSelectedClient} className="text-xs text-[var(--color-red)]">
                 Changer
               </button>
             </div>
@@ -755,8 +777,8 @@ function NouveauBonAdmin() {
               <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
                 className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
             </div>
-            <TimeField label="Heure arrivee" value={heureArrivee} onChange={setHeureArrivee} />
-            <TimeField label="Heure depart" value={heureDepart} onChange={setHeureDepart} />
+            <TimeSelect label="Heure arrivee" value={heureArrivee} onChange={setHeureArrivee} />
+            <TimeSelect label="Heure depart" value={heureDepart} onChange={setHeureDepart} />
           </div>
           <div>
             <label className="admin-text-muted text-xs mb-1 block">Technicien</label>
@@ -769,9 +791,17 @@ function NouveauBonAdmin() {
             </select>
           </div>
           <div>
-            <label className="admin-text-muted text-xs mb-1 block">
-              Adresse d&apos;intervention <span className="opacity-60">(si differente du client)</span>
-            </label>
+            <div className="flex items-center justify-between gap-3 mb-1">
+              <label className="admin-text-muted text-xs block">
+                Adresse d&apos;intervention <span className="opacity-60">(si differente du client)</span>
+              </label>
+              {selectedClient && (selectedClient.address || selectedClient.city || selectedClient.postalCode) && (
+                <button type="button" onClick={() => fillInterventionFromClient(selectedClient, null, true)}
+                  className="text-[11px] admin-text-muted hover:admin-text">
+                  Utiliser fiche client
+                </button>
+              )}
+            </div>
             <div className="grid md:grid-cols-3 gap-3">
               <input type="text" placeholder="Adresse" value={interventionAddress}
                 onChange={(e) => setInterventionAddress(e.target.value)}
@@ -1133,7 +1163,7 @@ function NouveauBonAdmin() {
       <ClientPicker
         open={clientPickerOpen}
         onClose={() => setClientPickerOpen(false)}
-        onPick={(c) => { setSelectedClient(c); setClientPickerOpen(false); setQuickClientOpen(false); }}
+        onPick={(c) => { selectClient(c); setClientPickerOpen(false); setQuickClientOpen(false); }}
       />
     </div>
   );
