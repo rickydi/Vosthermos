@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import ThemeToggle from "./ThemeToggle";
 
 const pageTitles = {
   "/admin": "Dashboard",
@@ -33,6 +34,7 @@ export default function AdminHeader() {
     <div className="h-16 admin-header admin-border border-b flex items-center justify-between px-6 lg:px-8">
       <h2 className="admin-text font-bold text-lg">{title}</h2>
       <div className="flex items-center gap-3">
+        <ThemeToggle iconOnly />
         <span className="admin-text-muted text-sm hidden sm:block">Admin</span>
         <div className="w-9 h-9 rounded-full bg-[var(--color-red)] flex items-center justify-center text-white font-bold text-sm">
           A
