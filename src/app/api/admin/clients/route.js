@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
+import { createOrTouchFollowUpFromLead } from "@/lib/follow-up-utils";
 
 export async function GET(req) {
   try { await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
@@ -64,6 +65,16 @@ export async function POST(req) {
       notes: body.notes || null,
     },
   });
+
+  try {
+    await createOrTouchFollowUpFromLead({
+      client,
+      source: "creation client admin",
+      notes: body.notes || null,
+    });
+  } catch (err) {
+    console.error("[admin clients] follow-up creation error:", err?.message || err);
+  }
 
   return NextResponse.json(client);
 }
