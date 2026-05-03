@@ -26,7 +26,6 @@ export default function AddressAutocomplete({
   const [results, setResults] = useState([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [configured, setConfigured] = useState(true);
   const [sessionToken, setSessionToken] = useState(() => newSessionToken());
   const timeoutRef = useRef(null);
   const wrapperRef = useRef(null);
@@ -70,7 +69,6 @@ export default function AddressAutocomplete({
           }),
         });
         const data = await res.json().catch(() => ({}));
-        setConfigured(data.configured !== false);
         const predictions = Array.isArray(data.predictions) ? data.predictions : [];
         setResults(predictions);
         setOpen(predictions.length > 0);
@@ -157,9 +155,6 @@ export default function AddressAutocomplete({
             Propulsé par Google
           </div>
         </div>
-      )}
-      {!configured && displayValue?.trim?.().length >= 3 && (
-        <p className="mt-1 text-[10px] text-amber-500">Google Places n&apos;est pas configuré.</p>
       )}
     </div>
   );
