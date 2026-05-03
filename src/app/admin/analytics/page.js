@@ -18,6 +18,11 @@ export default function AdminAnalyticsPage() {
   const [error, setError] = useState("");
 
   const periodQuery = customDate ? `date=${encodeURIComponent(customDate)}` : `days=${days}`;
+  const periodLabel = customDate
+    ? `le ${customDate}`
+    : days === 0
+      ? "aujourd'hui"
+      : `les ${days} derniers jours`;
 
   useEffect(() => {
     let cancelled = false;
@@ -142,7 +147,13 @@ export default function AdminAnalyticsPage() {
 
       {/* Recent visitors */}
       <div className="mb-8">
-        <RecentVisitors initialVisitors={data.recentVisitors} formatDuration={formatDuration} />
+        <RecentVisitors
+          initialVisitors={data.recentVisitors}
+          query={periodQuery}
+          totalVisitors={data.visitorListTotal || data.uniqueVisitors || 0}
+          periodLabel={periodLabel}
+          formatDuration={formatDuration}
+        />
       </div>
 
       {/* Form abandonment */}

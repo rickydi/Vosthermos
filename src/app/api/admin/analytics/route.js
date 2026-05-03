@@ -8,6 +8,7 @@ export async function GET(request) {
     await requireAdmin();
     const { searchParams } = new URL(request.url);
     const range = analyticsDateRange(searchParams);
+    const showAllVisitors = searchParams.get("visitors") === "all";
     const startedAt = { gte: range.since };
     if (range.until) startedAt.lt = range.until;
 
@@ -135,9 +136,9 @@ export async function GET(request) {
         };
       }
     }
-    const recentVisitors = Object.values(visitorMap)
-      .sort((a, b) => new Date(b.startedAt) - new Date(a.startedAt))
-      .slice(0, 20);
+    const allVisitors = Object.values(visitorMap)
+      .sort((a, b) => new Date(b.startedAt) - new Date(a.startedAt));
+    const recentVisitors = showAllVisitors ? allVisitors : allVisitors.slice(0, 20);
 
     return NextResponse.json({
       uniqueVisitors,
@@ -150,6 +151,8 @@ export async function GET(request) {
       topReferrers,
       totalSessions: sessions.length,
       recentVisitors,
+      visitorListTotal: allVisitors.length,
+      visitorListLimit: showAllVisitors ? null : 20,
       range: { date: range.date, days: range.days },
     });
   } catch (err) {
