@@ -283,6 +283,7 @@ export default function SuiviClientsClient() {
   const timer = useRef(null);
   const moveTimer = useRef(null);
   const celebrationTimer = useRef(null);
+  const boardScrollRef = useRef(null);
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 8 },
@@ -299,6 +300,13 @@ export default function SuiviClientsClient() {
       .then((r) => r.json())
       .then((data) => setFollowUps(Array.isArray(data) ? data : []))
       .finally(() => setLoading(false));
+  }
+
+  function scrollBoard(direction) {
+    boardScrollRef.current?.scrollBy({
+      left: direction * 520,
+      behavior: "smooth",
+    });
   }
 
   useEffect(() => {
@@ -1050,44 +1058,67 @@ export default function SuiviClientsClient() {
           <p>Aucune carte dans les colonnes visibles</p>
         </div>
       ) : (
-        <div className="overflow-x-auto pb-3">
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCorners}
-            onDragStart={handleDragStart}
-            onDragOver={handleDragOver}
-            onDragCancel={handleDragCancel}
-            onDragEnd={handleDragEnd}
-          >
-            <div className="grid auto-cols-[minmax(255px,0.9fr)] grid-flow-col gap-3 min-h-[540px]">
-              {visibleColumns.map((column) => (
-                <KanbanColumn
-                  key={column.key}
-                  column={column}
-                  items={byColumn.get(column.key) || []}
-                  columns={columns}
-                  onAdd={() => openCreate(column.key)}
-                  onEdit={openEdit}
-                  onDelete={deleteFollowUp}
-                  onCentral={setCentralFollowUp}
-                  onArchiveLost={archiveLostFollowUps}
-                  isDragOver={dragOverColumn === column.key}
-                  activeDragId={activeDragId}
-                  recentlyMovedId={recentlyMovedId}
-                  celebratingId={celebratingId}
-                  archivingLost={archivingLost}
-                />
-              ))}
-            </div>
-            <DragOverlay
-              adjustScale={false}
-              dropAnimation={{ duration: 260, easing: "cubic-bezier(0.2, 0.85, 0.2, 1)" }}
-              zIndex={70}
+        <>
+          <div className="mb-3 flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => scrollBoard(-1)}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border admin-border admin-card admin-text-muted hover:admin-text"
+              title="Colonnes a gauche"
+              aria-label="Voir les colonnes a gauche"
             >
-              {activeDragItem ? <KanbanCardPreview followUp={activeDragItem} columns={columns} /> : null}
-            </DragOverlay>
-          </DndContext>
-        </div>
+              <i className="fas fa-chevron-left"></i>
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollBoard(1)}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border admin-border admin-card admin-text-muted hover:admin-text"
+              title="Colonnes a droite"
+              aria-label="Voir les colonnes a droite"
+            >
+              <i className="fas fa-chevron-right"></i>
+            </button>
+          </div>
+          <div ref={boardScrollRef} className="w-full max-w-full overflow-x-auto overflow-y-hidden overscroll-x-contain pb-3">
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCorners}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDragCancel={handleDragCancel}
+              onDragEnd={handleDragEnd}
+              autoScroll
+            >
+              <div className="flex w-max min-w-full gap-2.5 pr-2 min-h-[500px]">
+                {visibleColumns.map((column) => (
+                  <KanbanColumn
+                    key={column.key}
+                    column={column}
+                    items={byColumn.get(column.key) || []}
+                    columns={columns}
+                    onAdd={() => openCreate(column.key)}
+                    onEdit={openEdit}
+                    onDelete={deleteFollowUp}
+                    onCentral={setCentralFollowUp}
+                    onArchiveLost={archiveLostFollowUps}
+                    isDragOver={dragOverColumn === column.key}
+                    activeDragId={activeDragId}
+                    recentlyMovedId={recentlyMovedId}
+                    celebratingId={celebratingId}
+                    archivingLost={archivingLost}
+                  />
+                ))}
+              </div>
+              <DragOverlay
+                adjustScale={false}
+                dropAnimation={{ duration: 260, easing: "cubic-bezier(0.2, 0.85, 0.2, 1)" }}
+                zIndex={70}
+              >
+                {activeDragItem ? <KanbanCardPreview followUp={activeDragItem} columns={columns} /> : null}
+              </DragOverlay>
+            </DndContext>
+          </div>
+        </>
       )}
 
       {showForm && (
@@ -1178,18 +1209,18 @@ function KanbanColumn({
   return (
     <section
       ref={setNodeRef}
-      className={`admin-card border ${t.border} rounded-xl min-h-[540px] flex flex-col transition-all duration-200 ${
+      className={`admin-card border ${t.border} rounded-xl w-[82vw] sm:w-[218px] shrink-0 min-h-[500px] flex flex-col transition-all duration-200 ${
         active ? "ring-2 ring-cyan-300/40 bg-cyan-500/5 shadow-[0_0_30px_rgba(34,211,238,0.08)]" : ""
       }`}
     >
-      <div className="p-3 border-b admin-border">
+      <div className="p-2.5 border-b admin-border">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${t.soft}`}>
+              <span className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${t.soft}`}>
                 <i className={`fas ${column.icon} text-xs`}></i>
               </span>
-              <h2 className="admin-text text-sm font-extrabold truncate">{column.label}</h2>
+              <h2 className="admin-text text-[13px] font-extrabold truncate">{column.label}</h2>
             </div>
             <p className="admin-text-muted text-[11px] mt-1.5">
               {items.length} carte{items.length > 1 ? "s" : ""}{totalEstimate > 0 ? ` | ${totalEstimate.toFixed(2)} $` : ""}
@@ -1214,7 +1245,7 @@ function KanbanColumn({
           </div>
         </div>
       </div>
-      <div className="flex-1 p-2.5 space-y-2 overflow-y-auto">
+      <div className="flex-1 p-2 space-y-2 overflow-y-auto">
         {items.length === 0 ? (
           <div className="border border-dashed admin-border rounded-lg min-h-24 flex items-center justify-center admin-text-muted text-xs">
             Glisser ici
@@ -1289,7 +1320,7 @@ function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, isDragging
         }
         onCentral(followUp);
       }}
-      className={`relative overflow-hidden rounded-lg border admin-border admin-bg p-3 shadow-sm cursor-grab active:cursor-grabbing hover:ring-2 ${t.ring} transition-all duration-300 ${
+      className={`relative overflow-hidden rounded-lg border admin-border admin-bg p-2.5 shadow-sm cursor-grab active:cursor-grabbing hover:ring-2 ${t.ring} transition-all duration-300 ${
         dragging ? "kanban-card-source-dragging ring-2 ring-cyan-300/70" : ""
       } ${
         pressed && !dragging ? "kanban-card-pressed ring-2 ring-cyan-300/55" : ""
@@ -1312,11 +1343,11 @@ function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, isDragging
       )}
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="admin-text text-sm font-extrabold truncate">{clientName}</p>
-          <p className="admin-text-muted text-[11px] truncate mt-0.5">{followUp.service || "Service non precise"}</p>
+          <p className="admin-text text-[13px] font-extrabold truncate">{clientName}</p>
+          <p className="admin-text-muted text-[10px] truncate mt-0.5">{followUp.service || "Service non precise"}</p>
         </div>
         <div className="flex flex-col items-end gap-1 shrink-0">
-          <span className={`text-[9px] font-bold rounded-full px-1.5 py-0.5 ${t.badge}`}>
+          <span className={`text-[8px] font-bold rounded-full px-1.5 py-0.5 ${t.badge}`}>
             {meta.label}
           </span>
           <div className="flex items-center gap-2">
@@ -1340,20 +1371,20 @@ function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, isDragging
         </div>
       </div>
 
-      <div className="mt-2 space-y-0.5 text-[11px]">
+      <div className="mt-1.5 space-y-0.5 text-[10px]">
         {phone && <a href={`tel:${phone}`} className="text-sky-300 hover:underline block truncate">{phone}</a>}
         {email && <a href={`mailto:${email}`} className="admin-text-muted hover:admin-text block truncate">{email}</a>}
       </div>
 
-      <div className={`mt-2 rounded-lg px-2.5 py-1.5 ${late ? "bg-amber-500/10 text-amber-300" : "bg-white/5 admin-text-muted"}`}>
+      <div className={`mt-1.5 rounded-lg px-2 py-1.5 ${late ? "bg-amber-500/10 text-amber-300" : "bg-white/5 admin-text-muted"}`}>
         <div className="flex items-center justify-between gap-2">
           <p className="text-[9px] uppercase tracking-wider font-bold">Prochain suivi</p>
-          <p className="text-[11px] font-semibold shrink-0">{formatDate(followUp.nextActionDate)}</p>
+          <p className="text-[10px] font-semibold shrink-0">{formatDate(followUp.nextActionDate)}</p>
         </div>
-        <p className="text-[11px] line-clamp-1 mt-1">{followUp.nextAction || "-"}</p>
+        <p className="text-[10px] line-clamp-1 mt-1">{followUp.nextAction || "-"}</p>
       </div>
 
-      <div className="mt-2 flex flex-wrap gap-1">
+      <div className="mt-1.5 flex flex-wrap gap-1">
         <MiniCount icon="fa-comments" value={counts.chats} label="chats" />
         <MiniCount icon="fa-clipboard-list" value={counts.workOrders} label="bons" />
         <MiniCount icon="fa-calendar-check" value={counts.appointments} label="rdv" />
@@ -1361,7 +1392,7 @@ function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, isDragging
       </div>
 
       {followUp.estimateAmount ? (
-        <p className="admin-text text-xs font-bold mt-1.5">{Number(followUp.estimateAmount).toFixed(2)} $</p>
+        <p className="admin-text text-[11px] font-bold mt-1.5">{Number(followUp.estimateAmount).toFixed(2)} $</p>
       ) : null}
     </article>
   );

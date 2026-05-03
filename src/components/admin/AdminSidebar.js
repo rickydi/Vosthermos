@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const DASHBOARD_ITEM = {
   href: "/admin",
@@ -114,7 +114,9 @@ function StatusBadge({ count }) {
 export default function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const sectionPickerRef = useRef(null);
   const [open, setOpen] = useState(false);
+  const [sectionPickerOpen, setSectionPickerOpen] = useState(false);
   const [unreadChat, setUnreadChat] = useState(0);
   const [pendingRdv, setPendingRdv] = useState(0);
   const [pendingRequests, setPendingRequests] = useState(0);
@@ -124,6 +126,17 @@ export default function AdminSidebar() {
   const activeSection =
     NAV_SECTIONS.find((section) => section.key === activeSectionKey) || NAV_SECTIONS[0];
   const activeBadges = { unreadChat, pendingRdv, pendingRequests };
+
+  useEffect(() => {
+    if (!sectionPickerOpen) return undefined;
+    function closeOnOutsideClick(event) {
+      if (sectionPickerRef.current && !sectionPickerRef.current.contains(event.target)) {
+        setSectionPickerOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    return () => document.removeEventListener("mousedown", closeOnOutsideClick);
+  }, [sectionPickerOpen]);
 
   useEffect(() => {
     async function fetchBadges() {
@@ -164,6 +177,7 @@ export default function AdminSidebar() {
 
   function handleSectionSelect(sectionKey) {
     const section = NAV_SECTIONS.find((item) => item.key === sectionKey);
+    setSectionPickerOpen(false);
     if (section?.items[0]) {
       setOpen(false);
       router.push(section.items[0].href);
@@ -225,8 +239,33 @@ export default function AdminSidebar() {
           </Link>
         </div>
 
-        <div className="px-3 pt-3">
-          <div className="grid grid-cols-2 gap-2">
+        <div className="relative px-3 pt-3" ref={sectionPickerRef}>
+          <button
+            type="button"
+            onClick={() => setSectionPickerOpen((value) => !value)}
+            className="w-full rounded-xl border admin-border admin-card px-3 py-3 text-left transition-all hover:bg-white/5"
+            aria-expanded={sectionPickerOpen}
+          >
+            <div className="flex items-center gap-3">
+              <span className={`h-2.5 w-2.5 rounded-full ${activeSection.dotClass}`}></span>
+              <i className={`fas ${activeSection.icon} w-5 text-center ${activeSection.accentClass}`}></i>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-bold admin-text">{activeSection.label}</span>
+                <span className="block truncate text-[10px] admin-text-muted">{activeSection.summary}</span>
+              </span>
+              <i className={`fas fa-chevron-down text-xs admin-text-muted transition-transform ${
+                sectionPickerOpen ? "rotate-180" : ""
+              }`}></i>
+            </div>
+          </button>
+
+          <div
+            className={`absolute left-3 right-3 top-full z-50 mt-2 overflow-hidden rounded-xl border admin-border admin-bg shadow-2xl transition-all origin-top ${
+              sectionPickerOpen
+                ? "opacity-100 scale-y-100 pointer-events-auto"
+                : "opacity-0 scale-y-95 pointer-events-none"
+            }`}
+          >
             {NAV_SECTIONS.map((section) => {
               const sectionCount = section.items.reduce(
                 (sum, item) => sum + getItemBadge(item.href, activeBadges),
@@ -238,18 +277,16 @@ export default function AdminSidebar() {
                   key={section.key}
                   type="button"
                   onClick={() => handleSectionSelect(section.key)}
-                  className={`relative flex min-h-10 items-center justify-center gap-1.5 rounded-xl border px-2 text-[11px] font-bold transition-all ${
-                    section.key === "systeme" ? "col-span-2" : ""
-                  } ${
-                    selected
-                      ? "admin-card admin-text border-white/20 shadow-sm"
-                      : "admin-text-muted admin-border hover:bg-white/5 hover:text-white"
+                  className={`flex w-full items-center gap-3 px-3 py-3 text-left transition-colors ${
+                    selected ? "bg-white/10 admin-text" : "admin-text-muted hover:bg-white/5 hover:text-white"
                   }`}
-                  title={section.summary}
                 >
-                  <span className={`absolute left-2 top-2 h-2 w-2 rounded-full ${section.dotClass}`}></span>
-                  <i className={`fas ${section.icon} ${section.accentClass}`}></i>
-                  <span className="truncate">{section.label}</span>
+                  <span className={`h-2.5 w-2.5 rounded-full ${section.dotClass}`}></span>
+                  <i className={`fas ${section.icon} w-5 text-center ${section.accentClass}`}></i>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold">{section.label}</span>
+                    <span className="block truncate text-[10px] opacity-70">{section.summary}</span>
+                  </span>
                   <StatusBadge count={sectionCount} />
                 </button>
               );
