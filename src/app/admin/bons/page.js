@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { formatDateOnly } from "@/lib/date-only";
 
 export default function BonsPage() {
   const [workOrders, setWorkOrders] = useState([]);
@@ -136,7 +137,7 @@ export default function BonsPage() {
                     <p className="admin-text-muted text-xs">{wo.client?.phone}</p>
                   </td>
                   <td className="px-4 py-3 admin-text-muted">{wo.technician?.name || "—"}</td>
-                  <td className="px-4 py-3 admin-text-muted">{new Date(wo.date).toLocaleDateString("fr-CA")}</td>
+                  <td className="px-4 py-3 admin-text-muted">{formatDateOnly(wo.date)}</td>
                   <td className="px-4 py-3 admin-text-muted text-xs">
                     {wo.createdAt ? (
                       <>

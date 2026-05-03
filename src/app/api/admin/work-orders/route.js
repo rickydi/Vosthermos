@@ -11,6 +11,7 @@ import {
   attachSectionsAndItems,
 } from "@/lib/work-order-utils";
 import { createOrTouchFollowUpFromWorkOrder } from "@/lib/follow-up-utils";
+import { parseDateOnly } from "@/lib/date-only";
 
 export async function GET(req) {
   try { await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
@@ -81,7 +82,7 @@ export async function POST(req) {
     settings.tvq_rate
   );
 
-  const woDate = body.date ? new Date(body.date) : new Date();
+  const woDate = body.date ? parseDateOnly(body.date) : new Date();
   const arrivalAt = composeDateTime(woDate, body.heureArrivee);
   const departureAt = composeDateTime(woDate, body.heureDepart);
 

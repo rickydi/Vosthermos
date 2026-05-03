@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDateOnly } from "@/lib/date-only";
+
 // Design A3 — Receipt Premium, validated via print emulation.
 // Takes a real WorkOrder (from /api/admin/work-orders/[id]) and renders
 // a WYSIWYG 8.5x11 invoice sheet that prints identical to screen.
@@ -19,7 +21,7 @@ const COMPANY_DEFAULTS = {
 
 function fmt(n) { return `${Number(n || 0).toFixed(2)} $`; }
 function fmtDate(d) {
-  return new Date(d).toLocaleDateString("fr-CA", { day: "numeric", month: "long", year: "numeric" });
+  return formatDateOnly(d, { day: "numeric", month: "long", year: "numeric" });
 }
 function fmtHM(dt) {
   if (!dt) return null;

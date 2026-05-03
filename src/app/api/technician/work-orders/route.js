@@ -10,6 +10,7 @@ import {
   flattenSectionsBody,
   attachSectionsAndItems,
 } from "@/lib/work-order-utils";
+import { parseDateOnly } from "@/lib/date-only";
 
 function serializeWO(wo) {
   const serItem = (i) => ({
@@ -82,7 +83,7 @@ export async function POST(req) {
     settings.tvq_rate
   );
 
-  const woDate = body.date ? new Date(body.date) : new Date();
+  const woDate = body.date ? parseDateOnly(body.date) : new Date();
   const arrivalAt = composeDateTime(woDate, body.heureArrivee);
   const departureAt = composeDateTime(woDate, body.heureDepart);
 

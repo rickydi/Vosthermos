@@ -1,6 +1,7 @@
 import PDFDocument from "pdfkit";
 import path from "path";
 import fs from "fs";
+import { formatDateOnly } from "./date-only";
 
 const RED = "#b91c1c";
 const DARK = "#111111";
@@ -13,7 +14,7 @@ function fmt(n) {
 }
 
 function fmtDate(d) {
-  return new Date(d).toLocaleDateString("fr-CA", {
+  return formatDateOnly(d, {
     day: "numeric", month: "long", year: "numeric",
   });
 }

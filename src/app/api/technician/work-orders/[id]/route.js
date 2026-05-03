@@ -9,6 +9,7 @@ import {
   flattenSectionsBody,
   attachSectionsAndItems,
 } from "@/lib/work-order-utils";
+import { parseDateOnly } from "@/lib/date-only";
 
 function serializeWO(wo) {
   const serItem = (i) => ({
@@ -75,7 +76,7 @@ export async function PUT(req, { params }) {
   const laborHours = body.laborHours || 0;
   const totals = calcTotals(allForCalc, laborHours, settings.labor_rate_per_hour, settings.tps_rate, settings.tvq_rate);
 
-  const newDate = body.date ? new Date(body.date) : existing.date;
+  const newDate = body.date ? parseDateOnly(body.date, existing.date) : existing.date;
   const arrivalAt =
     body.heureArrivee !== undefined
       ? composeDateTime(newDate, body.heureArrivee)

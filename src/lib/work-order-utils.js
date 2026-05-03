@@ -1,5 +1,6 @@
 import prisma from "./prisma";
 import { COMPANY_INFO } from "./company-info";
+import { dateOnlyString } from "./date-only";
 
 const MIN_INVOICE_NUMBER = 150;
 
@@ -38,7 +39,10 @@ export function composeDateTime(baseDate, hhmm) {
   const h = parseInt(match[1], 10);
   const m = parseInt(match[2], 10);
   if (h > 23 || m > 59) return null;
-  const d = baseDate instanceof Date ? new Date(baseDate) : new Date(baseDate);
+  const datePart = dateOnlyString(baseDate);
+  const d = datePart
+    ? new Date(Number(datePart.slice(0, 4)), Number(datePart.slice(5, 7)) - 1, Number(datePart.slice(8, 10)))
+    : (baseDate instanceof Date ? new Date(baseDate) : new Date(baseDate));
   d.setHours(h, m, 0, 0);
   return d;
 }

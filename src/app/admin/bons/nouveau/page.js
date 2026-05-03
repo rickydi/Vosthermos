@@ -5,6 +5,123 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import CatalogPicker from "@/components/admin/CatalogPicker";
 import ClientPicker from "@/components/admin/ClientPicker";
+import { dateOnlyString, todayDateInput } from "@/lib/date-only";
+
+const DRAFT_KEY = "vosthermos:nouveau-bon:draft";
+
+function pad2(value) {
+  return String(value).padStart(2, "0");
+}
+
+function normalizeTimeInput(value) {
+  const raw = String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s/g, "")
+    .replace(/[h.,]/g, ":");
+
+  if (!raw) return "";
+
+  let hours;
+  let minutes;
+  const compact = raw.match(/^(\d{3,4})$/);
+  const separated = raw.match(/^(\d{1,2})(?::(\d{0,2}))?$/);
+
+  if (compact) {
+    const digits = compact[1];
+    hours = Number(digits.slice(0, -2));
+    minutes = Number(digits.slice(-2));
+  } else if (separated) {
+    hours = Number(separated[1]);
+    minutes = separated[2] === "" || separated[2] === undefined ? 0 : Number(separated[2]);
+  } else {
+    return "";
+  }
+
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes) || hours > 23 || minutes > 59) return "";
+  return `${pad2(hours)}:${pad2(minutes)}`;
+}
+
+function currentTimeValue() {
+  const now = new Date();
+  return `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+}
+
+function shiftTime(value, deltaMinutes) {
+  const normalized = normalizeTimeInput(value) || currentTimeValue();
+  const [hours, minutes] = normalized.split(":").map(Number);
+  const date = new Date();
+  date.setHours(hours, minutes + deltaMinutes, 0, 0);
+  return `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+}
+
+function normalizeWorkItem(it) {
+  const unitPrice = Number(it.unitPrice);
+  if ((it.itemType || "piece") === "discount") {
+    return {
+      productId: it.productId,
+      serviceId: it.serviceId,
+      description: it.description,
+      quantity: Number(it.quantity) || 1,
+      unitPrice,
+      itemType: "discount",
+      discountMode: "amount",
+      discountPercent: 0,
+      discountAmount: Math.abs(unitPrice || 0),
+    };
+  }
+  return {
+    productId: it.productId,
+    serviceId: it.serviceId,
+    description: it.description,
+    quantity: Number(it.quantity),
+    unitPrice,
+    itemType: it.itemType || "piece",
+  };
+}
+
+function TimeField({ label, value, onChange }) {
+  const invalid = Boolean(String(value || "").trim()) && !normalizeTimeInput(value);
+
+  return (
+    <div>
+      <label className="admin-text-muted text-xs mb-1 block">{label}</label>
+      <div className={`admin-input border rounded-lg px-2 py-2 ${invalid ? "border-orange-500" : ""}`}>
+        <input
+          type="text"
+          inputMode="numeric"
+          placeholder="8h30"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onBlur={() => {
+            const next = normalizeTimeInput(value);
+            if (next || !String(value || "").trim()) onChange(next);
+          }}
+          className="bg-transparent outline-none admin-text text-sm w-full"
+        />
+        <div className="flex items-center gap-1 mt-2">
+          <button type="button" onClick={() => onChange(currentTimeValue())}
+            className="px-2 py-1 rounded border admin-border admin-text-muted text-[11px] admin-hover">
+            Maintenant
+          </button>
+          <button type="button" onClick={() => onChange(shiftTime(value, -15))}
+            className="px-2 py-1 rounded border admin-border admin-text-muted text-[11px] admin-hover">
+            -15
+          </button>
+          <button type="button" onClick={() => onChange(shiftTime(value, 15))}
+            className="px-2 py-1 rounded border admin-border admin-text-muted text-[11px] admin-hover">
+            +15
+          </button>
+          <button type="button" onClick={() => onChange("")}
+            className="ml-auto px-2 py-1 rounded border admin-border admin-text-muted text-[11px] admin-hover">
+            Effacer
+          </button>
+        </div>
+      </div>
+      {invalid && <p className="text-orange-500 text-[11px] mt-1">Exemples acceptes : 8h30, 830, 08:30.</p>}
+    </div>
+  );
+}
 
 export default function NouveauBonPage() {
   return (
@@ -20,7 +137,7 @@ function NouveauBonAdmin() {
   const editId = searchParams.get("edit");
   const invoiceMode = searchParams.get("mode") === "invoice";
   const [saving, setSaving] = useState(false);
-  const [forceStatut, setForceStatut] = useState(null);
+  const [savingAction, setSavingAction] = useState(null);
   const [error, setError] = useState("");
   const [loadingEdit, setLoadingEdit] = useState(!!editId);
 
@@ -28,12 +145,24 @@ function NouveauBonAdmin() {
   const [clientResults, setClientResults] = useState([]);
   const [selectedClient, setSelectedClient] = useState(null);
   const [clientPickerOpen, setClientPickerOpen] = useState(false);
+  const [quickClientOpen, setQuickClientOpen] = useState(false);
+  const [creatingClient, setCreatingClient] = useState(false);
+  const [quickClient, setQuickClient] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    address: "",
+    city: "",
+    postalCode: "",
+    type: "particulier",
+  });
   const clientTimer = useRef(null);
+  const draftReady = useRef(false);
 
   const [technicians, setTechnicians] = useState([]);
   const [technicianId, setTechnicianId] = useState("");
 
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(() => todayDateInput());
   const [heureArrivee, setHeureArrivee] = useState("");
   const [heureDepart, setHeureDepart] = useState("");
   const [description, setDescription] = useState("");
@@ -81,6 +210,81 @@ function NouveauBonAdmin() {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    if (editId) {
+      draftReady.current = true;
+      return;
+    }
+
+    try {
+      const raw = window.localStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      if (draft.selectedClient) setSelectedClient(draft.selectedClient);
+      if (draft.technicianId !== undefined) setTechnicianId(draft.technicianId);
+      if (draft.date) setDate(draft.date);
+      if (draft.heureArrivee !== undefined) setHeureArrivee(draft.heureArrivee);
+      if (draft.heureDepart !== undefined) setHeureDepart(draft.heureDepart);
+      if (draft.description !== undefined) setDescription(draft.description);
+      if (draft.notes !== undefined) setNotes(draft.notes);
+      if (draft.statut) setStatut(draft.statut);
+      if (draft.interventionAddress !== undefined) setInterventionAddress(draft.interventionAddress);
+      if (draft.interventionCity !== undefined) setInterventionCity(draft.interventionCity);
+      if (draft.interventionPostalCode !== undefined) setInterventionPostalCode(draft.interventionPostalCode);
+      if (draft.visibleAuClient !== undefined) setVisibleAuClient(draft.visibleAuClient);
+      if (Array.isArray(draft.items)) setItems(draft.items);
+      if (Array.isArray(draft.sections)) setSections(draft.sections);
+      if (draft.laborHours !== undefined) setLaborHours(draft.laborHours);
+    } catch {
+      window.localStorage.removeItem(DRAFT_KEY);
+    } finally {
+      draftReady.current = true;
+    }
+  }, [editId]);
+
+  useEffect(() => {
+    if (editId || !draftReady.current) return;
+    const timer = setTimeout(() => {
+      try {
+        window.localStorage.setItem(DRAFT_KEY, JSON.stringify({
+          selectedClient,
+          technicianId,
+          date,
+          heureArrivee,
+          heureDepart,
+          description,
+          notes,
+          statut,
+          interventionAddress,
+          interventionCity,
+          interventionPostalCode,
+          visibleAuClient,
+          items,
+          sections,
+          laborHours,
+        }));
+      } catch {}
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [
+    editId,
+    selectedClient,
+    technicianId,
+    date,
+    heureArrivee,
+    heureDepart,
+    description,
+    notes,
+    statut,
+    interventionAddress,
+    interventionCity,
+    interventionPostalCode,
+    visibleAuClient,
+    items,
+    sections,
+    laborHours,
+  ]);
+
   // Fetch known units when a gestionnaire client is selected
   useEffect(() => {
     if (!selectedClient?.id || selectedClient.type !== "gestionnaire") {
@@ -104,7 +308,7 @@ function NouveauBonAdmin() {
         const wo = await res.json();
         setSelectedClient(wo.client);
         setTechnicianId(wo.technicianId ? String(wo.technicianId) : "");
-        setDate(new Date(wo.date).toISOString().slice(0, 10));
+        setDate(dateOnlyString(wo.date) || todayDateInput());
         const fmtHM = (dt) => {
           if (!dt) return "";
           const d = new Date(dt);
@@ -119,24 +323,10 @@ function NouveauBonAdmin() {
         setInterventionCity(wo.interventionCity || "");
         setInterventionPostalCode(wo.interventionPostalCode || "");
         setVisibleAuClient(wo.visibleAuClient ?? true);
-        setItems(Array.isArray(wo.items) ? wo.items.map((it) => ({
-          productId: it.productId,
-          serviceId: it.serviceId,
-          description: it.description,
-          quantity: Number(it.quantity),
-          unitPrice: Number(it.unitPrice),
-          itemType: it.itemType || "piece",
-        })) : []);
+        setItems(Array.isArray(wo.items) ? wo.items.map(normalizeWorkItem) : []);
         setSections(Array.isArray(wo.sections) ? wo.sections.map((s) => ({
           unitCode: s.unitCode,
-          items: (s.items || []).map((it) => ({
-            productId: it.productId,
-            serviceId: it.serviceId,
-            description: it.description,
-            quantity: Number(it.quantity),
-            unitPrice: Number(it.unitPrice),
-            itemType: it.itemType || "piece",
-          })),
+          items: (s.items || []).map(normalizeWorkItem),
         })) : []);
         // Reverse-compute laborHours from totalLabor
         const rate = settings.labor_rate_per_hour || 85;
@@ -184,7 +374,7 @@ function NouveauBonAdmin() {
   }
 
   // ─── Sections (B2B) ─────────────────────────────────────────
-  async function addSection() {
+  function addSection() {
     const code = newUnitCode.trim().toUpperCase();
     if (!code || !selectedClient) return;
 
@@ -203,28 +393,10 @@ function NouveauBonAdmin() {
       return;
     }
 
-    // 3. Nouvelle unite -> persister immediatement chez le client
-    try {
-      const res = await fetch(`/api/admin/clients/${selectedClient.id}/units`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code }),
-      });
-      if (res.ok || res.status === 409) {
-        setSections((prev) => [...prev, { unitCode: code, items: [] }]);
-        setNewUnitCode("");
-        setError("");
-        // Rafraichir la liste des unites connues
-        const r = await fetch(`/api/admin/clients/${selectedClient.id}/units`);
-        const data = await r.json();
-        if (Array.isArray(data)) setKnownUnits(data.filter((u) => u.isActive));
-      } else {
-        const err = await res.json().catch(() => ({}));
-        setError(err.error || "Erreur lors de l'ajout de l'unite");
-      }
-    } catch (e) {
-      setError(e.message);
-    }
+    // Nouvelle unite: on l'ajoute seulement au bon. Elle sera creee en DB au moment d'enregistrer.
+    setSections((prev) => [...prev, { unitCode: code, items: [] }]);
+    setNewUnitCode("");
+    setError("");
   }
   function addSectionFromKnown(u) {
     if (sections.some((s) => s.unitCode === u.code)) return;
@@ -286,9 +458,15 @@ function NouveauBonAdmin() {
   }
 
   // Base subtotal = pieces only (no labor, no discounts) — used as the denominator for % discounts
-  const piecesSubtotalBase = items
+  const flatPiecesSubtotalBase = items
     .filter((it) => it.itemType !== "discount")
     .reduce((s, it) => s + Number(it.quantity) * Number(it.unitPrice), 0);
+  const sectionPiecesSubtotalBase = sections.reduce((s, sec) => (
+    s + sec.items
+      .filter((it) => it.itemType !== "discount")
+      .reduce((ss, it) => ss + Number(it.quantity) * Number(it.unitPrice), 0)
+  ), 0);
+  const piecesSubtotalBase = flatPiecesSubtotalBase + sectionPiecesSubtotalBase;
 
   // Compute effective unitPrice for each discount line based on current base
   const itemsComputed = items.map((it) => {
@@ -311,25 +489,79 @@ function NouveauBonAdmin() {
   const tvq = subtotal * settings.tvq_rate;
   const total = subtotal + tps + tvq;
 
+  async function createQuickClient() {
+    if (!quickClient.name.trim()) {
+      setError("Nom du client requis");
+      return;
+    }
+
+    setCreatingClient(true);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/clients", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...quickClient,
+          name: quickClient.name.trim(),
+          phone: quickClient.phone.trim() || null,
+          email: quickClient.email.trim() || null,
+          address: quickClient.address.trim() || null,
+          city: quickClient.city.trim() || null,
+          postalCode: quickClient.postalCode.trim() || null,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Erreur creation client");
+      }
+      const client = await res.json();
+      setSelectedClient(client);
+      setClientSearch("");
+      setClientResults([]);
+      setQuickClientOpen(false);
+      setQuickClient({
+        name: "",
+        phone: "",
+        email: "",
+        address: "",
+        city: "",
+        postalCode: "",
+        type: "particulier",
+      });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setCreatingClient(false);
+    }
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     if (!selectedClient) { setError("Client requis"); return; }
+    const submitAction = e.nativeEvent?.submitter?.value || "save";
+    const normalizedArrival = normalizeTimeInput(heureArrivee);
+    const normalizedDeparture = normalizeTimeInput(heureDepart);
+    if (heureArrivee && !normalizedArrival) { setError("Heure d'arrivee invalide"); return; }
+    if (heureDepart && !normalizedDeparture) { setError("Heure de depart invalide"); return; }
+
     setSaving(true);
+    setSavingAction(submitAction);
     setError("");
     try {
       const payload = {
         clientId: selectedClient.id,
         technicianId: technicianId || null,
         date,
-        heureArrivee: heureArrivee || null,
-        heureDepart: heureDepart || null,
+        heureArrivee: normalizedArrival || null,
+        heureDepart: normalizedDeparture || null,
         interventionAddress: interventionAddress || null,
         interventionCity: interventionCity || null,
         interventionPostalCode: interventionPostalCode || null,
         visibleAuClient,
         description: description || null,
         notes: notes || null,
-        statut: forceStatut || statut,
+        statut: submitAction === "invoice" ? "invoiced" : statut,
         laborHours,
         // Flat items: always included. For B2B, only discount lines stay flat.
         items: itemsComputed.map((it) => ({
@@ -366,10 +598,14 @@ function NouveauBonAdmin() {
         throw new Error(data.error || "Erreur lors de la creation");
       }
       const wo = await res.json();
+      if (!editId) {
+        try { window.localStorage.removeItem(DRAFT_KEY); } catch {}
+      }
       router.push(`/admin/bons/${wo.id}`);
     } catch (err) {
       setError(err.message);
       setSaving(false);
+      setSavingAction(null);
     }
   }
 
@@ -414,10 +650,16 @@ function NouveauBonAdmin() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="admin-text font-bold">Client</h2>
             {!selectedClient && (
-              <button type="button" onClick={() => setClientPickerOpen(true)}
-                className="px-4 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium">
-                <i className="fas fa-address-book mr-2"></i>Parcourir les clients
-              </button>
+              <div className="flex gap-2 flex-wrap justify-end">
+                <button type="button" onClick={() => setQuickClientOpen((v) => !v)}
+                  className="px-4 py-2 border admin-border rounded-lg text-sm font-medium admin-text admin-hover">
+                  <i className="fas fa-user-plus mr-2"></i>Client rapide
+                </button>
+                <button type="button" onClick={() => setClientPickerOpen(true)}
+                  className="px-4 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium">
+                  <i className="fas fa-address-book mr-2"></i>Parcourir les clients
+                </button>
+              </div>
             )}
           </div>
           {!selectedClient ? (
@@ -436,7 +678,7 @@ function NouveauBonAdmin() {
                     <button
                       type="button"
                       key={c.id}
-                      onClick={() => { setSelectedClient(c); setClientSearch(""); setClientResults([]); }}
+                      onClick={() => { setSelectedClient(c); setClientSearch(""); setClientResults([]); setQuickClientOpen(false); }}
                       className="w-full text-left px-4 py-3 border-b admin-border admin-hover last:border-b-0"
                     >
                       <p className="admin-text font-medium text-sm">{c.name}</p>
@@ -445,9 +687,50 @@ function NouveauBonAdmin() {
                   ))}
                 </div>
               )}
-              <Link href="/admin/clients" className="inline-block mt-3 text-xs text-[var(--color-red)]">
-                <i className="fas fa-plus mr-1"></i>Creer un nouveau client
-              </Link>
+              {quickClientOpen && (
+                <div className="mt-4 border admin-border rounded-xl p-4 bg-white/[0.02]">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="admin-text text-sm font-bold">Creation rapide</p>
+                    <Link href="/admin/clients" className="text-xs admin-text-muted hover:admin-text">
+                      Fiche complete
+                    </Link>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-3">
+                    <input type="text" placeholder="Nom du client *" value={quickClient.name}
+                      onChange={(e) => setQuickClient((p) => ({ ...p, name: e.target.value }))}
+                      className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
+                    <input type="tel" placeholder="Telephone" value={quickClient.phone}
+                      onChange={(e) => setQuickClient((p) => ({ ...p, phone: e.target.value }))}
+                      className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
+                    <input type="email" placeholder="Email" value={quickClient.email}
+                      onChange={(e) => setQuickClient((p) => ({ ...p, email: e.target.value }))}
+                      className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
+                    <select value={quickClient.type}
+                      onChange={(e) => setQuickClient((p) => ({ ...p, type: e.target.value }))}
+                      className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full">
+                      <option value="particulier">Particulier</option>
+                      <option value="gestionnaire">Gestionnaire / B2B</option>
+                    </select>
+                    <input type="text" placeholder="Adresse" value={quickClient.address}
+                      onChange={(e) => setQuickClient((p) => ({ ...p, address: e.target.value }))}
+                      className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
+                    <div className="grid grid-cols-2 gap-3">
+                      <input type="text" placeholder="Ville" value={quickClient.city}
+                        onChange={(e) => setQuickClient((p) => ({ ...p, city: e.target.value }))}
+                        className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
+                      <input type="text" placeholder="Postal" value={quickClient.postalCode}
+                        onChange={(e) => setQuickClient((p) => ({ ...p, postalCode: e.target.value }))}
+                        className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
+                    </div>
+                  </div>
+                  <div className="flex justify-end mt-3">
+                    <button type="button" onClick={createQuickClient} disabled={creatingClient || !quickClient.name.trim()}
+                      className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold disabled:opacity-40">
+                      {creatingClient ? "Creation..." : "Creer et utiliser"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </>
           ) : (
             <div className="flex items-start justify-between">
@@ -472,16 +755,8 @@ function NouveauBonAdmin() {
               <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
                 className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
             </div>
-            <div>
-              <label className="admin-text-muted text-xs mb-1 block">Heure arrivee</label>
-              <input type="time" value={heureArrivee} onChange={(e) => setHeureArrivee(e.target.value)}
-                className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
-            </div>
-            <div>
-              <label className="admin-text-muted text-xs mb-1 block">Heure depart</label>
-              <input type="time" value={heureDepart} onChange={(e) => setHeureDepart(e.target.value)}
-                className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
-            </div>
+            <TimeField label="Heure arrivee" value={heureArrivee} onChange={setHeureArrivee} />
+            <TimeField label="Heure depart" value={heureDepart} onChange={setHeureDepart} />
           </div>
           <div>
             <label className="admin-text-muted text-xs mb-1 block">Technicien</label>
@@ -577,6 +852,9 @@ function NouveauBonAdmin() {
                 <i className="fas fa-plus mr-1"></i>Ajouter
               </button>
             </div>
+            <p className="admin-text-muted text-[11px]">
+              Une nouvelle unite est ajoutee au bon seulement. Elle sera enregistree dans la fiche client quand le bon sera sauvegarde.
+            </p>
 
             {/* Sections list */}
             {sections.map((sec, sIdx) => {
@@ -824,25 +1102,25 @@ function NouveauBonAdmin() {
               <div className="md:ml-auto flex gap-3 flex-wrap">
                 <button
                   type="submit"
+                  value="save"
                   disabled={saving || !selectedClient}
-                  onClick={() => setForceStatut(null)}
                   className="px-5 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium admin-text hover:bg-white/5 disabled:opacity-50"
                 >
-                  Enregistrer (sans facturer)
+                  {saving && savingAction === "save" ? "Enregistrement..." : "Enregistrer (sans facturer)"}
                 </button>
                 <button
                   type="submit"
+                  value="invoice"
                   disabled={saving || !selectedClient}
-                  onClick={() => setForceStatut("invoiced")}
                   className="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-bold disabled:opacity-50"
                 >
                   <i className="fas fa-file-invoice-dollar mr-2"></i>
-                  {saving && forceStatut === "invoiced" ? "Facturation..." : "Facturer ce bon"}
+                  {saving && savingAction === "invoice" ? "Facturation..." : "Facturer ce bon"}
                 </button>
               </div>
             ) : (
               <button type="submit" disabled={saving || !selectedClient}
-                onClick={() => setForceStatut(null)}
+                value="save"
                 className="md:ml-auto px-6 py-3 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium disabled:opacity-50">
                 {saving ? (editId ? "Enregistrement..." : "Creation...") : (editId ? "Enregistrer les modifications" : "Creer le bon")}
               </button>
@@ -855,7 +1133,7 @@ function NouveauBonAdmin() {
       <ClientPicker
         open={clientPickerOpen}
         onClose={() => setClientPickerOpen(false)}
-        onPick={(c) => { setSelectedClient(c); setClientPickerOpen(false); }}
+        onPick={(c) => { setSelectedClient(c); setClientPickerOpen(false); setQuickClientOpen(false); }}
       />
     </div>
   );

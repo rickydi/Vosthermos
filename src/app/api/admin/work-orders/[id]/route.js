@@ -10,6 +10,7 @@ import {
   attachSectionsAndItems,
 } from "@/lib/work-order-utils";
 import { createOrTouchFollowUpFromWorkOrder } from "@/lib/follow-up-utils";
+import { parseDateOnly } from "@/lib/date-only";
 
 export async function GET(_req, { params }) {
   try { await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
@@ -84,7 +85,7 @@ export async function PUT(req, { params }) {
         total: Number(existing.total),
       };
 
-  const newDate = body.date ? new Date(body.date) : existing.date;
+  const newDate = body.date ? parseDateOnly(body.date, existing.date) : existing.date;
   const arrivalAt = body.heureArrivee !== undefined
     ? composeDateTime(newDate, body.heureArrivee)
     : existing.arrivalAt;

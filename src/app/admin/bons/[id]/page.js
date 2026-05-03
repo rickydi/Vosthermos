@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import InvoiceSheet from "@/components/admin/InvoiceSheet";
+import { formatDateOnly } from "@/lib/date-only";
 
 // Map DB snake_case settings to InvoiceSheet company prop shape
 function mapCompany(s) {
@@ -86,7 +87,7 @@ export default function BonDetailPage() {
 
       const phone = formatPhoneForWhatsapp(tech.phone);
       const siteUrl = typeof window !== "undefined" ? window.location.origin : "https://www.vosthermos.com";
-      const datePart = wo.date ? new Date(wo.date).toLocaleDateString("fr-CA", { weekday: "long", day: "numeric", month: "long" }) : "";
+      const datePart = wo.date ? formatDateOnly(wo.date, { weekday: "long", day: "numeric", month: "long" }) : "";
       const unitsPart = wo.sections?.length > 0 ? wo.sections.map((s) => s.unitCode).join(", ") : "";
       const addressPart = [wo.interventionAddress, wo.interventionCity].filter(Boolean).join(", ") || wo.client?.address || "";
 

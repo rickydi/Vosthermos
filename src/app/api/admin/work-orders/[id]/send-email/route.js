@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/admin-auth";
 import { getTransporter } from "@/lib/mail";
 import { getWorkOrderSettings } from "@/lib/work-order-utils";
 import { generateInvoicePdf } from "@/lib/invoice-pdf";
+import { formatDateOnly } from "@/lib/date-only";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.vosthermos.com";
 const LOGO_URL = `${SITE_URL}/images/Vos-Thermos-Logo_Blanc.png`;
@@ -11,7 +12,7 @@ const LOGO_URL = `${SITE_URL}/images/Vos-Thermos-Logo_Blanc.png`;
 function fmt(n) { return `${Number(n || 0).toFixed(2)} $`; }
 
 function renderEmailHtml(wo) {
-  const date = new Date(wo.date).toLocaleDateString("fr-CA", {
+  const date = formatDateOnly(wo.date, {
     day: "numeric", month: "long", year: "numeric",
   });
   return `<!DOCTYPE html>
@@ -123,7 +124,7 @@ function renderEmailHtml(wo) {
 }
 
 function renderEmailText(wo) {
-  const date = new Date(wo.date).toLocaleDateString("fr-CA");
+  const date = formatDateOnly(wo.date);
   const name = wo.client?.name?.split(" ")[0] || "";
   return `Bonjour ${name},
 
