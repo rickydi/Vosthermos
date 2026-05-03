@@ -55,6 +55,19 @@ const TIME_OPTIONS = Array.from({ length: 24 * 4 }, (_, index) => {
   };
 });
 
+const LABOR_HOUR_OPTIONS = Array.from({ length: 16 * 4 + 1 }, (_, index) => {
+  const value = index / 4;
+  return { value, label: formatLaborHours(value) };
+});
+
+function formatLaborHours(value) {
+  const totalMinutes = Math.round(Number(value || 0) * 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours === 0 && minutes === 0) return "0h";
+  return `${hours > 0 ? `${hours}h` : ""}${minutes > 0 ? pad2(minutes) : ""}`;
+}
+
 function timeLabel(value) {
   const normalized = normalizeTimeInput(value);
   const found = TIME_OPTIONS.find((option) => option.value === normalized);
@@ -106,6 +119,24 @@ function TimeSelect({ label, value, onChange }) {
         ))}
       </select>
     </div>
+  );
+}
+
+function LaborHoursSelect({ value, onChange }) {
+  const normalized = Math.round(Number(value || 0) * 4) / 4;
+  const hasCustomValue = normalized > 0 && !LABOR_HOUR_OPTIONS.some((option) => option.value === normalized);
+
+  return (
+    <select
+      value={String(normalized)}
+      onChange={(e) => onChange(Number(e.target.value))}
+      className="admin-input border rounded-lg px-3 py-2.5 text-sm w-36"
+    >
+      {hasCustomValue && <option value={String(normalized)}>{formatLaborHours(normalized)}</option>}
+      {LABOR_HOUR_OPTIONS.map((option) => (
+        <option key={option.value} value={String(option.value)}>{option.label}</option>
+      ))}
+    </select>
   );
 }
 
@@ -180,6 +211,7 @@ function NouveauBonAdmin() {
   const [newUnitCode, setNewUnitCode] = useState("");
 
   const [laborHours, setLaborHours] = useState(0);
+  const [laborRate, setLaborRate] = useState(85);
   const [settings, setSettings] = useState({ labor_rate_per_hour: 85, tps_rate: 0.05, tvq_rate: 0.09975 });
 
   const isB2B = selectedClient?.type === "gestionnaire";
@@ -193,8 +225,17 @@ function NouveauBonAdmin() {
       .then((r) => r.json())
       .then((data) => {
         if (data) {
+          const nextLaborRate = parseFloat(data.labor_rate_per_hour || 85);
+          let shouldUseSettingsRate = !editId;
+          if (!editId) {
+            try {
+              const draft = JSON.parse(window.localStorage.getItem(DRAFT_KEY) || "{}");
+              if (draft.laborRate !== undefined) shouldUseSettingsRate = false;
+            } catch {}
+          }
+          if (shouldUseSettingsRate) setLaborRate(nextLaborRate);
           setSettings({
-            labor_rate_per_hour: parseFloat(data.labor_rate_per_hour || 85),
+            labor_rate_per_hour: nextLaborRate,
             tps_rate: parseFloat(data.tps_rate || 0.05),
             tvq_rate: parseFloat(data.tvq_rate || 0.09975),
           });
@@ -205,7 +246,7 @@ function NouveauBonAdmin() {
       .then((r) => r.json())
       .then((d) => { if (Array.isArray(d)) setServices(d); })
       .catch(() => {});
-  }, []);
+  }, [editId]);
 
   useEffect(() => {
     if (editId) {
@@ -232,6 +273,7 @@ function NouveauBonAdmin() {
       if (Array.isArray(draft.items)) setItems(draft.items);
       if (Array.isArray(draft.sections)) setSections(draft.sections);
       if (draft.laborHours !== undefined) setLaborHours(draft.laborHours);
+      if (draft.laborRate !== undefined) setLaborRate(Number(draft.laborRate) || 85);
     } catch {
       window.localStorage.removeItem(DRAFT_KEY);
     } finally {
@@ -259,6 +301,7 @@ function NouveauBonAdmin() {
           items,
           sections,
           laborHours,
+          laborRate,
         }));
       } catch {}
     }, 400);
@@ -280,6 +323,7 @@ function NouveauBonAdmin() {
     items,
     sections,
     laborHours,
+    laborRate,
   ]);
 
   // Fetch known units when a gestionnaire client is selected
@@ -325,8 +369,9 @@ function NouveauBonAdmin() {
           unitCode: s.unitCode,
           items: (s.items || []).map(normalizeWorkItem),
         })) : []);
-        // Reverse-compute laborHours from totalLabor
-        const rate = settings.labor_rate_per_hour || 85;
+        // Reverse-compute laborHours from the rate frozen on this work order.
+        const rate = Number(wo.laborRate) || settings.labor_rate_per_hour || 85;
+        setLaborRate(rate);
         setLaborHours(rate > 0 ? Math.round((Number(wo.totalLabor) / rate) * 100) / 100 : 0);
       } catch (err) {
         setError(err.message || "Erreur chargement");
@@ -480,7 +525,7 @@ function NouveauBonAdmin() {
   const flatPieces = itemsComputed.reduce((s, it) => s + Number(it.quantity) * Number(it.unitPrice), 0);
   const sectionsPieces = sections.reduce((s, sec) => s + sec.items.reduce((ss, it) => ss + Number(it.quantity) * Number(it.unitPrice), 0), 0);
   const totalPieces = flatPieces + sectionsPieces;
-  const totalLabor = Number(laborHours) * settings.labor_rate_per_hour;
+  const totalLabor = Number(laborHours) * laborRate;
   const subtotal = totalPieces + totalLabor;
   const tps = subtotal * settings.tps_rate;
   const tvq = subtotal * settings.tvq_rate;
@@ -596,6 +641,7 @@ function NouveauBonAdmin() {
         notes: notes || null,
         statut: submitAction === "invoice" ? "invoiced" : statut,
         laborHours,
+        laborRate,
         // Flat items: always included. For B2B, only discount lines stay flat.
         items: itemsComputed.map((it) => ({
           productId: it.productId,
@@ -1131,12 +1177,21 @@ function NouveauBonAdmin() {
 
         {/* Labor + Totals */}
         <div className="admin-card border rounded-xl p-6 space-y-4">
-          <h2 className="admin-text font-bold">Main d&apos;oeuvre</h2>
-          <div className="flex items-center gap-3">
-            <input type="number" value={laborHours} min="0" step="0.25"
-              onChange={(e) => setLaborHours(parseFloat(e.target.value) || 0)}
-              className="admin-input border rounded-lg px-3 py-2 text-sm w-24 text-center" />
-            <span className="admin-text-muted text-sm">heures × {settings.labor_rate_per_hour.toFixed(2)}$/h</span>
+          <div className="flex items-start justify-between gap-3 flex-wrap">
+            <div>
+              <h2 className="admin-text font-bold">Main d&apos;oeuvre</h2>
+              <p className="admin-text-muted text-xs mt-1">
+                Le taux de ce bon est fige a {laborRate.toFixed(2)}$/h. Changer les parametres n&apos;affecte pas les anciens bons.
+              </p>
+            </div>
+            <Link href="/admin/parametres#bons-travail"
+              className="px-3 py-2 border admin-border rounded-lg admin-text-muted text-xs admin-hover">
+              <i className="fas fa-gear mr-1"></i>Ajuster le taux
+            </Link>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <LaborHoursSelect value={laborHours} onChange={setLaborHours} />
+            <span className="admin-text-muted text-sm">{formatLaborHours(laborHours)} x {laborRate.toFixed(2)}$/h</span>
             <span className="ml-auto font-bold text-[var(--color-red)]">{totalLabor.toFixed(2)}$</span>
           </div>
 

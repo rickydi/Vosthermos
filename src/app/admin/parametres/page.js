@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import NotifyMembersSection from "@/components/admin/NotifyMembersSection";
 import BlogNotifyMembersSection from "@/components/admin/BlogNotifyMembersSection";
 import ApiKeysSection from "@/components/admin/ApiKeysSection";
@@ -26,6 +26,18 @@ export default function AdminSettingsPage() {
     note: "",
   });
   const [saved, setSaved] = useState(false);
+  const [laborRate, setLaborRate] = useState("85.00");
+  const [laborRateSaved, setLaborRateSaved] = useState(false);
+  const [laborRateSaving, setLaborRateSaving] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/admin/settings?key=labor_rate_per_hour")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.value) setLaborRate(String(data.value));
+      })
+      .catch(() => {});
+  }, []);
 
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -39,12 +51,62 @@ export default function AdminSettingsPage() {
     setTimeout(() => setSaved(false), 3000);
   }
 
+  async function saveLaborRate(e) {
+    e.preventDefault();
+    const value = Number(laborRate);
+    if (!Number.isFinite(value) || value <= 0) return;
+
+    setLaborRateSaving(true);
+    setLaborRateSaved(false);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: "labor_rate_per_hour", value: value.toFixed(2) }),
+      });
+      if (res.ok) {
+        setLaborRate(value.toFixed(2));
+        setLaborRateSaved(true);
+        setTimeout(() => setLaborRateSaved(false), 3000);
+      }
+    } finally {
+      setLaborRateSaving(false);
+    }
+  }
+
   return (
     <div className="p-6 lg:p-8 max-w-4xl">
       {/* Infos de facturation (persistees en DB, utilisees sur les factures) */}
       <div className="mb-8">
         <CompanyInfoSection />
       </div>
+
+      <form id="bons-travail" onSubmit={saveLaborRate} className="mb-8 bg-white/5 rounded-xl p-6 border border-white/5">
+        <div className="flex items-start justify-between gap-4 flex-wrap mb-4">
+          <div>
+            <h2 className="text-white font-bold text-lg">Bons de travail</h2>
+            <p className="text-white/50 text-sm mt-1">
+              Ce taux est utilise pour les nouveaux bons seulement. Les anciens bons gardent leur taux sauvegarde.
+            </p>
+          </div>
+          {laborRateSaved && <span className="text-green-400 text-sm font-bold">Sauvegarde</span>}
+        </div>
+        <div className="flex items-end gap-3 flex-wrap">
+          <div>
+            <label className="block text-white/50 text-sm mb-1">Taux main d&apos;oeuvre</label>
+            <div className="flex items-center gap-2">
+              <input type="number" min="0" step="0.01" value={laborRate}
+                onChange={(e) => setLaborRate(e.target.value)}
+                className="w-32 bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[var(--color-red)]" />
+              <span className="text-white/50 text-sm">$/h</span>
+            </div>
+          </div>
+          <button type="submit" disabled={laborRateSaving}
+            className="bg-[var(--color-red)] text-white px-5 py-3 rounded-xl font-bold hover:bg-[var(--color-red-dark)] transition-all disabled:opacity-50">
+            {laborRateSaving ? "Sauvegarde..." : "Sauvegarder le taux"}
+          </button>
+        </div>
+      </form>
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Address */}

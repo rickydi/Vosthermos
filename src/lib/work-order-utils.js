@@ -3,6 +3,7 @@ import { COMPANY_INFO } from "./company-info";
 import { dateOnlyString } from "./date-only";
 
 const MIN_INVOICE_NUMBER = 150;
+export const DEFAULT_LABOR_RATE = 85;
 
 export async function generateWorkOrderNumber() {
   const year = new Date().getFullYear();
@@ -155,6 +156,24 @@ export function calcTotals(items, laborHours, laborRate, tpsRate, tvqRate) {
   return {
     totalPieces: Math.round(totalPieces * 100) / 100,
     totalLabor: Math.round(totalLabor * 100) / 100,
+    subtotal: Math.round(subtotal * 100) / 100,
+    tps: Math.round(tps * 100) / 100,
+    tvq: Math.round(tvq * 100) / 100,
+    total: Math.round(total * 100) / 100,
+  };
+}
+
+export function calcTotalsFromPieces(totalPieces, laborHours, laborRate, tpsRate, tvqRate) {
+  const roundedPieces = Math.round(Number(totalPieces || 0) * 100) / 100;
+  const totalLabor = Math.round(Number(laborHours || 0) * Number(laborRate || 0) * 100) / 100;
+  const subtotal = roundedPieces + totalLabor;
+  const tps = subtotal * Number(tpsRate);
+  const tvq = subtotal * Number(tvqRate);
+  const total = subtotal + tps + tvq;
+
+  return {
+    totalPieces: roundedPieces,
+    totalLabor,
     subtotal: Math.round(subtotal * 100) / 100,
     tps: Math.round(tps * 100) / 100,
     tvq: Math.round(tvq * 100) / 100,

@@ -4,6 +4,7 @@ import { requireTech } from "@/lib/technician-auth";
 import {
   calcTotals,
   getWorkOrderSettings,
+  DEFAULT_LABOR_RATE,
   composeDateTime,
   computeDurationMinutes,
   flattenSectionsBody,
@@ -22,6 +23,7 @@ function serializeWO(wo) {
     ...wo,
     totalPieces: Number(wo.totalPieces),
     totalLabor: Number(wo.totalLabor),
+    laborRate: Number(wo.laborRate),
     subtotal: Number(wo.subtotal),
     tps: Number(wo.tps),
     tvq: Number(wo.tvq),
@@ -73,8 +75,14 @@ export async function PUT(req, { params }) {
   const settings = await getWorkOrderSettings();
 
   const { flatItems, sections, allForCalc } = flattenSectionsBody(body);
-  const laborHours = body.laborHours || 0;
-  const totals = calcTotals(allForCalc, laborHours, settings.labor_rate_per_hour, settings.tps_rate, settings.tvq_rate);
+  const existingLaborRate = Number(existing.laborRate) || Number(settings.labor_rate_per_hour) || DEFAULT_LABOR_RATE;
+  const laborRate = body.laborRate !== undefined
+    ? (Number(body.laborRate) || existingLaborRate)
+    : existingLaborRate;
+  const laborHours = body.laborHours !== undefined
+    ? Number(body.laborHours) || 0
+    : (Number(existing.totalLabor) / laborRate || 0);
+  const totals = calcTotals(allForCalc, laborHours, laborRate, settings.tps_rate, settings.tvq_rate);
 
   const newDate = body.date ? parseDateOnly(body.date, existing.date) : existing.date;
   const arrivalAt =
@@ -115,6 +123,7 @@ export async function PUT(req, { params }) {
         signatureUrl: body.signatureUrl ?? existing.signatureUrl,
         notes: body.notes ?? existing.notes,
         statut: body.statut || existing.statut,
+        laborRate,
         ...totals,
       },
     });

@@ -5,6 +5,7 @@ import {
   generateWorkOrderNumber,
   calcTotals,
   getWorkOrderSettings,
+  DEFAULT_LABOR_RATE,
   composeDateTime,
   computeDurationMinutes,
   flattenSectionsBody,
@@ -56,6 +57,7 @@ export async function GET(req) {
       subtotal: Number(wo.subtotal),
       totalPieces: Number(wo.totalPieces),
       totalLabor: Number(wo.totalLabor),
+      laborRate: Number(wo.laborRate),
     })),
     total,
     page,
@@ -74,10 +76,11 @@ export async function POST(req) {
 
   const { flatItems, sections, allForCalc } = flattenSectionsBody(body);
   const laborHours = Number(body.laborHours) || 0;
+  const laborRate = Number(body.laborRate ?? settings.labor_rate_per_hour) || DEFAULT_LABOR_RATE;
   const totals = calcTotals(
     allForCalc,
     laborHours,
-    settings.labor_rate_per_hour,
+    laborRate,
     settings.tps_rate,
     settings.tvq_rate
   );
@@ -105,6 +108,7 @@ export async function POST(req) {
         notes: body.notes || null,
         statut: body.statut || "draft",
         visibleAuClient: body.visibleAuClient ?? true,
+        laborRate,
         ...totals,
       },
     });
@@ -134,5 +138,6 @@ export async function POST(req) {
     subtotal: Number(workOrder.subtotal),
     totalPieces: Number(workOrder.totalPieces),
     totalLabor: Number(workOrder.totalLabor),
+    laborRate: Number(workOrder.laborRate),
   });
 }

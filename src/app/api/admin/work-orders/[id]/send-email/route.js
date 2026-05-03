@@ -195,6 +195,7 @@ export async function POST(req, { params }) {
     ...wo,
     totalPieces: Number(wo.totalPieces),
     totalLabor: Number(wo.totalLabor),
+    laborRate: Number(wo.laborRate),
     subtotal: Number(wo.subtotal),
     tps: Number(wo.tps),
     tvq: Number(wo.tvq),

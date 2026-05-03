@@ -3,7 +3,9 @@ import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import {
   calcTotals,
+  calcTotalsFromPieces,
   getWorkOrderSettings,
+  DEFAULT_LABOR_RATE,
   composeDateTime,
   computeDurationMinutes,
   flattenSectionsBody,
@@ -50,6 +52,7 @@ export async function GET(_req, { params }) {
     ...wo,
     totalPieces: Number(wo.totalPieces),
     totalLabor: Number(wo.totalLabor),
+    laborRate: Number(wo.laborRate),
     subtotal: Number(wo.subtotal),
     tps: Number(wo.tps),
     tvq: Number(wo.tvq),
@@ -70,13 +73,20 @@ export async function PUT(req, { params }) {
   const body = await req.json();
   const settings = await getWorkOrderSettings();
   const rebuildLines = body.items !== undefined || body.sections !== undefined;
+  const shouldRecalcTotals = rebuildLines || body.laborHours !== undefined || body.laborRate !== undefined;
   const { flatItems, sections, allForCalc } = flattenSectionsBody(body);
+  const existingLaborRate = Number(existing.laborRate) || Number(settings.labor_rate_per_hour) || DEFAULT_LABOR_RATE;
+  const laborRate = body.laborRate !== undefined
+    ? (Number(body.laborRate) || existingLaborRate)
+    : existingLaborRate;
   const laborHours = body.laborHours !== undefined
     ? Number(body.laborHours) || 0
-    : (Number(existing.totalLabor) / Number(settings.labor_rate_per_hour) || 0);
+    : (Number(existing.totalLabor) / laborRate || 0);
   const totals = rebuildLines
-    ? calcTotals(allForCalc, laborHours, settings.labor_rate_per_hour, settings.tps_rate, settings.tvq_rate)
-    : {
+    ? calcTotals(allForCalc, laborHours, laborRate, settings.tps_rate, settings.tvq_rate)
+    : shouldRecalcTotals
+      ? calcTotalsFromPieces(existing.totalPieces, laborHours, laborRate, settings.tps_rate, settings.tvq_rate)
+      : {
         totalPieces: Number(existing.totalPieces),
         totalLabor: Number(existing.totalLabor),
         subtotal: Number(existing.subtotal),
@@ -122,6 +132,7 @@ export async function PUT(req, { params }) {
         notes: body.notes ?? existing.notes,
         statut: body.statut || existing.statut,
         visibleAuClient: body.visibleAuClient ?? existing.visibleAuClient,
+        laborRate,
         ...totals,
       },
     });
@@ -161,6 +172,7 @@ export async function PUT(req, { params }) {
     ...wo,
     totalPieces: Number(wo.totalPieces),
     totalLabor: Number(wo.totalLabor),
+    laborRate: Number(wo.laborRate),
     subtotal: Number(wo.subtotal),
     tps: Number(wo.tps),
     tvq: Number(wo.tvq),

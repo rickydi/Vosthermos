@@ -37,6 +37,12 @@ const COMPANY_DEFAULTS = {
   rbq_number: "5820-0684-01",
 };
 
+const WORK_ORDER_DEFAULTS = {
+  labor_rate_per_hour: "85.00",
+  tps_rate: "0.05",
+  tvq_rate: "0.09975",
+};
+
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const section = searchParams.get("section");
@@ -79,9 +85,23 @@ export async function GET(request) {
     }
   }
 
-  // Default: single key lookup
+  // Default admin settings used by work-order forms.
   const key = searchParams.get("key");
-  if (!key) return NextResponse.json({ error: "key required" }, { status: 400 });
+  if (!key) {
+    try {
+      await requireAdmin();
+    } catch {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const keys = Object.keys(WORK_ORDER_DEFAULTS);
+    const rows = await prisma.$queryRawUnsafe(
+      `SELECT key, value FROM site_settings WHERE key = ANY($1)`,
+      keys,
+    );
+    const result = { ...WORK_ORDER_DEFAULTS };
+    for (const row of rows) result[row.key] = row.value;
+    return NextResponse.json(result);
+  }
 
   const result = await prisma.$queryRawUnsafe(
     `SELECT value FROM site_settings WHERE key = $1`,

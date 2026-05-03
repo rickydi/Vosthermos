@@ -5,6 +5,7 @@ import {
   generateWorkOrderNumber,
   calcTotals,
   getWorkOrderSettings,
+  DEFAULT_LABOR_RATE,
   composeDateTime,
   computeDurationMinutes,
   flattenSectionsBody,
@@ -23,6 +24,7 @@ function serializeWO(wo) {
     ...wo,
     totalPieces: Number(wo.totalPieces),
     totalLabor: Number(wo.totalLabor),
+    laborRate: Number(wo.laborRate),
     subtotal: Number(wo.subtotal),
     tps: Number(wo.tps),
     tvq: Number(wo.tvq),
@@ -75,10 +77,11 @@ export async function POST(req) {
 
   const { flatItems, sections, allForCalc } = flattenSectionsBody(body);
   const laborHours = body.laborHours || 0;
+  const laborRate = Number(body.laborRate ?? settings.labor_rate_per_hour) || DEFAULT_LABOR_RATE;
   const totals = calcTotals(
     allForCalc,
     laborHours,
-    settings.labor_rate_per_hour,
+    laborRate,
     settings.tps_rate,
     settings.tvq_rate
   );
@@ -106,6 +109,7 @@ export async function POST(req) {
         photos: body.photos || [],
         notes: body.notes || null,
         statut: body.statut || "draft",
+        laborRate,
         ...totals,
       },
     });

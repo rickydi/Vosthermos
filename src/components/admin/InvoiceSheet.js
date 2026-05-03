@@ -96,7 +96,7 @@ export default function InvoiceSheet({ wo, company }) {
   const departure = fmtHM(wo.departureAt);
   const duration = fmtDuration(wo.durationMinutes);
   const laborHours = (() => {
-    const rate = 85; // fallback; totalLabor is authoritative
+    const rate = Number(wo.laborRate) || 85;
     const tl = Number(wo.totalLabor) || 0;
     return rate > 0 ? Math.round((tl / rate) * 100) / 100 : 0;
   })();
