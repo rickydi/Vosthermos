@@ -736,7 +736,7 @@ function NouveauBonAdmin() {
 
   return (
     <div className="p-6 lg:p-8">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col gap-4 mb-6 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <Link href="/admin/bons" className="admin-text-muted text-sm hover:admin-text">
             <i className="fas fa-arrow-left mr-2"></i>Retour aux bons
@@ -745,6 +745,24 @@ function NouveauBonAdmin() {
             {invoiceMode ? "Facturer le bon de travail" : (editId ? "Modifier le bon de travail" : "Nouveau bon de travail")}
           </h1>
         </div>
+        {editId && (
+          <div className="flex flex-wrap items-center gap-2">
+            {!invoiceMode && (
+              <Link
+                href={`/admin/bons/nouveau?edit=${editId}&mode=invoice`}
+                className="inline-flex items-center rounded-lg bg-orange-600 px-4 py-2 text-sm font-bold text-white hover:bg-orange-700"
+              >
+                <i className="fas fa-file-invoice-dollar mr-2"></i>Facturer ce bon
+              </Link>
+            )}
+            <Link
+              href={`/admin/bons/${editId}`}
+              className="inline-flex items-center rounded-lg border admin-border admin-card px-4 py-2 text-sm font-medium admin-text hover:bg-white/5"
+            >
+              <i className="fas fa-envelope mr-2"></i>Voir / envoyer
+            </Link>
+          </div>
+        )}
       </div>
 
       {invoiceMode && (
