@@ -67,7 +67,7 @@ async function autocomplete({ input, sessionToken }) {
       locationBias: {
         circle: {
           center: { latitude: 45.372, longitude: -73.55 },
-          radius: 120000,
+          radius: 50000,
         },
       },
     }),
