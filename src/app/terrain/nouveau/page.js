@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import SignaturePad from "@/components/terrain/SignaturePad";
+import AddressAutocomplete from "@/components/AddressAutocomplete";
 
 const STEPS = ["Client", "Travail", "Pieces", "Signature"];
 const CATEGORY_LABELS = {
@@ -23,7 +24,7 @@ export default function NouveauBon() {
   const [clientId, setClientId] = useState(null);
   const [clientSearch, setClientSearch] = useState("");
   const [clientResults, setClientResults] = useState([]);
-  const [clientData, setClientData] = useState({ name: "", phone: "", email: "", address: "", city: "" });
+  const [clientData, setClientData] = useState({ name: "", phone: "", email: "", address: "", city: "", province: "QC", postalCode: "" });
   const [clientType, setClientType] = useState("particulier");
   const [isNewClient, setIsNewClient] = useState(false);
 
@@ -114,6 +115,8 @@ export default function NouveauBon() {
       email: client.email || "",
       address: client.address || "",
       city: client.city || "",
+      province: client.province || "QC",
+      postalCode: client.postalCode || "",
     });
     setClientType(client.type || "particulier");
     setClientSearch("");
@@ -413,7 +416,7 @@ export default function NouveauBon() {
                   </h2>
                   <button onClick={() => {
                     setClientId(null); setIsNewClient(false); setClientType("particulier");
-                    setClientData({ name: "", phone: "", email: "", address: "", city: "" });
+                    setClientData({ name: "", phone: "", email: "", address: "", city: "", province: "QC", postalCode: "" });
                     setSections([]);
                   }} className="text-xs text-[var(--color-red)]">Changer</button>
                 </div>
@@ -480,11 +483,18 @@ export default function NouveauBon() {
                 <input placeholder="Email" value={clientData.email}
                   onChange={(e) => setClientData({ ...clientData, email: e.target.value })}
                   className={inputClass} readOnly={!!clientId} />
-                <input placeholder="Adresse" value={clientData.address}
-                  onChange={(e) => setClientData({ ...clientData, address: e.target.value })}
-                  className={inputClass} />
+                <AddressAutocomplete
+                  value={clientData.address}
+                  onChange={(address) => setClientData((prev) => ({ ...prev, address }))}
+                  onSelect={(address) => setClientData((prev) => ({ ...prev, ...address }))}
+                  placeholder="Adresse"
+                  inputClassName={inputClass}
+                />
                 <input placeholder="Ville" value={clientData.city}
                   onChange={(e) => setClientData({ ...clientData, city: e.target.value })}
+                  className={inputClass} />
+                <input placeholder="Code postal" value={clientData.postalCode}
+                  onChange={(e) => setClientData({ ...clientData, postalCode: e.target.value })}
                   className={inputClass} />
               </div>
             )}

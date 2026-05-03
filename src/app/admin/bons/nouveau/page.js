@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import CatalogPicker from "@/components/admin/CatalogPicker";
 import ClientPicker from "@/components/admin/ClientPicker";
+import AddressAutocomplete from "@/components/AddressAutocomplete";
 import { dateOnlyString, todayDateInput } from "@/lib/date-only";
 
 const DRAFT_KEY = "vosthermos:nouveau-bon:draft";
@@ -854,9 +855,13 @@ function NouveauBonAdmin() {
                       <option value="particulier">Particulier</option>
                       <option value="gestionnaire">Gestionnaire / B2B</option>
                     </select>
-                    <input type="text" placeholder="Adresse" value={quickClient.address}
-                      onChange={(e) => setQuickClient((p) => ({ ...p, address: e.target.value }))}
-                      className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
+                    <AddressAutocomplete
+                      value={quickClient.address}
+                      onChange={(address) => setQuickClient((p) => ({ ...p, address }))}
+                      onSelect={(address) => setQuickClient((p) => ({ ...p, ...address }))}
+                      placeholder="Adresse"
+                      inputClassName="admin-input border rounded-lg px-3 py-2.5 text-sm w-full"
+                    />
                     <div className="grid grid-cols-2 gap-3">
                       <input type="text" placeholder="Ville" value={quickClient.city}
                         onChange={(e) => setQuickClient((p) => ({ ...p, city: e.target.value }))}
@@ -924,9 +929,18 @@ function NouveauBonAdmin() {
               )}
             </div>
             <div className="grid md:grid-cols-3 gap-3">
-              <input type="text" placeholder="Adresse" value={interventionAddress}
-                onChange={(e) => setInterventionAddress(e.target.value)}
-                className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full md:col-span-2" />
+              <AddressAutocomplete
+                value={interventionAddress}
+                onChange={setInterventionAddress}
+                onSelect={(address) => {
+                  setInterventionAddress(address.address || "");
+                  setInterventionCity(address.city || "");
+                  setInterventionPostalCode(address.postalCode || "");
+                }}
+                placeholder="Adresse"
+                className="md:col-span-2"
+                inputClassName="admin-input border rounded-lg px-3 py-2.5 text-sm w-full"
+              />
               <input type="text" placeholder="Ville" value={interventionCity}
                 onChange={(e) => setInterventionCity(e.target.value)}
                 className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />

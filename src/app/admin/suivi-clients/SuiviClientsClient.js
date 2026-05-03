@@ -13,6 +13,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import ClientPicker from "@/components/admin/ClientPicker";
+import AddressAutocomplete from "@/components/AddressAutocomplete";
 
 const SETTINGS_KEY = "admin_follow_up_columns";
 const TERMINAL = new Set(["lost", "completed", "archived"]);
@@ -2107,7 +2108,21 @@ function ClientDatabaseTab({ followUp, onClientUpdated }) {
           <ClientField label="Compagnie" value={form.company} onChange={(value) => setForm({ ...form, company: value })} className="md:col-span-2" />
           <ClientField label="Telephone" value={form.phone} onChange={(value) => setForm({ ...form, phone: value })} />
           <ClientField label="Email" type="email" value={form.email} onChange={(value) => setForm({ ...form, email: value })} />
-          <ClientField label="Adresse" value={form.address} onChange={(value) => setForm({ ...form, address: value })} className="md:col-span-2" />
+          <div className="md:col-span-2">
+            <label className="admin-text-muted text-xs font-bold block mb-1">Adresse</label>
+            <AddressAutocomplete
+              value={form.address}
+              onChange={(address) => setForm((prev) => ({ ...prev, address }))}
+              onSelect={(address) => setForm((prev) => ({
+                ...prev,
+                address: address.address || prev.address || "",
+                city: address.city || prev.city || "",
+                province: address.province || prev.province || "QC",
+                postalCode: address.postalCode || prev.postalCode || "",
+              }))}
+              inputClassName="admin-input border rounded-lg px-3 py-2.5 text-sm w-full"
+            />
+          </div>
           <ClientField label="Ville" value={form.city} onChange={(value) => setForm({ ...form, city: value })} />
           <div className="grid grid-cols-[0.7fr_1fr] gap-3">
             <ClientField label="Province" value={form.province} onChange={(value) => setForm({ ...form, province: value })} />

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import AddressAutocomplete from "@/components/AddressAutocomplete";
 
 function initials(first, last) {
   return `${(first || "")[0] || ""}${(last || "")[0] || ""}`.toUpperCase();
@@ -1291,7 +1292,15 @@ function CoproEditor({ onClose, onSaved }) {
           <TextInput label="Contact dans la copropriété" value={form.company} onChange={(v) => setForm({ ...form, company: v })} placeholder="Jean Tremblay (président)" />
           <TextInput label="Courriel du contact" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} placeholder="president@syndicat.ca" />
         </div>
-        <TextInput label="Adresse" value={form.address} onChange={(v) => setForm({ ...form, address: v })} placeholder="1500 Montée Monette" />
+        <Field label="Adresse">
+          <AddressAutocomplete
+            value={form.address}
+            onChange={(address) => setForm((prev) => ({ ...prev, address }))}
+            onSelect={(address) => setForm((prev) => ({ ...prev, ...address }))}
+            placeholder="1500 Montée Monette"
+            inputClassName="gm-field-input"
+          />
+        </Field>
         <div className="gm-field-row gm-field-row-address">
           <TextInput label="Ville" value={form.city} onChange={(v) => setForm({ ...form, city: v })} placeholder="Laval" />
           <TextInput label="Province" value={form.province} onChange={(v) => setForm({ ...form, province: v })} />
@@ -1358,7 +1367,15 @@ function BuildingEditor({ clientId, initial, onClose, onSaved }) {
           <TextInput label="Code" value={form.code} onChange={(v) => setForm({ ...form, code: v.toUpperCase() })} placeholder="A" required />
           <TextInput label="Nom" value={form.name} onChange={(v) => setForm({ ...form, name: v })} placeholder="Bâtiment A" required />
         </div>
-        <TextInput label="Adresse (optionnel)" value={form.address} onChange={(v) => setForm({ ...form, address: v })} placeholder="1500 Montée Monette" />
+        <Field label="Adresse (optionnel)">
+          <AddressAutocomplete
+            value={form.address}
+            onChange={(address) => setForm((prev) => ({ ...prev, address }))}
+            onSelect={(address) => setForm((prev) => ({ ...prev, address: address.address || "" }))}
+            placeholder="1500 Montée Monette"
+            inputClassName="gm-field-input"
+          />
+        </Field>
         <div className="gm-form-actions gm-form-actions-split">
           {isEdit ? (
             <button type="button" onClick={del} className="gm-btn gm-btn-sm" style={{ color: "var(--red)", borderColor: "rgba(227,7,24,0.3)" }}>
@@ -2361,7 +2378,18 @@ function ParametresTab({ manager, activeClient, clients, isGlobal, canManageUnit
               {canManageUnits && (
                 <>
                   <TextInput label="Nom de la copropriété" value={renameValue} onChange={setRenameValue} placeholder="Ex: Le Marronnier" required />
-                  <TextInput label="Adresse" value={renameAddress} onChange={setRenameAddress} placeholder="1500 Montée Monette" />
+                  <Field label="Adresse">
+                    <AddressAutocomplete
+                      value={renameAddress}
+                      onChange={setRenameAddress}
+                      onSelect={(address) => {
+                        setRenameAddress(address.address || "");
+                        setRenameCity(address.city || "");
+                      }}
+                      placeholder="1500 Montée Monette"
+                      inputClassName="gm-field-input"
+                    />
+                  </Field>
                   <TextInput label="Ville" value={renameCity} onChange={setRenameCity} placeholder="Laval" />
                   <div className="gm-form-actions" style={{ marginTop: 8 }}>
                     <button type="button" onClick={saveCopro} disabled={savingRename} className="gm-btn gm-btn-sm gm-btn-primary">

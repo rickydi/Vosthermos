@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import AddressAutocomplete from "@/components/AddressAutocomplete";
 import {
   DEFAULT_MANAGER_PERMISSIONS,
   hasCoreManagerAccess,
@@ -90,6 +91,15 @@ export default function ManagerEdit({ manager, allClients }) {
 
   function setField(clientId, field, value) {
     setLinks((ls) => ls.map((l) => l.clientId === clientId ? { ...l, [field]: value } : l));
+  }
+
+  function selectClientAddress(clientId, address) {
+    setLinks((ls) => ls.map((l) => l.clientId === clientId ? {
+      ...l,
+      clientAddress: address.address || l.clientAddress || "",
+      clientCity: address.city || l.clientCity || "",
+      clientPostalCode: address.postalCode || l.clientPostalCode || "",
+    } : l));
   }
 
   function removeClient(clientId) {
@@ -258,11 +268,12 @@ export default function ManagerEdit({ manager, allClients }) {
                   <div className="grid md:grid-cols-2 gap-3">
                     <div className="md:col-span-2">
                       <label className="admin-text-muted text-xs mb-1 block">Adresse</label>
-                      <input
+                      <AddressAutocomplete
                         value={link.clientAddress || ""}
-                        onChange={(e) => setField(link.clientId, "clientAddress", e.target.value)}
+                        onChange={(address) => setField(link.clientId, "clientAddress", address)}
+                        onSelect={(address) => selectClientAddress(link.clientId, address)}
                         placeholder="1500 Montée Monette"
-                        className="admin-input border rounded-lg px-3 py-2 text-sm w-full"
+                        inputClassName="admin-input border rounded-lg px-3 py-2 text-sm w-full"
                       />
                     </div>
                     <div>

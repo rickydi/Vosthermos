@@ -52,13 +52,14 @@ export async function GET(request) {
     try {
       await requireAdmin();
       const rows = await prisma.$queryRawUnsafe(
-        `SELECT key, value FROM site_settings WHERE key IN ('api_key_anthropic', 'api_key_serper')`
+        `SELECT key, value FROM site_settings WHERE key IN ('api_key_anthropic', 'api_key_serper', 'api_key_google_places')`
       );
       const map = {};
       for (const r of rows) map[r.key] = r.value;
       return NextResponse.json({
         anthropic: maskKey(map.api_key_anthropic || ""),
         serper: maskKey(map.api_key_serper || ""),
+        googlePlaces: maskKey(map.api_key_google_places || ""),
       });
     } catch {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -127,6 +128,12 @@ export async function POST(request) {
         await prisma.$executeRawUnsafe(
           `INSERT INTO site_settings (key, value) VALUES ('api_key_serper', $1) ON CONFLICT (key) DO UPDATE SET value = $1`,
           body.serper
+        );
+      }
+      if (body.googlePlaces) {
+        await prisma.$executeRawUnsafe(
+          `INSERT INTO site_settings (key, value) VALUES ('api_key_google_places', $1) ON CONFLICT (key) DO UPDATE SET value = $1`,
+          body.googlePlaces
         );
       }
       return NextResponse.json({ ok: true });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import AddressAutocomplete from "@/components/AddressAutocomplete";
 
 const FIELDS = [
   { key: "company_legal_name", label: "Nom legal (raison sociale)", placeholder: "9999-9999 Quebec inc." },
@@ -55,6 +56,24 @@ export default function CompanyInfoSection() {
 
   function onChange(e) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+    setSaved(false);
+    setErr("");
+  }
+
+  function setCompanyAddress(address) {
+    setForm((f) => ({ ...f, company_address: address }));
+    setSaved(false);
+    setErr("");
+  }
+
+  function selectCompanyAddress(address) {
+    setForm((f) => ({
+      ...f,
+      company_address: address.address || f.company_address || "",
+      company_city: address.city || f.company_city || "",
+      company_province: address.province || f.company_province || "QC",
+      company_postal_code: address.postalCode || f.company_postal_code || "",
+    }));
     setSaved(false);
     setErr("");
   }
@@ -128,13 +147,24 @@ export default function CompanyInfoSection() {
         {FIELDS.map((f) => (
           <div key={f.key} className={f.key === "company_address" ? "md:col-span-2" : ""}>
             <label className="admin-text-muted text-xs mb-1 block font-medium">{f.label}</label>
-            <input
-              name={f.key}
-              value={form[f.key] ?? ""}
-              onChange={onChange}
-              placeholder={f.placeholder}
-              className="admin-input border rounded-lg px-4 py-2.5 text-sm w-full"
-            />
+            {f.key === "company_address" ? (
+              <AddressAutocomplete
+                name={f.key}
+                value={form[f.key] ?? ""}
+                onChange={setCompanyAddress}
+                onSelect={selectCompanyAddress}
+                placeholder={f.placeholder}
+                inputClassName="admin-input border rounded-lg px-4 py-2.5 text-sm w-full"
+              />
+            ) : (
+              <input
+                name={f.key}
+                value={form[f.key] ?? ""}
+                onChange={onChange}
+                placeholder={f.placeholder}
+                className="admin-input border rounded-lg px-4 py-2.5 text-sm w-full"
+              />
+            )}
           </div>
         ))}
       </div>

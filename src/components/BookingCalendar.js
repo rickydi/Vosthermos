@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import AddressAutocomplete from "@/components/AddressAutocomplete";
 
 const SERVICES = [
   {
@@ -30,29 +31,6 @@ const SERVICES = [
 ];
 
 const TIME_SLOTS = ["9h", "10h", "11h", "13h", "14h", "15h", "16h"];
-
-const CITIES = [
-  "Montreal",
-  "Laval",
-  "Longueuil",
-  "Brossard",
-  "Boucherville",
-  "Saint-Hyacinthe",
-  "Granby",
-  "Saint-Jean-sur-Richelieu",
-  "Chambly",
-  "Terrebonne",
-  "Repentigny",
-  "Blainville",
-  "Chateauguay",
-  "La Prairie",
-  "Sainte-Julie",
-  "Varennes",
-  "Delson",
-  "Candiac",
-  "Saint-Bruno",
-  "Mascouche",
-];
 
 const MONTHS_FR = [
   "Janvier", "Fevrier", "Mars", "Avril", "Mai", "Juin",
@@ -511,29 +489,23 @@ export default function BookingCalendar() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-sm font-semibold mb-2">Adresse</label>
-                  <input
-                    type="text"
+                  <AddressAutocomplete
                     value={form.address}
-                    onChange={(e) => setForm({ ...form, address: e.target.value })}
+                    onChange={(address) => setForm((prev) => ({ ...prev, address }))}
+                    onSelect={(address) => setForm((prev) => ({ ...prev, address: address.address, city: address.city || prev.city }))}
                     placeholder="123 rue Exemple"
-                    className="w-full border border-[var(--color-border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-red)]/30 focus:border-[var(--color-red)] transition-all"
+                    inputClassName="w-full border border-[var(--color-border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-red)]/30 focus:border-[var(--color-red)] transition-all"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-2">Ville</label>
-                  <select
+                  <input
+                    type="text"
                     value={form.city}
                     onChange={(e) => setForm({ ...form, city: e.target.value })}
                     className="w-full border border-[var(--color-border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-red)]/30 focus:border-[var(--color-red)] transition-all bg-white"
-                  >
-                    <option value="">Selectionnez une ville</option>
-                    {CITIES.map((city) => (
-                      <option key={city} value={city}>
-                        {city}
-                      </option>
-                    ))}
-                    <option value="Autre">Autre</option>
-                  </select>
+                    placeholder="Ville"
+                  />
                 </div>
               </div>
 

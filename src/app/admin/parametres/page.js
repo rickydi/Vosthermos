@@ -5,6 +5,7 @@ import NotifyMembersSection from "@/components/admin/NotifyMembersSection";
 import BlogNotifyMembersSection from "@/components/admin/BlogNotifyMembersSection";
 import ApiKeysSection from "@/components/admin/ApiKeysSection";
 import CompanyInfoSection from "@/components/admin/CompanyInfoSection";
+import AddressAutocomplete from "@/components/AddressAutocomplete";
 
 export default function AdminSettingsPage() {
   const [form, setForm] = useState({
@@ -41,6 +42,22 @@ export default function AdminSettingsPage() {
 
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
+    setSaved(false);
+  }
+
+  function handleAddressChange(address) {
+    setForm((prev) => ({ ...prev, address }));
+    setSaved(false);
+  }
+
+  function handleAddressSelect(address) {
+    setForm((prev) => ({
+      ...prev,
+      address: address.address || prev.address || "",
+      city: address.city || prev.city || "",
+      province: address.province || prev.province || "QC",
+      postalCode: address.postalCode || prev.postalCode || "",
+    }));
     setSaved(false);
   }
 
@@ -115,8 +132,13 @@ export default function AdminSettingsPage() {
           <div className="space-y-4">
             <div>
               <label className="block text-white/50 text-sm mb-1">Rue</label>
-              <input name="address" value={form.address} onChange={handleChange}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[var(--color-red)]" />
+              <AddressAutocomplete
+                name="address"
+                value={form.address}
+                onChange={handleAddressChange}
+                onSelect={handleAddressSelect}
+                inputClassName="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[var(--color-red)]"
+              />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>

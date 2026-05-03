@@ -1,32 +1,41 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+
+async function fetchMaskedKeys() {
+  try {
+    const res = await fetch("/api/admin/settings?section=api-keys");
+    if (!res.ok) return null;
+    const data = await res.json();
+    return {
+      anthropic: data.anthropic || "",
+      serper: data.serper || "",
+      googlePlaces: data.googlePlaces || "",
+    };
+  } catch {
+    return null;
+  }
+}
 
 export default function ApiKeysSection() {
-  const [keys, setKeys] = useState({ anthropic: "", serper: "" });
-  const [masked, setMasked] = useState({ anthropic: "", serper: "" });
-  const [editing, setEditing] = useState({ anthropic: false, serper: false });
+  const [keys, setKeys] = useState({ anthropic: "", serper: "", googlePlaces: "" });
+  const [masked, setMasked] = useState({ anthropic: "", serper: "", googlePlaces: "" });
+  const [editing, setEditing] = useState({ anthropic: false, serper: false, googlePlaces: false });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadKeys();
+    let active = true;
+    fetchMaskedKeys()
+      .then((data) => {
+        if (active && data) setMasked(data);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => { active = false; };
   }, []);
-
-  async function loadKeys() {
-    try {
-      const res = await fetch("/api/admin/settings?section=api-keys");
-      if (res.ok) {
-        const data = await res.json();
-        setMasked({
-          anthropic: data.anthropic || "",
-          serper: data.serper || "",
-        });
-      }
-    } catch {}
-    setLoading(false);
-  }
 
   function toggleEdit(field) {
     setEditing((prev) => ({ ...prev, [field]: !prev[field] }));
@@ -41,6 +50,7 @@ export default function ApiKeysSection() {
       const payload = { section: "api-keys" };
       if (keys.anthropic) payload.anthropic = keys.anthropic;
       if (keys.serper) payload.serper = keys.serper;
+      if (keys.googlePlaces) payload.googlePlaces = keys.googlePlaces;
 
       const res = await fetch("/api/admin/settings", {
         method: "POST",
@@ -50,9 +60,10 @@ export default function ApiKeysSection() {
 
       if (res.ok) {
         setSaved(true);
-        setEditing({ anthropic: false, serper: false });
-        setKeys({ anthropic: "", serper: "" });
-        await loadKeys();
+        setEditing({ anthropic: false, serper: false, googlePlaces: false });
+        setKeys({ anthropic: "", serper: "", googlePlaces: "" });
+        const data = await fetchMaskedKeys();
+        if (data) setMasked(data);
         setTimeout(() => setSaved(false), 3000);
       }
     } catch {}
@@ -62,6 +73,7 @@ export default function ApiKeysSection() {
   const fields = [
     { key: "anthropic", label: "Cle API Anthropic (Claude)" },
     { key: "serper", label: "Cle API Serper (SEO)" },
+    { key: "googlePlaces", label: "Cle API Google Places (adresses)" },
   ];
 
   return (
@@ -102,11 +114,11 @@ export default function ApiKeysSection() {
             </div>
           ))}
 
-          {(editing.anthropic || editing.serper) && (
+          {(editing.anthropic || editing.serper || editing.googlePlaces) && (
             <button
               type="button"
               onClick={handleSave}
-              disabled={saving || (!keys.anthropic && !keys.serper)}
+              disabled={saving || (!keys.anthropic && !keys.serper && !keys.googlePlaces)}
               className="bg-[var(--color-red)] text-white px-6 py-2.5 rounded-xl font-bold hover:bg-[var(--color-red-dark)] transition-all disabled:opacity-50 flex items-center gap-2"
             >
               {saved ? (

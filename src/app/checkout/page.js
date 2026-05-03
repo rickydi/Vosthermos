@@ -135,7 +135,10 @@ export default function CheckoutPage() {
                   <div>
                     <label className="block text-sm font-medium mb-1">Adresse *</label>
                     <AddressAutocomplete
+                      value={form.address}
+                      onChange={(address) => setForm((prev) => ({ ...prev, address }))}
                       onSelect={(addr) => setForm((prev) => ({ ...prev, ...addr }))}
+                      required
                     />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

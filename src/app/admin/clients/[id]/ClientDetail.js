@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import AddressAutocomplete from "@/components/AddressAutocomplete";
 
 const OPENING_TYPES = [
   { value: "fenetre", label: "Fenêtre" },
@@ -195,9 +196,13 @@ export default function ClientDetail({ client }) {
             </div>
             <div className="md:col-span-2">
               <label className="admin-text-muted text-xs mb-1 block font-medium">Adresse</label>
-              <input value={infoForm.address} onChange={(e) => setInfoForm({ ...infoForm, address: e.target.value })}
+              <AddressAutocomplete
+                value={infoForm.address}
+                onChange={(address) => setInfoForm((prev) => ({ ...prev, address }))}
+                onSelect={(address) => setInfoForm((prev) => ({ ...prev, ...address }))}
                 placeholder="1500 Montée Monette"
-                className="admin-input border rounded-lg px-3 py-2 text-sm w-full" />
+                inputClassName="admin-input border rounded-lg px-3 py-2 text-sm w-full"
+              />
             </div>
             <div>
               <label className="admin-text-muted text-xs mb-1 block font-medium">Ville</label>
@@ -444,7 +449,12 @@ function BuildingModal({ initial, onSave, onClose }) {
         </div>
         <div>
           <label className="admin-text-muted text-xs mb-1 block font-medium">Adresse (optionnel)</label>
-          <input value={form.address || ""} onChange={(e) => setForm({ ...form, address: e.target.value })} className="admin-input border rounded-lg px-3 py-2 text-sm w-full" />
+          <AddressAutocomplete
+            value={form.address || ""}
+            onChange={(address) => setForm((prev) => ({ ...prev, address }))}
+            onSelect={(address) => setForm((prev) => ({ ...prev, address: address.address }))}
+            inputClassName="admin-input border rounded-lg px-3 py-2 text-sm w-full"
+          />
         </div>
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={onClose} className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm">Annuler</button>

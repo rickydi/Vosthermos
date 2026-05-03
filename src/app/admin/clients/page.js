@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import AddressAutocomplete from "@/components/AddressAutocomplete";
 
 const EMPTY_FORM = {
   name: "",
@@ -239,9 +240,14 @@ export default function ClientsPage() {
             <input type="email" placeholder="Email" value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               className="admin-input border rounded-lg px-4 py-2.5 text-sm" />
-            <input placeholder="Adresse" value={form.address}
-              onChange={(e) => setForm({ ...form, address: e.target.value })}
-              className="admin-input border rounded-lg px-4 py-2.5 text-sm md:col-span-2" />
+            <AddressAutocomplete
+              value={form.address}
+              onChange={(address) => setForm((prev) => ({ ...prev, address }))}
+              onSelect={(address) => setForm((prev) => ({ ...prev, ...address }))}
+              placeholder="Adresse"
+              className="md:col-span-2"
+              inputClassName="admin-input border rounded-lg px-4 py-2.5 text-sm w-full"
+            />
             <input placeholder="Ville" value={form.city}
               onChange={(e) => setForm({ ...form, city: e.target.value })}
               className="admin-input border rounded-lg px-4 py-2.5 text-sm" />
