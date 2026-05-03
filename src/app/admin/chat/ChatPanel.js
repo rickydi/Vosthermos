@@ -313,6 +313,21 @@ export default function ChatPanel({ initialConversationId }) {
                 }} className="px-4 py-2 bg-green-500/20 text-green-400 hover:bg-green-500/30 rounded-lg text-xs font-semibold transition-colors" title="Envoyer a Jason Gordon sur WhatsApp">
                   <i className="fab fa-whatsapp mr-1"></i>Jason
                 </button>
+                <button onClick={() => {
+                  if (!selected) return;
+                  const header = `*Chat Vosthermos*\n${selected.clientName}\nTel: ${formatPhone(selected.clientPhone)}${selected.clientEmail ? `\nEmail: ${selected.clientEmail}` : ""}\n${"â”€".repeat(20)}\n`;
+                  const msgs = (selected.messages || []).map((m) => {
+                    const who = m.senderType === "ADMIN" ? "Vosthermos" : selected.clientName;
+                    const date = new Date(m.createdAt).toLocaleString("fr-CA", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+                    let line = `[${date}] *${who}*: ${m.content || ""}`;
+                    if (m.imageUrl) line += `\nðŸ“· https://www.vosthermos.com${m.imageUrl}`;
+                    return line;
+                  }).join("\n\n");
+                  const text = header + msgs;
+                  window.open(`https://wa.me/14502750200?text=${encodeURIComponent(text)}`, "_blank");
+                }} className="px-4 py-2 bg-green-500/20 text-green-400 hover:bg-green-500/30 rounded-lg text-xs font-semibold transition-colors" title="Envoyer a Caren sur WhatsApp">
+                  <i className="fab fa-whatsapp mr-1"></i>Caren
+                </button>
                 <button onClick={toggleArchive} className="px-4 py-2 bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 rounded-lg text-xs font-semibold transition-colors">
                   {selected.isArchived ? "Desarchiver" : "Archiver"}
                 </button>

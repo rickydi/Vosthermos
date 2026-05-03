@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 
 const MONTHS_FR = [
   "Janvier", "Fevrier", "Mars", "Avril", "Mai", "Juin",
@@ -75,28 +75,34 @@ export default function AdminAppointmentsPage() {
   const monthDates = getMonthDates(currentDate.getFullYear(), currentDate.getMonth());
   const monthStart = monthDates[0];
   const monthEnd = monthDates[monthDates.length - 1];
-
-  const fetchAppointments = useCallback(async () => {
-    setLoading(true);
-    try {
-      const from = formatDate(view === "week" ? weekStart : monthStart);
-      const to = formatDate(view === "week" ? weekEnd : monthEnd);
-      const res = await fetch(`/api/admin/appointments?from=${from}&to=${to}`);
-      if (res.ok) {
-        const data = await res.json();
-        setAppointments(data);
-      }
-    } catch (err) {
-      console.error("Error fetching appointments:", err);
-    }
-    setLoading(false);
-  }, [view === "week" ? weekStart.getTime() : monthStart.getTime(), view === "week" ? weekEnd.getTime() : monthEnd.getTime(), view]);
+  const periodStartTime = (view === "week" ? weekStart : monthStart).getTime();
+  const periodEndTime = (view === "week" ? weekEnd : monthEnd).getTime();
 
   useEffect(() => {
-    fetchAppointments();
-  }, [fetchAppointments]);
+    let cancelled = false;
+    const from = formatDate(new Date(periodStartTime));
+    const to = formatDate(new Date(periodEndTime));
+
+    fetch(`/api/admin/appointments?from=${from}&to=${to}`)
+      .then(async (res) => {
+        if (!res.ok) return null;
+        return res.json();
+      })
+      .then((data) => {
+        if (!cancelled && data) setAppointments(data);
+      })
+      .catch((err) => {
+        console.error("Error fetching appointments:", err);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [periodStartTime, periodEndTime]);
 
   function prevPeriod() {
+    setLoading(true);
     const d = new Date(currentDate);
     if (view === "week") d.setDate(d.getDate() - 7);
     else d.setMonth(d.getMonth() - 1);
@@ -104,6 +110,7 @@ export default function AdminAppointmentsPage() {
   }
 
   function nextPeriod() {
+    setLoading(true);
     const d = new Date(currentDate);
     if (view === "week") d.setDate(d.getDate() + 7);
     else d.setMonth(d.getMonth() + 1);
@@ -111,6 +118,7 @@ export default function AdminAppointmentsPage() {
   }
 
   function goToday() {
+    setLoading(true);
     setCurrentDate(new Date());
   }
 
@@ -168,11 +176,11 @@ export default function AdminAppointmentsPage() {
         <h1 className="text-2xl font-extrabold admin-text">Rendez-vous</h1>
         <div className="flex items-center gap-2 flex-wrap">
           <div className="flex gap-1 mr-2">
-            <button onClick={() => setView("week")}
+            <button onClick={() => { setLoading(true); setView("week"); }}
               className={`px-3 py-2 rounded-lg text-xs font-bold transition-colors ${view === "week" ? "bg-[var(--color-red)]/10 text-[var(--color-red)]" : "admin-text-muted admin-hover"}`}>
               Semaine
             </button>
-            <button onClick={() => setView("month")}
+            <button onClick={() => { setLoading(true); setView("month"); }}
               className={`px-3 py-2 rounded-lg text-xs font-bold transition-colors ${view === "month" ? "bg-[var(--color-red)]/10 text-[var(--color-red)]" : "admin-text-muted admin-hover"}`}>
               Mois
             </button>
@@ -538,6 +546,17 @@ export default function AdminAppointmentsPage() {
                     className="flex items-center gap-2 bg-green-500/20 text-green-400 hover:bg-green-500/30 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
                   >
                     <i className="fab fa-whatsapp"></i> Jason
+                  </button>
+                  <button
+                    onClick={() => {
+                      const a = selectedAppointment;
+                      const dateStr = new Date(a.date).toLocaleDateString("fr-CA", { weekday: "long", day: "numeric", month: "long" });
+                      const text = `*RDV Vosthermos*\n${a.name}\nTel: ${a.phone}\n${a.email ? `Email: ${a.email}\n` : ""}Service: ${SERVICE_LABELS[a.serviceType] || a.serviceType}\nDate: ${dateStr} a ${a.timeSlot}\n${a.address || ""}${a.city ? `, ${a.city}` : ""}\n${a.notes ? `\nNotes: ${a.notes}` : ""}`;
+                      window.open(`https://wa.me/14502750200?text=${encodeURIComponent(text)}`, "_blank");
+                    }}
+                    className="flex items-center gap-2 bg-green-500/20 text-green-400 hover:bg-green-500/30 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+                  >
+                    <i className="fab fa-whatsapp"></i> Caren
                   </button>
                   <button
                     onClick={() => deleteAppointment(selectedAppointment.id)}
