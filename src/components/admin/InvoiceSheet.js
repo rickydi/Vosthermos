@@ -20,6 +20,14 @@ const COMPANY_DEFAULTS = {
 };
 
 function fmt(n) { return `${Number(n || 0).toFixed(2)} $`; }
+function fmtRate(n) { return `${Number(n || 0).toFixed(2)} $/h`; }
+function fmtLaborHours(value) {
+  const totalMinutes = Math.round(Number(value || 0) * 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (totalMinutes <= 0) return "0h";
+  return `${hours > 0 ? `${hours}h` : ""}${minutes > 0 ? String(minutes).padStart(2, "0") : ""}`;
+}
 function fmtDate(d) {
   return formatDateOnly(d, { day: "numeric", month: "long", year: "numeric" });
 }
@@ -100,6 +108,7 @@ export default function InvoiceSheet({ wo, company }) {
     const tl = Number(wo.totalLabor) || 0;
     return rate > 0 ? Math.round((tl / rate) * 100) / 100 : 0;
   })();
+  const laborRate = Number(wo.laborRate) || 85;
 
   return (
     <div className="bg-neutral-200 py-6 print:py-0 print:bg-white">
@@ -152,7 +161,7 @@ export default function InvoiceSheet({ wo, company }) {
       <div className="invoice-stack flex flex-col items-center gap-6 print:gap-0">
         {pages.map((page) => (
           <Sheet key={page.index} page={page} totalPages={pages.length} wo={wo} co={co}
-            meta={{ arrival, departure, duration, laborHours }} />
+            meta={{ arrival, departure, duration, laborHours, laborRate }} />
         ))}
       </div>
     </div>
@@ -320,12 +329,16 @@ function UnitCard({ unit }) {
 }
 
 function Totals({ wo, meta }) {
+  const laborDetail = Number(wo.totalLabor) > 0
+    ? `${fmtLaborHours(meta.laborHours)} x ${fmtRate(meta.laborRate)}`
+    : "";
+
   return (
     <div style={{ marginTop: "12px", display: "flex", justifyContent: "flex-end" }}>
       <div style={{ width: "290px", border: "2px dashed #d1d5db", borderRadius: "8px", padding: "12px", background: "rgba(249, 250, 251, 0.4)" }}>
         <div style={{ paddingBottom: "8px", borderBottom: "1px dashed #d1d5db" }}>
           <TotalRow label="Pièces & services" value={fmt(wo.totalPieces)} />
-          <TotalRow label={`Main d'œuvre (${meta.laborHours}h)`} value={fmt(wo.totalLabor)} />
+          <TotalRow label="Main d'oeuvre" note={laborDetail} value={fmt(wo.totalLabor)} />
           <div style={{ marginTop: "6px", paddingTop: "6px", borderTop: "1px dotted #d1d5db" }}>
             <TotalRow label="Sous-total" value={fmt(wo.subtotal)} strong />
           </div>
@@ -344,10 +357,13 @@ function Totals({ wo, meta }) {
   );
 }
 
-function TotalRow({ label, value, strong, small }) {
+function TotalRow({ label, note, value, strong, small }) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "3px" }}>
-      <span style={{ color: small ? "#9ca3af" : "#6b7280", fontSize: small ? "10px" : "12px", fontWeight: strong ? 500 : 400 }}>{label}</span>
+    <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", marginBottom: note ? "5px" : "3px" }}>
+      <span style={{ color: small ? "#9ca3af" : "#6b7280", fontSize: small ? "10px" : "12px", fontWeight: strong ? 500 : 400 }}>
+        {label}
+        {note && <span style={{ display: "block", color: "#9ca3af", fontSize: "9.5px", marginTop: "1px" }}>{note}</span>}
+      </span>
       <span style={{ color: small ? "#6b7280" : "#111827", fontSize: small ? "10px" : "12px", fontWeight: strong ? 500 : 400 }}>{value}</span>
     </div>
   );

@@ -13,6 +13,18 @@ function fmt(n) {
   return `${Number(n || 0).toFixed(2)} $`;
 }
 
+function fmtRate(n) {
+  return `${Number(n || 0).toFixed(2)} $/h`;
+}
+
+function fmtLaborHours(value) {
+  const totalMinutes = Math.round(Number(value || 0) * 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (totalMinutes <= 0) return "0h";
+  return `${hours > 0 ? `${hours}h` : ""}${minutes > 0 ? String(minutes).padStart(2, "0") : ""}`;
+}
+
 function fmtDate(d) {
   return formatDateOnly(d, {
     day: "numeric", month: "long", year: "numeric",
@@ -202,16 +214,25 @@ export async function generateInvoicePdf(wo, settings = {}) {
       const totalsX = pageWidth - marginX - 220;
       const totalsW = 220;
       let tY = rowY + 15;
+      const laborRate = Number(wo.laborRate) || 85;
+      const laborTotal = Number(wo.totalLabor) || 0;
+      const laborHours = laborRate > 0 ? Math.round((laborTotal / laborRate) * 100) / 100 : 0;
+      const laborDetail = laborTotal > 0 ? `${fmtLaborHours(laborHours)} x ${fmtRate(laborRate)}` : "";
 
       const totalsRows = [
-        ["Pieces", fmt(wo.totalPieces), GRAY, "Helvetica"],
-        ["Main d'oeuvre", fmt(wo.totalLabor), GRAY, "Helvetica"],
+        { label: "Pieces", value: fmt(wo.totalPieces), note: "" },
+        { label: "Main d'oeuvre", value: fmt(wo.totalLabor), note: laborDetail },
       ];
-      for (const [label, val, color, font] of totalsRows) {
-        doc.fillColor(color).font(font).fontSize(10);
-        doc.text(label, totalsX, tY, { width: 120 });
-        doc.fillColor(DARK).text(val, totalsX + 120, tY, { width: 100, align: "right" });
-        tY += 14;
+      for (const row of totalsRows) {
+        doc.fillColor(GRAY).font("Helvetica").fontSize(10);
+        doc.text(row.label, totalsX, tY, { width: 120 });
+        doc.fillColor(DARK).text(row.value, totalsX + 120, tY, { width: 100, align: "right" });
+        tY += row.note ? 11 : 14;
+        if (row.note) {
+          doc.fillColor(LIGHT_GRAY).font("Helvetica").fontSize(8)
+            .text(row.note, totalsX, tY, { width: 120 });
+          tY += 12;
+        }
       }
 
       // Subtotal with top line
