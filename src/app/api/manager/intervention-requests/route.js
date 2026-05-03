@@ -131,11 +131,11 @@ export async function POST(req) {
     <tr><td style="color:#718096"><strong>Priorité</strong></td><td>${urgencyLabel}</td></tr>
     ${preferredDate ? `<tr><td style="color:#718096"><strong>Date souhaitée</strong></td><td>${new Date(preferredDate).toLocaleDateString("fr-CA")}</td></tr>` : ""}
     <tr><td style="color:#718096" valign="top"><strong>Description</strong></td><td>${description.trim().replace(/\n/g,"<br>")}</td></tr>
-    <tr><td style="color:#718096"><strong>Bon créé</strong></td><td><a href="https://www.vosthermos.com/admin/bons/${wo.id}">${number}</a> (brouillon)</td></tr>
+    <tr><td style="color:#718096"><strong>Bon créé</strong></td><td><a href="https://www.vosthermos.com/admin/bons/nouveau?edit=${wo.id}">${number}</a> (brouillon)</td></tr>
   </table>
   ${detailsHtml ? `<h3 style="color:#002530;margin:20px 0 10px;font-size:14px">Détail par unité</h3>${detailsHtml}` : ""}
 </body></html>`,
-        text: `Nouvelle demande d'intervention\n\nCopropriété : ${client?.name}\nGestionnaire : ${manager.firstName} ${manager.lastName} (${manager.email})\n${summaryParts.length > 0 ? `Unités : ${summaryParts.join(", ")}\n` : ""}Priorité : ${urgencyLabel}\n${preferredDate ? `Date souhaitée : ${new Date(preferredDate).toLocaleDateString("fr-CA")}\n` : ""}\n${description}\n\nBon ${number} créé en brouillon : https://www.vosthermos.com/admin/bons/${wo.id}`,
+        text: `Nouvelle demande d'intervention\n\nCopropriété : ${client?.name}\nGestionnaire : ${manager.firstName} ${manager.lastName} (${manager.email})\n${summaryParts.length > 0 ? `Unités : ${summaryParts.join(", ")}\n` : ""}Priorité : ${urgencyLabel}\n${preferredDate ? `Date souhaitée : ${new Date(preferredDate).toLocaleDateString("fr-CA")}\n` : ""}\n${description}\n\nBon ${number} créé en brouillon : https://www.vosthermos.com/admin/bons/nouveau?edit=${wo.id}`,
       });
     } catch (e) {
       console.error("Email admin failed:", e.message);

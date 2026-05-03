@@ -680,7 +680,11 @@ function NouveauBonAdmin() {
       if (!editId) {
         try { window.localStorage.removeItem(DRAFT_KEY); } catch {}
       }
-      router.push(`/admin/bons/${wo.id}`);
+      router.push(submitAction === "invoice" ? `/admin/bons/${wo.id}` : `/admin/bons/nouveau?edit=${wo.id}`);
+      if (submitAction !== "invoice") {
+        setSaving(false);
+        setSavingAction(null);
+      }
     } catch (err) {
       setError(err.message);
       setSaving(false);
@@ -1177,21 +1181,19 @@ function NouveauBonAdmin() {
 
         {/* Labor + Totals */}
         <div className="admin-card border rounded-xl p-6 space-y-4">
-          <div className="flex items-start justify-between gap-3 flex-wrap">
-            <div>
-              <h2 className="admin-text font-bold">Main d&apos;oeuvre</h2>
-              <p className="admin-text-muted text-xs mt-1">
-                Le taux de ce bon est fige a {laborRate.toFixed(2)}$/h. Changer les parametres n&apos;affecte pas les anciens bons.
-              </p>
-            </div>
-            <Link href="/admin/parametres#bons-travail"
-              className="px-3 py-2 border admin-border rounded-lg admin-text-muted text-xs admin-hover">
-              <i className="fas fa-gear mr-1"></i>Ajuster le taux
-            </Link>
+          <div>
+            <h2 className="admin-text font-bold">Main d&apos;oeuvre</h2>
+            <p className="admin-text-muted text-xs mt-1">
+              Changer les parametres n&apos;affecte pas les anciens bons.
+            </p>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
             <LaborHoursSelect value={laborHours} onChange={setLaborHours} />
             <span className="admin-text-muted text-sm">{formatLaborHours(laborHours)} x {laborRate.toFixed(2)}$/h</span>
+            <Link href="/admin/parametres#bons-travail"
+              className="px-3 py-2 border admin-border rounded-lg admin-text-muted text-xs admin-hover inline-flex items-center">
+              <i className="fas fa-gear mr-1"></i>Ajuster le taux
+            </Link>
             <span className="ml-auto font-bold text-[var(--color-red)]">{totalLabor.toFixed(2)}$</span>
           </div>
 

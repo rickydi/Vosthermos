@@ -261,7 +261,7 @@ async function attachCentralActivity(followUps) {
         subtitle: wo.description || wo.statut,
         url,
         date: wo.updatedAt || wo.date || wo.createdAt,
-        href: `/admin/bons/${wo.id}`,
+        href: `/admin/bons/nouveau?edit=${wo.id}`,
       }))),
       ...relatedChats.flatMap((chat) => (chat.messages || [])
         .filter((message) => message.imageUrl)
@@ -287,7 +287,7 @@ async function attachCentralActivity(followUps) {
         subtitle: [wo.client?.name, wo.technician?.name].filter(Boolean).join(" | "),
         status: wo.statut,
         date: wo.updatedAt || wo.date || wo.createdAt,
-        href: `/admin/bons/${wo.id}`,
+        href: `/admin/bons/nouveau?edit=${wo.id}`,
         amount: serializeMoney(wo.total),
       })),
       ...relatedAppointments.map((appt) => activityItem({
@@ -344,7 +344,7 @@ async function attachCentralActivity(followUps) {
           total: serializeMoney(wo.total),
           description: wo.description,
           technicianName: wo.technician?.name || null,
-          href: `/admin/bons/${wo.id}`,
+          href: `/admin/bons/nouveau?edit=${wo.id}`,
         })),
         appointments: relatedAppointments.map((appt) => ({
           id: appt.id,

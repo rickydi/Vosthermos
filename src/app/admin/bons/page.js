@@ -124,7 +124,7 @@ export default function BonsPage() {
               {workOrders.map((wo) => {
                 const isNewManagerRequest = wo.statut === "draft" && typeof wo.notes === "string" && wo.notes.startsWith("Demande du gestionnaire");
                 return (
-                <tr key={wo.id} className={"border-b admin-border admin-hover cursor-pointer" + (isNewManagerRequest ? " bg-red-500/5" : "")} onClick={() => window.location.href = `/admin/bons/${wo.id}`}>
+                <tr key={wo.id} className={"border-b admin-border admin-hover cursor-pointer" + (isNewManagerRequest ? " bg-red-500/5" : "")} onClick={() => window.location.href = `/admin/bons/nouveau?edit=${wo.id}`}>
                   <td className="px-4 py-3 font-mono text-xs">
                     <div className="flex items-center gap-2">
                       {isNewManagerRequest && <span className="admin-unread-dot" title="Nouvelle demande gestionnaire"></span>}
