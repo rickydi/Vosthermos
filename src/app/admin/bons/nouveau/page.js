@@ -921,34 +921,45 @@ function NouveauBonAdmin() {
                   )}
 
                   {/* Items in this section */}
-                  {sec.items.map((it, iIdx) => (
-                    <div key={iIdx} className="border admin-border rounded-lg p-2.5 bg-white/[0.02]">
-                      <div className="flex items-start gap-2 mb-1.5">
-                        <input
-                          value={it.description}
-                          onChange={(e) => updateSectionItem(sIdx, iIdx, "description", e.target.value)}
-                          placeholder="Description..."
-                          className="admin-input border rounded px-2 py-1 text-sm flex-1" />
-                        <button type="button" onClick={() => removeSectionItem(sIdx, iIdx)} className="text-red-500 text-sm">
-                          <i className="fas fa-trash"></i>
-                        </button>
+                  {sec.items.map((it, iIdx) => {
+                    const isLastSectionPiece = !sec.items.slice(iIdx + 1).some((next) => next.itemType !== "discount");
+                    return (
+                      <div key={iIdx} className="border admin-border rounded-lg p-2.5 bg-white/[0.02]">
+                        <div className="flex items-start gap-2 mb-1.5">
+                          <input
+                            value={it.description}
+                            onChange={(e) => updateSectionItem(sIdx, iIdx, "description", e.target.value)}
+                            placeholder="Description..."
+                            className="admin-input border rounded px-2 py-1 text-sm flex-1" />
+                          <button type="button" onClick={() => removeSectionItem(sIdx, iIdx)} className="text-red-500 text-sm">
+                            <i className="fas fa-trash"></i>
+                          </button>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <label className="admin-text-muted text-xs">Qte</label>
+                          <input type="number" value={it.quantity} min="0" step="1"
+                            onChange={(e) => updateSectionItem(sIdx, iIdx, "quantity", parseFloat(e.target.value) || 0)}
+                            className="admin-input border rounded px-2 py-0.5 text-sm w-16 text-center" />
+                          <label className="admin-text-muted text-xs ml-1">Prix</label>
+                          <input type="number" value={it.unitPrice} min="0" step="0.01"
+                            onChange={(e) => updateSectionItem(sIdx, iIdx, "unitPrice", parseFloat(e.target.value) || 0)}
+                            className="admin-input border rounded px-2 py-0.5 text-sm w-20 text-right" />
+                          <span className="admin-text-muted text-xs">$</span>
+                          <span className="ml-auto font-bold text-[var(--color-red)] text-sm">
+                            {(Number(it.quantity) * Number(it.unitPrice)).toFixed(2)}$
+                          </span>
+                        </div>
+                        {isLastSectionPiece && (
+                          <div className="mt-3 flex justify-end">
+                            <button type="button" onClick={() => addCustomToSection(sIdx)}
+                              className="px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 text-white text-xs font-bold">
+                              <i className="fas fa-plus mr-1"></i>Rajouter une piece
+                            </button>
+                          </div>
+                        )}
                       </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <label className="admin-text-muted text-xs">Qte</label>
-                        <input type="number" value={it.quantity} min="0" step="1"
-                          onChange={(e) => updateSectionItem(sIdx, iIdx, "quantity", parseFloat(e.target.value) || 0)}
-                          className="admin-input border rounded px-2 py-0.5 text-sm w-16 text-center" />
-                        <label className="admin-text-muted text-xs ml-1">Prix</label>
-                        <input type="number" value={it.unitPrice} min="0" step="0.01"
-                          onChange={(e) => updateSectionItem(sIdx, iIdx, "unitPrice", parseFloat(e.target.value) || 0)}
-                          className="admin-input border rounded px-2 py-0.5 text-sm w-20 text-right" />
-                        <span className="admin-text-muted text-xs">$</span>
-                        <span className="ml-auto font-bold text-[var(--color-red)] text-sm">
-                          {(Number(it.quantity) * Number(it.unitPrice)).toFixed(2)}$
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
 
                   <div className="flex gap-2">
                     <button type="button" onClick={() => openCatalogForSection(sIdx)}
@@ -957,7 +968,7 @@ function NouveauBonAdmin() {
                     </button>
                     <button type="button" onClick={() => addCustomToSection(sIdx)}
                       className="flex-1 py-2 border-2 border-dashed admin-border rounded-lg admin-text-muted text-xs admin-hover">
-                      <i className="fas fa-plus mr-1"></i>Ligne libre
+                      <i className="fas fa-plus mr-1"></i>Ajouter une piece
                     </button>
                   </div>
                 </div>
@@ -1039,6 +1050,7 @@ function NouveauBonAdmin() {
                 </div>
               );
             }
+            const isLastPiece = !items.slice(i + 1).some((next) => next.itemType !== "discount");
             return (
               <div key={i} className="border admin-border rounded-lg p-3">
                 <div className="flex items-start gap-3 mb-2">
@@ -1066,6 +1078,14 @@ function NouveauBonAdmin() {
                     {(Number(it.quantity) * Number(it.unitPrice)).toFixed(2)}$
                   </span>
                 </div>
+                {!isB2B && isLastPiece && (
+                  <div className="mt-3 flex justify-end">
+                    <button type="button" onClick={addCustomItem}
+                      className="px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 text-white text-xs font-bold">
+                      <i className="fas fa-plus mr-1"></i>Rajouter une piece
+                    </button>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -1074,7 +1094,7 @@ function NouveauBonAdmin() {
             {!isB2B && (
               <button type="button" onClick={addCustomItem}
                 className="py-2.5 border-2 border-dashed admin-border rounded-lg admin-text-muted text-sm admin-hover">
-                <i className="fas fa-plus mr-2"></i>Ligne personnalisee
+                <i className="fas fa-plus mr-2"></i>Ajouter une piece
               </button>
             )}
             <button type="button" onClick={() => addDiscount("percent")}
