@@ -15,6 +15,16 @@ const OPENING_TYPES = [
 export default function ClientDetail({ client }) {
   const router = useRouter();
   const [tab, setTab] = useState("infos");
+  const isB2B = client.type === "gestionnaire";
+  const tabs = [
+    { id: "infos", label: "Infos", icon: "fa-id-card" },
+    ...(isB2B
+      ? [
+          { id: "batiments", label: "Bâtiments", icon: "fa-building" },
+          { id: "unites", label: "Unités", icon: "fa-door-open" },
+        ]
+      : []),
+  ];
 
   // State local pour bâtiments et unités
   const [buildings, setBuildings] = useState(client.buildings);
@@ -150,7 +160,7 @@ export default function ClientDetail({ client }) {
         <div>
           <h1 className="admin-text text-2xl font-extrabold">{client.name}</h1>
           <p className="admin-text-muted text-sm mt-1">
-            {client.type === "gestionnaire" ? "Copropriété" : "Client particulier"}
+            {isB2B ? "Copropriété / gestionnaire" : "Client particulier"}
             {client.city && ` · ${client.city}`}
             {client.phone && ` · ${client.phone}`}
           </p>
@@ -158,11 +168,7 @@ export default function ClientDetail({ client }) {
       </div>
 
       <div className="flex gap-2 mb-6 border-b admin-border">
-        {[
-          { id: "infos", label: "Infos", icon: "fa-id-card" },
-          { id: "batiments", label: "Bâtiments", icon: "fa-building" },
-          { id: "unites", label: "Unités", icon: "fa-door-open" },
-        ].map((t) => (
+        {tabs.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
@@ -175,8 +181,12 @@ export default function ClientDetail({ client }) {
 
       {tab === "infos" && (
         <div className="admin-card border rounded-xl p-6 max-w-3xl">
-          <h2 className="admin-text font-bold mb-4">Informations de la copropriété</h2>
-          <p className="admin-text-muted text-xs mb-4">Ces infos apparaissent sur les factures et documents envoyés à la copropriété.</p>
+          <h2 className="admin-text font-bold mb-4">{isB2B ? "Informations de la copropriété" : "Informations du client"}</h2>
+          <p className="admin-text-muted text-xs mb-4">
+            {isB2B
+              ? "Ces infos apparaissent sur les factures et documents envoyés à la copropriété."
+              : "Ces infos apparaissent sur les bons, factures et documents envoyés au client."}
+          </p>
           <div className="grid md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
               <label className="admin-text-muted text-xs mb-1 block font-medium">Nom</label>
@@ -232,7 +242,7 @@ export default function ClientDetail({ client }) {
         </div>
       )}
 
-      {tab === "batiments" && (
+      {isB2B && tab === "batiments" && (
         <div>
           <div className="flex justify-between items-center mb-4">
             <p className="admin-text-muted text-sm">{buildings.length} bâtiment{buildings.length > 1 ? "s" : ""}</p>
@@ -274,7 +284,7 @@ export default function ClientDetail({ client }) {
         </div>
       )}
 
-      {tab === "unites" && (
+      {isB2B && tab === "unites" && (
         <div>
           <div className="flex justify-between items-center mb-4">
             <p className="admin-text-muted text-sm">{units.length} unité{units.length > 1 ? "s" : ""}</p>
@@ -357,7 +367,7 @@ export default function ClientDetail({ client }) {
       )}
 
       {/* Modal bâtiment */}
-      {buildingModal && (
+      {isB2B && buildingModal && (
         <BuildingModal
           initial={buildingModal}
           onSave={saveBuilding}
@@ -366,7 +376,7 @@ export default function ClientDetail({ client }) {
       )}
 
       {/* Modal unité */}
-      {unitModal && (
+      {isB2B && unitModal && (
         <UnitModal
           initial={unitModal}
           buildings={buildings}
