@@ -15,6 +15,44 @@ function timeAgo(dateStr) {
   return new Date(dateStr).toLocaleDateString("fr-CA", { day: "2-digit", month: "short" });
 }
 
+const WHATSAPP_RECIPIENTS = {
+  jason: "15148258411",
+  caren: "14502750200",
+};
+
+function buildChatWhatsappText(conversation) {
+  if (!conversation) return "";
+
+  const clientName = conversation.clientName || "Client";
+  const header = [
+    "*Chat Vosthermos*",
+    clientName,
+    `Tel: ${formatPhone(conversation.clientPhone)}`,
+    conversation.clientEmail ? `Email: ${conversation.clientEmail}` : null,
+    "-".repeat(20),
+  ].filter(Boolean).join("\n");
+
+  const messages = (conversation.messages || []).map((message) => {
+    const who = message.senderType === "ADMIN" ? "Vosthermos" : clientName;
+    const date = new Date(message.createdAt).toLocaleString("fr-CA", {
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    let line = `[${date}] *${who}*: ${message.content || ""}`;
+    if (message.imageUrl) line += `\nPhoto: https://www.vosthermos.com${message.imageUrl}`;
+    return line;
+  }).join("\n\n");
+
+  return `${header}\n${messages}`;
+}
+
+function openChatWhatsapp(recipient, conversation) {
+  const text = buildChatWhatsappText(conversation);
+  window.open(`https://wa.me/${recipient}?text=${encodeURIComponent(text)}`, "_blank");
+}
+
 export default function ChatPanel({ initialConversationId }) {
   const [conversations, setConversations] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -300,31 +338,13 @@ export default function ChatPanel({ initialConversationId }) {
               <div className="flex items-center gap-2 shrink-0">
                 <button onClick={() => {
                   if (!selected) return;
-                  const header = `*Chat Vosthermos*\n${selected.clientName}\nTel: ${formatPhone(selected.clientPhone)}${selected.clientEmail ? `\nEmail: ${selected.clientEmail}` : ""}\n${"─".repeat(20)}\n`;
-                  const msgs = (selected.messages || []).map((m) => {
-                    const who = m.senderType === "ADMIN" ? "Vosthermos" : selected.clientName;
-                    const date = new Date(m.createdAt).toLocaleString("fr-CA", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
-                    let line = `[${date}] *${who}*: ${m.content || ""}`;
-                    if (m.imageUrl) line += `\n📷 https://www.vosthermos.com${m.imageUrl}`;
-                    return line;
-                  }).join("\n\n");
-                  const text = header + msgs;
-                  window.open(`https://wa.me/15148258411?text=${encodeURIComponent(text)}`, "_blank");
+                  openChatWhatsapp(WHATSAPP_RECIPIENTS.jason, selected);
                 }} className="px-4 py-2 bg-green-500/20 text-green-400 hover:bg-green-500/30 rounded-lg text-xs font-semibold transition-colors" title="Envoyer a Jason Gordon sur WhatsApp">
                   <i className="fab fa-whatsapp mr-1"></i>Jason
                 </button>
                 <button onClick={() => {
                   if (!selected) return;
-                  const header = `*Chat Vosthermos*\n${selected.clientName}\nTel: ${formatPhone(selected.clientPhone)}${selected.clientEmail ? `\nEmail: ${selected.clientEmail}` : ""}\n${"â”€".repeat(20)}\n`;
-                  const msgs = (selected.messages || []).map((m) => {
-                    const who = m.senderType === "ADMIN" ? "Vosthermos" : selected.clientName;
-                    const date = new Date(m.createdAt).toLocaleString("fr-CA", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
-                    let line = `[${date}] *${who}*: ${m.content || ""}`;
-                    if (m.imageUrl) line += `\nðŸ“· https://www.vosthermos.com${m.imageUrl}`;
-                    return line;
-                  }).join("\n\n");
-                  const text = header + msgs;
-                  window.open(`https://wa.me/14502750200?text=${encodeURIComponent(text)}`, "_blank");
+                  openChatWhatsapp(WHATSAPP_RECIPIENTS.caren, selected);
                 }} className="px-4 py-2 bg-green-500/20 text-green-400 hover:bg-green-500/30 rounded-lg text-xs font-semibold transition-colors" title="Envoyer a Caren sur WhatsApp">
                   <i className="fab fa-whatsapp mr-1"></i>Caren
                 </button>
