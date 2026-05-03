@@ -16,6 +16,7 @@ export async function GET(req) {
     OR: [
       { name: { contains: q, mode: "insensitive" } },
       { phone: { contains: q } },
+      { secondaryPhone: { contains: q } },
       { email: { contains: q, mode: "insensitive" } },
       { company: { contains: q, mode: "insensitive" } },
       { city: { contains: q, mode: "insensitive" } },
@@ -61,6 +62,7 @@ export async function POST(req) {
       province: body.province || "QC",
       postalCode: body.postalCode || null,
       phone: body.phone || null,
+      secondaryPhone: body.secondaryPhone || null,
       email: body.email || null,
       notes: body.notes || null,
     },

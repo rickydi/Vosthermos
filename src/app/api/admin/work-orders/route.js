@@ -32,6 +32,7 @@ export async function GET(req) {
       { number: { contains: q, mode: "insensitive" } },
       { client: { name: { contains: q, mode: "insensitive" } } },
       { client: { phone: { contains: q } } },
+      { client: { secondaryPhone: { contains: q } } },
     ];
   }
 
@@ -39,7 +40,7 @@ export async function GET(req) {
     prisma.workOrder.findMany({
       where,
       include: {
-        client: { select: { id: true, name: true, phone: true, address: true, city: true } },
+        client: { select: { id: true, name: true, phone: true, secondaryPhone: true, address: true, city: true } },
         technician: { select: { id: true, name: true } },
         _count: { select: { items: true } },
       },

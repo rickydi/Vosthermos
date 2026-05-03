@@ -38,6 +38,7 @@ export default function ClientDetail({ client }) {
     city: client.city || "",
     postalCode: client.postalCode || "",
     phone: client.phone || "",
+    secondaryPhone: client.secondaryPhone || "",
     email: client.email || "",
     paymentTermsDays: client.paymentTermsDays ?? 30,
   });
@@ -164,6 +165,7 @@ export default function ClientDetail({ client }) {
             {isB2B ? "Copropriété / gestionnaire" : "Client particulier"}
             {client.city && ` · ${client.city}`}
             {client.phone && ` · ${client.phone}`}
+            {client.secondaryPhone && ` · ${client.secondaryPhone}`}
           </p>
         </div>
       </div>
@@ -219,6 +221,11 @@ export default function ClientDetail({ client }) {
             <div>
               <label className="admin-text-muted text-xs mb-1 block font-medium">Téléphone</label>
               <input value={infoForm.phone} onChange={(e) => setInfoForm({ ...infoForm, phone: e.target.value })}
+                className="admin-input border rounded-lg px-3 py-2 text-sm w-full" />
+            </div>
+            <div>
+              <label className="admin-text-muted text-xs mb-1 block font-medium">Autre téléphone</label>
+              <input value={infoForm.secondaryPhone} onChange={(e) => setInfoForm({ ...infoForm, secondaryPhone: e.target.value })}
                 className="admin-input border rounded-lg px-3 py-2 text-sm w-full" />
             </div>
             <div>

@@ -296,6 +296,7 @@ model Client {
   province       String       @default("QC")
   postalCode     String?
   phone          String?
+  secondaryPhone String?      @map("secondary_phone")
   email          String?      @unique
   notes          String?      @db.Text
   passwordHash   String?
@@ -312,6 +313,7 @@ model Client {
   photos         ClientPhoto[]
 
   @@index([phone])
+  @@index([secondaryPhone])
   @@index([type])
   @@map("clients")
 }

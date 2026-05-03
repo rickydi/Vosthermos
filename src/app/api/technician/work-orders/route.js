@@ -53,7 +53,7 @@ export async function GET(req) {
   const workOrders = await prisma.workOrder.findMany({
     where,
     include: {
-      client: { select: { id: true, name: true, type: true, address: true, city: true, phone: true } },
+      client: { select: { id: true, name: true, type: true, address: true, city: true, phone: true, secondaryPhone: true } },
       items: { orderBy: { position: "asc" } },
       sections: {
         orderBy: { position: "asc" },

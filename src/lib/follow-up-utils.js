@@ -34,6 +34,10 @@ function cleanText(value) {
   return text || null;
 }
 
+function primaryContactPhone(client) {
+  return client?.phone || client?.secondaryPhone || null;
+}
+
 function appendNote(existing, next) {
   const cleanNext = cleanText(next);
   if (!cleanNext) return existing || null;
@@ -74,7 +78,7 @@ export async function createOrTouchFollowUpFromLead({ client, source, notes, ser
       data: {
         source: existing.source || sourceText,
         contactName: existing.contactName || client.name || null,
-        phone: existing.phone || client.phone || null,
+        phone: existing.phone || primaryContactPhone(client),
         email: existing.email || client.email || null,
         service: existing.service || serviceText,
         notes: appendNote(existing.notes, leadNote),
@@ -88,7 +92,7 @@ export async function createOrTouchFollowUpFromLead({ client, source, notes, ser
       title: `${client.name || "Client"} - suivi`,
       source: sourceText,
       contactName: client.name || null,
-      phone: client.phone || null,
+      phone: primaryContactPhone(client),
       email: client.email || null,
       service: serviceText,
       nextAction: "Appeler le client",
@@ -124,7 +128,7 @@ export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client } =
         source: existing.source || "bon de travail",
         status: status === "completed" ? existing.status : status,
         contactName: existing.contactName || client.name || null,
-        phone: existing.phone || client.phone || null,
+        phone: existing.phone || primaryContactPhone(client),
         email: existing.email || client.email || null,
         nextAction: existing.nextAction || (status === "scheduled" ? "Suivre le bon planifie" : "Faire le suivi du bon"),
         notes: appendNote(existing.notes, note),
@@ -139,7 +143,7 @@ export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client } =
       source: "bon de travail",
       status,
       contactName: client.name || null,
-      phone: client.phone || null,
+      phone: primaryContactPhone(client),
       email: client.email || null,
       nextAction: status === "scheduled" ? "Suivre le bon planifie" : "Appeler le client",
       notes: note,

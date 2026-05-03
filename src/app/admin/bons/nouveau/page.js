@@ -199,6 +199,7 @@ function NouveauBonAdmin() {
   const [quickClient, setQuickClient] = useState({
     name: "",
     phone: "",
+    secondaryPhone: "",
     email: "",
     address: "",
     city: "",
@@ -626,6 +627,7 @@ function NouveauBonAdmin() {
           ...quickClient,
           name: quickClient.name.trim(),
           phone: quickClient.phone.trim() || null,
+          secondaryPhone: quickClient.secondaryPhone.trim() || null,
           email: quickClient.email.trim() || null,
           address: quickClient.address.trim() || null,
           city: quickClient.city.trim() || null,
@@ -644,6 +646,7 @@ function NouveauBonAdmin() {
       setQuickClient({
         name: "",
         phone: "",
+        secondaryPhone: "",
         email: "",
         address: "",
         city: "",
@@ -826,7 +829,8 @@ function NouveauBonAdmin() {
                       className="w-full text-left px-4 py-3 border-b admin-border admin-hover last:border-b-0"
                     >
                       <p className="admin-text font-medium text-sm">{c.name}</p>
-                      <p className="admin-text-muted text-xs">{c.phone || "—"} {c.city ? `• ${c.city}` : ""}</p>
+                      <p className="admin-text-muted text-xs">{c.phone || "-"} {c.city ? `| ${c.city}` : ""}</p>
+                      {c.secondaryPhone && <p className="admin-text-muted text-xs">{c.secondaryPhone}</p>}
                     </button>
                   ))}
                 </div>
@@ -845,6 +849,9 @@ function NouveauBonAdmin() {
                       className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
                     <input type="tel" placeholder="Telephone" value={quickClient.phone}
                       onChange={(e) => setQuickClient((p) => ({ ...p, phone: e.target.value }))}
+                      className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
+                    <input type="tel" placeholder="Autre telephone" value={quickClient.secondaryPhone}
+                      onChange={(e) => setQuickClient((p) => ({ ...p, secondaryPhone: e.target.value }))}
                       className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
                     <input type="email" placeholder="Email" value={quickClient.email}
                       onChange={(e) => setQuickClient((p) => ({ ...p, email: e.target.value }))}
@@ -884,7 +891,8 @@ function NouveauBonAdmin() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="admin-text font-medium">{selectedClient.name}</p>
-                <p className="admin-text-muted text-sm">{selectedClient.phone || "—"}</p>
+                <p className="admin-text-muted text-sm">{selectedClient.phone || "-"}</p>
+                {selectedClient.secondaryPhone && <p className="admin-text-muted text-sm">{selectedClient.secondaryPhone}</p>}
                 {selectedClient.address && <p className="admin-text-muted text-sm">{selectedClient.address}{selectedClient.city ? `, ${selectedClient.city}` : ""}</p>}
               </div>
               <button type="button" onClick={clearSelectedClient} className="text-xs text-[var(--color-red)]">

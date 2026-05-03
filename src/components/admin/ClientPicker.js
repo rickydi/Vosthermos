@@ -19,15 +19,31 @@ export default function ClientPicker({ open, onClose, onPick }) {
 
   useEffect(() => {
     if (!open) return;
-    setLoading(true);
     const params = new URLSearchParams();
     if (search) params.set("q", search);
     params.set("sort", sort);
     params.set("limit", "100");
-    fetch(`/api/admin/clients?${params}`)
+    let cancelled = false;
+
+    Promise.resolve()
+      .then(() => {
+        if (!cancelled) setLoading(true);
+        return fetch(`/api/admin/clients?${params}`);
+      })
       .then((r) => r.json())
-      .then((data) => setClients(data.clients || []))
-      .finally(() => setLoading(false));
+      .then((data) => {
+        if (!cancelled) setClients(data.clients || []);
+      })
+      .catch(() => {
+        if (!cancelled) setClients([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [open, search, sort]);
 
   function handleSearchChange(v) {
@@ -53,7 +69,7 @@ export default function ClientPicker({ open, onClose, onPick }) {
         <div className="p-4 border-b admin-border flex gap-3">
           <input
             type="text"
-            placeholder="Rechercher par nom, telephone, email, ville..."
+            placeholder="Rechercher par nom, telephone principal ou autre, email, ville..."
             onChange={(e) => handleSearchChange(e.target.value)}
             className="admin-input border rounded-lg px-4 py-2.5 text-sm flex-1"
             autoFocus
@@ -100,8 +116,11 @@ export default function ClientPicker({ open, onClose, onPick }) {
                       <p className="admin-text font-medium">{c.name}</p>
                       {c.email && <p className="admin-text-muted text-xs">{c.email}</p>}
                     </td>
-                    <td className="px-4 py-3 admin-text-muted">{c.phone || "—"}</td>
-                    <td className="px-4 py-3 admin-text-muted">{c.city || "—"}</td>
+                    <td className="px-4 py-3 admin-text-muted">
+                      <p>{c.phone || "-"}</p>
+                      {c.secondaryPhone && <p className="text-xs">{c.secondaryPhone}</p>}
+                    </td>
+                    <td className="px-4 py-3 admin-text-muted">{c.city || "-"}</td>
                     <td className="px-4 py-3 admin-text">{c._count?.workOrders || 0}</td>
                   </tr>
                 ))}

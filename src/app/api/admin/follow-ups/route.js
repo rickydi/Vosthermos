@@ -35,6 +35,7 @@ function contactForFollowUp(followUp) {
   const phones = [
     normalizePhoneDigits(followUp.phone),
     normalizePhoneDigits(followUp.client?.phone),
+    normalizePhoneDigits(followUp.client?.secondaryPhone),
   ].filter(Boolean);
   const emails = [
     cleanEmail(followUp.email),
@@ -54,6 +55,8 @@ function sameContact(contact, record = {}) {
   if (email && contact.emails.includes(email)) return true;
   const phone = normalizePhoneDigits(record.phone);
   if (phone && contact.phones.some((p) => p === phone || p.endsWith(phone.slice(-7)) || phone.endsWith(p.slice(-7)))) return true;
+  const secondaryPhone = normalizePhoneDigits(record.secondaryPhone);
+  if (secondaryPhone && contact.phones.some((p) => p === secondaryPhone || p.endsWith(secondaryPhone.slice(-7)) || secondaryPhone.endsWith(p.slice(-7)))) return true;
   return false;
 }
 
@@ -85,11 +88,13 @@ async function attachCentralActivity(followUps) {
   if (clientIds.length) clientOr.push({ clientId: { in: clientIds } });
   for (const email of emails) clientOr.push({ client: { email: { equals: email, mode: "insensitive" } } });
   for (const suffix of phoneSuffixes) clientOr.push({ client: { phone: { contains: suffix } } });
+  for (const suffix of phoneSuffixes) clientOr.push({ client: { secondaryPhone: { contains: suffix } } });
 
   const clientMatchOr = [];
   if (clientIds.length) clientMatchOr.push({ id: { in: clientIds } });
   for (const email of emails) clientMatchOr.push({ email: { equals: email, mode: "insensitive" } });
   for (const suffix of phoneSuffixes) clientMatchOr.push({ phone: { contains: suffix } });
+  for (const suffix of phoneSuffixes) clientMatchOr.push({ secondaryPhone: { contains: suffix } });
 
   const contactOr = [];
   for (const email of emails) contactOr.push({ email: { equals: email, mode: "insensitive" } });
@@ -113,7 +118,7 @@ async function attachCentralActivity(followUps) {
         total: true,
         description: true,
         photos: true,
-        client: { select: { id: true, name: true, phone: true, email: true, city: true } },
+        client: { select: { id: true, name: true, phone: true, secondaryPhone: true, email: true, city: true } },
         technician: { select: { name: true } },
       },
       orderBy: { updatedAt: "desc" },
@@ -172,7 +177,7 @@ async function attachCentralActivity(followUps) {
           select: {
             code: true,
             clientId: true,
-            client: { select: { id: true, name: true, phone: true, email: true } },
+            client: { select: { id: true, name: true, phone: true, secondaryPhone: true, email: true } },
           },
         },
       },
@@ -196,7 +201,7 @@ async function attachCentralActivity(followUps) {
         source: true,
         createdAt: true,
         updatedAt: true,
-        client: { select: { id: true, name: true, phone: true, email: true } },
+        client: { select: { id: true, name: true, phone: true, secondaryPhone: true, email: true } },
       },
       orderBy: { createdAt: "desc" },
       take: 500,
@@ -207,7 +212,7 @@ async function attachCentralActivity(followUps) {
     const contact = contactForFollowUp(followUp);
 
     const relatedWorkOrders = workOrders
-      .filter((wo) => sameContact(contact, { clientId: wo.clientId, phone: wo.client?.phone, email: wo.client?.email }))
+      .filter((wo) => sameContact(contact, { clientId: wo.clientId, phone: wo.client?.phone, secondaryPhone: wo.client?.secondaryPhone, email: wo.client?.email }))
       .slice(0, 20);
     const relatedAppointments = appointments
       .filter((appt) => sameContact(contact, { phone: appt.phone, email: appt.email }))
@@ -219,6 +224,7 @@ async function attachCentralActivity(followUps) {
       .filter((opening) => sameContact(contact, {
         clientId: opening.unit?.clientId,
         phone: opening.unit?.client?.phone,
+        secondaryPhone: opening.unit?.client?.secondaryPhone,
         email: opening.unit?.client?.email,
       }))
       .slice(0, 50);
@@ -226,6 +232,7 @@ async function attachCentralActivity(followUps) {
       .filter((photo) => photo.followUpId === followUp.id || sameContact(contact, {
         clientId: photo.clientId,
         phone: photo.client?.phone,
+        secondaryPhone: photo.client?.secondaryPhone,
         email: photo.client?.email,
       }))
       .slice(0, 80);
@@ -388,6 +395,7 @@ export async function GET(req) {
       { notes: { contains: q, mode: "insensitive" } },
       { client: { name: { contains: q, mode: "insensitive" } } },
       { client: { phone: { contains: q } } },
+      { client: { secondaryPhone: { contains: q } } },
       { client: { email: { contains: q, mode: "insensitive" } } },
     ];
   }
@@ -400,6 +408,7 @@ export async function GET(req) {
           id: true,
           name: true,
           phone: true,
+          secondaryPhone: true,
           email: true,
           city: true,
           _count: { select: { workOrders: true } },
@@ -440,7 +449,7 @@ export async function POST(req) {
       status: clean(body.status) || "to_call",
       priority: clean(body.priority) || "normal",
       contactName: clean(body.contactName) || client?.name || null,
-      phone: clean(body.phone) || client?.phone || null,
+      phone: clean(body.phone) || client?.phone || client?.secondaryPhone || null,
       email: clean(body.email) || client?.email || null,
       service: clean(body.service),
       estimateAmount: numberOrNull(body.estimateAmount),
@@ -458,6 +467,7 @@ export async function POST(req) {
           id: true,
           name: true,
           phone: true,
+          secondaryPhone: true,
           email: true,
           city: true,
           _count: { select: { workOrders: true } },

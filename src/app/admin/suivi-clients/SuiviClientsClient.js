@@ -381,7 +381,7 @@ export default function SuiviClientsClient() {
       priority: followUp.priority || "normal",
       source: followUp.source || "",
       contactName: followUp.client?.name || followUp.contactName || "",
-      phone: followUp.client?.phone || followUp.phone || "",
+      phone: followUp.client?.phone || followUp.client?.secondaryPhone || followUp.phone || "",
       email: followUp.client?.email || followUp.email || "",
       service: followUp.service || "",
       estimateAmount: followUp.estimateAmount ?? "",
@@ -401,7 +401,7 @@ export default function SuiviClientsClient() {
       ...prev,
       title: prev.title || client.name || "",
       contactName: prev.contactName || client.name || "",
-      phone: prev.phone || client.phone || "",
+      phone: prev.phone || client.phone || client.secondaryPhone || "",
       email: prev.email || client.email || "",
     }));
   }
@@ -1256,7 +1256,7 @@ function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, isDragging
   const t = toneClasses(meta.tone);
   const late = isLate(followUp.nextActionDate) && !TERMINAL.has(followUp.status);
   const clientName = followUp.client?.name || followUp.contactName || followUp.title;
-  const phone = followUp.client?.phone || followUp.phone;
+  const phone = followUp.client?.phone || followUp.client?.secondaryPhone || followUp.phone;
   const email = followUp.client?.email || followUp.email;
   const counts = followUp.activity?.counts || { chats: 0, workOrders: 0, appointments: 0, total: 0 };
   const dragging = isDragging || dndDragging;
@@ -1372,7 +1372,7 @@ function KanbanCardPreview({ followUp, columns }) {
   const t = toneClasses(meta.tone);
   const late = isLate(followUp.nextActionDate) && !TERMINAL.has(followUp.status);
   const clientName = followUp.client?.name || followUp.contactName || followUp.title;
-  const phone = followUp.client?.phone || followUp.phone;
+  const phone = followUp.client?.phone || followUp.client?.secondaryPhone || followUp.phone;
   const email = followUp.client?.email || followUp.email;
   const counts = followUp.activity?.counts || { chats: 0, workOrders: 0, appointments: 0, total: 0 };
 
@@ -1469,6 +1469,7 @@ function clientFormFrom(client = {}) {
     type: client.type || "particulier",
     company: client.company || "",
     phone: client.phone || "",
+    secondaryPhone: client.secondaryPhone || "",
     email: client.email || "",
     address: client.address || "",
     city: client.city || "",
@@ -1484,7 +1485,7 @@ function CentralModal({ followUp, columns, onSaveNotes, onSaveFollowUp, onClient
   const counts = activity.counts || { chats: 0, workOrders: 0, appointments: 0, photos: 0, total: 0 };
   const photos = activity.photos || [];
   const name = followUp.client?.name || followUp.contactName || followUp.title;
-  const phone = followUp.client?.phone || followUp.phone;
+  const phone = followUp.client?.phone || followUp.client?.secondaryPhone || followUp.phone;
   const email = followUp.client?.email || followUp.email;
   const meta = columnMeta(columns, followUp.status);
   const [activeTab, setActiveTab] = useState("suivi");
@@ -2107,6 +2108,7 @@ function ClientDatabaseTab({ followUp, onClientUpdated }) {
           <ClientField label="Nom" value={form.name} onChange={(value) => setForm({ ...form, name: value })} className="md:col-span-2" required />
           <ClientField label="Compagnie" value={form.company} onChange={(value) => setForm({ ...form, company: value })} className="md:col-span-2" />
           <ClientField label="Telephone" value={form.phone} onChange={(value) => setForm({ ...form, phone: value })} />
+          <ClientField label="Autre telephone" value={form.secondaryPhone} onChange={(value) => setForm({ ...form, secondaryPhone: value })} />
           <ClientField label="Email" type="email" value={form.email} onChange={(value) => setForm({ ...form, email: value })} />
           <div className="md:col-span-2">
             <label className="admin-text-muted text-xs font-bold block mb-1">Adresse</label>
@@ -2796,7 +2798,7 @@ function FollowUpForm({
                 {selectedClient ? (
                   <div>
                     <p className="admin-text font-bold">{selectedClient.name}</p>
-                    <p className="admin-text-muted text-xs">{[selectedClient.phone, selectedClient.email, selectedClient.city].filter(Boolean).join(" | ")}</p>
+                    <p className="admin-text-muted text-xs">{[selectedClient.phone, selectedClient.secondaryPhone, selectedClient.email, selectedClient.city].filter(Boolean).join(" | ")}</p>
                   </div>
                 ) : (
                   <p className="admin-text-muted text-sm">Aucun client lie. Le suivi peut quand meme etre cree.</p>

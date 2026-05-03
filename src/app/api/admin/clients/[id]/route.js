@@ -71,6 +71,7 @@ export async function PUT(req, { params }) {
   if (body.province !== undefined) data.province = body.province || "QC";
   if (body.postalCode !== undefined) data.postalCode = body.postalCode || null;
   if (body.phone !== undefined) data.phone = body.phone || null;
+  if (body.secondaryPhone !== undefined) data.secondaryPhone = body.secondaryPhone || null;
   if (body.email !== undefined) data.email = body.email || null;
   if (body.notes !== undefined) data.notes = body.notes || null;
   if (body.paymentTermsDays !== undefined) data.paymentTermsDays = Number(body.paymentTermsDays) || 30;

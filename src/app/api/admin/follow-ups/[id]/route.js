@@ -73,6 +73,7 @@ export async function PUT(req, { params }) {
           id: true,
           name: true,
           phone: true,
+          secondaryPhone: true,
           email: true,
           city: true,
           _count: { select: { workOrders: true } },

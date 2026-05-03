@@ -24,7 +24,7 @@ export default function NouveauBon() {
   const [clientId, setClientId] = useState(null);
   const [clientSearch, setClientSearch] = useState("");
   const [clientResults, setClientResults] = useState([]);
-  const [clientData, setClientData] = useState({ name: "", phone: "", email: "", address: "", city: "", province: "QC", postalCode: "" });
+  const [clientData, setClientData] = useState({ name: "", phone: "", secondaryPhone: "", email: "", address: "", city: "", province: "QC", postalCode: "" });
   const [clientType, setClientType] = useState("particulier");
   const [isNewClient, setIsNewClient] = useState(false);
 
@@ -112,6 +112,7 @@ export default function NouveauBon() {
     setClientData({
       name: client.name,
       phone: client.phone || "",
+      secondaryPhone: client.secondaryPhone || "",
       email: client.email || "",
       address: client.address || "",
       city: client.city || "",
@@ -396,7 +397,8 @@ export default function NouveauBon() {
                             <span className="text-[9px] uppercase bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">B2B</span>
                           )}
                         </div>
-                        <p className="text-white/40 text-xs">{c.phone} {c.address ? `• ${c.address}` : ""}</p>
+                        <p className="text-white/40 text-xs">{c.phone || "-"} {c.address ? `| ${c.address}` : ""}</p>
+                        {c.secondaryPhone && <p className="text-white/40 text-xs">{c.secondaryPhone}</p>}
                       </button>
                     ))}
                   </div>
@@ -416,7 +418,7 @@ export default function NouveauBon() {
                   </h2>
                   <button onClick={() => {
                     setClientId(null); setIsNewClient(false); setClientType("particulier");
-                    setClientData({ name: "", phone: "", email: "", address: "", city: "", province: "QC", postalCode: "" });
+                    setClientData({ name: "", phone: "", secondaryPhone: "", email: "", address: "", city: "", province: "QC", postalCode: "" });
                     setSections([]);
                   }} className="text-xs text-[var(--color-red)]">Changer</button>
                 </div>
@@ -479,6 +481,9 @@ export default function NouveauBon() {
                   className={inputClass} readOnly={!!clientId} />
                 <input placeholder="Telephone" value={clientData.phone}
                   onChange={(e) => setClientData({ ...clientData, phone: e.target.value })}
+                  className={inputClass} readOnly={!!clientId} />
+                <input placeholder="Autre telephone" value={clientData.secondaryPhone}
+                  onChange={(e) => setClientData({ ...clientData, secondaryPhone: e.target.value })}
                   className={inputClass} readOnly={!!clientId} />
                 <input placeholder="Email" value={clientData.email}
                   onChange={(e) => setClientData({ ...clientData, email: e.target.value })}
@@ -777,6 +782,7 @@ export default function NouveauBon() {
               <h3 className="font-bold mb-2">{clientData.name}</h3>
               <p className="text-white/40 text-sm">{clientData.address}{clientData.city ? `, ${clientData.city}` : ""}</p>
               <p className="text-white/40 text-sm">{clientData.phone}</p>
+              {clientData.secondaryPhone && <p className="text-white/40 text-sm">{clientData.secondaryPhone}</p>}
               <div className="border-t border-white/10 mt-3 pt-3">
                 <p className="text-sm text-white/50">{heureArrivee} - {heureDepart}</p>
                 {description && <p className="text-sm text-white/70 mt-1">{description}</p>}

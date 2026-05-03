@@ -15,6 +15,7 @@ export async function GET(req) {
       OR: [
         { name: { contains: q, mode: "insensitive" } },
         { phone: { contains: q } },
+        { secondaryPhone: { contains: q } },
         { email: { contains: q, mode: "insensitive" } },
         { company: { contains: q, mode: "insensitive" } },
       ],
@@ -23,6 +24,7 @@ export async function GET(req) {
     take: 20,
     select: {
       id: true, name: true, type: true, phone: true, email: true,
+      secondaryPhone: true,
       company: true, address: true, city: true, province: true, postalCode: true,
     },
   });
@@ -46,6 +48,7 @@ export async function POST(req) {
       province: body.province || "QC",
       postalCode: body.postalCode || null,
       phone: body.phone || null,
+      secondaryPhone: body.secondaryPhone || null,
       email: body.email || null,
       notes: body.notes || null,
     },

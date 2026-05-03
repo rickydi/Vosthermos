@@ -9,6 +9,7 @@ const EMPTY_FORM = {
   type: "particulier",
   company: "",
   phone: "",
+  secondaryPhone: "",
   email: "",
   address: "",
   city: "",
@@ -89,6 +90,7 @@ export default function ClientsPage() {
       type: client.type || "particulier",
       company: client.company || "",
       phone: client.phone || "",
+      secondaryPhone: client.secondaryPhone || "",
       email: client.email || "",
       address: client.address || "",
       city: client.city || "",
@@ -237,9 +239,12 @@ export default function ClientsPage() {
             <input placeholder="Telephone" value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
               className="admin-input border rounded-lg px-4 py-2.5 text-sm" />
+            <input placeholder="Autre telephone" value={form.secondaryPhone}
+              onChange={(e) => setForm({ ...form, secondaryPhone: e.target.value })}
+              className="admin-input border rounded-lg px-4 py-2.5 text-sm" />
             <input type="email" placeholder="Email" value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="admin-input border rounded-lg px-4 py-2.5 text-sm" />
+              className="admin-input border rounded-lg px-4 py-2.5 text-sm md:col-span-2" />
             <AddressAutocomplete
               value={form.address}
               onChange={(address) => setForm((prev) => ({ ...prev, address }))}
@@ -344,7 +349,7 @@ export default function ClientsPage() {
       <div className="flex flex-col md:flex-row gap-3 mb-6">
         <input
           type="text"
-          placeholder="Rechercher par nom, telephone, email, ville..."
+          placeholder="Rechercher par nom, telephone principal ou autre, email, ville..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="admin-input border rounded-xl px-4 py-3 text-sm flex-1"
@@ -397,7 +402,10 @@ export default function ClientsPage() {
                     {c.email && <p className="admin-text-muted text-xs">{c.email}</p>}
                   </td>
                   <td className="px-4 py-3 admin-text-muted">{c.company || "—"}</td>
-                  <td className="px-4 py-3 admin-text-muted">{c.phone || "—"}</td>
+                  <td className="px-4 py-3 admin-text-muted">
+                    <div>{c.phone || "—"}</div>
+                    {c.secondaryPhone && <div className="text-xs opacity-70">{c.secondaryPhone}</div>}
+                  </td>
                   <td className="px-4 py-3 admin-text-muted">{c.city || "—"}</td>
                   <td className="px-4 py-3 admin-text">{c._count?.workOrders || 0}</td>
                   <td className="px-4 py-3 text-right whitespace-nowrap">
