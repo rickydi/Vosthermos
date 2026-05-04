@@ -12,6 +12,12 @@ export function middleware(request) {
     return NextResponse.redirect(url, 308);
   }
 
+  if (pathname === "/admin") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/admin/suivi-clients";
+    return NextResponse.redirect(url);
+  }
+
   // Protect admin routes (except login)
   if (pathname.startsWith("/admin") && !pathname.startsWith("/admin/login")) {
     const token = request.cookies.get("vosthermos-admin-token")?.value;
