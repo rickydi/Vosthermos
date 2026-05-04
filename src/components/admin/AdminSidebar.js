@@ -4,6 +4,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import {
+  ADMIN_MENU_SECTIONS,
+  ADMIN_MENU_SETTINGS_KEY,
+  menuItemWithLabel,
+  normalizeAdminMenuLayout,
+} from "@/lib/admin-menu";
 
 const DASHBOARD_ITEM = {
   href: "/admin",
@@ -12,85 +18,13 @@ const DASHBOARD_ITEM = {
   exact: true,
 };
 
-const NAV_SECTIONS = [
-  {
-    key: "production",
-    label: "Production",
-    icon: "fa-clipboard-check",
-    dotClass: "bg-emerald-400",
-    accentClass: "text-emerald-400",
-    summary: "Suivis, bons, rendez-vous",
-    items: [
-      { href: "/admin/suivi-clients", label: "Suivi clients", icon: "fa-tasks" },
-      { href: "/admin/bons", label: "Bons de travail", icon: "fa-clipboard-list" },
-      { href: "/admin/rendez-vous", label: "Rendez-vous", icon: "fa-calendar-check" },
-      { href: "/admin/chat", label: "Chat clients", icon: "fa-comments" },
-      { href: "/admin/techniciens", label: "Techniciens", icon: "fa-hard-hat" },
-    ],
-  },
-  {
-    key: "clients",
-    label: "Clients",
-    icon: "fa-address-book",
-    dotClass: "bg-sky-400",
-    accentClass: "text-sky-400",
-    summary: "Clients, ventes, portail",
-    items: [
-      { href: "/admin/clients", label: "Base clients", icon: "fa-address-book" },
-      { href: "/admin/vendeur", label: "Vendeur", icon: "fa-handshake" },
-      { href: "/admin/gestionnaires", label: "Acces gestionnaires", icon: "fa-door-open" },
-    ],
-  },
-  {
-    key: "boutique",
-    label: "Boutique",
-    icon: "fa-shopping-bag",
-    dotClass: "bg-violet-400",
-    accentClass: "text-violet-400",
-    summary: "Commandes et catalogue",
-    items: [
-      { href: "/admin/commandes", label: "Commandes", icon: "fa-shopping-bag" },
-      { href: "/admin/produits", label: "Produits", icon: "fa-boxes" },
-      { href: "/admin/categories", label: "Categories", icon: "fa-folder-open" },
-      { href: "/admin/promotions", label: "Promotions", icon: "fa-tag" },
-    ],
-  },
-  {
-    key: "site",
-    label: "Site web",
-    icon: "fa-globe",
-    dotClass: "bg-cyan-400",
-    accentClass: "text-cyan-400",
-    summary: "SEO, contenu, statistiques",
-    items: [
-      { href: "/admin/analytics", label: "Analytics", icon: "fa-chart-line" },
-      { href: "/admin/seo", label: "SEO", icon: "fa-search" },
-      { href: "/admin/blogue", label: "Blogue", icon: "fa-pen-nib" },
-      { href: "/admin/services", label: "Services", icon: "fa-tools" },
-    ],
-  },
-  {
-    key: "systeme",
-    label: "Systeme",
-    icon: "fa-shield-alt",
-    dotClass: "bg-amber-400",
-    accentClass: "text-amber-400",
-    summary: "Reglages et utilisateurs",
-    items: [
-      { href: "/admin/activite", label: "Activite admin", icon: "fa-history" },
-      { href: "/admin/parametres", label: "Parametres", icon: "fa-cog" },
-      { href: "/admin/utilisateurs", label: "Utilisateurs", icon: "fa-users" },
-    ],
-  },
-];
-
 function isItemActive(pathname, item) {
   if (item.exact) return pathname === item.href;
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
 
-function detectSectionKey(pathname) {
-  return NAV_SECTIONS.find((section) =>
+function detectSectionKey(pathname, sections) {
+  return sections.find((section) =>
     section.items.some((item) => isItemActive(pathname, item))
   )?.key;
 }
@@ -111,21 +45,57 @@ function StatusBadge({ count }) {
   );
 }
 
+function initialMenuLayout() {
+  if (typeof window === "undefined") return normalizeAdminMenuLayout(null);
+  try {
+    const cached = localStorage.getItem(ADMIN_MENU_SETTINGS_KEY);
+    return cached ? normalizeAdminMenuLayout(JSON.parse(cached)) : normalizeAdminMenuLayout(null);
+  } catch {
+    return normalizeAdminMenuLayout(null);
+  }
+}
+
 export default function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const sectionPickerRef = useRef(null);
   const [open, setOpen] = useState(false);
   const [sectionPickerOpen, setSectionPickerOpen] = useState(false);
+  const [layout, setLayout] = useState(initialMenuLayout);
   const [unreadChat, setUnreadChat] = useState(0);
   const [pendingRdv, setPendingRdv] = useState(0);
   const [pendingRequests, setPendingRequests] = useState(0);
 
-  const detectedSectionKey = detectSectionKey(pathname);
+  const sections = ADMIN_MENU_SECTIONS.map((section) => ({
+    ...section,
+    label: layout.labels?.[section.key] || section.label,
+    items: (layout[section.key] || []).map((itemKey) => menuItemWithLabel(itemKey, layout)).filter(Boolean),
+  }));
+  const detectedSectionKey = detectSectionKey(pathname, sections);
   const activeSectionKey = detectedSectionKey || "production";
   const activeSection =
-    NAV_SECTIONS.find((section) => section.key === activeSectionKey) || NAV_SECTIONS[0];
+    sections.find((section) => section.key === activeSectionKey) || sections[0];
   const activeBadges = { unreadChat, pendingRdv, pendingRequests };
+
+  useEffect(() => {
+    fetch(`/api/admin/settings?key=${ADMIN_MENU_SETTINGS_KEY}`, { cache: "no-store" })
+      .then((r) => r.json())
+      .then((data) => {
+        if (!data?.value) return;
+        const next = normalizeAdminMenuLayout(JSON.parse(data.value));
+        setLayout(next);
+        try {
+          localStorage.setItem(ADMIN_MENU_SETTINGS_KEY, JSON.stringify(next));
+        } catch {}
+      })
+      .catch(() => {});
+
+    function handleMenuUpdate(event) {
+      setLayout(normalizeAdminMenuLayout(event.detail));
+    }
+    window.addEventListener("admin-menu-updated", handleMenuUpdate);
+    return () => window.removeEventListener("admin-menu-updated", handleMenuUpdate);
+  }, []);
 
   useEffect(() => {
     if (!sectionPickerOpen) return undefined;
@@ -176,7 +146,7 @@ export default function AdminSidebar() {
   if (pathname === "/admin/login") return null;
 
   function handleSectionSelect(sectionKey) {
-    const section = NAV_SECTIONS.find((item) => item.key === sectionKey);
+    const section = sections.find((item) => item.key === sectionKey);
     setSectionPickerOpen(false);
     if (section?.items[0]) {
       setOpen(false);
@@ -266,7 +236,7 @@ export default function AdminSidebar() {
                 : "opacity-0 scale-y-95 pointer-events-none"
             }`}
           >
-            {NAV_SECTIONS.map((section) => {
+            {sections.map((section) => {
               const sectionCount = section.items.reduce(
                 (sum, item) => sum + getItemBadge(item.href, activeBadges),
                 0

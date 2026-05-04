@@ -16,6 +16,7 @@ const pageTitles = {
   "/admin/activite": "Activite admin",
   "/admin/utilisateurs": "Utilisateurs",
   "/admin/gestionnaires": "Acces gestionnaires",
+  "/admin/menu": "Menu admin",
 };
 
 export default function AdminHeader() {
