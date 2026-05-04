@@ -4,7 +4,7 @@ import Link from "next/link";
 import InvoiceSheet from "@/components/admin/InvoiceSheet";
 
 export default function FactureView({ wo, company }) {
-  const isInvoice = wo.statut === "invoiced" || wo.statut === "paid";
+  const isInvoice = wo.statut === "invoiced" || wo.statut === "paid" || wo.statut === "sent";
   const label = isInvoice ? "Facture" : "Bon de commande";
 
   return (

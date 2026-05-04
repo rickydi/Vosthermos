@@ -7,6 +7,7 @@ import { generateInvoicePdf } from "@/lib/invoice-pdf";
 import { formatDateOnly } from "@/lib/date-only";
 import { logAdminActivity } from "@/lib/admin-activity";
 import { createOrTouchFollowUpFromWorkOrder } from "@/lib/follow-up-utils";
+import { getCompany } from "@/lib/company";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.vosthermos.com";
 const LOGO_URL = `${SITE_URL}/images/Vos-Thermos-Logo_Blanc.png`;
@@ -186,7 +187,10 @@ export async function POST(req, { params }) {
   const to = body.to?.trim() || wo.client?.email;
   if (!to) return NextResponse.json({ error: "Adresse email manquante" }, { status: 400 });
 
-  const settings = await getWorkOrderSettings();
+  const [settings, company] = await Promise.all([
+    getWorkOrderSettings(),
+    getCompany(),
+  ]);
 
   const serItem = (i) => ({
     ...i,
@@ -212,7 +216,7 @@ export async function POST(req, { params }) {
 
   let pdfBuffer;
   try {
-    pdfBuffer = await generateInvoicePdf(serializedWo, settings);
+    pdfBuffer = await generateInvoicePdf(serializedWo, { ...settings, company });
   } catch (err) {
     return NextResponse.json({ error: `Erreur generation PDF: ${err.message}` }, { status: 500 });
   }

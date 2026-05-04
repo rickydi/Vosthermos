@@ -206,7 +206,7 @@ function FullHeader({ wo, co, meta }) {
   const intervAddr = wo.interventionAddress || wo.client?.address;
   const intervCity = wo.interventionCity || wo.client?.city;
   const intervPostal = wo.interventionPostalCode || wo.client?.postalCode;
-  const isInvoice = wo.statut === "invoiced" || wo.statut === "paid";
+  const isInvoice = wo.statut === "invoiced" || wo.statut === "paid" || wo.statut === "sent";
   const docLabel = isInvoice ? "Facture" : "Bon de commande";
   const recipientLabel = isInvoice ? "Facturer à" : "Adressé à";
 
