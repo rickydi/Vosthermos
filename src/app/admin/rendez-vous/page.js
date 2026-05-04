@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { buildWhatsAppUrl, openWhatsAppWindow } from "@/lib/whatsapp";
 
 const MONTHS_FR = [
   "Janvier", "Fevrier", "Mars", "Avril", "Mai", "Juin",
@@ -541,7 +542,7 @@ export default function AdminAppointmentsPage() {
                       const a = selectedAppointment;
                       const dateStr = new Date(a.date).toLocaleDateString("fr-CA", { weekday: "long", day: "numeric", month: "long" });
                       const text = `*RDV Vosthermos*\n${a.name}\nTel: ${a.phone}\n${a.email ? `Email: ${a.email}\n` : ""}Service: ${SERVICE_LABELS[a.serviceType] || a.serviceType}\nDate: ${dateStr} a ${a.timeSlot}\n${a.address || ""}${a.city ? `, ${a.city}` : ""}\n${a.notes ? `\nNotes: ${a.notes}` : ""}`;
-                      window.open(`https://wa.me/15148258411?text=${encodeURIComponent(text)}`, "_blank");
+                      openWhatsAppWindow(buildWhatsAppUrl("15148258411", text));
                     }}
                     className="flex items-center gap-2 bg-green-500/20 text-green-400 hover:bg-green-500/30 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
                   >
@@ -552,7 +553,7 @@ export default function AdminAppointmentsPage() {
                       const a = selectedAppointment;
                       const dateStr = new Date(a.date).toLocaleDateString("fr-CA", { weekday: "long", day: "numeric", month: "long" });
                       const text = `*RDV Vosthermos*\n${a.name}\nTel: ${a.phone}\n${a.email ? `Email: ${a.email}\n` : ""}Service: ${SERVICE_LABELS[a.serviceType] || a.serviceType}\nDate: ${dateStr} a ${a.timeSlot}\n${a.address || ""}${a.city ? `, ${a.city}` : ""}\n${a.notes ? `\nNotes: ${a.notes}` : ""}`;
-                      window.open(`https://wa.me/14502750200?text=${encodeURIComponent(text)}`, "_blank");
+                      openWhatsAppWindow(buildWhatsAppUrl("14502750200", text));
                     }}
                     className="flex items-center gap-2 bg-green-500/20 text-green-400 hover:bg-green-500/30 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
                   >

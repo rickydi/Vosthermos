@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { formatPhone } from "@/lib/phone";
+import { buildWhatsAppUrl, openWhatsAppWindow } from "@/lib/whatsapp";
 
 function timeAgo(dateStr) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -57,7 +58,7 @@ function buildChatWhatsappText(conversation) {
 
 function openChatWhatsapp(recipient, conversation) {
   const text = buildChatWhatsappText(conversation);
-  window.open(`https://wa.me/${recipient}?text=${encodeURIComponent(text)}`, "_blank");
+  openWhatsAppWindow(buildWhatsAppUrl(recipient, text));
 }
 
 export default function ChatPanel({ initialConversationId }) {

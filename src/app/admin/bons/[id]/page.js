@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import InvoiceSheet from "@/components/admin/InvoiceSheet";
 import { formatDateOnly } from "@/lib/date-only";
+import { buildWhatsAppUrl, openWhatsAppWindow } from "@/lib/whatsapp";
 
 // Map DB snake_case settings to InvoiceSheet company prop shape
 function mapCompany(s) {
@@ -111,8 +112,7 @@ export default function BonDetailPage() {
         `Détails : ${siteUrl}/admin/bons/${id}`,
       ].filter((l) => l !== null).join("\n");
 
-      const wa = `https://wa.me/${phone}?text=${encodeURIComponent(lines)}`;
-      window.open(wa, "_blank", "noopener,noreferrer");
+      openWhatsAppWindow(buildWhatsAppUrl(phone, lines));
 
       const refreshed = await fetch(`/api/admin/work-orders/${id}`).then((r) => r.json());
       setWo(refreshed);
