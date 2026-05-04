@@ -11,6 +11,7 @@ import {
   attachSectionsAndItems,
 } from "@/lib/work-order-utils";
 import { parseDateOnly } from "@/lib/date-only";
+import { createOrTouchFollowUpFromWorkOrder } from "@/lib/follow-up-utils";
 
 function serializeWO(wo) {
   const serItem = (i) => ({
@@ -142,6 +143,12 @@ export async function PUT(req, { params }) {
       },
     });
   });
+
+  try {
+    await createOrTouchFollowUpFromWorkOrder({ workOrder: wo, client: wo.client });
+  } catch (err) {
+    console.error("[technician-work-orders] follow-up sync error:", err?.message || err);
+  }
 
   return NextResponse.json(serializeWO(wo));
 }

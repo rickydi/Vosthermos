@@ -15,6 +15,18 @@ import { createOrTouchFollowUpFromWorkOrder } from "@/lib/follow-up-utils";
 import { parseDateOnly } from "@/lib/date-only";
 import { changedFields, logAdminActivity } from "@/lib/admin-activity";
 
+async function latestClientFollowUp(clientId) {
+  if (!clientId) return null;
+  return prisma.clientFollowUp.findFirst({
+    where: {
+      clientId,
+      status: { not: "archived" },
+    },
+    orderBy: { updatedAt: "desc" },
+    select: { id: true, status: true, title: true },
+  });
+}
+
 export async function GET(_req, { params }) {
   try { await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
 
@@ -41,6 +53,7 @@ export async function GET(_req, { params }) {
   });
 
   if (!wo) return NextResponse.json({ error: "Non trouve" }, { status: 404 });
+  const followUp = await latestClientFollowUp(wo.clientId);
 
   const ser = (i) => ({
     ...i,
@@ -60,6 +73,8 @@ export async function GET(_req, { params }) {
     total: Number(wo.total),
     items: wo.items.map(ser),
     sections: wo.sections.map((s) => ({ ...s, items: s.items.map(ser) })),
+    followUp,
+    followUpStatus: followUp?.status || null,
   });
 }
 
@@ -158,7 +173,7 @@ export async function PUT(req, { params }) {
   });
 
   try {
-    await createOrTouchFollowUpFromWorkOrder({ workOrder: wo, client: wo.client });
+    await createOrTouchFollowUpFromWorkOrder({ workOrder: wo, client: wo.client, followUpStatus: body.followUpStatus });
   } catch (err) {
     console.error("[work-orders] follow-up sync error:", err?.message || err);
   }

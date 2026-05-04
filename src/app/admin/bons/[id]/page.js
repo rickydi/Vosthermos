@@ -181,9 +181,9 @@ export default function BonDetailPage() {
   };
   const statusLabels = {
     draft: "Brouillon",
-    scheduled: "Planifié",
+    scheduled: "Job planifie",
     in_progress: "En cours",
-    completed: "Complété",
+    completed: "Job fait",
     invoiced: "Facturé",
     paid: "Payé",
     sent: "Envoyé",

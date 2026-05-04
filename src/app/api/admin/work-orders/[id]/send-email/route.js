@@ -6,6 +6,7 @@ import { getWorkOrderSettings } from "@/lib/work-order-utils";
 import { generateInvoicePdf } from "@/lib/invoice-pdf";
 import { formatDateOnly } from "@/lib/date-only";
 import { logAdminActivity } from "@/lib/admin-activity";
+import { createOrTouchFollowUpFromWorkOrder } from "@/lib/follow-up-utils";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.vosthermos.com";
 const LOGO_URL = `${SITE_URL}/images/Vos-Thermos-Logo_Blanc.png`;
@@ -239,10 +240,16 @@ export async function POST(req, { params }) {
       ],
     });
 
-    await prisma.workOrder.update({
+    const sentWorkOrder = await prisma.workOrder.update({
       where: { id: wo.id },
       data: { statut: "sent" },
     });
+
+    try {
+      await createOrTouchFollowUpFromWorkOrder({ workOrder: sentWorkOrder, client: wo.client, followUpStatus: "completed" });
+    } catch (err) {
+      console.error("[work-order-email] follow-up sync error:", err?.message || err);
+    }
 
     await logAdminActivity(req, session, {
       action: "send",

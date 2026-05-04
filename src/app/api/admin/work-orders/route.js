@@ -130,7 +130,7 @@ export async function POST(req) {
   });
 
   try {
-    await createOrTouchFollowUpFromWorkOrder({ workOrder, client: workOrder.client });
+    await createOrTouchFollowUpFromWorkOrder({ workOrder, client: workOrder.client, followUpStatus: body.followUpStatus });
   } catch (err) {
     console.error("[work-orders] follow-up sync error:", err?.message || err);
   }

@@ -171,6 +171,10 @@ export async function generateInvoicePdf(wo, settings = {}) {
 
       let rowY = tableTop + 22;
       const greenDiscount = "#059669";
+      const laborRate = Number(wo.laborRate) || 85;
+      const laborTotal = Number(wo.totalLabor) || 0;
+      const laborHours = laborRate > 0 ? Math.round((laborTotal / laborRate) * 100) / 100 : 0;
+      const laborDetail = laborTotal > 0 ? `${fmtLaborHours(laborHours)} x ${fmtRate(laborRate)}` : "";
 
       const renderItemRow = (item) => {
         const isDiscount = item.itemType === "discount" || Number(item.unitPrice) < 0;
@@ -210,14 +214,19 @@ export async function generateInvoicePdf(wo, settings = {}) {
         for (const item of sec.items || []) renderItemRow(item);
       }
 
+      if (laborTotal > 0) {
+        renderItemRow({
+          description: `Main d'oeuvre (${laborDetail})`,
+          quantity: 1,
+          unitPrice: laborTotal,
+          totalPrice: laborTotal,
+          itemType: "labor",
+        });
+      }
+
       // ── Totals ──
       const totalsX = pageWidth - marginX - 220;
-      const totalsW = 220;
       let tY = rowY + 15;
-      const laborRate = Number(wo.laborRate) || 85;
-      const laborTotal = Number(wo.totalLabor) || 0;
-      const laborHours = laborRate > 0 ? Math.round((laborTotal / laborRate) * 100) / 100 : 0;
-      const laborDetail = laborTotal > 0 ? `${fmtLaborHours(laborHours)} x ${fmtRate(laborRate)}` : "";
 
       const totalsRows = [
         { label: "Pieces", value: fmt(wo.totalPieces), note: "" },

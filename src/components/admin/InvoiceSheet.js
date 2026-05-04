@@ -184,6 +184,7 @@ function Sheet({ page, totalPages, wo, co, meta }) {
           {page.units.map((u, i) => <UnitCard key={i} unit={u} />)}
         </div>
 
+        {page.isLast && Number(wo.totalLabor) > 0 && <LaborCard wo={wo} meta={meta} />}
         {page.isLast && <Totals wo={wo} meta={meta} />}
       </div>
 
@@ -324,6 +325,29 @@ function UnitCard({ unit }) {
           })}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function LaborCard({ wo, meta }) {
+  const detail = `${fmtLaborHours(meta.laborHours)} x ${fmtRate(meta.laborRate)}`;
+  return (
+    <div style={{
+      marginTop: "10px",
+      border: "2px solid #e5e7eb",
+      borderRadius: "8px",
+      padding: "8px 16px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      background: "#f9fafb",
+      flexShrink: 0,
+    }}>
+      <div>
+        <p style={{ fontSize: "11.5px", fontWeight: 800, color: "#111827" }}>Main d&apos;oeuvre</p>
+        <p style={{ fontSize: "10px", color: "#6b7280", marginTop: "2px" }}>{detail}</p>
+      </div>
+      <span style={{ fontWeight: 800, color: "#111827", fontSize: "13px" }}>{fmt(wo.totalLabor)}</span>
     </div>
   );
 }

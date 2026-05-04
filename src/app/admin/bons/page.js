@@ -59,9 +59,9 @@ export default function BonsPage() {
   };
   const statusLabels = {
     draft: "Brouillon",
-    scheduled: "Planifié",
+    scheduled: "Job planifie",
     in_progress: "En cours",
-    completed: "Complété",
+    completed: "Job fait",
     invoiced: "Facturé",
     paid: "Payé",
     sent: "Envoyé",
@@ -86,8 +86,8 @@ export default function BonsPage() {
         {[
           { key: "all", label: "Tous" },
           { key: "draft", label: "Brouillons" },
-          { key: "scheduled", label: "Planifiés" },
-          { key: "completed", label: "Complétés" },
+          { key: "scheduled", label: "Jobs planifies" },
+          { key: "completed", label: "Jobs faits" },
           { key: "invoiced", label: "Facturés" },
           { key: "paid", label: "Payés" },
         ].map((tab) => (

@@ -7,6 +7,12 @@ import CatalogPicker from "@/components/admin/CatalogPicker";
 import ClientPicker from "@/components/admin/ClientPicker";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import { dateOnlyString, todayDateInput } from "@/lib/date-only";
+import {
+  DEFAULT_FOLLOW_UP_COLUMNS,
+  FOLLOW_UP_COLUMNS_SETTINGS_KEY,
+  followUpStatusFromWorkOrderStatut,
+  normalizeFollowUpColumns,
+} from "@/lib/follow-up-columns";
 
 const DRAFT_KEY = "vosthermos:nouveau-bon:draft";
 
@@ -218,6 +224,8 @@ function NouveauBonAdmin() {
   const [description, setDescription] = useState("");
   const [notes, setNotes] = useState("");
   const [statut, setStatut] = useState("draft");
+  const [followUpStatus, setFollowUpStatus] = useState(() => followUpStatusFromWorkOrderStatut("draft"));
+  const [followUpColumns, setFollowUpColumns] = useState(DEFAULT_FOLLOW_UP_COLUMNS);
   const [interventionAddress, setInterventionAddress] = useState("");
   const [interventionCity, setInterventionCity] = useState("");
   const [interventionPostalCode, setInterventionPostalCode] = useState("");
@@ -290,6 +298,13 @@ function NouveauBonAdmin() {
       .then((r) => r.json())
       .then((d) => { if (Array.isArray(d)) setServices(d); })
       .catch(() => {});
+    fetch(`/api/admin/settings?key=${FOLLOW_UP_COLUMNS_SETTINGS_KEY}`, { cache: "no-store" })
+      .then((r) => r.json())
+      .then((data) => {
+        if (!data?.value) return;
+        setFollowUpColumns(normalizeFollowUpColumns(JSON.parse(data.value)));
+      })
+      .catch(() => {});
   }, [editId]);
 
   useEffect(() => {
@@ -310,6 +325,7 @@ function NouveauBonAdmin() {
       if (draft.description !== undefined) setDescription(draft.description);
       if (draft.notes !== undefined) setNotes(draft.notes);
       if (draft.statut) setStatut(draft.statut);
+      if (draft.followUpStatus) setFollowUpStatus(draft.followUpStatus);
       if (draft.interventionAddress !== undefined) setInterventionAddress(draft.interventionAddress);
       if (draft.interventionCity !== undefined) setInterventionCity(draft.interventionCity);
       if (draft.interventionPostalCode !== undefined) setInterventionPostalCode(draft.interventionPostalCode);
@@ -338,6 +354,7 @@ function NouveauBonAdmin() {
           description,
           notes,
           statut,
+          followUpStatus,
           interventionAddress,
           interventionCity,
           interventionPostalCode,
@@ -360,6 +377,7 @@ function NouveauBonAdmin() {
     description,
     notes,
     statut,
+    followUpStatus,
     interventionAddress,
     interventionCity,
     interventionPostalCode,
@@ -404,6 +422,7 @@ function NouveauBonAdmin() {
         setDescription(wo.description || "");
         setNotes(wo.notes || "");
         setStatut(wo.statut || "draft");
+        setFollowUpStatus(wo.followUpStatus || followUpStatusFromWorkOrderStatut(wo.statut || "draft"));
         setInterventionAddress(wo.interventionAddress || "");
         setInterventionCity(wo.interventionCity || "");
         setInterventionPostalCode(wo.interventionPostalCode || "");
@@ -533,6 +552,11 @@ function NouveauBonAdmin() {
       discountPercent: mode === "percent" ? 10 : 0,
       discountAmount: mode === "amount" ? 0 : 0,
     }]);
+  }
+
+  function handleWorkOrderStatusChange(nextStatut) {
+    setStatut(nextStatut);
+    setFollowUpStatus(followUpStatusFromWorkOrderStatut(nextStatut));
   }
 
   function updateItem(idx, field, value) {
@@ -673,6 +697,7 @@ function NouveauBonAdmin() {
     setSavingAction(submitAction);
     setError("");
     try {
+      const finalStatut = submitAction === "invoice" ? "invoiced" : statut;
       const payload = {
         clientId: selectedClient.id,
         technicianId: technicianId || null,
@@ -685,7 +710,8 @@ function NouveauBonAdmin() {
         visibleAuClient,
         description: description || null,
         notes: notes || null,
-        statut: submitAction === "invoice" ? "invoiced" : statut,
+        statut: finalStatut,
+        followUpStatus: submitAction === "invoice" ? "completed" : followUpStatus,
         laborHours,
         laborRate,
         // Flat items: always included. For B2B, only discount lines stay flat.
@@ -1298,16 +1324,26 @@ function NouveauBonAdmin() {
         <div className="admin-card border rounded-xl p-6">
           <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
             <div>
-              <label className="admin-text-muted text-xs mb-1 block">Statut</label>
-              <select value={statut} onChange={(e) => setStatut(e.target.value)}
+              <label className="admin-text-muted text-xs mb-1 block">Statut du bon</label>
+              <select value={statut} onChange={(e) => handleWorkOrderStatusChange(e.target.value)}
                 className="admin-input border rounded-lg px-3 py-2.5 text-sm">
                 <option value="draft">Brouillon</option>
-                <option value="scheduled">Planifié</option>
+                <option value="scheduled">Job planifié</option>
                 <option value="in_progress">En cours</option>
-                <option value="completed">Complété</option>
+                <option value="completed">Job fait</option>
                 <option value="invoiced">Facturé</option>
                 <option value="paid">Payé</option>
               </select>
+            </div>
+            <div>
+              <label className="admin-text-muted text-xs mb-1 block">Statut suivi client</label>
+              <select value={followUpStatus} onChange={(e) => setFollowUpStatus(e.target.value)}
+                className="admin-input border rounded-lg px-3 py-2.5 text-sm min-w-44">
+                {followUpColumns.filter((column) => column.visible).map((column) => (
+                  <option key={column.key} value={column.key}>{column.label}</option>
+                ))}
+              </select>
+              <p className="admin-text-muted text-[10px] mt-1">Deplace la carte dans Suivi clients.</p>
             </div>
             {error && <p className="text-sm text-red-500 md:ml-auto">{error}</p>}
             {invoiceMode ? (

@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { followUpStatusFromWorkOrderStatut } from "@/lib/follow-up-columns";
 
 export const FOLLOW_UP_TERMINAL_STATUSES = ["lost", "completed", "archived"];
 
@@ -101,23 +102,31 @@ export async function createOrTouchFollowUpFromLead({ client, source, notes, ser
   });
 }
 
-function followUpStatusFromWorkOrder(statut) {
-  if (statut === "scheduled" || statut === "in_progress") return "scheduled";
-  if (statut === "completed" || statut === "invoiced" || statut === "sent" || statut === "paid") return "completed";
-  return "to_call";
-}
-
-export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client } = {}) {
-  if (!client?.id || !workOrder?.id) return null;
-
-  const status = followUpStatusFromWorkOrder(workOrder.statut);
-  const existing = await prisma.clientFollowUp.findFirst({
+async function findRelevantFollowUp(clientId, nextStatus) {
+  const active = await prisma.clientFollowUp.findFirst({
     where: {
-      clientId: client.id,
+      clientId,
       status: { notIn: FOLLOW_UP_TERMINAL_STATUSES },
     },
     orderBy: { updatedAt: "desc" },
   });
+  if (active) return active;
+  if (!FOLLOW_UP_TERMINAL_STATUSES.includes(nextStatus)) return null;
+
+  return prisma.clientFollowUp.findFirst({
+    where: {
+      clientId,
+      status: { not: "archived" },
+    },
+    orderBy: { updatedAt: "desc" },
+  });
+}
+
+export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client, followUpStatus } = {}) {
+  if (!client?.id || !workOrder?.id) return null;
+
+  const status = cleanText(followUpStatus) || (workOrder.statut === "draft" ? "to_call" : followUpStatusFromWorkOrderStatut(workOrder.statut));
+  const existing = await findRelevantFollowUp(client.id, status);
 
   const note = `[auto: bon de travail ${workOrder.number || `#${workOrder.id}`} ${new Date().toISOString().slice(0, 10)}]`;
 
@@ -126,7 +135,7 @@ export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client } =
       where: { id: existing.id },
       data: {
         source: existing.source || "bon de travail",
-        status: status === "completed" ? existing.status : status,
+        status,
         contactName: existing.contactName || client.name || null,
         phone: existing.phone || primaryContactPhone(client),
         email: existing.email || client.email || null,
