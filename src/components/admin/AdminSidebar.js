@@ -36,11 +36,39 @@ function getItemBadge(href, badges) {
   return 0;
 }
 
-function StatusBadge({ count }) {
-  if (!count) return null;
+function getAlertTone(href) {
+  if (href === "/admin/chat") return "cyan";
+  if (href === "/admin/rendez-vous") return "amber";
+  if (href === "/admin/bons") return "amber";
+  return "green";
+}
+
+function isWatchedItem(href) {
+  return href === "/admin/chat" || href === "/admin/bons" || href === "/admin/rendez-vous";
+}
+
+function alertClasses(tone) {
+  if (tone === "cyan") return "bg-cyan-400 shadow-cyan-400/40";
+  if (tone === "amber") return "bg-amber-400 shadow-amber-400/40";
+  return "bg-emerald-400 shadow-emerald-400/40";
+}
+
+function StatusBadge({ count, href, showIdle = false }) {
+  const watched = href ? isWatchedItem(href) : false;
+  if (!count && (!showIdle || !watched)) return null;
+  const tone = count ? getAlertTone(href) : "green";
+
   return (
-    <span className="ml-auto min-w-5 rounded-full bg-amber-500 px-1.5 py-0.5 text-center text-[10px] font-bold text-white shadow-sm shadow-amber-500/30">
-      {count > 99 ? "99+" : count}
+    <span className="ml-auto inline-flex items-center gap-1.5 shrink-0">
+      <span className="relative flex h-2.5 w-2.5">
+        <span className={`absolute inline-flex h-full w-full rounded-full ${alertClasses(tone)} ${count ? "animate-ping opacity-70" : "opacity-35"}`}></span>
+        <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${alertClasses(tone)} shadow-sm`}></span>
+      </span>
+      {count ? (
+        <span className="min-w-5 rounded-full bg-amber-500 px-1.5 py-0.5 text-center text-[10px] font-bold text-white shadow-sm shadow-amber-500/30">
+          {count > 99 ? "99+" : count}
+        </span>
+      ) : null}
     </span>
   );
 }
@@ -257,7 +285,10 @@ export default function AdminSidebar() {
                     <span className="block truncate text-sm font-semibold">{section.label}</span>
                     <span className="block truncate text-[10px] opacity-70">{section.summary}</span>
                   </span>
-                  <StatusBadge count={sectionCount} />
+                  <StatusBadge
+                    count={sectionCount}
+                    href={section.items.find((item) => getItemBadge(item.href, activeBadges) > 0)?.href}
+                  />
                 </button>
               );
             })}
@@ -287,7 +318,7 @@ export default function AdminSidebar() {
               >
                 <i className={`fas ${item.icon} w-5 text-center`}></i>
                 <span className="min-w-0 flex-1 truncate">{item.label}</span>
-                <StatusBadge count={count} />
+                <StatusBadge count={count} href={item.href} showIdle />
               </Link>
             );
           })}
