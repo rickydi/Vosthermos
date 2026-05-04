@@ -11,13 +11,6 @@ import {
   normalizeAdminMenuLayout,
 } from "@/lib/admin-menu";
 
-const DASHBOARD_ITEM = {
-  href: "/admin",
-  label: "Tableau de bord",
-  icon: "fa-tachometer-alt",
-  exact: true,
-};
-
 function isItemActive(pathname, item) {
   if (item.exact) return pathname === item.href;
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -207,7 +200,7 @@ export default function AdminSidebar() {
         }`}
       >
         <div className="p-6 admin-border border-b">
-          <Link href="/admin" onClick={() => setOpen(false)}>
+          <Link href="/admin/suivi-clients" onClick={() => setOpen(false)}>
             <Image
               src="/images/Vos-Thermos-Logo_Blanc.png"
               alt="Vosthermos Admin"
@@ -222,22 +215,7 @@ export default function AdminSidebar() {
           <p className="admin-text-muted text-xs mt-1">Administration</p>
         </div>
 
-        <div className="px-3 pt-4">
-          <Link
-            href={DASHBOARD_ITEM.href}
-            onClick={() => setOpen(false)}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium ${
-              isItemActive(pathname, DASHBOARD_ITEM)
-                ? "bg-[var(--color-red)] text-white shadow-lg"
-                : "admin-text-muted admin-hover"
-            }`}
-          >
-            <i className={`fas ${DASHBOARD_ITEM.icon} w-5 text-center`}></i>
-            {DASHBOARD_ITEM.label}
-          </Link>
-        </div>
-
-        <div className="relative px-3 pt-3" ref={sectionPickerRef}>
+        <div className="relative px-3 pt-4" ref={sectionPickerRef}>
           <button
             type="button"
             onClick={() => setSectionPickerOpen((value) => !value)}
