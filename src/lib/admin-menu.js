@@ -37,14 +37,6 @@ export const ADMIN_MENU_SECTIONS = [
     summary: "Suivis, bons, rendez-vous",
   },
   {
-    key: "clients",
-    label: "Clients",
-    icon: "fa-address-book",
-    dotClass: "bg-sky-400",
-    accentClass: "text-sky-400",
-    summary: "Clients, ventes, portail",
-  },
-  {
     key: "boutique",
     label: "Boutique",
     icon: "fa-shopping-bag",
@@ -71,8 +63,7 @@ export const ADMIN_MENU_SECTIONS = [
 ];
 
 export const DEFAULT_ADMIN_MENU_LAYOUT = {
-  production: ["suiviClients", "bons", "rendezVous", "chat", "techniciens"],
-  clients: ["clients", "vendeur", "gestionnaires"],
+  production: ["suiviClients", "bons", "rendezVous", "chat", "techniciens", "clients", "vendeur", "gestionnaires"],
   boutique: ["commandes", "produits", "categories", "promotions"],
   site: ["analytics", "seo", "blogue", "services"],
   systeme: ["activite", "parametres", "utilisateurs", "menu"],
