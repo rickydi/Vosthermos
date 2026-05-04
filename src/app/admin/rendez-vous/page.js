@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { buildWhatsAppUrl, openWhatsAppWindow } from "@/lib/whatsapp";
 
 const MONTHS_FR = [
   "Janvier", "Fevrier", "Mars", "Avril", "Mai", "Juin",
@@ -31,6 +30,25 @@ function formatDate(date) {
   const m = String(date.getMonth() + 1).padStart(2, "0");
   const d = String(date.getDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
+}
+
+function buildAppointmentForwardText(appointment) {
+  if (!appointment) return "";
+  const dateStr = new Date(appointment.date).toLocaleDateString("fr-CA", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+  return [
+    "RDV Vosthermos",
+    appointment.name,
+    `Tel: ${appointment.phone}`,
+    appointment.email ? `Email: ${appointment.email}` : null,
+    `Service: ${SERVICE_LABELS[appointment.serviceType] || appointment.serviceType}`,
+    `Date: ${dateStr} a ${appointment.timeSlot}`,
+    [appointment.address, appointment.city].filter(Boolean).join(", ") || null,
+    appointment.notes ? `Notes: ${appointment.notes}` : null,
+  ].filter(Boolean).join("\n");
 }
 
 function getWeekDates(referenceDate) {
@@ -67,6 +85,8 @@ export default function AdminAppointmentsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [updating, setUpdating] = useState(false);
+  const [notifyingTo, setNotifyingTo] = useState("");
+  const [notifyStatus, setNotifyStatus] = useState("");
   const [view, setView] = useState("week"); // "week" | "month"
 
   const weekDates = getWeekDates(currentDate);
@@ -144,6 +164,33 @@ export default function AdminAppointmentsPage() {
       console.error("Error updating status:", err);
     }
     setUpdating(false);
+  }
+
+  async function notifyAppointment(recipient) {
+    if (!selectedAppointment || notifyingTo) return;
+    setNotifyingTo(recipient);
+    setNotifyStatus("");
+    try {
+      const res = await fetch("/api/admin/internal-notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipient,
+          message: buildAppointmentForwardText(selectedAppointment),
+          context: "rendez-vous",
+          entityType: "appointment",
+          entityId: selectedAppointment.id,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Erreur d'envoi SMS");
+      setNotifyStatus(`SMS envoye a ${data.recipient}`);
+      setTimeout(() => setNotifyStatus(""), 3000);
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setNotifyingTo("");
+    }
   }
 
   async function deleteAppointment(id) {
@@ -535,30 +582,25 @@ export default function AdminAppointmentsPage() {
                   </div>
                 </div>
 
-                {/* WhatsApp Jason + Delete */}
+                {/* Internal notify + Delete */}
                 <div className="admin-border border-t pt-5 flex items-center justify-between">
-                  <button
-                    onClick={() => {
-                      const a = selectedAppointment;
-                      const dateStr = new Date(a.date).toLocaleDateString("fr-CA", { weekday: "long", day: "numeric", month: "long" });
-                      const text = `*RDV Vosthermos*\n${a.name}\nTel: ${a.phone}\n${a.email ? `Email: ${a.email}\n` : ""}Service: ${SERVICE_LABELS[a.serviceType] || a.serviceType}\nDate: ${dateStr} a ${a.timeSlot}\n${a.address || ""}${a.city ? `, ${a.city}` : ""}\n${a.notes ? `\nNotes: ${a.notes}` : ""}`;
-                      openWhatsAppWindow(buildWhatsAppUrl("15148258411", text));
-                    }}
-                    className="flex items-center gap-2 bg-green-500/20 text-green-400 hover:bg-green-500/30 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
-                  >
-                    <i className="fab fa-whatsapp"></i> Jason
-                  </button>
-                  <button
-                    onClick={() => {
-                      const a = selectedAppointment;
-                      const dateStr = new Date(a.date).toLocaleDateString("fr-CA", { weekday: "long", day: "numeric", month: "long" });
-                      const text = `*RDV Vosthermos*\n${a.name}\nTel: ${a.phone}\n${a.email ? `Email: ${a.email}\n` : ""}Service: ${SERVICE_LABELS[a.serviceType] || a.serviceType}\nDate: ${dateStr} a ${a.timeSlot}\n${a.address || ""}${a.city ? `, ${a.city}` : ""}\n${a.notes ? `\nNotes: ${a.notes}` : ""}`;
-                      openWhatsAppWindow(buildWhatsAppUrl("14502750200", text));
-                    }}
-                    className="flex items-center gap-2 bg-green-500/20 text-green-400 hover:bg-green-500/30 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
-                  >
-                    <i className="fab fa-whatsapp"></i> Caren
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => notifyAppointment("jason")}
+                      disabled={!!notifyingTo}
+                      className="flex items-center gap-2 bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 px-4 py-2 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+                    >
+                      <i className={`fas ${notifyingTo === "jason" ? "fa-spinner fa-spin" : "fa-comment-sms"}`}></i> Jason
+                    </button>
+                    <button
+                      onClick={() => notifyAppointment("caren")}
+                      disabled={!!notifyingTo}
+                      className="flex items-center gap-2 bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 px-4 py-2 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+                    >
+                      <i className={`fas ${notifyingTo === "caren" ? "fa-spinner fa-spin" : "fa-comment-sms"}`}></i> Caren
+                    </button>
+                    {notifyStatus && <span className="text-xs text-emerald-300 font-semibold">{notifyStatus}</span>}
+                  </div>
                   <button
                     onClick={() => deleteAppointment(selectedAppointment.id)}
                     className="flex items-center gap-2 text-red-400 hover:text-red-300 text-sm font-semibold transition-colors"

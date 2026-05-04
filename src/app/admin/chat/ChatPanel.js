@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { formatPhone } from "@/lib/phone";
-import { buildWhatsAppUrl, openWhatsAppWindow } from "@/lib/whatsapp";
 
 function timeAgo(dateStr) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -23,24 +22,23 @@ function clientPresence(conversation) {
   return { online: false, label: `Vu ${timeAgo(conversation.lastSeenAt)}` };
 }
 
-const WHATSAPP_RECIPIENTS = {
-  jason: "15148258411",
-  caren: "14502750200",
-};
+function adminUrl(path) {
+  if (typeof window === "undefined") return `https://www.vosthermos.com${path}`;
+  return `${window.location.origin}${path}`;
+}
 
-function buildChatWhatsappText(conversation) {
+function buildChatForwardText(conversation) {
   if (!conversation) return "";
 
   const clientName = conversation.clientName || "Client";
   const header = [
-    "*Chat Vosthermos*",
+    "Chat Vosthermos",
     clientName,
     `Tel: ${formatPhone(conversation.clientPhone)}`,
     conversation.clientEmail ? `Email: ${conversation.clientEmail}` : null,
-    "-".repeat(20),
   ].filter(Boolean).join("\n");
 
-  const messages = (conversation.messages || []).map((message) => {
+  const messages = (conversation.messages || []).slice(-4).map((message) => {
     const who = message.senderType === "ADMIN" ? "Vosthermos" : clientName;
     const date = new Date(message.createdAt).toLocaleString("fr-CA", {
       day: "2-digit",
@@ -48,17 +46,12 @@ function buildChatWhatsappText(conversation) {
       hour: "2-digit",
       minute: "2-digit",
     });
-    let line = `[${date}] *${who}*: ${message.content || ""}`;
+    let line = `[${date}] ${who}: ${message.content || ""}`;
     if (message.imageUrl) line += `\nPhoto: https://www.vosthermos.com${message.imageUrl}`;
     return line;
   }).join("\n\n");
 
-  return `${header}\n${messages}`;
-}
-
-function openChatWhatsapp(recipient, conversation) {
-  const text = buildChatWhatsappText(conversation);
-  openWhatsAppWindow(buildWhatsAppUrl(recipient, text));
+  return `${header}\n\n${messages}\n\n${adminUrl(`/admin/chat/${conversation.id}`)}`;
 }
 
 export default function ChatPanel({ initialConversationId }) {
@@ -71,6 +64,8 @@ export default function ChatPanel({ initialConversationId }) {
   const [uploading, setUploading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [correcting, setCorrecting] = useState(false);
+  const [forwardingTo, setForwardingTo] = useState("");
+  const [forwardStatus, setForwardStatus] = useState("");
   const messagesEnd = useRef(null);
   const messagesContainerRef = useRef(null);
   const selectedIdRef = useRef(null);
@@ -232,6 +227,33 @@ export default function ChatPanel({ initialConversationId }) {
     } catch {}
   }
 
+  async function forwardChatTo(recipient) {
+    if (!selected || forwardingTo) return;
+    setForwardingTo(recipient);
+    setForwardStatus("");
+    try {
+      const res = await fetch("/api/admin/internal-notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipient,
+          message: buildChatForwardText(selected),
+          context: "chat",
+          entityType: "chat",
+          entityId: selected.id,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Erreur d'envoi SMS");
+      setForwardStatus(`SMS envoye a ${data.recipient}`);
+      setTimeout(() => setForwardStatus(""), 3000);
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setForwardingTo("");
+    }
+  }
+
   const filtered = conversations.filter((c) => {
     if (filter === "unread" && c.unreadCount <= 0) return false;
     if (filter === "archived" && !c.isArchived) return false;
@@ -344,17 +366,12 @@ export default function ChatPanel({ initialConversationId }) {
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <button onClick={() => {
-                  if (!selected) return;
-                  openChatWhatsapp(WHATSAPP_RECIPIENTS.jason, selected);
-                }} className="px-4 py-2 bg-green-500/20 text-green-400 hover:bg-green-500/30 rounded-lg text-xs font-semibold transition-colors" title="Envoyer a Jason Gordon sur WhatsApp">
-                  <i className="fab fa-whatsapp mr-1"></i>Jason
+                {forwardStatus && <span className="text-xs text-emerald-300 font-semibold">{forwardStatus}</span>}
+                <button onClick={() => forwardChatTo("jason")} disabled={!!forwardingTo} className="px-4 py-2 bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50" title="Envoyer a Jason par SMS">
+                  <i className={`fas ${forwardingTo === "jason" ? "fa-spinner fa-spin" : "fa-comment-sms"} mr-1`}></i>Jason
                 </button>
-                <button onClick={() => {
-                  if (!selected) return;
-                  openChatWhatsapp(WHATSAPP_RECIPIENTS.caren, selected);
-                }} className="px-4 py-2 bg-green-500/20 text-green-400 hover:bg-green-500/30 rounded-lg text-xs font-semibold transition-colors" title="Envoyer a Caren sur WhatsApp">
-                  <i className="fab fa-whatsapp mr-1"></i>Caren
+                <button onClick={() => forwardChatTo("caren")} disabled={!!forwardingTo} className="px-4 py-2 bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50" title="Envoyer a Caren par SMS">
+                  <i className={`fas ${forwardingTo === "caren" ? "fa-spinner fa-spin" : "fa-comment-sms"} mr-1`}></i>Caren
                 </button>
                 <button onClick={toggleArchive} className="px-4 py-2 bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 rounded-lg text-xs font-semibold transition-colors">
                   {selected.isArchived ? "Desarchiver" : "Archiver"}
