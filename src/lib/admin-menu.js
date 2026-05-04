@@ -63,22 +63,48 @@ export const ADMIN_MENU_SECTIONS = [
 ];
 
 export const DEFAULT_ADMIN_MENU_LAYOUT = {
-  production: ["suiviClients", "bons", "rendezVous", "chat", "techniciens", "clients", "vendeur", "gestionnaires"],
+  production: ["suiviClients", "bons", "rendezVous", "chat", "techniciens"],
   boutique: ["commandes", "produits", "categories", "promotions"],
-  site: ["analytics", "seo", "blogue", "services"],
-  systeme: ["activite", "parametres", "utilisateurs", "menu"],
+  site: ["analytics", "seo", "blogue", "services", "vendeur"],
+  systeme: ["clients", "gestionnaires", "activite", "parametres", "utilisateurs", "menu"],
 };
+
+const LEGACY_DEFAULT_ADMIN_MENU_LAYOUTS = [
+  {
+    production: ["suiviClients", "bons", "rendezVous", "chat", "techniciens", "clients", "vendeur", "gestionnaires"],
+    boutique: ["commandes", "produits", "categories", "promotions"],
+    site: ["analytics", "seo", "blogue", "services"],
+    systeme: ["activite", "parametres", "utilisateurs", "menu"],
+  },
+];
 
 export const DEFAULT_ADMIN_MENU_LABELS = Object.fromEntries(
   ADMIN_MENU_SECTIONS.map((section) => [section.key, section.label])
 );
 
+function sameMenuItems(a, b) {
+  return ADMIN_MENU_SECTIONS.every((section) => {
+    const left = Array.isArray(a?.[section.key]) ? a[section.key] : [];
+    const right = Array.isArray(b?.[section.key]) ? b[section.key] : [];
+    return left.length === right.length && left.every((itemKey, index) => itemKey === right[index]);
+  });
+}
+
+function migrateAdminMenuLayout(saved) {
+  if (!saved) return saved;
+  if (LEGACY_DEFAULT_ADMIN_MENU_LAYOUTS.some((legacy) => sameMenuItems(saved, legacy))) {
+    return { ...saved, ...DEFAULT_ADMIN_MENU_LAYOUT };
+  }
+  return saved;
+}
+
 export function normalizeAdminMenuLayout(saved) {
+  const migrated = migrateAdminMenuLayout(saved);
   const result = {};
   const assigned = new Set();
 
   for (const section of ADMIN_MENU_SECTIONS) {
-    const savedItems = Array.isArray(saved?.[section.key]) ? saved[section.key] : DEFAULT_ADMIN_MENU_LAYOUT[section.key];
+    const savedItems = Array.isArray(migrated?.[section.key]) ? migrated[section.key] : DEFAULT_ADMIN_MENU_LAYOUT[section.key];
     result[section.key] = [];
     for (const itemKey of savedItems || []) {
       if (!ADMIN_MENU_ITEMS[itemKey] || assigned.has(itemKey)) continue;
@@ -95,8 +121,8 @@ export function normalizeAdminMenuLayout(saved) {
     result[defaultSection?.key || "systeme"].push(itemKey);
   }
 
-  result.labels = { ...DEFAULT_ADMIN_MENU_LABELS, ...(saved?.labels || {}) };
-  result.itemLabels = saved?.itemLabels || {};
+  result.labels = { ...DEFAULT_ADMIN_MENU_LABELS, ...(migrated?.labels || {}) };
+  result.itemLabels = migrated?.itemLabels || {};
 
   return result;
 }

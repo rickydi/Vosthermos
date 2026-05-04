@@ -88,12 +88,13 @@ export async function GET(request) {
 
   // Default admin settings used by work-order forms.
   const key = searchParams.get("key");
+  try {
+    await requireAdmin();
+  } catch {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   if (!key) {
-    try {
-      await requireAdmin();
-    } catch {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
     const keys = Object.keys(WORK_ORDER_DEFAULTS);
     const rows = await prisma.$queryRawUnsafe(
       `SELECT key, value FROM site_settings WHERE key = ANY($1)`,

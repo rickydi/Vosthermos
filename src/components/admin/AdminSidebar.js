@@ -102,8 +102,7 @@ export default function AdminSidebar() {
     fetch(`/api/admin/settings?key=${ADMIN_MENU_SETTINGS_KEY}`, { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => {
-        if (!data?.value) return;
-        const next = normalizeAdminMenuLayout(JSON.parse(data.value));
+        const next = data?.value ? normalizeAdminMenuLayout(JSON.parse(data.value)) : normalizeAdminMenuLayout(null);
         setLayout(next);
         try {
           localStorage.setItem(ADMIN_MENU_SETTINGS_KEY, JSON.stringify(next));

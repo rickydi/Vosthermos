@@ -14,94 +14,21 @@ import {
 } from "@dnd-kit/core";
 import ClientPicker from "@/components/admin/ClientPicker";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
-
-const SETTINGS_KEY = "admin_follow_up_columns";
-const TERMINAL = new Set(["lost", "completed", "archived"]);
-
-const DEFAULT_COLUMNS = [
-  { key: "to_call", label: "A appeler", icon: "fa-phone", tone: "sky", visible: true, locked: true },
-  { key: "called", label: "Appel fait", icon: "fa-headset", tone: "blue", visible: true, locked: true },
-  { key: "estimate_sent", label: "Estime envoye", icon: "fa-file-invoice-dollar", tone: "amber", visible: true, locked: true },
-  { key: "won", label: "Accepte", icon: "fa-check", tone: "emerald", visible: true, locked: true },
-  { key: "scheduled", label: "Job planifie", icon: "fa-calendar-check", tone: "violet", visible: true, locked: true },
-  { key: "completed", label: "Job fait", icon: "fa-flag-checkered", tone: "teal", visible: true, locked: true },
-  { key: "a_payer", label: "A payer", icon: "fa-file-invoice-dollar", tone: "amber", visible: true, locked: true },
-  { key: "lost", label: "Perdu / refuse", icon: "fa-ban", tone: "slate", visible: true, locked: true },
-];
-
-const TONES = {
-  sky: {
-    label: "Bleu pale",
-    badge: "bg-sky-500/15 text-sky-300",
-    soft: "bg-sky-500/10 text-sky-300",
-    ring: "ring-sky-400/25",
-    border: "border-sky-400/30",
-    button: "bg-sky-600 hover:bg-sky-500 text-white",
-  },
-  blue: {
-    label: "Bleu",
-    badge: "bg-blue-500/15 text-blue-300",
-    soft: "bg-blue-500/10 text-blue-300",
-    ring: "ring-blue-400/25",
-    border: "border-blue-400/30",
-    button: "bg-blue-600 hover:bg-blue-500 text-white",
-  },
-  amber: {
-    label: "Ambre",
-    badge: "bg-amber-500/15 text-amber-300",
-    soft: "bg-amber-500/10 text-amber-300",
-    ring: "ring-amber-400/25",
-    border: "border-amber-400/30",
-    button: "bg-amber-600 hover:bg-amber-500 text-white",
-  },
-  emerald: {
-    label: "Vert",
-    badge: "bg-emerald-500/15 text-emerald-300",
-    soft: "bg-emerald-500/10 text-emerald-300",
-    ring: "ring-emerald-400/25",
-    border: "border-emerald-400/30",
-    button: "bg-emerald-600 hover:bg-emerald-500 text-white",
-  },
-  violet: {
-    label: "Violet",
-    badge: "bg-violet-500/15 text-violet-300",
-    soft: "bg-violet-500/10 text-violet-300",
-    ring: "ring-violet-400/25",
-    border: "border-violet-400/30",
-    button: "bg-violet-600 hover:bg-violet-500 text-white",
-  },
-  teal: {
-    label: "Sarcelle",
-    badge: "bg-teal-500/15 text-teal-300",
-    soft: "bg-teal-500/10 text-teal-300",
-    ring: "ring-teal-400/25",
-    border: "border-teal-400/30",
-    button: "bg-teal-600 hover:bg-teal-500 text-white",
-  },
-  slate: {
-    label: "Gris",
-    badge: "bg-slate-500/15 text-slate-300",
-    soft: "bg-slate-500/10 text-slate-300",
-    ring: "ring-slate-400/25",
-    border: "border-slate-400/30",
-    button: "bg-slate-600 hover:bg-slate-500 text-white",
-  },
-};
-
-const ICON_OPTIONS = [
-  "fa-list-check",
-  "fa-phone",
-  "fa-headset",
-  "fa-file-invoice-dollar",
-  "fa-check",
-  "fa-calendar-check",
-  "fa-flag-checkered",
-  "fa-ban",
-  "fa-comments",
-  "fa-clipboard-list",
-  "fa-hourglass-half",
-  "fa-archive",
-];
+import {
+  DEFAULT_FOLLOW_UP_COLUMNS as DEFAULT_COLUMNS,
+  FOLLOW_UP_COLUMNS_SETTINGS_KEY as SETTINGS_KEY,
+  FOLLOW_UP_ICON_OPTIONS as ICON_OPTIONS,
+  FOLLOW_UP_TERMINAL_SET as TERMINAL,
+  FOLLOW_UP_TONES as TONES,
+  followUpColumnMeta as columnMeta,
+  followUpSlug as slugify,
+  followUpToneClasses as toneClasses,
+  isAcceptedFollowUpStatus as isAcceptedStatus,
+  isLostFollowUpColumn as isLostColumn,
+  isLostFollowUpStatus as isLostStatus,
+  normalizeFollowUpColumns as normalizeColumns,
+} from "@/lib/follow-up-columns";
+import { WORK_ORDER_STATUS_OPTIONS } from "@/lib/work-order-status";
 
 const EMPTY_FORM = {
   title: "",
@@ -176,64 +103,6 @@ function priorityLabel(value) {
   if (value === "high") return "Haute";
   if (value === "low") return "Basse";
   return "Normale";
-}
-
-function columnSearchText(column = {}) {
-  return slugify([column.key, column.label].filter(Boolean).join(" "));
-}
-
-function isAcceptedStatus(columns, status) {
-  if (status === "won") return true;
-  const text = columnSearchText(columnMeta(columns, status));
-  return text.includes("accept") || text.includes("gagne") || text.includes("pris");
-}
-
-function isLostColumn(column) {
-  const text = columnSearchText(column);
-  return column.key === "lost" || text.includes("perdu") || text.includes("refus") || text.includes("lost");
-}
-
-function isLostStatus(columns, status) {
-  return isLostColumn(columnMeta(columns, status));
-}
-
-function slugify(value) {
-  return String(value || "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "")
-    .slice(0, 36);
-}
-
-function normalizeColumns(columns) {
-  if (!Array.isArray(columns)) return DEFAULT_COLUMNS;
-  const byKey = new Map(DEFAULT_COLUMNS.map((c) => [c.key, c]));
-  const normalized = [];
-  for (const col of columns) {
-    if (!col?.key) continue;
-    const base = byKey.get(col.key) || {};
-    normalized.push({
-      key: slugify(col.key),
-      label: String(col.label || base.label || col.key).slice(0, 40),
-      icon: ICON_OPTIONS.includes(col.icon) ? col.icon : (base.icon || "fa-list-check"),
-      tone: TONES[col.tone] ? col.tone : (base.tone || "blue"),
-      visible: col.visible !== false,
-      locked: Boolean(base.locked || col.locked),
-    });
-    byKey.delete(col.key);
-  }
-  for (const col of byKey.values()) normalized.push(col);
-  return normalized.length ? normalized : DEFAULT_COLUMNS;
-}
-
-function columnMeta(columns, key) {
-  return columns.find((c) => c.key === key) || { key, label: key, icon: "fa-list-check", tone: "slate", visible: true };
-}
-
-function toneClasses(tone) {
-  return TONES[tone] || TONES.slate;
 }
 
 function addPhotoToActivity(activity = {}, photo) {
@@ -2674,13 +2543,9 @@ function WorkOrderDetail({ detail, saving, onPatch }) {
               onChange={(e) => onPatch({ statut: e.target.value })}
               className="admin-input border rounded-lg px-3 py-2 text-sm min-w-44"
             >
-              <option value="draft">Brouillon</option>
-              <option value="scheduled">Planifie</option>
-              <option value="in_progress">En cours</option>
-              <option value="sent">Envoye</option>
-              <option value="invoiced">Facture</option>
-              <option value="paid">Paye</option>
-              <option value="completed">Complete</option>
+              {WORK_ORDER_STATUS_OPTIONS.map((status) => (
+                <option key={status.key} value={status.key}>{status.label}</option>
+              ))}
             </select>
           </div>
           <div className="grid md:grid-cols-3 gap-3 mt-4">
