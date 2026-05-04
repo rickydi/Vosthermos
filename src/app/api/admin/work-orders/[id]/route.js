@@ -11,7 +11,8 @@ import {
   flattenSectionsBody,
   attachSectionsAndItems,
 } from "@/lib/work-order-utils";
-import { createOrTouchFollowUpFromWorkOrder } from "@/lib/follow-up-utils";
+import { createOrTouchFollowUpFromWorkOrder, getSavedFollowUpColumns } from "@/lib/follow-up-utils";
+import { workOrderStatutFromFollowUpStatus } from "@/lib/follow-up-columns";
 import { parseDateOnly } from "@/lib/date-only";
 import { changedFields, logAdminActivity } from "@/lib/admin-activity";
 
@@ -89,6 +90,10 @@ export async function PUT(req, { params }) {
 
   const body = await req.json();
   const settings = await getWorkOrderSettings();
+  const followUpColumns = body.followUpStatus ? await getSavedFollowUpColumns() : null;
+  const statut = body.followUpStatus
+    ? workOrderStatutFromFollowUpStatus(body.followUpStatus, followUpColumns)
+    : (body.statut || existing.statut);
   const rebuildLines = body.items !== undefined || body.sections !== undefined;
   const shouldRecalcTotals = rebuildLines || body.laborHours !== undefined || body.laborRate !== undefined;
   const { flatItems, sections, allForCalc } = flattenSectionsBody(body);
@@ -147,7 +152,7 @@ export async function PUT(req, { params }) {
         photos: body.photos ?? existing.photos,
         signatureUrl: body.signatureUrl ?? existing.signatureUrl,
         notes: body.notes ?? existing.notes,
-        statut: body.statut || existing.statut,
+        statut,
         visibleAuClient: body.visibleAuClient ?? existing.visibleAuClient,
         laborRate,
         ...totals,

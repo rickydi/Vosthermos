@@ -9,6 +9,7 @@ export const DEFAULT_FOLLOW_UP_COLUMNS = [
   { key: "won", label: "Accepte", icon: "fa-check", tone: "emerald", visible: true, locked: true },
   { key: "scheduled", label: "Job planifie", icon: "fa-calendar-check", tone: "violet", visible: true, locked: true },
   { key: "completed", label: "Job fait", icon: "fa-flag-checkered", tone: "teal", visible: true, locked: true },
+  { key: "a_payer", label: "A payer", icon: "fa-file-invoice-dollar", tone: "amber", visible: true, locked: true },
   { key: "lost", label: "Perdu / refuse", icon: "fa-ban", tone: "slate", visible: true, locked: true },
 ];
 
@@ -131,6 +132,10 @@ function columnSearchText(column = {}) {
   return followUpSlug([column.key, column.label].filter(Boolean).join(" "));
 }
 
+function findStatusByText(columns, matcher) {
+  return normalizeFollowUpColumns(columns).find((column) => matcher(columnSearchText(column)))?.key || null;
+}
+
 export function isAcceptedFollowUpStatus(columns, status) {
   if (status === "won") return true;
   const text = columnSearchText(followUpColumnMeta(columns, status));
@@ -146,9 +151,51 @@ export function isLostFollowUpStatus(columns, status) {
   return isLostFollowUpColumn(followUpColumnMeta(columns, status));
 }
 
-export function followUpStatusFromWorkOrderStatut(statut) {
+export function followUpStatusFromWorkOrderStatut(statut, columns = DEFAULT_FOLLOW_UP_COLUMNS) {
+  const normalized = normalizeFollowUpColumns(columns);
+  if (statut === "paid") {
+    return findStatusByText(normalized, (text) => text.includes("paye") || text.includes("paid")) || "completed";
+  }
+  if (statut === "invoiced" || statut === "sent") {
+    return findStatusByText(normalized, (text) =>
+      text.includes("a_payer") ||
+      text.includes("payer") ||
+      text.includes("factur") ||
+      text.includes("invoice") ||
+      text.includes("recevoir")
+    ) || "completed";
+  }
+  if (statut === "completed") return "completed";
   if (statut === "scheduled" || statut === "in_progress") return "scheduled";
-  if (statut === "completed" || statut === "invoiced" || statut === "sent" || statut === "paid") return "completed";
   if (statut === "draft") return "won";
   return "to_call";
+}
+
+export function workOrderStatutFromFollowUpStatus(status, columns = DEFAULT_FOLLOW_UP_COLUMNS) {
+  const column = followUpColumnMeta(normalizeFollowUpColumns(columns), status);
+  const text = columnSearchText(column);
+
+  if (text.includes("paye") || text.includes("paid")) return "paid";
+  if (
+    text.includes("a_payer") ||
+    text.includes("payer") ||
+    text.includes("factur") ||
+    text.includes("invoice") ||
+    text.includes("recevoir")
+  ) {
+    return text.includes("envoy") || text.includes("sent") ? "sent" : "invoiced";
+  }
+  if (
+    text.includes("job_fait") ||
+    text.includes("complete") ||
+    text.includes("completed") ||
+    text.includes("termine") ||
+    text.includes("fini") ||
+    text.includes("done")
+  ) {
+    return "completed";
+  }
+  if (text.includes("cours") || text.includes("progress")) return "in_progress";
+  if (text.includes("planifi") || text.includes("scheduled") || text.includes("rendez") || text.includes("rdv")) return "scheduled";
+  return "draft";
 }

@@ -1,5 +1,11 @@
 import prisma from "@/lib/prisma";
-import { followUpStatusFromWorkOrderStatut } from "@/lib/follow-up-columns";
+import {
+  DEFAULT_FOLLOW_UP_COLUMNS,
+  FOLLOW_UP_COLUMNS_SETTINGS_KEY,
+  followUpStatusFromWorkOrderStatut,
+  normalizeFollowUpColumns,
+  workOrderStatutFromFollowUpStatus,
+} from "@/lib/follow-up-columns";
 
 export const FOLLOW_UP_TERMINAL_STATUSES = ["lost", "completed", "archived"];
 
@@ -27,6 +33,18 @@ export function normalizePhoneDigits(phone) {
   if (!phone) return null;
   const digits = String(phone).replace(/\D/g, "").slice(-10);
   return digits.length >= 7 ? digits : null;
+}
+
+export async function getSavedFollowUpColumns() {
+  try {
+    const setting = await prisma.siteSetting.findUnique({
+      where: { key: FOLLOW_UP_COLUMNS_SETTINGS_KEY },
+      select: { value: true },
+    });
+    return normalizeFollowUpColumns(setting?.value ? JSON.parse(setting.value) : null);
+  } catch {
+    return DEFAULT_FOLLOW_UP_COLUMNS;
+  }
 }
 
 function cleanText(value) {
@@ -125,7 +143,8 @@ async function findRelevantFollowUp(clientId, nextStatus) {
 export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client, followUpStatus } = {}) {
   if (!client?.id || !workOrder?.id) return null;
 
-  const status = cleanText(followUpStatus) || (workOrder.statut === "draft" ? "to_call" : followUpStatusFromWorkOrderStatut(workOrder.statut));
+  const columns = await getSavedFollowUpColumns();
+  const status = cleanText(followUpStatus) || (workOrder.statut === "draft" ? "to_call" : followUpStatusFromWorkOrderStatut(workOrder.statut, columns));
   const existing = await findRelevantFollowUp(client.id, status);
 
   const note = `[auto: bon de travail ${workOrder.number || `#${workOrder.id}`} ${new Date().toISOString().slice(0, 10)}]`;
@@ -157,5 +176,27 @@ export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client, fo
       nextAction: status === "scheduled" ? "Suivre le bon planifie" : "Appeler le client",
       notes: note,
     },
+  });
+}
+
+export async function syncLatestWorkOrderFromFollowUpStatus(followUp, columns) {
+  const clientId = followUp?.clientId || followUp?.client?.id;
+  const status = cleanText(followUp?.status);
+  if (!clientId || !status) return null;
+
+  const normalizedColumns = columns || await getSavedFollowUpColumns();
+  const nextStatut = workOrderStatutFromFollowUpStatus(status, normalizedColumns);
+  const workOrder = await prisma.workOrder.findFirst({
+    where: { clientId },
+    orderBy: [
+      { updatedAt: "desc" },
+      { id: "desc" },
+    ],
+  });
+  if (!workOrder || workOrder.statut === nextStatut) return workOrder;
+
+  return prisma.workOrder.update({
+    where: { id: workOrder.id },
+    data: { statut: nextStatut },
   });
 }

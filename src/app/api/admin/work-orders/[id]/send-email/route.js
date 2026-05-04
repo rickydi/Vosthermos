@@ -246,7 +246,7 @@ export async function POST(req, { params }) {
     });
 
     try {
-      await createOrTouchFollowUpFromWorkOrder({ workOrder: sentWorkOrder, client: wo.client, followUpStatus: "completed" });
+      await createOrTouchFollowUpFromWorkOrder({ workOrder: sentWorkOrder, client: wo.client });
     } catch (err) {
       console.error("[work-order-email] follow-up sync error:", err?.message || err);
     }

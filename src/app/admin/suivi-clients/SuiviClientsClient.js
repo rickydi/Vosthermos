@@ -25,6 +25,7 @@ const DEFAULT_COLUMNS = [
   { key: "won", label: "Accepte", icon: "fa-check", tone: "emerald", visible: true, locked: true },
   { key: "scheduled", label: "Job planifie", icon: "fa-calendar-check", tone: "violet", visible: true, locked: true },
   { key: "completed", label: "Job fait", icon: "fa-flag-checkered", tone: "teal", visible: true, locked: true },
+  { key: "a_payer", label: "A payer", icon: "fa-file-invoice-dollar", tone: "amber", visible: true, locked: true },
   { key: "lost", label: "Perdu / refuse", icon: "fa-ban", tone: "slate", visible: true, locked: true },
 ];
 

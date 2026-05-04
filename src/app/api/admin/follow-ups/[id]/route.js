@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
-import { serializeFollowUp } from "@/lib/follow-up-utils";
+import { serializeFollowUp, syncLatestWorkOrderFromFollowUpStatus } from "@/lib/follow-up-utils";
 import { changedFields, logAdminActivity } from "@/lib/admin-activity";
 
 function dateOrNull(value) {
@@ -83,6 +83,14 @@ export async function PUT(req, { params }) {
       },
     },
   });
+
+  if (data.status !== undefined) {
+    try {
+      await syncLatestWorkOrderFromFollowUpStatus(followUp);
+    } catch (err) {
+      console.error("[follow-ups] work-order sync error:", err?.message || err);
+    }
+  }
 
   await logAdminActivity(req, session, {
     action: "update",

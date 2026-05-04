@@ -11,7 +11,8 @@ import {
   flattenSectionsBody,
   attachSectionsAndItems,
 } from "@/lib/work-order-utils";
-import { createOrTouchFollowUpFromWorkOrder } from "@/lib/follow-up-utils";
+import { createOrTouchFollowUpFromWorkOrder, getSavedFollowUpColumns } from "@/lib/follow-up-utils";
+import { workOrderStatutFromFollowUpStatus } from "@/lib/follow-up-columns";
 import { parseDateOnly } from "@/lib/date-only";
 import { logAdminActivity } from "@/lib/admin-activity";
 
@@ -76,6 +77,10 @@ export async function POST(req) {
 
   const number = await generateWorkOrderNumber();
   const settings = await getWorkOrderSettings();
+  const followUpColumns = body.followUpStatus ? await getSavedFollowUpColumns() : null;
+  const statut = body.followUpStatus
+    ? workOrderStatutFromFollowUpStatus(body.followUpStatus, followUpColumns)
+    : (body.statut || "draft");
 
   const { flatItems, sections, allForCalc } = flattenSectionsBody(body);
   const laborHours = Number(body.laborHours) || 0;
@@ -109,7 +114,7 @@ export async function POST(req) {
         description: body.description || null,
         photos: body.photos || [],
         notes: body.notes || null,
-        statut: body.statut || "draft",
+        statut,
         visibleAuClient: body.visibleAuClient ?? true,
         laborRate,
         ...totals,

@@ -12,6 +12,7 @@ import {
   FOLLOW_UP_COLUMNS_SETTINGS_KEY,
   followUpStatusFromWorkOrderStatut,
   normalizeFollowUpColumns,
+  workOrderStatutFromFollowUpStatus,
 } from "@/lib/follow-up-columns";
 
 const DRAFT_KEY = "vosthermos:nouveau-bon:draft";
@@ -223,7 +224,6 @@ function NouveauBonAdmin() {
   const [heureDepart, setHeureDepart] = useState("");
   const [description, setDescription] = useState("");
   const [notes, setNotes] = useState("");
-  const [statut, setStatut] = useState("draft");
   const [followUpStatus, setFollowUpStatus] = useState(() => followUpStatusFromWorkOrderStatut("draft"));
   const [followUpColumns, setFollowUpColumns] = useState(DEFAULT_FOLLOW_UP_COLUMNS);
   const [interventionAddress, setInterventionAddress] = useState("");
@@ -324,7 +324,6 @@ function NouveauBonAdmin() {
       if (draft.heureDepart !== undefined) setHeureDepart(draft.heureDepart);
       if (draft.description !== undefined) setDescription(draft.description);
       if (draft.notes !== undefined) setNotes(draft.notes);
-      if (draft.statut) setStatut(draft.statut);
       if (draft.followUpStatus) setFollowUpStatus(draft.followUpStatus);
       if (draft.interventionAddress !== undefined) setInterventionAddress(draft.interventionAddress);
       if (draft.interventionCity !== undefined) setInterventionCity(draft.interventionCity);
@@ -353,7 +352,6 @@ function NouveauBonAdmin() {
           heureDepart,
           description,
           notes,
-          statut,
           followUpStatus,
           interventionAddress,
           interventionCity,
@@ -376,7 +374,6 @@ function NouveauBonAdmin() {
     heureDepart,
     description,
     notes,
-    statut,
     followUpStatus,
     interventionAddress,
     interventionCity,
@@ -421,7 +418,6 @@ function NouveauBonAdmin() {
         setHeureDepart(fmtHM(wo.departureAt));
         setDescription(wo.description || "");
         setNotes(wo.notes || "");
-        setStatut(wo.statut || "draft");
         setFollowUpStatus(wo.followUpStatus || followUpStatusFromWorkOrderStatut(wo.statut || "draft"));
         setInterventionAddress(wo.interventionAddress || "");
         setInterventionCity(wo.interventionCity || "");
@@ -552,11 +548,6 @@ function NouveauBonAdmin() {
       discountPercent: mode === "percent" ? 10 : 0,
       discountAmount: mode === "amount" ? 0 : 0,
     }]);
-  }
-
-  function handleWorkOrderStatusChange(nextStatut) {
-    setStatut(nextStatut);
-    setFollowUpStatus(followUpStatusFromWorkOrderStatut(nextStatut));
   }
 
   function updateItem(idx, field, value) {
@@ -697,7 +688,10 @@ function NouveauBonAdmin() {
     setSavingAction(submitAction);
     setError("");
     try {
-      const finalStatut = submitAction === "invoice" ? "invoiced" : statut;
+      const selectedFollowUpStatus = submitAction === "invoice"
+        ? followUpStatusFromWorkOrderStatut("invoiced", followUpColumns)
+        : followUpStatus;
+      const finalStatut = workOrderStatutFromFollowUpStatus(selectedFollowUpStatus, followUpColumns);
       const payload = {
         clientId: selectedClient.id,
         technicianId: technicianId || null,
@@ -711,7 +705,7 @@ function NouveauBonAdmin() {
         description: description || null,
         notes: notes || null,
         statut: finalStatut,
-        followUpStatus: submitAction === "invoice" ? "completed" : followUpStatus,
+        followUpStatus: selectedFollowUpStatus,
         laborHours,
         laborRate,
         // Flat items: always included. For B2B, only discount lines stay flat.
@@ -1324,26 +1318,14 @@ function NouveauBonAdmin() {
         <div className="admin-card border rounded-xl p-6">
           <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
             <div>
-              <label className="admin-text-muted text-xs mb-1 block">Statut du bon</label>
-              <select value={statut} onChange={(e) => handleWorkOrderStatusChange(e.target.value)}
-                className="admin-input border rounded-lg px-3 py-2.5 text-sm">
-                <option value="draft">Brouillon</option>
-                <option value="scheduled">Job planifié</option>
-                <option value="in_progress">En cours</option>
-                <option value="completed">Job fait</option>
-                <option value="invoiced">Facturé</option>
-                <option value="paid">Payé</option>
-              </select>
-            </div>
-            <div>
-              <label className="admin-text-muted text-xs mb-1 block">Statut suivi client</label>
+              <label className="admin-text-muted text-xs mb-1 block">Statut</label>
               <select value={followUpStatus} onChange={(e) => setFollowUpStatus(e.target.value)}
                 className="admin-input border rounded-lg px-3 py-2.5 text-sm min-w-44">
                 {followUpColumns.filter((column) => column.visible).map((column) => (
                   <option key={column.key} value={column.key}>{column.label}</option>
                 ))}
               </select>
-              <p className="admin-text-muted text-[10px] mt-1">Deplace la carte dans Suivi clients.</p>
+              <p className="admin-text-muted text-[10px] mt-1">Même statut que dans Suivi clients.</p>
             </div>
             {error && <p className="text-sm text-red-500 md:ml-auto">{error}</p>}
             {invoiceMode ? (
