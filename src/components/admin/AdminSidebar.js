@@ -136,6 +136,12 @@ export default function AdminSidebar() {
           fetch("/api/admin/chat", noCache),
           fetch("/api/admin/appointments?status=pending", noCache),
           fetch("/api/admin/work-orders/pending-count", noCache),
+          fetch("/api/admin/internal-notify", {
+            ...noCache,
+            method: "POST",
+            headers: { ...noCache.headers, "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "process-due" }),
+          }),
         ]);
         const chatData = await chatRes.json();
         if (Array.isArray(chatData)) {

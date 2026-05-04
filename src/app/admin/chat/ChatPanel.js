@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { formatPhone } from "@/lib/phone";
+import { buildWhatsAppUrl, openWhatsAppWindow } from "@/lib/whatsapp";
 
 function timeAgo(dateStr) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -21,6 +22,16 @@ function clientPresence(conversation) {
   if (diff < 5 * 60 * 1000) return { online: true, label: "En ligne" };
   return { online: false, label: `Vu ${timeAgo(conversation.lastSeenAt)}` };
 }
+
+const WHATSAPP_RECIPIENTS = {
+  jason: "15148258411",
+  caren: "14502750200",
+};
+
+const RECIPIENT_LABELS = {
+  jason: "Jason",
+  caren: "Caren",
+};
 
 function adminUrl(path) {
   if (typeof window === "undefined") return `https://www.vosthermos.com${path}`;
@@ -66,6 +77,7 @@ export default function ChatPanel({ initialConversationId }) {
   const [correcting, setCorrecting] = useState(false);
   const [forwardingTo, setForwardingTo] = useState("");
   const [forwardStatus, setForwardStatus] = useState("");
+  const [fallbacks, setFallbacks] = useState({});
   const messagesEnd = useRef(null);
   const messagesContainerRef = useRef(null);
   const selectedIdRef = useRef(null);
@@ -227,28 +239,56 @@ export default function ChatPanel({ initialConversationId }) {
     } catch {}
   }
 
-  async function forwardChatTo(recipient) {
+  async function openWhatsappWithFallback(recipient) {
     if (!selected || forwardingTo) return;
     setForwardingTo(recipient);
     setForwardStatus("");
+    const message = buildChatForwardText(selected);
     try {
+      openWhatsAppWindow(buildWhatsAppUrl(WHATSAPP_RECIPIENTS[recipient], message), 0);
       const res = await fetch("/api/admin/internal-notify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          action: "schedule-fallback",
           recipient,
-          message: buildChatForwardText(selected),
+          message,
           context: "chat",
           entityType: "chat",
           entityId: selected.id,
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Erreur d'envoi SMS");
-      setForwardStatus(`SMS envoye a ${data.recipient}`);
-      setTimeout(() => setForwardStatus(""), 3000);
+      if (!res.ok) throw new Error(data.error || "Erreur de planification SMS");
+      setFallbacks((current) => ({ ...current, [recipient]: data }));
+      setForwardStatus(`WhatsApp ouvert pour ${data.recipient}. SMS secours dans 10 min.`);
+      setTimeout(() => setForwardStatus(""), 5000);
     } catch (err) {
       alert(err.message);
+    } finally {
+      setForwardingTo("");
+    }
+  }
+
+  async function confirmWhatsappSent(recipient) {
+    const fallback = fallbacks[recipient];
+    if (!fallback?.id) return;
+    setForwardingTo(`confirm-${recipient}`);
+    try {
+      await fetch("/api/admin/internal-notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "cancel-fallback", id: fallback.id }),
+      });
+      setFallbacks((current) => {
+        const next = { ...current };
+        delete next[recipient];
+        return next;
+      });
+      setForwardStatus(`WhatsApp confirme pour ${RECIPIENT_LABELS[recipient]}`);
+      setTimeout(() => setForwardStatus(""), 3000);
+    } catch {
+      alert("Impossible d'annuler le SMS de secours.");
     } finally {
       setForwardingTo("");
     }
@@ -367,12 +407,22 @@ export default function ChatPanel({ initialConversationId }) {
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 {forwardStatus && <span className="text-xs text-emerald-300 font-semibold">{forwardStatus}</span>}
-                <button onClick={() => forwardChatTo("jason")} disabled={!!forwardingTo} className="px-4 py-2 bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50" title="Envoyer a Jason par SMS">
-                  <i className={`fas ${forwardingTo === "jason" ? "fa-spinner fa-spin" : "fa-comment-sms"} mr-1`}></i>Jason
+                <button onClick={() => openWhatsappWithFallback("jason")} disabled={!!forwardingTo} className="px-4 py-2 bg-green-500/20 text-green-400 hover:bg-green-500/30 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50" title="Ouvrir WhatsApp Jason avec SMS secours">
+                  <i className={`fas ${forwardingTo === "jason" ? "fa-spinner fa-spin" : "fab fa-whatsapp"} mr-1`}></i>Jason
                 </button>
-                <button onClick={() => forwardChatTo("caren")} disabled={!!forwardingTo} className="px-4 py-2 bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50" title="Envoyer a Caren par SMS">
-                  <i className={`fas ${forwardingTo === "caren" ? "fa-spinner fa-spin" : "fa-comment-sms"} mr-1`}></i>Caren
+                {fallbacks.jason?.id && (
+                  <button onClick={() => confirmWhatsappSent("jason")} disabled={!!forwardingTo} className="px-3 py-2 bg-emerald-500/20 text-emerald-300 rounded-lg text-xs font-semibold disabled:opacity-50" title="Annuler le SMS secours Jason">
+                    OK Jason
+                  </button>
+                )}
+                <button onClick={() => openWhatsappWithFallback("caren")} disabled={!!forwardingTo} className="px-4 py-2 bg-green-500/20 text-green-400 hover:bg-green-500/30 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50" title="Ouvrir WhatsApp Caren avec SMS secours">
+                  <i className={`fas ${forwardingTo === "caren" ? "fa-spinner fa-spin" : "fab fa-whatsapp"} mr-1`}></i>Caren
                 </button>
+                {fallbacks.caren?.id && (
+                  <button onClick={() => confirmWhatsappSent("caren")} disabled={!!forwardingTo} className="px-3 py-2 bg-emerald-500/20 text-emerald-300 rounded-lg text-xs font-semibold disabled:opacity-50" title="Annuler le SMS secours Caren">
+                    OK Caren
+                  </button>
+                )}
                 <button onClick={toggleArchive} className="px-4 py-2 bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 rounded-lg text-xs font-semibold transition-colors">
                   {selected.isArchived ? "Desarchiver" : "Archiver"}
                 </button>

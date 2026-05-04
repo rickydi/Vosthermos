@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { buildWhatsAppUrl, openWhatsAppWindow } from "@/lib/whatsapp";
 
 const MONTHS_FR = [
   "Janvier", "Fevrier", "Mars", "Avril", "Mai", "Juin",
@@ -23,6 +24,16 @@ const SERVICE_LABELS = {
   thermos: "Vitre thermos",
   "portes-bois": "Portes en bois",
   moustiquaires: "Moustiquaires",
+};
+
+const WHATSAPP_RECIPIENTS = {
+  jason: "15148258411",
+  caren: "14502750200",
+};
+
+const RECIPIENT_LABELS = {
+  jason: "Jason",
+  caren: "Caren",
 };
 
 function formatDate(date) {
@@ -87,6 +98,7 @@ export default function AdminAppointmentsPage() {
   const [updating, setUpdating] = useState(false);
   const [notifyingTo, setNotifyingTo] = useState("");
   const [notifyStatus, setNotifyStatus] = useState("");
+  const [fallbacks, setFallbacks] = useState({});
   const [view, setView] = useState("week"); // "week" | "month"
 
   const weekDates = getWeekDates(currentDate);
@@ -170,24 +182,52 @@ export default function AdminAppointmentsPage() {
     if (!selectedAppointment || notifyingTo) return;
     setNotifyingTo(recipient);
     setNotifyStatus("");
+    const message = buildAppointmentForwardText(selectedAppointment);
     try {
+      openWhatsAppWindow(buildWhatsAppUrl(WHATSAPP_RECIPIENTS[recipient], message), 0);
       const res = await fetch("/api/admin/internal-notify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          action: "schedule-fallback",
           recipient,
-          message: buildAppointmentForwardText(selectedAppointment),
+          message,
           context: "rendez-vous",
           entityType: "appointment",
           entityId: selectedAppointment.id,
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Erreur d'envoi SMS");
-      setNotifyStatus(`SMS envoye a ${data.recipient}`);
-      setTimeout(() => setNotifyStatus(""), 3000);
+      if (!res.ok) throw new Error(data.error || "Erreur de planification SMS");
+      setFallbacks((current) => ({ ...current, [recipient]: data }));
+      setNotifyStatus(`WhatsApp ouvert pour ${data.recipient}. SMS secours dans 10 min.`);
+      setTimeout(() => setNotifyStatus(""), 5000);
     } catch (err) {
       alert(err.message);
+    } finally {
+      setNotifyingTo("");
+    }
+  }
+
+  async function confirmWhatsappSent(recipient) {
+    const fallback = fallbacks[recipient];
+    if (!fallback?.id) return;
+    setNotifyingTo(`confirm-${recipient}`);
+    try {
+      await fetch("/api/admin/internal-notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "cancel-fallback", id: fallback.id }),
+      });
+      setFallbacks((current) => {
+        const next = { ...current };
+        delete next[recipient];
+        return next;
+      });
+      setNotifyStatus(`WhatsApp confirme pour ${RECIPIENT_LABELS[recipient]}`);
+      setTimeout(() => setNotifyStatus(""), 3000);
+    } catch {
+      alert("Impossible d'annuler le SMS de secours.");
     } finally {
       setNotifyingTo("");
     }
@@ -582,23 +622,33 @@ export default function AdminAppointmentsPage() {
                   </div>
                 </div>
 
-                {/* Internal notify + Delete */}
+                {/* WhatsApp + SMS fallback + Delete */}
                 <div className="admin-border border-t pt-5 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => notifyAppointment("jason")}
                       disabled={!!notifyingTo}
-                      className="flex items-center gap-2 bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 px-4 py-2 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+                      className="flex items-center gap-2 bg-green-500/20 text-green-400 hover:bg-green-500/30 px-4 py-2 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
                     >
-                      <i className={`fas ${notifyingTo === "jason" ? "fa-spinner fa-spin" : "fa-comment-sms"}`}></i> Jason
+                      <i className={`${notifyingTo === "jason" ? "fas fa-spinner fa-spin" : "fab fa-whatsapp"}`}></i> Jason
                     </button>
+                    {fallbacks.jason?.id && (
+                      <button onClick={() => confirmWhatsappSent("jason")} disabled={!!notifyingTo} className="px-3 py-2 bg-emerald-500/20 text-emerald-300 rounded-lg text-xs font-semibold disabled:opacity-50" title="Annuler le SMS secours Jason">
+                        OK Jason
+                      </button>
+                    )}
                     <button
                       onClick={() => notifyAppointment("caren")}
                       disabled={!!notifyingTo}
-                      className="flex items-center gap-2 bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 px-4 py-2 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+                      className="flex items-center gap-2 bg-green-500/20 text-green-400 hover:bg-green-500/30 px-4 py-2 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
                     >
-                      <i className={`fas ${notifyingTo === "caren" ? "fa-spinner fa-spin" : "fa-comment-sms"}`}></i> Caren
+                      <i className={`${notifyingTo === "caren" ? "fas fa-spinner fa-spin" : "fab fa-whatsapp"}`}></i> Caren
                     </button>
+                    {fallbacks.caren?.id && (
+                      <button onClick={() => confirmWhatsappSent("caren")} disabled={!!notifyingTo} className="px-3 py-2 bg-emerald-500/20 text-emerald-300 rounded-lg text-xs font-semibold disabled:opacity-50" title="Annuler le SMS secours Caren">
+                        OK Caren
+                      </button>
+                    )}
                     {notifyStatus && <span className="text-xs text-emerald-300 font-semibold">{notifyStatus}</span>}
                   </div>
                   <button
