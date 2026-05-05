@@ -179,6 +179,15 @@ function HelpBubble({ text }) {
   );
 }
 
+function MoneyLine({ label, value, muted = false }) {
+  return (
+    <div className={`flex items-center justify-between gap-3 ${muted ? "text-xs" : "text-sm"}`}>
+      <span className="admin-text-muted">{label}</span>
+      <span className={muted ? "admin-text-muted" : "admin-text font-medium"}>{value}</span>
+    </div>
+  );
+}
+
 export default function NouveauBonPage() {
   return (
     <Suspense fallback={<div className="p-6 lg:p-8 admin-text-muted"><i className="fas fa-spinner fa-spin mr-2"></i>Chargement...</div>}>
@@ -758,45 +767,55 @@ function NouveauBonAdmin() {
     }
   }
 
+  const visibleFollowUpColumns = followUpColumns.filter((column) => column.visible);
+  const selectedStatusLabel = visibleFollowUpColumns.find((column) => column.key === followUpStatus)?.label || followUpStatus;
+  const flatPieceCount = items.filter((it) => it.itemType !== "discount").length;
+  const sectionPieceCount = sections.reduce((sum, sec) => sum + sec.items.filter((it) => it.itemType !== "discount").length, 0);
+  const discountCount = items.filter((it) => it.itemType === "discount").length;
+  const pieceCount = flatPieceCount + sectionPieceCount;
+  const currentModeLabel = invoiceMode ? "Facturation" : editId ? "Modification" : "Creation";
+
   return (
-    <div className="p-6 lg:p-8">
-      <div className="flex flex-col gap-4 mb-6 lg:flex-row lg:items-center lg:justify-between">
+    <div className="px-4 py-5 lg:px-8 lg:py-6">
+      <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <Link href="/admin/bons" className="admin-text-muted text-sm hover:admin-text">
             <i className="fas fa-arrow-left mr-2"></i>Retour aux bons
           </Link>
-          <h1 className="admin-text text-2xl font-bold mt-2">
-            {invoiceMode ? "Facturer le bon de travail" : (editId ? "Modifier le bon de travail" : "Nouveau bon de travail")}
-          </h1>
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            <h1 className="admin-text text-2xl font-bold">
+              {invoiceMode ? "Facturer le bon de travail" : (editId ? "Modifier le bon de travail" : "Nouveau bon de travail")}
+            </h1>
+            <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-bold text-cyan-600">
+              {currentModeLabel}
+            </span>
+            {editId && (
+              <span className="rounded-full border admin-border px-3 py-1 text-xs font-medium admin-text-muted">
+                {selectedStatusLabel}
+              </span>
+            )}
+          </div>
         </div>
         {editId && (
           <div className="flex flex-wrap items-center gap-2">
-            {!invoiceMode && (
-              <Link
-                href={`/admin/bons/nouveau?edit=${editId}&mode=invoice`}
-                className="inline-flex items-center rounded-lg bg-orange-600 px-4 py-2 text-sm font-bold text-white hover:bg-orange-700"
-              >
-                <i className="fas fa-file-invoice-dollar mr-2"></i>Facturer ce bon
-              </Link>
-            )}
             <Link
               href={`/admin/bons/${editId}`}
               className="inline-flex items-center rounded-lg border admin-border admin-card px-4 py-2 text-sm font-medium admin-text hover:bg-white/5"
             >
-              <i className="fas fa-envelope mr-2"></i>Voir / envoyer
+              <i className="fas fa-file-lines mr-2"></i>Apercu / envoyer
             </Link>
           </div>
         )}
       </div>
 
       {invoiceMode && (
-        <div className="border border-orange-500/40 bg-orange-500/10 rounded-xl p-4 mb-6 max-w-5xl">
+        <div className="mb-5 max-w-[1500px] rounded-lg border border-orange-500/40 bg-orange-500/10 p-4">
           <div className="flex items-start gap-3">
             <i className="fas fa-file-invoice-dollar text-orange-500 text-xl mt-0.5"></i>
             <div className="flex-1">
               <h3 className="font-bold text-orange-500 mb-1">Mode facturation</h3>
               <p className="text-sm admin-text-muted">
-                Ajoutez les heures travaillées (champ <strong>Heures</strong> plus bas) et les pièces installées par unité (bouton <strong>+ Ajouter pièce</strong> dans chaque section). Cliquez <strong>Facturer ce bon</strong> pour générer la facture, ou <strong>Enregistrer (sans facturer)</strong> pour revenir plus tard.
+                Ajoutez les heures et les pieces, puis utilisez le panneau de droite pour facturer ou enregistrer sans facturer.
               </p>
             </div>
           </div>
@@ -804,16 +823,17 @@ function NouveauBonAdmin() {
       )}
 
       {loadingEdit && (
-        <div className="admin-card border rounded-xl p-6 mb-6 max-w-5xl">
+        <div className="admin-card mb-5 max-w-[1500px] rounded-lg border p-5">
           <p className="admin-text-muted text-sm text-center">
             <i className="fas fa-spinner fa-spin mr-2"></i>Chargement du bon #{editId}...
           </p>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className={`space-y-6 max-w-5xl ${loadingEdit ? "opacity-40 pointer-events-none" : ""}`}>
+      <form onSubmit={handleSubmit} className={`grid max-w-[1500px] gap-5 xl:grid-cols-[minmax(0,1fr)_360px] ${loadingEdit ? "opacity-40 pointer-events-none" : ""}`}>
+        <div className="min-w-0 space-y-4">
         {/* Client */}
-        <div className="admin-card border rounded-xl p-6">
+        <div className="admin-card border rounded-xl p-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="admin-text font-bold">Client</h2>
             {!selectedClient && (
@@ -823,7 +843,7 @@ function NouveauBonAdmin() {
                   <i className="fas fa-user-plus mr-2"></i>Client rapide
                 </button>
                 <button type="button" onClick={() => setClientPickerOpen(true)}
-                  className="px-4 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium">
+                  className="px-4 py-2 bg-cyan-700 text-white rounded-lg text-sm font-medium hover:bg-cyan-600">
                   <i className="fas fa-address-book mr-2"></i>Parcourir les clients
                 </button>
               </div>
@@ -915,7 +935,7 @@ function NouveauBonAdmin() {
                 {selectedClient.secondaryPhone && <p className="admin-text-muted text-sm">{selectedClient.secondaryPhone}</p>}
                 {selectedClient.address && <p className="admin-text-muted text-sm">{selectedClient.address}{selectedClient.city ? `, ${selectedClient.city}` : ""}</p>}
               </div>
-              <button type="button" onClick={clearSelectedClient} className="text-xs text-[var(--color-red)]">
+              <button type="button" onClick={clearSelectedClient} className="text-xs font-medium text-cyan-600 hover:text-cyan-500">
                 Changer
               </button>
             </div>
@@ -923,7 +943,7 @@ function NouveauBonAdmin() {
         </div>
 
         {/* Details */}
-        <div className="admin-card border rounded-xl p-6 space-y-4">
+        <div className="admin-card border rounded-xl p-4 space-y-4">
           <h2 className="admin-text font-bold">Details</h2>
           <div className="grid md:grid-cols-3 gap-4">
             <div>
@@ -979,25 +999,32 @@ function NouveauBonAdmin() {
           </div>
           <div>
             <label className="admin-text-muted text-xs mb-1 block">Description du travail</label>
-            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3}
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2}
               className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
           </div>
-          <div>
-            <label className="admin-text-muted text-xs mb-1 block">Notes internes</label>
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
-              className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
-          </div>
-          <label className="flex items-center gap-2 text-sm admin-text cursor-pointer">
-            <input type="checkbox" checked={visibleAuClient}
-              onChange={(e) => setVisibleAuClient(e.target.checked)}
-              className="rounded" />
-            Visible dans le portail client
-          </label>
+          <details className="rounded-lg border admin-border bg-white/[0.02] p-3">
+            <summary className="cursor-pointer text-sm font-medium admin-text">
+              Options avancees
+            </summary>
+            <div className="mt-3 space-y-3">
+              <div>
+                <label className="admin-text-muted text-xs mb-1 block">Notes internes</label>
+                <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
+                  className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
+              </div>
+              <label className="flex items-center gap-2 text-sm admin-text cursor-pointer">
+                <input type="checkbox" checked={visibleAuClient}
+                  onChange={(e) => setVisibleAuClient(e.target.checked)}
+                  className="rounded" />
+                Visible dans le portail client
+              </label>
+            </div>
+          </details>
         </div>
 
         {/* Sections par unite (B2B only) */}
         {isB2B && (
-          <div className="admin-card border rounded-xl p-6 space-y-4">
+          <div className="admin-card border rounded-xl p-4 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="admin-text font-bold">
                 <i className="fas fa-building mr-2 text-blue-400"></i>Unites visitees ({sections.length})
@@ -1041,7 +1068,7 @@ function NouveauBonAdmin() {
                 onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSection(); } }}
                 className="admin-input border rounded-lg px-3 py-2 text-sm flex-1 font-mono" />
               <button type="button" onClick={addSection} disabled={!newUnitCode.trim()}
-                className="px-4 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium disabled:opacity-30">
+                className="px-4 py-2 bg-cyan-700 text-white rounded-lg text-sm font-medium hover:bg-cyan-600 disabled:opacity-30">
                 <i className="fas fa-plus mr-1"></i>Ajouter
               </button>
             </div>
@@ -1060,8 +1087,8 @@ function NouveauBonAdmin() {
                       <span className="admin-text-muted text-xs">{sec.items.length} item{sec.items.length !== 1 ? "s" : ""}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="font-bold text-[var(--color-red)]">{secSubtotal.toFixed(2)}$</span>
-                      <button type="button" onClick={() => removeSection(sIdx)} className="text-red-500 text-sm">
+                      <span className="font-bold text-cyan-600">{secSubtotal.toFixed(2)}$</span>
+                      <button type="button" onClick={() => removeSection(sIdx)} className="text-amber-500 text-sm hover:text-amber-400">
                         <i className="fas fa-trash"></i>
                       </button>
                     </div>
@@ -1076,7 +1103,7 @@ function NouveauBonAdmin() {
                           <button type="button" key={svc.id}
                             onClick={() => addServiceToSection(sIdx, svc)}
                             className="px-2.5 py-1 rounded text-xs admin-card border admin-border admin-text hover:bg-white/5">
-                            {svc.name} <span className="text-[var(--color-red)] font-bold ml-1">{Number(svc.price).toFixed(0)}$</span>
+                            {svc.name} <span className="text-cyan-600 font-bold ml-1">{Number(svc.price).toFixed(0)}$</span>
                           </button>
                         ))}
                       </div>
@@ -1094,7 +1121,7 @@ function NouveauBonAdmin() {
                             onChange={(e) => updateSectionItem(sIdx, iIdx, "description", e.target.value)}
                             placeholder="Description..."
                             className="admin-input border rounded px-2 py-1 text-sm flex-1" />
-                          <button type="button" onClick={() => removeSectionItem(sIdx, iIdx)} className="text-red-500 text-sm">
+                          <button type="button" onClick={() => removeSectionItem(sIdx, iIdx)} className="text-amber-500 text-sm hover:text-amber-400">
                             <i className="fas fa-trash"></i>
                           </button>
                         </div>
@@ -1108,7 +1135,7 @@ function NouveauBonAdmin() {
                             onChange={(e) => updateSectionItem(sIdx, iIdx, "unitPrice", parseFloat(e.target.value) || 0)}
                             className="admin-input border rounded px-2 py-0.5 text-sm w-20 text-right" />
                           <span className="admin-text-muted text-xs">$</span>
-                          <span className="ml-auto font-bold text-[var(--color-red)] text-sm">
+                          <span className="ml-auto font-bold text-cyan-600 text-sm">
                             {(Number(it.quantity) * Number(it.unitPrice)).toFixed(2)}$
                           </span>
                         </div>
@@ -1147,14 +1174,14 @@ function NouveauBonAdmin() {
         )}
 
         {/* Items (flat — for particulier OR discounts-only B2B) */}
-        <div className="admin-card border rounded-xl p-6 space-y-4">
+        <div className="admin-card border rounded-xl p-4 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="admin-text font-bold">
               {isB2B ? "Escomptes / lignes globales" : "Pieces utilisees"}
             </h2>
             {!isB2B && (
               <button type="button" onClick={() => { setCatalogTarget(null); setCatalogOpen(true); }}
-                className="px-4 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium">
+                className="px-4 py-2 bg-cyan-700 text-white rounded-lg text-sm font-medium hover:bg-cyan-600">
                 <i className="fas fa-book-open mr-2"></i>Parcourir le catalogue
               </button>
             )}
@@ -1173,7 +1200,7 @@ function NouveauBonAdmin() {
                       placeholder="Description de l'escompte..."
                       className="admin-input border rounded px-2 py-1.5 text-sm flex-1"
                     />
-                    <button type="button" onClick={() => removeItem(i)} className="text-red-500 text-sm">
+                    <button type="button" onClick={() => removeItem(i)} className="text-amber-500 text-sm hover:text-amber-400">
                       <i className="fas fa-trash"></i>
                     </button>
                   </div>
@@ -1223,7 +1250,7 @@ function NouveauBonAdmin() {
                     placeholder="Description..."
                     className="admin-input border rounded px-2 py-1.5 text-sm flex-1"
                   />
-                  <button type="button" onClick={() => removeItem(i)} className="text-red-500 text-sm">
+                  <button type="button" onClick={() => removeItem(i)} className="text-amber-500 text-sm hover:text-amber-400">
                     <i className="fas fa-trash"></i>
                   </button>
                 </div>
@@ -1237,7 +1264,7 @@ function NouveauBonAdmin() {
                     onChange={(e) => updateItem(i, "unitPrice", parseFloat(e.target.value) || 0)}
                     className="admin-input border rounded px-2 py-1 text-sm w-24 text-right" />
                   <span className="admin-text-muted text-xs">$</span>
-                  <span className="ml-auto font-bold text-[var(--color-red)]">
+                  <span className="ml-auto font-bold text-cyan-600">
                     {(Number(it.quantity) * Number(it.unitPrice)).toFixed(2)}$
                   </span>
                 </div>
@@ -1282,7 +1309,7 @@ function NouveauBonAdmin() {
         </div>
 
         {/* Labor + Totals */}
-        <div className="admin-card border rounded-xl p-6 space-y-4">
+        <div className="admin-card border rounded-xl p-4 space-y-4">
           <div>
             <h2 className="admin-text font-bold">Main d&apos;oeuvre</h2>
             <p className="admin-text-muted text-xs mt-1">
@@ -1298,43 +1325,72 @@ function NouveauBonAdmin() {
               <i className="fas fa-gear mr-1"></i>Ajuster le taux
             </Link>
             <span className="admin-text-muted text-sm">{formatLaborHours(laborHours)} x {laborRate.toFixed(2)}$/h</span>
-            <span className="ml-auto font-bold text-[var(--color-red)]">{totalLabor.toFixed(2)}$</span>
+            <span className="ml-auto font-bold text-cyan-600">{totalLabor.toFixed(2)}$</span>
           </div>
 
-          <div className="border-t admin-border pt-4 space-y-2 text-sm">
-            <div className="flex justify-between"><span className="admin-text-muted">Pieces</span><span className="admin-text">{totalPieces.toFixed(2)}$</span></div>
-            <div className="flex justify-between"><span className="admin-text-muted">Main d&apos;oeuvre</span><span className="admin-text">{totalLabor.toFixed(2)}$</span></div>
-            <div className="flex justify-between border-t admin-border pt-2"><span className="admin-text-muted">Sous-total</span><span className="admin-text">{subtotal.toFixed(2)}$</span></div>
-            <div className="flex justify-between text-xs"><span className="admin-text-muted">TPS ({(settings.tps_rate*100).toFixed(1)}%)</span><span className="admin-text-muted">{tps.toFixed(2)}$</span></div>
-            <div className="flex justify-between text-xs"><span className="admin-text-muted">TVQ ({(settings.tvq_rate*100).toFixed(3)}%)</span><span className="admin-text-muted">{tvq.toFixed(2)}$</span></div>
-            <div className="flex justify-between text-lg font-bold border-t admin-border pt-2">
-              <span className="admin-text">Total</span>
-              <span className="text-[var(--color-red)]">{total.toFixed(2)}$</span>
-            </div>
-          </div>
+          <p className="admin-text-muted border-t admin-border pt-3 text-xs">
+            Le taux inscrit ici est conserve sur ce bon. Les changements dans Parametres ne modifient pas les anciens bons.
+          </p>
         </div>
 
-        {/* Statut + Submit */}
-        <div className="admin-card border rounded-xl p-6">
-          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+        </div>
+
+        {/* Resume + actions */}
+        <aside className="admin-card border rounded-xl p-5 xl:sticky xl:top-5 xl:self-start">
+          <div className="space-y-5">
+            <div>
+              <p className="admin-text-muted text-[11px] font-bold uppercase tracking-wider">Resume du bon</p>
+              <div className="mt-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 p-4">
+                <p className="text-xs font-bold uppercase tracking-wider text-cyan-700">Total a facturer</p>
+                <p className="mt-1 text-3xl font-black text-cyan-700">{total.toFixed(2)}$</p>
+                <p className="admin-text-muted mt-1 text-xs">
+                  {pieceCount} piece{pieceCount !== 1 ? "s" : ""} | {formatLaborHours(laborHours)} main d&apos;oeuvre
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2 border-t admin-border pt-4">
+              <MoneyLine label="Pieces" value={`${totalPieces.toFixed(2)}$`} />
+              <MoneyLine label="Main d'oeuvre" value={`${totalLabor.toFixed(2)}$`} />
+              <MoneyLine label="Sous-total" value={`${subtotal.toFixed(2)}$`} />
+              <MoneyLine label={`TPS (${(settings.tps_rate * 100).toFixed(1)}%)`} value={`${tps.toFixed(2)}$`} muted />
+              <MoneyLine label={`TVQ (${(settings.tvq_rate * 100).toFixed(3)}%)`} value={`${tvq.toFixed(2)}$`} muted />
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="rounded-lg border admin-border p-2">
+                <p className="text-lg font-bold admin-text">{pieceCount}</p>
+                <p className="admin-text-muted text-[10px] uppercase">Pieces</p>
+              </div>
+              <div className="rounded-lg border admin-border p-2">
+                <p className="text-lg font-bold admin-text">{sections.length}</p>
+                <p className="admin-text-muted text-[10px] uppercase">Unites</p>
+              </div>
+              <div className="rounded-lg border admin-border p-2">
+                <p className="text-lg font-bold admin-text">{discountCount}</p>
+                <p className="admin-text-muted text-[10px] uppercase">Rabais</p>
+              </div>
+            </div>
+
+            <div className="space-y-4 border-t admin-border pt-4">
             <div>
               <label className="admin-text-muted text-xs mb-1 block">Statut</label>
               <select value={followUpStatus} onChange={(e) => setFollowUpStatus(e.target.value)}
-                className="admin-input border rounded-lg px-3 py-2.5 text-sm min-w-44">
-                {followUpColumns.filter((column) => column.visible).map((column) => (
+                className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full">
+                {visibleFollowUpColumns.map((column) => (
                   <option key={column.key} value={column.key}>{column.label}</option>
                 ))}
               </select>
               <p className="admin-text-muted text-[10px] mt-1">Même statut que dans Suivi clients.</p>
             </div>
-            {error && <p className="text-sm text-red-500 md:ml-auto">{error}</p>}
+            {error && <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-600">{error}</p>}
             {invoiceMode ? (
-              <div className="md:ml-auto flex gap-3 flex-wrap">
+              <div className="flex flex-col gap-2">
                 <button
                   type="submit"
                   value="save"
                   disabled={saving || !selectedClient}
-                  className="px-5 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium admin-text hover:bg-white/5 disabled:opacity-50"
+                  className="w-full rounded-lg border admin-border px-5 py-3 text-sm font-medium admin-text hover:bg-white/5 disabled:opacity-50"
                 >
                   {saving && savingAction === "save" ? "Enregistrement..." : "Enregistrer (sans facturer)"}
                 </button>
@@ -1342,21 +1398,32 @@ function NouveauBonAdmin() {
                   type="submit"
                   value="invoice"
                   disabled={saving || !selectedClient}
-                  className="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-bold disabled:opacity-50"
+                  className="w-full rounded-lg bg-orange-600 px-6 py-3 text-sm font-bold text-white hover:bg-orange-700 disabled:opacity-50"
                 >
                   <i className="fas fa-file-invoice-dollar mr-2"></i>
                   {saving && savingAction === "invoice" ? "Facturation..." : "Facturer ce bon"}
                 </button>
               </div>
             ) : (
-              <button type="submit" disabled={saving || !selectedClient}
-                value="save"
-                className="md:ml-auto px-6 py-3 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium disabled:opacity-50">
-                {saving ? (editId ? "Enregistrement..." : "Creation...") : (editId ? "Enregistrer les modifications" : "Creer le bon")}
-              </button>
+              <div className="space-y-2">
+                <button type="submit" disabled={saving || !selectedClient}
+                  value="save"
+                  className="w-full rounded-lg bg-cyan-700 px-6 py-3 text-sm font-bold text-white hover:bg-cyan-600 disabled:opacity-50">
+                  {saving ? (editId ? "Enregistrement..." : "Creation...") : (editId ? "Enregistrer les modifications" : "Creer le bon")}
+                </button>
+                {editId && (
+                  <Link
+                    href={`/admin/bons/nouveau?edit=${editId}&mode=invoice`}
+                    className="flex w-full items-center justify-center rounded-lg border border-orange-500/40 px-4 py-2.5 text-sm font-bold text-orange-600 hover:bg-orange-500/10"
+                  >
+                    <i className="fas fa-file-invoice-dollar mr-2"></i>Passer en facturation
+                  </Link>
+                )}
+              </div>
             )}
+            </div>
           </div>
-        </div>
+        </aside>
       </form>
 
       <CatalogPicker open={catalogOpen} onClose={() => setCatalogOpen(false)} onPick={addProduct} />
