@@ -796,16 +796,6 @@ function NouveauBonAdmin() {
             )}
           </div>
         </div>
-        {editId && (
-          <div className="flex flex-wrap items-center gap-2">
-            <Link
-              href={`/admin/bons/${editId}`}
-              className="inline-flex items-center rounded-lg border admin-border admin-card px-4 py-2 text-sm font-medium admin-text hover:bg-white/5"
-            >
-              <i className="fas fa-file-lines mr-2"></i>Apercu / envoyer
-            </Link>
-          </div>
-        )}
       </div>
 
       {invoiceMode && (
@@ -1420,6 +1410,14 @@ function NouveauBonAdmin() {
                   </Link>
                 )}
               </div>
+            )}
+            {editId && (
+              <Link
+                href={`/admin/bons/${editId}`}
+                className="flex w-full items-center justify-center rounded-lg border admin-border px-4 py-2.5 text-sm font-medium admin-text hover:bg-white/5"
+              >
+                <i className="fas fa-file-lines mr-2"></i>Apercu / envoyer
+              </Link>
             )}
             </div>
           </div>
