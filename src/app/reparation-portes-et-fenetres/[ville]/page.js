@@ -63,6 +63,13 @@ export default async function ReparationVillePage({ params }) {
         desc: "Roulettes, rail, poignee, serrure et coupe-froid. Lien direct vers la page specialisee pour la reparation de porte patio a Beloeil.",
       };
     }
+    if (city.slug === "beauharnois" && service.slug === "reparation-porte-patio") {
+      return {
+        ...service,
+        title: "Reparation porte patio a Beauharnois",
+        desc: "Roulettes, rail, poignee, serrure et coupe-froid. Lien direct vers la page specialisee pour la reparation de porte patio a Beauharnois.",
+      };
+    }
     return service;
   };
 

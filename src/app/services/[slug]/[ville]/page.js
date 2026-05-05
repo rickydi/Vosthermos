@@ -46,6 +46,44 @@ const LOCAL_SERVICE_CITY_PAGES = {
       },
     ],
   },
+  "reparation-porte-patio:beauharnois": {
+    seoTitle: "Reparation porte patio Beauharnois | Roulettes et rail",
+    seoDescription:
+      `Porte patio difficile a ouvrir a Beauharnois? Reparation de roulettes, rail, serrure, poignee et coupe-froid. Service a domicile a Beauharnois. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Reparation de porte patio a Beauharnois",
+    lead:
+      "Service specialise de reparation de porte patio a Beauharnois: roulettes usees, rail encrasse, serrure bloquee, poignee brisee, coupe-froid fatigue ou thermos embue.",
+    schemaName: "Reparation de porte patio a Beauharnois",
+    schemaDescription:
+      "Reparation de portes patio coulissantes a Beauharnois: remplacement de roulettes, ajustement de rail, serrure, poignee, coupe-froid et thermos.",
+    serviceType: "Reparation de porte patio",
+    alternateName: ["reparation porte patio Beauharnois", "reparation porte-patio Beauharnois"],
+    sections: [
+      {
+        heading: "Reparation porte patio Beauharnois: roulettes, rail et serrure",
+        paragraphs: [
+          "A Beauharnois, l'humidite du canal de Beauharnois et du lac Saint-Louis peut accelerer la corrosion des roulettes, serrures et rails de portes patio. Une porte qui devient lourde a ouvrir n'a pas toujours besoin d'etre remplacee.",
+          "Nos techniciens interviennent dans le centre-ville, Maple Grove, le secteur du Canal, Melocheville et Saint-Etienne-de-Beauharnois pour reparer les portes patio sur place: roulettes, rail, poignee, serrure, coupe-froid et thermos.",
+          "Les maisons ouvrieres plus anciennes et les constructions des annees 1980-2000 ont souvent des portes patio reparables. On verifie l'alignement, l'etat du rail et la quincaillerie avant de recommander la solution la plus economique.",
+        ],
+      },
+    ],
+    issues: [
+      "Roulettes et rails de porte patio corrodes par l'humidite du canal de Beauharnois",
+      "Portes patio lourdes ou difficiles a glisser dans les maisons de Maple Grove et du centre-ville",
+      "Poignee, serrure ou coupe-froid fatigues dans les secteurs riverains pres du lac Saint-Louis",
+    ],
+    faq: [
+      {
+        q: "Reparez-vous les portes patio a Beauharnois?",
+        a: "Oui. Nous reparons les portes patio a Beauharnois: roulettes, rail, serrure, poignee, coupe-froid et thermos. Le technicien se deplace sur place et verifie si la porte peut etre reparee avant de proposer un remplacement complet.",
+      },
+      {
+        q: "Combien coute une reparation de porte patio a Beauharnois?",
+        a: "La plupart des reparations de porte patio coutent entre 150$ et 600$ selon le probleme. Le remplacement de roulettes, l'ajustement du rail ou le changement de serrure coute beaucoup moins cher qu'une porte neuve. La soumission est gratuite.",
+      },
+    ],
+  },
 };
 
 function getLocalServiceCityPage(serviceSlug, citySlug) {
