@@ -55,6 +55,17 @@ export default async function ReparationVillePage({ params }) {
   const city = getCity(ville);
   if (!city) notFound();
 
+  const getServiceCard = (service) => {
+    if (city.slug === "beloeil" && service.slug === "reparation-porte-patio") {
+      return {
+        ...service,
+        title: "Reparation porte patio a Beloeil",
+        desc: "Roulettes, rail, poignee, serrure et coupe-froid. Lien direct vers la page specialisee pour la reparation de porte patio a Beloeil.",
+      };
+    }
+    return service;
+  };
+
   const otherCities = CITIES.filter((c) => c.slug !== city.slug).slice(0, 12);
 
   const provider = {
@@ -277,22 +288,25 @@ export default async function ReparationVillePage({ params }) {
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {allServices.map((s) => (
-              <Link
-                key={s.slug}
-                href={`/services/${s.slug}/${city.slug}`}
-                className="group bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)] hover:shadow-md hover:border-[var(--color-teal)] transition-all"
-              >
-                <div className="w-12 h-12 rounded-xl bg-[var(--color-teal)]/10 flex items-center justify-center mb-4 group-hover:bg-[var(--color-teal)] transition-colors">
-                  <i className={`${s.icon} text-lg text-[var(--color-teal)] group-hover:text-white transition-colors`}></i>
-                </div>
-                <h3 className="font-bold text-base mb-2 group-hover:text-[var(--color-teal)] transition-colors">{s.title}</h3>
-                <p className="text-sm text-[var(--color-muted)] leading-relaxed">{s.desc}</p>
-                <span className="inline-flex items-center gap-1 text-[var(--color-teal)] text-sm font-semibold mt-3 group-hover:gap-2 transition-all">
-                  En savoir plus <i className="fas fa-arrow-right text-xs"></i>
-                </span>
-              </Link>
-            ))}
+            {allServices.map((service) => {
+              const s = getServiceCard(service);
+              return (
+                <Link
+                  key={s.slug}
+                  href={`/services/${s.slug}/${city.slug}`}
+                  className="group bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)] hover:shadow-md hover:border-[var(--color-teal)] transition-all"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-[var(--color-teal)]/10 flex items-center justify-center mb-4 group-hover:bg-[var(--color-teal)] transition-colors">
+                    <i className={`${s.icon} text-lg text-[var(--color-teal)] group-hover:text-white transition-colors`}></i>
+                  </div>
+                  <h3 className="font-bold text-base mb-2 group-hover:text-[var(--color-teal)] transition-colors">{s.title}</h3>
+                  <p className="text-sm text-[var(--color-muted)] leading-relaxed">{s.desc}</p>
+                  <span className="inline-flex items-center gap-1 text-[var(--color-teal)] text-sm font-semibold mt-3 group-hover:gap-2 transition-all">
+                    En savoir plus <i className="fas fa-arrow-right text-xs"></i>
+                  </span>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>

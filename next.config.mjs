@@ -59,6 +59,8 @@ const nextConfig = {
       { source: "/en/carrieres", destination: "/en/contact?subject=careers", permanent: true },
       { source: "/en/panier", destination: "/panier", permanent: true },
       { source: "/en/rendez-vous", destination: "/en/contact", permanent: true },
+      { source: "/en/services/reparation-porte-patio", destination: "/services/reparation-porte-patio", permanent: true },
+      { source: "/en/services/reparation-porte-patio/:ville", destination: "/services/reparation-porte-patio/:ville", permanent: true },
 
       // Slugs anglais -> francais (pas de version EN dediee)
       { source: "/services/door-insert", destination: "/services/insertion-porte", permanent: true },

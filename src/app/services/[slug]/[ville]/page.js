@@ -7,6 +7,51 @@ import { getServiceSeo } from "@/lib/seo-templates";
 import QuoteForm from "@/components/QuoteForm";
 import { COMPANY_INFO } from "@/lib/company-info";
 
+const LOCAL_SERVICE_CITY_PAGES = {
+  "reparation-porte-patio:beloeil": {
+    seoTitle: "Reparation porte patio Beloeil | Roulettes et rail",
+    seoDescription:
+      `Porte patio difficile a ouvrir a Beloeil? Reparation de roulettes, rail, serrure, poignee et coupe-froid. Service a domicile a Beloeil. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Reparation de porte patio a Beloeil",
+    lead:
+      "Service specialise de reparation de porte patio a Beloeil: roulettes usees, rail encrasse, serrure bloquee, poignee brisee, coupe-froid fatigue ou thermos embue.",
+    schemaName: "Reparation de porte patio a Beloeil",
+    schemaDescription:
+      "Reparation de portes patio coulissantes a Beloeil: remplacement de roulettes, ajustement de rail, serrure, poignee, coupe-froid et thermos.",
+    serviceType: "Reparation de porte patio",
+    alternateName: ["reparation porte patio Beloeil", "reparation porte-patio Beloeil"],
+    sections: [
+      {
+        heading: "Reparation porte patio Beloeil: roulettes, rail et serrure",
+        paragraphs: [
+          "A Beloeil, beaucoup de portes patio installees dans les maisons des annees 1970 a 2000 commencent a forcer sur le rail. Les roulettes s'aplatissent, le rail accumule de la salete et la porte devient lourde a ouvrir.",
+          "Nos techniciens interviennent dans le Vieux-Beloeil, le secteur de la Montagne, le Domaine Beloeil, la rue Richelieu et le boulevard Sir-Wilfrid-Laurier pour remettre les portes patio en fonction sans remplacer la porte complete.",
+          "La proximite de la riviere Richelieu peut aussi accelerer la corrosion de la quincaillerie et fatiguer les coupe-froids. On verifie les roulettes, le rail, la poignee, la serrure et l'etancheite avant de recommander la reparation la plus economique.",
+        ],
+      },
+    ],
+    issues: [
+      "Porte patio lourde ou difficile a glisser dans les maisons du Domaine Beloeil et du secteur de la Montagne",
+      "Roulettes usees, rail sale ou seuil abime sur les portes patio des constructions 1970-2000",
+      "Poignee, serrure ou coupe-froid fatigues dans les secteurs plus humides pres de la rue Richelieu",
+    ],
+    faq: [
+      {
+        q: "Reparez-vous les portes patio a Beloeil?",
+        a: "Oui. Nous reparons les portes patio a Beloeil: roulettes, rail, serrure, poignee, coupe-froid et thermos. Le technicien se deplace sur place et verifie si la porte peut etre reparee avant de proposer un remplacement complet.",
+      },
+      {
+        q: "Combien coute une reparation de porte patio a Beloeil?",
+        a: "La plupart des reparations de porte patio coutent entre 150$ et 600$ selon le probleme. Le remplacement de roulettes ou l'ajustement du rail coute beaucoup moins cher qu'une porte neuve. La soumission est gratuite.",
+      },
+    ],
+  },
+};
+
+function getLocalServiceCityPage(serviceSlug, citySlug) {
+  return LOCAL_SERVICE_CITY_PAGES[`${serviceSlug}:${citySlug}`] || null;
+}
+
 export function generateStaticParams() {
   const params = [];
   for (const service of SERVICES) {
@@ -23,7 +68,10 @@ export async function generateMetadata({ params }) {
   const city = getCity(ville);
   if (!service || !city) return {};
 
-  const { title, description } = getServiceSeo(slug, city, service.shortTitle);
+  const localPage = getLocalServiceCityPage(slug, ville);
+  const { title, description } = localPage
+    ? { title: localPage.seoTitle, description: localPage.seoDescription }
+    : getServiceSeo(slug, city, service.shortTitle);
   const englishService = SERVICES_EN.find((item) => item.frSlug === service.slug);
   const url = `https://www.vosthermos.com/services/${service.slug}/${city.slug}`;
 
@@ -56,14 +104,17 @@ export default async function ServiceCityPage({ params }) {
   const city = getCity(ville);
   if (!service || !city) notFound();
 
+  const localPage = getLocalServiceCityPage(slug, ville);
   const otherServices = SERVICES.filter((s) => s.slug !== service.slug).slice(0, 4);
   const otherCities = CITIES.filter((c) => c.slug !== city.slug).slice(0, 8);
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Service",
-    name: `${service.shortTitle} a ${city.name}`,
-    description: `Service professionnel de ${service.shortTitle.toLowerCase()} a ${city.name}. Vosthermos offre un service rapide et garanti.`,
+    name: localPage?.schemaName || `${service.shortTitle} a ${city.name}`,
+    description: localPage?.schemaDescription || `Service professionnel de ${service.shortTitle.toLowerCase()} a ${city.name}. Vosthermos offre un service rapide et garanti.`,
+    serviceType: localPage?.serviceType || service.shortTitle,
+    ...(localPage?.alternateName ? { alternateName: localPage.alternateName } : {}),
     url: `https://www.vosthermos.com/services/${service.slug}/${city.slug}`,
     provider: {
       "@type": "LocalBusiness",
@@ -83,6 +134,7 @@ export default async function ServiceCityPage({ params }) {
   };
 
   const faqItems = [
+    ...(localPage?.faq || []),
     {
       q: `Combien coute le service de ${service.shortTitle.toLowerCase()} a ${city.name}?`,
       a: `Le prix varie selon l'ampleur des travaux. Contactez-nous au ${COMPANY_INFO.phone} pour une soumission gratuite a ${city.name}. Nous nous deplacons dans tous les quartiers${city.neighborhoods ? ` incluant ${city.neighborhoods.slice(0, 3).join(", ")}` : ""}.`,
@@ -132,11 +184,15 @@ export default async function ServiceCityPage({ params }) {
             {/* Left: content */}
             <div className="flex flex-col justify-center">
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-4">
-                {service.shortTitle} a {city.name}
+                {localPage?.h1 || `${service.shortTitle} a ${city.name}`}
               </h1>
               <p className="text-white/60 text-lg mb-6">
-                Service professionnel de {service.shortTitle.toLowerCase()} a {city.name} et dans la region de {city.region}.
-                Nos experts se deplacent a {city.name} ({city.distance} de notre atelier) pour des travaux rapides et garantis.
+                {localPage?.lead || (
+                  <>
+                    Service professionnel de {service.shortTitle.toLowerCase()} a {city.name} et dans la region de {city.region}.
+                    Nos experts se deplacent a {city.name} ({city.distance} de notre atelier) pour des travaux rapides et garantis.
+                  </>
+                )}
               </p>
               {/* Trust badge: hours */}
               <div className="flex items-center gap-2 text-white/70 text-sm mb-6">
@@ -188,7 +244,7 @@ export default async function ServiceCityPage({ params }) {
             {/* City context */}
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                {service.shortTitle} a {city.name}
+                {localPage?.h1 || `${service.shortTitle} a ${city.name}`}
               </h2>
               <p className="text-gray-600 leading-relaxed mb-4">
                 {city.description}
@@ -200,6 +256,35 @@ export default async function ServiceCityPage({ params }) {
                 )}
               </p>
             </div>
+
+            {localPage?.sections?.map((section) => (
+              <div key={section.heading}>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                  {section.heading}
+                </h2>
+                {section.paragraphs.map((p) => (
+                  <p key={p} className="text-gray-600 leading-relaxed mb-4">{p}</p>
+                ))}
+              </div>
+            ))}
+
+            {localPage?.issues && (
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                  Problemes de porte patio frequents a {city.name}
+                </h2>
+                <div className="space-y-3">
+                  {localPage.issues.map((issue) => (
+                    <div key={issue} className="flex items-start gap-3 bg-gray-50 rounded-xl p-4">
+                      <div className="w-8 h-8 rounded-lg bg-[var(--color-red)]/10 text-[var(--color-red)] flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i className="fas fa-exclamation-triangle text-xs"></i>
+                      </div>
+                      <p className="text-gray-700 text-sm">{issue}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Common issues */}
             {city.commonIssues && city.commonIssues.length > 0 && (
