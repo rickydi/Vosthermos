@@ -152,7 +152,7 @@ export default function CoutThermosPage() {
         </div>
 
         <section className="mt-8 bg-white rounded-xl p-6 border border-[var(--color-border)]">
-          <h2 className="font-bold text-xl mb-3">Remplacement thermos a Montreal</h2>
+          <h2 className="font-bold text-xl mb-3">Remplacement vitre thermos a Montreal</h2>
           <p className="text-[var(--color-text-muted)] mb-4">
             Le calculateur donne une estimation du cout. Pour une soumission locale, la prise de mesures
             et l&apos;installation d&apos;une vitre thermos sur mesure a Montreal, consultez la page de service dediee.
@@ -161,7 +161,7 @@ export default function CoutThermosPage() {
             href="/services/remplacement-vitre-thermos/montreal"
             className="inline-flex items-center gap-2 text-[var(--color-teal)] font-semibold hover:underline"
           >
-            Remplacement thermos a Montreal
+            Remplacement vitre thermos a Montreal
             <i className="fas fa-arrow-right text-xs"></i>
           </Link>
         </section>

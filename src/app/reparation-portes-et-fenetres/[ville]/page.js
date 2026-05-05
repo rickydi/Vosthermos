@@ -80,8 +80,8 @@ export default async function ReparationVillePage({ params }) {
     if (city.slug === "montreal" && service.slug === "remplacement-vitre-thermos") {
       return {
         ...service,
-        title: "Remplacement thermos a Montreal",
-        desc: "Vitres thermos embuees, unites scellees fissurees et thermos de triplex en fin de vie. Lien direct vers la page specialisee pour le remplacement thermos a Montreal.",
+        title: "Remplacement vitre thermos a Montreal",
+        desc: "Vitres thermos embuees, unites scellees fissurees et thermos de triplex en fin de vie. Lien direct vers la page specialisee pour le remplacement vitre thermos a Montreal.",
       };
     }
     return service;

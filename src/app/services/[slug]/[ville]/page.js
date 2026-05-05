@@ -123,20 +123,20 @@ const LOCAL_SERVICE_CITY_PAGES = {
     ],
   },
   "remplacement-vitre-thermos:montreal": {
-    seoTitle: "Remplacement thermos Montreal | Vitres thermos des 150$",
+    seoTitle: "Remplacement vitre thermos Montreal | Des 150$",
     seoDescription:
-      `Remplacement thermos a Montreal pour fenetres embuees, vitres thermos fissurees et unites scellees en fin de vie. Service a domicile. Soumission gratuite ${COMPANY_INFO.phone}.`,
-    h1: "Remplacement thermos a Montreal",
+      `Remplacement vitre thermos a Montreal pour fenetres embuees, vitres thermos fissurees et unites scellees en fin de vie. Service a domicile. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Remplacement vitre thermos a Montreal",
     lead:
-      "Service specialise de remplacement thermos a Montreal: vitres thermos embuees, unites scellees fissurees, perte d'isolation et thermos de triplex ou duplex en fin de vie.",
-    schemaName: "Remplacement thermos a Montreal",
+      "Service specialise de remplacement vitre thermos a Montreal: vitres thermos embuees, unites scellees fissurees, perte d'isolation et thermos de triplex ou duplex en fin de vie.",
+    schemaName: "Remplacement vitre thermos a Montreal",
     schemaDescription:
       "Remplacement de vitres thermos et unites scellees a Montreal: prise de mesures, fabrication sur mesure, installation et service garanti pour fenetres residentielles.",
-    serviceType: "Remplacement de thermos",
-    alternateName: ["remplacement thermos Montreal", "vitre thermos Montreal", "remplacement vitre thermos Montreal"],
+    serviceType: "Remplacement de vitre thermos",
+    alternateName: ["remplacement vitre thermos Montreal", "remplacement de vitre thermos Montreal", "remplacement thermos Montreal", "vitre thermos Montreal"],
     sections: [
       {
-        heading: "Remplacement thermos Montreal: triplex, duplex et maisons anciennes",
+        heading: "Remplacement vitre thermos Montreal: triplex, duplex et maisons anciennes",
         paragraphs: [
           "A Montreal, les thermos des fenetres installees dans les annees 1980 a 2000 arrivent souvent en fin de vie. La buee entre les vitres, les taches blanchatres et la perte d'isolation indiquent que l'unite scellee doit etre remplacee.",
           "Nos techniciens interviennent dans les secteurs comme le Plateau, Rosemont, Verdun, Villeray, NDG et les quartiers centraux pour prendre les mesures, commander le thermos sur mesure et remplacer uniquement la vitre, sans changer la fenetre complete.",
@@ -152,7 +152,7 @@ const LOCAL_SERVICE_CITY_PAGES = {
     ],
     faq: [
       {
-        q: "Remplacez-vous les thermos a Montreal?",
+        q: "Faites-vous le remplacement vitre thermos a Montreal?",
         a: "Oui. Nous remplacons les vitres thermos et unites scellees a Montreal. Le technicien prend les mesures sur place, commande le thermos sur mesure et revient l'installer en conservant le cadre existant lorsque possible.",
       },
       {

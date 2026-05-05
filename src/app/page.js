@@ -6,7 +6,7 @@ import { COMPANY_INFO } from "@/lib/company-info";
 import "./preview-accueil/preview-accueil.css";
 
 export const metadata = {
-  title: "Remplacement Thermos & Fenetres des 150$ - Vosthermos Montreal",
+  title: "Vosthermos Montreal | Reparation portes et fenetres des 150$",
   description:
     `Thermos embue? Porte qui bloque? Vosthermos remplace vos vitres thermos des 150$ avec garantie 10 ans. 15 ans d'experience, soumission gratuite 24h, Rive-Sud, Montreal, Laval. ${COMPANY_INFO.phone}`,
   keywords:
@@ -24,7 +24,7 @@ export const metadata = {
     type: "website",
     siteName: "Vosthermos",
     url: "https://www.vosthermos.com/",
-    title: "Remplacement Thermos & Fenetres des 150$ - Vosthermos",
+    title: "Vosthermos Montreal | Reparation portes et fenetres",
     description:
       `Thermos embue? Vosthermos remplace vos vitres thermos des 150$. Garantie 10 ans, soumission gratuite 24h. Montreal, Rive-Sud, Laval. ${COMPANY_INFO.phone}`,
     images: [{ url: COMPANY_INFO.logo }],
@@ -32,7 +32,7 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Remplacement Thermos des 150$ - Garantie 10 ans - Vosthermos",
+    title: "Vosthermos Montreal - Reparation portes et fenetres",
     description: `Experts en remplacement de thermos depuis 2010. Soumission gratuite 24h. ${COMPANY_INFO.phone}`,
     images: [COMPANY_INFO.logo],
   },
@@ -41,10 +41,10 @@ export const metadata = {
 const services = [
   {
     icon: "fas fa-temperature-half",
-    title: "Vitres thermos",
-    text: "Remplacement de thermos embués, cassés ou inefficaces avec verre performant.",
+    title: "Remplacement vitre thermos a Montreal",
+    text: "Page locale pour les vitres thermos embuees, cassees ou inefficaces avec verre performant.",
     image: "/images/vitre-thermos/detail-1.jpg",
-    href: "/services/remplacement-vitre-thermos",
+    href: "/services/remplacement-vitre-thermos/montreal",
   },
   {
     icon: "fas fa-screwdriver-wrench",
