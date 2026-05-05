@@ -122,6 +122,45 @@ const LOCAL_SERVICE_CITY_PAGES = {
       },
     ],
   },
+  "remplacement-vitre-thermos:montreal": {
+    seoTitle: "Remplacement thermos Montreal | Vitres thermos des 150$",
+    seoDescription:
+      `Remplacement thermos a Montreal pour fenetres embuees, vitres thermos fissurees et unites scellees en fin de vie. Service a domicile. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Remplacement thermos a Montreal",
+    lead:
+      "Service specialise de remplacement thermos a Montreal: vitres thermos embuees, unites scellees fissurees, perte d'isolation et thermos de triplex ou duplex en fin de vie.",
+    schemaName: "Remplacement thermos a Montreal",
+    schemaDescription:
+      "Remplacement de vitres thermos et unites scellees a Montreal: prise de mesures, fabrication sur mesure, installation et service garanti pour fenetres residentielles.",
+    serviceType: "Remplacement de thermos",
+    alternateName: ["remplacement thermos Montreal", "vitre thermos Montreal", "remplacement vitre thermos Montreal"],
+    sections: [
+      {
+        heading: "Remplacement thermos Montreal: triplex, duplex et maisons anciennes",
+        paragraphs: [
+          "A Montreal, les thermos des fenetres installees dans les annees 1980 a 2000 arrivent souvent en fin de vie. La buee entre les vitres, les taches blanchatres et la perte d'isolation indiquent que l'unite scellee doit etre remplacee.",
+          "Nos techniciens interviennent dans les secteurs comme le Plateau, Rosemont, Verdun, Villeray, NDG et les quartiers centraux pour prendre les mesures, commander le thermos sur mesure et remplacer uniquement la vitre, sans changer la fenetre complete.",
+          "Cette approche conserve le cadre existant des triplex, duplex et maisons plus anciennes tout en ameliorant l'isolation. C'est habituellement beaucoup moins couteux qu'un remplacement complet de fenetre.",
+        ],
+      },
+    ],
+    issuesHeading: "Problemes de thermos frequents a Montreal",
+    issues: [
+      "Vitres thermos embuees dans les triplex et duplex montrealais",
+      "Unites scellees des annees 1980-2000 en fin de vie dans les quartiers centraux",
+      "Perte d'isolation et condensation entre les vitres durant les hivers de Montreal",
+    ],
+    faq: [
+      {
+        q: "Remplacez-vous les thermos a Montreal?",
+        a: "Oui. Nous remplacons les vitres thermos et unites scellees a Montreal. Le technicien prend les mesures sur place, commande le thermos sur mesure et revient l'installer en conservant le cadre existant lorsque possible.",
+      },
+      {
+        q: "Combien coute un remplacement thermos a Montreal?",
+        a: "Le prix varie selon la dimension, le type de verre et l'acces a la fenetre. Un thermos standard coute souvent entre 150$ et 350$ installe. La soumission est gratuite a domicile.",
+      },
+    ],
+  },
 };
 
 function getLocalServiceCityPage(serviceSlug, citySlug) {
@@ -347,7 +386,7 @@ export default async function ServiceCityPage({ params }) {
             {localPage?.issues && (
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                  Problemes de porte patio frequents a {city.name}
+                  {localPage.issuesHeading || `Problemes de ${service.shortTitle.toLowerCase()} frequents a ${city.name}`}
                 </h2>
                 <div className="space-y-3">
                   {localPage.issues.map((issue) => (

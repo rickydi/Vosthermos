@@ -77,6 +77,13 @@ export default async function ReparationVillePage({ params }) {
         desc: "Joints de fenetres, portes, portes-patio et scellant exterieur. Lien direct vers la page specialisee pour le calfeutrage a Montreal.",
       };
     }
+    if (city.slug === "montreal" && service.slug === "remplacement-vitre-thermos") {
+      return {
+        ...service,
+        title: "Remplacement thermos a Montreal",
+        desc: "Vitres thermos embuees, unites scellees fissurees et thermos de triplex en fin de vie. Lien direct vers la page specialisee pour le remplacement thermos a Montreal.",
+      };
+    }
     return service;
   };
 
