@@ -70,6 +70,13 @@ export default async function ReparationVillePage({ params }) {
         desc: "Roulettes, rail, poignee, serrure et coupe-froid. Lien direct vers la page specialisee pour la reparation de porte patio a Beauharnois.",
       };
     }
+    if (city.slug === "montreal" && service.slug === "reparation-porte-patio") {
+      return {
+        ...service,
+        title: "Reparation porte patio a Montreal",
+        desc: "Roulettes, rail, poignee, serrure et coupe-froid. Lien direct vers la page specialisee pour la reparation de porte patio a Montreal.",
+      };
+    }
     if (city.slug === "montreal" && service.slug === "calfeutrage") {
       return {
         ...service,

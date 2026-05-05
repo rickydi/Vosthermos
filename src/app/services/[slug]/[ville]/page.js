@@ -84,6 +84,51 @@ const LOCAL_SERVICE_CITY_PAGES = {
       },
     ],
   },
+  "reparation-porte-patio:montreal": {
+    seoTitle: "Reparation porte patio Montreal | Roulettes et rail",
+    seoDescription:
+      `Porte patio difficile a ouvrir a Montreal? Reparation de roulettes, rail, serrure, poignee, coupe-froid et thermos. Service a domicile a Montreal. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Reparation porte patio a Montreal",
+    lead:
+      "Service specialise de reparation porte patio a Montreal: porte coulissante lourde, roulettes usees, rail encrasse, serrure bloquee, poignee brisee, coupe-froid fatigue ou thermos embue.",
+    schemaName: "Reparation porte patio a Montreal",
+    schemaDescription:
+      "Reparation de portes patio coulissantes a Montreal: remplacement de roulettes, ajustement de rail, serrure, poignee, coupe-froid, thermos et alignement de porte.",
+    serviceType: "Reparation de porte patio",
+    alternateName: [
+      "reparation porte patio Montreal",
+      "reparation porte-patio Montreal",
+      "reparation portes patio Montreal",
+      "porte patio Montreal",
+      "portes patio Montreal",
+    ],
+    sections: [
+      {
+        heading: "Reparation porte patio Montreal: roulettes, rail et serrure",
+        paragraphs: [
+          "A Montreal, les portes patio des triplex, duplex, condos et maisons de ville subissent beaucoup de cycles gel-degel, de poussiere urbaine et d'usure sur les rails. Une porte qui devient lourde a glisser n'a pas toujours besoin d'etre remplacee.",
+          "Nos techniciens interviennent dans les quartiers comme Rosemont, Villeray, Ahuntsic, Verdun, le Plateau, Hochelaga, NDG et les arrondissements centraux pour remettre les portes patio en fonction: roulettes, rail, poignee, serrure, coupe-froid et thermos.",
+          "La reparation est souvent plus logique qu'une installation de porte patio neuve lorsque le cadre est encore sain. On verifie l'alignement, l'etat du rail, les roulettes et l'etancheite avant de recommander la solution la plus economique.",
+        ],
+      },
+    ],
+    issuesHeading: "Problemes de porte patio frequents a Montreal",
+    issues: [
+      "Porte patio lourde a ouvrir dans les triplex, duplex et condos montrealais",
+      "Roulettes usees, rail sale ou seuil abime par la poussiere, le sel et les cycles gel-degel",
+      "Poignee, serrure ou coupe-froid fatigues sur les portes patio de balcons et cours arriere",
+    ],
+    faq: [
+      {
+        q: "Reparez-vous les portes patio a Montreal?",
+        a: "Oui. Nous reparons les portes patio a Montreal: roulettes, rail, serrure, poignee, coupe-froid, thermos et ajustement. Le technicien verifie si la porte peut etre reparee avant de proposer un remplacement complet.",
+      },
+      {
+        q: "Faut-il reparer ou installer une porte patio neuve a Montreal?",
+        a: "Si le cadre est sain, la reparation de porte patio est souvent la meilleure option. Le remplacement de roulettes, l'ajustement du rail ou le changement de serrure coute beaucoup moins cher qu'une porte neuve. Si la porte est trop endommagee, nous vous le dirons clairement.",
+      },
+    ],
+  },
   "calfeutrage:montreal": {
     seoTitle: "Calfeutrage Montreal | Fenetres et joints exterieurs",
     seoDescription:

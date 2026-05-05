@@ -10,6 +10,14 @@ import { getProblemsForService, getPricingForService, getTopCities } from "@/lib
 import { FullSmartLinksSection } from "@/components/SmartLinks";
 import { COMPANY_INFO } from "@/lib/company-info";
 
+const PRIORITY_CITY_LINKS = {
+  "reparation-porte-patio": {
+    href: "/services/reparation-porte-patio/montreal",
+    title: "Reparation porte patio a Montreal",
+    text: "Pour les portes patio lourdes, rails encrasses, roulettes usees, serrures bloquees et coupe-froid fatigues a Montreal, consultez la page locale dediee.",
+  },
+};
+
 export function generateStaticParams() {
   return getParams();
 }
@@ -48,6 +56,7 @@ export default async function ServicePage({ params }) {
   const service = getService(slug);
   if (!service) notFound();
 
+  const priorityCityLink = PRIORITY_CITY_LINKS[service.slug];
   const related = service.relatedServices
     .map((s) => SERVICES.find((sv) => sv.slug === s))
     .filter(Boolean);
@@ -236,6 +245,31 @@ export default async function ServicePage({ params }) {
           </div>
         </div>
       </section>
+
+      {priorityCityLink && (
+        <section className="bg-white border-b border-[var(--color-border)]">
+          <div className="max-w-[1200px] mx-auto px-6 py-8">
+            <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-background)] p-6 md:flex md:items-center md:justify-between md:gap-8">
+              <div>
+                <span className="section-tag">Page locale</span>
+                <h2 className="text-xl md:text-2xl font-extrabold mt-2 mb-2">
+                  {priorityCityLink.title}
+                </h2>
+                <p className="text-[var(--color-muted)] max-w-3xl">
+                  {priorityCityLink.text}
+                </p>
+              </div>
+              <Link
+                href={priorityCityLink.href}
+                className="inline-flex items-center gap-2 mt-5 md:mt-0 bg-[var(--color-red)] text-white px-5 py-3 rounded-full font-bold hover:bg-[var(--color-red-dark)] transition-all"
+              >
+                Reparation porte patio a Montreal
+                <i className="fas fa-arrow-right text-xs"></i>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Content sections */}
       {service.sections.map((section, i) => (
