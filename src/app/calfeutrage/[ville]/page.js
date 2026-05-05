@@ -14,10 +14,14 @@ export async function generateMetadata({ params }) {
   const city = getCity(ville);
   if (!city) return {};
   const tpl = CITY_PAGE_SEO["calfeutrage"];
+  const canonical =
+    city.slug === "montreal"
+      ? "https://www.vosthermos.com/services/calfeutrage/montreal"
+      : `https://www.vosthermos.com/calfeutrage/${city.slug}`;
   return {
     title: tpl.title(city),
     description: tpl.description(city),
-    alternates: { canonical: `https://www.vosthermos.com/calfeutrage/${city.slug}` },
+    alternates: { canonical },
   };
 }
 

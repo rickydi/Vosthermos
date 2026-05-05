@@ -84,6 +84,44 @@ const LOCAL_SERVICE_CITY_PAGES = {
       },
     ],
   },
+  "calfeutrage:montreal": {
+    seoTitle: "Calfeutrage Montreal | Fenetres et joints exterieurs",
+    seoDescription:
+      `Calfeutrage a Montreal pour fenetres, portes, joints exterieurs et infiltrations d'air ou d'eau. Service a domicile, scellant professionnel. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Calfeutrage a Montreal",
+    lead:
+      "Service specialise de calfeutrage a Montreal: joints de fenetres fissures, scellant decolle, infiltrations d'air, infiltrations d'eau et contours de portes a refaire.",
+    schemaName: "Calfeutrage a Montreal",
+    schemaDescription:
+      "Calfeutrage de portes et fenetres a Montreal: retrait de l'ancien scellant, preparation des surfaces, application de scellant professionnel et correction des infiltrations.",
+    serviceType: "Calfeutrage de portes et fenetres",
+    alternateName: ["calfeutrage Montreal", "calfeutrage fenetre Montreal", "calfeutrage exterieur Montreal"],
+    sections: [
+      {
+        heading: "Calfeutrage Montreal: fenetres, portes et joints exterieurs",
+        paragraphs: [
+          "A Montreal, les triplex, duplex et maisons plus anciennes subissent beaucoup de mouvements de structure, de cycles gel-degel et d'exposition au vent. Les joints de calfeutrage autour des fenetres finissent par craquer, se decoller ou perdre leur elasticite.",
+          "Nos techniciens interviennent dans les arrondissements de Montreal pour retirer l'ancien scellant, nettoyer les surfaces et appliquer un calfeutrage professionnel adapte au PVC, a l'aluminium, au bois, a la brique et au revetement exterieur.",
+          "Le but est de corriger les infiltrations d'air et d'eau sans remplacer inutilement les fenetres. On verifie aussi les zones a risque: appuis de fenetres, joints verticaux, portes-patio, sous-sol, contours de portes et sections exposees au soleil.",
+        ],
+      },
+    ],
+    issues: [
+      "Calfeutrage fissure ou decolle autour des fenetres de triplex et duplex montrealais",
+      "Infiltrations d'air dans les pieces exposees au vent, surtout sur les facades plus anciennes",
+      "Joints exterieurs fatigues autour des portes, portes-patio et fenetres de sous-sol",
+    ],
+    faq: [
+      {
+        q: "Faites-vous le calfeutrage a Montreal?",
+        a: "Oui. Nous faisons le calfeutrage de fenetres, portes, portes-patio et joints exterieurs a Montreal. Le technicien retire l'ancien scellant lorsque necessaire, prepare les surfaces et applique un scellant professionnel adapte au support.",
+      },
+      {
+        q: "Combien coute le calfeutrage a Montreal?",
+        a: "Le prix depend du nombre d'ouvertures, de l'etat de l'ancien scellant et de l'acces aux fenetres. Pour une maison typique, le calfeutrage complet se situe souvent entre 500$ et 1 500$. La soumission est gratuite.",
+      },
+    ],
+  },
 };
 
 function getLocalServiceCityPage(serviceSlug, citySlug) {

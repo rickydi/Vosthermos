@@ -59,6 +59,8 @@ const nextConfig = {
       { source: "/en/carrieres", destination: "/en/contact?subject=careers", permanent: true },
       { source: "/en/panier", destination: "/panier", permanent: true },
       { source: "/en/rendez-vous", destination: "/en/contact", permanent: true },
+      { source: "/en/services/calfeutrage", destination: "/services/calfeutrage", permanent: true },
+      { source: "/en/services/calfeutrage/:ville", destination: "/services/calfeutrage/:ville", permanent: true },
       { source: "/en/services/reparation-porte-patio", destination: "/services/reparation-porte-patio", permanent: true },
       { source: "/en/services/reparation-porte-patio/:ville", destination: "/services/reparation-porte-patio/:ville", permanent: true },
 

@@ -102,7 +102,7 @@ export default async function sitemap() {
   }));
 
   // Calfeutrage + city pages
-  const calfeutrageCityPages = CITIES.map((city) => ({
+  const calfeutrageCityPages = CITIES.filter((city) => city.slug !== "montreal").map((city) => ({
     url: `${BASE}/calfeutrage/${city.slug}`,
     lastModified: new Date(),
     changeFrequency: "monthly",
