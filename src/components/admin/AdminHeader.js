@@ -10,6 +10,7 @@ const pageTitles = {
   "/admin/produits": "Produits",
   "/admin/categories": "Categories",
   "/admin/suivi-clients": "Suivi clients",
+  "/admin/calculateur-thermos": "Calculateur thermos",
   "/admin/analytics": "Analytics",
   "/admin/promotions": "Promotions",
   "/admin/parametres": "Parametres",

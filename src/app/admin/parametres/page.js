@@ -5,6 +5,7 @@ import NotifyMembersSection from "@/components/admin/NotifyMembersSection";
 import BlogNotifyMembersSection from "@/components/admin/BlogNotifyMembersSection";
 import ApiKeysSection from "@/components/admin/ApiKeysSection";
 import CompanyInfoSection from "@/components/admin/CompanyInfoSection";
+import ThermosPricingSettings from "@/components/admin/ThermosPricingSettings";
 
 export default function AdminSettingsPage() {
   const [laborRate, setLaborRate] = useState("85.00");
@@ -83,6 +84,10 @@ export default function AdminSettingsPage() {
           </button>
         </div>
       </form>
+
+      <div className="mb-8">
+        <ThermosPricingSettings />
+      </div>
 
       <div className="mt-8">
         <NotifyMembersSection />
