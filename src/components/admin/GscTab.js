@@ -61,6 +61,14 @@ function formatDate(value) {
   });
 }
 
+function formatDuration(seconds) {
+  const total = Math.max(0, Math.round(Number(seconds) || 0));
+  const minutes = Math.floor(total / 60);
+  const rest = total % 60;
+  if (minutes <= 0) return `${rest}s`;
+  return `${minutes}m ${String(rest).padStart(2, "0")}s`;
+}
+
 function shortUrl(url) {
   if (!url) return "";
   return String(url)
@@ -487,6 +495,8 @@ export default function GscTab() {
   const [openRow, setOpenRow] = useState("");
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
+  const [scanStartedAt, setScanStartedAt] = useState(null);
+  const [scanTick, setScanTick] = useState(Date.now());
   const [savingKeywords, setSavingKeywords] = useState(false);
   const [error, setError] = useState("");
   const [inspectionState, setInspectionState] = useState({});
@@ -537,6 +547,12 @@ export default function GscTab() {
     return () => clearTimeout(timer);
   }, [fetchTracker]);
 
+  useEffect(() => {
+    if (!scanning) return undefined;
+    const timer = setInterval(() => setScanTick(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [scanning]);
+
   const cityOptions = useMemo(() => {
     const cities = data?.cities || [];
     return [...cities].sort((a, b) => a.name.localeCompare(b.name, "fr"));
@@ -549,6 +565,16 @@ export default function GscTab() {
   }, [data, statusFilter]);
 
   const summary = data?.summary || {};
+  const selectedCityName = cityOptions.find((city) => city.slug === selectedCity)?.name || data?.city?.name || selectedCity;
+  const scanKeywordCount = Math.max(1, keywords.length || data?.keywords?.length || 0);
+  const estimatedScanSeconds = Math.max(20, (scanKeywordCount * 8) + 6);
+  const scanElapsedSeconds = scanning && scanStartedAt
+    ? Math.max(0, Math.floor((scanTick - scanStartedAt) / 1000))
+    : 0;
+  const scanRemainingSeconds = Math.max(0, estimatedScanSeconds - scanElapsedSeconds);
+  const scanProgress = scanning
+    ? Math.min(95, Math.max(8, Math.round((scanElapsedSeconds / estimatedScanSeconds) * 100)))
+    : 0;
   const lastScan = useMemo(() => {
     const dates = (data?.rows || [])
       .map((row) => row.latestSerper?.checkedAt)
@@ -560,7 +586,10 @@ export default function GscTab() {
   }, [data]);
 
   async function scanCity() {
+    const startedAt = Date.now();
     setScanning(true);
+    setScanStartedAt(startedAt);
+    setScanTick(startedAt);
     setError("");
     try {
       const res = await fetch("/api/admin/seo/keyword-tracker", {
@@ -582,6 +611,7 @@ export default function GscTab() {
       setError(err.message || "Erreur scan SEO");
     } finally {
       setScanning(false);
+      setScanStartedAt(null);
       setLoading(false);
     }
   }
@@ -748,6 +778,39 @@ export default function GscTab() {
           <SegmentedControl label="Marque" value={branded} options={BRANDED} onChange={setBranded} />
           <SegmentedControl label="Pays" value={country} options={COUNTRIES} onChange={setCountry} />
         </div>
+
+        {scanning && (
+          <div className="mt-4 rounded-xl border border-cyan-500/30 bg-cyan-500/10 p-4">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p className="text-sm font-extrabold text-cyan-200">
+                  Scan live en cours pour {selectedCityName}
+                </p>
+                <p className="admin-text-muted mt-0.5 text-xs">
+                  {scanKeywordCount} mot-cle{scanKeywordCount > 1 ? "s" : ""} a verifier dans Google Canada top 100.
+                </p>
+              </div>
+              <div className="text-right text-xs admin-text-muted">
+                <p>{scanProgress}% estime</p>
+                <p>
+                  {scanElapsedSeconds >= estimatedScanSeconds
+                    ? "Finalisation..."
+                    : `Reste environ ${formatDuration(scanRemainingSeconds)}`}
+                </p>
+              </div>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-white/10">
+              <div
+                className="h-full rounded-full bg-cyan-400 transition-all duration-500 ease-out"
+                style={{ width: `${scanProgress}%` }}
+              />
+            </div>
+            <div className="mt-2 flex flex-wrap justify-between gap-2 text-[11px] admin-text-muted">
+              <span>Temps ecoule: {formatDuration(scanElapsedSeconds)}</span>
+              <span>Estimation basee sur la quantite de mots-cles. Google peut prendre plus longtemps.</span>
+            </div>
+          </div>
+        )}
 
         {error && (
           <div className="mt-4 rounded-lg border border-orange-400/30 bg-orange-500/10 px-3 py-2 text-sm text-orange-200">
