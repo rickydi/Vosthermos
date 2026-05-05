@@ -55,11 +55,9 @@ const TIME_OPTIONS = Array.from({ length: 24 * 4 }, (_, index) => {
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
   const value = `${pad2(hours)}:${pad2(minutes)}`;
-  const suffix = hours < 12 ? "AM" : "PM";
-  const hour12 = hours % 12 || 12;
   return {
     value,
-    label: `${hour12}:${pad2(minutes)} ${suffix} (${pad2(hours)}h${pad2(minutes)})`,
+    label: `${pad2(hours)}h${pad2(minutes)}`,
   };
 });
 
