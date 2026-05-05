@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import CatalogPicker from "@/components/admin/CatalogPicker";
 import ClientPicker from "@/components/admin/ClientPicker";
+import ThermosQuoteInline from "@/components/admin/ThermosQuoteInline";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import { dateOnlyString, todayDateInput } from "@/lib/date-only";
 import {
@@ -241,6 +242,7 @@ function NouveauBonAdmin() {
   const [items, setItems] = useState([]);
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [catalogTarget, setCatalogTarget] = useState(null); // null = flat, number = section index
+  const [thermosCalculatorActive, setThermosCalculatorActive] = useState(false);
 
   const [services, setServices] = useState([]);
   const [knownUnits, setKnownUnits] = useState([]);
@@ -479,6 +481,72 @@ function NouveauBonAdmin() {
 
   function addCustomItem() {
     setItems((prev) => [...prev, { productId: null, description: "", quantity: 1, unitPrice: 0, itemType: "piece" }]);
+  }
+
+  function buildThermosItems(quote) {
+    const optionLabels = {
+      easy: "acces facile",
+      medium: "acces moyen",
+      hard: "acces difficile",
+    };
+    const thermosItems = quote.lines.map((line, index) => {
+      const options = [
+        line.lowE ? "Low-E" : null,
+        line.argon ? "argon" : null,
+        line.tempered ? "trempe" : null,
+        line.grill ? "carrelage" : null,
+        optionLabels[line.access] || null,
+        line.note ? `note: ${line.note}` : null,
+      ].filter(Boolean).join(", ") || "standard";
+
+      return {
+        productId: null,
+        serviceId: null,
+        description: `Thermos ${index + 1}: ${line.width}" x ${line.height}" (${line.sqftPerUnit} pi2/unite) - ${options}`,
+        quantity: Number(line.quantity) || 1,
+        unitPrice: Number(line.unitSubtotal) || 0,
+        itemType: "piece",
+      };
+    });
+
+    if (Number(quote.totals.tripFee) > 0) {
+      thermosItems.push({
+        productId: null,
+        serviceId: null,
+        description: "Frais deplacement thermos",
+        quantity: 1,
+        unitPrice: Number(quote.totals.tripFee),
+        itemType: "piece",
+      });
+    }
+
+    if (Number(quote.totals.margin) > 0) {
+      thermosItems.push({
+        productId: null,
+        serviceId: null,
+        description: "Marge/admin thermos",
+        quantity: 1,
+        unitPrice: Number(quote.totals.margin),
+        itemType: "piece",
+      });
+    }
+
+    return thermosItems;
+  }
+
+  function addThermosQuoteToBon(quote, destination = "flat") {
+    const thermosItems = buildThermosItems(quote);
+    const sectionMatch = String(destination).match(/^section:(\d+)$/);
+
+    if (isB2B && sectionMatch) {
+      const sectionIndex = Number(sectionMatch[1]);
+      setSections((prev) => prev.map((section, index) => (
+        index === sectionIndex ? { ...section, items: [...section.items, ...thermosItems] } : section
+      )));
+      return;
+    }
+
+    setItems((prev) => [...prev, ...thermosItems]);
   }
 
   // ─── Sections (B2B) ─────────────────────────────────────────
@@ -1009,6 +1077,15 @@ function NouveauBonAdmin() {
             </div>
           </details>
         </div>
+
+        <ThermosQuoteInline
+          active={thermosCalculatorActive}
+          onActiveChange={setThermosCalculatorActive}
+          city={interventionCity || selectedClient?.city || ""}
+          isB2B={isB2B}
+          sections={sections}
+          onAddToBon={addThermosQuoteToBon}
+        />
 
         {/* Sections par unite (B2B only) */}
         {isB2B && (

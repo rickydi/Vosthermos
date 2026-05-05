@@ -80,6 +80,7 @@ export default function Footer({ company }) {
         blog: "Blog",
         faq: "FAQ",
         careers: "Careers",
+        tools: "Tools",
         shop: "Online store",
         booking: "Book an appointment",
         hours: "Mon-Fri: 8am - 5pm",
@@ -109,6 +110,8 @@ export default function Footer({ company }) {
         blog: "Blogue",
         faq: "FAQ",
         careers: "Carrieres",
+        tools: "Outils gratuits",
+        thermosCalculator: "Calculateur prix thermos",
         shop: "Boutique en ligne",
         booking: "Prendre rendez-vous",
         hours: "Lun-Ven : 8h - 17h",
@@ -182,6 +185,8 @@ export default function Footer({ company }) {
               <li><Link href={isEn ? "/en/prix" : "/prix"} className="hover:text-white transition-colors">{isEn ? "Pricing" : "Prix et tarifs"}</Link></li>
               <li><Link href={isEn ? "/en/problemes" : "/problemes"} className="hover:text-white transition-colors">{isEn ? "Common problems" : "Problemes courants"}</Link></li>
               <li><Link href={isEn ? "/en/diagnostic" : "/diagnostic"} className="hover:text-white transition-colors">{isEn ? "Free diagnostic" : "Diagnostic gratuit"}</Link></li>
+              <li><Link href={isEn ? "/en/diagnostic" : "/outils"} className="hover:text-white transition-colors">{labels.tools}</Link></li>
+              {!isEn && <li><Link href="/outils/cout-thermos" className="hover:text-white transition-colors">{labels.thermosCalculator}</Link></li>}
               <li><Link href={isEn ? "/en/glossaire" : "/glossaire"} className="hover:text-white transition-colors">Glossaire</Link></li>
               <li><Link href={isEn ? "/en/calculateur" : "/calculateur"} className="hover:text-white transition-colors">{isEn ? "Savings calculator" : "Calculateur d'economies"}</Link></li>
               <li><Link href={isEn ? "/en/opti-fenetre" : "/opti-fenetre"} className="hover:text-white transition-colors">OPTI-FENETRE</Link></li>

@@ -86,6 +86,7 @@ export default function Header({ company }) {
   const projectsHref = isEnglish ? (isHome ? "#gallery" : "/en/#gallery") : "/realisations";
   const contactHref = isEnglish ? "/en/contact" : "/contact";
   const portalHref = isEnglish ? "/en/portail-gestionnaire" : "/portail-gestionnaire";
+  const toolsHref = isEnglish ? "/en/diagnostic" : "/outils";
   const areasHref = isEnglish
     ? (isHome ? "#areas" : "/en/#areas")
     : (isHome ? "#secteurs" : "/#secteurs");
@@ -95,6 +96,7 @@ export default function Header({ company }) {
   const labels = isEnglish
     ? {
         services: "Services",
+        outils: "Tools",
         boutique: "Shop",
         blogue: "Blog",
         optiFenetre: "OPTI-FENETRE",
@@ -111,6 +113,7 @@ export default function Header({ company }) {
       }
     : {
         services: "Services",
+        outils: "Outils",
         boutique: "Boutique",
         blogue: "Blogue",
         optiFenetre: "OPTI-FENETRE",
@@ -149,6 +152,7 @@ export default function Header({ company }) {
           <nav className="hidden lg:flex items-center gap-1">
             {[
               { href: isHome ? "#services" : `${prefix || ""}/#services`, label: labels.services, match: null },
+              { href: toolsHref, label: labels.outils, match: ["/outils", "/en/outils", "/en/diagnostic"] },
               { href: `${prefix}/boutique`, label: labels.boutique, match: ["/boutique", "/produit", "/en/boutique", "/en/produit"] },
               { href: `${prefix}/blogue`, label: labels.blogue, match: ["/blogue", "/en/blogue"] },
               { href: `${prefix}/opti-fenetre`, label: labels.optiFenetre, match: ["/opti-fenetre", "/en/opti-fenetre"] },
@@ -231,6 +235,7 @@ export default function Header({ company }) {
       >
         <nav className="flex flex-col items-center gap-5 pt-8 text-lg">
           <Link href={isHome ? "#services" : `${prefix || ""}/#services`} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.services}</Link>
+          <Link href={toolsHref} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.outils}</Link>
           <Link href={`${prefix}/boutique`} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.boutique}</Link>
           <Link href={`${prefix}/blogue`} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.blogue}</Link>
           <Link href={`${prefix}/opti-fenetre`} className="text-white font-medium" onClick={() => setMenuOpen(false)}>{labels.optiFenetre}</Link>
