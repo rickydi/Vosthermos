@@ -813,6 +813,186 @@ export const CITIES = [
     ],
   },
   {
+    slug: "saint-lambert",
+    name: "Saint-Lambert",
+    region: "Rive-Sud",
+    distance: "20 min",
+    population: "22 000 habitants",
+    description:
+      "Saint-Lambert est une ville residentielle mature de la Rive-Sud, avec des maisons de caractere, des coproprietes et des secteurs plus anciens pres du village et de la gare. Le parc immobilier combine des fenetres en bois a conserver, des thermos installes dans les annees 1980-2000 et des portes-patio exposees aux vents du fleuve. Les proprietaires cherchent souvent une reparation propre et discrete plutot qu'un remplacement complet.",
+    neighborhoods: ["Village de Saint-Lambert", "Preville", "Secteur Riverside", "Alexandra", "Simard"],
+    commonIssues: [
+      "Thermos embues dans les maisons et coproprietes des secteurs Preville, Riverside et Alexandra",
+      "Fenestration en bois a restaurer dans les proprietes plus anciennes pres du village de Saint-Lambert",
+      "Calfeutrage et coupe-froid fatigues sur les ouvertures exposees aux vents du fleuve et du pont Victoria",
+    ],
+    faq: [
+      { question: "Combien coute un remplacement de thermos a Saint-Lambert?", answer: "Un thermos standard coute souvent entre 150$ et 350$ installe. Les grandes fenetres de coproprietes ou les formats sur mesure des maisons de caractere peuvent couter davantage selon les dimensions et l'acces." },
+      { question: "Reparez-vous les fenetres en bois a Saint-Lambert?", answer: "Oui. Dans les secteurs plus anciens de Saint-Lambert, nous pouvons restaurer les cadres en bois, remplacer les thermos, ajuster la quincaillerie et refaire l'etancheite sans enlever le cachet de la propriete." },
+      { question: "Desservez-vous les condos et coproprietes a Saint-Lambert?", answer: "Oui. Nous intervenons autant dans les maisons unifamiliales que dans les condos et coproprietes. Pour plusieurs unites, nous pouvons regrouper la prise de mesures et les travaux pour simplifier la coordination." },
+    ],
+  },
+  {
+    slug: "saint-hubert",
+    name: "Saint-Hubert",
+    region: "Rive-Sud",
+    distance: "20 min",
+    population: "87 000 habitants",
+    description:
+      "Saint-Hubert forme un tres grand bassin residentiel de Longueuil avec des bungalows, split-levels, jumeles, maisons de ville et coproprietes construits sur plusieurs generations. Les secteurs Lafleche, Maricourt, Orchard et Grande Allee regroupent beaucoup de fenetres et portes arrivees a l'age ou les thermos, manivelles, roulettes et coupe-froid commencent a faiblir.",
+    neighborhoods: ["Lafleche", "Maricourt", "Orchard", "Parc de la Cite", "Grande Allee"],
+    commonIssues: [
+      "Vitres thermos embuees dans les bungalows et split-levels des secteurs Lafleche, Maricourt et Orchard",
+      "Portes-patio lourdes, roulettes usees et rails fatigues dans les maisons de 25 a 45 ans",
+      "Manivelles, loquets et coupe-froid a remplacer sur les fenetres de constructions en serie",
+    ],
+    faq: [
+      { question: "Faites-vous le remplacement de thermos a Saint-Hubert?", answer: "Oui. Nous remplacons les vitres thermos embuees, fissurees ou en perte d'isolation a Saint-Hubert en conservant le cadre existant lorsque possible." },
+      { question: "Reparez-vous les portes-patio a Saint-Hubert?", answer: "Oui. Nous remplacons les roulettes, nettoyons ou ajustons les rails, changeons les poignees, serrures et coupe-froid des portes-patio a Saint-Hubert." },
+      { question: "Pourquoi les maisons de Saint-Hubert ont-elles souvent des thermos embues?", answer: "Plusieurs maisons de Saint-Hubert datent des annees 1970 a 2000. Les thermos de cette periode atteignent souvent leur fin de vie utile, ce qui cause la buee entre les vitres et une perte d'isolation." },
+    ],
+  },
+  {
+    slug: "greenfield-park",
+    name: "Greenfield Park",
+    region: "Rive-Sud",
+    distance: "20 min",
+    population: "17 000 habitants",
+    description:
+      "Greenfield Park est un secteur etabli de Longueuil avec beaucoup de maisons unifamiliales, duplex, petits immeubles et coproprietes. Les proprietes construites entre les annees 1950 et 1990 ont souvent des fenetres reparables, mais les thermos, coupe-froid, manivelles et portes-patio montrent des signes d'usure. La proximite de Brossard, Saint-Lambert et Longueuil en fait un secteur logique pour une intervention rapide.",
+    neighborhoods: ["Churchill", "Bellevue", "Empire", "Victoria", "Regent"],
+    commonIssues: [
+      "Thermos embues dans les maisons des rues Churchill, Bellevue, Empire et Victoria",
+      "Fenetre difficile a ouvrir ou a verrouiller a cause de quincaillerie usee",
+      "Portes-patio et coupe-froid fatigues dans les proprietes construites entre 1970 et 1990",
+    ],
+    faq: [
+      { question: "Desservez-vous Greenfield Park?", answer: "Oui. Nous desservons Greenfield Park pour le remplacement de thermos, la reparation de portes et fenetres, la quincaillerie, les portes-patio, le calfeutrage et les coupe-froid." },
+      { question: "Combien coute une reparation de fenetre a Greenfield Park?", answer: "Le prix depend du probleme. Un thermos standard commence souvent autour de 150$ installe, alors qu'une reparation de quincaillerie ou de porte-patio varie selon les pieces requises." },
+      { question: "Peut-on reparer une vieille fenetre a Greenfield Park au lieu de la changer?", answer: "Souvent oui. Si le cadre est sain, remplacer le thermos, la quincaillerie ou le coupe-froid peut prolonger la vie de la fenetre a une fraction du cout d'un remplacement complet." },
+    ],
+  },
+  {
+    slug: "saint-remi",
+    name: "Saint-Rémi",
+    region: "Montérégie",
+    distance: "25 min",
+    population: "8 000 habitants",
+    description:
+      "Saint-Remi dessert un territoire residentiel et agricole au sud de Delson et Saint-Constant. On y retrouve des maisons de village, des bungalows des annees 1970-1990 et des proprietes plus recentes en developpement. L'exposition au vent en milieu ouvert, la poussiere agricole et les cycles gel-degel usent les coupe-froid, les rails de portes-patio, les manivelles et les joints de thermos.",
+    neighborhoods: ["Centre-ville", "Rue Notre-Dame", "Route 221", "Secteur agricole", "Domaine des Erables"],
+    commonIssues: [
+      "Thermos embues dans les bungalows et maisons de village construits entre 1970 et 2000",
+      "Rails de portes-patio encrasses par la poussiere et les residus transportes par le vent",
+      "Coupe-froid et calfeutrage fatigues sur les maisons exposees aux champs ouverts",
+    ],
+    faq: [
+      { question: "Faites-vous des soumissions a Saint-Remi?", answer: "Oui. Saint-Remi fait partie de notre zone de service de proximite. Nous pouvons nous deplacer pour mesurer les thermos, verifier la quincaillerie et proposer une reparation ciblee." },
+      { question: "Les maisons de Saint-Remi ont-elles des problemes particuliers de fenetres?", answer: "Le vent, la poussiere agricole et l'exposition plus ouverte peuvent fatiguer les joints, les coupe-froid et les rails. Une reparation preventive aide a reduire les infiltrations d'air." },
+      { question: "Combien coute un remplacement de thermos a Saint-Remi?", answer: "Un thermos standard coute souvent entre 150$ et 350$ installe, selon la dimension, le type de verre et l'acces. La soumission permet de confirmer le prix exact." },
+    ],
+  },
+  {
+    slug: "saint-mathieu",
+    name: "Saint-Mathieu",
+    region: "Montérégie",
+    distance: "15 min",
+    population: "2 500 habitants",
+    description:
+      "Saint-Mathieu est une municipalite voisine de Delson, Candiac et Saint-Philippe, avec un territoire semi-rural et des proprietes souvent exposees aux vents. Les maisons plus anciennes ont des thermos et coupe-froid en fin de vie, tandis que les constructions plus recentes peuvent presenter des ajustements de portes, fenetres et quincaillerie lies au tassement normal des batiments.",
+    neighborhoods: ["Village", "Rang Saint-Marc", "Route Edouard-VII", "Secteur rural", "Limite Candiac"],
+    commonIssues: [
+      "Infiltrations d'air par les coupe-froid fatigues dans les maisons exposees aux vents",
+      "Thermos embues dans les proprietes construites entre 1980 et 2005",
+      "Portes et fenetres a ajuster apres le tassement normal des constructions recentes",
+    ],
+    faq: [
+      { question: "Desservez-vous Saint-Mathieu?", answer: "Oui. Saint-Mathieu est tres proche de notre atelier, ce qui permet des rendez-vous rapides pour les soumissions et les prises de mesures." },
+      { question: "Pouvez-vous reparer une fenetre sans la remplacer a Saint-Mathieu?", answer: "Oui. Si le cadre est en bon etat, nous pouvons remplacer le thermos, la manivelle, les charnieres, le coupe-froid ou le calfeutrage sans changer la fenetre complete." },
+      { question: "Pourquoi les coupe-froid usent-ils vite a Saint-Mathieu?", answer: "Les maisons plus exposees au vent subissent plus de pression sur les joints. Le coupe-froid ecrase ou seche avec le temps, ce qui cree des courants d'air et une perte de confort." },
+    ],
+  },
+  {
+    slug: "saint-isidore",
+    name: "Saint-Isidore",
+    region: "Montérégie",
+    distance: "20 min",
+    population: "3 000 habitants",
+    description:
+      "Saint-Isidore est une municipalite agricole pres de Saint-Constant, Saint-Remi et Mercier. Les maisons y sont souvent exposees au vent, aux poussieres et a de grands ecarts de temperature. Ces conditions sollicitent les thermos, le calfeutrage, les coupe-froid et la quincaillerie de portes-patio. Une reparation ciblee permet souvent de conserver les ouvertures existantes et d'ameliorer le confort rapidement.",
+    neighborhoods: ["Village", "Rang Saint-Regis", "Rang Saint-Andre", "Route 207", "Secteur agricole"],
+    commonIssues: [
+      "Thermos embues et perte d'isolation dans les maisons de village et proprietes rurales",
+      "Calfeutrage craque sur les facades exposees au vent et au soleil",
+      "Portes-patio et fenetres difficiles a ouvrir a cause de poussiere, corrosion ou quincaillerie usee",
+    ],
+    faq: [
+      { question: "Vosthermos se deplace-t-il a Saint-Isidore?", answer: "Oui. Saint-Isidore est dans notre zone de service locale. Nous y offrons les soumissions pour thermos, quincaillerie, calfeutrage, coupe-froid et portes-patio." },
+      { question: "Quel service est le plus frequent a Saint-Isidore?", answer: "Le remplacement de thermos embues et la correction d'infiltration d'air sont frequents, surtout sur les maisons exposees aux vents et aux champs ouverts." },
+      { question: "Est-ce que la poussiere agricole affecte les portes-patio?", answer: "Oui. La poussiere peut s'accumuler dans les rails, user les roulettes et rendre la porte lourde. Un nettoyage, un ajustement et le remplacement des roulettes peuvent souvent regler le probleme." },
+    ],
+  },
+  {
+    slug: "saint-edouard",
+    name: "Saint-Édouard",
+    region: "Montérégie",
+    distance: "30 min",
+    population: "1 400 habitants",
+    description:
+      "Saint-Edouard est une petite municipalite de la Monteregie ou le parc immobilier est compose de maisons rurales, de proprietes de village et de residences familiales. Les ouvertures sont souvent exposees aux vents et aux grands ecarts de temperature, ce qui accelere l'usure des thermos, du calfeutrage et des coupe-froid. Le remplacement cible de pieces ou de vitres thermos evite souvent un changement complet de fenetre.",
+    neighborhoods: ["Village", "Rang de l'Eglise", "Rang des Sloan", "Route 221", "Secteur agricole"],
+    commonIssues: [
+      "Thermos embues dans les maisons rurales et proprietes de village plus anciennes",
+      "Calfeutrage et coupe-froid uses par l'exposition au vent et aux ecarts de temperature",
+      "Quincaillerie fatiguee sur les fenetres et portes-patio utilisees depuis plusieurs decennies",
+    ],
+    faq: [
+      { question: "Desservez-vous Saint-Edouard?", answer: "Oui. Nous pouvons nous deplacer a Saint-Edouard pour les soumissions de remplacement de thermos, de reparation de fenetres, de calfeutrage et de quincaillerie." },
+      { question: "Les petites municipalites ont-elles les memes prix?", answer: "Le prix depend surtout de la dimension du thermos, du type de verre et du travail requis. La soumission gratuite permet de confirmer le cout exact avant les travaux." },
+      { question: "Peut-on reparer une vieille fenetre rurale?", answer: "Souvent oui. Lorsque le cadre est encore sain, remplacer le thermos, les joints ou la quincaillerie peut redonner de l'etancheite et prolonger la duree de vie de la fenetre." },
+    ],
+  },
+  {
+    slug: "saint-michel",
+    name: "Saint-Michel",
+    region: "Montérégie",
+    distance: "25 min",
+    population: "3 500 habitants",
+    description:
+      "Saint-Michel, dans les Jardins-de-Napierville, regroupe des maisons de village, des proprietes rurales et des secteurs residentiels proches de Saint-Remi et Napierville. Les fenetres sont souvent exposees a la poussiere, au vent et aux cycles de gel-degel. Les besoins les plus frequents touchent les vitres thermos embuees, les coupe-froid, le calfeutrage et les portes-patio difficiles a glisser.",
+    neighborhoods: ["Village", "Route 221", "Rang Nord", "Rang Sud", "Secteur agricole"],
+    commonIssues: [
+      "Buee entre les vitres thermos des maisons de 20 a 40 ans",
+      "Coupe-froid ecrases et courants d'air dans les proprietes exposees au vent",
+      "Rails et roulettes de portes-patio uses par la poussiere et le manque d'entretien",
+    ],
+    faq: [
+      { question: "Faites-vous la reparation de portes et fenetres a Saint-Michel?", answer: "Oui. Nous desservons Saint-Michel pour les thermos embues, la quincaillerie, les portes-patio, le calfeutrage, les coupe-froid et les moustiquaires." },
+      { question: "Combien coute un thermos a Saint-Michel?", answer: "Un thermos standard coute souvent entre 150$ et 350$ installe. Les formats plus grands ou speciaux sont confirmes apres la prise de mesures." },
+      { question: "Pourquoi une porte-patio devient-elle lourde a Saint-Michel?", answer: "La poussiere et les residus s'accumulent dans le rail, les roulettes s'usent et la porte perd son alignement. La reparation ciblee coute souvent beaucoup moins cher qu'une porte neuve." },
+    ],
+  },
+  {
+    slug: "napierville",
+    name: "Napierville",
+    region: "Montérégie",
+    distance: "30 min",
+    population: "4 000 habitants",
+    description:
+      "Napierville est un pole local au sud de la Rive-Sud, avec des maisons de village, des bungalows et des proprietes plus recentes autour des axes routiers. Le parc immobilier varie beaucoup, ce qui cree des besoins autant pour le remplacement de vitres thermos que pour les portes-patio, les manivelles, les moustiquaires et l'etancheite. La reparation est souvent la solution la plus rentable lorsque les cadres sont encore bons.",
+    neighborhoods: ["Centre de Napierville", "Route 219", "Rue Saint-Jacques", "Secteur rural", "Limite Saint-Cyprien"],
+    commonIssues: [
+      "Thermos embues dans les bungalows et maisons familiales des annees 1970 a 2000",
+      "Fenetre a manivelle difficile a ouvrir ou a verrouiller a cause de quincaillerie usee",
+      "Calfeutrage et coupe-froid fatigues sur les maisons exposees au vent et au soleil",
+    ],
+    faq: [
+      { question: "Desservez-vous Napierville?", answer: "Oui. Nous desservons Napierville pour les soumissions de thermos, reparation de portes et fenetres, quincaillerie, portes-patio, calfeutrage et coupe-froid." },
+      { question: "Est-ce mieux de reparer ou remplacer une fenetre a Napierville?", answer: "Si le cadre est sain, la reparation est souvent plus rentable. Remplacer le thermos, la quincaillerie ou le coupe-froid peut prolonger la vie de la fenetre sans travaux majeurs." },
+      { question: "Combien coute une soumission a Napierville?", answer: "La soumission est gratuite. Le technicien verifie les dimensions, l'acces, le type de probleme et vous donne un prix clair avant les travaux." },
+    ],
+  },
+  {
     slug: "carignan",
     name: "Carignan",
     region: "Montérégie",
@@ -1073,6 +1253,29 @@ export const CITIES = [
     ],
   },
 ];
+
+export const CITY_SEO_PRIORITY_SLUGS = [
+  "montreal",
+  "longueuil",
+  "brossard",
+  "saint-lambert",
+  "saint-hubert",
+  "greenfield-park",
+  "delson",
+  "candiac",
+  "la-prairie",
+  "saint-constant",
+  "sainte-catherine",
+  "chambly",
+];
+
+export function getSeoPriorityCities(limit = CITY_SEO_PRIORITY_SLUGS.length) {
+  const priority = CITY_SEO_PRIORITY_SLUGS
+    .map((slug) => CITIES.find((city) => city.slug === slug))
+    .filter(Boolean);
+  const rest = CITIES.filter((city) => !CITY_SEO_PRIORITY_SLUGS.includes(city.slug));
+  return [...priority, ...rest].slice(0, limit);
+}
 
 import { CITY_COORDS } from "./city-coords.js";
 

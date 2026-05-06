@@ -3,6 +3,7 @@ const nextConfig = {
   distDir: process.env.NEXT_DIST_DIR || ".next",
   serverExternalPackages: ["pdfkit"],
   experimental: {
+    cpus: 2,
     serverActions: {
       bodySizeLimit: "30mb",
     },

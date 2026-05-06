@@ -161,7 +161,7 @@ const RESOURCES = [
   {
     uri: "vosthermos://cities",
     name: "Zones de service",
-    description: "53 villes desservies avec leurs specificites",
+    description: `${CITIES.length} villes desservies avec leurs specificites`,
     mimeType: "application/json",
   },
   {

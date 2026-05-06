@@ -147,6 +147,119 @@ const LOCAL_REPAIR_CITY_PAGES = {
       },
     ],
   },
+  "saint-lambert": {
+    seoTitle: "Reparation de portes et fenetres Saint-Lambert | Vosthermos",
+    seoDescription:
+      `Reparation de portes et fenetres a Saint-Lambert: thermos embues, fenetres en bois, quincaillerie, calfeutrage, coupe-froid et portes patio. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Reparation de portes et fenetres a Saint-Lambert",
+    lead:
+      "Service local de reparation de portes et fenetres a Saint-Lambert pour maisons de caractere, condos et coproprietes: remplacement de thermos, quincaillerie, calfeutrage, coupe-froid, moustiquaires, portes patio et fenetres en bois.",
+    schemaName: "Reparation de portes et fenetres a Saint-Lambert",
+    schemaDescription:
+      "Service local a Saint-Lambert pour reparer portes et fenetres: vitres thermos, fenetres en bois, quincaillerie, portes patio, calfeutrage, coupe-froid et moustiquaires.",
+    alternateName: [
+      "reparation fenetre Saint-Lambert",
+      "reparation fenetres Saint-Lambert",
+      "reparation portes et fenetres Saint-Lambert",
+      "remplacement thermos Saint-Lambert",
+      "fenetre Saint-Lambert",
+    ],
+    sections: [
+      {
+        heading: "Reparation de fenetres Saint-Lambert: thermos, bois et etancheite",
+        paragraphs: [
+          "A Saint-Lambert, plusieurs proprietes ont une valeur architecturale ou un niveau de finition qui merite une reparation precise plutot qu'un remplacement complet. Les thermos peuvent etre changes, les cadres en bois peuvent etre ajustes et la quincaillerie peut etre remise en fonction sans denaturer la maison.",
+          "Nous intervenons dans le Village, Preville, Riverside, Alexandra et les secteurs pres de la gare pour les fenetres embuees, les portes patio difficiles a glisser, le calfeutrage fatigue et les coupe-froid qui laissent passer l'air.",
+          "L'objectif est de garder le cadre existant lorsqu'il est sain, de corriger la vraie cause du probleme et d'eviter les travaux inutiles.",
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: "Reparez-vous les fenetres en bois a Saint-Lambert?",
+        a: "Oui. Nous pouvons restaurer les cadres en bois, remplacer le thermos, ajuster les mecanismes, refaire le calfeutrage et ameliorer l'etancheite sans enlever le cachet de la propriete.",
+      },
+      {
+        q: "Faites-vous les condos et coproprietes a Saint-Lambert?",
+        a: "Oui. Nous pouvons intervenir pour une unite ou regrouper plusieurs thermos dans une copropriete afin de simplifier la prise de mesures, la commande et l'installation.",
+      },
+    ],
+  },
+  "saint-hubert": {
+    seoTitle: "Reparation de portes et fenetres Saint-Hubert | Vosthermos",
+    seoDescription:
+      `Reparation de portes et fenetres a Saint-Hubert: thermos embues, portes patio, manivelles, quincaillerie, calfeutrage et coupe-froid. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Reparation de portes et fenetres a Saint-Hubert",
+    lead:
+      "Service complet de reparation de portes et fenetres a Saint-Hubert pour bungalows, split-levels, jumeles, maisons de ville et condos: thermos, portes patio, quincaillerie, coupe-froid, moustiquaires et calfeutrage.",
+    schemaName: "Reparation de portes et fenetres a Saint-Hubert",
+    schemaDescription:
+      "Service local de reparation a Saint-Hubert pour vitres thermos, portes patio, quincaillerie, manivelles, coupe-froid, moustiquaires et calfeutrage.",
+    alternateName: [
+      "reparation fenetre Saint-Hubert",
+      "reparation portes et fenetres Saint-Hubert",
+      "remplacement thermos Saint-Hubert",
+      "reparation porte patio Saint-Hubert",
+      "fenetre Saint-Hubert",
+    ],
+    sections: [
+      {
+        heading: "Reparation Saint-Hubert: thermos, portes patio et quincaillerie",
+        paragraphs: [
+          "Saint-Hubert regroupe un tres grand nombre de maisons construites entre les annees 1970 et 2000. C'est exactement l'age ou les thermos perdent leur etancheite, ou les manivelles fatiguent et ou les portes patio deviennent lourdes a glisser.",
+          "Nous couvrons Lafleche, Maricourt, Orchard, Grande Allee et les secteurs pres du Parc de la Cite pour verifier chaque ouverture et proposer la reparation la plus rentable.",
+          "Quand le cadre est sain, remplacer le thermos, les roulettes, la manivelle, le coupe-froid ou le calfeutrage coute beaucoup moins cher qu'une fenetre neuve.",
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: "Faites-vous le remplacement de thermos a Saint-Hubert?",
+        a: "Oui. Nous remplacons les vitres thermos embuees ou fissurees a Saint-Hubert en conservant le cadre existant lorsque possible.",
+      },
+      {
+        q: "Reparez-vous les portes patio a Saint-Hubert?",
+        a: "Oui. Nous remplacons les roulettes, ajustons le rail, changeons la serrure, la poignee et le coupe-froid afin que la porte glisse mieux sans devoir remplacer toute la porte.",
+      },
+    ],
+  },
+  "greenfield-park": {
+    seoTitle: "Reparation de portes et fenetres Greenfield Park | Vosthermos",
+    seoDescription:
+      `Reparation de portes et fenetres a Greenfield Park: thermos embues, quincaillerie, portes patio, coupe-froid, moustiquaires et calfeutrage. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Reparation de portes et fenetres a Greenfield Park",
+    lead:
+      "Service local a Greenfield Park pour reparer les portes et fenetres des maisons, duplex, petits immeubles et condos: thermos, quincaillerie, portes patio, calfeutrage, coupe-froid et moustiquaires.",
+    schemaName: "Reparation de portes et fenetres a Greenfield Park",
+    schemaDescription:
+      "Service de reparation de portes et fenetres a Greenfield Park: vitres thermos, quincaillerie, portes patio, coupe-froid, moustiquaires et calfeutrage.",
+    alternateName: [
+      "reparation fenetre Greenfield Park",
+      "reparation portes et fenetres Greenfield Park",
+      "remplacement thermos Greenfield Park",
+      "fenetre Greenfield Park",
+    ],
+    sections: [
+      {
+        heading: "Greenfield Park: reparer les fenetres existantes avant de remplacer",
+        paragraphs: [
+          "Greenfield Park compte beaucoup de maisons et petits immeubles dont les cadres sont encore reparables, meme si les thermos, manivelles, coupe-froid ou portes patio montrent des signes d'usure.",
+          "Nous intervenons dans les secteurs Churchill, Bellevue, Empire, Victoria et Regent pour les fenetres embuees, les portes patio lourdes, les moustiquaires endommagees et les problemes d'infiltration d'air.",
+          "La reparation ciblee permet souvent de prolonger la vie des ouvertures existantes tout en ameliorant le confort et l'isolation.",
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: "Desservez-vous Greenfield Park?",
+        a: "Oui. Greenfield Park fait partie de notre zone de service locale pour la reparation de portes et fenetres, le remplacement de thermos, les portes patio, la quincaillerie et le calfeutrage.",
+      },
+      {
+        q: "Une vieille fenetre de Greenfield Park peut-elle etre reparee?",
+        a: "Souvent oui. Si le cadre est sain, remplacer le thermos, la quincaillerie ou le coupe-froid peut eviter un remplacement complet beaucoup plus couteux.",
+      },
+    ],
+  },
 };
 
 function getLocalRepairCityPage(citySlug) {

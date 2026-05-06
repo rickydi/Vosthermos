@@ -7,11 +7,14 @@ import { COMPANY_INFO } from "@/lib/company-info";
 
 const cities = [
   { name: "Montreal", slug: "montreal" },
-  { name: "Laval", slug: "laval" },
   { name: "Longueuil", slug: "longueuil" },
   { name: "Brossard", slug: "brossard" },
-  { name: "Saint-Hyacinthe", slug: "saint-hyacinthe" },
-  { name: "Granby", slug: "granby" },
+  { name: "Saint-Lambert", slug: "saint-lambert" },
+  { name: "Saint-Hubert", slug: "saint-hubert" },
+  { name: "Greenfield Park", slug: "greenfield-park" },
+  { name: "Delson", slug: "delson" },
+  { name: "Candiac", slug: "candiac" },
+  { name: "Saint-Constant", slug: "saint-constant" },
 ];
 
 const FALLBACK_COMPANY = {

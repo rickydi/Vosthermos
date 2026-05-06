@@ -1,6 +1,6 @@
 import { PROBLEMS } from "./problems-data";
 import { PRICING } from "./pricing-data";
-import { CITIES } from "./cities";
+import { getSeoPriorityCities } from "./cities";
 
 // Map service slugs to related problem slugs
 const SERVICE_TO_PROBLEMS = {
@@ -66,7 +66,7 @@ export function getServiceForProblem(problemSlug) {
 
 // Get top cities for linking
 export function getTopCities(limit = 6) {
-  return CITIES.slice(0, limit);
+  return getSeoPriorityCities(limit);
 }
 
 // Build a comprehensive link map for any page

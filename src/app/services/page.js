@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SERVICES } from "@/lib/services-data";
-import { CITIES } from "@/lib/cities";
+import { CITIES, getSeoPriorityCities } from "@/lib/cities";
 import { COMPANY_INFO } from "@/lib/company-info";
 
 const BASE = "https://www.vosthermos.com";
@@ -80,7 +80,7 @@ const breadcrumbJsonLd = {
 };
 
 export default function ServicesPage() {
-  const topCities = CITIES.slice(0, 12);
+  const topCities = getSeoPriorityCities(12);
 
   return (
     <>

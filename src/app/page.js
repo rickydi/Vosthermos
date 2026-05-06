@@ -128,13 +128,16 @@ const reviews = [
 
 const sectors = [
   "Montréal",
-  "Laval",
   "Longueuil",
   "Brossard",
-  "Saint-Hyacinthe",
-  "Granby",
-  "Terrebonne",
-  "Repentigny",
+  "Saint-Lambert",
+  "Saint-Hubert",
+  "Greenfield Park",
+  "Delson",
+  "Candiac",
+  "La Prairie",
+  "Saint-Constant",
+  "Sainte-Catherine",
   "Chambly",
   "Boucherville",
 ];

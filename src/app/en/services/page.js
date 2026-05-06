@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SERVICES_EN } from "@/lib/services-data-en";
-import { CITIES } from "@/lib/cities";
+import { CITIES, getSeoPriorityCities } from "@/lib/cities";
 import { COMPANY_INFO } from "@/lib/company-info";
 
 const BASE = "https://www.vosthermos.com";
@@ -80,7 +80,7 @@ const breadcrumbJsonLd = {
 };
 
 export default function ServicesPageEn() {
-  const topCities = CITIES.slice(0, 12);
+  const topCities = getSeoPriorityCities(12);
   const cityServiceSlug = SERVICES_EN.find((service) => service.frSlug === "remplacement-vitre-thermos")?.slug || SERVICES_EN[0]?.slug;
 
   return (

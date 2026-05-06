@@ -56,7 +56,7 @@ export default function McpDocsPage() {
             { name: "check_window_warranty", desc: "Verifie si une fenetre est encore sous garantie" },
             { name: "get_service_pricing", desc: "Prix detailles d'un service Vosthermos specifique" },
             { name: "list_services", desc: "Liste les 10 services offerts" },
-            { name: "list_service_cities", desc: "Liste les 53 villes desservies" },
+            { name: "list_service_cities", desc: "Liste les villes desservies" },
             { name: "book_appointment_url", desc: "URL et info de contact pour prendre RDV (human handoff)" },
           ].map((t) => (
             <div key={t.name} className="bg-white border border-[var(--color-border)] rounded-lg p-4">
