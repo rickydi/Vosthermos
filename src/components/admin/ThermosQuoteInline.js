@@ -97,32 +97,31 @@ export default function ThermosQuoteInline({
   }
 
   return (
-    <div className="admin-card rounded-xl border p-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className={`admin-card rounded-xl border transition-colors ${active ? "border-cyan-500/40" : ""}`}>
+      <button
+        type="button"
+        onClick={() => onActiveChange?.(!active)}
+        aria-expanded={active}
+        className="flex w-full flex-wrap items-center justify-between gap-3 p-4 text-left"
+      >
         <div>
-          <h2 className="admin-text font-bold">Calculateur thermos</h2>
+          <h2 className="admin-text flex items-center gap-2 font-bold">
+            <i className="fas fa-calculator text-cyan-600"></i>
+            Calculateur thermos
+          </h2>
           <p className="admin-text-muted mt-1 text-xs">
-            Active seulement quand tu veux calculer un thermos et l&apos;ajouter au bon.
+            Ouvre le calculateur seulement quand tu veux ajouter des thermos au bon.
           </p>
         </div>
-        <label className="inline-flex cursor-pointer items-center gap-3 rounded-lg border admin-border px-3 py-2 text-sm font-bold admin-text hover:bg-white/5">
-          <input
-            type="checkbox"
-            checked={active}
-            onChange={(event) => onActiveChange?.(event.target.checked)}
-            className="rounded"
-          />
-          Activer
-        </label>
-      </div>
+        <span className="inline-flex items-center gap-2 rounded-lg border admin-border px-3 py-2 text-sm font-bold admin-text hover:bg-white/5">
+          {active ? "Fermer" : "Ouvrir"}
+          <i className={`fas fa-chevron-down text-xs transition-transform duration-300 ${active ? "rotate-180" : ""}`}></i>
+        </span>
+      </button>
 
-      {!active ? (
-        <div className="mt-4 rounded-lg border border-cyan-500/20 bg-cyan-500/5 px-3 py-2 text-sm admin-text-muted">
-          Le bon reste plus simple. Coche &quot;Activer&quot; pour ouvrir le calculateur ici.
-        </div>
-      ) : (
-        <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
-          <div className="space-y-3">
+      <div className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${active ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
+        <div className="overflow-hidden">
+          <div className="space-y-4 border-t admin-border p-4 pt-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="admin-text-muted text-xs">
                 Mesures en pouces{city ? ` - secteur: ${city}` : ""}. Les lignes ajoutees au bon sont avant taxes.
@@ -251,31 +250,10 @@ export default function ThermosQuoteInline({
                 </div>
               );
             })}
-          </div>
 
-          <aside className="rounded-xl border admin-border bg-white/[0.02] p-4">
-            <div className="space-y-4">
-              <div>
-                <p className="admin-text-muted text-[11px] font-bold uppercase tracking-wider">Prix calcule</p>
-                <div className="mt-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 p-3">
-                  <p className="text-xs font-bold uppercase tracking-wider text-cyan-700">Sous-total avant taxes</p>
-                  <p className="mt-1 text-2xl font-black text-cyan-700">{money(quote.totals.subtotal)}</p>
-                  <p className="admin-text-muted mt-1 text-xs">
-                    Total avec taxes: {money(quote.totals.total)}
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-2 border-t admin-border pt-3 text-sm">
-                <div className="flex justify-between"><span className="admin-text-muted">Thermos</span><span className="admin-text">{quote.totals.quantity}</span></div>
-                <div className="flex justify-between"><span className="admin-text-muted">Surface</span><span className="admin-text">{quote.totals.sqft} pi2</span></div>
-                <div className="flex justify-between"><span className="admin-text-muted">Lignes</span><span className="admin-text">{money(quote.totals.piecesSubtotal)}</span></div>
-                <div className="flex justify-between"><span className="admin-text-muted">Frais fixes</span><span className="admin-text">{money(quote.totals.tripFee)}</span></div>
-                <div className="flex justify-between"><span className="admin-text-muted">Marge/admin</span><span className="admin-text">{money(quote.totals.margin)}</span></div>
-              </div>
-
+            <div className="flex flex-wrap items-end justify-between gap-3 rounded-xl border admin-border bg-white/[0.02] p-3">
               {isB2B && (
-                <label className="block border-t admin-border pt-3">
+                <label className="block min-w-56 flex-1">
                   <span className="admin-text-muted mb-1 block text-xs font-medium">Destination</span>
                   <select
                     value={effectiveDestination}
@@ -295,28 +273,37 @@ export default function ThermosQuoteInline({
                 </label>
               )}
 
-              {lastAdded && (
+              <div className="flex flex-1 flex-wrap items-center justify-end gap-3">
+                <div className="text-right">
+                  <p className="admin-text-muted text-[11px] uppercase tracking-wider">A ajouter au bon</p>
+                  <p className="text-lg font-black text-cyan-700">{money(quote.totals.subtotal)}</p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={addQuoteToBon}
+                  disabled={quote.totals.subtotal <= 0}
+                  className="rounded-lg bg-cyan-700 px-4 py-3 text-sm font-bold text-white hover:bg-cyan-600 disabled:opacity-50"
+                >
+                  <i className="fas fa-plus mr-2"></i>Ajouter au bon
+                </button>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              {lastAdded ? (
                 <p className="rounded-lg border border-green-500/30 bg-green-500/10 px-3 py-2 text-xs font-medium text-green-700">
                   {lastAdded}
                 </p>
+              ) : (
+                <p className="admin-text-muted text-xs">
+                  Le bon calcule les taxes ensuite. N&apos;ajoute pas le total avec taxes ici.
+                </p>
               )}
-
-              <button
-                type="button"
-                onClick={addQuoteToBon}
-                disabled={quote.totals.subtotal <= 0}
-                className="w-full rounded-lg bg-cyan-700 px-4 py-3 text-sm font-bold text-white hover:bg-cyan-600 disabled:opacity-50"
-              >
-                <i className="fas fa-plus mr-2"></i>Ajouter au bon
-              </button>
-
-              <p className="admin-text-muted text-xs">
-                Le bon calcule les taxes ensuite. N&apos;ajoute pas le total avec taxes ici.
-              </p>
             </div>
-          </aside>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
