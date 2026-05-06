@@ -55,10 +55,10 @@ const services = [
   },
   {
     icon: "fas fa-door-open",
-    title: "Portes et fenêtres",
-    text: "Réparation, coupe-froid, calfeutrage, moustiquaires et restauration bois.",
+    title: "Reparation de portes et fenetres a Montreal",
+    text: "Page locale pour thermos, quincaillerie, portes patio, calfeutrage, coupe-froid et moustiquaires.",
     image: "/images/portes-bois/detail-1.jpg",
-    href: "/services/reparation-portes-bois",
+    href: "/reparation-portes-et-fenetres/montreal",
   },
 ];
 

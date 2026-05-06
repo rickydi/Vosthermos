@@ -23,6 +23,7 @@ for (const p of PROBLEMS) {
 
 // Service keywords
 const SERVICE_KEYWORDS = [
+  { keywords: ["reparation de portes et fenetres montreal", "reparation de portes et fenetres a montreal", "reparation portes et fenetres montreal", "reparation porte et fenetre montreal"], url: "/reparation-portes-et-fenetres/montreal", title: "Reparation de portes et fenetres a Montreal" },
   { keywords: ["reparation porte patio montreal", "reparation de porte patio a montreal", "porte patio montreal", "portes patio montreal"], url: "/services/reparation-porte-patio/montreal", title: "Reparation porte patio a Montreal" },
   { keywords: ["vitre thermos embuee montreal", "vitre thermos embuee a montreal", "thermos embue montreal", "fenetre embuee montreal", "desembuage montreal"], url: "/services/desembuage/montreal", title: "Vitre thermos embuee a Montreal" },
   { keywords: ["remplacement de thermos", "remplacer le thermos", "remplacer un thermos"], url: "/services/remplacement-vitre-thermos", title: "Remplacement de thermos" },

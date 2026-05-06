@@ -13,9 +13,10 @@ export async function generateMetadata({ params }) {
   const { ville } = await params;
   const city = getCity(ville);
   if (!city) return {};
+  const localPage = getLocalRepairCityPage(ville);
   const tpl = CITY_PAGE_SEO["reparation-portes-et-fenetres"];
-  const title = tpl.title(city);
-  const description = tpl.description(city);
+  const title = localPage?.seoTitle || tpl.title(city);
+  const description = localPage?.seoDescription || tpl.description(city);
   const url = `https://www.vosthermos.com/reparation-portes-et-fenetres/${city.slug}`;
   return {
     title,
@@ -50,10 +51,55 @@ const allServices = [
   { slug: "insertion-porte", icon: "fas fa-door-closed", title: "Insertion de porte", desc: "Remplacement de l'insertion vitree de votre porte d'entree. Ameliore l'esthetique et l'isolation." },
 ];
 
+const LOCAL_REPAIR_CITY_PAGES = {
+  montreal: {
+    seoTitle: "Reparation de portes et fenetres Montreal | Vosthermos",
+    seoDescription:
+      `Reparation de portes et fenetres a Montreal: vitres thermos embuees, quincaillerie, portes patio, calfeutrage, coupe-froid et moustiquaires. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Reparation de portes et fenetres a Montreal",
+    lead:
+      "Service complet de reparation de portes et fenetres a Montreal pour triplex, duplex, condos et maisons: thermos embues, quincaillerie usee, portes patio, calfeutrage, coupe-froid, moustiquaires et portes de bois.",
+    schemaName: "Reparation de portes et fenetres a Montreal",
+    schemaDescription:
+      "Service local de reparation de portes et fenetres a Montreal: vitres thermos, quincaillerie, portes patio, calfeutrage, coupe-froid, moustiquaires, desembuage et restauration de bois.",
+    alternateName: [
+      "reparation de portes et fenetres Montreal",
+      "reparation portes et fenetres Montreal",
+      "reparation porte et fenetre Montreal",
+      "portes et fenetres Montreal",
+    ],
+    sections: [
+      {
+        heading: "Reparation de portes et fenetres Montreal: thermos, quincaillerie et etancheite",
+        paragraphs: [
+          "A Montreal, les ouvertures de triplex, duplex, condos et maisons plus anciennes cumulent souvent plusieurs problemes en meme temps: thermos embues, quincaillerie usee, portes patio difficiles a glisser, calfeutrage fissure et coupe-froid fatigue.",
+          "La page Montreal doit repondre a cette intention globale: reparer les portes et fenetres sans pousser automatiquement vers le remplacement complet. Nos techniciens evaluent chaque ouverture et priorisent les reparations ciblees qui prolongent la vie des fenetres existantes.",
+          "Nous desservons notamment Rosemont, Villeray, Ahuntsic, Verdun, le Plateau, Hochelaga, NDG et les arrondissements centraux pour les soumissions, la prise de mesures, les pieces de quincaillerie, le remplacement de thermos et les travaux d'etancheite.",
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: "Faites-vous la reparation de portes et fenetres a Montreal?",
+        a: "Oui. Nous reparons les portes et fenetres a Montreal: vitres thermos embuees, quincaillerie, portes patio, calfeutrage, coupe-froid, moustiquaires, desembuage et portes de bois. Le technicien verifie les ouvertures sur place et recommande les travaux utiles.",
+      },
+      {
+        q: "Pourquoi reparer plutot que remplacer les portes et fenetres a Montreal?",
+        a: "Dans beaucoup de triplex, duplex et condos de Montreal, le cadre est encore reparable. Remplacer le thermos, la quincaillerie ou le calfeutrage coute souvent beaucoup moins cher qu'une fenetre complete et evite des travaux inutiles.",
+      },
+    ],
+  },
+};
+
+function getLocalRepairCityPage(citySlug) {
+  return LOCAL_REPAIR_CITY_PAGES[citySlug] || null;
+}
+
 export default async function ReparationVillePage({ params }) {
   const { ville } = await params;
   const city = getCity(ville);
   if (!city) notFound();
+  const localPage = getLocalRepairCityPage(ville);
 
   const getServiceCard = (service) => {
     if (city.slug === "beloeil" && service.slug === "reparation-porte-patio") {
@@ -144,8 +190,9 @@ export default async function ReparationVillePage({ params }) {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Service",
-    name: `Reparation de portes et fenetres a ${city.name}`,
-    description: `Service complet de reparation de portes et fenetres a ${city.name}. Quincaillerie, vitres thermos, portes en bois, moustiquaires, calfeutrage, coupe-froid, desembuage et insertion de porte.`,
+    name: localPage?.schemaName || `Reparation de portes et fenetres a ${city.name}`,
+    description: localPage?.schemaDescription || `Service complet de reparation de portes et fenetres a ${city.name}. Quincaillerie, vitres thermos, portes en bois, moustiquaires, calfeutrage, coupe-froid, desembuage et insertion de porte.`,
+    ...(localPage?.alternateName ? { alternateName: localPage.alternateName } : {}),
     url: `https://www.vosthermos.com/reparation-portes-et-fenetres/${city.slug}`,
     provider,
     areaServed: {
@@ -175,6 +222,7 @@ export default async function ReparationVillePage({ params }) {
   };
 
   const faqItems = [
+    ...(localPage?.faq || []),
     {
       q: `Quels services de reparation de portes et fenetres offrez-vous a ${city.name}?`,
       a: `A ${city.name}, nous offrons la gamme complete de reparation de portes et fenetres : remplacement de quincaillerie (poignees, serrures, roulettes), remplacement de vitres thermos embuees, reparation de portes en bois, fabrication de moustiquaires sur mesure, calfeutrage, coupe-froid, desembuage et insertion de porte. Tous nos travaux sont garantis.`,
@@ -238,11 +286,15 @@ export default async function ReparationVillePage({ params }) {
                 )}
               </div>
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-6">
-                Reparation de portes et fenetres a{" "}
-                <span className="text-[var(--color-red)]">{city.name}</span>
+                {localPage?.h1 || (
+                  <>
+                    Reparation de portes et fenetres a{" "}
+                    <span className="text-[var(--color-red)]">{city.name}</span>
+                  </>
+                )}
               </h1>
               <p className="text-white/70 text-lg leading-relaxed mb-6">
-                Vosthermos est votre specialiste en reparation de portes et fenetres a {city.name}. Que ce soit pour un thermos embue, une quincaillerie defaillante ou un calfeutrage a refaire, notre equipe intervient rapidement avec un service garanti sur tous les travaux.
+                {localPage?.lead || `Vosthermos est votre specialiste en reparation de portes et fenetres a ${city.name}. Que ce soit pour un thermos embue, une quincaillerie defaillante ou un calfeutrage a refaire, notre equipe intervient rapidement avec un service garanti sur tous les travaux.`}
               </p>
 
               {/* Trust badge: hours */}
@@ -306,6 +358,16 @@ export default async function ReparationVillePage({ params }) {
             <p className="text-[var(--color-muted)] leading-relaxed">
               Avec plus de 15 ans d&apos;experience et un inventaire de plus de 700 pieces de quincaillerie, nous sommes en mesure de reparer la tres grande majorite des portes et fenetres residentielles, peu importe la marque ou l&apos;annee d&apos;installation. Tous nos travaux sont garantis et nos soumissions sont gratuites.
             </p>
+            {localPage?.sections?.map((section) => (
+              <div key={section.heading} className="mt-10">
+                <h2 className="text-2xl font-extrabold mb-4">
+                  {section.heading}
+                </h2>
+                {section.paragraphs.map((p) => (
+                  <p key={p} className="text-[var(--color-muted)] leading-relaxed mb-4">{p}</p>
+                ))}
+              </div>
+            ))}
           </div>
         </div>
       </section>
