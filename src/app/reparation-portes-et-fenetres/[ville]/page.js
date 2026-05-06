@@ -157,6 +157,13 @@ export default async function ReparationVillePage({ params }) {
         desc: "Vitres thermos embuees, unites scellees fissurees et thermos de triplex en fin de vie. Lien direct vers la page specialisee pour le remplacement vitre thermos a Montreal.",
       };
     }
+    if (city.slug === "delson" && service.slug === "remplacement-vitre-thermos") {
+      return {
+        ...service,
+        title: "Remplacement vitre thermos a Delson",
+        desc: "Thermos embues, unites scellees fissurees et vitres de maisons des annees 1970-2000. Lien direct vers la page specialisee pour le remplacement vitre thermos a Delson.",
+      };
+    }
     if (city.slug === "montreal" && service.slug === "desembuage") {
       return {
         ...service,

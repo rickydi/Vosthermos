@@ -251,10 +251,75 @@ const LOCAL_SERVICE_CITY_PAGES = {
       },
     ],
   },
+  "remplacement-vitre-thermos:delson": {
+    seoTitle: "Remplacement vitre thermos Delson | Des 150$",
+    seoDescription:
+      `Remplacement vitre thermos a Delson pour thermos embues, vitres fissurees et unites scellees en fin de vie. Service rapide a Delson. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Remplacement vitre thermos a Delson",
+    lead:
+      "Service specialise de remplacement vitre thermos a Delson: thermos embues, unites scellees fissurees, perte d'isolation et vitres de maisons unifamiliales ou jumelees en fin de vie.",
+    schemaName: "Remplacement vitre thermos a Delson",
+    schemaDescription:
+      "Remplacement de vitres thermos et unites scellees a Delson: prise de mesures, fabrication sur mesure et installation dans le cadre existant.",
+    serviceType: "Remplacement de vitre thermos",
+    alternateName: [
+      "remplacement vitre thermos Delson",
+      "remplacement de vitre thermos Delson",
+      "remplacement thermos Delson",
+      "vitre thermos Delson",
+      "thermos embue Delson",
+    ],
+    sections: [
+      {
+        heading: "Remplacement vitre thermos Delson: thermos embues et unites scellees",
+        paragraphs: [
+          "A Delson, beaucoup de maisons unifamiliales et jumelees construites entre les annees 1970 et 2000 ont maintenant des thermos en fin de vie. La buee entre les vitres, les taches blanchatres et la perte d'isolation indiquent souvent que l'unite scellee doit etre remplacee.",
+          "Nos techniciens sont a environ 15 minutes de Delson, ce qui permet une prise de mesures rapide dans le Centre de Delson, le secteur des Erables, le quartier residentiel Sud et pres de la gare.",
+          "Pour une recherche remplacement vitre thermos Delson, l'intention principale est la vitre scellee, pas le mecanisme d'une porte-fenetre. Nous remplacons le thermos sur mesure en conservant le cadre existant lorsque possible, sans vendre une fenetre complete inutilement.",
+        ],
+      },
+    ],
+    issuesHeading: "Problemes de vitre thermos frequents a Delson",
+    issues: [
+      "Thermos embues dans les maisons unifamiliales et jumelees des annees 1970 a 2000",
+      "Unites scellees fissurees ou blanchatres dans le Centre de Delson et le secteur des Erables",
+      "Perte d'isolation et condensation entre les vitres pendant les cycles gel-degel",
+    ],
+    faq: [
+      {
+        q: "Faites-vous le remplacement vitre thermos a Delson?",
+        a: "Oui. Nous faisons le remplacement vitre thermos a Delson pour les thermos embues, fissures ou en perte d'isolation. Le technicien prend les mesures sur place, commande l'unite scellee sur mesure et revient l'installer dans le cadre existant.",
+      },
+      {
+        q: "Quelle est la difference entre une porte-fenetre et une vitre thermos a Delson?",
+        a: "Une porte-fenetre concerne surtout le mecanisme, les charnieres, la poignee et l'ajustement. Une vitre thermos concerne l'unite scellee dans le cadre. Pour une vitre thermos embuee ou fissuree, le remplacement du thermos est le service le plus precis.",
+      },
+      {
+        q: "Combien coute un remplacement thermos a Delson?",
+        a: "Un remplacement de thermos standard debute souvent autour de 150$ par unite installee, selon la dimension, le type de verre et l'acces. Delson etant tres proche de notre atelier, la soumission et la prise de mesures peuvent souvent se faire rapidement.",
+      },
+    ],
+  },
 };
 
 function getLocalServiceCityPage(serviceSlug, citySlug) {
   return LOCAL_SERVICE_CITY_PAGES[`${serviceSlug}:${citySlug}`] || null;
+}
+
+const LOCAL_INTENT_LINKS = {
+  "reparation-porte-fenetre:delson": [
+    {
+      href: "/services/remplacement-vitre-thermos/delson",
+      title: "Thermos embue ou vitre scellee a remplacer?",
+      description:
+        "Si la demande concerne surtout une vitre thermos embuee, fissuree ou une unite scellee en fin de vie, la page specialisee est le meilleur choix pour Delson.",
+      label: "Remplacement vitre thermos Delson",
+    },
+  ],
+};
+
+function getLocalIntentLinks(serviceSlug, citySlug) {
+  return LOCAL_INTENT_LINKS[`${serviceSlug}:${citySlug}`] || [];
 }
 
 export function generateStaticParams() {
@@ -310,6 +375,7 @@ export default async function ServiceCityPage({ params }) {
   if (!service || !city) notFound();
 
   const localPage = getLocalServiceCityPage(slug, ville);
+  const intentLinks = getLocalIntentLinks(slug, ville);
   const otherServices = SERVICES.filter((s) => s.slug !== service.slug).slice(0, 4);
   const otherCities = CITIES.filter((c) => c.slug !== city.slug).slice(0, 8);
 
@@ -461,6 +527,24 @@ export default async function ServiceCityPage({ params }) {
                 )}
               </p>
             </div>
+
+            {intentLinks.length > 0 && (
+              <div className="rounded-2xl border border-[var(--color-teal)]/20 bg-[var(--color-teal)]/5 p-6">
+                {intentLinks.map((link) => (
+                  <div key={link.href}>
+                    <h2 className="text-xl font-bold text-gray-900 mb-2">{link.title}</h2>
+                    <p className="text-gray-600 leading-relaxed mb-4">{link.description}</p>
+                    <Link
+                      href={link.href}
+                      className="inline-flex items-center gap-2 text-[var(--color-teal)] font-bold hover:underline"
+                    >
+                      {link.label}
+                      <i className="fas fa-arrow-right text-xs"></i>
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {localPage?.sections?.map((section) => (
               <div key={section.heading}>
