@@ -3,6 +3,11 @@ import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { analyticsDateRange } from "@/lib/analytics-date-range";
 
+function isOutsideCanadaSession(session) {
+  const country = String(session.country || "").trim().toLowerCase();
+  return Boolean(country && country !== "canada");
+}
+
 export async function GET(request) {
   try {
     await requireAdmin();
@@ -11,10 +16,26 @@ export async function GET(request) {
     const createdAt = { gte: range.since };
     if (range.until) createdAt.lt = range.until;
 
-    const events = await prisma.analyticsFormEvent.findMany({
-      where: { createdAt },
-      orderBy: { createdAt: "desc" },
-    });
+    const [rawEvents, sessions] = await Promise.all([
+      prisma.analyticsFormEvent.findMany({
+        where: { createdAt },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.analyticsSession.findMany({
+        where: { startedAt: createdAt },
+        select: { visitorId: true, country: true },
+      }),
+    ]);
+
+    const outsideCanadaVisitorIds = new Set(
+      sessions
+        .filter(isOutsideCanadaSession)
+        .map((session) => session.visitorId)
+    );
+
+    const events = rawEvents.filter((event) => (
+      !event.visitorId || !outsideCanadaVisitorIds.has(event.visitorId)
+    ));
 
     function statsForForm(formType) {
       const formEvents = events.filter((e) => e.formType === formType);

@@ -3,6 +3,49 @@ import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { analyticsDailyKeys, analyticsDateRange, toMontrealDate } from "@/lib/analytics-date-range";
 
+function isOutsideCanadaSession(session) {
+  const country = String(session.country || "").trim().toLowerCase();
+  return Boolean(country && country !== "canada");
+}
+
+function buildVisitorList(sessions) {
+  const visitorMap = {};
+  for (const s of sessions) {
+    if (!visitorMap[s.visitorId] || new Date(s.startedAt) > new Date(visitorMap[s.visitorId].startedAt)) {
+      const duration = s.endedAt ? Math.round((new Date(s.endedAt) - new Date(s.startedAt)) / 1000) : 0;
+      visitorMap[s.visitorId] = {
+        visitorId: s.visitorId,
+        device: s.device || "Inconnu",
+        browser: s.browser || "Inconnu",
+        referrer: s.referrer || null,
+        city: s.city || null,
+        region: s.region || null,
+        country: s.country || null,
+        pages: s.pageViews.length,
+        duration,
+        startedAt: s.startedAt,
+        topPages: s.pageViews.map(pv => pv.page),
+      };
+    }
+  }
+
+  return Object.values(visitorMap)
+    .sort((a, b) => new Date(b.startedAt) - new Date(a.startedAt));
+}
+
+function buildCountryBreakdown(sessions) {
+  const countryVisitors = {};
+  for (const s of sessions) {
+    const country = s.country || "Inconnu";
+    if (!countryVisitors[country]) countryVisitors[country] = new Set();
+    countryVisitors[country].add(s.visitorId);
+  }
+
+  return Object.entries(countryVisitors)
+    .map(([country, visitors]) => ({ country, visitors: visitors.size }))
+    .sort((a, b) => b.visitors - a.visitors);
+}
+
 export async function GET(request) {
   try {
     await requireAdmin();
@@ -13,10 +56,12 @@ export async function GET(request) {
     if (range.until) startedAt.lt = range.until;
 
     // Total visitors (unique visitorIds)
-    const sessions = await prisma.analyticsSession.findMany({
+    const allSessions = await prisma.analyticsSession.findMany({
       where: { startedAt },
       include: { pageViews: true },
     });
+    const outsideCanadaSessions = allSessions.filter(isOutsideCanadaSession);
+    const sessions = allSessions.filter((s) => !isOutsideCanadaSession(s));
 
     const uniqueVisitors = new Set(sessions.map(s => s.visitorId)).size;
     const totalPageViews = sessions.reduce((sum, s) => sum + s.pageViews.length, 0);
@@ -118,27 +163,9 @@ export async function GET(request) {
     }
 
     // Recent visitors (last 20 unique)
-    const visitorMap = {};
-    for (const s of sessions) {
-      if (!visitorMap[s.visitorId] || new Date(s.startedAt) > new Date(visitorMap[s.visitorId].startedAt)) {
-        const duration = s.endedAt ? Math.round((new Date(s.endedAt) - new Date(s.startedAt)) / 1000) : 0;
-        visitorMap[s.visitorId] = {
-          visitorId: s.visitorId,
-          device: s.device || "Inconnu",
-          browser: s.browser || "Inconnu",
-          referrer: s.referrer || null,
-          city: s.city || null,
-          region: s.region || null,
-          pages: s.pageViews.length,
-          duration,
-          startedAt: s.startedAt,
-          topPages: s.pageViews.map(pv => pv.page),
-        };
-      }
-    }
-    const allVisitors = Object.values(visitorMap)
-      .sort((a, b) => new Date(b.startedAt) - new Date(a.startedAt));
+    const allVisitors = buildVisitorList(sessions);
     const recentVisitors = showAllVisitors ? allVisitors : allVisitors.slice(0, 20);
+    const outsideCanadaVisitors = buildVisitorList(outsideCanadaSessions);
 
     return NextResponse.json({
       uniqueVisitors,
@@ -153,6 +180,13 @@ export async function GET(request) {
       recentVisitors,
       visitorListTotal: allVisitors.length,
       visitorListLimit: showAllVisitors ? null : 20,
+      outsideCanada: {
+        uniqueVisitors: new Set(outsideCanadaSessions.map(s => s.visitorId)).size,
+        totalPageViews: outsideCanadaSessions.reduce((sum, s) => sum + s.pageViews.length, 0),
+        totalSessions: outsideCanadaSessions.length,
+        countries: buildCountryBreakdown(outsideCanadaSessions),
+        visitors: outsideCanadaVisitors,
+      },
       range: { date: range.date, days: range.days },
     });
   } catch (err) {

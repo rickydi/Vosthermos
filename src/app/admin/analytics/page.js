@@ -9,6 +9,7 @@ import FlowDiagram from "@/components/admin/analytics/FlowDiagram";
 import FormAbandonment from "@/components/admin/analytics/FormAbandonment";
 import FormTimeline from "@/components/admin/analytics/FormTimeline";
 import BreakdownCards from "@/components/admin/analytics/BreakdownCards";
+import OutsideCanadaVisitors from "@/components/admin/analytics/OutsideCanadaVisitors";
 
 export default function AdminAnalyticsPage() {
   const [data, setData] = useState(null);
@@ -133,6 +134,12 @@ export default function AdminAnalyticsPage() {
 
       {/* Stats cards */}
       <StatsCards data={data} formatDuration={formatDuration} />
+
+      <OutsideCanadaVisitors
+        data={data.outsideCanada}
+        periodLabel={periodLabel}
+        formatDuration={formatDuration}
+      />
 
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">

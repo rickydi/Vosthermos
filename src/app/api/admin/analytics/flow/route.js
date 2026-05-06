@@ -3,6 +3,11 @@ import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { analyticsDateRange } from "@/lib/analytics-date-range";
 
+function isOutsideCanadaSession(session) {
+  const country = String(session.country || "").trim().toLowerCase();
+  return Boolean(country && country !== "canada");
+}
+
 export async function GET(request) {
   try {
     await requireAdmin();
@@ -11,12 +16,13 @@ export async function GET(request) {
     const startedAt = { gte: range.since };
     if (range.until) startedAt.lt = range.until;
 
-    const sessions = await prisma.analyticsSession.findMany({
+    const allSessions = await prisma.analyticsSession.findMany({
       where: { startedAt },
       include: {
         pageViews: { orderBy: { enteredAt: "asc" } },
       },
     });
+    const sessions = allSessions.filter((session) => !isOutsideCanadaSession(session));
 
     const flowMap = {};
     const entryMap = {};
