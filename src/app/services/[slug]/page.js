@@ -15,6 +15,13 @@ const PRIORITY_CITY_LINKS = {
     href: "/services/reparation-porte-patio/montreal",
     title: "Reparation porte patio a Montreal",
     text: "Pour les portes patio lourdes, rails encrasses, roulettes usees, serrures bloquees et coupe-froid fatigues a Montreal, consultez la page locale dediee.",
+    cta: "Reparation porte patio a Montreal",
+  },
+  "desembuage": {
+    href: "/services/desembuage/montreal",
+    title: "Vitre thermos embuee a Montreal",
+    text: "Pour la buee entre les vitres, un halo blanchatre ou une condensation persistante dans un thermos a Montreal, consultez la page locale de desembuage.",
+    cta: "Vitre thermos embuee a Montreal",
   },
 };
 
@@ -263,7 +270,7 @@ export default async function ServicePage({ params }) {
                 href={priorityCityLink.href}
                 className="inline-flex items-center gap-2 mt-5 md:mt-0 bg-[var(--color-red)] text-white px-5 py-3 rounded-full font-bold hover:bg-[var(--color-red-dark)] transition-all"
               >
-                Reparation porte patio a Montreal
+                {priorityCityLink.cta || priorityCityLink.title}
                 <i className="fas fa-arrow-right text-xs"></i>
               </Link>
             </div>

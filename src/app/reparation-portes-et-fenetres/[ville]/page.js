@@ -91,6 +91,13 @@ export default async function ReparationVillePage({ params }) {
         desc: "Vitres thermos embuees, unites scellees fissurees et thermos de triplex en fin de vie. Lien direct vers la page specialisee pour le remplacement vitre thermos a Montreal.",
       };
     }
+    if (city.slug === "montreal" && service.slug === "desembuage") {
+      return {
+        ...service,
+        title: "Vitre thermos embuee a Montreal",
+        desc: "Buee entre les vitres, halo blanchatre et condensation persistante. Lien direct vers la page specialisee pour le desembuage de vitre thermos a Montreal.",
+      };
+    }
     return service;
   };
 

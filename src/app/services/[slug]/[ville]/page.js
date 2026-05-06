@@ -167,6 +167,51 @@ const LOCAL_SERVICE_CITY_PAGES = {
       },
     ],
   },
+  "desembuage:montreal": {
+    seoTitle: "Vitre thermos embuee Montreal | Desembuage",
+    seoDescription:
+      `Vitre thermos embuee a Montreal? Desembuage de thermos, buee entre les vitres, halo blanchatre et condensation. Evaluation a domicile. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Vitre thermos embuee a Montreal",
+    lead:
+      "Service specialise pour vitre thermos embuee a Montreal: buee entre les vitres, halo blanchatre, condensation persistante et evaluation entre desembuage ou remplacement du thermos.",
+    schemaName: "Vitre thermos embuee a Montreal",
+    schemaDescription:
+      "Desembuage de vitres thermos embuees a Montreal: evaluation de la buee, nettoyage interne, evacuation de l'humidite et recommandation honnete si le remplacement du thermos est preferable.",
+    serviceType: "Desembuage de vitre thermos",
+    alternateName: [
+      "vitre thermos embuee Montreal",
+      "thermos embue Montreal",
+      "fenetre embuee Montreal",
+      "desembuage Montreal",
+      "condensation entre les vitres Montreal",
+    ],
+    sections: [
+      {
+        heading: "Vitre thermos embuee Montreal: buee, halo et condensation",
+        paragraphs: [
+          "A Montreal, les thermos des triplex, duplex, condos et maisons plus anciennes peuvent developper de la buee entre les vitres apres plusieurs cycles gel-degel. Quand l'humidite reste prisonniere dans l'unite scellee, la vitre devient voilee, blanchatre ou embuee.",
+          "Nos techniciens evaluent les vitres thermos embuees dans les secteurs comme Rosemont, Villeray, Ahuntsic, Verdun, le Plateau, Hochelaga, NDG et les arrondissements centraux pour determiner si le desembuage est encore une bonne option.",
+          "Le desembuage peut etre interessant lorsque la buee est recente ou legere. Si le verre est trop attaque, fissure ou rempli de depots permanents, nous recommandons plutot le remplacement du thermos afin d'eviter une reparation inutile.",
+        ],
+      },
+    ],
+    issuesHeading: "Problemes de vitre thermos embuee a Montreal",
+    issues: [
+      "Buee ou condensation entre les vitres thermos dans les triplex et condos montrealais",
+      "Halo blanchatre sur les thermos exposes au soleil, au froid et aux cycles gel-degel",
+      "Thermos embue dont il faut verifier s'il peut etre desembue ou s'il doit etre remplace",
+    ],
+    faq: [
+      {
+        q: "Peut-on desembuer une vitre thermos embuee a Montreal?",
+        a: "Oui, dans certains cas. Le desembuage fonctionne surtout lorsque la buee est recente, que le verre n'est pas fissure et que les depots ne sont pas incrustes. Le technicien verifie la vitre sur place avant de recommander le desembuage.",
+      },
+      {
+        q: "Quelle est la difference entre desembuage et remplacement de thermos?",
+        a: "Le desembuage vise a evacuer l'humidite et ameliorer la clarte du thermos existant. Le remplacement installe une unite scellee neuve. Si la vitre thermos est trop endommagee, le remplacement est plus durable que le desembuage.",
+      },
+    ],
+  },
   "remplacement-vitre-thermos:montreal": {
     seoTitle: "Remplacement vitre thermos Montreal | Des 150$",
     seoDescription:

@@ -24,6 +24,7 @@ for (const p of PROBLEMS) {
 // Service keywords
 const SERVICE_KEYWORDS = [
   { keywords: ["reparation porte patio montreal", "reparation de porte patio a montreal", "porte patio montreal", "portes patio montreal"], url: "/services/reparation-porte-patio/montreal", title: "Reparation porte patio a Montreal" },
+  { keywords: ["vitre thermos embuee montreal", "vitre thermos embuee a montreal", "thermos embue montreal", "fenetre embuee montreal", "desembuage montreal"], url: "/services/desembuage/montreal", title: "Vitre thermos embuee a Montreal" },
   { keywords: ["remplacement de thermos", "remplacer le thermos", "remplacer un thermos"], url: "/services/remplacement-vitre-thermos", title: "Remplacement de thermos" },
   { keywords: ["remplacement de quincaillerie", "quincaillerie de porte", "quincaillerie de fenetre"], url: "/services/remplacement-quincaillerie", title: "Remplacement de quincaillerie" },
   { keywords: ["reparation de porte en bois", "porte en bois", "fenetre en bois", "fenetres en bois", "restauration de porte en bois", "restauration de fenetre en bois", "restauration de portes en bois", "restauration de fenetres en bois", "restauration porte bois", "restauration fenetre bois", "bois pourri", "greffe de bois", "reparation fenetre en bois"], url: "/services/reparation-portes-bois", title: "Restauration et reparation de portes et fenetres en bois" },

@@ -325,6 +325,22 @@ export default async function Home() {
                 </Link>
               ))}
             </div>
+            <div className="mt-8 rounded-2xl border border-[var(--color-border)] bg-white p-6 md:flex md:items-center md:justify-between md:gap-8">
+              <div>
+                <h3 className="text-xl font-extrabold mb-2">Vitre thermos embuee a Montreal</h3>
+                <p className="text-[var(--color-muted)] max-w-3xl">
+                  Buee entre les vitres, halo blanchatre ou condensation persistante? Le service de desembuage
+                  verifie si la vitre thermos peut etre recuperee avant de recommander un remplacement.
+                </p>
+              </div>
+              <Link
+                href="/services/desembuage/montreal"
+                className="inline-flex items-center gap-2 mt-5 md:mt-0 text-[var(--color-red)] font-bold hover:underline"
+              >
+                Vitre thermos embuee a Montreal
+                <i className="fas fa-arrow-right text-xs"></i>
+              </Link>
+            </div>
           </div>
         </section>
 
