@@ -23,6 +23,7 @@ for (const p of PROBLEMS) {
 
 // Service keywords
 const SERVICE_KEYWORDS = [
+  { keywords: ["reparation de portes et fenetres chateauguay", "reparation portes et fenetres chateauguay", "reparation porte et fenetre chateauguay", "portes et fenetres chateauguay", "porte et fenetre chateauguay"], url: "/reparation-portes-et-fenetres/chateauguay", title: "Reparation de portes et fenetres Chateauguay" },
   { keywords: ["remplacement vitre thermos delson", "remplacement de vitre thermos delson", "remplacement thermos delson", "vitre thermos delson", "thermos embue delson"], url: "/services/remplacement-vitre-thermos/delson", title: "Remplacement vitre thermos Delson" },
   { keywords: ["reparation fenetre montreal", "reparation fenetre a montreal", "reparation fenetres montreal", "reparation de fenetre montreal", "reparation de fenetre a montreal", "reparation de fenetres montreal", "reparation de fenetres a montreal"], url: "/reparation-portes-et-fenetres/montreal", title: "Reparation fenetre Montreal" },
   { keywords: ["reparation de portes et fenetres montreal", "reparation de portes et fenetres a montreal", "reparation portes et fenetres montreal", "reparation porte et fenetre montreal"], url: "/reparation-portes-et-fenetres/montreal", title: "Reparation de portes et fenetres a Montreal" },

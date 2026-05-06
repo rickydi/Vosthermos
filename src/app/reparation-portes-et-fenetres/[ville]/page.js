@@ -109,6 +109,44 @@ const LOCAL_REPAIR_CITY_PAGES = {
       },
     ],
   },
+  chateauguay: {
+    seoTitle: "Reparation de portes et fenetres Chateauguay | Vosthermos",
+    seoDescription:
+      `Reparation de portes et fenetres a Chateauguay: thermos embues, quincaillerie, portes patio, calfeutrage, coupe-froid et cadres affectes par l'humidite. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Reparation de portes et fenetres a Chateauguay",
+    lead:
+      "Service complet de reparation de portes et fenetres a Chateauguay pour bungalows, split-levels, maisons unifamiliales et proprietes pres de la riviere: thermos embues, quincaillerie usee, portes patio, calfeutrage, coupe-froid et cadres fatigues.",
+    schemaName: "Reparation de portes et fenetres a Chateauguay",
+    schemaDescription:
+      "Service local de reparation de portes et fenetres a Chateauguay: vitres thermos, quincaillerie, portes patio, calfeutrage, coupe-froid, moustiquaires, cadres et etancheite.",
+    alternateName: [
+      "reparation de portes et fenetres Chateauguay",
+      "reparation portes et fenetres Chateauguay",
+      "reparation porte et fenetre Chateauguay",
+      "portes et fenetres Chateauguay",
+      "porte et fenetre Chateauguay",
+    ],
+    sections: [
+      {
+        heading: "Reparation de portes et fenetres Chateauguay: humidite, thermos et quincaillerie",
+        paragraphs: [
+          "A Chateauguay, la proximite de la riviere Chateauguay et du fleuve Saint-Laurent expose les portes et fenetres a plus d'humidite. Les joints fatiguent, les cadres travaillent, les thermos deviennent embues et la quincaillerie peut s'user plus rapidement.",
+          "Le service a Chateauguay couvre la reparation complete de portes et fenetres, pas seulement une porte-fenetre a battant. Nos techniciens verifient les thermos, manivelles, roulettes, serrures, coupe-froid, calfeutrage, moustiquaires et cadres avant de recommander une intervention.",
+          "Nous desservons le centre-ville, Chateauguay-Centre, Maple Grove, Lery et Mercier-Ouest pour les bungalows et split-levels des annees 1960 a 1980, ou une reparation ciblee coute souvent moins cher qu'un remplacement complet.",
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: "Faites-vous la reparation de portes et fenetres a Chateauguay?",
+        a: "Oui. Nous reparons les portes et fenetres a Chateauguay: vitres thermos embuees, quincaillerie, portes patio, calfeutrage, coupe-froid, moustiquaires et cadres. Le technicien verifie chaque ouverture et recommande la reparation utile.",
+      },
+      {
+        q: "Quelle est la difference entre reparation de portes et fenetres et porte-fenetre?",
+        a: "Une porte-fenetre vise surtout un type de porte a battant avec mecanisme, charnieres et poignee. La reparation de portes et fenetres couvre l'ensemble des ouvertures: fenetres, thermos, portes patio, quincaillerie, calfeutrage, coupe-froid et cadres.",
+      },
+    ],
+  },
 };
 
 function getLocalRepairCityPage(citySlug) {

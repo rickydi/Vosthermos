@@ -316,6 +316,15 @@ const LOCAL_INTENT_LINKS = {
       label: "Remplacement vitre thermos Delson",
     },
   ],
+  "reparation-porte-fenetre:chateauguay": [
+    {
+      href: "/reparation-portes-et-fenetres/chateauguay",
+      title: "Besoin de reparer plusieurs portes et fenetres?",
+      description:
+        "Si la demande touche plus qu'une porte-fenetre a battant, le service local couvre les thermos, portes patio, quincaillerie, calfeutrage, coupe-froid, moustiquaires et cadres a Chateauguay.",
+      label: "Reparation de portes et fenetres Chateauguay",
+    },
+  ],
 };
 
 function getLocalIntentLinks(serviceSlug, citySlug) {
