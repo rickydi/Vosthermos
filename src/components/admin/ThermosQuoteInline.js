@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   ACCESS_OPTIONS,
@@ -23,6 +23,23 @@ function LineField({ label, children }) {
   );
 }
 
+function createThermosLine(id) {
+  return { ...emptyThermosLine(), _lineId: id };
+}
+
+const EMPTY_PENDING_QUOTE = {
+  lines: [],
+  totals: {
+    quantity: 0,
+    sqft: 0,
+    piecesSubtotal: 0,
+    tripFee: 0,
+    margin: 0,
+    subtotal: 0,
+    total: 0,
+  },
+};
+
 export default function ThermosQuoteInline({
   active,
   onActiveChange,
@@ -31,9 +48,11 @@ export default function ThermosQuoteInline({
   sections = [],
   onAddToBon,
 }) {
+  const nextLineId = useRef(1);
   const [settings, setSettings] = useState(THERMOS_PRICING_DEFAULTS);
   const [settingsError, setSettingsError] = useState("");
-  const [lines, setLines] = useState([emptyThermosLine()]);
+  const [lines, setLines] = useState(() => [createThermosLine(0)]);
+  const [addedLineIds, setAddedLineIds] = useState(() => new Set());
   const [destination, setDestination] = useState("flat");
   const [lastAdded, setLastAdded] = useState("");
 
@@ -58,6 +77,13 @@ export default function ThermosQuoteInline({
   }, [active]);
 
   const quote = useMemo(() => calculateThermosQuote(lines, settings), [lines, settings]);
+  const pendingInputLines = useMemo(
+    () => lines.filter((line) => !addedLineIds.has(line._lineId)),
+    [addedLineIds, lines]
+  );
+  const pendingQuote = useMemo(() => (
+    pendingInputLines.length ? calculateThermosQuote(pendingInputLines, settings) : EMPTY_PENDING_QUOTE
+  ), [pendingInputLines, settings]);
   const destinationMatch = destination.match(/^section:(\d+)$/);
   const effectiveDestination = (
     isB2B
@@ -67,6 +93,15 @@ export default function ThermosQuoteInline({
 
   function updateLine(index, patch) {
     setLastAdded("");
+    const lineId = lines[index]?._lineId;
+    if (lineId !== undefined) {
+      setAddedLineIds((current) => {
+        if (!current.has(lineId)) return current;
+        const next = new Set(current);
+        next.delete(lineId);
+        return next;
+      });
+    }
     setLines((current) => current.map((line, lineIndex) => (
       lineIndex === index ? { ...line, ...patch } : line
     )));
@@ -74,12 +109,21 @@ export default function ThermosQuoteInline({
 
   function addLine() {
     setLastAdded("");
-    setLines((current) => [...current, emptyThermosLine()]);
+    setLines((current) => [...current, createThermosLine(nextLineId.current++)]);
   }
 
   function removeLine(index) {
     if (lines.length <= 1) return;
     setLastAdded("");
+    const lineId = lines[index]?._lineId;
+    if (lineId !== undefined) {
+      setAddedLineIds((current) => {
+        if (!current.has(lineId)) return current;
+        const next = new Set(current);
+        next.delete(lineId);
+        return next;
+      });
+    }
     setLines((current) => current.filter((_, lineIndex) => lineIndex !== index));
   }
 
@@ -91,9 +135,17 @@ export default function ThermosQuoteInline({
   }
 
   function addQuoteToBon() {
-    if (!onAddToBon || quote.totals.subtotal <= 0) return;
-    onAddToBon(quote, effectiveDestination);
-    setLastAdded(`Ajoute au bon dans ${destinationLabel(effectiveDestination)}.`);
+    if (!onAddToBon || pendingQuote.totals.subtotal <= 0) {
+      setLastAdded("Aucun nouveau thermos a ajouter.");
+      return;
+    }
+    onAddToBon(pendingQuote, effectiveDestination);
+    setAddedLineIds((current) => {
+      const next = new Set(current);
+      pendingQuote.lines.forEach((line) => next.add(line._lineId));
+      return next;
+    });
+    setLastAdded(`Ajoute au bon dans ${destinationLabel(effectiveDestination)}. Les lignes deja ajoutees ne seront pas renvoyees.`);
   }
 
   return (
@@ -151,10 +203,18 @@ export default function ThermosQuoteInline({
 
             {lines.map((line, index) => {
               const computed = quote.lines[index];
+              const lineAlreadyAdded = addedLineIds.has(line._lineId);
               return (
-                <div key={index} className="rounded-xl border admin-border bg-white/[0.02] p-3">
+                <div key={line._lineId} className="rounded-xl border admin-border bg-white/[0.02] p-3">
                   <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                    <p className="admin-text text-sm font-bold">Thermos #{index + 1}</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="admin-text text-sm font-bold">Thermos #{index + 1}</p>
+                      {lineAlreadyAdded && (
+                        <span className="rounded-full border border-green-500/30 bg-green-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-green-700">
+                          Deja ajoute
+                        </span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-bold text-cyan-600">{money(computed?.lineSubtotal)}</span>
                       {lines.length > 1 && (
@@ -275,14 +335,14 @@ export default function ThermosQuoteInline({
 
               <div className="flex flex-1 flex-wrap items-center justify-end gap-3">
                 <div className="text-right">
-                  <p className="admin-text-muted text-[11px] uppercase tracking-wider">A ajouter au bon</p>
-                  <p className="text-lg font-black text-cyan-700">{money(quote.totals.subtotal)}</p>
+                  <p className="admin-text-muted text-[11px] uppercase tracking-wider">Nouveau a ajouter</p>
+                  <p className="text-lg font-black text-cyan-700">{money(pendingQuote.totals.subtotal)}</p>
                 </div>
 
                 <button
                   type="button"
                   onClick={addQuoteToBon}
-                  disabled={quote.totals.subtotal <= 0}
+                  disabled={pendingQuote.totals.subtotal <= 0}
                   className="rounded-lg bg-cyan-700 px-4 py-3 text-sm font-bold text-white hover:bg-cyan-600 disabled:opacity-50"
                 >
                   <i className="fas fa-plus mr-2"></i>Ajouter au bon
