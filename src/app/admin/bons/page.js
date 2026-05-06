@@ -64,7 +64,7 @@ export default function BonsPage() {
           <p className="admin-text-muted text-sm">{workOrders.length} bons | A recevoir: {totalUnpaid.toFixed(2)}$</p>
         </div>
         <Link
-          href="/admin/bons/nouveau"
+          href="/admin/bons/nouveau?fresh=1"
           className="px-4 py-2 bg-cyan-700 hover:bg-cyan-600 text-white rounded-lg text-sm font-medium"
         >
           <i className="fas fa-plus mr-2"></i>Nouveau bon

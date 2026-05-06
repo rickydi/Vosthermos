@@ -18,6 +18,17 @@ import {
 
 const DRAFT_KEY = "vosthermos:nouveau-bon:draft";
 
+function getNavigationType() {
+  if (typeof window === "undefined") return "navigate";
+  return window.performance?.getEntriesByType?.("navigation")?.[0]?.type || "navigate";
+}
+
+function shouldRestoreNewBonDraft({ freshDraft, resumeDraft }) {
+  if (freshDraft) return false;
+  if (resumeDraft) return true;
+  return getNavigationType() === "reload";
+}
+
 function pad2(value) {
   return String(value).padStart(2, "0");
 }
@@ -200,6 +211,8 @@ function NouveauBonAdmin() {
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
   const invoiceMode = searchParams.get("mode") === "invoice";
+  const freshDraft = searchParams.get("fresh") === "1";
+  const resumeDraft = searchParams.get("draft") === "1";
   const [saving, setSaving] = useState(false);
   const [savingAction, setSavingAction] = useState(null);
   const [error, setError] = useState("");
@@ -287,8 +300,9 @@ function NouveauBonAdmin() {
       .then((data) => {
         if (data) {
           const nextLaborRate = parseFloat(data.labor_rate_per_hour || 85);
+          const shouldRestoreDraft = shouldRestoreNewBonDraft({ freshDraft, resumeDraft });
           let shouldUseSettingsRate = !editId;
-          if (!editId) {
+          if (!editId && shouldRestoreDraft) {
             try {
               const draft = JSON.parse(window.localStorage.getItem(DRAFT_KEY) || "{}");
               if (draft.laborRate !== undefined) shouldUseSettingsRate = false;
@@ -314,10 +328,21 @@ function NouveauBonAdmin() {
         setFollowUpColumns(normalizeFollowUpColumns(JSON.parse(data.value)));
       })
       .catch(() => {});
-  }, [editId]);
+  }, [editId, freshDraft, resumeDraft]);
 
   useEffect(() => {
     if (editId) {
+      draftReady.current = true;
+      return;
+    }
+    if (freshDraft) {
+      try {
+        window.localStorage.removeItem(DRAFT_KEY);
+      } catch {}
+      draftReady.current = true;
+      return;
+    }
+    if (!shouldRestoreNewBonDraft({ freshDraft, resumeDraft })) {
       draftReady.current = true;
       return;
     }
@@ -347,7 +372,7 @@ function NouveauBonAdmin() {
     } finally {
       draftReady.current = true;
     }
-  }, [editId]);
+  }, [editId, freshDraft, resumeDraft]);
 
   useEffect(() => {
     if (editId || !draftReady.current) return;

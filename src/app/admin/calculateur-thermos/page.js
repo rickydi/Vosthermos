@@ -365,7 +365,7 @@ export default function AdminThermosCalculatorPage() {
                 <i className="fas fa-copy mr-2"></i>{copied ? "Copie" : "Copier estimation"}
               </button>
               <Link
-                href="/admin/bons/nouveau"
+                href="/admin/bons/nouveau?fresh=1"
                 className="flex w-full items-center justify-center rounded-lg border admin-border px-4 py-3 text-sm font-bold admin-text hover:bg-white/5"
               >
                 <i className="fas fa-clipboard-list mr-2"></i>Ouvrir un bon
