@@ -425,6 +425,14 @@ async function checkRankingSerper(apiKey, cityName, keywordBase) {
   return { position: null, aiMention, url: null, checkedTop: SERPER_MAX_PAGES * 10 };
 }
 
+function serperScanErrorMessage(result, query) {
+  const error = result?.error || "";
+  if (/not enough credits/i.test(error)) {
+    return "Credits Serper insuffisants. Recharge Serper avant de relancer le scan live.";
+  }
+  return `Erreur Serper pour "${query}": ${error || "reponse invalide"}`;
+}
+
 async function latestSerperByKeyword(city, keywords) {
   const exactKeywords = keywords.map((keyword) => `${keyword} ${city.name}`);
   const since = new Date();
@@ -615,19 +623,26 @@ export async function POST(request) {
   if (!apiKey) return NextResponse.json({ error: "SERPER_API_KEY manquant" }, { status: 500 });
 
   try {
+    const scanResults = [];
     for (const keyword of keywords) {
       const result = await checkRankingSerper(apiKey, city.name, keyword);
-      await prisma.seoRanking.create({
-        data: {
-          city: city.slug,
-          cityName: city.name,
-          keyword: `${keyword} ${city.name}`,
-          position: result.position,
-          aiMention: result.aiMention,
-          url: result.url,
-        },
+      const exactKeyword = `${keyword} ${city.name}`;
+      if (result.error) {
+        throw new Error(serperScanErrorMessage(result, exactKeyword));
+      }
+      scanResults.push({
+        city: city.slug,
+        cityName: city.name,
+        keyword: exactKeyword,
+        position: result.position,
+        aiMention: result.aiMention,
+        url: result.url,
       });
     }
+
+    await prisma.$transaction(
+      scanResults.map((data) => prisma.seoRanking.create({ data }))
+    );
 
     const device = (body.device || "ALL").toUpperCase();
     const branded = body.branded || "exclude";
