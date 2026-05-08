@@ -245,6 +245,7 @@ function NouveauBonAdmin() {
   const [heureDepart, setHeureDepart] = useState("");
   const [description, setDescription] = useState("");
   const [notes, setNotes] = useState("");
+  const [currentStatut, setCurrentStatut] = useState(null);
   const [followUpStatus, setFollowUpStatus] = useState(() => followUpStatusFromWorkOrderStatut("draft"));
   const [followUpColumns, setFollowUpColumns] = useState(DEFAULT_FOLLOW_UP_COLUMNS);
   const [interventionAddress, setInterventionAddress] = useState("");
@@ -452,6 +453,7 @@ function NouveauBonAdmin() {
         setHeureDepart(fmtHM(wo.departureAt));
         setDescription(wo.description || "");
         setNotes(wo.notes || "");
+        setCurrentStatut(wo.statut || null);
         setFollowUpStatus(wo.followUpStatus || followUpStatusFromWorkOrderStatut(wo.statut || "draft"));
         setInterventionAddress(wo.interventionAddress || "");
         setInterventionCity(wo.interventionCity || "");
@@ -788,10 +790,19 @@ function NouveauBonAdmin() {
     setSavingAction(submitAction);
     setError("");
     try {
+      const isExistingQuote = ["quote", "quote_sent", "quote_accepted"].includes(currentStatut);
       const selectedFollowUpStatus = submitAction === "invoice"
         ? followUpStatusFromWorkOrderStatut("invoiced", followUpColumns)
+        : submitAction === "quote"
+          ? followUpStatusFromWorkOrderStatut("quote", followUpColumns)
+          : (submitAction === "save" && isExistingQuote)
+            ? followUpStatusFromWorkOrderStatut(currentStatut, followUpColumns)
         : followUpStatus;
-      const finalStatut = workOrderStatutFromFollowUpStatus(selectedFollowUpStatus, followUpColumns);
+      const finalStatut = submitAction === "quote"
+        ? "quote"
+        : (submitAction === "save" && isExistingQuote)
+          ? currentStatut
+        : workOrderStatutFromFollowUpStatus(selectedFollowUpStatus, followUpColumns);
       const payload = {
         clientId: selectedClient.id,
         technicianId: technicianId || null,
@@ -846,8 +857,8 @@ function NouveauBonAdmin() {
       if (!editId) {
         try { window.localStorage.removeItem(DRAFT_KEY); } catch {}
       }
-      router.push(submitAction === "invoice" ? `/admin/bons/${wo.id}` : `/admin/bons/nouveau?edit=${wo.id}`);
-      if (submitAction !== "invoice") {
+      router.push((submitAction === "invoice" || submitAction === "quote") ? `/admin/bons/${wo.id}` : `/admin/bons/nouveau?edit=${wo.id}`);
+      if (submitAction !== "invoice" && submitAction !== "quote") {
         setSaving(false);
         setSavingAction(null);
       }
@@ -1500,6 +1511,12 @@ function NouveauBonAdmin() {
                   value="save"
                   className="w-full rounded-lg bg-cyan-700 px-6 py-3 text-sm font-bold text-white hover:bg-cyan-600 disabled:opacity-50">
                   {saving ? (editId ? "Enregistrement..." : "Creation...") : (editId ? "Enregistrer les modifications" : "Creer le bon")}
+                </button>
+                <button type="submit" disabled={saving || !selectedClient}
+                  value="quote"
+                  className="w-full rounded-lg border border-sky-500/40 px-4 py-2.5 text-sm font-bold text-sky-600 hover:bg-sky-500/10 disabled:opacity-50">
+                  <i className="fas fa-file-signature mr-2"></i>
+                  {saving && savingAction === "quote" ? "Creation..." : (editId ? "Enregistrer comme soumission" : "Creer une soumission")}
                 </button>
                 {editId && (
                   <Link

@@ -1,6 +1,7 @@
 "use client";
 
 import { formatDateOnly } from "@/lib/date-only";
+import { getWorkOrderDocumentMeta } from "@/lib/work-order-document";
 
 // Design A3 — Receipt Premium, validated via print emulation.
 // Takes a real WorkOrder (from /api/admin/work-orders/[id]) and renders
@@ -99,6 +100,7 @@ export default function InvoiceSheet({ wo, company }) {
   const co = { ...COMPANY_DEFAULTS, ...(company || {}) };
   const units = normalizeUnits(wo);
   const pages = paginate(units);
+  const documentMeta = getWorkOrderDocumentMeta(wo.statut);
 
   const arrival = fmtHM(wo.arrivalAt);
   const departure = fmtHM(wo.departureAt);
@@ -161,7 +163,7 @@ export default function InvoiceSheet({ wo, company }) {
       <div className="invoice-stack flex flex-col items-center gap-6 print:gap-0">
         {pages.map((page) => (
           <Sheet key={page.index} page={page} totalPages={pages.length} wo={wo} co={co}
-            meta={{ arrival, departure, duration, laborHours, laborRate }} />
+            meta={{ arrival, departure, duration, laborHours, laborRate, document: documentMeta }} />
         ))}
       </div>
     </div>
@@ -178,7 +180,7 @@ function Sheet({ page, totalPages, wo, co, meta }) {
       <div style={{ height: "1px", background: "rgba(185, 28, 28, 0.3)", flexShrink: 0 }}></div>
 
       <div style={{ padding: "0.5in", display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
-        {page.isFirst ? <FullHeader wo={wo} co={co} meta={meta} /> : <CompactHeader wo={wo} pageNum={page.index + 1} totalPages={totalPages} />}
+        {page.isFirst ? <FullHeader wo={wo} co={co} meta={meta} /> : <CompactHeader wo={wo} meta={meta} pageNum={page.index + 1} totalPages={totalPages} />}
 
         <div style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "8px", flex: 1, minHeight: 0 }}>
           {page.units.map((u, i) => <UnitCard key={i} unit={u} />)}
@@ -206,9 +208,9 @@ function FullHeader({ wo, co, meta }) {
   const intervAddr = wo.interventionAddress || wo.client?.address;
   const intervCity = wo.interventionCity || wo.client?.city;
   const intervPostal = wo.interventionPostalCode || wo.client?.postalCode;
-  const isInvoice = wo.statut === "invoiced" || wo.statut === "paid" || wo.statut === "sent";
-  const docLabel = isInvoice ? "Facture" : "Bon de commande";
-  const recipientLabel = isInvoice ? "Facturer à" : "Adressé à";
+  const isInvoice = meta.document.type === "invoice";
+  const docLabel = meta.document.label;
+  const recipientLabel = meta.document.recipientLabel;
 
   return (
     <>
@@ -276,14 +278,14 @@ function Row({ label, value }) {
   );
 }
 
-function CompactHeader({ wo, pageNum, totalPages }) {
+function CompactHeader({ wo, meta, pageNum, totalPages }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #e5e7eb", paddingBottom: "10px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/images/Vos-Thermos-Logo.png" alt="Vosthermos" style={{ height: "36px", width: "auto" }} />
         <div>
-          <p style={{ fontSize: "11px", color: "#6b7280" }}>Suite de la facture · page {pageNum}/{totalPages}</p>
+          <p style={{ fontSize: "11px", color: "#6b7280" }}>{meta.document.compactPrefix} · page {pageNum}/{totalPages}</p>
           <p style={{ fontWeight: 700, color: "#111827", fontSize: "13px" }}>{wo.client?.name}</p>
         </div>
       </div>
@@ -371,8 +373,8 @@ function Totals({ wo, meta }) {
         </div>
         <div style={{ paddingTop: "8px", display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
           <div>
-            <p style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.25em", color: "#b91c1c" }}>Montant à payer</p>
-            <p style={{ fontSize: "9px", color: "#9ca3af", marginTop: "2px" }}>Net 30 jours</p>
+            <p style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.25em", color: "#b91c1c" }}>{meta.document.totalLabel}</p>
+            {meta.document.totalHint && <p style={{ fontSize: "9px", color: "#9ca3af", marginTop: "2px" }}>{meta.document.totalHint}</p>}
           </div>
           <span style={{ fontSize: "18px", fontWeight: 900, color: "#b91c1c", letterSpacing: "-0.02em" }}>{fmt(wo.total)}</span>
         </div>

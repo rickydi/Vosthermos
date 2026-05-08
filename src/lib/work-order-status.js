@@ -1,5 +1,8 @@
 export const WORK_ORDER_STATUS_OPTIONS = [
   { key: "draft", label: "Brouillon", colorClass: "bg-yellow-500/20 text-yellow-400" },
+  { key: "quote", label: "Soumission", colorClass: "bg-sky-500/20 text-sky-300" },
+  { key: "quote_sent", label: "Soumission envoyee", colorClass: "bg-cyan-500/20 text-cyan-300" },
+  { key: "quote_accepted", label: "Soumission acceptee", colorClass: "bg-emerald-500/20 text-emerald-300" },
   { key: "scheduled", label: "Job planifie", colorClass: "bg-blue-500/20 text-blue-400" },
   { key: "in_progress", label: "En cours", colorClass: "bg-purple-500/20 text-purple-400" },
   { key: "completed", label: "Job fait", colorClass: "bg-green-500/20 text-green-400" },
@@ -15,6 +18,9 @@ export const WORK_ORDER_STATUS_META = Object.fromEntries(
 export const WORK_ORDER_LIST_FILTERS = [
   { key: "all", label: "Tous" },
   { key: "draft", label: "Brouillons" },
+  { key: "quote", label: "Soumissions" },
+  { key: "quote_sent", label: "Soumissions envoyees" },
+  { key: "quote_accepted", label: "Soumissions acceptees" },
   { key: "scheduled", label: "Jobs planifies" },
   { key: "completed", label: "Jobs faits" },
   { key: "invoiced", label: "A payer" },

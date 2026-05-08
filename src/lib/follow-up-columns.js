@@ -153,6 +153,26 @@ export function isLostFollowUpStatus(columns, status) {
 
 export function followUpStatusFromWorkOrderStatut(statut, columns = DEFAULT_FOLLOW_UP_COLUMNS) {
   const normalized = normalizeFollowUpColumns(columns);
+  if (statut === "quote_sent") {
+    return findStatusByText(normalized, (text) =>
+      text.includes("estime") ||
+      text.includes("estimate") ||
+      text.includes("soumission") ||
+      text.includes("devis") ||
+      text.includes("quote")
+    ) || "estimate_sent";
+  }
+  if (statut === "quote_accepted") {
+    return findStatusByText(normalized, (text) =>
+      text.includes("accept") ||
+      text.includes("gagne") ||
+      text.includes("pris") ||
+      text.includes("won")
+    ) || "won";
+  }
+  if (statut === "quote") {
+    return findStatusByText(normalized, (text) => text.includes("appel") || text.includes("called")) || "called";
+  }
   if (statut === "paid") {
     return findStatusByText(normalized, (text) => text.includes("paye") || text.includes("paid")) || "completed";
   }
@@ -194,6 +214,15 @@ export function workOrderStatutFromFollowUpStatus(status, columns = DEFAULT_FOLL
     text.includes("done")
   ) {
     return "completed";
+  }
+  if (
+    text.includes("estime") ||
+    text.includes("estimate") ||
+    text.includes("soumission") ||
+    text.includes("devis") ||
+    text.includes("quote")
+  ) {
+    return "quote_sent";
   }
   if (text.includes("cours") || text.includes("progress")) return "in_progress";
   if (text.includes("planifi") || text.includes("scheduled") || text.includes("rendez") || text.includes("rdv")) return "scheduled";

@@ -6,6 +6,8 @@ import Link from "next/link";
 import InvoiceSheet from "@/components/admin/InvoiceSheet";
 import { formatDateOnly } from "@/lib/date-only";
 import { buildWhatsAppUrl, openWhatsAppWindow } from "@/lib/whatsapp";
+import { getWorkOrderDocumentMeta, isQuoteStatus } from "@/lib/work-order-document";
+import { workOrderStatusClass, workOrderStatusLabel } from "@/lib/work-order-status";
 
 // Map DB snake_case settings to InvoiceSheet company prop shape
 function mapCompany(s) {
@@ -46,6 +48,7 @@ export default function BonDetailPage() {
   const [technicians, setTechnicians] = useState([]);
   const [selectedTechId, setSelectedTechId] = useState("");
   const [approving, setApproving] = useState(false);
+  const [acceptingQuote, setAcceptingQuote] = useState(false);
 
   useEffect(() => {
     fetch(`/api/admin/work-orders/${id}`)
@@ -68,14 +71,18 @@ export default function BonDetailPage() {
     if (!tech) { setMsg("Technicien introuvable."); return; }
     if (!tech.phone) { setMsg(`${tech.name} n'a pas de numéro de téléphone dans la DB.`); return; }
 
-    const isReassign = wo.statut !== "draft";
+    const shouldSchedule = wo.statut === "draft" || wo.statut === "quote_accepted";
+    const isReassign = !shouldSchedule;
     const previousTechName = wo.technician?.name || null;
 
     setApproving(true);
     setMsg("");
     try {
       const payload = { technicianId: Number(selectedTechId) };
-      if (!isReassign) payload.statut = "scheduled";
+      if (shouldSchedule) {
+        payload.statut = "scheduled";
+        payload.followUpStatus = "scheduled";
+      }
       const res = await fetch(`/api/admin/work-orders/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -96,7 +103,7 @@ export default function BonDetailPage() {
         ? (previousTechName && previousTechName !== tech.name
             ? `Bon ${wo.number} — réassigné (anciennement ${previousTechName})`
             : `Rappel bon ${wo.number}`)
-        : `Nouveau bon ${wo.number}`;
+        : (wo.statut === "quote_accepted" ? `Soumission acceptee ${wo.number} - a planifier` : `Nouveau bon ${wo.number}`);
 
       const lines = [
         header,
@@ -119,11 +126,34 @@ export default function BonDetailPage() {
       setShowApprove(false);
       setMsg(isReassign
         ? `Réassigné à ${tech.name}. WhatsApp ouvert.`
-        : `Approuvé et assigné à ${tech.name}. WhatsApp ouvert.`);
+        : `Approuve et assigne a ${tech.name}. WhatsApp ouvert.`);
     } catch (err) {
       setMsg(err.message);
     }
     setApproving(false);
+  }
+
+  async function markQuoteAccepted() {
+    setAcceptingQuote(true);
+    setMsg("");
+    try {
+      const res = await fetch(`/api/admin/work-orders/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ statut: "quote_accepted", followUpStatus: "won" }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Erreur mise a jour");
+      }
+      const refreshed = await fetch(`/api/admin/work-orders/${id}`).then((r) => r.json());
+      setWo(refreshed);
+      setMsg("Soumission marquee acceptee. Vous pouvez maintenant planifier le bon.");
+    } catch (err) {
+      setMsg(err.message);
+    } finally {
+      setAcceptingQuote(false);
+    }
   }
 
   async function handleDelete() {
@@ -144,13 +174,14 @@ export default function BonDetailPage() {
 
   async function sendEmail() {
     if (!emailTo.trim()) { setMsg("Adresse email requise"); return; }
+    const emailDocumentMeta = getWorkOrderDocumentMeta(wo?.statut);
     setSending(true);
     setMsg("");
     try {
       const res = await fetch(`/api/admin/work-orders/${id}/send-email`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ to: emailTo.trim() }),
+        body: JSON.stringify({ to: emailTo.trim(), documentType: emailDocumentMeta.type }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erreur d'envoi");
@@ -170,24 +201,10 @@ export default function BonDetailPage() {
     </div>
   );
 
-  const statusColors = {
-    draft: "bg-yellow-500/20 text-yellow-400",
-    scheduled: "bg-blue-500/20 text-blue-400",
-    in_progress: "bg-purple-500/20 text-purple-400",
-    completed: "bg-green-500/20 text-green-400",
-    invoiced: "bg-orange-500/20 text-orange-400",
-    paid: "bg-emerald-500/20 text-emerald-400",
-    sent: "bg-blue-500/20 text-blue-400",
-  };
-  const statusLabels = {
-    draft: "Brouillon",
-    scheduled: "Job planifie",
-    in_progress: "En cours",
-    completed: "Job fait",
-    invoiced: "Facturé",
-    paid: "Payé",
-    sent: "Envoyé",
-  };
+  const documentMeta = getWorkOrderDocumentMeta(wo.statut);
+  const quoteCanBeAccepted = isQuoteStatus(wo.statut) && wo.statut !== "quote_accepted";
+  const quoteReadyToSchedule = wo.statut === "quote_accepted";
+  const canAssignWorkOrder = wo.statut === "draft" || quoteReadyToSchedule;
 
   return (
     <div className="p-6 lg:p-8">
@@ -197,8 +214,8 @@ export default function BonDetailPage() {
           <Link href="/admin/bons" className="admin-text-muted text-sm hover:admin-text">
             <i className="fas fa-arrow-left mr-2"></i>Retour
           </Link>
-          <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${statusColors[wo.statut] || ""}`}>
-            {statusLabels[wo.statut] || wo.statut}
+          <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${workOrderStatusClass(wo.statut)}`}>
+            {workOrderStatusLabel(wo.statut)}
           </span>
           {wo.createdAt && (
             <span className="admin-text-muted text-xs">
@@ -213,12 +230,22 @@ export default function BonDetailPage() {
           )}
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          {wo.statut === "draft" && (
+          {quoteCanBeAccepted && (
+            <button
+              onClick={markQuoteAccepted}
+              disabled={acceptingQuote}
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold disabled:opacity-50"
+            >
+              <i className={`fas ${acceptingQuote ? "fa-spinner fa-spin" : "fa-check"} mr-2`}></i>
+              {acceptingQuote ? "Mise a jour..." : "Marquer acceptee"}
+            </button>
+          )}
+          {canAssignWorkOrder && (
             <button
               onClick={() => setShowApprove(true)}
               className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold"
             >
-              <i className="fab fa-whatsapp mr-2"></i>Approuver &amp; envoyer WhatsApp
+              <i className="fab fa-whatsapp mr-2"></i>{quoteReadyToSchedule ? "Planifier & envoyer WhatsApp" : "Approuver & envoyer WhatsApp"}
             </button>
           )}
           {(wo.statut === "scheduled" || wo.statut === "in_progress") && (
@@ -245,7 +272,7 @@ export default function BonDetailPage() {
           </Link>
           <button onClick={() => setShowEmail(true)}
             className="px-4 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium">
-            <i className="fas fa-envelope mr-2"></i>Envoyer par email
+            <i className="fas fa-envelope mr-2"></i>Envoyer {documentMeta.label.toLowerCase()}
           </button>
           <button onClick={() => window.print()}
             className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-medium">
@@ -273,11 +300,11 @@ export default function BonDetailPage() {
             onClick={(e) => e.stopPropagation()}>
             <h3 className="font-bold text-lg mb-1">
               <i className="fab fa-whatsapp text-green-500 mr-2"></i>
-              {wo.statut === "draft" ? "Approuver et envoyer" : "Réassigner et renvoyer"}
+              {canAssignWorkOrder ? (quoteReadyToSchedule ? "Planifier et envoyer" : "Approuver et envoyer") : "Réassigner et renvoyer"}
             </h3>
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-              {wo.statut === "draft"
-                ? "Le bon passera en \"Planifié\", le technicien sera assigné, et WhatsApp s'ouvrira avec le message pré-rempli."
+              {canAssignWorkOrder
+                ? "Le bon passera en \"Planifie\", le technicien sera assigne, et WhatsApp s'ouvrira avec le message pre-rempli."
                 : `Le bon sera réassigné au nouveau technicien et WhatsApp s'ouvrira pour l'aviser.${wo.technician?.name ? ` Actuellement : ${wo.technician.name}.` : ""}`}
             </p>
 
@@ -315,7 +342,7 @@ export default function BonDetailPage() {
               <button onClick={approveAndSend} disabled={approving || !selectedTechId}
                 className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold disabled:opacity-50 flex items-center gap-2">
                 <i className={approving ? "fas fa-spinner fa-spin" : "fab fa-whatsapp"}></i>
-                {approving ? "Traitement..." : (wo.statut === "draft" ? "Approuver & envoyer" : "Réassigner & renvoyer")}
+                {approving ? "Traitement..." : (canAssignWorkOrder ? (quoteReadyToSchedule ? "Planifier & envoyer" : "Approuver & envoyer") : "Réassigner & renvoyer")}
               </button>
             </div>
           </div>
@@ -328,7 +355,7 @@ export default function BonDetailPage() {
           onClick={() => setShowEmail(false)}>
           <div className="bg-white text-gray-900 border border-gray-200 rounded-xl w-full max-w-md p-6 shadow-2xl dark:bg-gray-900 dark:text-white dark:border-gray-700"
             onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-bold text-lg mb-4">Envoyer la facture par email</h3>
+            <h3 className="font-bold text-lg mb-4">Envoyer {documentMeta.label.toLowerCase()} par email</h3>
             <label className="text-xs mb-1 block text-gray-500 dark:text-gray-400">Destinataire</label>
             <input
               type="email"

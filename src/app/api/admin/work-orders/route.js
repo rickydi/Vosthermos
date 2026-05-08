@@ -78,9 +78,10 @@ export async function POST(req) {
   const number = await generateWorkOrderNumber();
   const settings = await getWorkOrderSettings();
   const followUpColumns = body.followUpStatus ? await getSavedFollowUpColumns() : null;
-  const statut = body.followUpStatus
+  const explicitStatut = typeof body.statut === "string" && body.statut.trim() ? body.statut.trim() : null;
+  const statut = explicitStatut || (body.followUpStatus
     ? workOrderStatutFromFollowUpStatus(body.followUpStatus, followUpColumns)
-    : (body.statut || "draft");
+    : "draft");
 
   const { flatItems, sections, allForCalc } = flattenSectionsBody(body);
   const laborHours = Number(body.laborHours) || 0;

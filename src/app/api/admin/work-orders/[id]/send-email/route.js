@@ -8,13 +8,14 @@ import { formatDateOnly } from "@/lib/date-only";
 import { logAdminActivity } from "@/lib/admin-activity";
 import { createOrTouchFollowUpFromWorkOrder } from "@/lib/follow-up-utils";
 import { getCompany } from "@/lib/company";
+import { getWorkOrderDocumentMeta } from "@/lib/work-order-document";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.vosthermos.com";
 const LOGO_URL = `${SITE_URL}/images/Vos-Thermos-Logo_Blanc.png`;
 
 function fmt(n) { return `${Number(n || 0).toFixed(2)} $`; }
 
-function renderEmailHtml(wo) {
+function renderEmailHtml(wo, documentMeta) {
   const date = formatDateOnly(wo.date, {
     day: "numeric", month: "long", year: "numeric",
   });
@@ -23,7 +24,7 @@ function renderEmailHtml(wo) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Facture ${wo.number}</title>
+<title>${documentMeta.label} ${wo.number}</title>
 </head>
 <body style="margin:0;padding:0;background-color:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#111;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f3f4f6;padding:40px 20px;">
@@ -39,7 +40,7 @@ function renderEmailHtml(wo) {
                     <img src="${LOGO_URL}" alt="Vosthermos" height="80" style="display:block;border:0;outline:none;text-decoration:none;height:80px;" />
                   </td>
                   <td align="right" valign="middle" style="color:#ffffff;">
-                    <div style="font-size:11px;letter-spacing:3px;opacity:.75;font-weight:600;">FACTURE</div>
+                    <div style="font-size:11px;letter-spacing:3px;opacity:.75;font-weight:600;">${documentMeta.labelUpper}</div>
                     <div style="font-size:26px;font-weight:800;margin-top:6px;">${wo.number}</div>
                   </td>
                 </tr>
@@ -52,7 +53,7 @@ function renderEmailHtml(wo) {
             <td style="padding:40px 40px 20px;">
               <h1 style="margin:0 0 12px;font-size:20px;font-weight:700;color:#111;">Bonjour ${wo.client?.name?.split(" ")[0] || ""},</h1>
               <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#374151;">
-                Merci d'avoir choisi <strong>Vosthermos</strong> pour vos travaux. Vous trouverez ci-joint votre facture complete au format PDF.
+                Merci d'avoir choisi <strong>Vosthermos</strong> pour vos travaux. ${documentMeta.emailIntro}
               </p>
             </td>
           </tr>
@@ -63,7 +64,7 @@ function renderEmailHtml(wo) {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f9fafb;border-radius:10px;padding:20px;">
                 <tr>
                   <td>
-                    <div style="font-size:11px;color:#9ca3af;font-weight:600;letter-spacing:1px;">FACTURE</div>
+                    <div style="font-size:11px;color:#9ca3af;font-weight:600;letter-spacing:1px;">${documentMeta.labelUpper}</div>
                     <div style="font-size:16px;color:#111;font-weight:600;margin-top:2px;">${wo.number}</div>
                   </td>
                   <td align="right">
@@ -94,7 +95,7 @@ function renderEmailHtml(wo) {
             <td style="padding:0 40px 32px;">
               <div style="background-color:#fef2f2;border-left:3px solid #b91c1c;padding:14px 18px;border-radius:0 8px 8px 0;">
                 <div style="font-size:13px;color:#991b1b;font-weight:600;margin-bottom:4px;">Piece jointe</div>
-                <div style="font-size:13px;color:#555;">Facture-${wo.number}.pdf (detail complet des pieces et services)</div>
+                <div style="font-size:13px;color:#555;">${documentMeta.attachmentPrefix}-${wo.number}.pdf (${documentMeta.emailAttachmentDetail})</div>
               </div>
             </td>
           </tr>
@@ -103,7 +104,7 @@ function renderEmailHtml(wo) {
           <tr>
             <td style="padding:0 40px 32px;">
               <p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:#6b7280;">
-                Des questions sur cette facture? Repondez simplement a ce courriel, nous sommes la pour vous aider.
+                ${documentMeta.emailQuestion}
               </p>
             </td>
           </tr>
@@ -126,22 +127,22 @@ function renderEmailHtml(wo) {
 </html>`;
 }
 
-function renderEmailText(wo) {
+function renderEmailText(wo, documentMeta) {
   const date = formatDateOnly(wo.date);
   const name = wo.client?.name?.split(" ")[0] || "";
   return `Bonjour ${name},
 
 Merci d'avoir choisi Vosthermos pour vos travaux.
-Vous trouverez ci-joint votre facture au format PDF.
+${documentMeta.emailIntro}
 
-FACTURE ${wo.number}
+${documentMeta.labelUpper} ${wo.number}
 Date: ${date}
 
 Sous-total: ${fmt(wo.subtotal)}
 TPS + TVQ:  ${fmt(Number(wo.tps) + Number(wo.tvq))}
 TOTAL:      ${fmt(wo.total)}
 
-Des questions? Repondez simplement a ce courriel.
+${documentMeta.emailQuestion}
 
 ---
 Vosthermos — Portes et fenetres
@@ -186,6 +187,7 @@ export async function POST(req, { params }) {
 
   const to = body.to?.trim() || wo.client?.email;
   if (!to) return NextResponse.json({ error: "Adresse email manquante" }, { status: 400 });
+  const documentMeta = getWorkOrderDocumentMeta(wo.statut, body.documentType);
 
   const [settings, company] = await Promise.all([
     getWorkOrderSettings(),
@@ -216,7 +218,7 @@ export async function POST(req, { params }) {
 
   let pdfBuffer;
   try {
-    pdfBuffer = await generateInvoicePdf(serializedWo, { ...settings, company });
+    pdfBuffer = await generateInvoicePdf(serializedWo, { ...settings, company, documentType: documentMeta.type });
   } catch (err) {
     return NextResponse.json({ error: `Erreur generation PDF: ${err.message}` }, { status: 500 });
   }
@@ -228,29 +230,35 @@ export async function POST(req, { params }) {
       from: `"Vosthermos" <${fromEmail}>`,
       to,
       replyTo: fromEmail,
-      subject: `Facture ${wo.number} — Vosthermos`,
-      text: renderEmailText(serializedWo),
-      html: renderEmailHtml(serializedWo),
+      subject: `${documentMeta.subjectPrefix} ${wo.number} - Vosthermos`,
+      text: renderEmailText(serializedWo, documentMeta),
+      html: renderEmailHtml(serializedWo, documentMeta),
       headers: {
         "X-Entity-Ref-ID": wo.number,
         "List-Unsubscribe": `<mailto:${fromEmail}?subject=unsubscribe>`,
       },
       attachments: [
         {
-          filename: `Facture-${wo.number}.pdf`,
+          filename: `${documentMeta.attachmentPrefix}-${wo.number}.pdf`,
           content: pdfBuffer,
           contentType: "application/pdf",
         },
       ],
     });
 
-    const sentWorkOrder = await prisma.workOrder.update({
-      where: { id: wo.id },
-      data: { statut: "sent" },
-    });
+    const sentWorkOrder = documentMeta.sentStatus
+      ? await prisma.workOrder.update({
+          where: { id: wo.id },
+          data: { statut: documentMeta.sentStatus },
+        })
+      : wo;
 
     try {
-      await createOrTouchFollowUpFromWorkOrder({ workOrder: sentWorkOrder, client: wo.client });
+      await createOrTouchFollowUpFromWorkOrder({
+        workOrder: sentWorkOrder,
+        client: wo.client,
+        followUpStatus: documentMeta.sentFollowUpStatus,
+      });
     } catch (err) {
       console.error("[work-order-email] follow-up sync error:", err?.message || err);
     }
@@ -259,8 +267,8 @@ export async function POST(req, { params }) {
       action: "send",
       entityType: "work_order",
       entityId: wo.id,
-      label: `Facture envoyee: ${wo.number}`,
-      metadata: { number: wo.number, to, clientId: wo.clientId },
+      label: `${documentMeta.sentLabel}: ${wo.number}`,
+      metadata: { number: wo.number, to, clientId: wo.clientId, documentType: documentMeta.type },
     });
 
     return NextResponse.json({ ok: true, to });

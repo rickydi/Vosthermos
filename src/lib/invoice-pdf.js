@@ -2,6 +2,7 @@ import PDFDocument from "pdfkit";
 import path from "path";
 import fs from "fs";
 import { formatDateOnly } from "./date-only.js";
+import { getWorkOrderDocumentMeta } from "./work-order-document.js";
 
 const BRAND = "#b91c1c";
 const BRAND_SOFT = "#f3c2c5";
@@ -73,10 +74,6 @@ function fmtDuration(mins) {
   const h = Math.floor(mins / 60);
   const m = mins % 60;
   return `${h}h${m > 0 ? String(m).padStart(2, "0") : ""}`;
-}
-
-function isInvoiceStatus(statut) {
-  return ["invoiced", "paid", "sent"].includes(statut);
 }
 
 function getCompany(settings = {}) {
@@ -168,8 +165,8 @@ function drawLogo(doc, x, y, height = 58) {
 function drawFullHeader(doc, wo, company, meta, x, y, width) {
   const rightWidth = 210;
   const leftWidth = width - rightWidth - 24;
-  const label = isInvoiceStatus(wo.statut) ? "Facture" : "Bon de commande";
-  const recipientLabel = isInvoiceStatus(wo.statut) ? "Facturer \u00e0" : "Adress\u00e9 \u00e0";
+  const label = meta.document.label;
+  const recipientLabel = meta.document.recipientLabel;
 
   drawLogo(doc, x, y, 58);
   doc.fillColor(MUTED).font("Helvetica").fontSize(8.5)
@@ -255,10 +252,10 @@ function drawFullHeader(doc, wo, company, meta, x, y, width) {
   return y;
 }
 
-function drawCompactHeader(doc, wo, pageNum, totalPages, x, y, width) {
+function drawCompactHeader(doc, wo, meta, pageNum, totalPages, x, y, width) {
   drawLogo(doc, x, y, 28);
   doc.fillColor(MUTED).font("Helvetica").fontSize(9)
-    .text(`Suite de la facture - page ${pageNum}/${totalPages}`, x + 44, y + 2, { width: 230 });
+    .text(`${meta.document.compactPrefix} - page ${pageNum}/${totalPages}`, x + 44, y + 2, { width: 230 });
   doc.fillColor(DARK).font("Helvetica-Bold").fontSize(11)
     .text(wo.client?.name || "", x + 44, y + 16, { width: 230 });
   doc.fillColor(DARK).font("Helvetica-Bold").fontSize(18)
@@ -385,9 +382,11 @@ function drawTotals(doc, wo, meta, x, y) {
 
   line(doc, x + 12, y + 88, x + width - 12, "#d1d5db", 0.6);
   doc.fillColor(BRAND).font("Helvetica-Bold").fontSize(7.5)
-    .text("MONTANT \u00c0 PAYER", x + 12, y + 98, { width: 130, characterSpacing: 1.6 });
-  doc.fillColor(LIGHT).font("Helvetica").fontSize(8)
-    .text("Net 30 jours", x + 12, y + 111, { width: 130 });
+    .text(meta.document.totalLabel, x + 12, y + 98, { width: 130, characterSpacing: 1.6 });
+  if (meta.document.totalHint) {
+    doc.fillColor(LIGHT).font("Helvetica").fontSize(8)
+      .text(meta.document.totalHint, x + 12, y + 111, { width: 130 });
+  }
   doc.fillColor(BRAND).font("Helvetica-Bold").fontSize(16)
     .text(fmt(wo.total), x + width - 132, y + 98, { width: 120, align: "right" });
 
@@ -441,7 +440,7 @@ function drawInvoicePage(doc, page, totalPages, wo, company, settings, meta) {
   let y = PAGE_MARGIN;
   y = page.isFirst
     ? drawFullHeader(doc, wo, company, meta, x, y, innerWidth)
-    : drawCompactHeader(doc, wo, page.index + 1, totalPages, x, y, innerWidth);
+    : drawCompactHeader(doc, wo, meta, page.index + 1, totalPages, x, y, innerWidth);
 
   y += 8;
   for (const unit of page.units) {
@@ -464,14 +463,15 @@ function drawInvoicePage(doc, page, totalPages, wo, company, settings, meta) {
 export async function generateInvoicePdf(wo, settings = {}) {
   return new Promise((resolve, reject) => {
     try {
+      const documentMeta = getWorkOrderDocumentMeta(wo.statut, settings.documentType);
       const doc = new PDFDocument({
         size: "LETTER",
         margin: 0,
         autoFirstPage: true,
         info: {
-          Title: `Facture ${wo.number}`,
+          Title: `${documentMeta.label} ${wo.number}`,
           Author: "Vosthermos",
-          Subject: `Facture ${wo.number}`,
+          Subject: `${documentMeta.label} ${wo.number}`,
         },
       });
 
@@ -492,6 +492,7 @@ export async function generateInvoicePdf(wo, settings = {}) {
         duration: fmtDuration(wo.durationMinutes),
         laborHours,
         laborRate,
+        document: documentMeta,
       };
 
       pages.forEach((page, index) => {

@@ -6,6 +6,7 @@ import {
   normalizeFollowUpColumns,
   workOrderStatutFromFollowUpStatus,
 } from "@/lib/follow-up-columns";
+import { getWorkOrderDocumentMeta } from "@/lib/work-order-document";
 
 export const FOLLOW_UP_TERMINAL_STATUSES = ["lost", "completed", "archived"];
 
@@ -146,19 +147,22 @@ export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client, fo
   const columns = await getSavedFollowUpColumns();
   const status = cleanText(followUpStatus) || (workOrder.statut === "draft" ? "to_call" : followUpStatusFromWorkOrderStatut(workOrder.statut, columns));
   const existing = await findRelevantFollowUp(client.id, status);
+  const documentMeta = getWorkOrderDocumentMeta(workOrder.statut);
+  const sourceText = documentMeta.type === "quote" ? "soumission" : "bon de travail";
+  const defaultNextAction = documentMeta.type === "quote" ? "Relancer la soumission" : "Appeler le client";
 
-  const note = `[auto: bon de travail ${workOrder.number || `#${workOrder.id}`} ${new Date().toISOString().slice(0, 10)}]`;
+  const note = `[auto: ${sourceText} ${workOrder.number || `#${workOrder.id}`} ${new Date().toISOString().slice(0, 10)}]`;
 
   if (existing) {
     return prisma.clientFollowUp.update({
       where: { id: existing.id },
       data: {
-        source: existing.source || "bon de travail",
+        source: existing.source || sourceText,
         status,
         contactName: existing.contactName || client.name || null,
         phone: existing.phone || primaryContactPhone(client),
         email: existing.email || client.email || null,
-        nextAction: existing.nextAction || (status === "scheduled" ? "Suivre le bon planifie" : "Faire le suivi du bon"),
+        nextAction: existing.nextAction || (status === "scheduled" ? "Suivre le bon planifie" : defaultNextAction),
         notes: appendNote(existing.notes, note),
       },
     });
@@ -167,13 +171,13 @@ export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client, fo
   return prisma.clientFollowUp.create({
     data: {
       clientId: client.id,
-      title: `${client.name || "Client"} - ${workOrder.number || "bon de travail"}`,
-      source: "bon de travail",
+      title: `${client.name || "Client"} - ${workOrder.number || sourceText}`,
+      source: sourceText,
       status,
       contactName: client.name || null,
       phone: primaryContactPhone(client),
       email: client.email || null,
-      nextAction: status === "scheduled" ? "Suivre le bon planifie" : "Appeler le client",
+      nextAction: status === "scheduled" ? "Suivre le bon planifie" : defaultNextAction,
       notes: note,
     },
   });
