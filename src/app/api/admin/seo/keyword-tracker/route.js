@@ -673,7 +673,7 @@ export async function POST(request) {
       return NextResponse.json({
         scanned: false,
         fallback: "gsc-fresh",
-        warning: "Live Serper indisponible: tableau mis a jour avec les donnees GSC fraiches gratuites. Les positions live restent celles du dernier scan.",
+        warning: "Mode gratuit actif: Serper n'a plus de credits. Le tableau utilise Position utile et GSC frais; le vrai live top 100 n'est pas mis a jour.",
         ...data,
       });
     }

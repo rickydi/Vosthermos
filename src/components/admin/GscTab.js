@@ -224,10 +224,10 @@ function exportCsv(filename, rows) {
   URL.revokeObjectURL(url);
 }
 
-function PositionBadge({ position }) {
+function PositionBadge({ position, emptyLabel = "N/A" }) {
   return (
     <span className={`inline-flex min-w-[48px] justify-center rounded-full px-2 py-1 text-xs font-extrabold ${positionClass(position)}`}>
-      {position == null ? "N/A" : `#${roundPosition(position)}`}
+      {position == null ? emptyLabel : `#${roundPosition(position)}`}
     </span>
   );
 }
@@ -249,7 +249,7 @@ function MetricStack({ metric }) {
   const hasData = hasGscReading(metric);
   return (
     <div className="min-w-[86px] text-center">
-      <PositionBadge position={metric?.position ?? null} />
+      <PositionBadge position={metric?.position ?? null} emptyLabel="Aucune" />
       <div className="admin-text-muted mt-1 text-[10px]">
         {hasData ? `${formatNumber(metric.impressions)} imp.` : "aucune lecture"}
       </div>
@@ -258,6 +258,58 @@ function MetricStack({ metric }) {
           {formatNumber(metric.clicks)} clics / {metric.ctr || 0}%
         </div>
       )}
+    </div>
+  );
+}
+
+function bestAvailableReading(row) {
+  const live = row.latestSerper;
+  if (live?.position != null) {
+    return {
+      label: "Live Serper",
+      position: live.position,
+      url: live.url,
+      checkedAt: live.checkedAt,
+      delta: live.delta,
+      detail: live.checkedAt ? formatDate(live.checkedAt) : "scan live",
+      source: "live",
+    };
+  }
+
+  const candidates = [
+    { label: "GSC frais", metric: row.gsc?.fresh },
+    { label: "GSC 28j", metric: row.gsc?.current28 },
+    { label: "GSC 90j", metric: row.gsc?.current90 },
+  ];
+  const gsc = candidates.find((item) => hasGscReading(item.metric));
+  if (gsc) {
+    const metric = gsc.metric;
+    return {
+      label: gsc.label,
+      position: metric.bestPagePosition ?? metric.position ?? null,
+      url: metric.bestPage || metric.page || "",
+      detail: `${formatNumber(metric.impressions)} imp.`,
+      source: "gsc",
+    };
+  }
+
+  return {
+    label: "Aucune lecture",
+    position: null,
+    url: "",
+    detail: "pas d'impression GSC",
+    source: "none",
+  };
+}
+
+function UsefulPositionStack({ row }) {
+  const reading = bestAvailableReading(row);
+  return (
+    <div className="min-w-[94px] text-center">
+      <PositionBadge position={reading.position} emptyLabel="Aucune" />
+      <div className="admin-text-muted mt-1 text-[10px]">{reading.label}</div>
+      <div className="admin-text-muted text-[10px]">{reading.detail}</div>
+      {reading.source === "live" && <DeltaBadge delta={reading.delta ?? null} />}
     </div>
   );
 }
@@ -507,6 +559,7 @@ export default function GscTab() {
   const [scanTick, setScanTick] = useState(Date.now());
   const [savingKeywords, setSavingKeywords] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [inspectionState, setInspectionState] = useState({});
   const [promptState, setPromptState] = useState({});
 
@@ -532,6 +585,7 @@ export default function GscTab() {
   const fetchTracker = useCallback(async ({ keepLoading = false } = {}) => {
     if (!keepLoading) setLoading(true);
     setError("");
+    setNotice("");
     try {
       const res = await fetch(`/api/admin/seo/keyword-tracker?${queryString}`);
       const body = await res.json();
@@ -573,6 +627,17 @@ export default function GscTab() {
   }, [data, statusFilter]);
 
   const summary = data?.summary || {};
+  const usefulSummary = useMemo(() => {
+    const allRows = data?.rows || [];
+    const positions = allRows
+      .map((row) => bestAvailableReading(row).position)
+      .filter((position) => position != null);
+    return {
+      top3: positions.filter((position) => position <= 3).length,
+      top10: positions.filter((position) => position <= 10).length,
+      freshReadings: allRows.filter((row) => hasGscReading(row.gsc?.fresh)).length,
+    };
+  }, [data]);
   const selectedCityName = cityOptions.find((city) => city.slug === selectedCity)?.name || data?.city?.name || selectedCity;
   const scanKeywordCount = Math.max(1, keywords.length || data?.keywords?.length || 0);
   const estimatedScanSeconds = Math.max(20, (scanKeywordCount * 8) + 6);
@@ -583,15 +648,6 @@ export default function GscTab() {
   const scanProgress = scanning
     ? Math.min(95, Math.max(8, Math.round((scanElapsedSeconds / estimatedScanSeconds) * 100)))
     : 0;
-  const lastScan = useMemo(() => {
-    const dates = (data?.rows || [])
-      .map((row) => row.latestSerper?.checkedAt)
-      .filter(Boolean)
-      .map((value) => new Date(value).getTime())
-      .filter((value) => !Number.isNaN(value));
-    if (dates.length === 0) return "Jamais";
-    return formatDate(new Date(Math.max(...dates)).toISOString());
-  }, [data]);
 
   async function scanCity() {
     const startedAt = Date.now();
@@ -599,6 +655,7 @@ export default function GscTab() {
     setScanStartedAt(startedAt);
     setScanTick(startedAt);
     setError("");
+    setNotice("");
     try {
       const res = await fetch("/api/admin/seo/keyword-tracker", {
         method: "POST",
@@ -616,7 +673,7 @@ export default function GscTab() {
       setKeywords(body.keywords || []);
       setOpenRow("");
       if (body.warning) {
-        setError(body.warning);
+        setNotice(body.warning);
       }
     } catch (err) {
       setError(err.message || "Erreur scan SEO");
@@ -835,15 +892,20 @@ export default function GscTab() {
             <i className="fas fa-triangle-exclamation mr-2"></i>{error}
           </div>
         )}
+        {notice && (
+          <div className="mt-4 rounded-lg border border-cyan-400/30 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-100">
+            <i className="fas fa-circle-info mr-2"></i>{notice}
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         <SummaryTile label="Mots-cles" value={summary.total ?? 0} icon="fa-list-check" />
-        <SummaryTile label="Top 3 live" value={summary.top3 ?? 0} tone="text-emerald-300" icon="fa-trophy" />
-        <SummaryTile label="Top 10 live" value={summary.top10 ?? 0} tone="text-sky-300" icon="fa-ranking-star" />
+        <SummaryTile label="Top 3 utile" value={usefulSummary.top3 ?? 0} tone="text-emerald-300" icon="fa-trophy" />
+        <SummaryTile label="Top 10 utile" value={usefulSummary.top10 ?? 0} tone="text-sky-300" icon="fa-ranking-star" />
         <SummaryTile label="A travailler" value={summary.needsWork ?? 0} tone="text-amber-300" icon="fa-screwdriver-wrench" />
         <SummaryTile label="Mauvaise page" value={summary.pageIssues ?? 0} tone="text-violet-300" icon="fa-route" />
-        <SummaryTile label="Dernier scan" value={lastScan} icon="fa-clock" />
+        <SummaryTile label="GSC frais" value={`${usefulSummary.freshReadings ?? 0}/${summary.total ?? 0}`} icon="fa-chart-line" />
       </div>
 
       <div className="admin-card rounded-xl border p-4">
@@ -918,7 +980,7 @@ export default function GscTab() {
               <thead>
                 <tr className="border-b admin-text-muted" style={{ borderColor: "var(--admin-border)" }}>
                   <th className="px-3 py-3 text-left font-bold uppercase tracking-wider">Mot-cle</th>
-                  <th className="px-3 py-3 text-center font-bold uppercase tracking-wider">Live Google</th>
+                  <th className="px-3 py-3 text-center font-bold uppercase tracking-wider">Position utile</th>
                   <th className="px-3 py-3 text-center font-bold uppercase tracking-wider">GSC frais</th>
                   <th className="px-3 py-3 text-center font-bold uppercase tracking-wider">GSC 28j</th>
                   <th className="px-3 py-3 text-center font-bold uppercase tracking-wider">GSC 90j</th>
@@ -934,10 +996,10 @@ export default function GscTab() {
                   const gscFresh = row.gsc?.fresh;
                   const gsc28 = row.gsc?.current28;
                   const gsc90 = row.gsc?.current90;
-                  const visibleUrl = live?.url || gscFresh?.bestPage || gscFresh?.page || gsc28?.bestPage || gsc28?.page || "";
+                  const usefulReading = bestAvailableReading(row);
+                  const visibleUrl = usefulReading.url || live?.url || gscFresh?.bestPage || gscFresh?.page || gsc28?.bestPage || gsc28?.page || "";
                   const expectedPath = row.expectedPaths?.[0] || "";
                   const isOpen = openRow === row.query;
-                  const livePosition = live?.position ?? null;
 
                   return (
                     <Fragment key={row.query}>
@@ -954,9 +1016,7 @@ export default function GscTab() {
                           <div className="admin-text-muted mt-1 truncate font-mono text-[10px]" title={row.query}>{row.query}</div>
                         </td>
                         <td className="px-3 py-3 text-center">
-                          <PositionBadge position={livePosition} />
-                          <div className="admin-text-muted mt-1 text-[10px]">{formatDate(live?.checkedAt)}</div>
-                          <DeltaBadge delta={live?.delta ?? null} />
+                          <UsefulPositionStack row={row} />
                         </td>
                         <td className="px-3 py-3"><MetricStack metric={gscFresh} /></td>
                         <td className="px-3 py-3"><MetricStack metric={gsc28} /></td>
