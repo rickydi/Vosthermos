@@ -127,9 +127,10 @@ function formatPromptInspection(inspection) {
 
 function buildSeoPrompt({ row, cityName, periods, inspection }) {
   const live = row.latestSerper;
+  const gscFresh = row.gsc?.fresh;
   const gsc28 = row.gsc?.current28;
   const gsc90 = row.gsc?.current90;
-  const visibleUrl = live?.url || gsc28?.bestPage || gsc28?.page || "";
+  const visibleUrl = live?.url || gscFresh?.bestPage || gscFresh?.page || gsc28?.bestPage || gsc28?.page || "";
   const expectedPath = row.expectedPaths?.[0] || "";
   const expectedUrl = expectedPath ? publicUrl(expectedPath) : "";
   const history = live?.history || [];
@@ -164,6 +165,8 @@ Pages:
 - Page que je veux pousser: ${expectedUrl ? `${shortUrl(expectedUrl)} (${expectedUrl})` : "non definie"}
 
 GSC:
+- Periode GSC fraiche: ${periods?.fresh?.startDate || "?"} -> ${periods?.fresh?.endDate || "?"}
+- GSC frais: ${formatPromptMetric(gscFresh)}
 - Periode 28j: ${periods?.current28?.startDate || "?"} -> ${periods?.current28?.endDate || "?"}
 - GSC 28j: ${formatPromptMetric(gsc28)}
 - GSC 90j: ${formatPromptMetric(gsc90)}
@@ -380,11 +383,13 @@ function PromptButton({ row, inspection, promptState, onCopyPrompt }) {
 
 function InvestigationDetails({ row, cityName, periods, inspectionState, promptState, onInspect, onCopyPrompt }) {
   const live = row.latestSerper;
+  const gscFresh = row.gsc?.fresh;
   const gsc28 = row.gsc?.current28;
   const history = live?.history || [];
-  const gscQueries = gsc28?.queries || [];
+  const activeGsc = hasGscReading(gscFresh) ? gscFresh : gsc28;
+  const gscQueries = activeGsc?.queries || [];
   const expected = row.expectedPaths || [];
-  const visibleUrl = live?.url || gsc28?.bestPage || gsc28?.page || "";
+  const visibleUrl = live?.url || activeGsc?.bestPage || activeGsc?.page || "";
   const expectedUrl = expected[0] ? publicUrl(expected[0]) : "";
   const inspection = inspectionState[expectedUrl] || {};
 
@@ -435,6 +440,9 @@ function InvestigationDetails({ row, cityName, periods, inspectionState, promptS
 
       <div>
         <p className="admin-text-muted mb-2 text-[10px] font-bold uppercase tracking-wider">GSC revele</p>
+        <p className="admin-text-muted mb-2 text-[10px]">
+          {hasGscReading(gscFresh) ? "Lecture fraiche Search Console" : "Lecture 28j Search Console"}
+        </p>
         {gscQueries.length === 0 ? (
           <p className="admin-text-muted text-xs">Google Search Console ne revele pas encore de requete utile.</p>
         ) : (
@@ -652,6 +660,7 @@ export default function GscTab() {
     const cityName = data?.city?.name || selectedCity;
     const exportRows = (data?.rows || []).map((row) => {
       const live = row.latestSerper;
+      const gscFresh = row.gsc?.fresh || {};
       const gsc28 = row.gsc?.current28 || {};
       const gsc90 = row.gsc?.current90 || {};
       return {
@@ -661,6 +670,9 @@ export default function GscTab() {
         live_position: live?.position ?? "",
         live_page: live?.url || "",
         live_scan: live?.checkedAt || "",
+        gsc_frais_position: gscFresh.position ?? "",
+        gsc_frais_impressions: gscFresh.impressions || 0,
+        gsc_frais_page: gscFresh.bestPage || gscFresh.page || "",
         gsc_28j_position: gsc28.position ?? "",
         gsc_28j_impressions: gsc28.impressions || 0,
         gsc_90j_position: gsc90.position ?? "",
@@ -732,7 +744,10 @@ export default function GscTab() {
           <div>
             <h2 className="admin-text text-lg font-extrabold">Centrale de suivi SEO</h2>
             <p className="admin-text-muted mt-1 max-w-3xl text-sm">
-              Une ville, tous les mots-cles vises, la position live Google, la lecture GSC et la page a pousser.
+              Une ville, tous les mots-cles vises, la position live Google, la lecture GSC gratuite et la page a pousser.
+            </p>
+            <p className="admin-text-muted mt-1 max-w-3xl text-xs">
+              Rafraichir lit Search Console en donnees fraiches. Le scan live top 100 utilise Serper.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -750,7 +765,7 @@ export default function GscTab() {
               className="rounded-lg bg-cyan-500/20 px-4 py-2 text-sm font-extrabold text-cyan-200 hover:bg-cyan-500/30 disabled:opacity-40"
             >
               <i className={`fas fa-satellite-dish mr-2 ${scanning ? "fa-spin" : ""}`}></i>
-              {scanning ? "Scan live..." : "Scanner cette ville"}
+              {scanning ? "Scan live..." : "Scanner live Serper"}
             </button>
             <button
               onClick={downloadCurrentCsv}
@@ -896,11 +911,12 @@ export default function GscTab() {
             </div>
           )}
           <div className="overflow-x-auto">
-            <table className="w-full text-xs" style={{ minWidth: "1180px" }}>
+            <table className="w-full text-xs" style={{ minWidth: "1280px" }}>
               <thead>
                 <tr className="border-b admin-text-muted" style={{ borderColor: "var(--admin-border)" }}>
                   <th className="px-3 py-3 text-left font-bold uppercase tracking-wider">Mot-cle</th>
                   <th className="px-3 py-3 text-center font-bold uppercase tracking-wider">Live Google</th>
+                  <th className="px-3 py-3 text-center font-bold uppercase tracking-wider">GSC frais</th>
                   <th className="px-3 py-3 text-center font-bold uppercase tracking-wider">GSC 28j</th>
                   <th className="px-3 py-3 text-center font-bold uppercase tracking-wider">GSC 90j</th>
                   <th className="px-3 py-3 text-left font-bold uppercase tracking-wider">Page qui sort</th>
@@ -912,9 +928,10 @@ export default function GscTab() {
               <tbody>
                 {rows.map((row) => {
                   const live = row.latestSerper;
+                  const gscFresh = row.gsc?.fresh;
                   const gsc28 = row.gsc?.current28;
                   const gsc90 = row.gsc?.current90;
-                  const visibleUrl = live?.url || gsc28?.bestPage || gsc28?.page || "";
+                  const visibleUrl = live?.url || gscFresh?.bestPage || gscFresh?.page || gsc28?.bestPage || gsc28?.page || "";
                   const expectedPath = row.expectedPaths?.[0] || "";
                   const isOpen = openRow === row.query;
                   const livePosition = live?.position ?? null;
@@ -938,6 +955,7 @@ export default function GscTab() {
                           <div className="admin-text-muted mt-1 text-[10px]">{formatDate(live?.checkedAt)}</div>
                           <DeltaBadge delta={live?.delta ?? null} />
                         </td>
+                        <td className="px-3 py-3"><MetricStack metric={gscFresh} /></td>
                         <td className="px-3 py-3"><MetricStack metric={gsc28} /></td>
                         <td className="px-3 py-3"><MetricStack metric={gsc90} /></td>
                         <td className="px-3 py-3">
@@ -985,7 +1003,7 @@ export default function GscTab() {
                       </tr>
                       {isOpen && (
                         <tr className="border-b bg-black/10" style={{ borderColor: "var(--admin-border)" }}>
-                          <td colSpan={8}>
+                          <td colSpan={9}>
                             <InvestigationDetails
                               row={row}
                               cityName={data?.city?.name}
@@ -1009,7 +1027,7 @@ export default function GscTab() {
 
       {data?.periods?.current28 && (
         <p className="admin-text-muted text-xs">
-          GSC 28j: {data.periods.current28.startDate} -&gt; {data.periods.current28.endDate}. Le scan live cherche Vosthermos dans le top 100 Google Canada.
+          GSC frais: {data.periods.fresh?.startDate} -&gt; {data.periods.fresh?.endDate} avec donnees Search Console partielles. GSC 28j: {data.periods.current28.startDate} -&gt; {data.periods.current28.endDate}. Le scan live cherche Vosthermos dans le top 100 Google Canada.
         </p>
       )}
     </div>

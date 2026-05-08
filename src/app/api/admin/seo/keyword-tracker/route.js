@@ -11,6 +11,7 @@ export const dynamic = "force-dynamic";
 const SITE_URL = "https://www.vosthermos.com/";
 const BRAND_TERM = "vosthermos";
 const GSC_DATA_LAG_DAYS = 2;
+const GSC_FRESH_DAYS = 7;
 const ROW_LIMIT = 25000;
 const MAX_ROWS = 100000;
 const SERPER_MAX_PAGES = 10;
@@ -149,7 +150,7 @@ function rowKey(row) {
   return `${row.keys?.[0] || ""}||${row.keys?.[1] || ""}`;
 }
 
-async function fetchRows(searchconsole, { startDate, endDate, filters }) {
+async function fetchRows(searchconsole, { startDate, endDate, filters, dataState = "final" }) {
   const rows = [];
   for (let startRow = 0; startRow < MAX_ROWS; startRow += ROW_LIMIT) {
     const response = await searchconsole.searchanalytics.query({
@@ -161,6 +162,7 @@ async function fetchRows(searchconsole, { startDate, endDate, filters }) {
         dimensionFilterGroups: filters,
         rowLimit: ROW_LIMIT,
         startRow,
+        dataState,
         type: "web",
       },
     });
@@ -171,14 +173,14 @@ async function fetchRows(searchconsole, { startDate, endDate, filters }) {
   return rows;
 }
 
-async function fetchRowsForCity(searchconsole, { startDate, endDate, filters, city }) {
+async function fetchRowsForCity(searchconsole, { startDate, endDate, filters, city, dataState = "final" }) {
   const rowIndex = new Map();
   for (const expression of cityQueryExpressions(city)) {
     const scopedFilters = [
       ...filters,
       { filters: [{ dimension: "query", operator: "contains", expression }] },
     ];
-    const rows = await fetchRows(searchconsole, { startDate, endDate, filters: scopedFilters });
+    const rows = await fetchRows(searchconsole, { startDate, endDate, filters: scopedFilters, dataState });
     for (const row of rows) rowIndex.set(rowKey(row), row);
   }
   return [...rowIndex.values()];
@@ -505,6 +507,8 @@ async function buildTrackerData({ citySlug, device, branded, country }) {
     CITIES[0];
   const cityWithTerms = { ...city, terms: cityMatchTerms(city) };
   const searchconsole = await getSearchConsoleClient();
+  const freshEndDate = new Date();
+  const fresh = makeWindow(freshEndDate, GSC_FRESH_DAYS);
   const endDate = new Date();
   endDate.setDate(endDate.getDate() - GSC_DATA_LAG_DAYS);
   const current7 = makeWindow(endDate, 7);
@@ -513,7 +517,8 @@ async function buildTrackerData({ citySlug, device, branded, country }) {
   const previous28 = previousWindow(current28, 28);
   const filters = buildGscFilters({ device, branded, country });
 
-  const [rows7, rows28, rows90, rowsPrev28, serperHistory] = await Promise.all([
+  const [rowsFresh, rows7, rows28, rows90, rowsPrev28, serperHistory] = await Promise.all([
+    fetchRowsForCity(searchconsole, { ...fresh, filters, city: cityWithTerms, dataState: "all" }),
     fetchRowsForCity(searchconsole, { ...current7, filters, city: cityWithTerms }),
     fetchRowsForCity(searchconsole, { ...current28, filters, city: cityWithTerms }),
     fetchRowsForCity(searchconsole, { ...current90, filters, city: cityWithTerms }),
@@ -538,9 +543,11 @@ async function buildTrackerData({ citySlug, device, branded, country }) {
       })),
     } : null;
 
+    const freshGsc = gscMetric(rowsFresh, keyword, cityWithTerms);
     const currentGsc = gscMetric(rows28, keyword, cityWithTerms);
+    const statusGsc = freshGsc.impressions > 0 ? freshGsc : currentGsc;
     const expected = expectedPaths(keyword, cityWithTerms.slug);
-    const status = rowStatus({ latestSerper, currentGsc, expected });
+    const status = rowStatus({ latestSerper, currentGsc: statusGsc, expected });
 
     return {
       keyword,
@@ -549,6 +556,7 @@ async function buildTrackerData({ citySlug, device, branded, country }) {
       expectedPaths: expected,
       latestSerper,
       gsc: {
+        fresh: freshGsc,
         current7: gscMetric(rows7, keyword, cityWithTerms),
         current28: currentGsc,
         current90: gscMetric(rows90, keyword, cityWithTerms),
@@ -572,6 +580,7 @@ async function buildTrackerData({ citySlug, device, branded, country }) {
     cities: CITIES.map((c) => ({ slug: c.slug, name: c.name })),
     keywords,
     periods: {
+      fresh: { startDate: isoDate(fresh.startDate), endDate: isoDate(fresh.endDate), days: GSC_FRESH_DAYS, dataState: "all" },
       current7: { startDate: isoDate(current7.startDate), endDate: isoDate(current7.endDate), days: 7 },
       current28: { startDate: isoDate(current28.startDate), endDate: isoDate(current28.endDate), days: 28 },
       current90: { startDate: isoDate(current90.startDate), endDate: isoDate(current90.endDate), days: 90 },
@@ -579,6 +588,7 @@ async function buildTrackerData({ citySlug, device, branded, country }) {
     },
     filters: { device, branded, country },
     rowCounts: {
+      gscFresh: rowsFresh.length,
       gsc7: rows7.length,
       gsc28: rows28.length,
       gsc90: rows90.length,
