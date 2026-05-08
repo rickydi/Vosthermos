@@ -435,6 +435,10 @@ function serperScanErrorMessage(result, query) {
   return `Erreur Serper pour "${query}": ${error || "reponse invalide"}`;
 }
 
+function isSerperCreditError(message) {
+  return /credits serper insuffisants|not enough credits/i.test(String(message || ""));
+}
+
 async function latestSerperByKeyword(city, keywords) {
   const exactKeywords = keywords.map((keyword) => `${keyword} ${city.name}`);
   const since = new Date();
@@ -661,6 +665,18 @@ export async function POST(request) {
     return NextResponse.json({ scanned: true, ...data });
   } catch (err) {
     console.error("SEO keyword tracker scan error:", err.message);
+    if (isSerperCreditError(err.message)) {
+      const device = (body.device || "ALL").toUpperCase();
+      const branded = body.branded || "exclude";
+      const country = body.country || "";
+      const data = await buildTrackerData({ citySlug: city.slug, device, branded, country });
+      return NextResponse.json({
+        scanned: false,
+        fallback: "gsc-fresh",
+        warning: "Live Serper indisponible: tableau mis a jour avec les donnees GSC fraiches gratuites. Les positions live restent celles du dernier scan.",
+        ...data,
+      });
+    }
     return NextResponse.json({ error: err.message || "Erreur scan SEO" }, { status: 500 });
   }
 }

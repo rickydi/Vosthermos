@@ -615,6 +615,9 @@ export default function GscTab() {
       setData(body);
       setKeywords(body.keywords || []);
       setOpenRow("");
+      if (body.warning) {
+        setError(body.warning);
+      }
     } catch (err) {
       setError(err.message || "Erreur scan SEO");
     } finally {
