@@ -231,6 +231,26 @@ export default function ChatPanel({ initialConversationId }) {
     } catch {}
   }
 
+  async function markAsUnread() {
+    if (!selected) return;
+    try {
+      const res = await fetch(`/api/admin/chat/${selected.id}/unread`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (res.ok) {
+        const id = selected.id;
+        setConversations((current) => current.map((conversation) => (
+          conversation.id === id ? { ...conversation, unreadCount: Math.max(conversation.unreadCount || 0, 1) } : conversation
+        )));
+        setSelected(null);
+        selectedIdRef.current = null;
+        await fetchConversations();
+        setFilter("unread");
+      }
+    } catch {}
+  }
+
   async function deleteConversation() {
     if (!selected || !confirm("Supprimer cette conversation definitivement?")) return;
     try {
@@ -423,6 +443,9 @@ export default function ChatPanel({ initialConversationId }) {
                     OK Caren
                   </button>
                 )}
+                <button onClick={markAsUnread} className="px-4 py-2 bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 rounded-lg text-xs font-semibold transition-colors" title="Remettre dans Non-lues et fermer cette conversation">
+                  Non vu
+                </button>
                 <button onClick={toggleArchive} className="px-4 py-2 bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 rounded-lg text-xs font-semibold transition-colors">
                   {selected.isArchived ? "Desarchiver" : "Archiver"}
                 </button>
