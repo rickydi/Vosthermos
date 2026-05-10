@@ -129,6 +129,96 @@ const LOCAL_SERVICE_CITY_PAGES = {
       },
     ],
   },
+  "remplacement-quincaillerie:montreal": {
+    seoTitle: "Quincaillerie fenetre Montreal | Manivelles et serrures",
+    seoDescription:
+      `Quincaillerie fenetre Montreal: manivelles, poignees, serrures, pentures, roulettes et mecanismes. Pieces en stock et installation. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Quincaillerie fenetre a Montreal",
+    lead:
+      "Service specialise de quincaillerie fenetre a Montreal: manivelle brisee, poignee lousse, serrure usee, penture fatiguee, mecanisme bloque, roulettes de porte-patio ou piece difficile a trouver.",
+    schemaName: "Quincaillerie fenetre a Montreal",
+    schemaDescription:
+      "Remplacement de quincaillerie de fenetres et portes a Montreal: manivelles, poignees, serrures, pentures, roulettes, mecanismes et ajustements.",
+    serviceType: "Remplacement de quincaillerie de fenetres",
+    alternateName: [
+      "quincaillerie fenetre Montreal",
+      "quincaillerie de fenetre Montreal",
+      "remplacement quincaillerie fenetre Montreal",
+      "manivelle fenetre Montreal",
+      "poignee fenetre Montreal",
+      "serrure fenetre Montreal",
+    ],
+    sections: [
+      {
+        heading: "Quincaillerie fenetre Montreal: pieces, mecanismes et ajustement",
+        paragraphs: [
+          "A Montreal, beaucoup de fenetres plus anciennes sont encore bonnes, mais leur quincaillerie fatigue: manivelle qui tourne dans le vide, serrure qui ne verrouille plus, pentures usees, mecanisme coince ou poignee cassee.",
+          "Vosthermos garde un inventaire de plus de 740 pieces de portes et fenetres pour accelerer l'identification et le remplacement de quincaillerie. Une photo de la piece aide souvent a trouver le bon modele avant la visite.",
+          "Nous intervenons dans les triplex, duplex, condos, maisons de ville et immeubles locatifs de Montreal pour remettre les fenetres en fonction sans remplacer l'ouverture complete.",
+        ],
+      },
+    ],
+    issuesHeading: "Problemes de quincaillerie frequents a Montreal",
+    issues: [
+      "Manivelle de fenetre qui tourne dans le vide ou ne ferme plus completement",
+      "Serrure, poignee ou penture usee sur des fenetres de triplex et condos",
+      "Piece de quincaillerie difficile a identifier ou modele discontinu",
+    ],
+    faq: [
+      {
+        q: "Remplacez-vous la quincaillerie de fenetre a Montreal?",
+        a: "Oui. Nous remplacons les manivelles, poignees, serrures, pentures, mecanismes et autres pieces de quincaillerie de fenetres a Montreal. Une photo de la piece aide a confirmer le bon modele.",
+      },
+      {
+        q: "Faut-il remplacer la fenetre si la manivelle est brisee?",
+        a: "Pas necessairement. Si le cadre et le volet sont encore en bon etat, remplacer la manivelle ou le mecanisme coute beaucoup moins cher qu'une fenetre neuve.",
+      },
+    ],
+  },
+  "reparation-porte-fenetre:montreal": {
+    seoTitle: "Reparation porte-fenetre Montreal | Mecanisme et thermos",
+    seoDescription:
+      `Reparation porte-fenetre a Montreal: mecanisme multipoint, pentures, poignee, ajustement, coupe-froid et thermos. Service a domicile. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Reparation porte-fenetre a Montreal",
+    lead:
+      "Service specialise de reparation porte-fenetre a Montreal: porte-fenetre qui ferme mal, mecanisme multipoint bloque, pentures usees, poignee brisee, coupe-froid fatigue ou thermos embue.",
+    schemaName: "Reparation porte-fenetre a Montreal",
+    schemaDescription:
+      "Reparation de portes-fenetres a Montreal: mecanisme multipoint, pentures, poignee, ajustement, coupe-froid, thermos et etancheite.",
+    serviceType: "Reparation de porte-fenetre",
+    alternateName: [
+      "reparation porte-fenetre Montreal",
+      "reparation porte fenetre Montreal",
+      "reparation de porte-fenetre Montreal",
+      "porte-fenetre Montreal",
+      "porte francaise Montreal",
+    ],
+    sections: [
+      {
+        heading: "Reparation porte-fenetre Montreal: mecanisme, pentures et etancheite",
+        paragraphs: [
+          "Une porte-fenetre a Montreal peut etre confondue avec une demande generale de portes et fenetres, mais l'intention est differente: on parle souvent d'un mecanisme multipoint, de pentures, d'une poignee, d'un thermos ou d'un ajustement de battant.",
+          "Nos techniciens verifient l'alignement, la fermeture, le verrouillage, le coupe-froid et l'etat du thermos pour corriger la vraie cause du probleme.",
+          "Quand la demande touche plusieurs ouvertures, la page reparation fenetres Montreal reste la meilleure entree. Quand le probleme est precisement la porte-fenetre, cette page specialisee envoie le bon signal a Google et au client.",
+        ],
+      },
+    ],
+    issues: [
+      "Porte-fenetre qui frotte, ferme mal ou laisse passer l'air",
+      "Mecanisme multipoint bloque, poignee lousse ou pentures fatiguees",
+      "Thermos embue ou coupe-froid use dans une porte-fenetre a battant",
+    ],
+    faq: [
+      {
+        q: "Reparez-vous les portes-fenetres a Montreal?",
+        a: "Oui. Nous reparons les portes-fenetres a Montreal: mecanisme multipoint, pentures, poignee, ajustement, coupe-froid et thermos.",
+      },
+      {
+        q: "Quelle est la difference avec la reparation de fenetres Montreal?",
+        a: "La reparation de fenetres Montreal couvre toutes les fenetres et ouvertures. La porte-fenetre vise un produit precis avec battant, poignee, pentures et souvent un mecanisme multipoint.",
+      },
+    ],
+  },
   "calfeutrage:montreal": {
     seoTitle: "Calfeutrage Montreal | Fenetres et joints exterieurs",
     seoDescription:
@@ -164,6 +254,138 @@ const LOCAL_SERVICE_CITY_PAGES = {
       {
         q: "Combien coute le calfeutrage a Montreal?",
         a: "Le prix depend du nombre d'ouvertures, de l'etat de l'ancien scellant et de l'acces aux fenetres. Pour une maison typique, le calfeutrage complet se situe souvent entre 500$ et 1 500$. La soumission est gratuite.",
+      },
+    ],
+  },
+  "coupe-froid:montreal": {
+    seoTitle: "Coupe-froid fenetre Montreal | Courants d'air",
+    seoDescription:
+      `Coupe-froid fenetre Montreal: remplacement de joints uses, infiltration d'air, portes et fenetres mal etanches. Service a domicile. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Coupe-froid fenetre a Montreal",
+    lead:
+      "Service specialise de coupe-froid fenetre a Montreal: courants d'air, joints ecrases, portes et fenetres mal etanches, perte de chaleur et inconfort pres des ouvertures.",
+    schemaName: "Coupe-froid fenetre a Montreal",
+    schemaDescription:
+      "Remplacement de coupe-froid de fenetres et portes a Montreal: joints uses, infiltration d'air, etancheite et ajustement des ouvertures.",
+    serviceType: "Remplacement de coupe-froid",
+    alternateName: [
+      "coupe-froid fenetre Montreal",
+      "coupe froid fenetre Montreal",
+      "remplacement coupe-froid Montreal",
+      "joint fenetre Montreal",
+      "infiltration air fenetre Montreal",
+    ],
+    sections: [
+      {
+        heading: "Coupe-froid fenetre Montreal: bloquer les courants d'air",
+        paragraphs: [
+          "A Montreal, les cycles gel-degel et les vieilles ouvertures fatiguent les coupe-froid. Un joint ecrase ou dechire laisse entrer l'air froid, force le chauffage et donne l'impression que la fenetre doit etre remplacee.",
+          "Dans plusieurs cas, remplacer le coupe-froid et ajuster la fenetre suffit a recuperer du confort sans changer l'ouverture complete.",
+          "Nous verifions les fenetres, portes, portes-patio et portes-fenetres afin de choisir le bon profil de coupe-froid et corriger les zones d'infiltration.",
+        ],
+      },
+    ],
+    issues: [
+      "Courants d'air autour des fenetres de triplex, duplex et condos",
+      "Coupe-froid ecrase, sec, decolle ou manquant",
+      "Porte ou fenetre qui ferme mal apres plusieurs hivers",
+    ],
+    faq: [
+      {
+        q: "Remplacez-vous les coupe-froid de fenetre a Montreal?",
+        a: "Oui. Nous remplacons les coupe-froid de fenetres, portes, portes-patio et portes-fenetres a Montreal. Le technicien verifie aussi l'ajustement, car un mauvais alignement peut causer une infiltration meme avec un nouveau joint.",
+      },
+      {
+        q: "Un coupe-froid neuf peut-il eviter un remplacement de fenetre?",
+        a: "Souvent oui. Si le cadre et le thermos sont encore bons, remplacer le coupe-froid et ajuster la fenetre peut regler le courant d'air a beaucoup plus faible cout.",
+      },
+    ],
+  },
+  "moustiquaires-sur-mesure:montreal": {
+    seoTitle: "Moustiquaire fenetre Montreal | Reparation sur mesure",
+    seoDescription:
+      `Moustiquaire fenetre Montreal: fabrication, reparation, toile dechiree, cadre croche et moustiquaire sur mesure pour fenetres et portes-patio. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Moustiquaire fenetre a Montreal",
+    lead:
+      "Service specialise de moustiquaire fenetre a Montreal: toile dechiree, cadre croche, moustiquaire manquante, fabrication sur mesure et ajustement pour fenetres ou portes-patio.",
+    schemaName: "Moustiquaire fenetre a Montreal",
+    schemaDescription:
+      "Fabrication et reparation de moustiquaires de fenetres et portes-patio a Montreal: toile, cadre, ajustement et remplacement sur mesure.",
+    serviceType: "Moustiquaires sur mesure",
+    alternateName: [
+      "moustiquaire fenetre Montreal",
+      "moustiquaire Montreal",
+      "reparation moustiquaire Montreal",
+      "moustiquaire sur mesure Montreal",
+      "moustiquaire porte patio Montreal",
+    ],
+    sections: [
+      {
+        heading: "Moustiquaire fenetre Montreal: reparer ou fabriquer sur mesure",
+        paragraphs: [
+          "Les moustiquaires de fenetres et portes-patio s'abiment vite dans les logements, condos et maisons de Montreal: toile dechiree, cadre croche, moustiquaire perdue ou modele qui n'est plus disponible.",
+          "Nous pouvons reparer la toile existante, refaire un cadre ou fabriquer une moustiquaire sur mesure selon l'ouverture.",
+          "Ce service complete la reparation de fenetres a Montreal, surtout lorsque la fenetre fonctionne encore mais qu'il manque la protection contre les insectes.",
+        ],
+      },
+    ],
+    issues: [
+      "Toile de moustiquaire dechiree ou sortie du cadre",
+      "Cadre de moustiquaire croche, perdu ou impossible a replacer",
+      "Besoin d'une moustiquaire sur mesure pour fenetre ou porte-patio",
+    ],
+    faq: [
+      {
+        q: "Faites-vous des moustiquaires sur mesure a Montreal?",
+        a: "Oui. Nous reparons et fabriquons des moustiquaires sur mesure pour fenetres et portes-patio a Montreal, selon les dimensions et le type d'ouverture.",
+      },
+      {
+        q: "Peut-on seulement changer la toile?",
+        a: "Oui. Si le cadre est encore bon, remplacer seulement la toile est souvent suffisant et moins couteux qu'une moustiquaire neuve.",
+      },
+    ],
+  },
+  "reparation-portes-bois:montreal": {
+    seoTitle: "Reparation fenetre bois Montreal | Cadres et restauration",
+    seoDescription:
+      `Reparation fenetre bois Montreal: cadres abimes, bois pourri, ajustement, finition, coupe-froid et thermos dans cadre existant. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Reparation fenetre en bois a Montreal",
+    lead:
+      "Service specialise de reparation fenetre en bois a Montreal: cadre abime, bois pourri, ajustement, coupe-froid, finition, thermos dans cadre existant et restauration d'ouverture ancienne.",
+    schemaName: "Reparation fenetre en bois a Montreal",
+    schemaDescription:
+      "Restauration et reparation de fenetres en bois a Montreal: cadres, greffes, ajustement, coupe-froid, finition et remplacement de thermos dans le cadre existant.",
+    serviceType: "Reparation de fenetres en bois",
+    alternateName: [
+      "reparation fenetre bois Montreal",
+      "reparation fenetre en bois Montreal",
+      "restauration fenetre bois Montreal",
+      "cadre fenetre bois Montreal",
+      "bois pourri fenetre Montreal",
+    ],
+    sections: [
+      {
+        heading: "Reparation fenetre bois Montreal: conserver le cachet sans remplacer",
+        paragraphs: [
+          "Montreal compte beaucoup de triplex, duplex et maisons avec des fenetres ou cadres de bois qui meritent une reparation precise avant un remplacement complet.",
+          "Nous verifions le bois pourri, les sections a greffer, l'ajustement, le coupe-froid, le calfeutrage et la possibilite de remplacer le thermos tout en conservant le cadre existant.",
+          "Cette approche est utile pour les proprietes anciennes, les facades a conserver et les clients qui veulent prolonger la vie des ouvertures sans changer tout le caractere du batiment.",
+        ],
+      },
+    ],
+    issues: [
+      "Cadre de fenetre en bois abime ou section basse fatiguee par l'humidite",
+      "Fenetre en bois qui ferme mal, frotte ou laisse passer l'air",
+      "Thermos ou vitrage a remplacer dans un cadre de bois existant",
+    ],
+    faq: [
+      {
+        q: "Reparez-vous les fenetres en bois a Montreal?",
+        a: "Oui. Nous reparons les fenetres en bois a Montreal: cadre, greffe de bois, ajustement, coupe-froid, finition et remplacement de thermos lorsque le cadre peut etre conserve.",
+      },
+      {
+        q: "Est-ce mieux de restaurer ou remplacer une fenetre en bois?",
+        a: "Si le cadre est recuperable, la restauration peut conserver le cachet du batiment et couter moins cher qu'un remplacement complet. Si la structure est trop endommagee, nous le signalons clairement.",
       },
     ],
   },
@@ -323,6 +545,115 @@ const LOCAL_INTENT_LINKS = {
       description:
         "Si la demande touche plus qu'une porte-fenetre a battant, le service local couvre les thermos, portes patio, quincaillerie, calfeutrage, coupe-froid, moustiquaires et cadres a Chateauguay.",
       label: "Reparation de portes et fenetres Chateauguay",
+    },
+  ],
+  "remplacement-vitre-thermos:montreal": [
+    {
+      href: "/services/desembuage/montreal",
+      title: "La vitre est seulement embuee?",
+      description:
+        "Si la buee est recente ou legere, le desembuage peut etre verifie avant de remplacer l'unite scellee.",
+      label: "Vitre thermos embuee Montreal",
+    },
+    {
+      href: "/reparation-portes-et-fenetres/montreal",
+      title: "Plusieurs fenetres a reparer?",
+      description:
+        "Pour une demande plus large de reparation fenetres Montreal, la page principale regroupe thermos, quincaillerie, coupe-froid, calfeutrage et moustiquaires.",
+      label: "Reparation fenetres Montreal",
+    },
+  ],
+  "desembuage:montreal": [
+    {
+      href: "/services/remplacement-vitre-thermos/montreal",
+      title: "Thermos trop endommage?",
+      description:
+        "Si le verre est trop attaque, fissure ou rempli de depots permanents, le remplacement de vitre thermos est plus durable que le desembuage.",
+      label: "Remplacement vitre thermos Montreal",
+    },
+  ],
+  "reparation-porte-patio:montreal": [
+    {
+      href: "/services/remplacement-quincaillerie/montreal",
+      title: "Piece ou mecanisme a remplacer?",
+      description:
+        "Pour les roulettes, poignees, serrures et pieces difficiles a identifier, la page quincaillerie Montreal est plus precise.",
+      label: "Quincaillerie fenetre Montreal",
+    },
+    {
+      href: "/reparation-portes-et-fenetres/montreal",
+      title: "La demande touche aussi les fenetres?",
+      description:
+        "Si plusieurs ouvertures ont besoin d'une verification, la page reparation fenetres Montreal couvre l'ensemble du diagnostic.",
+      label: "Reparation fenetres Montreal",
+    },
+  ],
+  "calfeutrage:montreal": [
+    {
+      href: "/services/coupe-froid/montreal",
+      title: "Courant d'air autour de la fenetre?",
+      description:
+        "Quand l'air passe par le joint mobile plutot que par le scellant exterieur, le coupe-froid est souvent la vraie correction.",
+      label: "Coupe-froid fenetre Montreal",
+    },
+    {
+      href: "/reparation-portes-et-fenetres/montreal",
+      title: "Diagnostic complet de fenetre",
+      description:
+        "La page principale Montreal aide a regrouper calfeutrage, coupe-froid, thermos et quincaillerie dans une seule lecture.",
+      label: "Reparation fenetres Montreal",
+    },
+  ],
+  "coupe-froid:montreal": [
+    {
+      href: "/services/calfeutrage/montreal",
+      title: "Le scellant exterieur est fissure?",
+      description:
+        "Si l'infiltration vient du contour exterieur de la fenetre ou de la porte, le calfeutrage Montreal est la page la plus precise.",
+      label: "Calfeutrage fenetre Montreal",
+    },
+  ],
+  "remplacement-quincaillerie:montreal": [
+    {
+      href: "/reparation-portes-et-fenetres/montreal",
+      title: "Besoin d'un diagnostic plus large?",
+      description:
+        "Si la quincaillerie n'est qu'une partie du probleme, la page reparation fenetres Montreal couvre aussi thermos, coupe-froid, calfeutrage et moustiquaires.",
+      label: "Reparation fenetres Montreal",
+    },
+  ],
+  "reparation-porte-fenetre:montreal": [
+    {
+      href: "/reparation-portes-et-fenetres/montreal",
+      title: "Ce n'est pas seulement une porte-fenetre?",
+      description:
+        "Pour les demandes qui touchent plusieurs fenetres ou portes, la page reparation fenetres Montreal est la meilleure page d'entree.",
+      label: "Reparation fenetres Montreal",
+    },
+    {
+      href: "/services/remplacement-vitre-thermos/montreal",
+      title: "Le probleme est surtout le thermos?",
+      description:
+        "Si la porte-fenetre a une vitre thermos embuee ou fissuree, la page thermos Montreal cible mieux cette intention.",
+      label: "Remplacement vitre thermos Montreal",
+    },
+  ],
+  "moustiquaires-sur-mesure:montreal": [
+    {
+      href: "/reparation-portes-et-fenetres/montreal",
+      title: "Reparation complete de fenetre",
+      description:
+        "Si la moustiquaire accompagne une fenetre qui ferme mal, laisse passer l'air ou a un thermos defectueux, la page principale Montreal couvre l'ensemble.",
+      label: "Reparation fenetres Montreal",
+    },
+  ],
+  "reparation-portes-bois:montreal": [
+    {
+      href: "/reparation-portes-et-fenetres/montreal",
+      title: "Fenetre bois avec plusieurs problemes?",
+      description:
+        "Pour une demande qui combine bois, thermos, calfeutrage, coupe-froid et quincaillerie, la page principale Montreal sert de diagnostic global.",
+      label: "Reparation fenetres Montreal",
     },
   ],
 };
@@ -538,7 +869,7 @@ export default async function ServiceCityPage({ params }) {
             </div>
 
             {intentLinks.length > 0 && (
-              <div className="rounded-2xl border border-[var(--color-teal)]/20 bg-[var(--color-teal)]/5 p-6">
+              <div className="rounded-2xl border border-[var(--color-teal)]/20 bg-[var(--color-teal)]/5 p-6 space-y-5">
                 {intentLinks.map((link) => (
                   <div key={link.href}>
                     <h2 className="text-xl font-bold text-gray-900 mb-2">{link.title}</h2>
