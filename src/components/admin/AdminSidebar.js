@@ -46,6 +46,51 @@ function alertClasses(tone) {
   return "bg-emerald-400 shadow-emerald-400/40";
 }
 
+function setChatFaviconBadge(count, originalHrefRef) {
+  if (typeof document === "undefined") return;
+
+  let link = document.querySelector("link[rel~='icon']");
+  if (!link) {
+    link = document.createElement("link");
+    link.rel = "icon";
+    document.head.appendChild(link);
+  }
+
+  if (!originalHrefRef.current) {
+    originalHrefRef.current = link.getAttribute("href") || "/images/Vos-Thermos-Logo-petit.png";
+  }
+
+  if (!count) {
+    link.href = originalHrefRef.current;
+    return;
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.width = 64;
+  canvas.height = 64;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  ctx.fillStyle = "#083f46";
+  ctx.fillRect(0, 0, 64, 64);
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "800 34px Arial, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("V", 27, 36);
+
+  ctx.fillStyle = "#22d3ee";
+  ctx.beginPath();
+  ctx.arc(47, 18, 16, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = "#062f35";
+  ctx.font = count > 9 ? "800 14px Arial, sans-serif" : "900 20px Arial, sans-serif";
+  ctx.fillText(count > 99 ? "99+" : String(count), 47, 18);
+
+  link.href = canvas.toDataURL("image/png");
+}
+
 function StatusBadge({ count, href, showIdle = false }) {
   const watched = href ? isWatchedItem(href) : false;
   if (!count && (!showIdle || !watched)) return null;
@@ -80,6 +125,8 @@ export default function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const sectionPickerRef = useRef(null);
+  const originalTitleRef = useRef(null);
+  const originalFaviconHrefRef = useRef(null);
   const [open, setOpen] = useState(false);
   const [sectionPickerOpen, setSectionPickerOpen] = useState(false);
   const [layout, setLayout] = useState(initialMenuLayout);
@@ -168,6 +215,21 @@ export default function AdminSidebar() {
       document.removeEventListener("visibilitychange", onFocus);
     };
   }, []);
+
+  useEffect(() => {
+    if (!originalTitleRef.current) {
+      originalTitleRef.current = document.title || "Vosthermos Admin";
+    }
+
+    if (unreadChat > 0) {
+      const label = unreadChat > 99 ? "99+" : String(unreadChat);
+      document.title = `(${label}) Chat | Vosthermos Admin`;
+    } else {
+      document.title = "Vosthermos Admin";
+    }
+
+    setChatFaviconBadge(unreadChat, originalFaviconHrefRef);
+  }, [unreadChat, pathname]);
 
   if (pathname === "/admin/login") return null;
 
