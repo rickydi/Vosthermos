@@ -25,6 +25,20 @@ function formatDuration(seconds) {
   return `${m}m${s.toString().padStart(2, "0")}s`;
 }
 
+function getPageHref(page) {
+  if (!page) return null;
+  if (page.startsWith("http://") || page.startsWith("https://")) return page;
+  return page.startsWith("/") ? page : `/${page}`;
+}
+
+function getReferrerLabel(referrer) {
+  try {
+    return new URL(referrer).hostname;
+  } catch {
+    return referrer;
+  }
+}
+
 export default function JourneyTimeline({ sessions }) {
   const deviceEmoji = (d) =>
     d === "Mobile" ? "\u{1F4F1}" : d === "Tablette" ? "\u{1F4BB}" : "\u{1F5A5}\u{FE0F}";
@@ -40,9 +54,14 @@ export default function JourneyTimeline({ sessions }) {
               <div className="flex items-center gap-2">
                 <span className="admin-text font-bold text-sm">{session.browser}</span>
                 {session.referrer && (
-                  <span className="admin-text-muted text-[10px]">
-                    via {(() => { try { return new URL(session.referrer).hostname; } catch { return session.referrer; } })()}
-                  </span>
+                  <a
+                    href={session.referrer}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="admin-text-muted text-[10px] hover:text-blue-400 hover:underline transition-colors"
+                  >
+                    via {getReferrerLabel(session.referrer)}
+                  </a>
                 )}
               </div>
               <span className="admin-text-muted text-xs">
@@ -68,6 +87,7 @@ export default function JourneyTimeline({ sessions }) {
             <div className="space-y-0">
               {session.events.map((event, i) => {
                 const color = getPageColor(event.page);
+                const href = getPageHref(event.page);
                 return (
                   <div key={event.id} className="relative flex items-start gap-4 py-2">
                     {/* Dot */}
@@ -83,9 +103,16 @@ export default function JourneyTimeline({ sessions }) {
                     {/* Content */}
                     <div className="flex-1 flex items-center justify-between min-w-0">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="admin-text text-sm font-mono truncate" style={{ color }}>
+                        <a
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="admin-text text-sm font-mono truncate hover:underline transition-colors"
+                          style={{ color }}
+                          title={`Ouvrir ${event.page}`}
+                        >
                           {event.page}
-                        </span>
+                        </a>
                         {event.duration > 0 && (
                           <span className="admin-text-muted text-[10px] bg-white/5 px-1.5 py-0.5 rounded flex-shrink-0">
                             {formatDuration(event.duration)}

@@ -30,7 +30,7 @@ function getItemBadge(href, badges) {
 }
 
 function getAlertTone(href) {
-  if (href === "/admin/chat") return "cyan";
+  if (href === "/admin/chat") return "red";
   if (href === "/admin/rendez-vous") return "amber";
   if (href === "/admin/bons") return "amber";
   return "green";
@@ -41,12 +41,13 @@ function isWatchedItem(href) {
 }
 
 function alertClasses(tone) {
+  if (tone === "red") return "bg-red-500 shadow-red-500/40";
   if (tone === "cyan") return "bg-cyan-400 shadow-cyan-400/40";
   if (tone === "amber") return "bg-amber-400 shadow-amber-400/40";
   return "bg-emerald-400 shadow-emerald-400/40";
 }
 
-function setChatFaviconBadge(count, originalHrefRef) {
+function setChatFaviconBadge(count, originalHrefRef, showAlert = true) {
   if (typeof document === "undefined") return;
 
   let link = document.querySelector("link[rel~='icon']");
@@ -65,6 +66,11 @@ function setChatFaviconBadge(count, originalHrefRef) {
     return;
   }
 
+  if (!showAlert) {
+    link.href = originalHrefRef.current;
+    return;
+  }
+
   const canvas = document.createElement("canvas");
   canvas.width = 64;
   canvas.height = 64;
@@ -79,14 +85,15 @@ function setChatFaviconBadge(count, originalHrefRef) {
   ctx.textBaseline = "middle";
   ctx.fillText("V", 27, 36);
 
-  ctx.fillStyle = "#22d3ee";
+  ctx.fillStyle = "#ffffff";
   ctx.beginPath();
-  ctx.arc(47, 18, 16, 0, Math.PI * 2);
+  ctx.arc(47, 17, 17, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.fillStyle = "#062f35";
-  ctx.font = count > 9 ? "800 14px Arial, sans-serif" : "900 20px Arial, sans-serif";
-  ctx.fillText(count > 99 ? "99+" : String(count), 47, 18);
+  ctx.fillStyle = "#ef4444";
+  ctx.beginPath();
+  ctx.arc(47, 17, 13, 0, Math.PI * 2);
+  ctx.fill();
 
   link.href = canvas.toDataURL("image/png");
 }
@@ -228,7 +235,19 @@ export default function AdminSidebar() {
       document.title = "Vosthermos Admin";
     }
 
-    setChatFaviconBadge(unreadChat, originalFaviconHrefRef);
+    if (unreadChat <= 0) {
+      setChatFaviconBadge(0, originalFaviconHrefRef);
+      return undefined;
+    }
+
+    let showAlert = true;
+    setChatFaviconBadge(unreadChat, originalFaviconHrefRef, showAlert);
+    const interval = setInterval(() => {
+      showAlert = !showAlert;
+      setChatFaviconBadge(unreadChat, originalFaviconHrefRef, showAlert);
+    }, 700);
+
+    return () => clearInterval(interval);
   }, [unreadChat, pathname]);
 
   if (pathname === "/admin/login") return null;
