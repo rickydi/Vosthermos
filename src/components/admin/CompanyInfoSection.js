@@ -132,9 +132,9 @@ export default function CompanyInfoSection() {
         <div className="flex items-center gap-2">
           <button type="button" onClick={propagateToSite} disabled={syncing || saving}
             className="px-4 py-2.5 admin-card border admin-border admin-text rounded-lg text-sm font-medium hover:bg-white/5 disabled:opacity-50 flex items-center gap-2"
-            title="Synchronise les valeurs sur toutes les pages statiques du site + redeploie">
+            title="Enregistre ces valeurs, les synchronise sur les pages statiques du site, puis redeploie">
             {syncing ? <><i className="fas fa-spinner fa-spin"></i> Propagation...</> :
-              <><i className="fas fa-globe"></i> Propager sur le site</>}
+              <><i className="fas fa-globe"></i> Enregistrer + propager</>}
           </button>
           <button type="submit" disabled={saving}
             className="px-6 py-2.5 bg-[var(--color-red)] text-white rounded-lg text-sm font-bold disabled:opacity-50 flex items-center gap-2">
