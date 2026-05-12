@@ -42,9 +42,9 @@ const URLS_TO_CHECK = [
   "https://www.vosthermos.com/services/insertion-porte",
   "https://www.vosthermos.com/services/coupe-froid",
 
-  // Products (sample)
-  "https://www.vosthermos.com/produit/charniere-de-fenetre-a-battant",
-  "https://www.vosthermos.com/produit/roulette-avec-roulement-a-bille",
+  // Products (sample from current sitemap)
+  "https://www.vosthermos.com/produit/def3-173-30a",
+  "https://www.vosthermos.com/produit/def1-171ab",
 
   // Problems pages
   "https://www.vosthermos.com/problemes",
@@ -52,7 +52,7 @@ const URLS_TO_CHECK = [
   "https://www.vosthermos.com/realisations",
 
   // Calfeutrage + ville
-  "https://www.vosthermos.com/calfeutrage/montreal",
+  "https://www.vosthermos.com/services/calfeutrage/montreal",
 ];
 
 // ----- JWT + OAuth2 -----
