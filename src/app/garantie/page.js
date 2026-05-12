@@ -38,7 +38,7 @@ const jsonLd = {
     "@type": "LocalBusiness",
     name: "Vosthermos",
     url: "https://www.vosthermos.com",
-    telephone: "+15148258411",
+    telephone: COMPANY_INFO.phoneTel,
   },
 };
 

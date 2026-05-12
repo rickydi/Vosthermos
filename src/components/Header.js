@@ -5,9 +5,10 @@ import Image from "next/image";
 import { useCart } from "./CartContext";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { COMPANY_INFO } from "@/lib/company-info";
 
-const FALLBACK_PHONE = "514-825-8411";
-const FALLBACK_TEL = "+15148258411";
+const FALLBACK_PHONE = COMPANY_INFO.phone;
+const FALLBACK_TEL = COMPANY_INFO.phoneTel;
 
 export default function Header({ company }) {
   const phone = company?.phone || FALLBACK_PHONE;

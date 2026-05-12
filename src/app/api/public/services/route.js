@@ -1,24 +1,25 @@
 import { NextResponse } from "next/server";
 import { SERVICES } from "@/lib/services-data";
 import { CITIES } from "@/lib/cities";
-import { COMPANY_INFO } from "@/lib/company-info";
+import { getCompany } from "@/lib/company";
 
 export async function GET() {
+  const company = await getCompany();
   const data = {
     business: {
       name: "Vosthermos",
       legalName: "Vosthermos",
       description: "Experts quebecois en reparation et restauration de portes et fenetres depuis 2010. Remplacement de vitres thermos, quincaillerie, portes-patio, portes-fenetres, portes en bois, moustiquaires et plus.",
       url: "https://www.vosthermos.com",
-      telephone: "+15148258411",
-      email: COMPANY_INFO.email,
+      telephone: company.phoneTel,
+      email: company.email,
       foundingDate: "2010",
       yearsOfExperience: 15,
       address: {
-        streetAddress: COMPANY_INFO.address,
-        addressLocality: COMPANY_INFO.city,
-        addressRegion: "QC",
-        postalCode: COMPANY_INFO.postalCode,
+        streetAddress: company.address,
+        addressLocality: company.city,
+        addressRegion: company.province,
+        postalCode: company.postalCode,
         addressCountry: "CA",
       },
       openingHours: {
@@ -56,7 +57,7 @@ export async function GET() {
       cities: CITIES.map((c) => c.name),
       count: CITIES.length,
       radius_km: 100,
-      center: `${COMPANY_INFO.city}, ${COMPANY_INFO.province}`,
+      center: `${company.city}, ${company.province}`,
     },
     brands: [
       "Novatech", "Lepage Millwork", "Fenplast", "Jeld-Wen", "Kohltech",

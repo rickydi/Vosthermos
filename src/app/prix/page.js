@@ -155,7 +155,7 @@ export default function PrixPage() {
     provider: {
       "@type": "LocalBusiness",
       name: "Vosthermos",
-      telephone: "+15148258411",
+      telephone: COMPANY_INFO.phoneTel,
       email: COMPANY_INFO.email,
       url: "https://www.vosthermos.com",
       address: {

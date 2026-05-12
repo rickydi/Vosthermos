@@ -381,7 +381,7 @@ export default async function ReparationVillePage({ params }) {
     "@type": "LocalBusiness",
     "@id": "https://www.vosthermos.com/#business",
     name: "Vosthermos",
-    telephone: "+15148258411",
+    telephone: COMPANY_INFO.phoneTel,
     email: COMPANY_INFO.email,
     url: "https://www.vosthermos.com",
     image: "https://www.vosthermos.com/logo.png",

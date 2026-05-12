@@ -3,6 +3,7 @@ import path from "path";
 import fs from "fs";
 import { formatDateOnly } from "./date-only.js";
 import { getWorkOrderDocumentMeta } from "./work-order-document.js";
+import { COMPANY_INFO } from "./company-info.js";
 
 const BRAND = "#b91c1c";
 const BRAND_SOFT = "#f3c2c5";
@@ -22,13 +23,13 @@ const LAST_CAPACITY = 6;
 const SMALL_INVOICE_THRESHOLD = 8;
 
 const COMPANY_DEFAULTS = {
-  legal: "9999-9999 Quebec inc.",
-  address: "330 Chem. Saint-Francois-Xavier, local 104",
-  city: "Delson",
-  postalCode: "J5B 1Y1",
-  phone: "514-825-8411",
-  email: "info@vosthermos.com",
-  web: "vosthermos.com",
+  legal: COMPANY_INFO.legalName || "9999-9999 Quebec inc.",
+  address: COMPANY_INFO.address,
+  city: COMPANY_INFO.city,
+  postalCode: COMPANY_INFO.postalCode,
+  phone: COMPANY_INFO.phone,
+  email: COMPANY_INFO.email,
+  web: COMPANY_INFO.web,
   tps: "",
   tvq: "",
   rbq: "",

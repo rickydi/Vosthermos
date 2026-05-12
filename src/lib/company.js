@@ -8,24 +8,24 @@ export { COMPANY_INFO };
 
 // Alias for backward compat; merged with DB values by getCompany().
 export const DEFAULT_COMPANY = {
-  legalName: "Vosthermos",
+  legalName: COMPANY_INFO.legalName || "Vosthermos",
   neq: "",
   address: COMPANY_INFO.address,
-  city: "Delson",
-  province: "QC",
+  city: COMPANY_INFO.city,
+  province: COMPANY_INFO.province,
   postalCode: COMPANY_INFO.postalCode,
-  phone: "514-825-8411",
-  phoneTel: "+15148258411", // canonical format for tel: links + schema.org
-  email: "info@vosthermos.com",
-  web: "vosthermos.com",
-  url: "https://www.vosthermos.com",
+  phone: COMPANY_INFO.phone,
+  phoneTel: COMPANY_INFO.phoneTel, // canonical format for tel: links + schema.org
+  email: COMPANY_INFO.email,
+  web: COMPANY_INFO.web,
+  url: COMPANY_INFO.url,
   tpsNumber: "",
   tvqNumber: "",
   rbqNumber: COMPANY_INFO.rbqNumber,
   // Static / brand:
-  logo: "https://www.vosthermos.com/images/Vos-Thermos-Logo.png",
-  facebook: "https://www.facebook.com/profile.php?id=61562303553558",
-  instagram: "https://instagram.com/vosthermos/",
+  logo: COMPANY_INFO.logo,
+  facebook: COMPANY_INFO.facebook,
+  instagram: COMPANY_INFO.instagram,
 };
 
 const KEY_MAP = {
@@ -43,7 +43,7 @@ const KEY_MAP = {
   rbq_number: "rbqNumber",
 };
 
-// Convert a Quebec phone "514-825-8411" -> "+15148258411"
+// Convert a Quebec phone like "514-825-8411" to canonical tel/schema format.
 function toTelFormat(phone) {
   if (!phone) return DEFAULT_COMPANY.phoneTel;
   const digits = String(phone).replace(/\D/g, "");

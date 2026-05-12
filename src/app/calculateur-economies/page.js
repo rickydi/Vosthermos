@@ -99,7 +99,7 @@ export default function CalculateurEconomiesPage() {
     provider: {
       "@type": "LocalBusiness",
       name: "Vosthermos",
-      telephone: "+15148258411",
+      telephone: COMPANY_INFO.phoneTel,
       url: "https://www.vosthermos.com",
     },
   };

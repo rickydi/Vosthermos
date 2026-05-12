@@ -2,19 +2,20 @@
 
 import { formatDateOnly } from "@/lib/date-only";
 import { getWorkOrderDocumentMeta } from "@/lib/work-order-document";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 // Design A3 — Receipt Premium, validated via print emulation.
 // Takes a real WorkOrder (from /api/admin/work-orders/[id]) and renders
 // a WYSIWYG 8.5x11 invoice sheet that prints identical to screen.
 
 const COMPANY_DEFAULTS = {
-  legal: "9999-9999 Quebec inc.",
-  address: "330 Chem. Saint-François-Xavier, local 104",
-  city: "Delson",
-  postalCode: "J5B 1Y1",
-  phone: "514-825-8411",
-  email: "info@vosthermos.com",
-  web: "vosthermos.com",
+  legal: COMPANY_INFO.legalName || "9999-9999 Quebec inc.",
+  address: COMPANY_INFO.address,
+  city: COMPANY_INFO.city,
+  postalCode: COMPANY_INFO.postalCode,
+  phone: COMPANY_INFO.phone,
+  email: COMPANY_INFO.email,
+  web: COMPANY_INFO.web,
   tps: "",
   tvq: "",
   rbq: "",

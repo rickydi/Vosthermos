@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 function maskKey(value) {
   if (!value || value.length <= 8) return value ? "••••••••" : "";
@@ -23,18 +24,18 @@ const COMPANY_KEYS = [
 ];
 
 const COMPANY_DEFAULTS = {
-  company_legal_name: "",
-  company_address: "330 Chem. Saint-François-Xavier, local 104",
-  company_city: "Delson",
-  company_province: "QC",
-  company_postal_code: "J5B 1Y1",
-  company_phone: "514-825-8411",
-  company_email: "info@vosthermos.com",
-  company_web: "vosthermos.com",
+  company_legal_name: COMPANY_INFO.legalName || "",
+  company_address: COMPANY_INFO.address,
+  company_city: COMPANY_INFO.city,
+  company_province: COMPANY_INFO.province,
+  company_postal_code: COMPANY_INFO.postalCode,
+  company_phone: COMPANY_INFO.phone,
+  company_email: COMPANY_INFO.email,
+  company_web: COMPANY_INFO.web,
   company_neq: "",
   tps_number: "",
   tvq_number: "",
-  rbq_number: "5820-0684-01",
+  rbq_number: COMPANY_INFO.rbqNumber,
 };
 
 const WORK_ORDER_DEFAULTS = {

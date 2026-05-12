@@ -47,7 +47,7 @@ const jsonLd = {
     postalCode: COMPANY_INFO.postalCode,
     addressCountry: "CA",
   },
-  telephone: "+15148258411",
+  telephone: COMPANY_INFO.phoneTel,
   email: COMPANY_INFO.email,
   areaServed: {
     "@type": "GeoCircle",

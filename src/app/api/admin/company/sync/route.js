@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/admin-auth";
 import fs from "fs";
 import path from "path";
 import { spawn } from "child_process";
+import { COMPANY_INFO } from "@/lib/company-info";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ function toTelFormat(phone) {
   const digits = String(phone || "").replace(/\D/g, "");
   if (digits.length === 10) return `+1${digits}`;
   if (digits.length === 11 && digits.startsWith("1")) return `+${digits}`;
-  return phone || "+15148258411";
+  return phone || COMPANY_INFO.phoneTel;
 }
 
 function esc(v) { return String(v || "").replace(/\\/g, "\\\\").replace(/"/g, '\\"'); }
@@ -36,24 +37,72 @@ function buildFileContent(values) {
 // DO NOT EDIT BY HAND (changes will be overwritten on next sync).
 
 export const COMPANY_INFO = {
-  legalName: "${esc(v.legalName || "Vosthermos")}",
+  legalName: "${esc(v.legalName || COMPANY_INFO.legalName || "Vosthermos")}",
   neq: "${esc(v.neq || "")}",
-  address: "${esc(v.address || "330 Chem. Saint-François-Xavier, local 104")}",
-  city: "${esc(v.city || "Delson")}",
-  cityShort: "${esc((v.city || "Delson").split(",")[0].split("-de-")[0])}",
-  province: "${esc(v.province || "QC")}",
-  postalCode: "${esc(v.postalCode || "J5B 1Y1")}",
-  phone: "${esc(v.phone || "514-825-8411")}",
+  address: "${esc(v.address || COMPANY_INFO.address)}",
+  city: "${esc(v.city || COMPANY_INFO.city)}",
+  cityShort: "${esc((v.city || COMPANY_INFO.city).split(",")[0].split("-de-")[0])}",
+  province: "${esc(v.province || COMPANY_INFO.province)}",
+  postalCode: "${esc(v.postalCode || COMPANY_INFO.postalCode)}",
+  phone: "${esc(v.phone || COMPANY_INFO.phone)}",
   phoneTel: "${esc(toTelFormat(v.phone))}",
-  email: "${esc(v.email || "info@vosthermos.com")}",
-  web: "${esc(v.web || "vosthermos.com")}",
-  url: "https://www.${esc(v.web || "vosthermos.com")}",
-  rbqNumber: "${esc(v.rbqNumber || "5820-0684-01")}",
+  email: "${esc(v.email || COMPANY_INFO.email)}",
+  web: "${esc(v.web || COMPANY_INFO.web)}",
+  url: "https://www.${esc(v.web || COMPANY_INFO.web)}",
+  rbqNumber: "${esc(v.rbqNumber || COMPANY_INFO.rbqNumber)}",
   facebook: "https://www.facebook.com/profile.php?id=61562303553558",
   instagram: "https://instagram.com/vosthermos/",
   logo: "https://www.vosthermos.com/images/Vos-Thermos-Logo.png",
 };
 `;
+}
+
+function updatePublicAiFiles(values) {
+  const phone = values.phone || COMPANY_INFO.phone;
+  const files = [
+    path.join(process.cwd(), "public", "llms.txt"),
+    path.join(process.cwd(), "public", "llms-full.txt"),
+  ];
+
+  for (const file of files) {
+    if (!fs.existsSync(file)) continue;
+    let text = fs.readFileSync(file, "utf8");
+    text = text.replace(/^- Phone: .*$/gm, `- Phone: ${phone}`);
+    text = text.replace(/\bCall [0-9][0-9().\-\s]+ or fill/g, `Call ${phone} or fill`);
+    fs.writeFileSync(file, text, "utf8");
+  }
+}
+
+async function updateStoredPhoneReferences(values) {
+  const phone = values.phone || COMPANY_INFO.phone;
+  const oldPhones = [...new Set([COMPANY_INFO.phone, "514-825-8411"].filter(Boolean).filter((p) => p !== phone))];
+  let updated = 0;
+
+  for (const oldPhone of oldPhones) {
+    updated += await prisma.$executeRawUnsafe(
+      `UPDATE blog_posts
+       SET content = REPLACE(content, $1, $2),
+           excerpt = REPLACE(excerpt, $1, $2)
+       WHERE content LIKE '%' || $1 || '%' OR excerpt LIKE '%' || $1 || '%'`,
+      oldPhone,
+      phone,
+    );
+    updated += await prisma.$executeRawUnsafe(
+      `UPDATE products
+       SET description = REPLACE(description, $1, $2),
+           "descriptionEn" = REPLACE("descriptionEn", $1, $2),
+           "detailedDescription" = REPLACE("detailedDescription", $1, $2),
+           "detailedDescriptionEn" = REPLACE("detailedDescriptionEn", $1, $2)
+       WHERE description LIKE '%' || $1 || '%'
+          OR "descriptionEn" LIKE '%' || $1 || '%'
+          OR "detailedDescription" LIKE '%' || $1 || '%'
+          OR "detailedDescriptionEn" LIKE '%' || $1 || '%'`,
+      oldPhone,
+      phone,
+    );
+  }
+
+  return updated;
 }
 
 async function runCommand(cmd, args, opts = {}) {
@@ -86,10 +135,12 @@ export async function POST() {
     // 3. Write to src/lib/company-info.js
     const filePath = path.join(process.cwd(), "src", "lib", "company-info.js");
     fs.writeFileSync(filePath, content, "utf8");
+    updatePublicAiFiles(values);
+    const storedTextUpdated = await updateStoredPhoneReferences(values);
 
     // 4. Git commit + push (best-effort, don't block response)
     const gitSteps = [];
-    const add = await runCommand("git", ["add", "src/lib/company-info.js"]);
+    const add = await runCommand("git", ["add", "src/lib/company-info.js", "public/llms.txt", "public/llms-full.txt"]);
     gitSteps.push({ step: "add", code: add.code });
 
     if (add.code === 0) {
@@ -122,6 +173,7 @@ export async function POST() {
       values,
       gitSteps,
       rebuildTriggered,
+      storedTextUpdated,
       message: rebuildTriggered
         ? "Synchronisation lancee. Le site sera reconstruit dans ~2 minutes."
         : "Fichier mis a jour mais rebuild n'a pas pu etre declenche. Redeployez manuellement.",

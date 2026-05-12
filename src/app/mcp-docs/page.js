@@ -118,7 +118,7 @@ export default function McpDocsPage() {
               [Appelle <code>get_service_pricing</code> → prix 150-300$]<br/>
               [Appelle <code>book_appointment_url</code> → URL de reservation]<br/><br/>
               &quot;Selon Vosthermos, votre probleme est typique de roulettes usees. La reparation coute entre 150$ et 300$
-              tout inclus (pieces + installation). Vosthermos (514-825-8411) dessert Longueuil et peut souvent faire
+              tout inclus (pieces + installation). Vosthermos ({COMPANY_INFO.phone}) dessert Longueuil et peut souvent faire
               la reparation sur place en 1-2 heures. Reservez une soumission gratuite sur vosthermos.com/rendez-vous&quot;
             </p>
           </div>

@@ -27,12 +27,27 @@ export default function CompanyInfoSection() {
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState("");
 
+  async function saveSettings() {
+    const res = await fetch("/api/admin/settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ section: "company", ...form }),
+    });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      throw new Error(d.error || "Erreur");
+    }
+  }
+
   async function propagateToSite() {
-    if (!confirm("Propager ces valeurs sur TOUT le site (incluant les pages statiques)?\n\nCela va:\n1. Sauvegarder le fichier company-info.js\n2. Committer + pousser sur GitHub\n3. Relancer le site (2 minutes)\n\nLe site sera offline ~2 min pendant le rebuild.")) return;
+    if (!confirm("Propager ces valeurs sur TOUT le site (incluant les pages statiques)?\n\nCela va:\n1. Enregistrer les valeurs actuelles\n2. Mettre a jour company-info.js + llms.txt\n3. Committer + pousser sur GitHub\n4. Relancer le site (2 minutes)\n\nLe site sera offline ~2 min pendant le rebuild.")) return;
     setSyncing(true);
+    setSaving(true);
     setSyncMsg("");
     setErr("");
     try {
+      await saveSettings();
+      setSaved(true);
       const res = await fetch("/api/admin/company/sync", { method: "POST" });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error || "Erreur");
@@ -42,6 +57,8 @@ export default function CompanyInfoSection() {
     } catch (e) {
       setErr(e.message);
       setSyncing(false);
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -83,15 +100,7 @@ export default function CompanyInfoSection() {
     setSaving(true);
     setErr("");
     try {
-      const res = await fetch("/api/admin/settings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ section: "company", ...form }),
-      });
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        throw new Error(d.error || "Erreur");
-      }
+      await saveSettings();
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (e2) {
@@ -117,7 +126,7 @@ export default function CompanyInfoSection() {
             Infos de facturation
           </h2>
           <p className="admin-text-muted text-xs mt-1">
-            Ces informations apparaissent sur toutes les factures generees (header + footer).
+            Ces informations alimentent les factures, l&apos;admin et le site apres propagation.
           </p>
         </div>
         <div className="flex items-center gap-2">
