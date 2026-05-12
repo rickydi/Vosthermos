@@ -40,6 +40,7 @@ const nextConfig = {
       // ── Anciennes URLs (pre-refonte Next.js) — 301 pour recuperer le SEO ──
       { source: "/secteurs/:ville", destination: "/reparation-portes-et-fenetres/:ville", permanent: true },
       { source: "/secteurs", destination: "/services", permanent: true },
+      { source: "/calfeutrage/montreal", destination: "/services/calfeutrage/montreal", permanent: true },
 
       // Anciennes URLs villes avec extension .html (vieille structure)
       { source: "/villes/:ville.html", destination: "/reparation-portes-et-fenetres/:ville", permanent: true },

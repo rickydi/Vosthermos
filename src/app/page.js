@@ -6,9 +6,9 @@ import { COMPANY_INFO } from "@/lib/company-info";
 import "./preview-accueil/preview-accueil.css";
 
 export const metadata = {
-  title: "Vosthermos Montreal | Reparation portes et fenetres des 150$",
+  title: "Vosthermos | Reparation portes et fenetres des 150$",
   description:
-    `Thermos embue? Porte qui bloque? Vosthermos remplace vos vitres thermos des 150$ avec garantie 10 ans. 15 ans d'experience, soumission gratuite 24h, Rive-Sud, Montreal, Laval. ${COMPANY_INFO.phone}`,
+    `Thermos embue? Porte qui bloque? Vosthermos remplace vos vitres thermos des 150$ avec garantie 10 ans. 15 ans d'experience, soumission gratuite 24h, Grand Montreal, Rive-Sud et Laval. ${COMPANY_INFO.phone}`,
   keywords:
     "reparation portes fenetres, vitre thermos, remplacement thermos, remplacement quincaillerie, moustiquaire sur mesure, porte-patio, porte en bois, calfeutrage fenetres, desembuage, coupe-froid, insertion porte, boutique pieces portes fenetres, quincaillerie porte fenetre en ligne, Delson, Montreal, Rive-Sud, Laval, Longueuil, Brossard, Granby, Saint-Hyacinthe, Terrebonne, Repentigny",
   robots: "index, follow",
@@ -24,15 +24,15 @@ export const metadata = {
     type: "website",
     siteName: "Vosthermos",
     url: "https://www.vosthermos.com/",
-    title: "Vosthermos Montreal | Reparation portes et fenetres",
+    title: "Vosthermos | Reparation portes et fenetres",
     description:
-      `Thermos embue? Vosthermos remplace vos vitres thermos des 150$. Garantie 10 ans, soumission gratuite 24h. Montreal, Rive-Sud, Laval. ${COMPANY_INFO.phone}`,
+      `Thermos embue? Vosthermos remplace vos vitres thermos des 150$. Garantie 10 ans, soumission gratuite 24h. Grand Montreal, Rive-Sud, Laval. ${COMPANY_INFO.phone}`,
     images: [{ url: COMPANY_INFO.logo }],
     locale: "fr_CA",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Vosthermos Montreal - Reparation portes et fenetres",
+    title: "Vosthermos - Reparation portes et fenetres",
     description: `Experts en remplacement de thermos depuis 2010. Soumission gratuite 24h. ${COMPANY_INFO.phone}`,
     images: [COMPANY_INFO.logo],
   },
