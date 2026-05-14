@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { headers } from "next/headers";
 import {
   calculateThermosReplacement,
   calculateEnergySavings,
@@ -43,6 +44,11 @@ const SERVER_INFO = {
 };
 
 const PROTOCOL_VERSION = "2025-06-18";
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS, DELETE",
+  "Access-Control-Allow-Headers": "Content-Type, Accept, MCP-Protocol-Version, Mcp-Session-Id",
+};
 
 // ── Tool definitions (schemas are JSON Schema) ──
 const TOOLS = [
@@ -485,30 +491,42 @@ export async function POST(req) {
   if (Array.isArray(body)) {
     const responses = await Promise.all(body.map(handleJsonRpc));
     const filtered = responses.filter((r) => r !== null);
+    if (filtered.length === 0) {
+      return new NextResponse(null, { status: 202, headers: CORS_HEADERS });
+    }
     return NextResponse.json(filtered, {
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Mcp-Session-Id": crypto.randomUUID(),
-      },
+      headers: CORS_HEADERS,
     });
   }
 
   const response = await handleJsonRpc(body);
   if (response === null) {
-    return new NextResponse(null, { status: 204 });
+    return new NextResponse(null, { status: 202, headers: CORS_HEADERS });
   }
 
   return NextResponse.json(response, {
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Headers": "Content-Type, Mcp-Session-Id",
-      "Mcp-Session-Id": crypto.randomUUID(),
-    },
+    headers: CORS_HEADERS,
   });
 }
 
 // GET returns server info + manifest for easy discovery
 export async function GET() {
+  const hdrs = await headers();
+  const accept = hdrs.get("accept") || "";
+
+  // MCP Streamable HTTP clients may use GET only to open an SSE stream.
+  // This server is stateless and does not offer server-to-client streaming,
+  // so strict clients should receive 405 instead of a JSON discovery document.
+  if (accept.includes("text/event-stream")) {
+    return new NextResponse(null, {
+      status: 405,
+      headers: {
+        ...CORS_HEADERS,
+        Allow: "POST, OPTIONS",
+      },
+    });
+  }
+
   return NextResponse.json(
     {
       ...SERVER_INFO,
@@ -537,7 +555,7 @@ export async function GET() {
     },
     {
       headers: {
-        "Access-Control-Allow-Origin": "*",
+        ...CORS_HEADERS,
         "Cache-Control": "public, max-age=3600",
       },
     }
@@ -547,11 +565,16 @@ export async function GET() {
 export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
+    headers: CORS_HEADERS,
+  });
+}
+
+export async function DELETE() {
+  return new NextResponse(null, {
+    status: 405,
     headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Mcp-Session-Id, Accept",
-      "Access-Control-Expose-Headers": "Mcp-Session-Id",
+      ...CORS_HEADERS,
+      Allow: "GET, POST, OPTIONS",
     },
   });
 }
