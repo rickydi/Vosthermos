@@ -211,6 +211,7 @@ function NouveauBonAdmin() {
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
   const invoiceMode = searchParams.get("mode") === "invoice";
+  const quoteMode = searchParams.get("mode") === "quote";
   const freshDraft = searchParams.get("fresh") === "1";
   const resumeDraft = searchParams.get("draft") === "1";
   const [saving, setSaving] = useState(false);
@@ -780,7 +781,7 @@ function NouveauBonAdmin() {
   async function handleSubmit(e) {
     e.preventDefault();
     if (!selectedClient) { setError("Client requis"); return; }
-    const submitAction = e.nativeEvent?.submitter?.value || "save";
+    const submitAction = e.nativeEvent?.submitter?.value || (invoiceMode ? "invoice" : quoteMode ? "quote" : "save");
     const normalizedArrival = normalizeTimeInput(heureArrivee);
     const normalizedDeparture = normalizeTimeInput(heureDepart);
     if (heureArrivee && !normalizedArrival) { setError("Heure d'arrivee invalide"); return; }
@@ -875,18 +876,39 @@ function NouveauBonAdmin() {
   const sectionPieceCount = sections.reduce((sum, sec) => sum + sec.items.filter((it) => it.itemType !== "discount").length, 0);
   const discountCount = items.filter((it) => it.itemType === "discount").length;
   const pieceCount = flatPieceCount + sectionPieceCount;
-  const currentModeLabel = invoiceMode ? "Facturation" : editId ? "Modification" : "Creation";
+  const isDirectInvoiceMode = invoiceMode && !editId;
+  const isDirectQuoteMode = quoteMode && !editId;
+  const currentModeLabel = invoiceMode
+    ? (isDirectInvoiceMode ? "Facture directe" : "Facturation")
+    : quoteMode
+      ? "Soumission"
+      : editId
+        ? "Modification"
+        : "Creation";
+  const pageTitle = invoiceMode
+    ? (isDirectInvoiceMode ? "Nouvelle facture" : "Facturer le bon de travail")
+    : quoteMode
+      ? (editId ? "Modifier la soumission" : "Nouvelle soumission")
+      : (editId ? "Modifier le bon de travail" : "Nouveau bon de travail");
+  const dateLabel = invoiceMode ? "Date de facture" : quoteMode ? "Date de soumission" : "Date prevue";
+  const descriptionLabel = invoiceMode
+    ? "Description des travaux / frais"
+    : quoteMode
+      ? "Description du projet"
+      : "Description du travail";
+  const summaryTitle = invoiceMode ? "Resume de la facture" : quoteMode ? "Resume de la soumission" : "Resume du bon";
+  const totalTitle = invoiceMode ? "Total de la facture" : quoteMode ? "Total de la soumission" : "Total a facturer";
 
   return (
     <div className="px-4 py-5 lg:px-8 lg:py-6">
       <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <Link href="/admin/bons" className="admin-text-muted text-sm hover:admin-text">
-            <i className="fas fa-arrow-left mr-2"></i>Retour aux bons
+            <i className="fas fa-arrow-left mr-2"></i>Retour aux documents
           </Link>
           <div className="mt-2 flex flex-wrap items-center gap-3">
             <h1 className="admin-text text-2xl font-bold">
-              {invoiceMode ? "Facturer le bon de travail" : (editId ? "Modifier le bon de travail" : "Nouveau bon de travail")}
+              {pageTitle}
             </h1>
             <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-bold text-cyan-600">
               {currentModeLabel}
@@ -900,14 +922,22 @@ function NouveauBonAdmin() {
         </div>
       </div>
 
-      {invoiceMode && (
-        <div className="mb-5 max-w-[1500px] rounded-lg border border-orange-500/40 bg-orange-500/10 p-4">
+      {(invoiceMode || quoteMode) && (
+        <div className={`mb-5 max-w-[1500px] rounded-lg border p-4 ${
+          invoiceMode ? "border-orange-500/40 bg-orange-500/10" : "border-sky-500/40 bg-sky-500/10"
+        }`}>
           <div className="flex items-start gap-3">
-            <i className="fas fa-file-invoice-dollar text-orange-500 text-xl mt-0.5"></i>
+            <i className={`fas ${invoiceMode ? "fa-file-invoice-dollar text-orange-500" : "fa-file-signature text-sky-500"} text-xl mt-0.5`}></i>
             <div className="flex-1">
-              <h3 className="font-bold text-orange-500 mb-1">Mode facturation</h3>
+              <h3 className={`font-bold mb-1 ${invoiceMode ? "text-orange-500" : "text-sky-500"}`}>
+                {invoiceMode ? (isDirectInvoiceMode ? "Facture directe" : "Mode facturation") : "Mode soumission"}
+              </h3>
               <p className="text-sm admin-text-muted">
-                Ajoutez les heures et les pieces, puis utilisez le panneau de droite pour facturer ou enregistrer sans facturer.
+                {invoiceMode
+                  ? (isDirectInvoiceMode
+                      ? "Choisissez un client normal ou gestionnaire, ajoutez les lignes, puis creez la facture sans passer par un bon de travail."
+                      : "Ajoutez les heures et les pieces, puis utilisez le panneau de droite pour facturer ou enregistrer sans facturer.")
+                  : "Choisissez le client, ajoutez les lignes, puis creez la soumission. Elle pourra etre acceptee et planifiee ensuite au besoin."}
               </p>
             </div>
           </div>
@@ -1039,7 +1069,7 @@ function NouveauBonAdmin() {
           <h2 className="admin-text font-bold">Details</h2>
           <div className="grid md:grid-cols-3 gap-4">
             <div>
-              <label className="admin-text-muted text-xs mb-1 block">Date</label>
+              <label className="admin-text-muted text-xs mb-1 block">{dateLabel}</label>
               <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
                 className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
             </div>
@@ -1090,7 +1120,7 @@ function NouveauBonAdmin() {
               className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full mt-3 md:w-48" />
           </div>
           <div>
-            <label className="admin-text-muted text-xs mb-1 block">Description du travail</label>
+            <label className="admin-text-muted text-xs mb-1 block">{descriptionLabel}</label>
             <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2}
               className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
           </div>
@@ -1430,7 +1460,7 @@ function NouveauBonAdmin() {
           </div>
 
           <p className="admin-text-muted border-t admin-border pt-3 text-xs">
-            Le taux inscrit ici est conserve sur ce bon. Les changements dans Parametres ne modifient pas les anciens bons.
+            Le taux inscrit ici est conserve sur ce document. Les changements dans Parametres ne modifient pas les anciens documents.
           </p>
         </div>
 
@@ -1440,9 +1470,9 @@ function NouveauBonAdmin() {
         <aside className="admin-card border rounded-xl p-5 xl:sticky xl:top-5 xl:self-start">
           <div className="space-y-5">
             <div>
-              <p className="admin-text-muted text-[11px] font-bold uppercase tracking-wider">Resume du bon</p>
+              <p className="admin-text-muted text-[11px] font-bold uppercase tracking-wider">{summaryTitle}</p>
               <div className="mt-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 p-4">
-                <p className="text-xs font-bold uppercase tracking-wider text-cyan-700">Total a facturer</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-cyan-700">{totalTitle}</p>
                 <p className="mt-1 text-3xl font-black text-cyan-700">{total.toFixed(2)}$</p>
                 <p className="admin-text-muted mt-1 text-xs">
                   {pieceCount} piece{pieceCount !== 1 ? "s" : ""} | {formatLaborHours(laborHours)} main d&apos;oeuvre
@@ -1474,6 +1504,19 @@ function NouveauBonAdmin() {
             </div>
 
             <div className="space-y-4 border-t admin-border pt-4">
+            {(isDirectInvoiceMode || isDirectQuoteMode) ? (
+              <div>
+                <p className="admin-text-muted text-xs mb-1 block">Statut</p>
+                <div className="rounded-lg border admin-border px-3 py-2.5">
+                  <p className="admin-text text-sm font-bold">
+                    {isDirectInvoiceMode ? "Facture a recevoir" : "Soumission"}
+                  </p>
+                  <p className="admin-text-muted text-[10px] mt-1">
+                    Le statut sera applique automatiquement a la creation.
+                  </p>
+                </div>
+              </div>
+            ) : (
             <div>
               <label className="admin-text-muted text-xs mb-1 block">Statut</label>
               <select value={followUpStatus} onChange={(e) => setFollowUpStatus(e.target.value)}
@@ -1484,17 +1527,20 @@ function NouveauBonAdmin() {
               </select>
               <p className="admin-text-muted text-[10px] mt-1">Même statut que dans Suivi clients.</p>
             </div>
+            )}
             {error && <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-600">{error}</p>}
             {invoiceMode ? (
               <div className="flex flex-col gap-2">
-                <button
-                  type="submit"
-                  value="save"
-                  disabled={saving || !selectedClient}
-                  className="w-full rounded-lg border admin-border px-5 py-3 text-sm font-medium admin-text hover:bg-white/5 disabled:opacity-50"
-                >
-                  {saving && savingAction === "save" ? "Enregistrement..." : "Enregistrer (sans facturer)"}
-                </button>
+                {editId && (
+                  <button
+                    type="submit"
+                    value="save"
+                    disabled={saving || !selectedClient}
+                    className="w-full rounded-lg border admin-border px-5 py-3 text-sm font-medium admin-text hover:bg-white/5 disabled:opacity-50"
+                  >
+                    {saving && savingAction === "save" ? "Enregistrement..." : "Enregistrer (sans facturer)"}
+                  </button>
+                )}
                 <button
                   type="submit"
                   value="invoice"
@@ -1502,7 +1548,19 @@ function NouveauBonAdmin() {
                   className="w-full rounded-lg bg-orange-600 px-6 py-3 text-sm font-bold text-white hover:bg-orange-700 disabled:opacity-50"
                 >
                   <i className="fas fa-file-invoice-dollar mr-2"></i>
-                  {saving && savingAction === "invoice" ? "Facturation..." : "Facturer ce bon"}
+                  {saving && savingAction === "invoice" ? "Facturation..." : (isDirectInvoiceMode ? "Creer la facture" : "Facturer ce bon")}
+                </button>
+              </div>
+            ) : quoteMode ? (
+              <div className="flex flex-col gap-2">
+                <button
+                  type="submit"
+                  value="quote"
+                  disabled={saving || !selectedClient}
+                  className="w-full rounded-lg border border-sky-500/40 px-5 py-3 text-sm font-bold text-sky-600 hover:bg-sky-500/10 disabled:opacity-50"
+                >
+                  <i className="fas fa-file-signature mr-2"></i>
+                  {saving && savingAction === "quote" ? "Creation..." : (editId ? "Enregistrer comme soumission" : "Creer la soumission")}
                 </button>
               </div>
             ) : (
