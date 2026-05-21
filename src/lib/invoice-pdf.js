@@ -38,10 +38,11 @@ const TOTALS_FOOTER_H = 88;
 const FOOTER_GAP = 8;
 const CONTENT_BOTTOM = PAGE_H - 3 - COMPANY_FOOTER_H - TOTALS_FOOTER_H - FOOTER_GAP;
 
-const COL_NUM = 28;
-const COL_UNIT = 58;
-const COL_QTY = 42;
-const COL_AMT = 82;
+const BODY_FONT_SIZE = 12;
+const COL_NUM = 34;
+const COL_UNIT = 68;
+const COL_QTY = 48;
+const COL_AMT = 98;
 const COL_DESC = CONTENT_W - COL_NUM - COL_UNIT - COL_QTY - COL_AMT;
 
 function textHeight(doc, text, width, size = 9, font = "Helvetica") {
@@ -110,7 +111,7 @@ function drawCompactHeader(doc, wo, meta, documentNumber, pageNum) {
 }
 
 function drawInfoBox(doc, wo, meta, documentNumber, y) {
-  const h = 98;
+  const h = 156;
   const colW = CONTENT_W / 2;
   const date = getDocumentDate(wo);
   const targetDate = getDocumentTargetDate(wo, meta.type);
@@ -122,9 +123,9 @@ function drawInfoBox(doc, wo, meta, documentNumber, y) {
   const rightX = LEFT_M + colW + 10;
   const lineW = colW - 20;
 
-  doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(9).text("CLIENT", leftX, y + 10, { width: lineW });
-  doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(9).text(wo.client?.name || "-", leftX, y + 28, { width: lineW });
-  let cy = y + 42;
+  doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE).text("CLIENT", leftX, y + 12, { width: lineW });
+  doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE).text(wo.client?.name || "-", leftX, y + 34, { width: lineW });
+  let cy = y + 54;
   const clientLines = [
     wo.client?.company,
     wo.client?.address,
@@ -132,14 +133,14 @@ function drawInfoBox(doc, wo, meta, documentNumber, y) {
     wo.client?.phone ? `Tel. : ${wo.client.phone}` : null,
     wo.client?.email,
   ].filter(Boolean);
-  doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(9);
+  doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(BODY_FONT_SIZE);
   for (const line of clientLines) {
     doc.text(line, leftX, cy, { width: lineW });
-    cy += 12;
+    cy += 16;
   }
 
-  doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(9).text("DETAILS", rightX, y + 10, { width: lineW });
-  let dy = y + 28;
+  doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE).text("DETAILS", rightX, y + 12, { width: lineW });
+  let dy = y + 36;
   const details = [
     ["Date", formatDateFr(date)],
     targetDate ? [meta.dateTargetLabel, meta.type === "invoice" ? `${formatDateFr(targetDate)} (Net ${getPaymentTermsDays(wo)} j.)` : formatDateFr(targetDate)] : null,
@@ -148,18 +149,23 @@ function drawInfoBox(doc, wo, meta, documentNumber, y) {
     [meta.numberLabel, documentNumber],
   ].filter(Boolean);
 
+  const labelW = 116;
+  const valueGap = 6;
+  const valueX = rightX + labelW + valueGap;
+  const valueW = lineW - labelW - valueGap;
   for (const [label, value] of details) {
-    doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(8.5).text(`${label} :`, rightX, dy, { width: 96 });
-    doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(8.5).text(String(value || "-"), rightX + 98, dy, { width: lineW - 98 });
-    dy += label === "Adresse des travaux" ? 20 : 12;
+    const rowH = Math.max(18, textHeight(doc, value || "-", valueW, BODY_FONT_SIZE, "Helvetica") + 3);
+    doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE).text(`${label} :`, rightX, dy, { width: labelW });
+    doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(BODY_FONT_SIZE).text(String(value || "-"), valueX, dy, { width: valueW, lineGap: 1.5 });
+    dy += rowH;
   }
 
   return y + h + 16;
 }
 
 function drawSectionHeading(doc, label, y) {
-  doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(11).text(label, LEFT_M, y, { width: CONTENT_W });
-  return y + 18;
+  doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE).text(label, LEFT_M, y, { width: CONTENT_W });
+  return y + 20;
 }
 
 function ensureSpace(doc, y, needed, onNewPage) {
@@ -171,21 +177,21 @@ function ensureSpace(doc, y, needed, onNewPage) {
 function drawDescription(doc, wo, meta, y, onNewPage) {
   y = drawSectionHeading(doc, meta.descriptionHeading, y);
   const description = wo.description || "Travaux de reparation et remplacement de fenetres selon les elements detailles ci-dessous.";
-  const h = textHeight(doc, description, CONTENT_W, 9, "Helvetica");
+  const h = textHeight(doc, description, CONTENT_W, BODY_FONT_SIZE, "Helvetica");
   y = ensureSpace(doc, y, h + 12, onNewPage);
-  doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(9).text(description, LEFT_M, y, { width: CONTENT_W, lineGap: 1.5 });
-  return y + h + 16;
+  doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(BODY_FONT_SIZE).text(description, LEFT_M, y, { width: CONTENT_W, lineGap: 1.5 });
+  return y + h + 18;
 }
 
 function drawTableHeader(doc, y) {
-  doc.rect(LEFT_M, y, CONTENT_W, 22).fill(ACCENT);
-  doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(8);
-  doc.text("#", LEFT_M, y + 7, { width: COL_NUM, align: "center" });
-  doc.text("Description", LEFT_M + COL_NUM + 6, y + 7, { width: COL_DESC - 12 });
-  doc.text("Unite", LEFT_M + COL_NUM + COL_DESC, y + 7, { width: COL_UNIT, align: "center" });
-  doc.text("Qte", LEFT_M + COL_NUM + COL_DESC + COL_UNIT, y + 7, { width: COL_QTY, align: "center" });
-  doc.text("Montant", LEFT_M + COL_NUM + COL_DESC + COL_UNIT + COL_QTY, y + 7, { width: COL_AMT - 6, align: "right" });
-  return y + 22;
+  doc.rect(LEFT_M, y, CONTENT_W, 30).fill(ACCENT);
+  doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE);
+  doc.text("#", LEFT_M, y + 8, { width: COL_NUM, align: "center" });
+  doc.text("Description", LEFT_M + COL_NUM + 6, y + 8, { width: COL_DESC - 12 });
+  doc.text("Unite", LEFT_M + COL_NUM + COL_DESC, y + 8, { width: COL_UNIT, align: "center" });
+  doc.text("Qte", LEFT_M + COL_NUM + COL_DESC + COL_UNIT, y + 8, { width: COL_QTY, align: "center" });
+  doc.text("Montant", LEFT_M + COL_NUM + COL_DESC + COL_UNIT + COL_QTY, y + 8, { width: COL_AMT - 6, align: "right" });
+  return y + 30;
 }
 
 function drawTable(doc, wo, meta, documentNumber, y) {
@@ -202,32 +208,32 @@ function drawTable(doc, wo, meta, documentNumber, y) {
   let itemIndex = 1;
   for (const row of documentRows(wo)) {
     if (row.type === "section") {
-      y = ensureSpace(doc, y, 22, onNewPage);
-      doc.rect(LEFT_M, y, CONTENT_W, 22).fill(ACCENT_LIGHT);
-      doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(9)
-        .text(row.label || "TRAVAUX", LEFT_M + COL_NUM + 6, y + 6, { width: CONTENT_W - COL_NUM - 12 });
-      doc.moveTo(LEFT_M, y + 22).lineTo(LEFT_M + CONTENT_W, y + 22).strokeColor(MID_GRAY).lineWidth(0.3).stroke();
-      y += 22;
+      y = ensureSpace(doc, y, 30, onNewPage);
+      doc.rect(LEFT_M, y, CONTENT_W, 30).fill(ACCENT_LIGHT);
+      doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE)
+        .text(row.label || "TRAVAUX", LEFT_M + COL_NUM + 6, y + 8, { width: CONTENT_W - COL_NUM - 12 });
+      doc.moveTo(LEFT_M, y + 30).lineTo(LEFT_M + CONTENT_W, y + 30).strokeColor(MID_GRAY).lineWidth(0.3).stroke();
+      y += 30;
       continue;
     }
 
     const descX = LEFT_M + COL_NUM + 6;
     const descW = COL_DESC - 12;
-    const descH = textHeight(doc, row.description, descW, 8, "Helvetica");
-    const rowH = Math.max(28, descH + 12);
+    const descH = textHeight(doc, row.description, descW, BODY_FONT_SIZE, "Helvetica");
+    const rowH = Math.max(40, descH + 18);
     y = ensureSpace(doc, y, rowH, onNewPage);
 
     doc.rect(LEFT_M, y, CONTENT_W, rowH).fill(WHITE);
-    doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(8)
-      .text(String(itemIndex++), LEFT_M, y + 7, { width: COL_NUM, align: "center" });
-    doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(8)
-      .text(row.description, descX, y + 7, { width: descW, lineGap: 1.2 });
-    doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(8)
-      .text(row.unit || "Unite", LEFT_M + COL_NUM + COL_DESC, y + 7, { width: COL_UNIT, align: "center" });
-    doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(8)
-      .text(formatQuantity(row.qty), LEFT_M + COL_NUM + COL_DESC + COL_UNIT, y + 7, { width: COL_QTY, align: "center" });
-    doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(8)
-      .text(formatMoneyCad(row.amount), LEFT_M + COL_NUM + COL_DESC + COL_UNIT + COL_QTY, y + 7, { width: COL_AMT - 6, align: "right" });
+    doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE)
+      .text(String(itemIndex++), LEFT_M, y + 9, { width: COL_NUM, align: "center" });
+    doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(BODY_FONT_SIZE)
+      .text(row.description, descX, y + 9, { width: descW, lineGap: 1.5 });
+    doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(BODY_FONT_SIZE)
+      .text(row.unit || "Unite", LEFT_M + COL_NUM + COL_DESC, y + 9, { width: COL_UNIT, align: "center" });
+    doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(BODY_FONT_SIZE)
+      .text(formatQuantity(row.qty), LEFT_M + COL_NUM + COL_DESC + COL_UNIT, y + 9, { width: COL_QTY, align: "center" });
+    doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE)
+      .text(formatMoneyCad(row.amount), LEFT_M + COL_NUM + COL_DESC + COL_UNIT + COL_QTY, y + 9, { width: COL_AMT - 6, align: "right" });
     doc.moveTo(LEFT_M, y + rowH).lineTo(LEFT_M + CONTENT_W, y + rowH).strokeColor(MID_GRAY).lineWidth(0.3).stroke();
     y += rowH;
   }

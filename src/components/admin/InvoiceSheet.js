@@ -26,9 +26,9 @@ const TEXT_DARK = "#2c3e50";
 const TEXT_MED = "#555555";
 
 function paginateRows(rows, meta) {
-  const firstPageLimit = meta.type === "invoice" ? 7 : 6;
-  const middlePageLimit = meta.type === "invoice" ? 9 : 8;
-  const lastPageLimit = meta.type === "invoice" ? 9 : 5;
+  const firstPageLimit = 4;
+  const middlePageLimit = 5;
+  const lastPageLimit = meta.type === "invoice" ? 5 : 3;
   if (rows.length <= firstPageLimit) return [{ rows, isFirst: true, isLast: true, index: 0, pageStartIndex: 0 }];
   const rawPages = [];
   const queue = [...rows];
@@ -201,10 +201,10 @@ function InfoBox({ wo, meta, documentNumber }) {
 
   return (
     <section style={{ display: "grid", gridTemplateColumns: "1fr 1fr", background: LIGHT_GRAY, border: `1px solid ${MID_GRAY}`, marginBottom: 16 }}>
-      <div style={{ padding: "8px 10px", borderRight: `1px solid ${MID_GRAY}` }}>
+      <div style={{ padding: "10px 12px", borderRight: `1px solid ${MID_GRAY}` }}>
         <SectionKicker>CLIENT</SectionKicker>
-        <p style={{ margin: "4px 0 3px", fontSize: 9, fontWeight: 700 }}>{wo.client?.name || "-"}</p>
-        <p style={{ margin: 0, fontSize: 9, lineHeight: "12px" }}>
+        <p style={{ margin: "6px 0 4px", fontSize: 12, lineHeight: "16px", fontWeight: 700 }}>{wo.client?.name || "-"}</p>
+        <p style={{ margin: 0, fontSize: 12, lineHeight: "16px" }}>
           {wo.client?.company && <>{wo.client.company}<br /></>}
           {wo.client?.address && <>{wo.client.address}<br /></>}
           {getClientCityLine(wo.client) && <>{getClientCityLine(wo.client)}<br /></>}
@@ -212,7 +212,7 @@ function InfoBox({ wo, meta, documentNumber }) {
           {wo.client?.email}
         </p>
       </div>
-      <div style={{ padding: "8px 10px" }}>
+      <div style={{ padding: "10px 12px" }}>
         <SectionKicker>DETAILS</SectionKicker>
         <DetailRow label="Date" value={formatDateFr(date)} />
         {targetValue && <DetailRow label={meta.dateTargetLabel} value={targetValue} />}
@@ -229,7 +229,7 @@ function Description({ wo, meta }) {
   return (
     <section style={{ marginBottom: 12 }}>
       <DocHeading>{meta.descriptionHeading}</DocHeading>
-      <p style={{ margin: "4px 0 0", fontSize: 9, lineHeight: "12px", color: TEXT_DARK }}>{text}</p>
+      <p style={{ margin: "5px 0 0", fontSize: 12, lineHeight: "16px", color: TEXT_DARK }}>{text}</p>
     </section>
   );
 }
@@ -239,14 +239,14 @@ function WorkTable({ rows, pageStartIndex }) {
   return (
     <section style={{ marginTop: 2 }}>
       <DocHeading>DETAIL DES TRAVAUX</DocHeading>
-      <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 4, fontSize: 8 }}>
+      <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 5, fontSize: 12, tableLayout: "fixed" }}>
         <thead>
           <tr style={{ background: ACCENT, color: "white" }}>
-            <th style={{ width: 28, padding: "5px 6px", textAlign: "center" }}>#</th>
-            <th style={{ padding: "5px 6px", textAlign: "left" }}>Description</th>
-            <th style={{ width: 58, padding: "5px 6px", textAlign: "center" }}>Unite</th>
-            <th style={{ width: 42, padding: "5px 6px", textAlign: "center" }}>Qte</th>
-            <th style={{ width: 82, padding: "5px 6px", textAlign: "right" }}>Montant</th>
+            <th style={{ width: 34, padding: "7px 6px", textAlign: "center" }}>#</th>
+            <th style={{ padding: "7px 6px", textAlign: "left" }}>Description</th>
+            <th style={{ width: 68, padding: "7px 6px", textAlign: "center" }}>Unite</th>
+            <th style={{ width: 48, padding: "7px 6px", textAlign: "center" }}>Qte</th>
+            <th style={{ width: 96, padding: "7px 6px", textAlign: "right" }}>Montant</th>
           </tr>
         </thead>
         <tbody>
@@ -254,18 +254,18 @@ function WorkTable({ rows, pageStartIndex }) {
             if (row.type === "section") {
               return (
                 <tr key={`section-${index}`} style={{ background: ACCENT_LIGHT }}>
-                  <td style={{ padding: "5px 6px", borderBottom: `1px solid ${MID_GRAY}` }} />
-                  <td colSpan={4} style={{ padding: "5px 6px", borderBottom: `1px solid ${MID_GRAY}`, fontWeight: 700, color: ACCENT }}>{row.label}</td>
+                  <td style={{ padding: "7px 6px", borderBottom: `1px solid ${MID_GRAY}` }} />
+                  <td colSpan={4} style={{ padding: "7px 6px", borderBottom: `1px solid ${MID_GRAY}`, lineHeight: "16px", fontWeight: 700, color: ACCENT }}>{row.label}</td>
                 </tr>
               );
             }
             return (
               <tr key={`item-${index}`} style={{ background: "white" }}>
-                <td style={{ padding: "6px", textAlign: "center", borderBottom: `1px solid ${MID_GRAY}`, fontWeight: 700 }}>{itemIndex++}</td>
-                <td style={{ padding: "6px", borderBottom: `1px solid ${MID_GRAY}`, lineHeight: "10.5px", whiteSpace: "pre-wrap" }}>{row.description}</td>
-                <td style={{ padding: "6px", textAlign: "center", borderBottom: `1px solid ${MID_GRAY}` }}>{row.unit}</td>
-                <td style={{ padding: "6px", textAlign: "center", borderBottom: `1px solid ${MID_GRAY}` }}>{formatQuantity(row.qty)}</td>
-                <td style={{ padding: "6px", textAlign: "right", borderBottom: `1px solid ${MID_GRAY}`, fontWeight: 700 }}>{formatMoneyCad(row.amount)}</td>
+                <td style={{ padding: "7px 6px", textAlign: "center", verticalAlign: "top", borderBottom: `1px solid ${MID_GRAY}`, lineHeight: "16px", fontWeight: 700 }}>{itemIndex++}</td>
+                <td style={{ padding: "7px 6px", verticalAlign: "top", borderBottom: `1px solid ${MID_GRAY}`, lineHeight: "16px", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{row.description}</td>
+                <td style={{ padding: "7px 6px", textAlign: "center", verticalAlign: "top", borderBottom: `1px solid ${MID_GRAY}`, lineHeight: "16px" }}>{row.unit}</td>
+                <td style={{ padding: "7px 6px", textAlign: "center", verticalAlign: "top", borderBottom: `1px solid ${MID_GRAY}`, lineHeight: "16px" }}>{formatQuantity(row.qty)}</td>
+                <td style={{ padding: "7px 6px", textAlign: "right", verticalAlign: "top", borderBottom: `1px solid ${MID_GRAY}`, lineHeight: "16px", fontWeight: 700 }}>{formatMoneyCad(row.amount)}</td>
               </tr>
             );
           })}
@@ -327,16 +327,16 @@ function DocumentFooter({ co, page, wo, meta, isLast }) {
 }
 
 function SectionKicker({ children }) {
-  return <p style={{ margin: 0, fontSize: 9, fontWeight: 700, color: ACCENT }}>{children}</p>;
+  return <p style={{ margin: 0, fontSize: 12, lineHeight: "15px", fontWeight: 700, color: ACCENT }}>{children}</p>;
 }
 
 function DocHeading({ children }) {
-  return <h2 style={{ margin: 0, fontSize: 11, lineHeight: "16px", fontWeight: 800, color: ACCENT }}>{children}</h2>;
+  return <h2 style={{ margin: 0, fontSize: 12, lineHeight: "18px", fontWeight: 800, color: ACCENT }}>{children}</h2>;
 }
 
 function DetailRow({ label, value, tall }) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "96px 1fr", gap: 4, marginTop: 2, fontSize: 8.5, lineHeight: tall ? "12px" : "11px" }}>
+    <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 6, marginTop: 4, fontSize: 12, lineHeight: tall ? "17px" : "16px" }}>
       <span style={{ fontWeight: 700 }}>{label} :</span>
       <span>{value}</span>
     </div>
