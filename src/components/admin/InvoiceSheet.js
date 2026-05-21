@@ -286,7 +286,7 @@ function Totals({ wo, meta }) {
         <MoneyLine label="TPS (5%)" value={wo.tps} />
         <MoneyLine label="TVQ (9,975%)" value={wo.tvq} />
       </div>
-      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 46, background: ACCENT, color: "white", padding: "11px 12px", fontSize: 11, fontWeight: 800 }}>
+      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 46, background: ACCENT, color: "white", padding: "7px 12px", fontSize: 10.5, fontWeight: 800 }}>
         <span>{meta.totalLabel} :</span>
         <span style={{ minWidth: 100, textAlign: "right" }}>{formatMoneyCad(wo.total)}</span>
       </div>

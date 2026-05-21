@@ -178,7 +178,6 @@ export function documentConditions(documentType) {
       "<b>Validite :</b> Cette soumission est valide pour une periode de 30 jours a compter de la date d'emission.",
       "<b>Mesures :</b> Les dimensions indiquees sont approximatives. Une prise de mesure precise sera effectuee avant la fabrication. Toute variation significative pourrait entrainer un ajustement du prix.",
       "<b>Delai de fabrication :</b> Environ 2 a 4 semaines suivant l'acceptation de la soumission et la prise de mesures finales, selon le calendrier du fabricant.",
-      "<b>Garantie thermos :</b> Les thermos sont garantis 10 ans contre les defauts de fabrication, perte de scellement ou condensation entre les vitres. Main-d'oeuvre garantie 1 an.",
       "<b>Paiement :</b> 10 % a la signature du contrat, 40 % au debut des travaux pour la commande des materiaux, 50 % a la fin de l'installation.",
       "<b>Exclusions :</b> Cadres, mecanismes, moustiquaires, peinture, modifications structurales et permis municipaux, sauf mention contraire dans la soumission.",
     ];

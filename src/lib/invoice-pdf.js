@@ -236,7 +236,7 @@ function drawTable(doc, wo, meta, documentNumber, y) {
 function drawTotals(doc, wo, meta, y, onNewPage) {
   const width = 270;
   const x = LEFT_M + CONTENT_W - width;
-  const height = 94;
+  const height = 84;
   y = ensureSpace(doc, y, height + 10, onNewPage);
 
   doc.moveTo(LEFT_M, y).lineTo(LEFT_M + CONTENT_W, y).strokeColor(MID_GRAY).lineWidth(0.5).stroke();
@@ -255,11 +255,11 @@ function drawTotals(doc, wo, meta, y, onNewPage) {
   }
 
   const barY = y + 62;
-  doc.rect(LEFT_M, barY, CONTENT_W, 34).fill(ACCENT);
+  doc.rect(LEFT_M, barY, CONTENT_W, 24).fill(ACCENT);
   doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(10)
-    .text(`${meta.totalLabel} :`, x + 12, barY + 12, { width: width - 120, align: "right" });
+    .text(`${meta.totalLabel} :`, x + 12, barY + 7, { width: width - 120, align: "right" });
   doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(10)
-    .text(formatMoneyCad(wo.total), x + width - 102, barY + 12, { width: 90, align: "right" });
+    .text(formatMoneyCad(wo.total), x + width - 102, barY + 7, { width: 90, align: "right" });
 
   return y + height + 18;
 }
