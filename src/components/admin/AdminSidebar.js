@@ -119,13 +119,7 @@ function StatusBadge({ count, href, showIdle = false }) {
 }
 
 function initialMenuLayout() {
-  if (typeof window === "undefined") return normalizeAdminMenuLayout(null);
-  try {
-    const cached = localStorage.getItem(ADMIN_MENU_SETTINGS_KEY);
-    return cached ? normalizeAdminMenuLayout(JSON.parse(cached)) : normalizeAdminMenuLayout(null);
-  } catch {
-    return normalizeAdminMenuLayout(null);
-  }
+  return normalizeAdminMenuLayout(null);
 }
 
 export default function AdminSidebar() {
@@ -153,9 +147,21 @@ export default function AdminSidebar() {
   const activeBadges = { unreadChat, pendingRdv, pendingRequests };
 
   useEffect(() => {
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      try {
+        const cached = localStorage.getItem(ADMIN_MENU_SETTINGS_KEY);
+        if (cached) {
+          setLayout(normalizeAdminMenuLayout(JSON.parse(cached)));
+        }
+      } catch {}
+    });
+
     fetch(`/api/admin/settings?key=${ADMIN_MENU_SETTINGS_KEY}`, { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => {
+        if (cancelled) return;
         const next = data?.value ? normalizeAdminMenuLayout(JSON.parse(data.value)) : normalizeAdminMenuLayout(null);
         setLayout(next);
         try {
@@ -168,7 +174,10 @@ export default function AdminSidebar() {
       setLayout(normalizeAdminMenuLayout(event.detail));
     }
     window.addEventListener("admin-menu-updated", handleMenuUpdate);
-    return () => window.removeEventListener("admin-menu-updated", handleMenuUpdate);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("admin-menu-updated", handleMenuUpdate);
+    };
   }, []);
 
   useEffect(() => {

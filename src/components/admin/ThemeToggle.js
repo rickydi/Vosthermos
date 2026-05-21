@@ -4,11 +4,6 @@ import { useState, useEffect } from "react";
 
 const THEME_KEY = "vosthermos-admin-theme";
 
-function getInitialTheme() {
-  if (typeof window === "undefined") return "dark";
-  return localStorage.getItem(THEME_KEY) || "dark";
-}
-
 function applyTheme(t) {
   if (typeof document !== "undefined") {
     document.documentElement.setAttribute("data-admin-theme", t);
@@ -16,7 +11,20 @@ function applyTheme(t) {
 }
 
 export default function ThemeToggle({ iconOnly = false }) {
-  const [theme, setTheme] = useState(getInitialTheme);
+  const [theme, setTheme] = useState("dark");
+
+  useEffect(() => {
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      const saved = localStorage.getItem(THEME_KEY) || "dark";
+      setTheme(saved);
+      applyTheme(saved);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     applyTheme(theme);
