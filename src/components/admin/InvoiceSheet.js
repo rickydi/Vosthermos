@@ -142,12 +142,12 @@ function Sheet({ page, totalPages, wo, co, meta, documentNumber }) {
         {page.isLast && (
           <>
             <Totals wo={wo} meta={meta} />
-            <Conditions meta={meta} />
+            {meta.type !== "invoice" && <Conditions meta={meta} />}
             {meta.type === "quote" && <SignatureBlock />}
           </>
         )}
       </main>
-      <Footer co={co} page={page.index + 1} documentNumber={documentNumber} clientName={wo.client?.name} />
+      <Footer co={co} page={page.index + 1} />
       <div style={{ height: 3, background: ACCENT, flexShrink: 0 }} />
     </div>
   );
@@ -163,7 +163,7 @@ function countPreviousItems(page, wo) {
   return count;
 }
 
-function FullHeader({ meta, co, documentNumber }) {
+function FullHeader({ meta, co }) {
   return (
     <header style={{ display: "grid", gridTemplateColumns: "140px 1fr", gap: 16, alignItems: "start", marginBottom: 14 }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -172,7 +172,6 @@ function FullHeader({ meta, co, documentNumber }) {
         <h1 style={{ margin: 0, fontSize: 26, lineHeight: "30px", fontWeight: 800, color: ACCENT }}>{meta.labelUpper}</h1>
         <p style={{ margin: "3px 0 0", fontSize: 10, color: TEXT_MED }}>Reparation et remplacement de fenetres</p>
         <p style={{ margin: "5px 0 0", fontSize: 8, color: TEXT_MED }}>{co.address}, {co.city}, {co.province} | RBQ : {co.rbq}</p>
-        <p style={{ margin: "5px 0 0", fontSize: 9, fontWeight: 700, color: TEXT_DARK }}>{documentNumber}</p>
       </div>
     </header>
   );
@@ -281,15 +280,15 @@ function WorkTable({ rows, pageStartIndex }) {
 
 function Totals({ wo, meta }) {
   return (
-    <section style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
-      <div style={{ width: 270, border: `1px solid ${MID_GRAY}` }}>
+    <section style={{ marginTop: 0, borderTop: `1px solid ${MID_GRAY}` }}>
+      <div style={{ width: 270, marginLeft: "auto", paddingTop: 12, paddingBottom: 8 }}>
         <MoneyLine label="Sous-total" value={wo.subtotal} strong />
         <MoneyLine label="TPS (5%)" value={wo.tps} />
         <MoneyLine label="TVQ (9,975%)" value={wo.tvq} />
-        <div style={{ display: "flex", justifyContent: "space-between", background: ACCENT, color: "white", padding: "7px 10px", fontSize: 10, fontWeight: 700 }}>
-          <span>{meta.totalLabel} :</span>
-          <span>{formatMoneyCad(wo.total)}</span>
-        </div>
+      </div>
+      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 46, background: ACCENT, color: "white", padding: "11px 12px", fontSize: 11, fontWeight: 800 }}>
+        <span>{meta.totalLabel} :</span>
+        <span style={{ minWidth: 100, textAlign: "right" }}>{formatMoneyCad(wo.total)}</span>
       </div>
     </section>
   );
@@ -327,13 +326,13 @@ function SignatureBlock() {
   );
 }
 
-function Footer({ co, page, documentNumber, clientName }) {
+function Footer({ co, page }) {
   return (
-    <footer style={{ flexShrink: 0, padding: "5px 0.65in 3px", fontSize: 7, color: TEXT_MED, textAlign: "center" }}>
+    <footer style={{ flexShrink: 0, padding: "5px 0.45in 3px", fontSize: 7, color: TEXT_MED, textAlign: "center" }}>
       <p style={{ margin: 0 }}>
         Vosthermos - Reparation et remplacement de fenetres | {co.address}, {co.city}, {co.province} | RBQ : {co.rbq} | TPS : {co.tps} | TVQ : {co.tvq}
       </p>
-      <p style={{ margin: "2px 0 0" }}>{documentNumber}{clientName ? ` - ${clientName}` : ""} | Page {page}</p>
+      <p style={{ margin: "2px 0 0" }}>Page {page}</p>
     </footer>
   );
 }
@@ -357,7 +356,7 @@ function DetailRow({ label, value, tall }) {
 
 function MoneyLine({ label, value, strong }) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 10px", fontSize: 9, borderBottom: `1px solid ${MID_GRAY}`, fontWeight: strong ? 700 : 400 }}>
+    <div style={{ display: "flex", justifyContent: "space-between", padding: "3px 10px", fontSize: 10, fontWeight: strong ? 700 : 400 }}>
       <span>{label} :</span>
       <span>{formatMoneyCad(value)}</span>
     </div>

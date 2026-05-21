@@ -193,6 +193,16 @@ export function stripHtmlTags(value) {
   return String(value || "").replace(/<[^>]*>/g, "");
 }
 
+function sectionLabel(unitCode) {
+  const label = String(unitCode || "").trim();
+  if (!label) return "TRAVAUX";
+  if (/^(unite|unité|unit)\b/i.test(label)) return label;
+  if (/[,\u2014-]/.test(label) || /\b(rue|avenue|av\.|boulevard|boul\.|chemin|ch\.|route|rang|place|allee|allée|croissant)\b/i.test(label)) {
+    return label;
+  }
+  return `UNITE ${label}`;
+}
+
 export function documentRows(wo) {
   const rows = [];
   const addItem = (item) => {
@@ -211,7 +221,7 @@ export function documentRows(wo) {
   const sections = Array.isArray(wo?.sections) ? wo.sections : [];
   if (sections.length > 0) {
     for (const section of sections) {
-      rows.push({ type: "section", label: section.unitCode ? `UNITE ${section.unitCode}` : "TRAVAUX" });
+      rows.push({ type: "section", label: sectionLabel(section.unitCode) });
       for (const item of section.items || []) addItem(item);
     }
   } else {

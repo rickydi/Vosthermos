@@ -78,7 +78,7 @@ function drawLogo(doc, x, y, height = 70) {
   doc.fillColor(TEXT_MED).font("Helvetica-Oblique").fontSize(9).text("Reparation de fenetres", x, y + 42);
 }
 
-function drawFullHeader(doc, meta, company, documentNumber) {
+function drawFullHeader(doc, meta, company) {
   const y = TOP_M + 6;
   drawLogo(doc, LEFT_M, y, 70);
 
@@ -90,10 +90,8 @@ function drawFullHeader(doc, meta, company, documentNumber) {
     .text("Reparation et remplacement de fenetres", rightX, y + 34, { width: rightW, align: "right" });
   doc.fillColor(TEXT_MED).font("Helvetica").fontSize(8)
     .text(`${company.address}, ${company.city}, ${company.province} | RBQ : ${company.rbq}`, rightX, y + 54, { width: rightW, align: "right" });
-  doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(9)
-    .text(documentNumber, rightX, y + 68, { width: rightW, align: "right" });
 
-  return y + 92;
+  return y + 82;
 }
 
 function drawCompactHeader(doc, wo, meta, documentNumber, pageNum) {
@@ -110,7 +108,7 @@ function drawCompactHeader(doc, wo, meta, documentNumber, pageNum) {
 }
 
 function drawInfoBox(doc, wo, meta, documentNumber, y) {
-  const h = 112;
+  const h = 98;
   const colW = CONTENT_W / 2;
   const date = getDocumentDate(wo);
   const targetDate = getDocumentTargetDate(wo, meta.type);
@@ -151,7 +149,7 @@ function drawInfoBox(doc, wo, meta, documentNumber, y) {
   for (const [label, value] of details) {
     doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(8.5).text(`${label} :`, rightX, dy, { width: 96 });
     doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(8.5).text(String(value || "-"), rightX + 98, dy, { width: lineW - 98 });
-    dy += label === "Adresse des travaux" ? 24 : 13;
+    dy += label === "Adresse des travaux" ? 20 : 12;
   }
 
   return y + h + 16;
@@ -238,11 +236,11 @@ function drawTable(doc, wo, meta, documentNumber, y) {
 function drawTotals(doc, wo, meta, y, onNewPage) {
   const width = 270;
   const x = LEFT_M + CONTENT_W - width;
-  const height = 102;
+  const height = 94;
   y = ensureSpace(doc, y, height + 10, onNewPage);
 
-  doc.rect(x, y, width, height).strokeColor(MID_GRAY).lineWidth(0.5).stroke();
-  let rowY = y + 10;
+  doc.moveTo(LEFT_M, y).lineTo(LEFT_M + CONTENT_W, y).strokeColor(MID_GRAY).lineWidth(0.5).stroke();
+  let rowY = y + 11;
   const rows = [
     ["Sous-total", wo.subtotal, true],
     ["TPS (5%)", wo.tps, false],
@@ -253,14 +251,15 @@ function drawTotals(doc, wo, meta, y, onNewPage) {
       .text(`${label} :`, x + 12, rowY, { width: width - 120, align: "right" });
     doc.fillColor(TEXT_DARK).font(strong ? "Helvetica-Bold" : "Helvetica").fontSize(9)
       .text(formatMoneyCad(value), x + width - 102, rowY, { width: 90, align: "right" });
-    rowY += 18;
+    rowY += 16;
   }
 
-  doc.rect(x, y + 68, width, 34).fill(ACCENT);
+  const barY = y + 62;
+  doc.rect(LEFT_M, barY, CONTENT_W, 34).fill(ACCENT);
   doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(10)
-    .text(`${meta.totalLabel} :`, x + 12, y + 80, { width: width - 120, align: "right" });
+    .text(`${meta.totalLabel} :`, x + 12, barY + 12, { width: width - 120, align: "right" });
   doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(10)
-    .text(formatMoneyCad(wo.total), x + width - 102, y + 80, { width: 90, align: "right" });
+    .text(formatMoneyCad(wo.total), x + width - 102, barY + 12, { width: 90, align: "right" });
 
   return y + height + 18;
 }
@@ -314,10 +313,10 @@ function drawFooter(doc, pageNum, company) {
   ].filter(Boolean).join("  |  ");
 
   doc.rect(0, PAGE_H - 3, PAGE_W, 3).fill(ACCENT);
+  doc.fillColor(TEXT_MED).font("Helvetica").fontSize(6.8)
+    .text(footer, 30, PAGE_H - 22, { width: PAGE_W - 60, align: "center" });
   doc.fillColor(TEXT_MED).font("Helvetica").fontSize(7)
-    .text(footer, LEFT_M, PAGE_H - 22, { width: CONTENT_W, align: "center" });
-  doc.fillColor(TEXT_MED).font("Helvetica").fontSize(7)
-    .text(`Page ${pageNum}`, LEFT_M, PAGE_H - 12, { width: CONTENT_W, align: "center" });
+    .text(`Page ${pageNum}`, 30, PAGE_H - 12, { width: PAGE_W - 60, align: "center" });
 }
 
 function addFooters(doc, company) {
@@ -354,12 +353,14 @@ export async function generateInvoicePdf(wo, settings = {}) {
       const onNewPage = () => drawCompactHeader(doc, wo, meta, documentNumber, doc.bufferedPageRange().count);
 
       addDocPage(doc);
-      let y = drawFullHeader(doc, meta, company, documentNumber);
+      let y = drawFullHeader(doc, meta, company);
       y = drawInfoBox(doc, wo, meta, documentNumber, y);
       y = drawDescription(doc, wo, meta, y, onNewPage);
       y = drawTable(doc, wo, meta, documentNumber, y);
       y = drawTotals(doc, wo, meta, y, onNewPage);
-      y = drawConditions(doc, meta, y, onNewPage);
+      if (meta.type !== "invoice") {
+        y = drawConditions(doc, meta, y, onNewPage);
+      }
       if (meta.type === "quote") {
         drawSignature(doc, y, onNewPage);
       }
