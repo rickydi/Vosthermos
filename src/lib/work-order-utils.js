@@ -1,34 +1,31 @@
 import prisma from "./prisma";
 import { COMPANY_INFO } from "./company-info";
 import { dateOnlyString } from "./date-only";
+import { buildDocumentNumber, sanitizeDocumentPrefix } from "./vosthermos-document";
 
-const MIN_INVOICE_NUMBER = 150;
 export const DEFAULT_LABOR_RATE = 85;
 
 export async function generateWorkOrderNumber() {
-  const year = new Date().getFullYear();
-
-  let prefix = "VOT";
+  let prefix = "VOS";
   try {
     const rows = await prisma.$queryRawUnsafe(
       `SELECT value FROM site_settings WHERE key = 'work_order_prefix'`
     );
-    if (rows[0]?.value) prefix = rows[0].value;
+    if (rows[0]?.value) prefix = sanitizeDocumentPrefix(rows[0].value);
   } catch {}
 
-  const key = `workorder:${prefix}:${year}`;
+  const now = new Date();
 
-  // Atomic increment via ON CONFLICT — safe under concurrent inserts.
-  // Floor à MIN_INVOICE_NUMBER : si compteur < 150, passe à 150, sinon +1.
-  const rows = await prisma.$queryRawUnsafe(
-    `INSERT INTO counters ("key", "value") VALUES ($1, ${MIN_INVOICE_NUMBER})
-     ON CONFLICT ("key") DO UPDATE SET "value" = GREATEST(counters."value" + 1, ${MIN_INVOICE_NUMBER})
-     RETURNING "value"`,
-    key
-  );
+  for (let offset = 0; offset < 60; offset++) {
+    const candidate = buildDocumentNumber(new Date(now.getTime() + offset * 60000), prefix);
+    const existing = await prisma.workOrder.findUnique({
+      where: { number: candidate },
+      select: { id: true },
+    });
+    if (!existing) return candidate;
+  }
 
-  const nextNum = rows[0]?.value ?? MIN_INVOICE_NUMBER;
-  return `${prefix}-${year}-${String(nextNum).padStart(3, "0")}`;
+  return buildDocumentNumber(new Date(now.getTime() + 60 * 60000), prefix);
 }
 
 // Compose a full DateTime from a base date + "HH:mm" string.
@@ -200,7 +197,7 @@ export async function getWorkOrderSettings() {
     rbq_number: COMPANY_INFO.rbqNumber,
     tps_rate: "0.05",
     tvq_rate: "0.09975",
-    work_order_prefix: "VOT",
+    work_order_prefix: "VOS",
     work_order_conditions: "",
   };
 

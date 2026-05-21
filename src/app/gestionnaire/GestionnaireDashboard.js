@@ -784,14 +784,12 @@ export default function GestionnaireDashboard({ manager, clients, isGlobal, acti
                               <i className="fas fa-eye"></i>Voir
                             </a>
                             <a
-                              href={`/gestionnaire/factures/${inv.id}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                              href={`/api/manager/work-orders/${inv.id}/pdf?documentType=invoice`}
                               className="gm-btn gm-btn-sm"
                               style={{ textDecoration: "none" }}
-                              title="Imprimer / Télécharger PDF"
+                              title="Telecharger PDF"
                             >
-                              <i className="fas fa-print"></i>
+                              <i className="fas fa-download"></i>
                             </a>
                           </td>
                         </tr>

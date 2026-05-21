@@ -278,6 +278,12 @@ export default function BonDetailPage() {
             className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-medium">
             <i className="fas fa-print mr-2"></i>Imprimer
           </button>
+          <a
+            href={`/api/admin/work-orders/${id}/pdf?documentType=${documentMeta.type}`}
+            className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-medium"
+          >
+            <i className="fas fa-file-pdf mr-2"></i>Telecharger PDF
+          </a>
           <button onClick={handleDelete} disabled={deleting}
             className="px-4 py-2 rounded-lg text-sm font-medium text-red-500 border border-red-500/30 hover:bg-red-500/10 transition-colors disabled:opacity-50">
             <i className={`fas ${deleting ? "fa-spinner fa-spin" : "fa-trash"} mr-2`}></i>

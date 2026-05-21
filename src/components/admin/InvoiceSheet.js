@@ -1,120 +1,51 @@
 "use client";
 
-import { formatDateOnly } from "@/lib/date-only";
 import { getWorkOrderDocumentMeta } from "@/lib/work-order-document";
-import { COMPANY_INFO } from "@/lib/company-info";
+import {
+  documentConditions,
+  documentRows,
+  formatDateFr,
+  formatMoneyCad,
+  formatQuantity,
+  getClientCityLine,
+  getDocumentDate,
+  getDocumentTargetDate,
+  getPaymentTermsDays,
+  getProjectAddress,
+  getProjectType,
+  resolveDocumentCompany,
+  resolveDocumentNumber,
+  stripHtmlTags,
+} from "@/lib/vosthermos-document";
 
-// Design A3 — Receipt Premium, validated via print emulation.
-// Takes a real WorkOrder (from /api/admin/work-orders/[id]) and renders
-// a WYSIWYG 8.5x11 invoice sheet that prints identical to screen.
+const ACCENT = "#2c3e50";
+const ACCENT_LIGHT = "#ecf0f1";
+const LIGHT_GRAY = "#f8f9fa";
+const MID_GRAY = "#bdc3c7";
+const TEXT_DARK = "#2c3e50";
+const TEXT_MED = "#555555";
 
-const COMPANY_DEFAULTS = {
-  legal: COMPANY_INFO.legalName || "9999-9999 Quebec inc.",
-  address: COMPANY_INFO.address,
-  city: COMPANY_INFO.city,
-  postalCode: COMPANY_INFO.postalCode,
-  phone: COMPANY_INFO.phone,
-  email: COMPANY_INFO.email,
-  web: COMPANY_INFO.web,
-  tps: "",
-  tvq: "",
-  rbq: "",
-};
-
-function fmt(n) { return `${Number(n || 0).toFixed(2)} $`; }
-function fmtRate(n) { return `${Number(n || 0).toFixed(2)} $/h`; }
-function fmtLaborHours(value) {
-  const totalMinutes = Math.round(Number(value || 0) * 60);
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  if (totalMinutes <= 0) return "0h";
-  return `${hours > 0 ? `${hours}h` : ""}${minutes > 0 ? String(minutes).padStart(2, "0") : ""}`;
-}
-function fmtDate(d) {
-  return formatDateOnly(d, { day: "numeric", month: "long", year: "numeric" });
-}
-function fmtHM(dt) {
-  if (!dt) return null;
-  const d = dt instanceof Date ? dt : new Date(dt);
-  if (isNaN(d.getTime())) return null;
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-}
-function fmtDuration(mins) {
-  if (!mins || mins <= 0) return null;
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  return `${h}h${m > 0 ? String(m).padStart(2, "0") : ""}`;
-}
-
-// Capacities for pagination (tuned for 8.5x11 with 0.5in padding)
-const FIRST_CAPACITY = 5;
-const MIDDLE_CAPACITY = 7;
-const LAST_CAPACITY = 6;
-const SMALL_INVOICE_THRESHOLD = 8;
-
-function paginate(units) {
-  if (units.length <= SMALL_INVOICE_THRESHOLD) {
-    return [{ units, isFirst: true, isLast: true, index: 0 }];
-  }
+function paginateRows(rows) {
+  if (rows.length <= 9) return [{ rows, isFirst: true, isLast: true, index: 0 }];
   const pages = [];
-  const queue = [...units];
-  pages.push({ units: queue.splice(0, FIRST_CAPACITY), isFirst: true, isLast: false });
-  while (queue.length > LAST_CAPACITY) {
-    const n = Math.min(MIDDLE_CAPACITY, queue.length - LAST_CAPACITY);
-    if (n <= 0) break;
-    pages.push({ units: queue.splice(0, n), isFirst: false, isLast: false });
+  const queue = [...rows];
+  pages.push({ rows: queue.splice(0, 8), isFirst: true, isLast: false, index: 0 });
+  while (queue.length > 10) {
+    pages.push({ rows: queue.splice(0, 12), isFirst: false, isLast: false, index: pages.length });
   }
-  pages.push({ units: queue, isFirst: false, isLast: true });
-  pages.forEach((p, i) => (p.index = i));
+  pages.push({ rows: queue, isFirst: false, isLast: true, index: pages.length });
   return pages;
 }
 
-// Normalize WorkOrder into units (sections for B2B, single virtual "unit"
-// with all items for particulier)
-function normalizeUnits(wo) {
-  const sections = Array.isArray(wo.sections) ? wo.sections : [];
-  const flatItems = Array.isArray(wo.items) ? wo.items : [];
-
-  if (sections.length > 0) {
-    return sections.map((s) => ({
-      unitCode: s.unitCode,
-      items: (s.items || []).map((it) => ({
-        description: it.description,
-        qty: Number(it.quantity),
-        unitPrice: Number(it.unitPrice),
-      })),
-    }));
-  }
-  // Particulier: single virtual "unit" with all flat items
-  if (flatItems.length === 0) return [];
-  return [{
-    unitCode: null, // no code = particulier rendering
-    items: flatItems.map((it) => ({
-      description: it.description,
-      qty: Number(it.quantity),
-      unitPrice: Number(it.unitPrice),
-    })),
-  }];
-}
-
 export default function InvoiceSheet({ wo, company }) {
-  const co = { ...COMPANY_DEFAULTS, ...(company || {}) };
-  const units = normalizeUnits(wo);
-  const pages = paginate(units);
   const documentMeta = getWorkOrderDocumentMeta(wo.statut);
-
-  const arrival = fmtHM(wo.arrivalAt);
-  const departure = fmtHM(wo.departureAt);
-  const duration = fmtDuration(wo.durationMinutes);
-  const laborHours = (() => {
-    const rate = Number(wo.laborRate) || 85;
-    const tl = Number(wo.totalLabor) || 0;
-    return rate > 0 ? Math.round((tl / rate) * 100) / 100 : 0;
-  })();
-  const laborRate = Number(wo.laborRate) || 85;
+  const rows = documentRows(wo);
+  const pages = paginateRows(rows);
+  const co = resolveDocumentCompany(company || {});
+  const documentNumber = resolveDocumentNumber(wo);
 
   return (
-    <div className="bg-neutral-200 py-6 print:py-0 print:bg-white">
+    <div className="bg-neutral-200 py-6 print:bg-white print:py-0">
       <style jsx global>{`
         @media print {
           @page { size: 8.5in 11in; margin: 0; }
@@ -161,255 +92,274 @@ export default function InvoiceSheet({ wo, company }) {
         }
       `}</style>
 
-      <div className="invoice-stack flex flex-col items-center gap-6 print:gap-0">
+      <div className="invoice-stack flex flex-col items-center gap-6 print:block print:gap-0">
         {pages.map((page) => (
-          <Sheet key={page.index} page={page} totalPages={pages.length} wo={wo} co={co}
-            meta={{ arrival, departure, duration, laborHours, laborRate, document: documentMeta }} />
+          <Sheet
+            key={page.index}
+            page={page}
+            totalPages={pages.length}
+            wo={wo}
+            co={co}
+            meta={documentMeta}
+            documentNumber={documentNumber}
+          />
         ))}
       </div>
     </div>
   );
 }
 
-function Sheet({ page, totalPages, wo, co, meta }) {
+function Sheet({ page, totalPages, wo, co, meta, documentNumber }) {
   return (
-    <div className="invoice-page bg-white shadow-[0_20px_60px_rgba(0,0,0,0.18)] relative"
-      style={{ width: "8.5in", height: "11in", maxWidth: "100%", boxSizing: "border-box",
-        overflow: "hidden", fontFamily: "'Inter', system-ui, sans-serif",
-        display: "flex", flexDirection: "column" }}>
-      <div style={{ height: "3px", background: "#b91c1c", flexShrink: 0 }}></div>
-      <div style={{ height: "1px", background: "rgba(185, 28, 28, 0.3)", flexShrink: 0 }}></div>
+    <div
+      className="invoice-page bg-white shadow-[0_20px_60px_rgba(0,0,0,0.18)]"
+      style={{
+        width: "8.5in",
+        height: "11in",
+        maxWidth: "100%",
+        boxSizing: "border-box",
+        overflow: "hidden",
+        fontFamily: "Helvetica, Arial, sans-serif",
+        display: "flex",
+        flexDirection: "column",
+        color: TEXT_DARK,
+      }}
+    >
+      <div style={{ height: 8, background: ACCENT, flexShrink: 0 }} />
+      <main style={{ padding: "0.5in 0.65in 0", display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+        {page.isFirst ? (
+          <>
+            <FullHeader meta={meta} co={co} documentNumber={documentNumber} />
+            <InfoBox wo={wo} meta={meta} documentNumber={documentNumber} />
+            <Description wo={wo} meta={meta} />
+          </>
+        ) : (
+          <CompactHeader wo={wo} meta={meta} documentNumber={documentNumber} page={page.index + 1} totalPages={totalPages} />
+        )}
 
-      <div style={{ padding: "0.5in", display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
-        {page.isFirst ? <FullHeader wo={wo} co={co} meta={meta} /> : <CompactHeader wo={wo} meta={meta} pageNum={page.index + 1} totalPages={totalPages} />}
+        <WorkTable rows={page.rows} pageStartIndex={countPreviousItems(page, wo)} />
 
-        <div style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "8px", flex: 1, minHeight: 0 }}>
-          {page.units.map((u, i) => <UnitCard key={i} unit={u} />)}
-        </div>
-
-        {page.isLast && Number(wo.totalLabor) > 0 && <LaborCard wo={wo} meta={meta} />}
-        {page.isLast && <Totals wo={wo} meta={meta} />}
-      </div>
-
-      {page.isLast && <Footer co={co} />}
-
-      <div style={{
-        flexShrink: 0, padding: "6px 0.5in", borderTop: "1px solid #f3f4f6",
-        display: "flex", justifyContent: "space-between", alignItems: "center",
-        fontSize: "9px", color: "#9ca3af",
-      }}>
-        <span>{wo.number}{wo.client?.name ? ` · ${wo.client.name}` : ""}</span>
-        <span style={{ fontFamily: "monospace" }}>Page {page.index + 1} / {totalPages}</span>
-      </div>
+        {page.isLast && (
+          <>
+            <Totals wo={wo} meta={meta} />
+            <Conditions meta={meta} />
+            {meta.type === "quote" && <SignatureBlock />}
+          </>
+        )}
+      </main>
+      <Footer co={co} page={page.index + 1} documentNumber={documentNumber} clientName={wo.client?.name} />
+      <div style={{ height: 3, background: ACCENT, flexShrink: 0 }} />
     </div>
   );
 }
 
-function FullHeader({ wo, co, meta }) {
-  const intervAddr = wo.interventionAddress || wo.client?.address;
-  const intervCity = wo.interventionCity || wo.client?.city;
-  const intervPostal = wo.interventionPostalCode || wo.client?.postalCode;
-  const isInvoice = meta.document.type === "invoice";
-  const docLabel = meta.document.label;
-  const recipientLabel = meta.document.recipientLabel;
-
-  return (
-    <>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "24px", alignItems: "flex-start" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/Vos-Thermos-Logo.png" alt="Vosthermos" style={{ height: "80px", width: "auto", flexShrink: 0 }} />
-          <p style={{ fontSize: "10.5px", lineHeight: 1.45, color: "#6b7280" }}>
-            {co.legal}<br />{co.address}<br />{co.city}, QC {co.postalCode}<br />
-            {co.phone} · {co.email}<br />{co.web}
-          </p>
-        </div>
-        <div style={{ textAlign: "right" }}>
-          <p style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3em", color: "#9ca3af" }}>{docLabel}</p>
-          <p style={{ fontSize: "36px", lineHeight: 1, fontWeight: 900, color: "#111827", marginTop: "6px", letterSpacing: "-0.02em" }}>{wo.number}</p>
-          <p style={{ fontSize: "12px", color: "#6b7280", marginTop: "8px" }}>{fmtDate(wo.date)}</p>
-        </div>
-      </div>
-
-      <div style={{ borderTop: "1px solid #e5e7eb", margin: "16px 0" }}></div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
-        <div>
-          <p style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.25em", color: "#9ca3af", marginBottom: "8px" }}>{recipientLabel}</p>
-          <p style={{ fontWeight: 700, fontSize: "16px", color: "#111827", lineHeight: 1.2 }}>{wo.client?.name || "—"}</p>
-          {wo.client?.company && <p style={{ fontSize: "12px", color: "#6b7280", marginTop: "2px" }}>{wo.client.company}</p>}
-          {intervAddr && (
-            <p style={{ fontSize: "12px", color: "#6b7280", marginTop: "6px", lineHeight: 1.4 }}>
-              {intervAddr}<br />
-              {[intervCity, intervPostal && `QC ${intervPostal}`].filter(Boolean).join(", ")}
-            </p>
-          )}
-          <p style={{ fontSize: "12px", color: "#6b7280", marginTop: "6px", lineHeight: 1.4 }}>
-            {wo.client?.phone}<br />
-            {wo.client?.email}
-          </p>
-        </div>
-        <div>
-          <p style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.25em", color: "#9ca3af", marginBottom: "8px" }}>Détails</p>
-          <div style={{ fontSize: "12px" }}>
-            {wo.technician?.name && <Row label="Technicien" value={wo.technician.name} />}
-            <Row label="Date" value={fmtDate(wo.date)} />
-            {isInvoice && wo.dueDate && <Row label="Échéance" value={`${fmtDate(wo.dueDate)} (Net ${wo.paymentTermsDays || 30} j.)`} />}
-            {(meta.arrival || meta.departure) && <Row label="Horaire" value={`${meta.arrival || "—"} – ${meta.departure || "—"}`} />}
-            {meta.duration && <Row label="Durée" value={meta.duration} />}
-          </div>
-        </div>
-      </div>
-
-      {wo.description && (
-        <div style={{ marginTop: "12px", borderLeft: "2px solid #b91c1c", paddingLeft: "12px" }}>
-          <p style={{ fontSize: "12px", color: "#374151", fontStyle: "italic", lineHeight: 1.4 }}>{wo.description}</p>
-        </div>
-      )}
-    </>
-  );
+function countPreviousItems(page, wo) {
+  const allPages = paginateRows(documentRows(wo));
+  let count = 0;
+  for (const candidate of allPages) {
+    if (candidate.index >= page.index) break;
+    count += candidate.rows.filter((row) => row.type === "item").length;
+  }
+  return count;
 }
 
-function Row({ label, value }) {
+function FullHeader({ meta, co, documentNumber }) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
-      <span style={{ color: "#6b7280" }}>{label}</span>
-      <span style={{ color: "#111827", fontWeight: 500 }}>{value}</span>
-    </div>
-  );
-}
-
-function CompactHeader({ wo, meta, pageNum, totalPages }) {
-  return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #e5e7eb", paddingBottom: "10px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/images/Vos-Thermos-Logo.png" alt="Vosthermos" style={{ height: "36px", width: "auto" }} />
-        <div>
-          <p style={{ fontSize: "11px", color: "#6b7280" }}>{meta.document.compactPrefix} · page {pageNum}/{totalPages}</p>
-          <p style={{ fontWeight: 700, color: "#111827", fontSize: "13px" }}>{wo.client?.name}</p>
-        </div>
-      </div>
+    <header style={{ display: "grid", gridTemplateColumns: "140px 1fr", gap: 16, alignItems: "start", marginBottom: 14 }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/images/Vos-Thermos-Logo.png" alt="Vosthermos" style={{ width: 92, height: "auto", maxHeight: 70, objectFit: "contain" }} />
       <div style={{ textAlign: "right" }}>
-        <p style={{ fontSize: "18px", fontWeight: 900, color: "#111827" }}>{wo.number}</p>
-        <p style={{ fontSize: "10px", color: "#6b7280" }}>{fmtDate(wo.date)}</p>
+        <h1 style={{ margin: 0, fontSize: 26, lineHeight: "30px", fontWeight: 800, color: ACCENT }}>{meta.labelUpper}</h1>
+        <p style={{ margin: "3px 0 0", fontSize: 10, color: TEXT_MED }}>Reparation et remplacement de fenetres</p>
+        <p style={{ margin: "5px 0 0", fontSize: 8, color: TEXT_MED }}>{co.address}, {co.city}, {co.province} | RBQ : {co.rbq}</p>
+        <p style={{ margin: "5px 0 0", fontSize: 9, fontWeight: 700, color: TEXT_DARK }}>{documentNumber}</p>
       </div>
-    </div>
+    </header>
   );
 }
 
-function UnitCard({ unit }) {
-  const subtot = unit.items.reduce((s, it) => s + Number(it.qty) * Number(it.unitPrice), 0);
-  const hasCode = !!unit.unitCode;
+function CompactHeader({ wo, meta, documentNumber, page, totalPages }) {
   return (
-    <div style={{ border: "2px solid #e5e7eb", borderRadius: "8px", overflow: "hidden" }}>
-      {hasCode && (
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 16px", borderBottom: "1px solid #e5e7eb", backgroundColor: "white" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <span style={{ display: "inline-block", padding: "2px 8px", border: "2px solid #b91c1c", color: "#b91c1c", fontSize: "11px", fontWeight: 900, letterSpacing: "0.08em", borderRadius: "4px", fontFamily: "monospace", background: "white" }}>{unit.unitCode}</span>
-            <span style={{ fontSize: "11px", color: "#6b7280" }}>Unité · {unit.items.length} item{unit.items.length > 1 ? "s" : ""}</span>
-          </div>
-          <span style={{ fontWeight: 700, color: "#111827", fontSize: "12px" }}>{fmt(subtot)}</span>
+    <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: `1px solid ${MID_GRAY}`, paddingBottom: 10, marginBottom: 14 }}>
+      <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/images/Vos-Thermos-Logo.png" alt="Vosthermos" style={{ width: 44, height: "auto" }} />
+        <div>
+          <p style={{ margin: 0, fontSize: 9, color: TEXT_MED }}>{meta.compactPrefix} - page {page}/{totalPages}</p>
+          <p style={{ margin: "2px 0 0", fontSize: 10, fontWeight: 700 }}>{wo.client?.name || ""}</p>
         </div>
-      )}
-      <table style={{ width: "100%", fontSize: "11.5px", borderCollapse: "collapse" }}>
+      </div>
+      <p style={{ margin: 0, fontSize: 17, fontWeight: 800, color: TEXT_DARK }}>{documentNumber}</p>
+    </header>
+  );
+}
+
+function InfoBox({ wo, meta, documentNumber }) {
+  const date = getDocumentDate(wo);
+  const targetDate = getDocumentTargetDate(wo, meta.type);
+  const targetValue = targetDate
+    ? meta.type === "invoice"
+      ? `${formatDateFr(targetDate)} (Net ${getPaymentTermsDays(wo)} j.)`
+      : formatDateFr(targetDate)
+    : "";
+
+  return (
+    <section style={{ display: "grid", gridTemplateColumns: "1fr 1fr", background: LIGHT_GRAY, border: `1px solid ${MID_GRAY}`, marginBottom: 16 }}>
+      <div style={{ padding: "8px 10px", borderRight: `1px solid ${MID_GRAY}` }}>
+        <SectionKicker>CLIENT</SectionKicker>
+        <p style={{ margin: "4px 0 3px", fontSize: 9, fontWeight: 700 }}>{wo.client?.name || "-"}</p>
+        <p style={{ margin: 0, fontSize: 9, lineHeight: "12px" }}>
+          {wo.client?.company && <>{wo.client.company}<br /></>}
+          {wo.client?.address && <>{wo.client.address}<br /></>}
+          {getClientCityLine(wo.client) && <>{getClientCityLine(wo.client)}<br /></>}
+          {wo.client?.phone && <>Tel. : {wo.client.phone}<br /></>}
+          {wo.client?.email}
+        </p>
+      </div>
+      <div style={{ padding: "8px 10px" }}>
+        <SectionKicker>DETAILS</SectionKicker>
+        <DetailRow label="Date" value={formatDateFr(date)} />
+        {targetValue && <DetailRow label={meta.dateTargetLabel} value={targetValue} />}
+        <DetailRow label="Type" value={getProjectType(wo)} />
+        <DetailRow label="Adresse des travaux" value={getProjectAddress(wo, false) || "-"} tall />
+        <DetailRow label={meta.numberLabel} value={documentNumber} />
+      </div>
+    </section>
+  );
+}
+
+function Description({ wo, meta }) {
+  const text = wo.description || "Travaux de reparation et remplacement de fenetres selon les elements detailles ci-dessous.";
+  return (
+    <section style={{ marginBottom: 12 }}>
+      <DocHeading>{meta.descriptionHeading}</DocHeading>
+      <p style={{ margin: "4px 0 0", fontSize: 9, lineHeight: "12px", color: TEXT_DARK }}>{text}</p>
+    </section>
+  );
+}
+
+function WorkTable({ rows, pageStartIndex }) {
+  let itemIndex = pageStartIndex + 1;
+  return (
+    <section style={{ marginTop: 2 }}>
+      <DocHeading>DETAIL DES TRAVAUX</DocHeading>
+      <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 4, fontSize: 8 }}>
+        <thead>
+          <tr style={{ background: ACCENT, color: "white" }}>
+            <th style={{ width: 28, padding: "5px 6px", textAlign: "center" }}>#</th>
+            <th style={{ padding: "5px 6px", textAlign: "left" }}>Description</th>
+            <th style={{ width: 58, padding: "5px 6px", textAlign: "center" }}>Unite</th>
+            <th style={{ width: 42, padding: "5px 6px", textAlign: "center" }}>Qte</th>
+            <th style={{ width: 82, padding: "5px 6px", textAlign: "right" }}>Montant</th>
+          </tr>
+        </thead>
         <tbody>
-          {unit.items.map((it, j) => {
-            const isDiscount = Number(it.unitPrice) < 0;
-            const color = isDiscount ? "#059669" : "#1f2937";
+          {rows.map((row, index) => {
+            if (row.type === "section") {
+              return (
+                <tr key={`section-${index}`} style={{ background: ACCENT_LIGHT }}>
+                  <td style={{ padding: "5px 6px", borderBottom: `1px solid ${MID_GRAY}` }} />
+                  <td colSpan={4} style={{ padding: "5px 6px", borderBottom: `1px solid ${MID_GRAY}`, fontWeight: 700, color: ACCENT }}>{row.label}</td>
+                </tr>
+              );
+            }
             return (
-              <tr key={j} style={{ borderBottom: j < unit.items.length - 1 ? "1px solid #f3f4f6" : "none" }}>
-                <td style={{ padding: "6px 16px", color }}>{it.description}</td>
-                <td style={{ padding: "6px 8px", textAlign: "right", color: "#6b7280", width: "40px" }}>{it.qty}</td>
-                <td style={{ padding: "6px 8px", textAlign: "right", color: "#6b7280", width: "80px" }}>{fmt(it.unitPrice)}</td>
-                <td style={{ padding: "6px 16px", textAlign: "right", fontWeight: 600, color, width: "96px" }}>{fmt(it.qty * it.unitPrice)}</td>
+              <tr key={`item-${index}`} style={{ background: "white" }}>
+                <td style={{ padding: "6px", textAlign: "center", borderBottom: `1px solid ${MID_GRAY}`, fontWeight: 700 }}>{itemIndex++}</td>
+                <td style={{ padding: "6px", borderBottom: `1px solid ${MID_GRAY}`, lineHeight: "10.5px", whiteSpace: "pre-wrap" }}>{row.description}</td>
+                <td style={{ padding: "6px", textAlign: "center", borderBottom: `1px solid ${MID_GRAY}` }}>{row.unit}</td>
+                <td style={{ padding: "6px", textAlign: "center", borderBottom: `1px solid ${MID_GRAY}` }}>{formatQuantity(row.qty)}</td>
+                <td style={{ padding: "6px", textAlign: "right", borderBottom: `1px solid ${MID_GRAY}`, fontWeight: 700 }}>{formatMoneyCad(row.amount)}</td>
               </tr>
             );
           })}
         </tbody>
       </table>
-    </div>
-  );
-}
-
-function LaborCard({ wo, meta }) {
-  const detail = `${fmtLaborHours(meta.laborHours)} x ${fmtRate(meta.laborRate)}`;
-  return (
-    <div style={{
-      marginTop: "10px",
-      border: "2px solid #e5e7eb",
-      borderRadius: "8px",
-      padding: "8px 16px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      background: "#f9fafb",
-      flexShrink: 0,
-    }}>
-      <div>
-        <p style={{ fontSize: "11.5px", fontWeight: 800, color: "#111827" }}>Main d&apos;oeuvre</p>
-        <p style={{ fontSize: "10px", color: "#6b7280", marginTop: "2px" }}>{detail}</p>
-      </div>
-      <span style={{ fontWeight: 800, color: "#111827", fontSize: "13px" }}>{fmt(wo.totalLabor)}</span>
-    </div>
+    </section>
   );
 }
 
 function Totals({ wo, meta }) {
-  const laborDetail = Number(wo.totalLabor) > 0
-    ? `${fmtLaborHours(meta.laborHours)} x ${fmtRate(meta.laborRate)}`
-    : "";
-
   return (
-    <div style={{ marginTop: "12px", display: "flex", justifyContent: "flex-end" }}>
-      <div style={{ width: "290px", border: "2px dashed #d1d5db", borderRadius: "8px", padding: "12px", background: "rgba(249, 250, 251, 0.4)" }}>
-        <div style={{ paddingBottom: "8px", borderBottom: "1px dashed #d1d5db" }}>
-          <TotalRow label="Pièces & services" value={fmt(wo.totalPieces)} />
-          <TotalRow label="Main d'oeuvre" note={laborDetail} value={fmt(wo.totalLabor)} />
-          <div style={{ marginTop: "6px", paddingTop: "6px", borderTop: "1px dotted #d1d5db" }}>
-            <TotalRow label="Sous-total" value={fmt(wo.subtotal)} strong />
-          </div>
-          <TotalRow label="TPS (5%)" value={fmt(wo.tps)} small />
-          <TotalRow label="TVQ (9.975%)" value={fmt(wo.tvq)} small />
-        </div>
-        <div style={{ paddingTop: "8px", display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
-          <div>
-            <p style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.25em", color: "#b91c1c" }}>{meta.document.totalLabel}</p>
-            {meta.document.totalHint && <p style={{ fontSize: "9px", color: "#9ca3af", marginTop: "2px" }}>{meta.document.totalHint}</p>}
-          </div>
-          <span style={{ fontSize: "18px", fontWeight: 900, color: "#b91c1c", letterSpacing: "-0.02em" }}>{fmt(wo.total)}</span>
+    <section style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
+      <div style={{ width: 270, border: `1px solid ${MID_GRAY}` }}>
+        <MoneyLine label="Sous-total" value={wo.subtotal} strong />
+        <MoneyLine label="TPS (5%)" value={wo.tps} />
+        <MoneyLine label="TVQ (9,975%)" value={wo.tvq} />
+        <div style={{ display: "flex", justifyContent: "space-between", background: ACCENT, color: "white", padding: "7px 10px", fontSize: 10, fontWeight: 700 }}>
+          <span>{meta.totalLabel} :</span>
+          <span>{formatMoneyCad(wo.total)}</span>
         </div>
       </div>
+    </section>
+  );
+}
+
+function Conditions({ meta }) {
+  return (
+    <section style={{ marginTop: 10 }}>
+      <DocHeading>CONDITIONS</DocHeading>
+      <div style={{ marginTop: 3 }}>
+        {documentConditions(meta.type).map((condition, index) => (
+          <p key={index} style={{ margin: "2px 0", paddingLeft: 12, fontSize: 8, lineHeight: "11px" }}>
+            - {stripHtmlTags(condition)}
+          </p>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function SignatureBlock() {
+  return (
+    <section style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0, marginTop: 18, textAlign: "center", fontSize: 9, color: TEXT_MED }}>
+      {["Pour Vosthermos", "Acceptation du client"].map((label) => (
+        <div key={label}>
+          <p style={{ margin: 0, color: ACCENT, fontSize: 10, fontWeight: 700 }}>{label}</p>
+          <div style={{ height: 34 }} />
+          <div style={{ width: "70%", margin: "0 auto", borderTop: `1px solid ${TEXT_MED}` }} />
+          <p style={{ margin: "4px 0 22px" }}>Signature</p>
+          <div style={{ width: "70%", margin: "0 auto", borderTop: `1px solid ${TEXT_MED}` }} />
+          <p style={{ margin: "4px 0 0" }}>Date</p>
+        </div>
+      ))}
+    </section>
+  );
+}
+
+function Footer({ co, page, documentNumber, clientName }) {
+  return (
+    <footer style={{ flexShrink: 0, padding: "5px 0.65in 3px", fontSize: 7, color: TEXT_MED, textAlign: "center" }}>
+      <p style={{ margin: 0 }}>
+        Vosthermos - Reparation et remplacement de fenetres | {co.address}, {co.city}, {co.province} | RBQ : {co.rbq} | TPS : {co.tps} | TVQ : {co.tvq}
+      </p>
+      <p style={{ margin: "2px 0 0" }}>{documentNumber}{clientName ? ` - ${clientName}` : ""} | Page {page}</p>
+    </footer>
+  );
+}
+
+function SectionKicker({ children }) {
+  return <p style={{ margin: 0, fontSize: 9, fontWeight: 700, color: ACCENT }}>{children}</p>;
+}
+
+function DocHeading({ children }) {
+  return <h2 style={{ margin: 0, fontSize: 11, lineHeight: "16px", fontWeight: 800, color: ACCENT }}>{children}</h2>;
+}
+
+function DetailRow({ label, value, tall }) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "96px 1fr", gap: 4, marginTop: 2, fontSize: 8.5, lineHeight: tall ? "12px" : "11px" }}>
+      <span style={{ fontWeight: 700 }}>{label} :</span>
+      <span>{value}</span>
     </div>
   );
 }
 
-function TotalRow({ label, note, value, strong, small }) {
+function MoneyLine({ label, value, strong }) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", marginBottom: note ? "5px" : "3px" }}>
-      <span style={{ color: small ? "#9ca3af" : "#6b7280", fontSize: small ? "10px" : "12px", fontWeight: strong ? 500 : 400 }}>
-        {label}
-        {note && <span style={{ display: "block", color: "#9ca3af", fontSize: "9.5px", marginTop: "1px" }}>{note}</span>}
-      </span>
-      <span style={{ color: small ? "#6b7280" : "#111827", fontSize: small ? "10px" : "12px", fontWeight: strong ? 500 : 400 }}>{value}</span>
-    </div>
-  );
-}
-
-function Footer({ co }) {
-  return (
-    <div style={{ flexShrink: 0, padding: "12px 0.5in", borderTop: "1px solid #e5e7eb", background: "#f9fafb", fontSize: "10px" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-        <div>
-          <p style={{ fontWeight: 700, color: "#374151", textTransform: "uppercase", letterSpacing: "0.08em", fontSize: "9px", marginBottom: "4px" }}>Conditions</p>
-          <p style={{ color: "#6b7280", lineHeight: 1.4 }}>Intérêt 1,5%/mois sur solde en retard · Chèque, virement Interac ou comptant.</p>
-          {co.rbq && <p style={{ color: "#6b7280", lineHeight: 1.4, marginTop: 4 }}>Licence RBQ : <strong style={{ color: "#374151" }}>{co.rbq}</strong></p>}
-        </div>
-        <div>
-          <p style={{ fontWeight: 700, color: "#374151", textTransform: "uppercase", letterSpacing: "0.08em", fontSize: "9px", marginBottom: "4px" }}>Taxes</p>
-          <p style={{ color: "#6b7280", lineHeight: 1.4 }}>TPS: {co.tps || "—"}<br />TVQ: {co.tvq || "—"}</p>
-        </div>
-      </div>
+    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 10px", fontSize: 9, borderBottom: `1px solid ${MID_GRAY}`, fontWeight: strong ? 700 : 400 }}>
+      <span>{label} :</span>
+      <span>{formatMoneyCad(value)}</span>
     </div>
   );
 }

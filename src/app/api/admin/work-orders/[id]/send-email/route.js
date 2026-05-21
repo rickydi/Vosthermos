@@ -9,13 +9,14 @@ import { logAdminActivity } from "@/lib/admin-activity";
 import { createOrTouchFollowUpFromWorkOrder } from "@/lib/follow-up-utils";
 import { getCompany } from "@/lib/company";
 import { getWorkOrderDocumentMeta } from "@/lib/work-order-document";
+import { documentFilename, formatMoneyCad, resolveDocumentNumber } from "@/lib/vosthermos-document";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.vosthermos.com";
 const LOGO_URL = `${SITE_URL}/images/Vos-Thermos-Logo_Blanc.png`;
 
-function fmt(n) { return `${Number(n || 0).toFixed(2)} $`; }
+function fmt(n) { return formatMoneyCad(n); }
 
-function renderEmailHtml(wo, documentMeta) {
+function renderEmailHtml(wo, documentMeta, documentNumber, filename) {
   const date = formatDateOnly(wo.date, {
     day: "numeric", month: "long", year: "numeric",
   });
@@ -24,7 +25,7 @@ function renderEmailHtml(wo, documentMeta) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${documentMeta.label} ${wo.number}</title>
+<title>${documentMeta.label} ${documentNumber}</title>
 </head>
 <body style="margin:0;padding:0;background-color:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#111;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f3f4f6;padding:40px 20px;">
@@ -41,7 +42,7 @@ function renderEmailHtml(wo, documentMeta) {
                   </td>
                   <td align="right" valign="middle" style="color:#ffffff;">
                     <div style="font-size:11px;letter-spacing:3px;opacity:.75;font-weight:600;">${documentMeta.labelUpper}</div>
-                    <div style="font-size:26px;font-weight:800;margin-top:6px;">${wo.number}</div>
+                    <div style="font-size:26px;font-weight:800;margin-top:6px;">${documentNumber}</div>
                   </td>
                 </tr>
               </table>
@@ -65,7 +66,7 @@ function renderEmailHtml(wo, documentMeta) {
                 <tr>
                   <td>
                     <div style="font-size:11px;color:#9ca3af;font-weight:600;letter-spacing:1px;">${documentMeta.labelUpper}</div>
-                    <div style="font-size:16px;color:#111;font-weight:600;margin-top:2px;">${wo.number}</div>
+                    <div style="font-size:16px;color:#111;font-weight:600;margin-top:2px;">${documentNumber}</div>
                   </td>
                   <td align="right">
                     <div style="font-size:11px;color:#9ca3af;font-weight:600;letter-spacing:1px;">DATE</div>
@@ -95,7 +96,7 @@ function renderEmailHtml(wo, documentMeta) {
             <td style="padding:0 40px 32px;">
               <div style="background-color:#fef2f2;border-left:3px solid #b91c1c;padding:14px 18px;border-radius:0 8px 8px 0;">
                 <div style="font-size:13px;color:#991b1b;font-weight:600;margin-bottom:4px;">Piece jointe</div>
-                <div style="font-size:13px;color:#555;">${documentMeta.attachmentPrefix}-${wo.number}.pdf (${documentMeta.emailAttachmentDetail})</div>
+                <div style="font-size:13px;color:#555;">${filename} (${documentMeta.emailAttachmentDetail})</div>
               </div>
             </td>
           </tr>
@@ -127,7 +128,7 @@ function renderEmailHtml(wo, documentMeta) {
 </html>`;
 }
 
-function renderEmailText(wo, documentMeta) {
+function renderEmailText(wo, documentMeta, documentNumber) {
   const date = formatDateOnly(wo.date);
   const name = wo.client?.name?.split(" ")[0] || "";
   return `Bonjour ${name},
@@ -135,7 +136,7 @@ function renderEmailText(wo, documentMeta) {
 Merci d'avoir choisi Vosthermos pour vos travaux.
 ${documentMeta.emailIntro}
 
-${documentMeta.labelUpper} ${wo.number}
+${documentMeta.labelUpper} ${documentNumber}
 Date: ${date}
 
 Sous-total: ${fmt(wo.subtotal)}
@@ -188,6 +189,8 @@ export async function POST(req, { params }) {
   const to = body.to?.trim() || wo.client?.email;
   if (!to) return NextResponse.json({ error: "Adresse email manquante" }, { status: 400 });
   const documentMeta = getWorkOrderDocumentMeta(wo.statut, body.documentType);
+  const documentNumber = resolveDocumentNumber(wo);
+  const filename = documentFilename(wo, documentMeta);
 
   const [settings, company] = await Promise.all([
     getWorkOrderSettings(),
@@ -230,16 +233,16 @@ export async function POST(req, { params }) {
       from: `"Vosthermos" <${fromEmail}>`,
       to,
       replyTo: fromEmail,
-      subject: `${documentMeta.subjectPrefix} ${wo.number} - Vosthermos`,
-      text: renderEmailText(serializedWo, documentMeta),
-      html: renderEmailHtml(serializedWo, documentMeta),
+      subject: `${documentMeta.subjectPrefix} ${documentNumber} - Vosthermos`,
+      text: renderEmailText(serializedWo, documentMeta, documentNumber),
+      html: renderEmailHtml(serializedWo, documentMeta, documentNumber, filename),
       headers: {
         "X-Entity-Ref-ID": wo.number,
         "List-Unsubscribe": `<mailto:${fromEmail}?subject=unsubscribe>`,
       },
       attachments: [
         {
-          filename: `${documentMeta.attachmentPrefix}-${wo.number}.pdf`,
+          filename,
           content: pdfBuffer,
           contentType: "application/pdf",
         },
