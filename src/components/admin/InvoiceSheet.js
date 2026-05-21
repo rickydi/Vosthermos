@@ -25,22 +25,37 @@ const MID_GRAY = "#bdc3c7";
 const TEXT_DARK = "#2c3e50";
 const TEXT_MED = "#555555";
 
-function paginateRows(rows) {
-  if (rows.length <= 9) return [{ rows, isFirst: true, isLast: true, index: 0 }];
-  const pages = [];
+function paginateRows(rows, meta) {
+  const firstPageLimit = meta.type === "invoice" ? 7 : 6;
+  const middlePageLimit = meta.type === "invoice" ? 9 : 8;
+  const lastPageLimit = meta.type === "invoice" ? 9 : 5;
+  if (rows.length <= firstPageLimit) return [{ rows, isFirst: true, isLast: true, index: 0, pageStartIndex: 0 }];
+  const rawPages = [];
   const queue = [...rows];
-  pages.push({ rows: queue.splice(0, 8), isFirst: true, isLast: false, index: 0 });
-  while (queue.length > 10) {
-    pages.push({ rows: queue.splice(0, 12), isFirst: false, isLast: false, index: pages.length });
+  rawPages.push(queue.splice(0, firstPageLimit));
+  while (queue.length > lastPageLimit) {
+    rawPages.push(queue.splice(0, middlePageLimit));
   }
-  pages.push({ rows: queue, isFirst: false, isLast: true, index: pages.length });
-  return pages;
+  rawPages.push(queue);
+
+  let pageStartIndex = 0;
+  return rawPages.map((pageRows, index) => {
+    const page = {
+      rows: pageRows,
+      isFirst: index === 0,
+      isLast: index === rawPages.length - 1,
+      index,
+      pageStartIndex,
+    };
+    pageStartIndex += pageRows.filter((row) => row.type === "item").length;
+    return page;
+  });
 }
 
 export default function InvoiceSheet({ wo, company }) {
   const documentMeta = getWorkOrderDocumentMeta(wo.statut);
   const rows = documentRows(wo);
-  const pages = paginateRows(rows);
+  const pages = paginateRows(rows, documentMeta);
   const co = resolveDocumentCompany(company || {});
   const documentNumber = resolveDocumentNumber(wo);
 
@@ -129,7 +144,7 @@ function Sheet({ page, totalPages, wo, co, meta, documentNumber }) {
       <main style={{ padding: "0.5in 0.65in 0", display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
         {page.isFirst ? (
           <>
-            <FullHeader meta={meta} co={co} documentNumber={documentNumber} />
+            <FullHeader meta={meta} co={co} />
             <InfoBox wo={wo} meta={meta} documentNumber={documentNumber} />
             <Description wo={wo} meta={meta} />
           </>
@@ -137,30 +152,12 @@ function Sheet({ page, totalPages, wo, co, meta, documentNumber }) {
           <CompactHeader wo={wo} meta={meta} documentNumber={documentNumber} page={page.index + 1} totalPages={totalPages} />
         )}
 
-        <WorkTable rows={page.rows} pageStartIndex={countPreviousItems(page, wo)} />
-
-        {page.isLast && (
-          <>
-            <Totals wo={wo} meta={meta} />
-            {meta.type !== "invoice" && <Conditions meta={meta} />}
-            {meta.type === "quote" && <SignatureBlock />}
-          </>
-        )}
+        <WorkTable rows={page.rows} pageStartIndex={page.pageStartIndex} />
       </main>
-      <Footer co={co} page={page.index + 1} />
+      <DocumentFooter co={co} page={page.index + 1} wo={wo} meta={meta} isLast={page.isLast} />
       <div style={{ height: 3, background: ACCENT, flexShrink: 0 }} />
     </div>
   );
-}
-
-function countPreviousItems(page, wo) {
-  const allPages = paginateRows(documentRows(wo));
-  let count = 0;
-  for (const candidate of allPages) {
-    if (candidate.index >= page.index) break;
-    count += candidate.rows.filter((row) => row.type === "item").length;
-  }
-  return count;
 }
 
 function FullHeader({ meta, co }) {
@@ -278,10 +275,10 @@ function WorkTable({ rows, pageStartIndex }) {
   );
 }
 
-function Totals({ wo, meta }) {
+function TotalsFooter({ wo, meta }) {
   return (
-    <section style={{ marginTop: 0, borderTop: `1px solid ${MID_GRAY}` }}>
-      <div style={{ width: 270, marginLeft: "auto", paddingTop: 12, paddingBottom: 8 }}>
+    <section style={{ marginTop: 0 }}>
+      <div style={{ width: 270, marginLeft: "auto", paddingTop: 5, paddingBottom: 4 }}>
         <MoneyLine label="Sous-total" value={wo.subtotal} strong />
         <MoneyLine label="TPS (5%)" value={wo.tps} />
         <MoneyLine label="TVQ (9,975%)" value={wo.tvq} />
@@ -294,13 +291,16 @@ function Totals({ wo, meta }) {
   );
 }
 
-function Conditions({ meta }) {
+function ConditionsFooter({ meta }) {
+  const conditions = documentConditions(meta.type);
+  if (conditions.length === 0) return null;
+
   return (
-    <section style={{ marginTop: 10 }}>
-      <DocHeading>CONDITIONS</DocHeading>
-      <div style={{ marginTop: 3 }}>
-        {documentConditions(meta.type).map((condition, index) => (
-          <p key={index} style={{ margin: "2px 0", paddingLeft: 12, fontSize: 8, lineHeight: "11px" }}>
+    <section style={{ borderTop: `1px solid ${MID_GRAY}`, paddingTop: 5, marginBottom: 4 }}>
+      <p style={{ margin: 0, fontSize: 8.5, lineHeight: "11px", fontWeight: 800, color: ACCENT }}>CONDITIONS</p>
+      <div style={{ marginTop: 2 }}>
+        {conditions.map((condition, index) => (
+          <p key={index} style={{ margin: "1px 0", paddingLeft: 10, fontSize: 7, lineHeight: "9px" }}>
             - {stripHtmlTags(condition)}
           </p>
         ))}
@@ -309,30 +309,19 @@ function Conditions({ meta }) {
   );
 }
 
-function SignatureBlock() {
-  return (
-    <section style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0, marginTop: 18, textAlign: "center", fontSize: 9, color: TEXT_MED }}>
-      {["Pour Vosthermos", "Acceptation du client"].map((label) => (
-        <div key={label}>
-          <p style={{ margin: 0, color: ACCENT, fontSize: 10, fontWeight: 700 }}>{label}</p>
-          <div style={{ height: 34 }} />
-          <div style={{ width: "70%", margin: "0 auto", borderTop: `1px solid ${TEXT_MED}` }} />
-          <p style={{ margin: "4px 0 22px" }}>Signature</p>
-          <div style={{ width: "70%", margin: "0 auto", borderTop: `1px solid ${TEXT_MED}` }} />
-          <p style={{ margin: "4px 0 0" }}>Date</p>
-        </div>
-      ))}
-    </section>
-  );
-}
+function DocumentFooter({ co, page, wo, meta, isLast }) {
+  const showConditions = isLast && meta.type !== "invoice";
 
-function Footer({ co, page }) {
   return (
-    <footer style={{ flexShrink: 0, padding: "5px 0.45in 3px", fontSize: 7, color: TEXT_MED, textAlign: "center" }}>
-      <p style={{ margin: 0 }}>
-        Vosthermos - Reparation et remplacement de fenetres | {co.address}, {co.city}, {co.province} | RBQ : {co.rbq} | TPS : {co.tps} | TVQ : {co.tvq}
-      </p>
-      <p style={{ margin: "2px 0 0" }}>Page {page}</p>
+    <footer style={{ flexShrink: 0, padding: "0 0.45in 3px", color: TEXT_MED }}>
+      {showConditions && <ConditionsFooter meta={meta} />}
+      <TotalsFooter wo={wo} meta={meta} />
+      <div style={{ paddingTop: 4, fontSize: 7, textAlign: "center" }}>
+        <p style={{ margin: 0 }}>
+          Vosthermos - Reparation et remplacement de fenetres | {co.address}, {co.city}, {co.province} | RBQ : {co.rbq} | TPS : {co.tps} | TVQ : {co.tvq}
+        </p>
+        <p style={{ margin: "2px 0 0" }}>Page {page}</p>
+      </div>
     </footer>
   );
 }

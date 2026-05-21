@@ -32,9 +32,11 @@ const PAGE_H = 792;
 const LEFT_M = 0.65 * 72;
 const RIGHT_M = 0.65 * 72;
 const TOP_M = 0.5 * 72;
-const BOT_M = 0.75 * 72;
 const CONTENT_W = PAGE_W - LEFT_M - RIGHT_M;
-const FOOTER_TOP = PAGE_H - BOT_M;
+const COMPANY_FOOTER_H = 24;
+const TOTALS_FOOTER_H = 88;
+const FOOTER_GAP = 8;
+const CONTENT_BOTTOM = PAGE_H - 3 - COMPANY_FOOTER_H - TOTALS_FOOTER_H - FOOTER_GAP;
 
 const COL_NUM = 28;
 const COL_UNIT = 58;
@@ -161,7 +163,7 @@ function drawSectionHeading(doc, label, y) {
 }
 
 function ensureSpace(doc, y, needed, onNewPage) {
-  if (y + needed <= FOOTER_TOP - 8) return y;
+  if (y + needed <= CONTENT_BOTTOM) return y;
   addDocPage(doc);
   return onNewPage();
 }
@@ -233,14 +235,12 @@ function drawTable(doc, wo, meta, documentNumber, y) {
   return y + 8;
 }
 
-function drawTotals(doc, wo, meta, y, onNewPage) {
+function drawTotalsFooter(doc, wo, meta, y) {
   const width = 270;
   const x = LEFT_M + CONTENT_W - width;
-  const height = 84;
-  y = ensureSpace(doc, y, height + 10, onNewPage);
 
   doc.moveTo(LEFT_M, y).lineTo(LEFT_M + CONTENT_W, y).strokeColor(MID_GRAY).lineWidth(0.5).stroke();
-  let rowY = y + 11;
+  let rowY = y + 8;
   const rows = [
     ["Sous-total", wo.subtotal, true],
     ["TPS (5%)", wo.tps, false],
@@ -254,56 +254,44 @@ function drawTotals(doc, wo, meta, y, onNewPage) {
     rowY += 16;
   }
 
-  const barY = y + 62;
+  const barY = y + 58;
   doc.rect(LEFT_M, barY, CONTENT_W, 24).fill(ACCENT);
   doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(10)
     .text(`${meta.totalLabel} :`, x + 12, barY + 7, { width: width - 120, align: "right" });
   doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(10)
     .text(formatMoneyCad(wo.total), x + width - 102, barY + 7, { width: 90, align: "right" });
-
-  return y + height + 18;
 }
 
-function drawConditionLine(doc, condition, y) {
+function conditionLineHeight(doc, condition) {
   const text = stripHtmlTags(condition);
-  const h = Math.max(13, textHeight(doc, `- ${text}`, CONTENT_W - 12, 8, "Helvetica"));
-  doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(8)
-    .text(`- ${text}`, LEFT_M + 12, y, { width: CONTENT_W - 12, lineGap: 1 });
-  return y + h + 2;
+  return Math.max(9, textHeight(doc, `- ${text}`, CONTENT_W - 10, 7, "Helvetica")) + 1;
 }
 
-function drawConditions(doc, meta, y, onNewPage) {
-  y = ensureSpace(doc, y, 34, onNewPage);
-  y = drawSectionHeading(doc, "CONDITIONS", y);
+function conditionsFooterHeight(doc, meta) {
+  if (meta.type === "invoice") return 0;
+  const conditions = documentConditions(meta.type);
+  if (conditions.length === 0) return 0;
+  return conditions.reduce((sum, condition) => sum + conditionLineHeight(doc, condition), 15);
+}
+
+function drawFooterConditions(doc, meta, y) {
+  const conditions = documentConditions(meta.type);
+  if (conditions.length === 0) return;
+
+  doc.moveTo(LEFT_M, y).lineTo(LEFT_M + CONTENT_W, y).strokeColor(MID_GRAY).lineWidth(0.5).stroke();
+  doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(8.5).text("CONDITIONS", LEFT_M, y + 4, { width: CONTENT_W });
+  let cy = y + 15;
   for (const condition of documentConditions(meta.type)) {
     const text = stripHtmlTags(condition);
-    const h = Math.max(13, textHeight(doc, `- ${text}`, CONTENT_W - 12, 8, "Helvetica")) + 2;
-    y = ensureSpace(doc, y, h, onNewPage);
-    y = drawConditionLine(doc, condition, y);
+    const h = conditionLineHeight(doc, condition);
+    doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(7)
+      .text(`- ${text}`, LEFT_M + 10, cy, { width: CONTENT_W - 10, lineGap: 0.5 });
+    cy += h;
   }
-  return y + 12;
 }
 
-function drawSignature(doc, y, onNewPage) {
-  const height = 118;
-  y = ensureSpace(doc, y, height, onNewPage);
-  const colW = CONTENT_W / 2;
-  const labels = ["Pour Vosthermos", "Acceptation du client"];
-
-  for (let i = 0; i < 2; i++) {
-    const x = LEFT_M + i * colW;
-    doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(10)
-      .text(labels[i], x, y, { width: colW, align: "center" });
-    doc.moveTo(x + 44, y + 56).lineTo(x + colW - 44, y + 56).strokeColor(TEXT_MED).lineWidth(0.7).stroke();
-    doc.fillColor(TEXT_MED).font("Helvetica").fontSize(9).text("Signature", x, y + 62, { width: colW, align: "center" });
-    doc.moveTo(x + 44, y + 96).lineTo(x + colW - 44, y + 96).strokeColor(TEXT_MED).lineWidth(0.7).stroke();
-    doc.fillColor(TEXT_MED).font("Helvetica").fontSize(9).text("Date", x, y + 102, { width: colW, align: "center" });
-  }
-
-  return y + height;
-}
-
-function drawFooter(doc, pageNum, company) {
+function drawFooter(doc, pageNum, totalPages, company, wo, meta) {
+  const isLast = pageNum === totalPages;
   const footer = [
     "Vosthermos - Reparation et remplacement de fenetres",
     `${company.address}, ${company.city}, ${company.province}`,
@@ -312,6 +300,13 @@ function drawFooter(doc, pageNum, company) {
     `TVQ : ${company.tvq}`,
   ].filter(Boolean).join("  |  ");
 
+  const totalsY = PAGE_H - 3 - COMPANY_FOOTER_H - TOTALS_FOOTER_H;
+  const conditionHeight = isLast ? conditionsFooterHeight(doc, meta) : 0;
+  if (conditionHeight > 0) {
+    drawFooterConditions(doc, meta, totalsY - conditionHeight - 4);
+  }
+  drawTotalsFooter(doc, wo, meta, totalsY);
+
   doc.rect(0, PAGE_H - 3, PAGE_W, 3).fill(ACCENT);
   doc.fillColor(TEXT_MED).font("Helvetica").fontSize(6.8)
     .text(footer, 30, PAGE_H - 22, { width: PAGE_W - 60, align: "center" });
@@ -319,11 +314,12 @@ function drawFooter(doc, pageNum, company) {
     .text(`Page ${pageNum}`, 30, PAGE_H - 12, { width: PAGE_W - 60, align: "center" });
 }
 
-function addFooters(doc, company) {
+function addFooters(doc, company, wo, meta) {
   const range = doc.bufferedPageRange();
+  const totalPages = range.count;
   for (let i = range.start; i < range.start + range.count; i++) {
     doc.switchToPage(i);
-    drawFooter(doc, i - range.start + 1, company);
+    drawFooter(doc, i - range.start + 1, totalPages, company, wo, meta);
   }
 }
 
@@ -357,15 +353,14 @@ export async function generateInvoicePdf(wo, settings = {}) {
       y = drawInfoBox(doc, wo, meta, documentNumber, y);
       y = drawDescription(doc, wo, meta, y, onNewPage);
       y = drawTable(doc, wo, meta, documentNumber, y);
-      y = drawTotals(doc, wo, meta, y, onNewPage);
-      if (meta.type !== "invoice") {
-        y = drawConditions(doc, meta, y, onNewPage);
-      }
-      if (meta.type === "quote") {
-        drawSignature(doc, y, onNewPage);
+
+      const lastPageFooterHeight = conditionsFooterHeight(doc, meta);
+      if (lastPageFooterHeight > 0 && y > CONTENT_BOTTOM - lastPageFooterHeight - 4) {
+        addDocPage(doc);
+        drawCompactHeader(doc, wo, meta, documentNumber, doc.bufferedPageRange().count);
       }
 
-      addFooters(doc, company);
+      addFooters(doc, company, wo, meta);
       doc.end();
     } catch (err) {
       reject(err);
