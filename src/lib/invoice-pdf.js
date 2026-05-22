@@ -83,18 +83,18 @@ function drawLogo(doc, x, y, height = 70) {
 
 function drawFullHeader(doc, meta, company) {
   const y = TOP_M + 6;
-  drawLogo(doc, LEFT_M, y, 70);
+  drawLogo(doc, LEFT_M, y, 50);
 
-  const rightX = LEFT_M + 190;
-  const rightW = CONTENT_W - 190;
-  doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(26)
+  const rightX = LEFT_M + 145;
+  const rightW = CONTENT_W - 145;
+  doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(23)
     .text(meta.labelUpper, rightX, y + 2, { width: rightW, align: "right" });
-  doc.fillColor(TEXT_MED).font("Helvetica").fontSize(10)
-    .text("Reparation et remplacement de fenetres", rightX, y + 34, { width: rightW, align: "right" });
-  doc.fillColor(TEXT_MED).font("Helvetica").fontSize(8)
-    .text(`${company.address}, ${company.city}, ${company.province} | RBQ : ${company.rbq}`, rightX, y + 54, { width: rightW, align: "right" });
+  doc.fillColor(TEXT_MED).font("Helvetica").fontSize(9)
+    .text("Reparation et remplacement de fenetres", rightX, y + 29, { width: rightW, align: "right" });
+  doc.fillColor(TEXT_MED).font("Helvetica").fontSize(7.5)
+    .text(`${company.address}, ${company.city}, ${company.province} | RBQ : ${company.rbq}`, rightX, y + 44, { width: rightW, align: "right" });
 
-  return y + 82;
+  return y + 62;
 }
 
 function drawCompactHeader(doc, wo, meta, documentNumber, pageNum) {
@@ -111,11 +111,12 @@ function drawCompactHeader(doc, wo, meta, documentNumber, pageNum) {
 }
 
 function drawInfoBox(doc, wo, company, meta, documentNumber, y) {
-  const h = 236;
+  const h = 188;
   const colW = CONTENT_W / 2;
   const date = getDocumentDate(wo);
   const targetDate = getDocumentTargetDate(wo, meta.type);
   const companyName = (company.legal || "Vosthermos").split(" - ")[0];
+  const projectAddress = getProjectAddress(wo, false);
 
   doc.rect(LEFT_M, y, CONTENT_W, h).fillAndStroke(LIGHT_GRAY, MID_GRAY);
   doc.moveTo(LEFT_M + colW, y).lineTo(LEFT_M + colW, y + h).strokeColor(MID_GRAY).lineWidth(0.5).stroke();
@@ -139,18 +140,23 @@ function drawInfoBox(doc, wo, company, meta, documentNumber, y) {
     doc.text(line, leftX, cy, { width: lineW });
     cy += 16;
   }
+  if (projectAddress) {
+    cy += 6;
+    doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE)
+      .text("ADRESSE DES TRAVAUX", leftX, cy, { width: lineW });
+    cy += 17;
+    doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(BODY_FONT_SIZE)
+      .text(projectAddress, leftX, cy, { width: lineW, lineGap: 1.5 });
+  }
 
   doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE).text("DETAILS", rightX, y + 12, { width: lineW });
   let dy = y + 36;
   const details = [
     ["Compagnie", companyName],
     ["Email", company.email || "info@vosthermos.com"],
-    ["TPS", company.tps || "-"],
-    ["TVQ", company.tvq || "-"],
     ["Date", formatDateFr(date)],
     targetDate ? [meta.dateTargetLabel, meta.type === "invoice" ? `${formatDateFr(targetDate)} (Net ${getPaymentTermsDays(wo)} j.)` : formatDateFr(targetDate)] : null,
     ["Type", getProjectType(wo)],
-    ["Adresse des travaux", getProjectAddress(wo, false) || "-"],
     [meta.numberLabel, documentNumber],
   ].filter(Boolean);
 

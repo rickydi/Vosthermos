@@ -26,9 +26,9 @@ const TEXT_DARK = "#2c3e50";
 const TEXT_MED = "#555555";
 
 function paginateRows(rows, meta) {
-  const firstPageLimit = 3;
-  const middlePageLimit = 5;
-  const lastPageLimit = meta.type === "invoice" ? 5 : 3;
+  const firstPageLimit = 4;
+  const middlePageLimit = 6;
+  const lastPageLimit = meta.type === "invoice" ? 6 : 4;
   if (rows.length <= firstPageLimit) return [{ rows, isFirst: true, isLast: true, index: 0, pageStartIndex: 0 }];
   const rawPages = [];
   const queue = [...rows];
@@ -162,13 +162,13 @@ function Sheet({ page, totalPages, wo, co, meta, documentNumber }) {
 
 function FullHeader({ meta, co }) {
   return (
-    <header style={{ display: "grid", gridTemplateColumns: "140px 1fr", gap: 16, alignItems: "start", marginBottom: 14 }}>
+    <header style={{ display: "grid", gridTemplateColumns: "105px 1fr", gap: 12, alignItems: "start", marginBottom: 8 }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/images/Vos-Thermos-Logo.png" alt="Vosthermos" style={{ width: 92, height: "auto", maxHeight: 70, objectFit: "contain" }} />
+      <img src="/images/Vos-Thermos-Logo.png" alt="Vosthermos" style={{ width: 72, height: "auto", maxHeight: 52, objectFit: "contain" }} />
       <div style={{ textAlign: "right" }}>
-        <h1 style={{ margin: 0, fontSize: 26, lineHeight: "30px", fontWeight: 800, color: ACCENT }}>{meta.labelUpper}</h1>
-        <p style={{ margin: "3px 0 0", fontSize: 10, color: TEXT_MED }}>Reparation et remplacement de fenetres</p>
-        <p style={{ margin: "5px 0 0", fontSize: 8, color: TEXT_MED }}>{co.address}, {co.city}, {co.province} | RBQ : {co.rbq}</p>
+        <h1 style={{ margin: 0, fontSize: 23, lineHeight: "26px", fontWeight: 800, color: ACCENT }}>{meta.labelUpper}</h1>
+        <p style={{ margin: "2px 0 0", fontSize: 9, color: TEXT_MED }}>Reparation et remplacement de fenetres</p>
+        <p style={{ margin: "3px 0 0", fontSize: 7.5, color: TEXT_MED }}>{co.address}, {co.city}, {co.province} | RBQ : {co.rbq}</p>
       </div>
     </header>
   );
@@ -192,6 +192,7 @@ function CompactHeader({ wo, meta, documentNumber, page, totalPages }) {
 
 function InfoBox({ wo, co, meta, documentNumber }) {
   const date = getDocumentDate(wo);
+  const projectAddress = getProjectAddress(wo, false);
   const targetDate = getDocumentTargetDate(wo, meta.type);
   const targetValue = targetDate
     ? meta.type === "invoice"
@@ -211,17 +212,20 @@ function InfoBox({ wo, co, meta, documentNumber }) {
           {wo.client?.phone && <>Tel. : {wo.client.phone}<br /></>}
           {wo.client?.email}
         </p>
+        {projectAddress && (
+          <div style={{ marginTop: 8 }}>
+            <p style={{ margin: 0, fontSize: 12, lineHeight: "15px", fontWeight: 700, color: ACCENT }}>ADRESSE DES TRAVAUX</p>
+            <p style={{ margin: "3px 0 0", fontSize: 12, lineHeight: "16px" }}>{projectAddress}</p>
+          </div>
+        )}
       </div>
       <div style={{ padding: "10px 12px" }}>
         <SectionKicker>DETAILS</SectionKicker>
         <DetailRow label="Compagnie" value={(co.legal || "Vosthermos").split(" - ")[0]} />
         <DetailRow label="Email" value={co.email || "info@vosthermos.com"} />
-        <DetailRow label="TPS" value={co.tps || "-"} />
-        <DetailRow label="TVQ" value={co.tvq || "-"} />
         <DetailRow label="Date" value={formatDateFr(date)} />
         {targetValue && <DetailRow label={meta.dateTargetLabel} value={targetValue} />}
         <DetailRow label="Type" value={getProjectType(wo)} />
-        <DetailRow label="Adresse des travaux" value={getProjectAddress(wo, false) || "-"} tall />
         <DetailRow label={meta.numberLabel} value={documentNumber} />
       </div>
     </section>
