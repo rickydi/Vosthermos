@@ -55,6 +55,7 @@ export default function BonsPage() {
   const totalUnpaid = workOrders
     .filter((wo) => ["invoiced", "sent"].includes(wo.statut))
     .reduce((sum, wo) => sum + Number(wo.total || 0), 0);
+  const documentActionClass = "px-4 py-2 bg-cyan-700 hover:bg-cyan-600 text-white rounded-lg text-sm font-medium";
 
   return (
     <div className="p-6 lg:p-8">
@@ -66,19 +67,19 @@ export default function BonsPage() {
         <div className="flex flex-wrap gap-2">
           <Link
             href="/admin/bons/nouveau?fresh=1"
-            className="px-4 py-2 bg-cyan-700 hover:bg-cyan-600 text-white rounded-lg text-sm font-medium"
+            className={documentActionClass}
           >
             <i className="fas fa-clipboard-list mr-2"></i>Bon de travail
           </Link>
           <Link
             href="/admin/bons/nouveau?fresh=1&mode=quote"
-            className="px-4 py-2 border border-sky-500/40 text-sky-600 hover:bg-sky-500/10 rounded-lg text-sm font-medium"
+            className={documentActionClass}
           >
             <i className="fas fa-file-signature mr-2"></i>Soumission
           </Link>
           <Link
             href="/admin/bons/nouveau?fresh=1&mode=invoice"
-            className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium"
+            className={documentActionClass}
           >
             <i className="fas fa-file-invoice-dollar mr-2"></i>Facture
           </Link>
