@@ -26,7 +26,7 @@ const TEXT_DARK = "#2c3e50";
 const TEXT_MED = "#555555";
 
 function paginateRows(rows, meta) {
-  const firstPageLimit = 4;
+  const firstPageLimit = 3;
   const middlePageLimit = 5;
   const lastPageLimit = meta.type === "invoice" ? 5 : 3;
   if (rows.length <= firstPageLimit) return [{ rows, isFirst: true, isLast: true, index: 0, pageStartIndex: 0 }];
@@ -145,7 +145,7 @@ function Sheet({ page, totalPages, wo, co, meta, documentNumber }) {
         {page.isFirst ? (
           <>
             <FullHeader meta={meta} co={co} />
-            <InfoBox wo={wo} meta={meta} documentNumber={documentNumber} />
+            <InfoBox wo={wo} co={co} meta={meta} documentNumber={documentNumber} />
             <Description wo={wo} meta={meta} />
           </>
         ) : (
@@ -190,7 +190,7 @@ function CompactHeader({ wo, meta, documentNumber, page, totalPages }) {
   );
 }
 
-function InfoBox({ wo, meta, documentNumber }) {
+function InfoBox({ wo, co, meta, documentNumber }) {
   const date = getDocumentDate(wo);
   const targetDate = getDocumentTargetDate(wo, meta.type);
   const targetValue = targetDate
@@ -214,6 +214,10 @@ function InfoBox({ wo, meta, documentNumber }) {
       </div>
       <div style={{ padding: "10px 12px" }}>
         <SectionKicker>DETAILS</SectionKicker>
+        <DetailRow label="Compagnie" value={(co.legal || "Vosthermos").split(" - ")[0]} />
+        <DetailRow label="Email" value={co.email || "info@vosthermos.com"} />
+        <DetailRow label="TPS" value={co.tps || "-"} />
+        <DetailRow label="TVQ" value={co.tvq || "-"} />
         <DetailRow label="Date" value={formatDateFr(date)} />
         {targetValue && <DetailRow label={meta.dateTargetLabel} value={targetValue} />}
         <DetailRow label="Type" value={getProjectType(wo)} />

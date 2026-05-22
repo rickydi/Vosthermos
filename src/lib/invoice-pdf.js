@@ -110,11 +110,12 @@ function drawCompactHeader(doc, wo, meta, documentNumber, pageNum) {
   return y + 58;
 }
 
-function drawInfoBox(doc, wo, meta, documentNumber, y) {
-  const h = 156;
+function drawInfoBox(doc, wo, company, meta, documentNumber, y) {
+  const h = 236;
   const colW = CONTENT_W / 2;
   const date = getDocumentDate(wo);
   const targetDate = getDocumentTargetDate(wo, meta.type);
+  const companyName = (company.legal || "Vosthermos").split(" - ")[0];
 
   doc.rect(LEFT_M, y, CONTENT_W, h).fillAndStroke(LIGHT_GRAY, MID_GRAY);
   doc.moveTo(LEFT_M + colW, y).lineTo(LEFT_M + colW, y + h).strokeColor(MID_GRAY).lineWidth(0.5).stroke();
@@ -142,6 +143,10 @@ function drawInfoBox(doc, wo, meta, documentNumber, y) {
   doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE).text("DETAILS", rightX, y + 12, { width: lineW });
   let dy = y + 36;
   const details = [
+    ["Compagnie", companyName],
+    ["Email", company.email || "info@vosthermos.com"],
+    ["TPS", company.tps || "-"],
+    ["TVQ", company.tvq || "-"],
     ["Date", formatDateFr(date)],
     targetDate ? [meta.dateTargetLabel, meta.type === "invoice" ? `${formatDateFr(targetDate)} (Net ${getPaymentTermsDays(wo)} j.)` : formatDateFr(targetDate)] : null,
     ["Type", getProjectType(wo)],
@@ -356,7 +361,7 @@ export async function generateInvoicePdf(wo, settings = {}) {
 
       addDocPage(doc);
       let y = drawFullHeader(doc, meta, company);
-      y = drawInfoBox(doc, wo, meta, documentNumber, y);
+      y = drawInfoBox(doc, wo, company, meta, documentNumber, y);
       y = drawDescription(doc, wo, meta, y, onNewPage);
       y = drawTable(doc, wo, meta, documentNumber, y);
 
