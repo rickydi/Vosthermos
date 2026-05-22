@@ -65,6 +65,17 @@ function buildChatForwardText(conversation) {
   return `${header}\n\n${messages}\n\n${adminUrl(`/admin/chat/${conversation.id}`)}`;
 }
 
+function suiviClientUrl(conversation) {
+  const params = new URLSearchParams({ flash: "1" });
+  const phone = String(conversation?.clientPhone || "").replace(/\D/g, "").slice(-10);
+
+  if (phone) params.set("suiviPhone", phone);
+  if (conversation?.clientEmail) params.set("suiviEmail", conversation.clientEmail);
+  if (conversation?.clientName) params.set("suiviName", conversation.clientName);
+
+  return `/admin/suivi-clients?${params.toString()}`;
+}
+
 export default function ChatPanel({ initialConversationId }) {
   const [conversations, setConversations] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -425,7 +436,7 @@ export default function ChatPanel({ initialConversationId }) {
                   })()}
                 </div>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
                 {forwardStatus && <span className="text-xs text-emerald-300 font-semibold">{forwardStatus}</span>}
                 <button onClick={() => openWhatsappWithFallback("jason")} disabled={!!forwardingTo} className="px-4 py-2 bg-green-500/20 text-green-400 hover:bg-green-500/30 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50" title="Ouvrir WhatsApp Jason avec SMS secours">
                   <i className={`fas ${forwardingTo === "jason" ? "fa-spinner fa-spin" : "fab fa-whatsapp"} mr-1`}></i>Jason
@@ -443,6 +454,9 @@ export default function ChatPanel({ initialConversationId }) {
                     OK Caren
                   </button>
                 )}
+                <a href={suiviClientUrl(selected)} className="px-4 py-2 bg-green-500/20 text-green-400 hover:bg-green-500/30 rounded-lg text-xs font-semibold transition-colors" title="Ouvrir ce client dans Suivi clients">
+                  <i className="fas fa-tasks mr-1"></i>Voir dans suivi
+                </a>
                 <button onClick={markAsUnread} className="px-4 py-2 bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 rounded-lg text-xs font-semibold transition-colors" title="Remettre dans Non-lues et fermer cette conversation">
                   Non vu
                 </button>

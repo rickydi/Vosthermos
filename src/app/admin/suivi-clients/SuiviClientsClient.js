@@ -105,6 +105,68 @@ function priorityLabel(value) {
   return "Normale";
 }
 
+function normalizePhone(value) {
+  const digits = String(value || "").replace(/\D/g, "").slice(-10);
+  return digits.length >= 7 ? digits : "";
+}
+
+function normalizeEmail(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function normalizeText(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function readTargetParams() {
+  if (typeof window === "undefined") return null;
+  const params = new URLSearchParams(window.location.search);
+  const target = {
+    phone: normalizePhone(params.get("suiviPhone")),
+    email: normalizeEmail(params.get("suiviEmail")),
+    name: normalizeText(params.get("suiviName")),
+    flash: params.get("flash") === "1",
+  };
+  return target.phone || target.email || target.name ? target : null;
+}
+
+function targetSearchValue(target) {
+  if (!target) return "";
+  return target.email || target.name || "";
+}
+
+function phoneMatches(a, b) {
+  if (!a || !b) return false;
+  return a === b || a.endsWith(b.slice(-7)) || b.endsWith(a.slice(-7));
+}
+
+function followUpMatchesTarget(followUp, target) {
+  if (!target) return false;
+
+  const phones = [
+    followUp.phone,
+    followUp.client?.phone,
+    followUp.client?.secondaryPhone,
+    ...(followUp.activity?.chats || []).map((chat) => chat.clientPhone),
+  ].map(normalizePhone).filter(Boolean);
+  if (target.phone && phones.some((phone) => phoneMatches(phone, target.phone))) return true;
+
+  const emails = [
+    followUp.email,
+    followUp.client?.email,
+    ...(followUp.activity?.chats || []).map((chat) => chat.clientEmail),
+  ].map(normalizeEmail).filter(Boolean);
+  if (target.email && emails.includes(target.email)) return true;
+
+  const names = [
+    followUp.client?.name,
+    followUp.contactName,
+    followUp.title,
+    ...(followUp.activity?.chats || []).map((chat) => chat.clientName),
+  ].map(normalizeText).filter(Boolean);
+  return Boolean(target.name && names.some((name) => name.includes(target.name) || target.name.includes(name)));
+}
+
 function addPhotoToActivity(activity = {}, photo) {
   const existingPhotos = activity.photos || [];
   const photos = [photo, ...existingPhotos.filter((item) => item.id !== photo.id)];
@@ -150,10 +212,14 @@ export default function SuiviClientsClient() {
   const [moveFeedback, setMoveFeedback] = useState(null);
   const [celebratingId, setCelebratingId] = useState(null);
   const [archivingLost, setArchivingLost] = useState(false);
+  const [targetFlashId, setTargetFlashId] = useState(null);
   const timer = useRef(null);
   const moveTimer = useRef(null);
   const celebrationTimer = useRef(null);
   const boardScrollRef = useRef(null);
+  const targetRef = useRef(null);
+  const targetHandledRef = useRef(false);
+  const targetFlashTimer = useRef(null);
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 8 },
@@ -168,7 +234,11 @@ export default function SuiviClientsClient() {
     if (q.trim()) params.set("q", q.trim());
     fetch(`/api/admin/follow-ups?${params}`, { cache: "no-store" })
       .then((r) => r.json())
-      .then((data) => setFollowUps(Array.isArray(data) ? data : []))
+      .then((data) => {
+        const list = Array.isArray(data) ? data : [];
+        setFollowUps(list);
+        return list;
+      })
       .finally(() => setLoading(false));
   }
 
@@ -180,7 +250,11 @@ export default function SuiviClientsClient() {
   }
 
   useEffect(() => {
-    load("");
+    const target = readTargetParams();
+    targetRef.current = target;
+    const targetSearch = targetSearchValue(target);
+    if (targetSearch) setSearch(targetSearch);
+    load(targetSearch);
     fetch(`/api/admin/settings?key=${SETTINGS_KEY}`, { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => {
@@ -195,8 +269,32 @@ export default function SuiviClientsClient() {
     return () => {
       clearTimeout(moveTimer.current);
       clearTimeout(celebrationTimer.current);
+      clearTimeout(targetFlashTimer.current);
     };
   }, []);
+
+  useEffect(() => {
+    const target = targetRef.current;
+    if (!target || targetHandledRef.current || loading || followUps.length === 0) return;
+    const match = followUps.find((followUp) => followUpMatchesTarget(followUp, target));
+    if (!match) return;
+
+    const scrollTimer = window.setTimeout(() => {
+      const element = document.querySelector(`[data-follow-up-id="${match.id}"]`);
+      if (!element) return;
+      targetHandledRef.current = true;
+      element.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+      if (target.flash) {
+        setTargetFlashId(match.id);
+        clearTimeout(targetFlashTimer.current);
+        targetFlashTimer.current = window.setTimeout(() => {
+          setTargetFlashId((current) => (current === match.id ? null : current));
+        }, 1700);
+      }
+    }, 160);
+
+    return () => window.clearTimeout(scrollTimer);
+  }, [followUps, loading]);
 
   useEffect(() => {
     clearTimeout(timer.current);
@@ -554,6 +652,9 @@ export default function SuiviClientsClient() {
         .kanban-card-accepted-burst {
           animation: kanban-card-drop 980ms cubic-bezier(0.2, 0.85, 0.2, 1), kanban-accepted-glow 1250ms ease-out both;
         }
+        .kanban-card-target-flash {
+          animation: kanban-target-flash 780ms ease-in-out 2;
+        }
         .kanban-mini-fireworks {
           position: absolute;
           inset: 0;
@@ -761,6 +862,16 @@ export default function SuiviClientsClient() {
           0% { box-shadow: 0 0 0 rgba(16, 185, 129, 0); border-color: rgba(110, 231, 183, 0.85); }
           28% { box-shadow: 0 22px 58px rgba(16, 185, 129, 0.22), 0 0 0 1px rgba(103, 232, 249, 0.36); }
           100% { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
+        }
+        @keyframes kanban-target-flash {
+          0%, 100% {
+            background-color: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+          }
+          50% {
+            background-color: rgba(16, 185, 129, 0.18);
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.30), 0 18px 42px rgba(16, 185, 129, 0.18);
+          }
         }
         @keyframes kanban-firework-ring {
           0% { opacity: 0; transform: translate(-50%, -50%) scale(0.2); }
@@ -975,6 +1086,7 @@ export default function SuiviClientsClient() {
                     activeDragId={activeDragId}
                     recentlyMovedId={recentlyMovedId}
                     celebratingId={celebratingId}
+                    targetFlashId={targetFlashId}
                     archivingLost={archivingLost}
                   />
                 ))}
@@ -1068,6 +1180,7 @@ function KanbanColumn({
   activeDragId,
   recentlyMovedId,
   celebratingId,
+  targetFlashId,
   archivingLost,
 }) {
   const { isOver, setNodeRef } = useDroppable({ id: column.key });
@@ -1132,6 +1245,7 @@ function KanbanColumn({
               isDragging={activeDragId === followUp.id}
               highlighted={recentlyMovedId === followUp.id}
               celebrating={celebratingId === followUp.id}
+              targetHighlighted={targetFlashId === followUp.id}
             />
           ))
         )}
@@ -1144,7 +1258,7 @@ function isInteractiveTarget(target) {
   return Boolean(target?.closest?.("a,button,input,textarea,select,label"));
 }
 
-function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, isDragging, highlighted, celebrating }) {
+function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, isDragging, highlighted, celebrating, targetHighlighted }) {
   const [pressed, setPressed] = useState(false);
   const didDrag = useRef(false);
   const {
@@ -1172,6 +1286,7 @@ function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, isDragging
   return (
     <article
       ref={setNodeRef}
+      data-follow-up-id={followUp.id}
       {...attributes}
       {...dragListeners}
       onPointerDown={(e) => {
@@ -1198,6 +1313,8 @@ function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, isDragging
         highlighted ? "kanban-card-dropped ring-2 ring-cyan-300/80" : ""
       } ${
         celebrating ? "kanban-card-accepted-burst ring-2 ring-emerald-300/80" : ""
+      } ${
+        targetHighlighted ? "kanban-card-target-flash ring-2 ring-emerald-300/90 border-emerald-300/80" : ""
       }`}
     >
       {celebrating && <FireworksShow compact />}
