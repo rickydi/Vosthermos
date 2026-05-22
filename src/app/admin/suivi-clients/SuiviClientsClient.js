@@ -167,6 +167,14 @@ function followUpMatchesTarget(followUp, target) {
   return Boolean(target.name && names.some((name) => name.includes(target.name) || target.name.includes(name)));
 }
 
+function mergeFollowUpsWithActivity(current, enriched) {
+  const byId = new Map(enriched.map((item) => [item.id, item]));
+  return current.map((item) => {
+    const next = byId.get(item.id);
+    return next ? { ...item, ...next, activity: next.activity || item.activity } : item;
+  });
+}
+
 function addPhotoToActivity(activity = {}, photo) {
   const existingPhotos = activity.photos || [];
   const photos = [photo, ...existingPhotos.filter((item) => item.id !== photo.id)];
@@ -221,26 +229,50 @@ export default function SuiviClientsClient() {
   const targetHandledRef = useRef(false);
   const targetLookupRef = useRef(false);
   const targetFlashTimer = useRef(null);
+  const loadSeq = useRef(0);
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 8 },
     })
   );
 
-  function load(q = search) {
-    setLoading(true);
+  function followUpsUrl(q = search, { activity = true } = {}) {
     const params = new URLSearchParams();
     params.set("status", "all");
     params.set("limit", "200");
     if (q.trim()) params.set("q", q.trim());
-    fetch(`/api/admin/follow-ups?${params}`, { cache: "no-store" })
+    if (!activity) params.set("activity", "0");
+    return `/api/admin/follow-ups?${params}`;
+  }
+
+  function fetchFollowUps(q = search, options = {}) {
+    return fetch(followUpsUrl(q, options), { cache: "no-store" })
       .then((r) => r.json())
-      .then((data) => {
-        const list = Array.isArray(data) ? data : [];
-        setFollowUps(list);
-        return list;
+      .then((data) => (Array.isArray(data) ? data : []));
+  }
+
+  function refreshActivity(q, seq) {
+    fetchFollowUps(q, { activity: true })
+      .then((list) => {
+        if (seq !== loadSeq.current) return;
+        setFollowUps((current) => mergeFollowUpsWithActivity(current, list));
       })
-      .finally(() => setLoading(false));
+      .catch(() => {});
+  }
+
+  function load(q = search, { fast = true } = {}) {
+    const seq = loadSeq.current + 1;
+    loadSeq.current = seq;
+    setLoading(true);
+    fetchFollowUps(q, { activity: !fast })
+      .then((list) => {
+        if (seq !== loadSeq.current) return;
+        setFollowUps(list);
+        if (fast) refreshActivity(q, seq);
+      })
+      .finally(() => {
+        if (seq === loadSeq.current) setLoading(false);
+      });
   }
 
   function scrollBoard(direction) {
@@ -281,14 +313,9 @@ export default function SuiviClientsClient() {
       if (!q || targetLookupRef.current) return;
       targetLookupRef.current = true;
 
-      const params = new URLSearchParams();
-      params.set("status", "all");
-      params.set("limit", "200");
-      params.set("q", q);
-      fetch(`/api/admin/follow-ups?${params}`, { cache: "no-store" })
-        .then((r) => r.json())
+      fetchFollowUps(q, { activity: true })
         .then((data) => {
-          const found = (Array.isArray(data) ? data : []).find((followUp) => followUpMatchesTarget(followUp, target));
+          const found = data.find((followUp) => followUpMatchesTarget(followUp, target));
           if (!found) return;
           setFollowUps((items) => items.some((item) => item.id === found.id) ? items : [found, ...items]);
         })
@@ -311,6 +338,7 @@ export default function SuiviClientsClient() {
     }, 160);
 
     return () => window.clearTimeout(scrollTimer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [followUps, loading]);
 
   useEffect(() => {

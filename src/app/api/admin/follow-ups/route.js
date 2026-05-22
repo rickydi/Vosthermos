@@ -381,6 +381,7 @@ export async function GET(req) {
   const status = searchParams.get("status") || "active";
   const q = clean(searchParams.get("q"));
   const limit = Math.min(parseInt(searchParams.get("limit") || "100", 10), 200);
+  const includeActivity = searchParams.get("activity") !== "0";
 
   const where = {};
   if (status === "active") {
@@ -426,6 +427,10 @@ export async function GET(req) {
     ],
     take: limit,
   });
+
+  if (!includeActivity) {
+    return NextResponse.json(followUps.map(serializeFollowUp));
+  }
 
   const enriched = await attachCentralActivity(followUps);
   return NextResponse.json(enriched.map(serializeFollowUp));
