@@ -22,12 +22,7 @@ export async function POST(req, { params }) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    let unreadCount = 0;
-    for (const message of conversation.messages) {
-      if (message.senderType === "ADMIN") break;
-      if (message.senderType === "CLIENT") unreadCount += 1;
-    }
-    if (unreadCount === 0) unreadCount = 1;
+    const unreadCount = 1;
 
     const updated = await prisma.chatConversation.update({
       where: { id },

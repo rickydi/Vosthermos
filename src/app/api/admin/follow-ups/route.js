@@ -69,6 +69,10 @@ function serializeMoney(value) {
   return value === null || value === undefined ? null : Number(value);
 }
 
+function unreadConversationCount(value) {
+  return Number(value || 0) > 0 ? 1 : 0;
+}
+
 function activityItem(item) {
   return {
     ...item,
@@ -312,7 +316,7 @@ async function attachCentralActivity(followUps) {
         id: chat.id,
         title: "Chat client",
         subtitle: chat.messages?.[0]?.content || chat.clientName,
-        status: chat.unreadCount > 0 ? `${chat.unreadCount} non-lu` : (chat.isArchived ? "archive" : "actif"),
+        status: unreadConversationCount(chat.unreadCount) > 0 ? "1 non-lu" : (chat.isArchived ? "archive" : "actif"),
         date: chat.lastMessageAt || chat.createdAt,
         href: `/admin/chat/${chat.id}`,
       })),
@@ -337,7 +341,7 @@ async function attachCentralActivity(followUps) {
           clientName: chat.clientName,
           clientPhone: chat.clientPhone,
           clientEmail: chat.clientEmail,
-          unreadCount: chat.unreadCount,
+          unreadCount: unreadConversationCount(chat.unreadCount),
           isArchived: chat.isArchived,
           lastMessageAt: iso(chat.lastMessageAt),
           lastMessage: chat.messages?.[0]?.content || "",

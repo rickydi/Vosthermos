@@ -51,7 +51,7 @@ export async function POST(req, { params }) {
       data: {
         lastMessageAt: new Date(),
         lastSeenAt: new Date(),
-        unreadCount: { increment: 1 },
+        unreadCount: 1,
       },
     });
 

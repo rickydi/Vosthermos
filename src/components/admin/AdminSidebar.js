@@ -208,7 +208,7 @@ export default function AdminSidebar() {
         ]);
         const chatData = await chatRes.json();
         if (Array.isArray(chatData)) {
-          setUnreadChat(chatData.reduce((sum, c) => sum + (c.unreadCount || 0), 0));
+          setUnreadChat(chatData.filter((c) => Number(c.unreadCount || 0) > 0).length);
         }
         const rdvData = await rdvRes.json();
         if (Array.isArray(rdvData)) {

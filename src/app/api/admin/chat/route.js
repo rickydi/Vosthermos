@@ -16,7 +16,10 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(conversations);
+    return NextResponse.json(conversations.map((conversation) => ({
+      ...conversation,
+      unreadCount: Number(conversation.unreadCount || 0) > 0 ? 1 : 0,
+    })));
   } catch {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
