@@ -132,7 +132,7 @@ function readTargetParams() {
 
 function targetSearchValue(target) {
   if (!target) return "";
-  return target.email || target.name || "";
+  return target.email || target.name || target.phone || "";
 }
 
 function phoneMatches(a, b) {
@@ -219,6 +219,7 @@ export default function SuiviClientsClient() {
   const boardScrollRef = useRef(null);
   const targetRef = useRef(null);
   const targetHandledRef = useRef(false);
+  const targetLookupRef = useRef(false);
   const targetFlashTimer = useRef(null);
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -252,9 +253,7 @@ export default function SuiviClientsClient() {
   useEffect(() => {
     const target = readTargetParams();
     targetRef.current = target;
-    const targetSearch = targetSearchValue(target);
-    if (targetSearch) setSearch(targetSearch);
-    load(targetSearch);
+    load("");
     fetch(`/api/admin/settings?key=${SETTINGS_KEY}`, { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => {
@@ -275,9 +274,27 @@ export default function SuiviClientsClient() {
 
   useEffect(() => {
     const target = targetRef.current;
-    if (!target || targetHandledRef.current || loading || followUps.length === 0) return;
+    if (!target || targetHandledRef.current || loading) return;
     const match = followUps.find((followUp) => followUpMatchesTarget(followUp, target));
-    if (!match) return;
+    if (!match) {
+      const q = targetSearchValue(target);
+      if (!q || targetLookupRef.current) return;
+      targetLookupRef.current = true;
+
+      const params = new URLSearchParams();
+      params.set("status", "all");
+      params.set("limit", "200");
+      params.set("q", q);
+      fetch(`/api/admin/follow-ups?${params}`, { cache: "no-store" })
+        .then((r) => r.json())
+        .then((data) => {
+          const found = (Array.isArray(data) ? data : []).find((followUp) => followUpMatchesTarget(followUp, target));
+          if (!found) return;
+          setFollowUps((items) => items.some((item) => item.id === found.id) ? items : [found, ...items]);
+        })
+        .catch(() => {});
+      return;
+    }
 
     const scrollTimer = window.setTimeout(() => {
       const element = document.querySelector(`[data-follow-up-id="${match.id}"]`);
