@@ -364,6 +364,7 @@ model ClientFollowUp {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   photos          ClientPhoto[]
+  workOrders      WorkOrder[]
 
   @@index([clientId])
   @@index([status])
@@ -515,6 +516,8 @@ model WorkOrder {
   client                 Client          @relation(fields: [clientId], references: [id])
   technicianId           Int?
   technician             Technician?     @relation(fields: [technicianId], references: [id])
+  followUpId             Int?
+  followUp               ClientFollowUp? @relation(fields: [followUpId], references: [id], onDelete: SetNull)
   routeId                Int?
   route                  RoutePlan?      @relation(fields: [routeId], references: [id], onDelete: SetNull)
   routePosition          Int?
@@ -548,6 +551,7 @@ model WorkOrder {
 
   @@index([clientId])
   @@index([technicianId])
+  @@index([followUpId])
   @@index([routeId])
   @@index([statut])
   @@index([date])

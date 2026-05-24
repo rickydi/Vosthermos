@@ -16,7 +16,15 @@ import { workOrderStatutFromFollowUpStatus } from "@/lib/follow-up-columns";
 import { parseDateOnly } from "@/lib/date-only";
 import { changedFields, logAdminActivity } from "@/lib/admin-activity";
 
-async function latestClientFollowUp(clientId) {
+async function latestClientFollowUp(clientId, followUpId) {
+  if (followUpId) {
+    const linked = await prisma.clientFollowUp.findUnique({
+      where: { id: followUpId },
+      select: { id: true, status: true, title: true },
+    });
+    if (linked) return linked;
+  }
+
   if (!clientId) return null;
   return prisma.clientFollowUp.findFirst({
     where: {
@@ -55,7 +63,7 @@ export async function GET(_req, { params }) {
   });
 
   if (!wo) return NextResponse.json({ error: "Non trouve" }, { status: 404 });
-  const followUp = await latestClientFollowUp(wo.clientId);
+  const followUp = await latestClientFollowUp(wo.clientId, wo.followUpId);
 
   const ser = (i) => ({
     ...i,

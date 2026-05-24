@@ -116,6 +116,7 @@ async function attachCentralActivity(followUps) {
         id: true,
         number: true,
         clientId: true,
+        followUpId: true,
         statut: true,
         date: true,
         createdAt: true,
@@ -217,7 +218,7 @@ async function attachCentralActivity(followUps) {
     const contact = contactForFollowUp(followUp);
 
     const relatedWorkOrders = workOrders
-      .filter((wo) => sameContact(contact, { clientId: wo.clientId, phone: wo.client?.phone, secondaryPhone: wo.client?.secondaryPhone, email: wo.client?.email }))
+      .filter((wo) => wo.followUpId === followUp.id || sameContact(contact, { clientId: wo.clientId, phone: wo.client?.phone, secondaryPhone: wo.client?.secondaryPhone, email: wo.client?.email }))
       .slice(0, 20);
     const relatedAppointments = appointments
       .filter((appt) => sameContact(contact, { phone: appt.phone, email: appt.email }))
@@ -350,6 +351,7 @@ async function attachCentralActivity(followUps) {
         workOrders: relatedWorkOrders.map((wo) => ({
           id: wo.id,
           number: wo.number,
+          followUpId: wo.followUpId,
           statut: wo.statut,
           date: iso(wo.date),
           updatedAt: iso(wo.updatedAt),

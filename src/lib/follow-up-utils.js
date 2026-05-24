@@ -121,24 +121,35 @@ export async function createOrTouchFollowUpFromLead({ client, source, notes, ser
   });
 }
 
-async function findRelevantFollowUp(clientId, nextStatus) {
-  const active = await prisma.clientFollowUp.findFirst({
+async function findRelevantFollowUp(clientId, nextStatus, workOrder) {
+  if (workOrder?.followUpId) {
+    const linked = await prisma.clientFollowUp.findUnique({
+      where: { id: workOrder.followUpId },
+    });
+    if (linked && linked.status !== "archived") return linked;
+  }
+
+  const active = await prisma.clientFollowUp.findMany({
     where: {
       clientId,
       status: { notIn: FOLLOW_UP_TERMINAL_STATUSES },
     },
     orderBy: { updatedAt: "desc" },
+    take: 2,
   });
-  if (active) return active;
+  if (active.length === 1) return active[0];
+  if (active.length > 1) return null;
   if (!FOLLOW_UP_TERMINAL_STATUSES.includes(nextStatus)) return null;
 
-  return prisma.clientFollowUp.findFirst({
+  const nonArchived = await prisma.clientFollowUp.findMany({
     where: {
       clientId,
       status: { not: "archived" },
     },
     orderBy: { updatedAt: "desc" },
+    take: 2,
   });
+  return nonArchived.length === 1 ? nonArchived[0] : null;
 }
 
 export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client, followUpStatus } = {}) {
@@ -146,15 +157,16 @@ export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client, fo
 
   const columns = await getSavedFollowUpColumns();
   const status = cleanText(followUpStatus) || (workOrder.statut === "draft" ? "to_call" : followUpStatusFromWorkOrderStatut(workOrder.statut, columns));
-  const existing = await findRelevantFollowUp(client.id, status);
+  const existing = await findRelevantFollowUp(client.id, status, workOrder);
   const documentMeta = getWorkOrderDocumentMeta(workOrder.statut);
   const sourceText = documentMeta.type === "quote" ? "soumission" : "bon de travail";
   const defaultNextAction = documentMeta.type === "quote" ? "Relancer la soumission" : "Appeler le client";
 
   const note = `[auto: ${sourceText} ${workOrder.number || `#${workOrder.id}`} ${new Date().toISOString().slice(0, 10)}]`;
 
+  let followUp;
   if (existing) {
-    return prisma.clientFollowUp.update({
+    followUp = await prisma.clientFollowUp.update({
       where: { id: existing.id },
       data: {
         source: existing.source || sourceText,
@@ -166,37 +178,73 @@ export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client, fo
         notes: appendNote(existing.notes, note),
       },
     });
+  } else {
+    followUp = await prisma.clientFollowUp.create({
+      data: {
+        clientId: client.id,
+        title: `${client.name || "Client"} - ${workOrder.number || sourceText}`,
+        source: sourceText,
+        status,
+        contactName: client.name || null,
+        phone: primaryContactPhone(client),
+        email: client.email || null,
+        nextAction: status === "scheduled" ? "Suivre le bon planifie" : defaultNextAction,
+        notes: note,
+      },
+    });
   }
 
-  return prisma.clientFollowUp.create({
-    data: {
-      clientId: client.id,
-      title: `${client.name || "Client"} - ${workOrder.number || sourceText}`,
-      source: sourceText,
-      status,
-      contactName: client.name || null,
-      phone: primaryContactPhone(client),
-      email: client.email || null,
-      nextAction: status === "scheduled" ? "Suivre le bon planifie" : defaultNextAction,
-      notes: note,
-    },
-  });
+  if (followUp?.id && workOrder.followUpId !== followUp.id) {
+    await prisma.workOrder.update({
+      where: { id: workOrder.id },
+      data: { followUpId: followUp.id },
+    });
+  }
+
+  return followUp;
 }
 
-export async function syncLatestWorkOrderFromFollowUpStatus(followUp, columns) {
-  const clientId = followUp?.clientId || followUp?.client?.id;
-  const status = cleanText(followUp?.status);
-  if (!clientId || !status) return null;
-
-  const normalizedColumns = columns || await getSavedFollowUpColumns();
-  const nextStatut = workOrderStatutFromFollowUpStatus(status, normalizedColumns);
-  const workOrder = await prisma.workOrder.findFirst({
-    where: { clientId },
+async function findLinkedWorkOrderForFollowUp(followUp) {
+  if (!followUp?.id) return null;
+  const linked = await prisma.workOrder.findFirst({
+    where: { followUpId: followUp.id },
     orderBy: [
       { updatedAt: "desc" },
       { id: "desc" },
     ],
   });
+  if (linked) return linked;
+
+  const clientId = followUp?.clientId || followUp?.client?.id;
+  if (!clientId) return null;
+
+  const candidates = await prisma.workOrder.findMany({
+    where: {
+      clientId,
+      followUpId: null,
+      statut: { not: "paid" },
+    },
+    orderBy: [
+      { updatedAt: "desc" },
+      { id: "desc" },
+    ],
+    take: 2,
+  });
+  if (candidates.length !== 1) return null;
+
+  return prisma.workOrder.update({
+    where: { id: candidates[0].id },
+    data: { followUpId: followUp.id },
+  });
+}
+
+export async function syncLatestWorkOrderFromFollowUpStatus(followUp, columns) {
+  const status = cleanText(followUp?.status);
+  if (!followUp?.id || !status) return null;
+
+  const normalizedColumns = columns || await getSavedFollowUpColumns();
+  const nextStatut = workOrderStatutFromFollowUpStatus(status, normalizedColumns);
+  const workOrder = await findLinkedWorkOrderForFollowUp(followUp);
   if (!workOrder || workOrder.statut === nextStatut) return workOrder;
 
   return prisma.workOrder.update({
