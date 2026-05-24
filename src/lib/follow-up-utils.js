@@ -126,7 +126,7 @@ async function findRelevantFollowUp(clientId, nextStatus, workOrder) {
     const linked = await prisma.clientFollowUp.findUnique({
       where: { id: workOrder.followUpId },
     });
-    if (linked && linked.status !== "archived") return linked;
+    if (linked && linked.status !== "archived") return { followUp: linked, ambiguous: false };
   }
 
   const active = await prisma.clientFollowUp.findMany({
@@ -137,9 +137,9 @@ async function findRelevantFollowUp(clientId, nextStatus, workOrder) {
     orderBy: { updatedAt: "desc" },
     take: 2,
   });
-  if (active.length === 1) return active[0];
-  if (active.length > 1) return null;
-  if (!FOLLOW_UP_TERMINAL_STATUSES.includes(nextStatus)) return null;
+  if (active.length === 1) return { followUp: active[0], ambiguous: false };
+  if (active.length > 1) return { followUp: null, ambiguous: true };
+  if (!FOLLOW_UP_TERMINAL_STATUSES.includes(nextStatus)) return { followUp: null, ambiguous: false };
 
   const nonArchived = await prisma.clientFollowUp.findMany({
     where: {
@@ -149,7 +149,8 @@ async function findRelevantFollowUp(clientId, nextStatus, workOrder) {
     orderBy: { updatedAt: "desc" },
     take: 2,
   });
-  return nonArchived.length === 1 ? nonArchived[0] : null;
+  if (nonArchived.length === 1) return { followUp: nonArchived[0], ambiguous: false };
+  return { followUp: null, ambiguous: nonArchived.length > 1 };
 }
 
 export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client, followUpStatus } = {}) {
@@ -157,7 +158,7 @@ export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client, fo
 
   const columns = await getSavedFollowUpColumns();
   const status = cleanText(followUpStatus) || (workOrder.statut === "draft" ? "to_call" : followUpStatusFromWorkOrderStatut(workOrder.statut, columns));
-  const existing = await findRelevantFollowUp(client.id, status, workOrder);
+  const { followUp: existing, ambiguous } = await findRelevantFollowUp(client.id, status, workOrder);
   const documentMeta = getWorkOrderDocumentMeta(workOrder.statut);
   const sourceText = documentMeta.type === "quote" ? "soumission" : "bon de travail";
   const defaultNextAction = documentMeta.type === "quote" ? "Relancer la soumission" : "Appeler le client";
@@ -178,7 +179,7 @@ export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client, fo
         notes: appendNote(existing.notes, note),
       },
     });
-  } else {
+  } else if (!ambiguous) {
     followUp = await prisma.clientFollowUp.create({
       data: {
         clientId: client.id,

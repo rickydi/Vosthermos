@@ -16,6 +16,16 @@ import { workOrderStatutFromFollowUpStatus } from "@/lib/follow-up-columns";
 import { parseDateOnly } from "@/lib/date-only";
 import { changedFields, logAdminActivity } from "@/lib/admin-activity";
 
+async function validateFollowUpForClient(followUpId, clientId) {
+  if (!followUpId) return null;
+  const followUp = await prisma.clientFollowUp.findFirst({
+    where: { id: followUpId, clientId },
+    select: { id: true },
+  });
+  if (!followUp) throw new Error("Le suivi choisi n'appartient pas a ce client");
+  return followUp.id;
+}
+
 async function latestClientFollowUp(clientId, followUpId) {
   if (followUpId) {
     const linked = await prisma.clientFollowUp.findUnique({
@@ -98,6 +108,16 @@ export async function PUT(req, { params }) {
   if (!existing) return NextResponse.json({ error: "Non trouve" }, { status: 404 });
 
   const body = await req.json();
+  const nextClientId = body.clientId ? parseInt(body.clientId) : existing.clientId;
+  let nextFollowUpId = existing.followUpId;
+  if (body.followUpId !== undefined) {
+    const requestedFollowUpId = body.followUpId ? parseInt(body.followUpId) : null;
+    try {
+      nextFollowUpId = await validateFollowUpForClient(requestedFollowUpId, nextClientId);
+    } catch (err) {
+      return NextResponse.json({ error: err.message }, { status: 400 });
+    }
+  }
   const settings = await getWorkOrderSettings();
   const followUpColumns = body.followUpStatus ? await getSavedFollowUpColumns() : null;
   const explicitStatut = typeof body.statut === "string" && body.statut.trim() ? body.statut.trim() : null;
@@ -144,7 +164,8 @@ export async function PUT(req, { params }) {
     const updated = await tx.workOrder.update({
       where: { id: woId },
       data: {
-        clientId: body.clientId ? parseInt(body.clientId) : existing.clientId,
+        clientId: nextClientId,
+        followUpId: nextFollowUpId,
         technicianId: body.technicianId !== undefined
           ? (body.technicianId ? parseInt(body.technicianId) : null)
           : existing.technicianId,
@@ -203,7 +224,7 @@ export async function PUT(req, { params }) {
       number: wo.number,
       changedFields: changedFields(existing, wo, [
         "clientId", "technicianId", "appointmentId", "date", "interventionAddress",
-        "interventionCity", "description", "notes", "statut", "visibleAuClient",
+        "interventionCity", "description", "notes", "statut", "followUpId", "visibleAuClient",
       ]),
       statusFrom: existing.statut,
       statusTo: wo.statut,

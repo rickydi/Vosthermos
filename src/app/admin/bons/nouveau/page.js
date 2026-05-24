@@ -198,6 +198,11 @@ function MoneyLine({ label, value, muted = false }) {
   );
 }
 
+function followUpDateLabel(value) {
+  const date = dateOnlyString(value);
+  return date ? ` | ${date}` : "";
+}
+
 export default function NouveauBonPage() {
   return (
     <Suspense fallback={<div className="p-6 lg:p-8 admin-text-muted"><i className="fas fa-spinner fa-spin mr-2"></i>Chargement...</div>}>
@@ -248,6 +253,10 @@ function NouveauBonAdmin() {
   const [notes, setNotes] = useState("");
   const [currentStatut, setCurrentStatut] = useState(null);
   const [followUpStatus, setFollowUpStatus] = useState(() => followUpStatusFromWorkOrderStatut("draft"));
+  const [selectedFollowUpId, setSelectedFollowUpId] = useState("");
+  const [linkedFollowUp, setLinkedFollowUp] = useState(null);
+  const [followUpOptions, setFollowUpOptions] = useState([]);
+  const [loadingFollowUps, setLoadingFollowUps] = useState(false);
   const [followUpColumns, setFollowUpColumns] = useState(DEFAULT_FOLLOW_UP_COLUMNS);
   const [interventionAddress, setInterventionAddress] = useState("");
   const [interventionCity, setInterventionCity] = useState("");
@@ -361,6 +370,7 @@ function NouveauBonAdmin() {
       if (draft.description !== undefined) setDescription(draft.description);
       if (draft.notes !== undefined) setNotes(draft.notes);
       if (draft.followUpStatus) setFollowUpStatus(draft.followUpStatus);
+      if (draft.selectedFollowUpId !== undefined) setSelectedFollowUpId(draft.selectedFollowUpId);
       if (draft.interventionAddress !== undefined) setInterventionAddress(draft.interventionAddress);
       if (draft.interventionCity !== undefined) setInterventionCity(draft.interventionCity);
       if (draft.interventionPostalCode !== undefined) setInterventionPostalCode(draft.interventionPostalCode);
@@ -389,6 +399,7 @@ function NouveauBonAdmin() {
           description,
           notes,
           followUpStatus,
+          selectedFollowUpId,
           interventionAddress,
           interventionCity,
           interventionPostalCode,
@@ -411,6 +422,7 @@ function NouveauBonAdmin() {
     description,
     notes,
     followUpStatus,
+    selectedFollowUpId,
     interventionAddress,
     interventionCity,
     interventionPostalCode,
@@ -434,6 +446,30 @@ function NouveauBonAdmin() {
       .catch(() => setKnownUnits([]));
   }, [selectedClient, editId]);
 
+  useEffect(() => {
+    if (!selectedClient?.id) {
+      setFollowUpOptions([]);
+      setLoadingFollowUps(false);
+      return;
+    }
+
+    let cancelled = false;
+    setLoadingFollowUps(true);
+    fetch(`/api/admin/follow-ups?clientId=${selectedClient.id}&status=active&activity=0&limit=100`, { cache: "no-store" })
+      .then((r) => r.json())
+      .then((data) => {
+        if (!cancelled) setFollowUpOptions(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {
+        if (!cancelled) setFollowUpOptions([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingFollowUps(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [selectedClient?.id]);
+
   // Load existing bon when ?edit=<id>
   useEffect(() => {
     if (!editId) return;
@@ -456,6 +492,8 @@ function NouveauBonAdmin() {
         setNotes(wo.notes || "");
         setCurrentStatut(wo.statut || null);
         setFollowUpStatus(wo.followUpStatus || followUpStatusFromWorkOrderStatut(wo.statut || "draft"));
+        setLinkedFollowUp(wo.followUp || null);
+        setSelectedFollowUpId(wo.followUp?.id ? String(wo.followUp.id) : "");
         setInterventionAddress(wo.interventionAddress || "");
         setInterventionCity(wo.interventionCity || "");
         setInterventionPostalCode(wo.interventionPostalCode || "");
@@ -716,6 +754,10 @@ function NouveauBonAdmin() {
   function selectClient(client) {
     const previousClient = selectedClient;
     setSelectedClient(client);
+    if (previousClient?.id !== client?.id) {
+      setSelectedFollowUpId("");
+      setLinkedFollowUp(null);
+    }
     fillInterventionFromClient(client, previousClient);
   }
 
@@ -727,6 +769,8 @@ function NouveauBonAdmin() {
       setInterventionPostalCode((current) => current === (previousClient.postalCode || "") ? "" : current);
     }
     setSelectedClient(null);
+    setSelectedFollowUpId("");
+    setLinkedFollowUp(null);
   }
 
   async function createQuickClient() {
@@ -830,6 +874,7 @@ function NouveauBonAdmin() {
           itemType: it.itemType,
         })),
       };
+      if (selectedFollowUpId) payload.followUpId = Number(selectedFollowUpId);
       if (isB2B) {
         payload.sections = sections.map((s) => ({
           unitCode: s.unitCode,
@@ -872,6 +917,11 @@ function NouveauBonAdmin() {
 
   const visibleFollowUpColumns = followUpColumns.filter((column) => column.visible);
   const selectedStatusLabel = visibleFollowUpColumns.find((column) => column.key === followUpStatus)?.label || followUpStatus;
+  const followUpSelectOptions = [...followUpOptions];
+  if (linkedFollowUp?.id && !followUpSelectOptions.some((followUp) => followUp.id === linkedFollowUp.id)) {
+    followUpSelectOptions.unshift(linkedFollowUp);
+  }
+  const selectedFollowUp = followUpSelectOptions.find((followUp) => String(followUp.id) === selectedFollowUpId);
   const flatPieceCount = items.filter((it) => it.itemType !== "discount").length;
   const sectionPieceCount = sections.reduce((sum, sec) => sum + sec.items.filter((it) => it.itemType !== "discount").length, 0);
   const discountCount = items.filter((it) => it.itemType === "discount").length;
@@ -1504,6 +1554,35 @@ function NouveauBonAdmin() {
             </div>
 
             <div className="space-y-4 border-t admin-border pt-4">
+            {selectedClient && (
+              <div>
+                <label className="admin-text-muted text-xs mb-1 block">Rattacher au suivi client</label>
+                <select
+                  value={selectedFollowUpId}
+                  onChange={(e) => setSelectedFollowUpId(e.target.value)}
+                  className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full"
+                >
+                  <option value="">
+                    {loadingFollowUps ? "Chargement des suivis..." : "Aucun rattachement manuel"}
+                  </option>
+                  {followUpSelectOptions.map((followUp) => {
+                    const statusLabel = visibleFollowUpColumns.find((column) => column.key === followUp.status)?.label || followUp.status;
+                    return (
+                      <option key={followUp.id} value={followUp.id}>
+                        {followUp.title || followUp.contactName || `Suivi #${followUp.id}`} | {statusLabel}{followUpDateLabel(followUp.nextActionDate || followUp.updatedAt)}
+                      </option>
+                    );
+                  })}
+                </select>
+                <p className="admin-text-muted text-[10px] mt-1">
+                  {selectedFollowUp
+                    ? `Lie a: ${selectedFollowUp.title || `suivi #${selectedFollowUp.id}`}`
+                    : followUpSelectOptions.length > 1
+                      ? "Plusieurs dossiers actifs: choisis le bon suivi pour eviter les doublons."
+                      : "Si aucun suivi n'est choisi, le systeme lie seulement quand c'est evident."}
+                </p>
+              </div>
+            )}
             {(isDirectInvoiceMode || isDirectQuoteMode) ? (
               <div>
                 <p className="admin-text-muted text-xs mb-1 block">Statut</p>

@@ -382,10 +382,12 @@ export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status") || "active";
   const q = clean(searchParams.get("q"));
+  const clientId = Number(searchParams.get("clientId"));
   const limit = Math.min(parseInt(searchParams.get("limit") || "100", 10), 200);
   const includeActivity = searchParams.get("activity") !== "0";
 
   const where = {};
+  if (Number.isFinite(clientId) && clientId > 0) where.clientId = clientId;
   if (status === "active") {
     where.status = { notIn: FOLLOW_UP_TERMINAL_STATUSES };
   } else if (status && status !== "all") {

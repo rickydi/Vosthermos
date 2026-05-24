@@ -16,6 +16,16 @@ import { workOrderStatutFromFollowUpStatus } from "@/lib/follow-up-columns";
 import { parseDateOnly } from "@/lib/date-only";
 import { logAdminActivity } from "@/lib/admin-activity";
 
+async function validateFollowUpForClient(followUpId, clientId) {
+  if (!followUpId) return null;
+  const followUp = await prisma.clientFollowUp.findFirst({
+    where: { id: followUpId, clientId },
+    select: { id: true },
+  });
+  if (!followUp) throw new Error("Le suivi choisi n'appartient pas a ce client");
+  return followUp.id;
+}
+
 export async function GET(req) {
   try { await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
 
@@ -75,6 +85,14 @@ export async function POST(req) {
 
   const body = await req.json();
   if (!body.clientId) return NextResponse.json({ error: "Client requis" }, { status: 400 });
+  const clientId = parseInt(body.clientId);
+  const requestedFollowUpId = body.followUpId ? parseInt(body.followUpId) : null;
+  let followUpId = null;
+  try {
+    followUpId = await validateFollowUpForClient(requestedFollowUpId, clientId);
+  } catch (err) {
+    return NextResponse.json({ error: err.message }, { status: 400 });
+  }
 
   const number = await generateWorkOrderNumber();
   const settings = await getWorkOrderSettings();
@@ -103,7 +121,8 @@ export async function POST(req) {
     const created = await tx.workOrder.create({
       data: {
         number,
-        clientId: parseInt(body.clientId),
+        clientId,
+        followUpId,
         technicianId: body.technicianId ? parseInt(body.technicianId) : null,
         appointmentId: body.appointmentId ? parseInt(body.appointmentId) : null,
         date: woDate,
@@ -122,7 +141,7 @@ export async function POST(req) {
         ...totals,
       },
     });
-    await attachSectionsAndItems(tx, created.id, parseInt(body.clientId), flatItems, sections);
+    await attachSectionsAndItems(tx, created.id, clientId, flatItems, sections);
     return tx.workOrder.findUnique({
       where: { id: created.id },
       include: {
