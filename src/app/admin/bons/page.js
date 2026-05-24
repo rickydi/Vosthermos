@@ -116,6 +116,7 @@ export default function BonsPage() {
                 <th className="px-4 py-3">Client</th>
                 <th className="px-4 py-3">Technicien</th>
                 <th className="px-4 py-3">Date</th>
+                <th className="px-4 py-3">Route</th>
                 <th className="px-4 py-3">Demande le</th>
                 <th className="px-4 py-3">Total</th>
                 <th className="px-4 py-3">Statut</th>
@@ -144,6 +145,13 @@ export default function BonsPage() {
                     </td>
                     <td className="px-4 py-3 admin-text-muted">{wo.technician?.name || "-"}</td>
                     <td className="px-4 py-3 admin-text-muted">{formatDateOnly(wo.date)}</td>
+                    <td className="px-4 py-3 admin-text-muted">
+                      {wo.route ? (
+                        <Link href="/admin/routes" className="text-cyan-300 hover:underline">
+                          {wo.route.area || wo.route.name}
+                        </Link>
+                      ) : "-"}
+                    </td>
                     <td className="px-4 py-3 admin-text-muted text-xs">
                       {wo.createdAt ? (
                         <>

@@ -44,6 +44,7 @@ export async function GET(req) {
       include: {
         client: { select: { id: true, name: true, phone: true, secondaryPhone: true, address: true, city: true } },
         technician: { select: { id: true, name: true } },
+        route: { select: { id: true, name: true, date: true, area: true } },
         _count: { select: { items: true } },
       },
       orderBy: { date: "desc" },

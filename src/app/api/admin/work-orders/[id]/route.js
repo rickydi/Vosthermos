@@ -37,6 +37,7 @@ export async function GET(_req, { params }) {
     include: {
       client: true,
       technician: { select: { id: true, name: true, phone: true } },
+      route: { select: { id: true, name: true, date: true, area: true } },
       items: {
         orderBy: { position: "asc" },
         include: { product: { select: { id: true, sku: true, name: true } } },
@@ -169,6 +170,7 @@ export async function PUT(req, { params }) {
       include: {
         client: true,
         technician: { select: { id: true, name: true, phone: true } },
+        route: { select: { id: true, name: true, date: true, area: true } },
         items: { orderBy: { position: "asc" } },
         sections: {
           orderBy: { position: "asc" },
