@@ -44,7 +44,7 @@ function dateOnlyTime(value) {
 }
 
 function isInvoiceOverdue(invoice) {
-  if (invoice?.statut !== "invoiced" || !invoice.dueDate) return false;
+  if (!["invoiced", "sent"].includes(invoice?.statut) || !invoice.dueDate) return false;
   const due = dateOnlyTime(invoice.dueDate);
   const today = dateOnlyTime(new Date());
   return due !== null && today !== null && due < today;

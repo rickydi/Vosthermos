@@ -15,6 +15,7 @@ import { createOrTouchFollowUpFromWorkOrder, getSavedFollowUpColumns } from "@/l
 import { workOrderStatutFromFollowUpStatus } from "@/lib/follow-up-columns";
 import { parseDateOnly } from "@/lib/date-only";
 import { logAdminActivity } from "@/lib/admin-activity";
+import { buildPaymentTrackingData } from "@/lib/payment-tracking";
 
 async function validateFollowUpForClient(followUpId, clientId) {
   if (!followUpId) return null;
@@ -86,6 +87,10 @@ export async function POST(req) {
   const body = await req.json();
   if (!body.clientId) return NextResponse.json({ error: "Client requis" }, { status: 400 });
   const clientId = parseInt(body.clientId);
+  const clientForPayment = await prisma.client.findUnique({
+    where: { id: clientId },
+    select: { paymentTermsDays: true },
+  });
   const requestedFollowUpId = body.followUpId ? parseInt(body.followUpId) : null;
   let followUpId = null;
   try {
@@ -116,6 +121,11 @@ export async function POST(req) {
   const woDate = body.date ? parseDateOnly(body.date) : new Date();
   const arrivalAt = composeDateTime(woDate, body.heureArrivee);
   const departureAt = composeDateTime(woDate, body.heureDepart);
+  const paymentTracking = buildPaymentTrackingData({
+    statut,
+    client: clientForPayment,
+    invoiceDate: woDate,
+  });
 
   const workOrder = await prisma.$transaction(async (tx) => {
     const created = await tx.workOrder.create({
@@ -139,6 +149,7 @@ export async function POST(req) {
         visibleAuClient: body.visibleAuClient ?? true,
         laborRate,
         ...totals,
+        ...paymentTracking,
       },
     });
     await attachSectionsAndItems(tx, created.id, clientId, flatItems, sections);

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { logAdminActivity } from "@/lib/admin-activity";
+import { ensureWorkOrderForAppointment, serializeAppointment } from "@/lib/appointment-work-order";
 
 export async function GET(_request, { params }) {
   try {
@@ -10,17 +11,14 @@ export async function GET(_request, { params }) {
 
     const appointment = await prisma.appointment.findUnique({
       where: { id: parseInt(id) },
+      include: { workOrder: { select: { id: true, number: true, statut: true } } },
     });
 
     if (!appointment) {
       return NextResponse.json({ error: "Rendez-vous introuvable" }, { status: 404 });
     }
 
-    return NextResponse.json({
-      ...appointment,
-      date: appointment.date.toISOString(),
-      createdAt: appointment.createdAt.toISOString(),
-    });
+    return NextResponse.json(serializeAppointment(appointment));
   } catch (err) {
     if (err.message === "Unauthorized") {
       return NextResponse.json({ error: "Non autorise" }, { status: 401 });
@@ -46,10 +44,21 @@ export async function PUT(request, { params }) {
     }
 
     const existing = await prisma.appointment.findUnique({ where: { id: parseInt(id) } });
-    const appointment = await prisma.appointment.update({
+    let appointment = await prisma.appointment.update({
       where: { id: parseInt(id) },
       data: { status },
+      include: { workOrder: { select: { id: true, number: true, statut: true } } },
     });
+
+    if ((status === "confirmed" || status === "completed") && !appointment.workOrder) {
+      const workOrder = await ensureWorkOrderForAppointment(appointment.id);
+      if (workOrder) {
+        appointment = await prisma.appointment.findUnique({
+          where: { id: appointment.id },
+          include: { workOrder: { select: { id: true, number: true, statut: true } } },
+        });
+      }
+    }
     await logAdminActivity(request, session, {
       action: "update",
       entityType: "appointment",
@@ -63,11 +72,7 @@ export async function PUT(request, { params }) {
       },
     });
 
-    return NextResponse.json({
-      ...appointment,
-      date: appointment.date.toISOString(),
-      createdAt: appointment.createdAt.toISOString(),
-    });
+    return NextResponse.json(serializeAppointment(appointment));
   } catch (err) {
     if (err.message === "Unauthorized") {
       return NextResponse.json({ error: "Non autorise" }, { status: 401 });
@@ -76,6 +81,62 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ error: "Rendez-vous introuvable" }, { status: 404 });
     }
     console.error("PUT /api/admin/appointments/[id] error:", err);
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+  }
+}
+
+export async function POST(request, { params }) {
+  try {
+    const session = await requireAdmin();
+    const { id } = await params;
+    const appointmentId = parseInt(id);
+
+    let appointment = await prisma.appointment.findUnique({
+      where: { id: appointmentId },
+      include: { workOrder: { select: { id: true, number: true, statut: true } } },
+    });
+
+    if (!appointment) {
+      return NextResponse.json({ error: "Rendez-vous introuvable" }, { status: 404 });
+    }
+
+    if (appointment.status === "pending" || appointment.status === "waiting_client") {
+      appointment = await prisma.appointment.update({
+        where: { id: appointmentId },
+        data: { status: "confirmed" },
+        include: { workOrder: { select: { id: true, number: true, statut: true } } },
+      });
+    }
+
+    if (!appointment.workOrder) {
+      await ensureWorkOrderForAppointment(appointmentId);
+    }
+
+    const refreshed = await prisma.appointment.findUnique({
+      where: { id: appointmentId },
+      include: { workOrder: { select: { id: true, number: true, statut: true } } },
+    });
+
+    await logAdminActivity(request, session, {
+      action: "create",
+      entityType: "work_order",
+      entityId: refreshed?.workOrder?.id || appointmentId,
+      label: `Bon cree depuis RDV: ${refreshed?.name || appointmentId}`,
+      metadata: {
+        appointmentId,
+        workOrderId: refreshed?.workOrder?.id,
+        workOrderNumber: refreshed?.workOrder?.number,
+        phone: refreshed?.phone,
+        email: refreshed?.email,
+      },
+    });
+
+    return NextResponse.json(serializeAppointment(refreshed));
+  } catch (err) {
+    if (err.message === "Unauthorized") {
+      return NextResponse.json({ error: "Non autorise" }, { status: 401 });
+    }
+    console.error("POST /api/admin/appointments/[id] error:", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }

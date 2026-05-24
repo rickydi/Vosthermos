@@ -88,13 +88,28 @@ export function getPaymentTermsDays(wo) {
   return Number.isFinite(terms) && terms > 0 ? terms : 30;
 }
 
-export function getDocumentDate(wo) {
-  const date = wo?.date ? new Date(wo.date) : new Date();
-  return isNaN(date.getTime()) ? new Date() : date;
+function validDocumentDate(value) {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return isNaN(date.getTime()) ? null : date;
+}
+
+export function getDocumentDate(wo, documentType) {
+  const date = documentType === "invoice"
+    ? (validDocumentDate(wo?.invoiceIssuedAt) || validDocumentDate(wo?.date))
+    : validDocumentDate(wo?.date);
+  if (date) return date;
+  const fallback = new Date();
+  return isNaN(fallback.getTime()) ? new Date() : fallback;
 }
 
 export function getDocumentTargetDate(wo, documentType) {
-  const base = getDocumentDate(wo);
+  if (documentType === "invoice") {
+    const dueDate = validDocumentDate(wo?.paymentDueAt);
+    if (dueDate) return dueDate;
+  }
+
+  const base = getDocumentDate(wo, documentType);
   if (documentType === "invoice") return addDays(base, getPaymentTermsDays(wo));
   if (documentType === "quote") return addDays(base, 30);
   return null;

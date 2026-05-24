@@ -15,6 +15,7 @@ import { createOrTouchFollowUpFromWorkOrder, getSavedFollowUpColumns } from "@/l
 import { workOrderStatutFromFollowUpStatus } from "@/lib/follow-up-columns";
 import { parseDateOnly } from "@/lib/date-only";
 import { changedFields, logAdminActivity } from "@/lib/admin-activity";
+import { buildPaymentTrackingData } from "@/lib/payment-tracking";
 
 async function validateFollowUpForClient(followUpId, clientId) {
   if (!followUpId) return null;
@@ -154,6 +155,16 @@ export async function PUT(req, { params }) {
   const departureAt = body.heureDepart !== undefined
     ? composeDateTime(newDate, body.heureDepart)
     : existing.departureAt;
+  const clientForPayment = await prisma.client.findUnique({
+    where: { id: nextClientId },
+    select: { paymentTermsDays: true },
+  });
+  const paymentTracking = buildPaymentTrackingData({
+    statut,
+    existing,
+    client: clientForPayment,
+    invoiceDate: newDate,
+  });
 
   const wo = await prisma.$transaction(async (tx) => {
     if (rebuildLines) {
@@ -187,6 +198,7 @@ export async function PUT(req, { params }) {
         visibleAuClient: body.visibleAuClient ?? existing.visibleAuClient,
         laborRate,
         ...totals,
+        ...paymentTracking,
       },
     });
 
@@ -225,6 +237,7 @@ export async function PUT(req, { params }) {
       changedFields: changedFields(existing, wo, [
         "clientId", "technicianId", "appointmentId", "date", "interventionAddress",
         "interventionCity", "description", "notes", "statut", "followUpId", "visibleAuClient",
+        "invoiceIssuedAt", "paymentDueAt", "paidAt",
       ]),
       statusFrom: existing.statut,
       statusTo: wo.statut,

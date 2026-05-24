@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { buildWhatsAppUrl, openWhatsAppWindow } from "@/lib/whatsapp";
 
 const MONTHS_FR = [
@@ -176,6 +177,21 @@ export default function AdminAppointmentsPage() {
       console.error("Error updating status:", err);
     }
     setUpdating(false);
+  }
+
+  async function ensureWorkOrder(id) {
+    setUpdating(true);
+    try {
+      const res = await fetch(`/api/admin/appointments/${id}`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erreur creation bon");
+      setAppointments((prev) => prev.map((a) => (a.id === id ? data : a)));
+      if (selectedAppointment?.id === id) setSelectedAppointment(data);
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setUpdating(false);
+    }
   }
 
   async function notifyAppointment(recipient) {
@@ -442,6 +458,11 @@ export default function AdminAppointmentsPage() {
                             <i className="fas fa-phone text-[8px] mr-1"></i>{appt.phone}
                           </p>
                         )}
+                        {appt.workOrder && (
+                          <p className="admin-text-muted text-[10px]">
+                            <i className="fas fa-clipboard-list text-[8px] mr-1"></i>{appt.workOrder.number}
+                          </p>
+                        )}
                         {(appt.address || appt.city) && (
                           <p className="admin-text-muted text-[10px] truncate">
                             <i className="fas fa-map-pin text-[8px] mr-1"></i>
@@ -620,6 +641,34 @@ export default function AdminAppointmentsPage() {
                       </button>
                     ))}
                   </div>
+                </div>
+
+                <div className="admin-border border-t pt-5">
+                  <p className="admin-text-muted text-[10px] uppercase tracking-wider font-bold mb-3">
+                    Dossier de travail
+                  </p>
+                  {selectedAppointment.workOrder ? (
+                    <Link
+                      href={`/admin/bons/nouveau?edit=${selectedAppointment.workOrder.id}`}
+                      className="inline-flex items-center gap-2 rounded-lg bg-cyan-700 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-cyan-600"
+                    >
+                      <i className="fas fa-clipboard-list"></i>
+                      Ouvrir {selectedAppointment.workOrder.number}
+                    </Link>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => ensureWorkOrder(selectedAppointment.id)}
+                      disabled={updating}
+                      className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-red)] px-4 py-2 text-sm font-bold text-white transition-colors hover:opacity-90 disabled:opacity-50"
+                    >
+                      <i className={`${updating ? "fas fa-spinner fa-spin" : "fas fa-plus"}`}></i>
+                      Creer le bon
+                    </button>
+                  )}
+                  <p className="admin-text-muted mt-2 text-xs">
+                    Un RDV confirme cree automatiquement un bon planifie lie au rendez-vous.
+                  </p>
                 </div>
 
                 {/* WhatsApp + SMS fallback + Delete */}

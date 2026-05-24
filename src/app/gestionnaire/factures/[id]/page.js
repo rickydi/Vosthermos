@@ -2,6 +2,7 @@ import { redirect, notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { getManagerFromCookie, canAccessClient, hasPermission } from "@/lib/manager-auth";
 import { getCompany } from "@/lib/company";
+import { getPaymentDueDate, normalizePaymentTermsDays } from "@/lib/payment-tracking";
 import FactureView from "./FactureView";
 
 export const dynamic = "force-dynamic";
@@ -37,15 +38,18 @@ export default async function FacturePage({ params }) {
   }
 
   const company = await getCompany();
-  const termsDays = wo.client?.paymentTermsDays ?? 30;
-  const invoiceDate = wo.date ? new Date(wo.date) : null;
-  const dueDate = invoiceDate ? new Date(invoiceDate.getTime() + termsDays * 24 * 60 * 60 * 1000) : null;
+  const termsDays = normalizePaymentTermsDays(wo.client?.paymentTermsDays);
+  const dueDate = getPaymentDueDate(wo, termsDays);
 
   const serialized = {
     ...wo,
-    date: wo.date?.toISOString() || null,
+    date: (wo.invoiceIssuedAt || wo.date)?.toISOString() || null,
     arrivalAt: wo.arrivalAt?.toISOString() || null,
     departureAt: wo.departureAt?.toISOString() || null,
+    invoiceIssuedAt: wo.invoiceIssuedAt?.toISOString() || null,
+    invoiceSentAt: wo.invoiceSentAt?.toISOString() || null,
+    paymentDueAt: dueDate?.toISOString() || null,
+    paidAt: wo.paidAt?.toISOString() || null,
     createdAt: wo.createdAt.toISOString(),
     updatedAt: wo.updatedAt.toISOString(),
     totalPieces: Number(wo.totalPieces),

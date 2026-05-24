@@ -113,7 +113,7 @@ function drawCompactHeader(doc, wo, meta, documentNumber, pageNum) {
 function drawInfoBox(doc, wo, company, meta, documentNumber, y) {
   const h = 188;
   const colW = CONTENT_W / 2;
-  const date = getDocumentDate(wo);
+  const date = getDocumentDate(wo, meta.type);
   const targetDate = getDocumentTargetDate(wo, meta.type);
   const companyName = (company.legal || "Vosthermos").split(" - ")[0];
   const projectAddress = getProjectAddress(wo, false);

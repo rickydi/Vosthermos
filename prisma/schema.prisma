@@ -543,6 +543,12 @@ model WorkOrder {
   tps                    Decimal         @default(0) @db.Decimal(10, 2)
   tvq                    Decimal         @default(0) @db.Decimal(10, 2)
   total                  Decimal         @default(0) @db.Decimal(10, 2)
+  invoiceIssuedAt        DateTime?
+  invoiceSentAt          DateTime?
+  paymentDueAt           DateTime?
+  paidAt                 DateTime?
+  paymentMethod          String?
+  paymentNotes           String?         @db.Text
   viewedByManagerAt      DateTime?
   createdAt              DateTime        @default(now())
   updatedAt              DateTime        @updatedAt
@@ -555,6 +561,8 @@ model WorkOrder {
   @@index([routeId])
   @@index([statut])
   @@index([date])
+  @@index([paymentDueAt])
+  @@index([paidAt])
   @@map("work_orders")
 }
 

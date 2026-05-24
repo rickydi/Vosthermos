@@ -9,7 +9,8 @@ import { logAdminActivity } from "@/lib/admin-activity";
 import { createOrTouchFollowUpFromWorkOrder } from "@/lib/follow-up-utils";
 import { getCompany } from "@/lib/company";
 import { getWorkOrderDocumentMeta } from "@/lib/work-order-document";
-import { documentFilename, formatMoneyCad, resolveDocumentNumber } from "@/lib/vosthermos-document";
+import { documentFilename, formatMoneyCad, getDocumentDate, resolveDocumentNumber } from "@/lib/vosthermos-document";
+import { buildPaymentTrackingData } from "@/lib/payment-tracking";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.vosthermos.com";
 const LOGO_URL = `${SITE_URL}/images/Vos-Thermos-Logo_Blanc.png`;
@@ -17,7 +18,7 @@ const LOGO_URL = `${SITE_URL}/images/Vos-Thermos-Logo_Blanc.png`;
 function fmt(n) { return formatMoneyCad(n); }
 
 function renderEmailHtml(wo, documentMeta, documentNumber, filename) {
-  const date = formatDateOnly(wo.date, {
+  const date = formatDateOnly(getDocumentDate(wo, documentMeta.type), {
     day: "numeric", month: "long", year: "numeric",
   });
   return `<!DOCTYPE html>
@@ -129,7 +130,7 @@ function renderEmailHtml(wo, documentMeta, documentNumber, filename) {
 }
 
 function renderEmailText(wo, documentMeta, documentNumber) {
-  const date = formatDateOnly(wo.date);
+  const date = formatDateOnly(getDocumentDate(wo, documentMeta.type));
   const name = wo.client?.name?.split(" ")[0] || "";
   return `Bonjour ${name},
 
@@ -191,6 +192,13 @@ export async function POST(req, { params }) {
   const documentMeta = getWorkOrderDocumentMeta(wo.statut, body.documentType);
   const documentNumber = resolveDocumentNumber(wo);
   const filename = documentFilename(wo, documentMeta);
+  const nextStatut = documentMeta.sentStatus || wo.statut;
+  const paymentTracking = buildPaymentTrackingData({
+    statut: nextStatut,
+    existing: wo,
+    client: wo.client,
+    invoiceDate: documentMeta.type === "invoice" ? new Date() : wo.date,
+  });
 
   const [settings, company] = await Promise.all([
     getWorkOrderSettings(),
@@ -205,6 +213,8 @@ export async function POST(req, { params }) {
   });
   const serializedWo = {
     ...wo,
+    ...paymentTracking,
+    statut: nextStatut,
     totalPieces: Number(wo.totalPieces),
     totalLabor: Number(wo.totalLabor),
     laborRate: Number(wo.laborRate),
@@ -252,7 +262,7 @@ export async function POST(req, { params }) {
     const sentWorkOrder = documentMeta.sentStatus
       ? await prisma.workOrder.update({
           where: { id: wo.id },
-          data: { statut: documentMeta.sentStatus },
+          data: { statut: documentMeta.sentStatus, ...paymentTracking },
         })
       : wo;
 

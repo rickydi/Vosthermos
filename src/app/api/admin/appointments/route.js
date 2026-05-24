@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
+import { serializeAppointment } from "@/lib/appointment-work-order";
 
 export async function GET(request) {
   try {
@@ -29,14 +30,11 @@ export async function GET(request) {
 
     const appointments = await prisma.appointment.findMany({
       where,
+      include: { workOrder: { select: { id: true, number: true, statut: true } } },
       orderBy: [{ date: "asc" }, { timeSlot: "asc" }],
     });
 
-    const serialized = appointments.map((a) => ({
-      ...a,
-      date: a.date.toISOString(),
-      createdAt: a.createdAt.toISOString(),
-    }));
+    const serialized = appointments.map(serializeAppointment);
 
     return NextResponse.json(serialized);
   } catch (err) {

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { getManagerFromCookie, canAccessClient, hasPermission } from "@/lib/manager-auth";
+import { getPaymentDueDate, isOpenPaymentStatus, normalizePaymentTermsDays } from "@/lib/payment-tracking";
 import GestionnaireDashboard from "./GestionnaireDashboard";
 
 export const dynamic = "force-dynamic";
@@ -24,7 +25,7 @@ function dateOnlyTime(value) {
 }
 
 function isInvoiceOverdue(invoice) {
-  if (invoice?.statut !== "invoiced" || !invoice.dueDate) return false;
+  if (!isOpenPaymentStatus(invoice?.statut) || !invoice.dueDate) return false;
   const due = dateOnlyTime(invoice.dueDate);
   const today = dateOnlyTime(new Date());
   return due !== null && today !== null && due < today;
@@ -120,17 +121,17 @@ export default async function GestionnairePage({ searchParams }) {
       where: {
         clientId: { in: invoiceClientIds },
         visibleAuClient: true,
-        statut: "invoiced",
+        statut: { in: ["invoiced", "sent"] },
       },
     }),
     invoiceClientIds.length === 0 ? Promise.resolve([]) : prisma.workOrder.findMany({
       where: {
         clientId: { in: invoiceClientIds },
         visibleAuClient: true,
-        statut: { in: ["invoiced", "paid"] },
+        statut: { in: ["invoiced", "sent", "paid"] },
       },
       include: { client: { select: { name: true, paymentTermsDays: true } } },
-      orderBy: { date: "desc" },
+      orderBy: [{ invoiceIssuedAt: "desc" }, { date: "desc" }],
       take: 50,
     }),
   ]);
@@ -269,14 +270,14 @@ export default async function GestionnairePage({ searchParams }) {
   }
 
   const invoices = invoicedWOs.map((wo) => {
-    const termsDays = wo.client?.paymentTermsDays ?? 30;
-    const invoiceDate = wo.date ? new Date(wo.date) : null;
-    const dueDate = invoiceDate ? new Date(invoiceDate.getTime() + termsDays * 24 * 60 * 60 * 1000) : null;
+    const termsDays = normalizePaymentTermsDays(wo.client?.paymentTermsDays);
+    const dueDate = getPaymentDueDate(wo, termsDays);
     return {
       id: wo.id,
       number: wo.number,
-      date: wo.date?.toISOString() || null,
+      date: (wo.invoiceIssuedAt || wo.date)?.toISOString() || null,
       dueDate: dueDate?.toISOString() || null,
+      paidAt: wo.paidAt?.toISOString() || null,
       paymentTermsDays: termsDays,
       statut: wo.statut,
       description: wo.description,
@@ -288,7 +289,7 @@ export default async function GestionnairePage({ searchParams }) {
     };
   });
 
-  const toPayTotal = invoices.filter((i) => i.statut === "invoiced").reduce((s, i) => s + i.total, 0);
+  const toPayTotal = invoices.filter((i) => isOpenPaymentStatus(i.statut)).reduce((s, i) => s + i.total, 0);
   const paidTotal = invoices.filter((i) => i.statut === "paid").reduce((s, i) => s + i.total, 0);
   const overdueInvoicesCount = invoices.filter(isInvoiceOverdue).length;
 

@@ -191,7 +191,7 @@ function CompactHeader({ wo, meta, documentNumber, page, totalPages }) {
 }
 
 function InfoBox({ wo, co, meta, documentNumber }) {
-  const date = getDocumentDate(wo);
+  const date = getDocumentDate(wo, meta.type);
   const projectAddress = getProjectAddress(wo, false);
   const targetDate = getDocumentTargetDate(wo, meta.type);
   const targetValue = targetDate
