@@ -34,7 +34,7 @@ const RIGHT_M = 0.65 * 72;
 const TOP_M = 0.5 * 72;
 const CONTENT_W = PAGE_W - LEFT_M - RIGHT_M;
 const COMPANY_FOOTER_H = 24;
-const TOTALS_FOOTER_H = 88;
+const TOTALS_FOOTER_H = 96;
 const FOOTER_GAP = 8;
 const CONTENT_BOTTOM = PAGE_H - 3 - COMPANY_FOOTER_H - TOTALS_FOOTER_H - FOOTER_GAP;
 
@@ -257,31 +257,31 @@ function drawTotalsFooter(doc, wo, meta, y) {
   const x = LEFT_M + CONTENT_W - width;
 
   doc.moveTo(LEFT_M, y).lineTo(LEFT_M + CONTENT_W, y).strokeColor(MID_GRAY).lineWidth(0.5).stroke();
-  let rowY = y + 8;
+  let rowY = y + 9;
   const rows = [
     ["Sous-total", wo.subtotal, true],
     ["TPS (5%)", wo.tps, false],
     ["TVQ (9,975%)", wo.tvq, false],
   ];
   for (const [label, value, strong] of rows) {
-    doc.fillColor(TEXT_DARK).font(strong ? "Helvetica-Bold" : "Helvetica").fontSize(9)
+    doc.fillColor(TEXT_DARK).font(strong ? "Helvetica-Bold" : "Helvetica").fontSize(BODY_FONT_SIZE)
       .text(`${label} :`, x + 12, rowY, { width: width - 120, align: "right" });
-    doc.fillColor(TEXT_DARK).font(strong ? "Helvetica-Bold" : "Helvetica").fontSize(9)
+    doc.fillColor(TEXT_DARK).font(strong ? "Helvetica-Bold" : "Helvetica").fontSize(BODY_FONT_SIZE)
       .text(formatMoneyCad(value), x + width - 102, rowY, { width: 90, align: "right" });
-    rowY += 16;
+    rowY += 18;
   }
 
-  const barY = y + 58;
-  doc.rect(LEFT_M, barY, CONTENT_W, 24).fill(ACCENT);
-  doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(10)
-    .text(`${meta.totalLabel} :`, x + 12, barY + 7, { width: width - 120, align: "right" });
-  doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(10)
-    .text(formatMoneyCad(wo.total), x + width - 102, barY + 7, { width: 90, align: "right" });
+  const barY = y + 66;
+  doc.rect(LEFT_M, barY, CONTENT_W, 28).fill(ACCENT);
+  doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE)
+    .text(`${meta.totalLabel} :`, x + 12, barY + 8, { width: width - 120, align: "right" });
+  doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE)
+    .text(formatMoneyCad(wo.total), x + width - 102, barY + 8, { width: 90, align: "right" });
 }
 
 function conditionLineHeight(doc, condition) {
   const text = stripHtmlTags(condition);
-  return Math.max(9, textHeight(doc, `- ${text}`, CONTENT_W - 10, 7, "Helvetica")) + 1;
+  return Math.max(16, textHeight(doc, `- ${text}`, CONTENT_W - 10, BODY_FONT_SIZE, "Helvetica")) + 4;
 }
 
 function conditionsFooterHeight(doc, meta) {
@@ -295,13 +295,13 @@ function drawFooterConditions(doc, meta, y) {
   if (conditions.length === 0) return;
 
   doc.moveTo(LEFT_M, y).lineTo(LEFT_M + CONTENT_W, y).strokeColor(MID_GRAY).lineWidth(0.5).stroke();
-  doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(8.5).text("CONDITIONS", LEFT_M, y + 4, { width: CONTENT_W });
-  let cy = y + 15;
+  doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE).text("CONDITIONS", LEFT_M, y + 6, { width: CONTENT_W });
+  let cy = y + 26;
   for (const condition of documentConditions(meta.type)) {
     const text = stripHtmlTags(condition);
     const h = conditionLineHeight(doc, condition);
-    doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(7)
-      .text(`- ${text}`, LEFT_M + 10, cy, { width: CONTENT_W - 10, lineGap: 0.5 });
+    doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(BODY_FONT_SIZE)
+      .text(`- ${text}`, LEFT_M + 10, cy, { width: CONTENT_W - 10, lineGap: 1.5 });
     cy += h;
   }
 }

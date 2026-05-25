@@ -28,7 +28,7 @@ const TEXT_MED = "#555555";
 function paginateRows(rows, meta) {
   const firstPageLimit = 4;
   const middlePageLimit = 6;
-  const lastPageLimit = meta.type === "invoice" ? 6 : 4;
+  const lastPageLimit = documentConditions(meta.type).length > 0 ? 4 : 6;
   if (rows.length <= firstPageLimit) return [{ rows, isFirst: true, isLast: true, index: 0, pageStartIndex: 0 }];
   const rawPages = [];
   const queue = [...rows];
@@ -286,12 +286,12 @@ function WorkTable({ rows, pageStartIndex }) {
 function TotalsFooter({ wo, meta }) {
   return (
     <section style={{ marginTop: 0 }}>
-      <div style={{ width: 270, marginLeft: "auto", paddingTop: 5, paddingBottom: 4 }}>
+      <div style={{ width: 270, marginLeft: "auto", paddingTop: 6, paddingBottom: 6 }}>
         <MoneyLine label="Sous-total" value={wo.subtotal} strong />
         <MoneyLine label="TPS (5%)" value={wo.tps} />
         <MoneyLine label="TVQ (9,975%)" value={wo.tvq} />
       </div>
-      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 46, background: ACCENT, color: "white", padding: "7px 12px", fontSize: 10.5, fontWeight: 800 }}>
+      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 46, background: ACCENT, color: "white", padding: "8px 12px", fontSize: 12, lineHeight: "16px", fontWeight: 800 }}>
         <span>{meta.totalLabel} :</span>
         <span style={{ minWidth: 100, textAlign: "right" }}>{formatMoneyCad(wo.total)}</span>
       </div>
@@ -304,11 +304,11 @@ function ConditionsFooter({ meta }) {
   if (conditions.length === 0) return null;
 
   return (
-    <section style={{ borderTop: `1px solid ${MID_GRAY}`, paddingTop: 5, marginBottom: 4 }}>
-      <p style={{ margin: 0, fontSize: 8.5, lineHeight: "11px", fontWeight: 800, color: ACCENT }}>CONDITIONS</p>
-      <div style={{ marginTop: 2 }}>
+    <section style={{ borderTop: `1px solid ${MID_GRAY}`, paddingTop: 6, marginBottom: 6 }}>
+      <p style={{ margin: 0, fontSize: 12, lineHeight: "16px", fontWeight: 800, color: ACCENT }}>CONDITIONS</p>
+      <div style={{ marginTop: 4 }}>
         {conditions.map((condition, index) => (
-          <p key={index} style={{ margin: "1px 0", paddingLeft: 10, fontSize: 7, lineHeight: "9px" }}>
+          <p key={index} style={{ margin: "2px 0", paddingLeft: 10, fontSize: 12, lineHeight: "16px" }}>
             - {stripHtmlTags(condition)}
           </p>
         ))}
@@ -353,7 +353,7 @@ function DetailRow({ label, value, tall }) {
 
 function MoneyLine({ label, value, strong }) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", padding: "3px 10px", fontSize: 10, fontWeight: strong ? 700 : 400 }}>
+    <div style={{ display: "flex", justifyContent: "space-between", padding: "3px 10px", fontSize: 12, lineHeight: "16px", fontWeight: strong ? 700 : 400 }}>
       <span>{label} :</span>
       <span>{formatMoneyCad(value)}</span>
     </div>
