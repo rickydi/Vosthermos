@@ -122,9 +122,10 @@ export async function PUT(req, { params }) {
   const settings = await getWorkOrderSettings();
   const followUpColumns = body.followUpStatus ? await getSavedFollowUpColumns() : null;
   const explicitStatut = typeof body.statut === "string" && body.statut.trim() ? body.statut.trim() : null;
-  const statut = explicitStatut || (body.followUpStatus
+  const followUpStatut = body.followUpStatus
     ? workOrderStatutFromFollowUpStatus(body.followUpStatus, followUpColumns)
-    : existing.statut);
+    : null;
+  const statut = followUpStatut || explicitStatut || existing.statut;
   const rebuildLines = body.items !== undefined || body.sections !== undefined;
   const shouldRecalcTotals = rebuildLines || body.laborHours !== undefined || body.laborRate !== undefined;
   const { flatItems, sections, allForCalc } = flattenSectionsBody(body);
