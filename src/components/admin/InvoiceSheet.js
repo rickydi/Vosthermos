@@ -28,7 +28,7 @@ const TEXT_MED = "#555555";
 function paginateRows(rows, meta) {
   const firstPageLimit = 4;
   const middlePageLimit = 6;
-  const lastPageLimit = documentConditions(meta.type).length > 0 ? 4 : 6;
+  const lastPageLimit = documentConditions(meta.type).length > 0 ? 3 : 6;
   if (rows.length <= firstPageLimit) return [{ rows, isFirst: true, isLast: true, index: 0, pageStartIndex: 0 }];
   const rawPages = [];
   const queue = [...rows];
@@ -162,9 +162,9 @@ function Sheet({ page, totalPages, wo, co, meta, documentNumber }) {
 
 function FullHeader({ meta, co }) {
   return (
-    <header style={{ display: "grid", gridTemplateColumns: "105px 1fr", gap: 12, alignItems: "start", marginBottom: 8 }}>
+    <header style={{ display: "grid", gridTemplateColumns: "130px 1fr", gap: 12, alignItems: "start", marginBottom: 10 }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/images/Vos-Thermos-Logo.png" alt="Vosthermos" style={{ width: 72, height: "auto", maxHeight: 52, objectFit: "contain" }} />
+      <img src="/images/Vos-Thermos-Logo.png" alt="Vosthermos" style={{ width: 105, height: "auto", maxHeight: 70, objectFit: "contain" }} />
       <div style={{ textAlign: "right" }}>
         <h1 style={{ margin: 0, fontSize: 23, lineHeight: "26px", fontWeight: 800, color: ACCENT }}>{meta.labelUpper}</h1>
         <p style={{ margin: "2px 0 0", fontSize: 9, color: TEXT_MED }}>Reparation et remplacement de fenetres</p>
@@ -179,7 +179,7 @@ function CompactHeader({ wo, meta, documentNumber, page, totalPages }) {
     <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: `1px solid ${MID_GRAY}`, paddingBottom: 10, marginBottom: 14 }}>
       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/images/Vos-Thermos-Logo.png" alt="Vosthermos" style={{ width: 44, height: "auto" }} />
+        <img src="/images/Vos-Thermos-Logo.png" alt="Vosthermos" style={{ width: 58, height: "auto" }} />
         <div>
           <p style={{ margin: 0, fontSize: 9, color: TEXT_MED }}>{meta.compactPrefix} - page {page}/{totalPages}</p>
           <p style={{ margin: "2px 0 0", fontSize: 10, fontWeight: 700 }}>{wo.client?.name || ""}</p>
@@ -304,7 +304,7 @@ function ConditionsFooter({ meta }) {
   if (conditions.length === 0) return null;
 
   return (
-    <section style={{ borderTop: `1px solid ${MID_GRAY}`, paddingTop: 6, marginBottom: 6 }}>
+    <section style={{ borderTop: `1px solid ${MID_GRAY}`, paddingTop: 6, marginTop: 6, marginBottom: 6 }}>
       <p style={{ margin: 0, fontSize: 12, lineHeight: "16px", fontWeight: 800, color: ACCENT }}>CONDITIONS</p>
       <div style={{ marginTop: 4 }}>
         {conditions.map((condition, index) => (
@@ -322,8 +322,8 @@ function DocumentFooter({ co, page, wo, meta, isLast }) {
 
   return (
     <footer style={{ flexShrink: 0, padding: "0 0.45in 3px", color: TEXT_MED }}>
-      {showConditions && <ConditionsFooter meta={meta} />}
       <TotalsFooter wo={wo} meta={meta} />
+      {showConditions && <ConditionsFooter meta={meta} />}
       <div style={{ paddingTop: 4, fontSize: 7, textAlign: "center" }}>
         <p style={{ margin: 0 }}>
           Vosthermos - Reparation et remplacement de fenetres | {co.address}, {co.city}, {co.province} | RBQ : {co.rbq} | TPS : {co.tps} | TVQ : {co.tvq}

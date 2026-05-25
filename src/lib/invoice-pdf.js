@@ -71,7 +71,7 @@ function drawLogo(doc, x, y, height = 70) {
   for (const logoPath of candidates) {
     try {
       if (fs.existsSync(logoPath)) {
-        doc.image(logoPath, x, y, { fit: [110, height] });
+        doc.image(logoPath, x, y, { fit: [135, height] });
         return;
       }
     } catch {}
@@ -83,10 +83,10 @@ function drawLogo(doc, x, y, height = 70) {
 
 function drawFullHeader(doc, meta, company) {
   const y = TOP_M + 6;
-  drawLogo(doc, LEFT_M, y, 50);
+  drawLogo(doc, LEFT_M, y, 62);
 
-  const rightX = LEFT_M + 145;
-  const rightW = CONTENT_W - 145;
+  const rightX = LEFT_M + 165;
+  const rightW = CONTENT_W - 165;
   doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(23)
     .text(meta.labelUpper, rightX, y + 2, { width: rightW, align: "right" });
   doc.fillColor(TEXT_MED).font("Helvetica").fontSize(9)
@@ -94,16 +94,16 @@ function drawFullHeader(doc, meta, company) {
   doc.fillColor(TEXT_MED).font("Helvetica").fontSize(7.5)
     .text(`${company.address}, ${company.city}, ${company.province} | RBQ : ${company.rbq}`, rightX, y + 44, { width: rightW, align: "right" });
 
-  return y + 62;
+  return y + 72;
 }
 
 function drawCompactHeader(doc, wo, meta, documentNumber, pageNum) {
   const y = TOP_M + 4;
-  drawLogo(doc, LEFT_M, y, 32);
+  drawLogo(doc, LEFT_M, y, 38);
   doc.fillColor(TEXT_MED).font("Helvetica").fontSize(9)
-    .text(`${meta.compactPrefix} - page ${pageNum}`, LEFT_M + 54, y + 2, { width: 260 });
+    .text(`${meta.compactPrefix} - page ${pageNum}`, LEFT_M + 68, y + 2, { width: 260 });
   doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(10)
-    .text(wo.client?.name || "", LEFT_M + 54, y + 18, { width: 260 });
+    .text(wo.client?.name || "", LEFT_M + 68, y + 18, { width: 260 });
   doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(17)
     .text(documentNumber, PAGE_W - RIGHT_M - 220, y + 1, { width: 220, align: "right" });
   doc.moveTo(LEFT_M, y + 45).lineTo(PAGE_W - RIGHT_M, y + 45).strokeColor(MID_GRAY).lineWidth(0.5).stroke();
@@ -287,7 +287,7 @@ function conditionLineHeight(doc, condition) {
 function conditionsFooterHeight(doc, meta) {
   const conditions = documentConditions(meta.type);
   if (conditions.length === 0) return 0;
-  return conditions.reduce((sum, condition) => sum + conditionLineHeight(doc, condition), 15);
+  return conditions.reduce((sum, condition) => sum + conditionLineHeight(doc, condition), 26);
 }
 
 function drawFooterConditions(doc, meta, y) {
@@ -316,12 +316,16 @@ function drawFooter(doc, pageNum, totalPages, company, wo, meta) {
     `TVQ : ${company.tvq}`,
   ].filter(Boolean).join("  |  ");
 
-  const totalsY = PAGE_H - 3 - COMPANY_FOOTER_H - TOTALS_FOOTER_H;
   const conditionHeight = isLast ? conditionsFooterHeight(doc, meta) : 0;
-  if (conditionHeight > 0) {
-    drawFooterConditions(doc, meta, totalsY - conditionHeight - 4);
-  }
+  const companyFooterY = PAGE_H - 3 - COMPANY_FOOTER_H;
+  const totalsY = conditionHeight > 0
+    ? companyFooterY - conditionHeight - TOTALS_FOOTER_H - 4
+    : companyFooterY - TOTALS_FOOTER_H;
+
   drawTotalsFooter(doc, wo, meta, totalsY);
+  if (conditionHeight > 0) {
+    drawFooterConditions(doc, meta, totalsY + TOTALS_FOOTER_H + 4);
+  }
 
   doc.rect(0, PAGE_H - 3, PAGE_W, 3).fill(ACCENT);
   doc.fillColor(TEXT_MED).font("Helvetica").fontSize(6.8)

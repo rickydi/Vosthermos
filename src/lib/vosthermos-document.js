@@ -183,6 +183,7 @@ export function documentConditions(documentType) {
   if (documentType === "invoice") {
     return [
       "<b>Merci :</b> Merci d'avoir choisi Vosthermos pour vos travaux.",
+      "<b>Retard :</b> Des interets de 1,5 % par mois peuvent etre appliques sur tout solde en retard.",
       "<b>Questions :</b> Pour toute question concernant cette facture, contactez-nous a info@vosthermos.com.",
       "<b>Paiement Interac :</b> info@vosthermos.com.",
     ];
