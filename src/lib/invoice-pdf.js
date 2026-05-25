@@ -285,7 +285,6 @@ function conditionLineHeight(doc, condition) {
 }
 
 function conditionsFooterHeight(doc, meta) {
-  if (meta.type === "invoice") return 0;
   const conditions = documentConditions(meta.type);
   if (conditions.length === 0) return 0;
   return conditions.reduce((sum, condition) => sum + conditionLineHeight(doc, condition), 15);

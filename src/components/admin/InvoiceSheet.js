@@ -318,7 +318,7 @@ function ConditionsFooter({ meta }) {
 }
 
 function DocumentFooter({ co, page, wo, meta, isLast }) {
-  const showConditions = isLast && meta.type !== "invoice";
+  const showConditions = isLast && documentConditions(meta.type).length > 0;
 
   return (
     <footer style={{ flexShrink: 0, padding: "0 0.45in 3px", color: TEXT_MED }}>
