@@ -136,6 +136,26 @@ function findStatusByText(columns, matcher) {
   return normalizeFollowUpColumns(columns).find((column) => matcher(columnSearchText(column)))?.key || null;
 }
 
+function columnTokens(text) {
+  return String(text || "").split("_").filter(Boolean);
+}
+
+function isPaidColumnText(text) {
+  const tokens = columnTokens(text);
+  return tokens.includes("paye") || tokens.includes("payee") || tokens.includes("payes") || tokens.includes("paid");
+}
+
+function isToPayColumnText(text) {
+  const tokens = columnTokens(text);
+  return (
+    text.includes("a_payer") ||
+    tokens.includes("payer") ||
+    text.includes("factur") ||
+    text.includes("invoice") ||
+    text.includes("recevoir")
+  );
+}
+
 export function isAcceptedFollowUpStatus(columns, status) {
   if (status === "won") return true;
   const text = columnSearchText(followUpColumnMeta(columns, status));
@@ -174,16 +194,10 @@ export function followUpStatusFromWorkOrderStatut(statut, columns = DEFAULT_FOLL
     return findStatusByText(normalized, (text) => text.includes("appel") || text.includes("called")) || "called";
   }
   if (statut === "paid") {
-    return findStatusByText(normalized, (text) => text.includes("paye") || text.includes("paid")) || "completed";
+    return findStatusByText(normalized, isPaidColumnText) || "completed";
   }
   if (statut === "invoiced" || statut === "sent") {
-    return findStatusByText(normalized, (text) =>
-      text.includes("a_payer") ||
-      text.includes("payer") ||
-      text.includes("factur") ||
-      text.includes("invoice") ||
-      text.includes("recevoir")
-    ) || "completed";
+    return findStatusByText(normalized, isToPayColumnText) || "a_payer";
   }
   if (statut === "completed") return "completed";
   if (statut === "scheduled" || statut === "in_progress") return "scheduled";
@@ -195,14 +209,8 @@ export function workOrderStatutFromFollowUpStatus(status, columns = DEFAULT_FOLL
   const column = followUpColumnMeta(normalizeFollowUpColumns(columns), status);
   const text = columnSearchText(column);
 
-  if (text.includes("paye") || text.includes("paid")) return "paid";
-  if (
-    text.includes("a_payer") ||
-    text.includes("payer") ||
-    text.includes("factur") ||
-    text.includes("invoice") ||
-    text.includes("recevoir")
-  ) {
+  if (isPaidColumnText(text)) return "paid";
+  if (isToPayColumnText(text)) {
     return text.includes("envoy") || text.includes("sent") ? "sent" : "invoiced";
   }
   if (
