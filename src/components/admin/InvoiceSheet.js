@@ -286,6 +286,7 @@ function WorkTable({ rows, pageStartIndex }) {
 function TotalsFooter({ wo, meta }) {
   return (
     <section style={{ marginTop: 0 }}>
+      <div style={{ height: 3, background: ACCENT }} />
       <div style={{ width: 270, marginLeft: "auto", paddingTop: 6, paddingBottom: 6 }}>
         <MoneyLine label="Sous-total" value={wo.subtotal} strong />
         <MoneyLine label="TPS (5%)" value={wo.tps} />

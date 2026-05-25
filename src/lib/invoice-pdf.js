@@ -256,8 +256,8 @@ function drawTotalsFooter(doc, wo, meta, y) {
   const width = 270;
   const x = LEFT_M + CONTENT_W - width;
 
-  doc.moveTo(LEFT_M, y).lineTo(LEFT_M + CONTENT_W, y).strokeColor(MID_GRAY).lineWidth(0.5).stroke();
-  let rowY = y + 9;
+  doc.rect(LEFT_M, y, CONTENT_W, 3).fill(ACCENT);
+  let rowY = y + 11;
   const rows = [
     ["Sous-total", wo.subtotal, true],
     ["TPS (5%)", wo.tps, false],
