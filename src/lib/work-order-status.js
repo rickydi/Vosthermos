@@ -6,7 +6,7 @@ export const WORK_ORDER_STATUS_OPTIONS = [
   { key: "scheduled", label: "Job planifie", colorClass: "bg-blue-500/20 text-blue-400" },
   { key: "in_progress", label: "En cours", colorClass: "bg-purple-500/20 text-purple-400" },
   { key: "completed", label: "Job fait", colorClass: "bg-green-500/20 text-green-400" },
-  { key: "invoiced", label: "Facture", colorClass: "bg-orange-500/20 text-orange-400" },
+  { key: "invoiced", label: "A payer", colorClass: "bg-orange-500/20 text-orange-400" },
   { key: "sent", label: "Envoye", colorClass: "bg-blue-500/20 text-blue-400" },
   { key: "paid", label: "Paye", colorClass: "bg-emerald-500/20 text-emerald-400" },
 ];
