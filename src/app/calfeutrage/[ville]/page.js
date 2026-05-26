@@ -25,46 +25,67 @@ export async function generateMetadata({ params }) {
   };
 }
 
+// Contenu local personnalise par ville (amorce). Les villes absentes utilisent
+// le texte par defaut du template (avec city.name insere).
+const LOCAL_CALFEUTRAGE = {
+  montreal: {
+    lead: "À Montréal, entre les triplex et duplex centenaires du Plateau, de Rosemont et de Verdun et les condos récents du centre-ville, les besoins en calfeutrage varient énormément. Joints de pierre, cadres de bois d'origine ou fenêtres PVC modernes : un scellant adapté à chaque type de bâti est essentiel pour bloquer l'air et l'eau.",
+    intro: "Le parc immobilier montréalais est l'un des plus anciens au Québec. Dans les triplex et plex du Plateau, de Villeray ou d'Hochelaga, le calfeutrage d'origine est souvent fissuré, durci ou absent, ce qui laisse l'air froid s'infiltrer et fait grimper la facture de chauffage. Un calfeutrage refait dans les règles redonne de l'étanchéité sans dénaturer le cachet du bâtiment.",
+  },
+  laval: {
+    lead: "À Laval, le vaste parc de bungalows et de maisons à étages des années 1960 à 1990 (Chomedey, Fabreville, Sainte-Rose, Vimont) arrive exactement à l'âge où le calfeutrage extérieur se dégrade et laisse passer l'air et l'humidité.",
+    intro: "Les maisons de Laval ont majoritairement été construites entre les années 1960 et 1990. À cet âge, le scellant d'origine autour des fenêtres et des portes a perdu sa souplesse, se fissure et se décolle. Refaire le calfeutrage est l'une des interventions les plus rentables pour réduire les pertes de chaleur dans ces propriétés.",
+  },
+  longueuil: {
+    lead: "À Longueuil, du patrimoine bâti du Vieux-Longueuil aux secteurs résidentiels de Saint-Hubert et Greenfield Park, un calfeutrage en bon état protège autant les fenêtres de bois anciennes que les ouvertures plus récentes contre les infiltrations.",
+    intro: "Longueuil combine des bâtiments patrimoniaux et un grand parc résidentiel d'après-guerre. Sur les fenêtres de bois du Vieux-Longueuil comme sur les modèles PVC plus récents, un calfeutrage détérioré est une cause fréquente de courants d'air et de condensation. Un scellant neuf, appliqué proprement, règle le problème durablement.",
+  },
+  brossard: {
+    lead: "À Brossard, des secteurs résidentiels établis aux développements de condos et de maisons récentes près du Quartier DIX30, le calfeutrage protège vos ouvertures contre les vents et les écarts de température marqués de la Rive-Sud.",
+    intro: "Brossard compte autant des maisons unifamiliales des décennies passées que des constructions récentes. Dans les deux cas, le calfeutrage extérieur travaille sous l'effet des cycles de gel-dégel et finit par se fissurer. Une inspection et un remplacement ciblé évitent les infiltrations d'eau et les pertes de chaleur.",
+  },
+};
+
 const typesCalfeutrage = [
   {
     icon: "fa-home",
-    title: "Calfeutrage exterieur",
-    desc: "Application de scellant haute performance autour des cadres de fenetres et portes en contact avec les elements. Protege contre la pluie, la neige et le vent.",
+    title: "Calfeutrage extérieur",
+    desc: "Application de scellant haute performance autour des cadres de fenêtres et portes en contact avec les éléments. Protège contre la pluie, la neige et le vent.",
   },
   {
     icon: "fa-couch",
-    title: "Calfeutrage interieur",
-    desc: "Scellement des joints entre les cadres de fenetres et les murs interieurs. Elimine les courants d'air et ameliore l'isolation acoustique de vos pieces.",
+    title: "Calfeutrage intérieur",
+    desc: "Scellement des joints entre les cadres de fenêtres et les murs intérieurs. Élimine les courants d'air et améliore l'isolation acoustique de vos pièces.",
   },
   {
     icon: "fa-border-all",
-    title: "Calfeutrage de fenetres",
-    desc: "Retrait de l'ancien calfeutrage deteriore et application d'un produit neuf adapte au materiau de vos fenetres (PVC, aluminium, bois).",
+    title: "Calfeutrage de fenêtres",
+    desc: "Retrait de l'ancien calfeutrage détérioré et application d'un produit neuf adapté au matériau de vos fenêtres (PVC, aluminium, bois).",
   },
   {
     icon: "fa-door-open",
     title: "Calfeutrage de portes",
-    desc: "Scellement du pourtour des portes d'entree, portes-patio et portes de garage. Bloque les infiltrations d'air aux points de contact avec le cadre.",
+    desc: "Scellement du pourtour des portes d'entrée, portes-patio et portes de garage. Bloque les infiltrations d'air aux points de contact avec le cadre.",
   },
   {
     icon: "fa-building",
     title: "Calfeutrage de fondation",
-    desc: "Scellement des joints entre la fondation et le revetement exterieur. Previent les infiltrations d'eau et les remontees d'humidite dans le sous-sol.",
+    desc: "Scellement des joints entre la fondation et le revêtement extérieur. Prévient les infiltrations d'eau et les remontées d'humidité dans le sous-sol.",
   },
 ];
 
 const signesCalfeutrage = [
-  { icon: "fa-wind", title: "Infiltrations d'air", desc: "Vous sentez des courants d'air froid pres de vos fenetres ou portes, meme lorsqu'elles sont fermees. Le calfeutrage use laisse passer l'air exterieur." },
-  { icon: "fa-tint", title: "Condensation excessive", desc: "De la buee se forme regulierement sur vos vitres ou sur les cadres de fenetres, signe que l'humidite penetre par des joints mal scelles." },
-  { icon: "fa-file-invoice-dollar", title: "Facture de chauffage elevee", desc: "Vos couts de chauffage augmentent sans raison apparente. Les pertes thermiques par un calfeutrage deteriore peuvent representer jusqu'a 25% de votre facture." },
-  { icon: "fa-crack", title: "Calfeutrage craquele ou decolle", desc: "Le scellant autour de vos fenetres est visiblement fissure, jauni, durci ou decolle du cadre. C'est le signe qu'il a atteint sa fin de vie utile." },
+  { icon: "fa-wind", title: "Infiltrations d'air", desc: "Vous sentez des courants d'air froid près de vos fenêtres ou portes, même lorsqu'elles sont fermées. Le calfeutrage usé laisse passer l'air extérieur." },
+  { icon: "fa-tint", title: "Condensation excessive", desc: "De la buée se forme régulièrement sur vos vitres ou sur les cadres de fenêtres, signe que l'humidité pénètre par des joints mal scellés." },
+  { icon: "fa-file-invoice-dollar", title: "Facture de chauffage élevée", desc: "Vos coûts de chauffage augmentent sans raison apparente. Les pertes thermiques par un calfeutrage détérioré peuvent représenter jusqu'à 25% de votre facture." },
+  { icon: "fa-crack", title: "Calfeutrage craquelé ou décollé", desc: "Le scellant autour de vos fenêtres est visiblement fissuré, jauni, durci ou décollé du cadre. C'est le signe qu'il a atteint sa fin de vie utile." },
 ];
 
 const avantages = [
-  { icon: "fa-leaf", title: "Economies d'energie", desc: "Un calfeutrage professionnel peut reduire vos pertes de chaleur de 15 a 25%, ce qui se traduit par des economies significatives sur votre facture de chauffage annuelle." },
-  { icon: "fa-thermometer-half", title: "Confort accru", desc: "Fini les courants d'air froid pres des fenetres. Chaque piece de votre maison maintient une temperature uniforme, ete comme hiver." },
-  { icon: "fa-bacterium", title: "Prevention de la moisissure", desc: "En eliminant les infiltrations d'humidite, le calfeutrage previent la formation de moisissures nocives pour la sante autour de vos cadres de fenetres." },
-  { icon: "fa-chart-line", title: "Valeur de la propriete", desc: "Des fenetres et portes bien scellees sont un atout lors de la revente. Les acheteurs recherchent des maisons efficaces energetiquement et bien entretenues." },
+  { icon: "fa-leaf", title: "Économies d'énergie", desc: "Un calfeutrage professionnel peut réduire vos pertes de chaleur de 15 à 25%, ce qui se traduit par des économies significatives sur votre facture de chauffage annuelle." },
+  { icon: "fa-thermometer-half", title: "Confort accru", desc: "Fini les courants d'air froid près des fenêtres. Chaque pièce de votre maison maintient une température uniforme, été comme hiver." },
+  { icon: "fa-bacterium", title: "Prévention de la moisissure", desc: "En éliminant les infiltrations d'humidité, le calfeutrage prévient la formation de moisissures nocives pour la santé autour de vos cadres de fenêtres." },
+  { icon: "fa-chart-line", title: "Valeur de la propriété", desc: "Des fenêtres et portes bien scellées sont un atout lors de la revente. Les acheteurs recherchent des maisons efficaces énergétiquement et bien entretenues." },
 ];
 
 export default async function CalfeutrageVillePage({ params }) {
@@ -72,13 +93,14 @@ export default async function CalfeutrageVillePage({ params }) {
   const city = getCity(ville);
   if (!city) notFound();
 
+  const local = LOCAL_CALFEUTRAGE[city.slug] || null;
   const otherCities = CITIES.filter((c) => c.slug !== city.slug).slice(0, 12);
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Service",
-    name: `Calfeutrage de portes et fenetres a ${city.name}`,
-    description: `Service professionnel de calfeutrage de portes et fenetres a ${city.name}, ${city.region}. Elimination des infiltrations d'air et d'eau, amelioration de l'isolation thermique.`,
+    name: `Calfeutrage de portes et fenêtres à ${city.name}`,
+    description: `Service professionnel de calfeutrage de portes et fenêtres à ${city.name}, ${city.region}. Élimination des infiltrations d'air et d'eau, amélioration de l'isolation thermique.`,
     url: `https://www.vosthermos.com/calfeutrage/${city.slug}`,
     provider: {
       "@type": "LocalBusiness",
@@ -103,16 +125,16 @@ export default async function CalfeutrageVillePage({ params }) {
 
   const faqItems = [
     {
-      q: `Combien coute le calfeutrage de fenetres a ${city.name}?`,
-      a: `Le prix du calfeutrage a ${city.name} depend du nombre d'ouvertures et de l'etat du calfeutrage existant. Pour une maison typique de ${city.region}, le calfeutrage complet de toutes les fenetres et portes se situe generalement entre 500$ et 1 500$. Nous offrons des soumissions gratuites a domicile. Appelez-nous au ${COMPANY_INFO.phone}.`,
+      q: `Combien coûte le calfeutrage de fenêtres à ${city.name}?`,
+      a: `Le prix du calfeutrage à ${city.name} dépend du nombre d'ouvertures et de l'état du calfeutrage existant. Pour une maison typique de ${city.region}, le calfeutrage complet de toutes les fenêtres et portes se situe généralement entre 500$ et 1 500$. Nous offrons des soumissions gratuites à domicile. Appelez-nous au ${COMPANY_INFO.phone}.`,
     },
     {
-      q: `A quelle frequence faut-il refaire le calfeutrage a ${city.name}?`,
-      a: `Au Quebec, le calfeutrage exterieur devrait etre inspecte chaque annee et refait en moyenne tous les 5 a 7 ans. Les conditions climatiques de ${city.region} — cycles de gel-degel, pluies abondantes, neige — accelerent la degradation des scellants. Un calfeutrage preventif coute beaucoup moins cher que les reparations liees aux infiltrations d'eau.`,
+      q: `À quelle fréquence faut-il refaire le calfeutrage à ${city.name}?`,
+      a: `Au Québec, le calfeutrage extérieur devrait être inspecté chaque année et refait en moyenne tous les 5 à 7 ans. Les conditions climatiques de ${city.region} — cycles de gel-dégel, pluies abondantes, neige — accélèrent la dégradation des scellants. Un calfeutrage préventif coûte beaucoup moins cher que les réparations liées aux infiltrations d'eau.`,
     },
     {
-      q: `Quelle est la meilleure saison pour faire le calfeutrage a ${city.name}?`,
-      a: `L'ideal est de faire le calfeutrage entre mai et octobre, lorsque la temperature est superieure a 5°C pour assurer une adhesion optimale du scellant. Cependant, chez Vosthermos, nous utilisons des produits professionnels qui permettent de travailler a des temperatures plus basses si necessaire. N'attendez pas l'hiver pour agir!`,
+      q: `Quelle est la meilleure saison pour faire le calfeutrage à ${city.name}?`,
+      a: `L'idéal est de faire le calfeutrage entre mai et octobre, lorsque la température est supérieure à 5°C pour assurer une adhésion optimale du scellant. Cependant, chez Vosthermos, nous utilisons des produits professionnels qui permettent de travailler à des températures plus basses si nécessaire. N'attendez pas l'hiver pour agir!`,
     },
   ];
 
@@ -149,7 +171,7 @@ export default async function CalfeutrageVillePage({ params }) {
           </nav>
           <div className="flex flex-wrap items-center gap-3 mb-6">
             <span className="inline-block bg-white/10 text-[var(--color-red-light)] text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full">
-              <i className="fas fa-map-marker-alt mr-1"></i> {city.region} &bull; a {city.distance} de nos bureaux
+              <i className="fas fa-map-marker-alt mr-1"></i> {city.region} &bull; à {city.distance} de nos bureaux
             </span>
             {city.population && (
               <span className="inline-block bg-white/10 text-white/70 text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full">
@@ -158,11 +180,11 @@ export default async function CalfeutrageVillePage({ params }) {
             )}
           </div>
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-6">
-            Calfeutrage de portes et fenetres a{" "}
+            Calfeutrage de portes et fenêtres à{" "}
             <span className="text-[var(--color-red)]">{city.name}</span>
           </h1>
           <p className="text-white/70 text-lg max-w-2xl leading-relaxed mb-8">
-            Le calfeutrage est la premiere ligne de defense de votre maison contre les infiltrations d&apos;air et d&apos;eau. A {city.name}, les conditions climatiques exigeantes rendent un scellant en bon etat essentiel pour votre confort et vos economies d&apos;energie.
+            {local?.lead || `Le calfeutrage est la première ligne de défense de votre maison contre les infiltrations d'air et d'eau. À ${city.name}, les conditions climatiques exigeantes rendent un scellant en bon état essentiel pour votre confort et vos économies d'énergie.`}
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <a
@@ -187,16 +209,16 @@ export default async function CalfeutrageVillePage({ params }) {
           <div className="max-w-3xl mx-auto">
             <span className="section-tag">Calfeutrage professionnel</span>
             <h2 className="text-3xl font-extrabold mb-6">
-              Protegez votre maison a <span className="text-[var(--color-red)]">{city.name}</span> contre les infiltrations
+              Protégez votre maison à <span className="text-[var(--color-red)]">{city.name}</span> contre les infiltrations
             </h2>
             <p className="text-[var(--color-muted)] leading-relaxed mb-4">
-              Le calfeutrage est souvent le grand oublie de l&apos;entretien residentiel. Pourtant, un scellant deteriore autour de vos fenetres et portes peut etre responsable de jusqu&apos;a 25% des pertes de chaleur de votre maison. A {city.name}, ou les hivers sont longs et les ecarts de temperature importants, un calfeutrage en bon etat fait une difference tangible sur votre facture de chauffage.
+              {local?.intro || `Le calfeutrage est souvent le grand oublié de l'entretien résidentiel. Pourtant, un scellant détérioré autour de vos fenêtres et portes peut être responsable de jusqu'à 25% des pertes de chaleur de votre maison. À ${city.name}, où les hivers sont longs et les écarts de température importants, un calfeutrage en bon état fait une différence tangible sur votre facture de chauffage.`}
             </p>
             <p className="text-[var(--color-muted)] leading-relaxed mb-4">
-              Chez Vosthermos, nous utilisons des scellants professionnels a base de polyurethane et de silicone haute performance, congus pour resister aux conditions climatiques quebecoises. Contrairement aux produits grand public, nos scellants conservent leur souplesse et leur adhesion pendant 7 a 10 ans, meme apres des centaines de cycles de gel et degel.
+              Chez Vosthermos, nous utilisons des scellants professionnels à base de polyuréthane et de silicone haute performance, conçus pour résister aux conditions climatiques québécoises. Contrairement aux produits grand public, nos scellants conservent leur souplesse et leur adhésion pendant 7 à 10 ans, même après des centaines de cycles de gel et dégel.
             </p>
             <p className="text-[var(--color-muted)] leading-relaxed">
-              Notre technicien retire d&apos;abord l&apos;ancien calfeutrage deteriore, nettoie la surface de contact, puis applique le nouveau scellant avec precision. Le resultat : une etancheite parfaite, une finition propre et une isolation retrouvee pour vos portes et fenetres a {city.name}.
+              Notre technicien retire d'abord l'ancien calfeutrage détérioré, nettoie la surface de contact, puis applique le nouveau scellant avec précision. Le résultat : une étanchéité parfaite, une finition propre et une isolation retrouvée pour vos portes et fenêtres à {city.name}.
             </p>
           </div>
         </div>
@@ -206,12 +228,12 @@ export default async function CalfeutrageVillePage({ params }) {
       <section className="bg-[var(--color-background)] py-20 border-b border-[var(--color-border)]">
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="text-center mb-14">
-            <span className="section-tag">Nos specialites</span>
+            <span className="section-tag">Nos spécialités</span>
             <h2 className="text-3xl font-extrabold">
-              Types de calfeutrage offerts a <span className="text-[var(--color-red)]">{city.name}</span>
+              Types de calfeutrage offerts à <span className="text-[var(--color-red)]">{city.name}</span>
             </h2>
             <p className="text-[var(--color-muted)] mt-3 max-w-xl mx-auto">
-              Nous adaptons le type de scellant et la technique d&apos;application a chaque situation pour un resultat durable.
+              Nous adaptons le type de scellant et la technique d'application à chaque situation pour un résultat durable.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -237,10 +259,10 @@ export default async function CalfeutrageVillePage({ params }) {
           <div className="text-center mb-14">
             <span className="section-tag">Diagnostic</span>
             <h2 className="text-3xl font-extrabold">
-              Signes que votre calfeutrage doit etre <span className="text-[var(--color-red)]">remplace</span>
+              Signes que votre calfeutrage doit être <span className="text-[var(--color-red)]">remplacé</span>
             </h2>
             <p className="text-[var(--color-muted)] mt-3 max-w-xl mx-auto">
-              Reconnaissez ces symptomes? Il est temps de faire inspecter le calfeutrage de votre maison a {city.name}.
+              Reconnaissez ces symptômes? Il est temps de faire inspecter le calfeutrage de votre maison à {city.name}.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
@@ -268,7 +290,7 @@ export default async function CalfeutrageVillePage({ params }) {
           <div className="text-center mb-14">
             <span className="section-tag">Avantages</span>
             <h2 className="text-3xl font-extrabold text-white">
-              Avantages du calfeutrage professionnel a <span className="text-[var(--color-red)]">{city.name}</span>
+              Avantages du calfeutrage professionnel à <span className="text-[var(--color-red)]">{city.name}</span>
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -295,7 +317,7 @@ export default async function CalfeutrageVillePage({ params }) {
                 Calfeutrage dans <span className="text-[var(--color-red)]">tous les quartiers</span> de {city.name}
               </h2>
               <p className="text-[var(--color-muted)] mt-3 max-w-xl mx-auto">
-                Notre equipe se deplace partout a {city.name} pour le calfeutrage de vos portes et fenetres.
+                Notre équipe se déplace partout à {city.name} pour le calfeutrage de vos portes et fenêtres.
               </p>
             </div>
             <div className="flex flex-wrap justify-center gap-3">
@@ -317,9 +339,9 @@ export default async function CalfeutrageVillePage({ params }) {
       <section className="bg-[var(--color-background)] py-20 border-b border-[var(--color-border)]">
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="text-center mb-14">
-            <span className="section-tag">Questions frequentes</span>
+            <span className="section-tag">Questions fréquentes</span>
             <h2 className="text-3xl font-extrabold">
-              Calfeutrage a{" "}
+              Calfeutrage à{" "}
               <span className="text-[var(--color-red)]">{city.name}</span> — FAQ
             </h2>
           </div>
@@ -349,10 +371,10 @@ export default async function CalfeutrageVillePage({ params }) {
             <div>
               <span className="section-tag">Soumission gratuite</span>
               <h2 className="text-3xl font-extrabold text-white mb-6">
-                Besoin de calfeutrage a {city.name}?
+                Besoin de calfeutrage à {city.name}?
               </h2>
               <p className="text-white/70 leading-relaxed mb-6">
-                Ne laissez pas un calfeutrage use gonfler votre facture de chauffage. Remplissez le formulaire pour recevoir une soumission gratuite. Notre technicien se deplacera a {city.name} pour evaluer l&apos;etat de vos joints et vous proposer la meilleure solution.
+                Ne laissez pas un calfeutrage usé gonfler votre facture de chauffage. Remplissez le formulaire pour recevoir une soumission gratuite. Notre technicien se déplacera à {city.name} pour évaluer l'état de vos joints et vous proposer la meilleure solution.
               </p>
               <div className="space-y-4 text-white/80 text-sm">
                 <div className="flex items-center gap-3">
@@ -365,7 +387,7 @@ export default async function CalfeutrageVillePage({ params }) {
                 </div>
                 <div className="flex items-center gap-3">
                   <i className="fas fa-check-circle text-[var(--color-red)]"></i>
-                  Retrait complet de l&apos;ancien calfeutrage
+                  Retrait complet de l'ancien calfeutrage
                 </div>
                 <div className="flex items-center gap-3">
                   <i className="fas fa-check-circle text-[var(--color-red)]"></i>
@@ -391,12 +413,12 @@ export default async function CalfeutrageVillePage({ params }) {
       {/* Other services CTA */}
       <section className="bg-white py-16 border-b border-[var(--color-border)]">
         <div className="max-w-[1200px] mx-auto px-6 text-center">
-          <span className="section-tag">Services complementaires</span>
+          <span className="section-tag">Services complémentaires</span>
           <h2 className="text-2xl font-extrabold mb-4">
-            Autres services de reparation a {city.name}
+            Autres services de réparation à {city.name}
           </h2>
           <p className="text-[var(--color-muted)] mb-8 max-w-xl mx-auto">
-            En plus du calfeutrage, Vosthermos offre une gamme complete de services de reparation de portes et fenetres a {city.name}.
+            En plus du calfeutrage, Vosthermos offre une gamme complète de services de réparation de portes et fenêtres à {city.name}.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <Link href={`/services/remplacement-vitre-thermos/${city.slug}`} className="inline-flex items-center gap-2 bg-[var(--color-background)] px-5 py-3 rounded-full text-sm font-medium border border-[var(--color-border)] hover:border-[var(--color-teal)] hover:text-[var(--color-teal)] transition-colors">
@@ -423,7 +445,7 @@ export default async function CalfeutrageVillePage({ params }) {
               Calfeutrage — <span className="text-[var(--color-red)]">autres villes desservies</span>
             </h2>
             <p className="text-[var(--color-muted)] mt-2">
-              Nous offrons le service de calfeutrage dans ces villes pres de {city.name}.
+              Nous offrons le service de calfeutrage dans ces villes près de {city.name}.
             </p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
