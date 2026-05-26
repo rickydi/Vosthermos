@@ -39,16 +39,16 @@ export async function generateMetadata({ params }) {
 }
 
 const allServices = [
-  { slug: "remplacement-quincaillerie", icon: "fas fa-cogs", title: "Quincaillerie de portes et fenetres", desc: "Remplacement de poignees, serrures, roulettes, manivelles et charnieres pour tous types de portes-patio et fenetres." },
-  { slug: "remplacement-vitre-thermos", icon: "fas fa-snowflake", title: "Vitre thermos (unite scellee)", desc: "Remplacement de vitres thermos embuees ou fissurees. Verre Low-E et gaz argon pour une isolation optimale." },
-  { slug: "reparation-porte-patio", icon: "fas fa-grip-lines-vertical", title: "Reparation de porte-patio", desc: "Roulettes, rails, vitres thermos, poignees et coupe-froid. Reparation sur place de portes-patio coulissantes." },
-  { slug: "reparation-porte-fenetre", icon: "fas fa-door-closed", title: "Reparation de porte-fenetre", desc: "Mecanismes multipoints, charnieres, vitres embuees et ajustements. Experts en portes-fenetres a battant." },
-  { slug: "reparation-portes-bois", icon: "fas fa-door-open", title: "Portes en bois", desc: "Restauration, sablage, vernissage, ajustement et reparation de portes et cadres en bois. Travail artisanal." },
-  { slug: "moustiquaires-sur-mesure", icon: "fas fa-border-all", title: "Moustiquaires sur mesure", desc: "Fabrication et reparation de moustiquaires pour fenetres et portes-patio. Toile de qualite et ajustement parfait." },
-  { slug: "calfeutrage", icon: "fas fa-fill-drip", title: "Calfeutrage", desc: "Calfeutrage interieur et exterieur de portes et fenetres. Elimination des infiltrations d'air et amelioration de l'isolation." },
-  { slug: "coupe-froid", icon: "fas fa-temperature-low", title: "Coupe-froid", desc: "Remplacement de coupe-froid uses pour bloquer les courants d'air et reduire vos couts de chauffage." },
-  { slug: "desembuage", icon: "fas fa-eye", title: "Desembuage", desc: "Traitement de desembuage pour redonner transparence et clarte a vos vitres thermos embuees." },
-  { slug: "insertion-porte", icon: "fas fa-door-closed", title: "Insertion de porte", desc: "Remplacement de l'insertion vitree de votre porte d'entree. Ameliore l'esthetique et l'isolation." },
+  { slug: "remplacement-quincaillerie", icon: "fas fa-cogs", title: "Quincaillerie de portes et fenêtres", desc: "Remplacement de poignées, serrures, roulettes, manivelles et charnières pour tous types de portes-patio et fenêtres." },
+  { slug: "remplacement-vitre-thermos", icon: "fas fa-snowflake", title: "Vitre thermos (unité scellée)", desc: "Remplacement de vitres thermos embuées ou fissurées. Verre Low-E et gaz argon pour une isolation optimale." },
+  { slug: "reparation-porte-patio", icon: "fas fa-grip-lines-vertical", title: "Réparation de porte-patio", desc: "Roulettes, rails, vitres thermos, poignées et coupe-froid. Réparation sur place de portes-patio coulissantes." },
+  { slug: "reparation-porte-fenetre", icon: "fas fa-door-closed", title: "Réparation de porte-fenêtre", desc: "Mécanismes multipoints, charnières, vitres embuées et ajustements. Experts en portes-fenêtres à battant." },
+  { slug: "reparation-portes-bois", icon: "fas fa-door-open", title: "Portes en bois", desc: "Restauration, sablage, vernissage, ajustement et réparation de portes et cadres en bois. Travail artisanal." },
+  { slug: "moustiquaires-sur-mesure", icon: "fas fa-border-all", title: "Moustiquaires sur mesure", desc: "Fabrication et réparation de moustiquaires pour fenêtres et portes-patio. Toile de qualité et ajustement parfait." },
+  { slug: "calfeutrage", icon: "fas fa-fill-drip", title: "Calfeutrage", desc: "Calfeutrage intérieur et extérieur de portes et fenêtres. Élimination des infiltrations d'air et amélioration de l'isolation." },
+  { slug: "coupe-froid", icon: "fas fa-temperature-low", title: "Coupe-froid", desc: "Remplacement de coupe-froid usés pour bloquer les courants d'air et réduire vos coûts de chauffage." },
+  { slug: "desembuage", icon: "fas fa-eye", title: "Désembuage", desc: "Traitement de désembuage pour redonner transparence et clarté à vos vitres thermos embuées." },
+  { slug: "insertion-porte", icon: "fas fa-door-closed", title: "Insertion de porte", desc: "Remplacement de l'insertion vitrée de votre porte d'entrée. Améliore l'esthétique et l'isolation." },
 ];
 
 const LOCAL_REPAIR_CITY_PAGES = {
@@ -452,20 +452,20 @@ export default async function ReparationVillePage({ params }) {
   const faqItems = [
     ...(localPage?.faq || []),
     {
-      q: `Quels services de reparation de portes et fenetres offrez-vous a ${city.name}?`,
-      a: `A ${city.name}, nous offrons la gamme complete de reparation de portes et fenetres : remplacement de quincaillerie (poignees, serrures, roulettes), remplacement de vitres thermos embuees, reparation de portes en bois, fabrication de moustiquaires sur mesure, calfeutrage, coupe-froid, desembuage et insertion de porte. Tous nos travaux sont garantis.`,
+      q: `Quels services de réparation de portes et fenêtres offrez-vous à ${city.name}?`,
+      a: `À ${city.name}, nous offrons la gamme complète de réparation de portes et fenêtres : remplacement de quincaillerie (poignées, serrures, roulettes), remplacement de vitres thermos embuées, réparation de portes en bois, fabrication de moustiquaires sur mesure, calfeutrage, coupe-froid, désembuage et insertion de porte. Tous nos travaux sont garantis.`,
     },
     {
-      q: `Combien coute une reparation de fenetres a ${city.name}?`,
-      a: `Le cout varie selon le type de reparation. Un remplacement de thermos debute a environ 150$ par unite installee, la quincaillerie a partir de 4.99$ la piece. Nous offrons des soumissions gratuites a domicile partout a ${city.name} et dans la region de ${city.region}. Appelez-nous au ${COMPANY_INFO.phone}.`,
+      q: `Combien coûte une réparation de fenêtres à ${city.name}?`,
+      a: `Le coût varie selon le type de réparation. Un remplacement de thermos débute à environ 150$ par unité installée, la quincaillerie à partir de 4.99$ la pièce. Nous offrons des soumissions gratuites à domicile partout à ${city.name} et dans la région de ${city.region}. Appelez-nous au ${COMPANY_INFO.phone}.`,
     },
     {
-      q: `Est-ce que Vosthermos se deplace a ${city.name}?`,
-      a: `Oui, notre equipe se deplace a ${city.name} (a ${city.distance} de notre atelier)${city.neighborhoods ? ` et couvre tous les quartiers incluant ${city.neighborhoods.slice(0, 3).join(", ")}` : ""}. Nous desservons egalement toute la region de ${city.region}. Prenez rendez-vous en ligne ou appelez-nous.`,
+      q: `Est-ce que Vosthermos se déplace à ${city.name}?`,
+      a: `Oui, notre équipe se déplace à ${city.name} (à ${city.distance} de notre atelier)${city.neighborhoods ? ` et couvre tous les quartiers incluant ${city.neighborhoods.slice(0, 3).join(", ")}` : ""}. Nous desservons également toute la région de ${city.region}. Prenez rendez-vous en ligne ou appelez-nous.`,
     },
     {
-      q: `Vaut-il mieux reparer ou remplacer mes fenetres a ${city.name}?`,
-      a: `Dans la majorite des cas, la reparation est beaucoup plus economique que le remplacement complet. Un remplacement de thermos ou de quincaillerie peut prolonger la vie de vos fenetres de 15 a 20 ans a une fraction du cout d'une fenetre neuve. Notre technicien evaluera l'etat de vos fenetres lors de la soumission gratuite et vous recommandera la meilleure option.`,
+      q: `Vaut-il mieux réparer ou remplacer mes fenêtres à ${city.name}?`,
+      a: `Dans la majorité des cas, la réparation est beaucoup plus économique que le remplacement complet. Un remplacement de thermos ou de quincaillerie peut prolonger la vie de vos fenêtres de 15 à 20 ans à une fraction du coût d'une fenêtre neuve. Notre technicien évaluera l'état de vos fenêtres lors de la soumission gratuite et vous recommandera la meilleure option.`,
     },
   ];
 
@@ -505,7 +505,7 @@ export default async function ReparationVillePage({ params }) {
             <div>
               <div className="flex flex-wrap items-center gap-3 mb-6">
                 <span className="inline-block bg-white/10 text-[var(--color-red-light)] text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full">
-                  <i className="fas fa-map-marker-alt mr-1"></i> {city.region} &bull; a {city.distance} de nos bureaux
+                  <i className="fas fa-map-marker-alt mr-1"></i> {city.region} &bull; à {city.distance} de nos bureaux
                 </span>
                 {city.population && (
                   <span className="inline-block bg-white/10 text-white/70 text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full">
@@ -516,13 +516,13 @@ export default async function ReparationVillePage({ params }) {
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-6">
                 {localPage?.h1 || (
                   <>
-                    Reparation de portes et fenetres a{" "}
+                    Réparation de portes et fenêtres à{" "}
                     <span className="text-[var(--color-red)]">{city.name}</span>
                   </>
                 )}
               </h1>
               <p className="text-white/70 text-lg leading-relaxed mb-6">
-                {localPage?.lead || `Vosthermos est votre specialiste en reparation de portes et fenetres a ${city.name}. Que ce soit pour un thermos embue, une quincaillerie defaillante ou un calfeutrage a refaire, notre equipe intervient rapidement avec un service garanti sur tous les travaux.`}
+                {localPage?.lead || `Vosthermos est votre spécialiste en réparation de portes et fenêtres à ${city.name}. Que ce soit pour un thermos embué, une quincaillerie défaillante ou un calfeutrage à refaire, notre équipe intervient rapidement avec un service garanti sur tous les travaux.`}
               </p>
 
               {/* Trust badge: hours */}
@@ -569,22 +569,22 @@ export default async function ReparationVillePage({ params }) {
       <section className="bg-white py-16 border-b border-[var(--color-border)]">
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="max-w-3xl mx-auto">
-            <span className="section-tag">Reparation complete</span>
+            <span className="section-tag">Réparation complète</span>
             <h2 className="text-3xl font-extrabold mb-6">
-              Tous vos travaux de portes et fenetres a <span className="text-[var(--color-red)]">{city.name}</span>, un seul appel
+              Tous vos travaux de portes et fenêtres à <span className="text-[var(--color-red)]">{city.name}</span>, un seul appel
             </h2>
             {city.description ? (
               <p className="text-[var(--color-muted)] leading-relaxed mb-4">{city.description}</p>
             ) : (
               <p className="text-[var(--color-muted)] leading-relaxed mb-4">
-                Les proprietaires de {city.name} font face aux memes defis que partout au Quebec : les hivers rigoureux, les cycles de gel et degel, et l&apos;usure naturelle mettent a rude epreuve les portes et fenetres. Plutot que de remplacer des fenetres entieres a grand frais, la reparation ciblee permet de restaurer la performance de vos ouvertures a une fraction du cout.
+                Les propriétaires de {city.name} font face aux mêmes défis que partout au Québec : les hivers rigoureux, les cycles de gel et dégel, et l&apos;usure naturelle mettent à rude épreuve les portes et fenêtres. Plutôt que de remplacer des fenêtres entières à grand frais, la réparation ciblée permet de restaurer la performance de vos ouvertures à une fraction du coût.
               </p>
             )}
             <p className="text-[var(--color-muted)] leading-relaxed mb-4">
-              Chez Vosthermos, nous regroupons sous un meme toit l&apos;ensemble des specialites necessaires pour remettre a neuf vos portes et fenetres. Notre approche est simple : un technicien qualifie se deplace chez vous a {city.name}, evalue chaque ouverture et propose un plan de reparation adapte a votre budget. Pas de vente sous pression, pas de remplacement inutile.
+              Chez Vosthermos, nous regroupons sous un même toit l&apos;ensemble des spécialités nécessaires pour remettre à neuf vos portes et fenêtres. Notre approche est simple : un technicien qualifié se déplace chez vous à {city.name}, évalue chaque ouverture et propose un plan de réparation adapté à votre budget. Pas de vente sous pression, pas de remplacement inutile.
             </p>
             <p className="text-[var(--color-muted)] leading-relaxed">
-              Avec plus de 15 ans d&apos;experience et un inventaire de plus de 700 pieces de quincaillerie, nous sommes en mesure de reparer la tres grande majorite des portes et fenetres residentielles, peu importe la marque ou l&apos;annee d&apos;installation. Tous nos travaux sont garantis et nos soumissions sont gratuites.
+              Avec plus de 15 ans d&apos;expérience et un inventaire de plus de 700 pièces de quincaillerie, nous sommes en mesure de réparer la très grande majorité des portes et fenêtres résidentielles, peu importe la marque ou l&apos;année d&apos;installation. Tous nos travaux sont garantis et nos soumissions sont gratuites.
             </p>
             {localPage?.sections?.map((section) => (
               <div key={section.heading} className="mt-10">
@@ -604,12 +604,12 @@ export default async function ReparationVillePage({ params }) {
       <section className="bg-[var(--color-background)] py-20 border-b border-[var(--color-border)]">
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="text-center mb-14">
-            <span className="section-tag">Nos specialites</span>
+            <span className="section-tag">Nos spécialités</span>
             <h2 className="text-3xl font-extrabold">
-              Services de reparation disponibles a <span className="text-[var(--color-red)]">{city.name}</span>
+              Services de réparation disponibles à <span className="text-[var(--color-red)]">{city.name}</span>
             </h2>
             <p className="text-[var(--color-muted)] mt-3 max-w-xl mx-auto">
-              Chaque service est offert individuellement ou combine dans notre programme OPTI-FENETRE pour une remise a neuf complete.
+              Chaque service est offert individuellement ou combiné dans notre programme OPTI-FENÊTRE pour une remise à neuf complète.
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -642,30 +642,30 @@ export default async function ReparationVillePage({ params }) {
           <div className="text-center mb-14">
             <span className="section-tag">Nos engagements</span>
             <h2 className="text-3xl font-extrabold text-white">
-              Pourquoi choisir Vosthermos a <span className="text-[var(--color-red)]">{city.name}</span>?
+              Pourquoi choisir Vosthermos à <span className="text-[var(--color-red)]">{city.name}</span>?
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
               {
                 icon: "fa-tools",
-                title: "Reparation plutot que remplacement",
-                desc: `Nous privilegions la reparation, ce qui vous fait economiser 50 a 70% par rapport au remplacement complet de vos fenetres a ${city.name}. Un choix ecologique et economique.`,
+                title: "Réparation plutôt que remplacement",
+                desc: `Nous privilégions la réparation, ce qui vous fait économiser 50 à 70% par rapport au remplacement complet de vos fenêtres à ${city.name}. Un choix écologique et économique.`,
               },
               {
                 icon: "fa-award",
-                title: "Plus de 15 ans d'experience",
-                desc: `Depuis plus de 15 ans, notre equipe repare des portes et fenetres partout dans la region de ${city.region}. Expertise, rapidite et travail soigne garanti.`,
+                title: "Plus de 15 ans d'expérience",
+                desc: `Depuis plus de 15 ans, notre équipe répare des portes et fenêtres partout dans la région de ${city.region}. Expertise, rapidité et travail soigné garanti.`,
               },
               {
                 icon: "fa-shield-alt",
                 title: "Travaux garantis",
-                desc: "Tous nos remplacements de thermos et nos reparations sont couverts par notre garantie. Vous avez l'esprit tranquille, on s'occupe du reste.",
+                desc: "Tous nos remplacements de thermos et nos réparations sont couverts par notre garantie. Vous avez l'esprit tranquille, on s'occupe du reste.",
               },
               {
                 icon: "fa-truck",
-                title: `Service a domicile a ${city.name}`,
-                desc: `Notre technicien se deplace directement chez vous a ${city.name} (a seulement ${city.distance} de notre atelier) pour la soumission et les travaux. Aucun deplacement de votre part.`,
+                title: `Service à domicile à ${city.name}`,
+                desc: `Notre technicien se déplace directement chez vous à ${city.name} (à seulement ${city.distance} de notre atelier) pour la soumission et les travaux. Aucun déplacement de votre part.`,
               },
             ].map((item) => (
               <div key={item.title} className="text-center">
@@ -687,10 +687,10 @@ export default async function ReparationVillePage({ params }) {
             <div className="text-center mb-10">
               <span className="section-tag">Zone de service</span>
               <h2 className="text-3xl font-extrabold">
-                Reparation de portes et fenetres dans <span className="text-[var(--color-red)]">tous les quartiers</span> de {city.name}
+                Réparation de portes et fenêtres dans <span className="text-[var(--color-red)]">tous les quartiers</span> de {city.name}
               </h2>
               <p className="text-[var(--color-muted)] mt-3 max-w-xl mx-auto">
-                Notre technicien se deplace dans chaque secteur de {city.name} pour evaluer et reparer vos portes et fenetres sur place.
+                Notre technicien se déplace dans chaque secteur de {city.name} pour évaluer et réparer vos portes et fenêtres sur place.
               </p>
             </div>
             <div className="flex flex-wrap justify-center gap-3">
@@ -712,9 +712,9 @@ export default async function ReparationVillePage({ params }) {
       <section className="bg-[var(--color-background)] py-20 border-b border-[var(--color-border)]">
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="text-center mb-14">
-            <span className="section-tag">Questions frequentes</span>
+            <span className="section-tag">Questions fréquentes</span>
             <h2 className="text-3xl font-extrabold">
-              Reparation de portes et fenetres a{" "}
+              Réparation de portes et fenêtres à{" "}
               <span className="text-[var(--color-red)]">{city.name}</span> — FAQ
             </h2>
           </div>
@@ -758,10 +758,10 @@ export default async function ReparationVillePage({ params }) {
           <div className="text-center max-w-3xl mx-auto">
             <span className="section-tag">Soumission gratuite</span>
             <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-6">
-              Besoin d&apos;une reparation de portes ou fenetres a {city.name}?
+              Besoin d&apos;une réparation de portes ou fenêtres à {city.name}?
             </h2>
             <p className="text-white/70 leading-relaxed mb-8">
-              Soumission gratuite sous 24 heures. Notre technicien se deplacera a {city.name} pour evaluer vos besoins et vous proposer la solution la plus economique.
+              Soumission gratuite sous 24 heures. Notre technicien se déplacera à {city.name} pour évaluer vos besoins et vous proposer la solution la plus économique.
             </p>
             <div className="flex flex-wrap justify-center gap-4 text-white/80 text-sm mb-8">
               <span className="flex items-center gap-2">
@@ -770,7 +770,7 @@ export default async function ReparationVillePage({ params }) {
               </span>
               <span className="flex items-center gap-2">
                 <i className="fas fa-check-circle text-[var(--color-red-light)]"></i>
-                Evaluation en 24-48h
+                Évaluation en 24-48h
               </span>
               <span className="flex items-center gap-2">
                 <i className="fas fa-check-circle text-[var(--color-red-light)]"></i>
@@ -807,7 +807,7 @@ export default async function ReparationVillePage({ params }) {
             Besoin de pieces? Achetez en ligne!
           </h2>
           <p className="text-[var(--color-muted)] mb-8 max-w-xl mx-auto">
-            Plus de 740 pieces de remplacement pour portes, fenetres et moustiquaires disponibles dans notre boutique en ligne avec livraison a {city.name}.
+            Plus de 740 pièces de remplacement pour portes, fenêtres et moustiquaires disponibles dans notre boutique en ligne avec livraison à {city.name}.
           </p>
           <Link
             href="/boutique"
@@ -823,10 +823,10 @@ export default async function ReparationVillePage({ params }) {
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="text-center mb-8">
             <h2 className="text-2xl font-extrabold">
-              Reparation de portes et fenetres — <span className="text-[var(--color-red)]">autres villes</span>
+              Réparation de portes et fenêtres — <span className="text-[var(--color-red)]">autres villes</span>
             </h2>
             <p className="text-[var(--color-muted)] mt-2">
-              Nous desservons egalement ces villes a proximite de {city.name}.
+              Nous desservons également ces villes à proximité de {city.name}.
             </p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
