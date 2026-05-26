@@ -1,5 +1,25 @@
 import { NextResponse } from "next/server";
 
+// Legacy 404 cleanup: d'anciennes URLs anglaises ont ete generees avec le slug
+// FRANCAIS du service (ex: /en/services/desembuage) au lieu du slug anglais.
+// Google les recrawle encore et tombe sur des 404. On redirige en 301 vers la
+// bonne page pour recuperer le signal et arreter le gaspillage de budget crawl.
+const EN_SERVICE_FR_TO_EN = {
+  "remplacement-quincaillerie": "hardware-replacement",
+  "remplacement-vitre-thermos": "sealed-glass-replacement",
+  "reparation-portes-bois": "wooden-door-repair",
+  "moustiquaires-sur-mesure": "custom-screen-doors",
+  "calfeutrage": "caulking",
+  "desembuage": "defogging",
+  "insertion-porte": "door-insert",
+  "coupe-froid": "weatherstripping",
+};
+// Services FR sans equivalent anglais -> rediriger vers la version francaise.
+const FR_ONLY_SERVICES = new Set([
+  "reparation-porte-patio",
+  "reparation-porte-fenetre",
+]);
+
 export function middleware(request) {
   const { pathname } = request.nextUrl;
   const host = request.headers.get("host")?.toLowerCase().split(":")[0];
@@ -10,6 +30,24 @@ export function middleware(request) {
     url.protocol = "https";
     url.hostname = "www.vosthermos.com";
     return NextResponse.redirect(url, 308);
+  }
+
+  // 301 cleanup des anciennes URLs /en/services/{slug-FR}[/ville]
+  if (pathname.startsWith("/en/services/")) {
+    const parts = pathname.split("/").filter(Boolean); // ["en","services",slug,ville?]
+    const slug = parts[2];
+    const rest = parts.slice(3).join("/");
+    const suffix = rest ? `/${rest}` : "";
+    if (slug && EN_SERVICE_FR_TO_EN[slug]) {
+      const url = request.nextUrl.clone();
+      url.pathname = `/en/services/${EN_SERVICE_FR_TO_EN[slug]}${suffix}`;
+      return NextResponse.redirect(url, 301);
+    }
+    if (slug && FR_ONLY_SERVICES.has(slug)) {
+      const url = request.nextUrl.clone();
+      url.pathname = `/services/${slug}${suffix}`;
+      return NextResponse.redirect(url, 301);
+    }
   }
 
   if (pathname === "/admin") {
