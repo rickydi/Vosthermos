@@ -117,7 +117,7 @@ Schema:
     "type": "particulier" | "gestionnaire"
   },
   "intervention": { "address": "adresse des travaux", "city": "ville", "postalCode": "code postal" },
-  "description": "court resume professionnel des travaux, incluant les elements a confirmer s'il y en a",
+  "description": "court resume professionnel des travaux confirmes seulement",
   "items": [{ "description": "ligne facture/soumission", "quantity": 1, "unitPrice": 0 }],
   "email": { "to": "email destinataire", "subject": "sujet email", "body": "message email court et professionnel" },
   "warnings": ["points ambigus ou prix manquants"]
@@ -127,7 +127,9 @@ Regles:
 - Type demande: ${documentType}.
 - Utilise le design PDF existant: tu ne generes pas de PDF, seulement les donnees.
 - Les lignes avec prix clair vont dans items.
-- Les mentions sans prix clair ne vont pas dans items; mets-les dans description et warnings.
+- Les mentions sans prix clair ne vont pas dans items ni dans description; mets-les seulement dans warnings.
+- Pour les warnings, conserve les mots du client autant que possible: "A confirmer: [texte original] (prix non fourni)".
+- N'ajoute jamais "a commander", "a remplacer", "additionnel" ou une intention similaire si le message original ne le dit pas clairement.
 - Ne calcule pas les taxes. Les prix unitaires sont avant taxes.
 - Si le message donne un email ou dit "envoyer la facture a", mets cet email dans client.email et email.to.
 - Si la demande est en anglais, genere email.body en anglais. Sinon en francais quebecois professionnel.
