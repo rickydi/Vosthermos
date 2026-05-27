@@ -117,6 +117,12 @@ export function getDocumentTargetDate(wo, documentType) {
 
 export function getProjectType(wo) {
   const clientType = String(wo?.client?.type || "").toLowerCase();
+  const projectText = [
+    wo?.client?.name,
+    wo?.client?.company,
+    wo?.description,
+  ].filter(Boolean).join(" ");
+  if (/(syndicat|condo|copropriete|copropriété)/i.test(projectText)) return "Residentiel - Condo";
   if (clientType === "gestionnaire") return "Commercial - copropriete";
   if (wo?.client?.company) return "Commercial";
   return "Residentiel";

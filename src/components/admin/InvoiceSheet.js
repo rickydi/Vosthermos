@@ -210,6 +210,7 @@ function InfoBox({ wo, co, meta, documentNumber }) {
           {wo.client?.address && <>{wo.client.address}<br /></>}
           {getClientCityLine(wo.client) && <>{getClientCityLine(wo.client)}<br /></>}
           {wo.client?.phone && <>Tel. : {wo.client.phone}<br /></>}
+          {wo.client?.secondaryPhone && <>{wo.client.secondaryPhone}<br /></>}
           {wo.client?.email}
         </p>
         {projectAddress && (

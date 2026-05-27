@@ -12,6 +12,47 @@ function cleanMoney(value) {
   return Number.isFinite(number) ? Math.max(0, Math.round(number * 100) / 100) : 0;
 }
 
+function cleanWarning(value) {
+  return cleanText(value, 240)
+    .replace(/\s+(additionnelles?|supplementaires?)\s+(a|à)\s+commander\b/gi, "")
+    .replace(/\s+(a|à)\s+commander\b/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+function inferBillingName(client = {}, fallbackEmail = "") {
+  const name = cleanText(client.name, 120);
+  const email = cleanText(client.email || fallbackEmail, 160).toLowerCase();
+  const localPart = email.split("@")[0] || "";
+  const syndicateMatch = localPart.match(/^syndicat[-_.\s]*(\d+)/i);
+  if (syndicateMatch && !/\bsyndicat\b/i.test(name)) {
+    return `Syndicat ${syndicateMatch[1]}`;
+  }
+  return name;
+}
+
+function inferClientType(client = {}) {
+  const name = cleanText(client.name, 120).toLowerCase();
+  if (/(syndicat|condo|copropriete|copropriété)/i.test(name)) return "particulier";
+  return client.type === "gestionnaire" ? "gestionnaire" : "particulier";
+}
+
+function cleanDescriptionAndWarnings(description, warnings) {
+  const nextWarnings = [...warnings];
+  let cleaned = cleanText(description, 1200);
+  cleaned = cleaned.replace(/\s*(?:[aàAÀ] confirmer|[aàAÀ] verifier)\s*:\s*([^.\n]+)(?:\.|$)/g, (match, detail) => {
+    const warning = cleanWarning(`A confirmer: ${detail}`);
+    if (warning) nextWarnings.push(warning);
+    return match.endsWith(".") ? "." : "";
+  });
+  cleaned = cleaned
+    .replace(/\.{2,}/g, ".")
+    .replace(/\s+\./g, ".")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  return { description: cleaned, warnings: nextWarnings };
+}
+
 function parseJson(text) {
   const raw = String(text || "").trim();
   try {
@@ -38,26 +79,29 @@ function sanitizeDraft(input, fallbackDocumentType) {
   const intervention = draft.intervention && typeof draft.intervention === "object" ? draft.intervention : {};
   const email = draft.email && typeof draft.email === "object" ? draft.email : {};
   const items = Array.isArray(draft.items) ? draft.items : [];
-  const warnings = Array.isArray(draft.warnings) ? draft.warnings : [];
+  const initialWarnings = Array.isArray(draft.warnings) ? draft.warnings : [];
+  const moved = cleanDescriptionAndWarnings(draft.description, initialWarnings);
+
+  const billingName = inferBillingName(client, email.to);
 
   return {
     documentType,
     client: {
-      name: cleanText(client.name, 120),
-      email: cleanText(client.email, 160),
-      phone: cleanText(client.phone, 40),
-      secondaryPhone: cleanText(client.secondaryPhone, 40),
+      name: billingName,
+      email: cleanText(client.email || email.to, 160),
+      phone: cleanText(client.phone, 80),
+      secondaryPhone: cleanText(client.secondaryPhone, 80),
       address: cleanText(client.address, 180),
       city: cleanText(client.city, 80),
       postalCode: cleanText(client.postalCode, 20),
-      type: client.type === "gestionnaire" ? "gestionnaire" : "particulier",
+      type: inferClientType({ ...client, name: billingName }),
     },
     intervention: {
       address: cleanText(intervention.address || client.address, 180),
       city: cleanText(intervention.city || client.city, 80),
       postalCode: cleanText(intervention.postalCode || client.postalCode, 20),
     },
-    description: cleanText(draft.description, 1200),
+    description: moved.description,
     items: items.slice(0, 30)
       .map((item) => ({
         description: cleanText(item?.description, 300),
@@ -70,7 +114,7 @@ function sanitizeDraft(input, fallbackDocumentType) {
       subject: cleanText(email.subject, 180),
       body: cleanText(email.body, 2000),
     },
-    warnings: warnings.map((warning) => cleanText(warning, 240)).filter(Boolean).slice(0, 8),
+    warnings: moved.warnings.map(cleanWarning).filter(Boolean).slice(0, 8),
   };
 }
 
@@ -109,8 +153,8 @@ Schema:
   "client": {
     "name": "nom a facturer",
     "email": "email de facturation",
-    "phone": "telephone principal",
-    "secondaryPhone": "autre telephone",
+    "phone": "telephone principal, avec nom du contact si present",
+    "secondaryPhone": "autre telephone, avec nom du contact si present",
     "address": "adresse civique complete sans ville si possible",
     "city": "ville",
     "postalCode": "code postal si present",
@@ -130,6 +174,10 @@ Regles:
 - Les mentions sans prix clair ne vont pas dans items ni dans description; mets-les seulement dans warnings.
 - Pour les warnings, conserve les mots du client autant que possible: "A confirmer: [texte original] (prix non fourni)".
 - N'ajoute jamais "a commander", "a remplacer", "additionnel" ou une intention similaire si le message original ne le dit pas clairement.
+- Si le message dit "Envoyer la facture a [email]" et que l'email identifie une entite de facturation, utilise cette entite comme client.name. Exemple: syndicat315@... => "Syndicat 315".
+- Les personnes dans "coordonnees" sont des contacts; ne remplace pas le client facture par un contact si une entite de facturation est donnee.
+- Ne mets pas type "gestionnaire" seulement parce qu'il y a un syndicat ou un condo; utilise "particulier" sauf si le message dit clairement gestionnaire, compagnie ou compte commercial.
+- Pour items.description, redige des lignes professionnelles et completes. Si le prix semble global pour la reparation, precise que main-d'oeuvre et pieces sont incluses.
 - Ne calcule pas les taxes. Les prix unitaires sont avant taxes.
 - Si le message donne un email ou dit "envoyer la facture a", mets cet email dans client.email et email.to.
 - Si la demande est en anglais, genere email.body en anglais. Sinon en francais quebecois professionnel.
