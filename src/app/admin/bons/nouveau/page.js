@@ -198,6 +198,39 @@ function MoneyLine({ label, value, muted = false }) {
   );
 }
 
+function onlyDigits(value) {
+  return String(value || "").replace(/\D/g, "");
+}
+
+function clientMatchesDraft(client, draftClient = {}) {
+  const email = String(draftClient.email || "").trim().toLowerCase();
+  const phone = onlyDigits(draftClient.phone);
+  const secondaryPhone = onlyDigits(draftClient.secondaryPhone);
+  const name = String(draftClient.name || "").trim().toLowerCase();
+  if (email && String(client.email || "").trim().toLowerCase() === email) return true;
+  const clientPhones = [client.phone, client.secondaryPhone].map(onlyDigits).filter(Boolean);
+  if (phone && clientPhones.includes(phone)) return true;
+  if (secondaryPhone && clientPhones.includes(secondaryPhone)) return true;
+  return Boolean(name && String(client.name || "").trim().toLowerCase() === name);
+}
+
+function draftItemsToWorkItems(items = []) {
+  return items
+    .map((item) => ({
+      productId: null,
+      serviceId: null,
+      description: String(item.description || "").trim(),
+      quantity: Number(item.quantity) || 1,
+      unitPrice: Number(item.unitPrice) || 0,
+      itemType: "piece",
+    }))
+    .filter((item) => item.description && item.unitPrice > 0);
+}
+
+function emailDraftStorageKey(workOrderId) {
+  return `vosthermos:document-email-draft:${workOrderId}`;
+}
+
 function followUpDateLabel(value) {
   const date = dateOnlyString(value);
   return date ? ` | ${date}` : "";
@@ -277,6 +310,13 @@ function NouveauBonAdmin() {
   const [laborRate, setLaborRate] = useState(85);
   const [laborRateText, setLaborRateText] = useState("85.00");
   const [settings, setSettings] = useState({ labor_rate_per_hour: 85, tps_rate: 0.05, tvq_rate: 0.09975 });
+  const [aiImportText, setAiImportText] = useState("");
+  const [aiDraft, setAiDraft] = useState(null);
+  const [aiDraftError, setAiDraftError] = useState("");
+  const [aiDraftLoading, setAiDraftLoading] = useState(false);
+  const [aiDraftApplying, setAiDraftApplying] = useState(false);
+  const [aiDraftMessage, setAiDraftMessage] = useState("");
+  const [aiEmailDraft, setAiEmailDraft] = useState(null);
 
   const isB2B = selectedClient?.type === "gestionnaire";
 
@@ -822,6 +862,118 @@ function NouveauBonAdmin() {
     }
   }
 
+  async function findClientForAiDraft(draftClient = {}) {
+    const queries = [
+      draftClient.email,
+      draftClient.phone,
+      draftClient.secondaryPhone,
+      draftClient.name,
+    ].map((value) => String(value || "").trim()).filter(Boolean);
+
+    for (const query of queries) {
+      const res = await fetch(`/api/admin/clients?q=${encodeURIComponent(query)}&limit=10`, { cache: "no-store" });
+      if (!res.ok) continue;
+      const data = await res.json().catch(() => ({}));
+      const clients = Array.isArray(data.clients) ? data.clients : [];
+      const exact = clients.find((client) => clientMatchesDraft(client, draftClient));
+      if (exact) return exact;
+    }
+    return null;
+  }
+
+  async function createClientForAiDraft(draftClient = {}) {
+    const name = String(draftClient.name || draftClient.email || draftClient.phone || "Client a verifier").trim();
+    const res = await fetch("/api/admin/clients", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name,
+        type: draftClient.type === "gestionnaire" ? "gestionnaire" : "particulier",
+        phone: draftClient.phone || null,
+        secondaryPhone: draftClient.secondaryPhone || null,
+        email: draftClient.email || null,
+        address: draftClient.address || null,
+        city: draftClient.city || null,
+        postalCode: draftClient.postalCode || null,
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || "Erreur creation client IA");
+    return data;
+  }
+
+  async function analyzeAiDocumentDraft() {
+    if (!aiImportText.trim() || aiDraftLoading) return;
+    setAiDraftLoading(true);
+    setAiDraftError("");
+    setAiDraftMessage("");
+    try {
+      const documentType = invoiceMode ? "invoice" : quoteMode ? "quote" : "invoice";
+      const res = await fetch("/api/admin/work-orders/ai-draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: aiImportText, documentType }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Erreur analyse IA");
+      setAiDraft(data.draft || null);
+    } catch (err) {
+      setAiDraftError(err.message);
+      setAiDraft(null);
+    } finally {
+      setAiDraftLoading(false);
+    }
+  }
+
+  async function applyAiDocumentDraft() {
+    if (!aiDraft || aiDraftApplying) return;
+    setAiDraftApplying(true);
+    setAiDraftError("");
+    setAiDraftMessage("");
+    try {
+      const draftClient = aiDraft.client || {};
+      let client = selectedClient;
+      let clientAction = "Client conserve";
+      if (!client) {
+        const existingClient = await findClientForAiDraft(draftClient);
+        client = existingClient || await createClientForAiDraft(draftClient);
+        clientAction = existingClient ? "Client existant utilise" : "Client cree";
+        selectClient(client);
+        setClientSearch("");
+        setClientResults([]);
+        setQuickClientOpen(false);
+      }
+
+      setInterventionAddress(aiDraft.intervention?.address || draftClient.address || "");
+      setInterventionCity(aiDraft.intervention?.city || draftClient.city || "");
+      setInterventionPostalCode(aiDraft.intervention?.postalCode || draftClient.postalCode || "");
+      setDescription(aiDraft.description || "");
+      setItems(draftItemsToWorkItems(aiDraft.items));
+      setSections([]);
+      setLaborHours(0);
+
+      const emailDraft = aiDraft.email?.body ? aiDraft.email : null;
+      setAiEmailDraft(emailDraft);
+
+      const noteParts = [];
+      if (emailDraft?.body) {
+        noteParts.push(`Email IA propose:\n${emailDraft.body}`);
+      }
+      if (Array.isArray(aiDraft.warnings) && aiDraft.warnings.length > 0) {
+        noteParts.push(`A verifier:\n- ${aiDraft.warnings.join("\n- ")}`);
+      }
+      if (noteParts.length > 0) {
+        setNotes((current) => [current, noteParts.join("\n\n")].filter(Boolean).join("\n\n"));
+      }
+
+      setAiDraftMessage(`${clientAction}. Brouillon applique au formulaire.`);
+    } catch (err) {
+      setAiDraftError(err.message);
+    } finally {
+      setAiDraftApplying(false);
+    }
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     if (!selectedClient) { setError("Client requis"); return; }
@@ -902,6 +1054,15 @@ function NouveauBonAdmin() {
       const wo = await res.json();
       if (!editId) {
         try { window.localStorage.removeItem(DRAFT_KEY); } catch {}
+      }
+      if ((submitAction === "invoice" || submitAction === "quote") && aiEmailDraft?.body) {
+        try {
+          window.localStorage.setItem(emailDraftStorageKey(wo.id), JSON.stringify({
+            to: aiEmailDraft.to || selectedClient?.email || "",
+            subject: aiEmailDraft.subject || "",
+            body: aiEmailDraft.body,
+          }));
+        } catch {}
       }
       router.push((submitAction === "invoice" || submitAction === "quote") ? `/admin/bons/${wo.id}` : `/admin/bons/nouveau?edit=${wo.id}`);
       if (submitAction !== "invoice" && submitAction !== "quote") {
@@ -991,6 +1152,115 @@ function NouveauBonAdmin() {
               </p>
             </div>
           </div>
+        </div>
+      )}
+
+      {(invoiceMode || quoteMode) && (
+        <div className="admin-card mb-5 max-w-[1500px] overflow-hidden rounded-xl border">
+          <div className="border-b admin-border bg-cyan-500/10 px-4 py-3">
+            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h2 className="admin-text text-sm font-black">
+                  <i className="fas fa-wand-magic-sparkles mr-2 text-cyan-500"></i>
+                  Assistant IA
+                </h2>
+                <p className="admin-text-muted mt-0.5 text-xs">
+                  {invoiceMode ? "Facture" : "Soumission"} a partir d&apos;un message client.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={analyzeAiDocumentDraft}
+                disabled={aiDraftLoading || !aiImportText.trim()}
+                className="inline-flex items-center justify-center rounded-lg bg-cyan-700 px-4 py-2 text-sm font-bold text-white hover:bg-cyan-600 disabled:opacity-40"
+              >
+                <i className={`fas ${aiDraftLoading ? "fa-spinner fa-spin" : "fa-bolt"} mr-2`}></i>
+                {aiDraftLoading ? "Analyse..." : "Analyser"}
+              </button>
+            </div>
+          </div>
+
+          <div className="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_380px]">
+            <textarea
+              value={aiImportText}
+              onChange={(e) => setAiImportText(e.target.value)}
+              rows={8}
+              className="admin-input min-h-44 w-full resize-y rounded-lg border px-3 py-2.5 text-sm"
+              placeholder="Coller ici le texto, courriel ou notes brutes..."
+            />
+
+            <div className="rounded-lg border admin-border bg-white/[0.02] p-3">
+              {!aiDraft ? (
+                <div className="flex h-full min-h-44 flex-col justify-center text-center">
+                  <i className="fas fa-file-invoice-dollar mb-3 text-2xl text-cyan-500/70"></i>
+                  <p className="admin-text text-sm font-bold">Aucun brouillon analyse</p>
+                  <p className="admin-text-muted mt-1 text-xs">Le resultat apparaitra ici avant d&apos;appliquer.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="admin-text text-sm font-bold">{aiDraft.client?.name || "Client a verifier"}</p>
+                      <p className="admin-text-muted text-xs">{aiDraft.client?.email || aiDraft.email?.to || "Email a verifier"}</p>
+                      <p className="admin-text-muted text-xs">{aiDraft.client?.phone || ""}{aiDraft.client?.secondaryPhone ? ` | ${aiDraft.client.secondaryPhone}` : ""}</p>
+                    </div>
+                    <span className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase ${
+                      invoiceMode ? "bg-orange-500/15 text-orange-500" : "bg-sky-500/15 text-sky-500"
+                    }`}>
+                      {invoiceMode ? "Facture" : "Soumission"}
+                    </span>
+                  </div>
+
+                  <div className="rounded-lg border admin-border p-2">
+                    <p className="admin-text-muted mb-1 text-[10px] font-bold uppercase">Lignes</p>
+                    <div className="space-y-1">
+                      {(aiDraft.items || []).slice(0, 4).map((item, index) => (
+                        <div key={index} className="flex items-start justify-between gap-2 text-xs">
+                          <span className="admin-text min-w-0 break-words">{item.description}</span>
+                          <span className="font-bold text-cyan-600">{Number(item.unitPrice || 0).toFixed(2)}$</span>
+                        </div>
+                      ))}
+                      {(aiDraft.items || []).length === 0 && (
+                        <p className="admin-text-muted text-xs">Aucune ligne avec prix clair.</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {aiDraft.warnings?.length > 0 && (
+                    <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-2">
+                      <p className="text-[10px] font-bold uppercase text-amber-500">A verifier</p>
+                      <p className="admin-text-muted mt-1 text-xs">{aiDraft.warnings.join(" | ")}</p>
+                    </div>
+                  )}
+
+                  {aiDraft.email?.body && (
+                    <details className="rounded-lg border admin-border p-2">
+                      <summary className="cursor-pointer admin-text text-xs font-bold">Email propose</summary>
+                      <p className="admin-text-muted mt-2 whitespace-pre-wrap text-xs">{aiDraft.email.body}</p>
+                    </details>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={applyAiDocumentDraft}
+                    disabled={aiDraftApplying}
+                    className="flex w-full items-center justify-center rounded-lg bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-700 disabled:opacity-40"
+                  >
+                    <i className={`fas ${aiDraftApplying ? "fa-spinner fa-spin" : "fa-check"} mr-2`}></i>
+                    {aiDraftApplying ? "Application..." : "Appliquer au formulaire"}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {(aiDraftError || aiDraftMessage) && (
+            <div className={`border-t px-4 py-3 text-sm ${
+              aiDraftError ? "border-red-500/30 bg-red-500/10 text-red-500" : "admin-border bg-green-500/10 text-green-600"
+            }`}>
+              {aiDraftError || aiDraftMessage}
+            </div>
+          )}
         </div>
       )}
 

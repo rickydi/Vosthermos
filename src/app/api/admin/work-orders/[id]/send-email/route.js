@@ -17,6 +17,92 @@ const LOGO_URL = `${SITE_URL}/images/Vos-Thermos-Logo_Blanc.png`;
 
 function fmt(n) { return formatMoneyCad(n); }
 
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function renderMessageHtml(message) {
+  return escapeHtml(message)
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.replace(/\n/g, "<br>"))
+    .map((paragraph) => `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#374151;">${paragraph}</p>`)
+    .join("");
+}
+
+function renderCustomEmailHtml(documentMeta, documentNumber, filename, message) {
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${escapeHtml(documentMeta.label)} ${escapeHtml(documentNumber)}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#111;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f3f4f6;padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+          <tr>
+            <td style="background:linear-gradient(135deg,#b91c1c 0%,#991b1b 100%);background-color:#b91c1c;padding:32px 40px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td valign="middle">
+                    <img src="${LOGO_URL}" alt="Vosthermos" height="76" style="display:block;border:0;outline:none;text-decoration:none;height:76px;" />
+                  </td>
+                  <td align="right" valign="middle" style="color:#ffffff;">
+                    <div style="font-size:11px;letter-spacing:3px;opacity:.75;font-weight:600;">${escapeHtml(documentMeta.labelUpper)}</div>
+                    <div style="font-size:24px;font-weight:800;margin-top:6px;">${escapeHtml(documentNumber)}</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:34px 40px 18px;">
+              ${renderMessageHtml(message)}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 40px 32px;">
+              <div style="background-color:#fef2f2;border-left:3px solid #b91c1c;padding:14px 18px;border-radius:0 8px 8px 0;">
+                <div style="font-size:13px;color:#991b1b;font-weight:600;margin-bottom:4px;">Piece jointe</div>
+                <div style="font-size:13px;color:#555;">${escapeHtml(filename)} (${escapeHtml(documentMeta.emailAttachmentDetail)})</div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color:#f9fafb;padding:24px 40px;border-top:1px solid #e5e7eb;text-align:center;">
+              <div style="font-size:12px;color:#9ca3af;line-height:1.6;">
+                <strong style="color:#111;">Vosthermos</strong> &mdash; Portes et fenetres<br>
+                Reparation et remplacement<br>
+                <a href="${SITE_URL}" style="color:#b91c1c;text-decoration:none;">vosthermos.com</a>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+function renderCustomEmailText(documentMeta, documentNumber, message) {
+  return `${message}
+
+---
+${documentMeta.labelUpper} ${documentNumber}
+PDF joint a ce courriel.
+Vosthermos - Portes et fenetres
+${SITE_URL}
+`;
+}
+
 function renderEmailHtml(wo, documentMeta, documentNumber, filename) {
   const date = formatDateOnly(getDocumentDate(wo, documentMeta.type), {
     day: "numeric", month: "long", year: "numeric",
@@ -192,6 +278,8 @@ export async function POST(req, { params }) {
   const documentMeta = getWorkOrderDocumentMeta(wo.statut, body.documentType);
   const documentNumber = resolveDocumentNumber(wo);
   const filename = documentFilename(wo, documentMeta);
+  const customSubject = String(body.subject || "").trim();
+  const customMessage = String(body.message || "").trim();
   const nextStatut = documentMeta.sentStatus || wo.statut;
   const paymentTracking = buildPaymentTrackingData({
     statut: nextStatut,
@@ -243,9 +331,13 @@ export async function POST(req, { params }) {
       from: `"Vosthermos" <${fromEmail}>`,
       to,
       replyTo: fromEmail,
-      subject: `${documentMeta.subjectPrefix} ${documentNumber} - Vosthermos`,
-      text: renderEmailText(serializedWo, documentMeta, documentNumber),
-      html: renderEmailHtml(serializedWo, documentMeta, documentNumber, filename),
+      subject: customSubject || `${documentMeta.subjectPrefix} ${documentNumber} - Vosthermos`,
+      text: customMessage
+        ? renderCustomEmailText(documentMeta, documentNumber, customMessage)
+        : renderEmailText(serializedWo, documentMeta, documentNumber),
+      html: customMessage
+        ? renderCustomEmailHtml(documentMeta, documentNumber, filename, customMessage)
+        : renderEmailHtml(serializedWo, documentMeta, documentNumber, filename),
       headers: {
         "X-Entity-Ref-ID": wo.number,
         "List-Unsubscribe": `<mailto:${fromEmail}?subject=unsubscribe>`,

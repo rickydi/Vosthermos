@@ -34,6 +34,31 @@ function formatPhoneForWhatsapp(phone) {
   return digits;
 }
 
+function emailDraftStorageKey(workOrderId) {
+  return `vosthermos:document-email-draft:${workOrderId}`;
+}
+
+function defaultEmailSubject(wo, documentMeta) {
+  const number = wo?.number ? ` ${wo.number}` : "";
+  return `${documentMeta.subjectPrefix}${number} - Vosthermos`;
+}
+
+function defaultEmailBody(wo, documentMeta) {
+  const firstName = String(wo?.client?.name || "").trim().split(/\s+/).filter(Boolean)[0] || "";
+  return [
+    `Bonjour${firstName ? ` ${firstName}` : ""},`,
+    "",
+    documentMeta.emailIntro,
+    "",
+    "Le PDF est joint a ce courriel.",
+    "",
+    documentMeta.emailQuestion,
+    "",
+    "Merci,",
+    "Vosthermos",
+  ].join("\n");
+}
+
 export default function BonDetailPage() {
   const router = useRouter();
   const { id } = useParams();
@@ -44,6 +69,8 @@ export default function BonDetailPage() {
   const [msg, setMsg] = useState("");
   const [showEmail, setShowEmail] = useState(false);
   const [emailTo, setEmailTo] = useState("");
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailBody, setEmailBody] = useState("");
   const [showApprove, setShowApprove] = useState(false);
   const [technicians, setTechnicians] = useState([]);
   const [selectedTechId, setSelectedTechId] = useState("");
@@ -53,7 +80,27 @@ export default function BonDetailPage() {
   useEffect(() => {
     fetch(`/api/admin/work-orders/${id}`)
       .then((r) => r.json())
-      .then((data) => { setWo(data); setEmailTo(data?.client?.email || ""); setSelectedTechId(data?.technicianId ? String(data.technicianId) : ""); })
+      .then((data) => {
+        setWo(data);
+        setSelectedTechId(data?.technicianId ? String(data.technicianId) : "");
+
+        const meta = getWorkOrderDocumentMeta(data?.statut);
+        setEmailTo(data?.client?.email || "");
+        setEmailSubject(defaultEmailSubject(data, meta));
+        setEmailBody(defaultEmailBody(data, meta));
+
+        try {
+          const key = emailDraftStorageKey(data?.id || id);
+          const stored = JSON.parse(window.localStorage.getItem(key) || "null");
+          if (stored && typeof stored === "object") {
+            setEmailTo(stored.to || data?.client?.email || "");
+            setEmailSubject(stored.subject || defaultEmailSubject(data, meta));
+            setEmailBody(stored.body || defaultEmailBody(data, meta));
+            window.localStorage.removeItem(key);
+            setShowEmail(true);
+          }
+        } catch {}
+      })
       .catch(() => {});
     fetch("/api/admin/settings?section=company")
       .then((r) => r.json())
@@ -181,7 +228,12 @@ export default function BonDetailPage() {
       const res = await fetch(`/api/admin/work-orders/${id}/send-email`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ to: emailTo.trim(), documentType: emailDocumentMeta.type }),
+        body: JSON.stringify({
+          to: emailTo.trim(),
+          subject: emailSubject.trim(),
+          message: emailBody.trim(),
+          documentType: emailDocumentMeta.type,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erreur d'envoi");
@@ -359,7 +411,7 @@ export default function BonDetailPage() {
       {showEmail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm print-hide"
           onClick={() => setShowEmail(false)}>
-          <div className="bg-white text-gray-900 border border-gray-200 rounded-xl w-full max-w-md p-6 shadow-2xl dark:bg-gray-900 dark:text-white dark:border-gray-700"
+          <div className="bg-white text-gray-900 border border-gray-200 rounded-xl w-full max-w-2xl p-6 shadow-2xl dark:bg-gray-900 dark:text-white dark:border-gray-700"
             onClick={(e) => e.stopPropagation()}>
             <h3 className="font-bold text-lg mb-4">Envoyer {documentMeta.label.toLowerCase()} par email</h3>
             <label className="text-xs mb-1 block text-gray-500 dark:text-gray-400">Destinataire</label>
@@ -369,6 +421,20 @@ export default function BonDetailPage() {
               onChange={(e) => setEmailTo(e.target.value)}
               className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm w-full mb-4 focus:outline-none focus:ring-2 focus:ring-red-500"
               autoFocus
+            />
+            <label className="text-xs mb-1 block text-gray-500 dark:text-gray-400">Sujet</label>
+            <input
+              type="text"
+              value={emailSubject}
+              onChange={(e) => setEmailSubject(e.target.value)}
+              className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm w-full mb-4 focus:outline-none focus:ring-2 focus:ring-red-500"
+            />
+            <label className="text-xs mb-1 block text-gray-500 dark:text-gray-400">Message</label>
+            <textarea
+              value={emailBody}
+              onChange={(e) => setEmailBody(e.target.value)}
+              rows={9}
+              className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm w-full mb-4 focus:outline-none focus:ring-2 focus:ring-red-500"
             />
             <div className="flex gap-3 justify-end">
               <button onClick={() => setShowEmail(false)}
