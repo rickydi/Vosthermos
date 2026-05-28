@@ -27,16 +27,24 @@ function uniqueWarnings(warnings) {
   return Array.from(new Set(warnings.map(cleanWarning).filter(Boolean))).slice(0, 8);
 }
 
-function suspiciousRepairWarnings(text) {
+function correctSuspiciousRepairText(text) {
   const value = cleanText(text, 300);
-  if (!value) return [];
+  if (!value) return { text: value, warnings: [] };
 
   const normalized = value.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const repairContext = /\b(porte\s+patio|porte|fenetres?|thermos|moustiquaire|manivelle|charniere|coupe[-\s]?froid|roulettes?|rail|calfeutrage|vitre)\b/i;
   if (/\brelation\b/i.test(normalized) && repairContext.test(normalized)) {
-    return [`A verifier: "${value}" contient "Relation" dans un contexte de travaux. Confirmer si le mot voulu est "Reparation".`];
+    const corrected = value.replace(/\brelation\b/gi, (match) => (
+      match[0] === match[0].toUpperCase() ? "R\u00e9paration" : "r\u00e9paration"
+    ));
+    if (corrected !== value) {
+      return {
+        text: corrected,
+        warnings: [`Correction appliquee: "${value}" -> "${corrected}".`],
+      };
+    }
   }
-  return [];
+  return { text: value, warnings: [] };
 }
 
 function inferBillingName(client = {}, fallbackEmail = "") {
@@ -139,20 +147,26 @@ function sanitizeDraft(input, fallbackDocumentType) {
   const items = Array.isArray(draft.items) ? draft.items : [];
   const initialWarnings = Array.isArray(draft.warnings) ? draft.warnings : [];
   const moved = cleanDescriptionAndWarnings(draft.description, initialWarnings);
+  const correctionWarnings = [];
   const cleanItems = items.slice(0, 30)
-    .map((item) => ({
-      description: cleanText(item?.description, 300),
-      quantity: Math.max(0, Number(item?.quantity) || 1),
-      unitPrice: cleanMoney(item?.unitPrice),
-    }))
+    .map((item) => {
+      const corrected = correctSuspiciousRepairText(item?.description);
+      correctionWarnings.push(...corrected.warnings);
+      return {
+        description: corrected.text,
+        quantity: Math.max(0, Number(item?.quantity) || 1),
+        unitPrice: cleanMoney(item?.unitPrice),
+      };
+    })
     .filter((item) => item.description && item.unitPrice > 0);
 
   const billingName = inferBillingName(client, email.to);
-  const description = moved.description || buildDescriptionFromItems(cleanItems, documentType);
+  const correctedDescription = correctSuspiciousRepairText(moved.description || buildDescriptionFromItems(cleanItems, documentType));
+  const description = correctedDescription.text;
   const warningList = uniqueWarnings([
     ...moved.warnings,
-    ...suspiciousRepairWarnings(description),
-    ...cleanItems.flatMap((item) => suspiciousRepairWarnings(item.description)),
+    ...correctionWarnings,
+    ...correctedDescription.warnings,
   ]);
 
   return {
@@ -263,7 +277,7 @@ Regles:
 - Si au moins une ligne avec prix clair va dans items, remplis aussi description avec un resume court des travaux confirmes.
 - Les mentions sans prix clair ne vont pas dans items ni dans description; mets-les seulement dans warnings.
 - Pour les warnings, conserve les mots du client autant que possible: "A confirmer: [texte original] (prix non fourni)".
-- Si un mot semble incoherent dans le contexte des travaux, signale-le dans warnings avec le texte original. Exemple: "Relation de la porte patio" doit etre signale comme possiblement "Reparation de la porte patio"; ne laisse pas ce genre de mot passer sans avertissement.
+- Si un mot semble incoherent mais la correction est evidente, applique la correction dans description/items et signale-la dans warnings. Exemple: "Relation de la porte patio" devient "Reparation de la porte patio" et ajoute un warning de correction appliquee.
 - N'ajoute jamais "a commander", "a remplacer", "additionnel" ou une intention similaire si le message original ne le dit pas clairement.
 - Si le message dit "Envoyer la facture a [email]" et que l'email identifie une entite de facturation, utilise cette entite comme client.name. Exemple: syndicat315@... => "Syndicat 315".
 - Les personnes dans "coordonnees" sont des contacts; ne remplace pas le client facture par un contact si une entite de facturation est donnee.

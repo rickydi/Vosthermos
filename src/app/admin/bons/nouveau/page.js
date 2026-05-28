@@ -19,6 +19,7 @@ import {
 import { isInvoiceStatus, isQuoteStatus } from "@/lib/work-order-document";
 
 const DRAFT_KEY = "vosthermos:nouveau-bon:draft";
+const AI_IMAGE_SESSION_KEY = "vosthermos:nouveau-bon:ai-image";
 const AI_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 const AI_IMAGE_MAX_BYTES = 8 * 1024 * 1024;
 
@@ -58,6 +59,43 @@ function readAiImageFile(file) {
     reader.onerror = () => reject(new Error("Impossible de lire l'image"));
     reader.readAsDataURL(file);
   });
+}
+
+function aiImageSrc(image) {
+  if (!image) return "";
+  if (image.url) return image.url;
+  if (image.data && image.mediaType) return `data:${image.mediaType};base64,${image.data}`;
+  return "";
+}
+
+function aiImageStorageKey(workOrderId) {
+  return workOrderId ? `${AI_IMAGE_SESSION_KEY}:${workOrderId}` : `${AI_IMAGE_SESSION_KEY}:draft`;
+}
+
+function saveAiImageSession(image, workOrderId) {
+  if (typeof window === "undefined" || !image) return;
+  try {
+    window.sessionStorage.setItem(aiImageStorageKey(workOrderId), JSON.stringify(image));
+  } catch {}
+}
+
+function loadAiImageSession(workOrderId) {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(aiImageStorageKey(workOrderId));
+    if (!raw) return null;
+    const image = JSON.parse(raw);
+    return aiImageSrc(image) ? image : null;
+  } catch {
+    return null;
+  }
+}
+
+function clearAiImageSession(workOrderId) {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.removeItem(aiImageStorageKey(workOrderId));
+  } catch {}
 }
 
 function getNavigationType() {
@@ -372,6 +410,7 @@ function NouveauBonAdmin() {
   const [aiDraftApplying, setAiDraftApplying] = useState(false);
   const [aiDraftMessage, setAiDraftMessage] = useState("");
   const [aiEmailDraft, setAiEmailDraft] = useState(null);
+  const [aiImagePreviewOpen, setAiImagePreviewOpen] = useState(false);
   const aiImageInputRef = useRef(null);
 
   const isB2B = selectedClient?.type === "gestionnaire";
@@ -475,6 +514,8 @@ function NouveauBonAdmin() {
       if (Array.isArray(draft.sections)) setSections(draft.sections);
       if (draft.laborHours !== undefined) setLaborHours(draft.laborHours);
       if (draft.laborRate !== undefined) setLaborRateValue(Number(draft.laborRate) || 85);
+      const savedImage = loadAiImageSession();
+      if (savedImage) setAiImportImage(savedImage);
     } catch {
       window.localStorage.removeItem(DRAFT_KEY);
     } finally {
@@ -603,6 +644,8 @@ function NouveauBonAdmin() {
         const rate = Number(wo.laborRate) || settings.labor_rate_per_hour || 85;
         setLaborRateValue(rate);
         setLaborHours(rate > 0 ? Math.round((Number(wo.totalLabor) / rate) * 100) / 100 : 0);
+        const savedImage = loadAiImageSession(editId);
+        if (savedImage) setAiImportImage(savedImage);
       } catch (err) {
         setError(err.message || "Erreur chargement");
       } finally {
@@ -965,6 +1008,7 @@ function NouveauBonAdmin() {
       const image = await readAiImageFile(file);
       setAiImportImage(image);
       setAiDraft(null);
+      saveAiImageSession(image, editId);
     } catch (err) {
       setAiDraftError(err.message || "Impossible d'ajouter l'image");
     }
@@ -985,6 +1029,7 @@ function NouveauBonAdmin() {
   const showDocumentAssistant = effectiveInvoiceMode || effectiveQuoteMode;
   const isExistingInvoiceDocument = Boolean(editId && !invoiceMode && isInvoiceStatus(currentStatut));
   const isExistingQuoteDocument = Boolean(editId && !quoteMode && isQuoteStatus(currentStatut));
+  const aiImportImageSrc = aiImageSrc(aiImportImage);
 
   async function analyzeAiDocumentDraft() {
     if ((!aiImportText.trim() && !aiImportImage) || aiDraftLoading) return;
@@ -1139,8 +1184,14 @@ function NouveauBonAdmin() {
         throw new Error(data.error || "Erreur lors de la creation");
       }
       const wo = await res.json();
+      if (aiImportImage) {
+        saveAiImageSession(aiImportImage, wo.id);
+      }
       if (!editId) {
-        try { window.localStorage.removeItem(DRAFT_KEY); } catch {}
+        try {
+          window.localStorage.removeItem(DRAFT_KEY);
+          if (aiImportImage) clearAiImageSession();
+        } catch {}
       }
       if ((submitAction === "invoice" || submitAction === "quote") && aiEmailDraft?.body) {
         try {
@@ -1304,23 +1355,43 @@ function NouveauBonAdmin() {
                 />
                 {aiImportImage ? (
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                    <Image
-                      src={`data:${aiImportImage.mediaType};base64,${aiImportImage.data}`}
-                      alt=""
-                      width={112}
-                      height={80}
-                      unoptimized
-                      className="h-20 w-28 rounded-lg object-cover ring-1 ring-cyan-400/30"
-                    />
+                    <button
+                      type="button"
+                      onClick={() => setAiImagePreviewOpen(true)}
+                      className="group relative h-20 w-28 overflow-hidden rounded-lg ring-1 ring-cyan-400/30"
+                      title="Voir l'image"
+                    >
+                      <Image
+                        src={aiImportImageSrc}
+                        alt=""
+                        fill
+                        sizes="112px"
+                        unoptimized
+                        className="object-cover transition-transform group-hover:scale-105"
+                      />
+                      <span className="absolute inset-0 flex items-center justify-center bg-black/0 text-white opacity-0 transition group-hover:bg-black/35 group-hover:opacity-100">
+                        <i className="fas fa-up-right-and-down-left-from-center"></i>
+                      </span>
+                    </button>
                     <div className="min-w-0 flex-1">
                       <p className="admin-text truncate text-sm font-bold">{aiImportImage.name}</p>
                       <p className="admin-text-muted text-xs">{formatBytes(aiImportImage.size)}</p>
                     </div>
                     <button
                       type="button"
+                      onClick={() => setAiImagePreviewOpen(true)}
+                      className="inline-flex items-center justify-center rounded-lg bg-cyan-700 px-3 py-2 text-xs font-bold text-white hover:bg-cyan-600"
+                    >
+                      <i className="fas fa-eye mr-2"></i>Voir
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => {
                         setAiImportImage(null);
+                        setAiImagePreviewOpen(false);
                         setAiDraft(null);
+                        clearAiImageSession(editId);
+                        if (!editId) clearAiImageSession();
                       }}
                       className="inline-flex items-center justify-center rounded-lg bg-slate-700 px-3 py-2 text-xs font-bold text-white hover:bg-slate-600"
                     >
@@ -2115,6 +2186,45 @@ function NouveauBonAdmin() {
           </div>
         </aside>
       </form>
+
+      {aiImagePreviewOpen && aiImportImageSrc && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setAiImagePreviewOpen(false)}
+        >
+          <div
+            className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-xl border admin-border bg-slate-950 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between gap-3 border-b admin-border px-4 py-3">
+              <div className="min-w-0">
+                <p className="admin-text truncate text-sm font-bold">{aiImportImage?.name || "Image importee"}</p>
+                <p className="admin-text-muted text-xs">{formatBytes(aiImportImage?.size)}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAiImagePreviewOpen(false)}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 admin-text hover:bg-white/15"
+                aria-label="Fermer"
+              >
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+            <div className="flex min-h-0 justify-center overflow-auto bg-black p-3">
+              <Image
+                src={aiImportImageSrc}
+                alt="Image importee pour l'analyse IA"
+                width={1400}
+                height={1000}
+                unoptimized
+                className="h-auto max-h-[78vh] w-auto max-w-full object-contain"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       <CatalogPicker open={catalogOpen} onClose={() => setCatalogOpen(false)} onPick={addProduct} />
       <ClientPicker
