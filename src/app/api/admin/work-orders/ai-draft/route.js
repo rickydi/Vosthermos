@@ -4,9 +4,14 @@ import { requireAdmin } from "@/lib/admin-auth";
 import { COMPANY_INFO } from "@/lib/company-info";
 
 const ACCEPTED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
+const AI_MODEL = "claude-sonnet-4-6";
 const MAX_IMAGE_COUNT = 6;
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const MAX_IMAGES_TOTAL_BYTES = 20 * 1024 * 1024;
+const INPUT_COST_PER_MILLION_USD = 3;
+const OUTPUT_COST_PER_MILLION_USD = 15;
+const CACHE_WRITE_MULTIPLIER = 1.25;
+const CACHE_READ_MULTIPLIER = 0.1;
 
 function cleanText(value, max = 500) {
   return String(value || "").trim().slice(0, max);
@@ -15,6 +20,19 @@ function cleanText(value, max = 500) {
 function cleanMoney(value) {
   const number = Number(String(value ?? "").replace(",", ".").replace(/[^\d.-]/g, ""));
   return Number.isFinite(number) ? Math.max(0, Math.round(number * 100) / 100) : 0;
+}
+
+function formatNameCase(value) {
+  const text = cleanText(value, 160).replace(/\s{2,}/g, " ");
+  if (!text) return "";
+
+  return text.split(/(\s+|-|')/).map((part) => {
+    if (!part || /^\s+$/.test(part) || part === "-" || part === "'") return part;
+    if (part.includes("@")) return part.toLowerCase();
+    if (/^\d+$/.test(part)) return part;
+    const lower = part.toLocaleLowerCase("fr-CA");
+    return lower.charAt(0).toLocaleUpperCase("fr-CA") + lower.slice(1);
+  }).join("");
 }
 
 function cleanWarning(value) {
@@ -154,6 +172,28 @@ function cleanImagesInput(body) {
   return images;
 }
 
+function estimateAnalysisCost(usage = {}) {
+  const inputTokens = Number(usage.input_tokens || 0);
+  const outputTokens = Number(usage.output_tokens || 0);
+  const cacheCreationInputTokens = Number(usage.cache_creation_input_tokens || 0);
+  const cacheReadInputTokens = Number(usage.cache_read_input_tokens || 0);
+  const inputCost = (inputTokens / 1_000_000) * INPUT_COST_PER_MILLION_USD;
+  const outputCost = (outputTokens / 1_000_000) * OUTPUT_COST_PER_MILLION_USD;
+  const cacheWriteCost = (cacheCreationInputTokens / 1_000_000) * INPUT_COST_PER_MILLION_USD * CACHE_WRITE_MULTIPLIER;
+  const cacheReadCost = (cacheReadInputTokens / 1_000_000) * INPUT_COST_PER_MILLION_USD * CACHE_READ_MULTIPLIER;
+  const estimatedUsd = Math.round((inputCost + outputCost + cacheWriteCost + cacheReadCost) * 1000000) / 1000000;
+
+  return {
+    model: AI_MODEL,
+    currency: "USD",
+    inputTokens,
+    outputTokens,
+    cacheCreationInputTokens,
+    cacheReadInputTokens,
+    estimatedUsd,
+  };
+}
+
 function sanitizeDraft(input, fallbackDocumentType) {
   const draft = input && typeof input === "object" ? input : {};
   const documentType = ["invoice", "quote"].includes(draft.documentType) ? draft.documentType : fallbackDocumentType;
@@ -176,7 +216,7 @@ function sanitizeDraft(input, fallbackDocumentType) {
     })
     .filter((item) => item.description && item.unitPrice > 0);
 
-  const billingName = inferBillingName(client, email.to);
+  const billingName = formatNameCase(inferBillingName(client, email.to));
   const correctedDescription = correctSuspiciousRepairText(moved.description || buildDescriptionFromItems(cleanItems, documentType));
   const description = correctedDescription.text;
   const warningList = uniqueWarnings([
@@ -258,7 +298,7 @@ export async function POST(req) {
       "content-type": "application/json",
     },
     body: JSON.stringify({
-      model: "claude-haiku-4-5-20251001",
+      model: AI_MODEL,
       max_tokens: 1800,
       system: `Tu extrais un brouillon de document Vosthermos a partir d'un message brut.
 
@@ -302,6 +342,7 @@ Regles:
 - Pour items.description, redige des lignes professionnelles et completes. Si le prix semble global pour la reparation, precise que main-d'oeuvre et pieces sont incluses.
 - Ne calcule pas les taxes. Les prix unitaires sont avant taxes.
 - Si le message donne un email ou dit "envoyer la facture a", mets cet email dans client.email et email.to.
+- Mets les noms propres avec majuscules normales. Exemple: "claudine inizan" doit devenir "Claudine Inizan".
 - Si la demande est en anglais, genere email.body en anglais. Sinon en francais quebecois professionnel.
 - Pour une facture, sujet: "Facture Vosthermos - [client ou adresse]". Pour une soumission: "Soumission Vosthermos - [client ou adresse]".
 - Le numero de telephone Vosthermos est ${COMPANY_INFO.phone}.`,
@@ -324,7 +365,7 @@ Regles:
     const data = await res.json();
     const text = data.content?.[0]?.text || "";
     const draft = sanitizeDraft(parseJson(text), documentType);
-    return NextResponse.json({ draft });
+    return NextResponse.json({ draft, analysisCost: estimateAnalysisCost(data.usage) });
   } catch (err) {
     console.error("[work-orders ai-draft] parse error:", err?.message || err);
     return NextResponse.json({ error: "Impossible de lire le brouillon IA" }, { status: 500 });

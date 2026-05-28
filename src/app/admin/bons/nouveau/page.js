@@ -32,6 +32,18 @@ function formatBytes(bytes) {
   return `${size} B`;
 }
 
+function formatUsdCost(value) {
+  const amount = Number(value || 0);
+  if (!Number.isFinite(amount) || amount <= 0) return "0.00 $ US";
+  if (amount < 0.0001) return "<0.0001 $ US";
+  if (amount < 0.01) return `${amount.toFixed(4)} $ US`;
+  return `${amount.toFixed(2)} $ US`;
+}
+
+function formatTokenCount(value) {
+  return new Intl.NumberFormat("fr-CA").format(Number(value || 0));
+}
+
 function readAiImageFile(file) {
   return new Promise((resolve, reject) => {
     if (!file) {
@@ -1069,7 +1081,7 @@ function NouveauBonAdmin() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Erreur analyse IA");
-      setAiDraft(data.draft || null);
+      setAiDraft(data.draft ? { ...data.draft, analysisCost: data.analysisCost || null } : null);
     } catch (err) {
       setAiDraftError(err.message);
       setAiDraft(null);
@@ -1492,6 +1504,18 @@ function NouveauBonAdmin() {
                       {effectiveInvoiceMode ? "Facture" : "Soumission"}
                     </span>
                   </div>
+
+                  {aiDraft.analysisCost && (
+                    <div
+                      className="flex items-center justify-between gap-3 rounded-lg border border-cyan-500/25 bg-cyan-500/10 px-3 py-2"
+                      title={`${formatTokenCount(aiDraft.analysisCost.inputTokens)} tokens entree | ${formatTokenCount(aiDraft.analysisCost.outputTokens)} tokens sortie`}
+                    >
+                      <span className="text-[10px] font-bold uppercase text-cyan-500">Cout analyse IA</span>
+                      <span className="admin-text text-xs font-black">
+                        {formatUsdCost(aiDraft.analysisCost.estimatedUsd)}
+                      </span>
+                    </div>
+                  )}
 
                   <div className="rounded-lg border admin-border p-2">
                     <p className="admin-text-muted mb-1 text-[10px] font-bold uppercase">Description</p>
