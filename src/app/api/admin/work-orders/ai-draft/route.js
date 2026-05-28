@@ -4,7 +4,9 @@ import { requireAdmin } from "@/lib/admin-auth";
 import { COMPANY_INFO } from "@/lib/company-info";
 
 const ACCEPTED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
+const MAX_IMAGE_COUNT = 6;
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+const MAX_IMAGES_TOTAL_BYTES = 20 * 1024 * 1024;
 
 function cleanText(value, max = 500) {
   return String(value || "").trim().slice(0, max);
@@ -135,7 +137,21 @@ function cleanImageInput(input) {
     throw new Error("Image trop lourde. Maximum 8 MB.");
   }
 
-  return { mediaType, data };
+  return { mediaType, data, size: bytes };
+}
+
+function cleanImagesInput(body) {
+  const rawImages = Array.isArray(body.images) ? body.images : (body.image ? [body.image] : []);
+  if (rawImages.length > MAX_IMAGE_COUNT) {
+    throw new Error(`Maximum ${MAX_IMAGE_COUNT} images par analyse.`);
+  }
+
+  const images = rawImages.map(cleanImageInput).filter(Boolean);
+  const totalBytes = images.reduce((sum, image) => sum + image.size, 0);
+  if (totalBytes > MAX_IMAGES_TOTAL_BYTES) {
+    throw new Error(`Images trop lourdes ensemble. Maximum ${Math.round(MAX_IMAGES_TOTAL_BYTES / 1024 / 1024)} MB au total.`);
+  }
+  return images;
 }
 
 function sanitizeDraft(input, fallbackDocumentType) {
@@ -210,16 +226,16 @@ export async function POST(req) {
   const body = await req.json().catch(() => ({}));
   const rawText = cleanText(body.text, 6000);
   const documentType = body.documentType === "quote" ? "quote" : "invoice";
-  let image = null;
+  let images = [];
   try {
-    image = cleanImageInput(body.image);
+    images = cleanImagesInput(body);
   } catch (err) {
     return NextResponse.json({ error: err.message || "Image invalide" }, { status: 400 });
   }
-  if (!rawText && !image) return NextResponse.json({ error: "Texte ou image requis" }, { status: 400 });
+  if (!rawText && images.length === 0) return NextResponse.json({ error: "Texte ou image requis" }, { status: 400 });
 
   const userContent = [];
-  if (image) {
+  for (const image of images) {
     userContent.push({
       type: "image",
       source: {
@@ -231,7 +247,7 @@ export async function POST(req) {
   }
   userContent.push({
     type: "text",
-    text: rawText || "Analyse l'image jointe et cree le brouillon de document Vosthermos a partir du texte visible.",
+    text: rawText || "Analyse les images jointes et cree le brouillon de document Vosthermos a partir du texte visible.",
   });
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -271,8 +287,9 @@ Schema:
 Regles:
 - Type demande: ${documentType}.
 - Utilise le design PDF existant: tu ne generes pas de PDF, seulement les donnees.
-- Si une image est fournie, lis le texte visible comme une capture, une photo de note, un courriel ou une soumission recue. Combine l'image avec le texte colle si les deux sont fournis.
-- Si une partie de l'image est illisible, ne l'invente pas; mets le point dans warnings.
+- Si une ou plusieurs images sont fournies, lis le texte visible comme des captures, photos de notes, courriels ou soumissions recues. Combine toutes les images avec le texte colle si les deux sont fournis.
+- Si plusieurs images sont fournies, traite-les comme des pages ou photos du meme dossier client, dans l'ordre recu.
+- Si une partie d'une image est illisible, ne l'invente pas; mets le point dans warnings.
 - Les lignes avec prix clair vont dans items.
 - Si au moins une ligne avec prix clair va dans items, remplis aussi description avec un resume court des travaux confirmes.
 - Les mentions sans prix clair ne vont pas dans items ni dans description; mets-les seulement dans warnings.

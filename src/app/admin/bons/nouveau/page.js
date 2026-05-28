@@ -21,7 +21,9 @@ import { isInvoiceStatus, isQuoteStatus } from "@/lib/work-order-document";
 const DRAFT_KEY = "vosthermos:nouveau-bon:draft";
 const AI_IMAGE_SESSION_KEY = "vosthermos:nouveau-bon:ai-image";
 const AI_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
+const AI_IMAGE_MAX_COUNT = 6;
 const AI_IMAGE_MAX_BYTES = 8 * 1024 * 1024;
+const AI_IMAGE_TOTAL_MAX_BYTES = 20 * 1024 * 1024;
 
 function formatBytes(bytes) {
   const size = Number(bytes) || 0;
@@ -72,26 +74,36 @@ function aiImageStorageKey(workOrderId) {
   return workOrderId ? `${AI_IMAGE_SESSION_KEY}:${workOrderId}` : `${AI_IMAGE_SESSION_KEY}:draft`;
 }
 
-function saveAiImageSession(image, workOrderId) {
-  if (typeof window === "undefined" || !image) return;
+function normalizeAiImages(value) {
+  const images = Array.isArray(value) ? value : (value ? [value] : []);
+  return images.filter((image) => aiImageSrc(image)).slice(0, AI_IMAGE_MAX_COUNT);
+}
+
+function aiImagesTotalSize(images) {
+  return normalizeAiImages(images).reduce((sum, image) => sum + (Number(image.size) || 0), 0);
+}
+
+function saveAiImagesSession(images, workOrderId) {
+  const cleanImages = normalizeAiImages(images);
+  if (typeof window === "undefined" || cleanImages.length === 0) return;
   try {
-    window.sessionStorage.setItem(aiImageStorageKey(workOrderId), JSON.stringify(image));
+    window.sessionStorage.setItem(aiImageStorageKey(workOrderId), JSON.stringify(cleanImages));
   } catch {}
 }
 
-function loadAiImageSession(workOrderId) {
+function loadAiImagesSession(workOrderId) {
   if (typeof window === "undefined") return null;
   try {
     const raw = window.sessionStorage.getItem(aiImageStorageKey(workOrderId));
     if (!raw) return null;
-    const image = JSON.parse(raw);
-    return aiImageSrc(image) ? image : null;
+    const images = normalizeAiImages(JSON.parse(raw));
+    return images.length > 0 ? images : null;
   } catch {
     return null;
   }
 }
 
-function clearAiImageSession(workOrderId) {
+function clearAiImagesSession(workOrderId) {
   if (typeof window === "undefined") return;
   try {
     window.sessionStorage.removeItem(aiImageStorageKey(workOrderId));
@@ -403,14 +415,14 @@ function NouveauBonAdmin() {
   const [laborRateText, setLaborRateText] = useState("85.00");
   const [settings, setSettings] = useState({ labor_rate_per_hour: 85, tps_rate: 0.05, tvq_rate: 0.09975 });
   const [aiImportText, setAiImportText] = useState("");
-  const [aiImportImage, setAiImportImage] = useState(null);
+  const [aiImportImages, setAiImportImages] = useState([]);
   const [aiDraft, setAiDraft] = useState(null);
   const [aiDraftError, setAiDraftError] = useState("");
   const [aiDraftLoading, setAiDraftLoading] = useState(false);
   const [aiDraftApplying, setAiDraftApplying] = useState(false);
   const [aiDraftMessage, setAiDraftMessage] = useState("");
   const [aiEmailDraft, setAiEmailDraft] = useState(null);
-  const [aiImagePreviewOpen, setAiImagePreviewOpen] = useState(false);
+  const [aiImagePreviewIndex, setAiImagePreviewIndex] = useState(null);
   const aiImageInputRef = useRef(null);
 
   const isB2B = selectedClient?.type === "gestionnaire";
@@ -514,8 +526,8 @@ function NouveauBonAdmin() {
       if (Array.isArray(draft.sections)) setSections(draft.sections);
       if (draft.laborHours !== undefined) setLaborHours(draft.laborHours);
       if (draft.laborRate !== undefined) setLaborRateValue(Number(draft.laborRate) || 85);
-      const savedImage = loadAiImageSession();
-      if (savedImage) setAiImportImage(savedImage);
+      const savedImages = loadAiImagesSession();
+      if (savedImages) setAiImportImages(savedImages);
     } catch {
       window.localStorage.removeItem(DRAFT_KEY);
     } finally {
@@ -644,8 +656,8 @@ function NouveauBonAdmin() {
         const rate = Number(wo.laborRate) || settings.labor_rate_per_hour || 85;
         setLaborRateValue(rate);
         setLaborHours(rate > 0 ? Math.round((Number(wo.totalLabor) / rate) * 100) / 100 : 0);
-        const savedImage = loadAiImageSession(editId);
-        if (savedImage) setAiImportImage(savedImage);
+        const savedImages = loadAiImagesSession(editId);
+        if (savedImages) setAiImportImages(savedImages);
       } catch (err) {
         setError(err.message || "Erreur chargement");
       } finally {
@@ -1001,27 +1013,37 @@ function NouveauBonAdmin() {
     return data;
   }
 
-  async function attachAiImportImage(file) {
+  async function attachAiImportImages(filesInput) {
     setAiDraftError("");
     setAiDraftMessage("");
     try {
-      const image = await readAiImageFile(file);
-      setAiImportImage(image);
+      const files = Array.from(filesInput || []).filter((file) => file?.type?.startsWith("image/"));
+      if (files.length === 0) return;
+      if (aiImportImages.length + files.length > AI_IMAGE_MAX_COUNT) {
+        throw new Error(`Maximum ${AI_IMAGE_MAX_COUNT} images par analyse.`);
+      }
+      const images = await Promise.all(files.map(readAiImageFile));
+      const nextImages = [...aiImportImages, ...images];
+      if (aiImagesTotalSize(nextImages) > AI_IMAGE_TOTAL_MAX_BYTES) {
+        throw new Error(`Images trop lourdes ensemble. Maximum ${formatBytes(AI_IMAGE_TOTAL_MAX_BYTES)} au total.`);
+      }
+      setAiImportImages(nextImages);
       setAiDraft(null);
-      saveAiImageSession(image, editId);
+      saveAiImagesSession(nextImages, editId);
     } catch (err) {
-      setAiDraftError(err.message || "Impossible d'ajouter l'image");
+      setAiDraftError(err.message || "Impossible d'ajouter les images");
     }
   }
 
   function handleAiPaste(event) {
     const itemsList = Array.from(event.clipboardData?.items || []);
-    const imageItem = itemsList.find((item) => item.kind === "file" && item.type?.startsWith("image/"));
-    if (!imageItem) return;
-    const file = imageItem.getAsFile();
-    if (!file) return;
+    const files = itemsList
+      .filter((item) => item.kind === "file" && item.type?.startsWith("image/"))
+      .map((item) => item.getAsFile())
+      .filter(Boolean);
+    if (files.length === 0) return;
     event.preventDefault();
-    attachAiImportImage(file);
+    attachAiImportImages(files);
   }
 
   const effectiveInvoiceMode = invoiceMode || isInvoiceStatus(currentStatut);
@@ -1029,10 +1051,12 @@ function NouveauBonAdmin() {
   const showDocumentAssistant = effectiveInvoiceMode || effectiveQuoteMode;
   const isExistingInvoiceDocument = Boolean(editId && !invoiceMode && isInvoiceStatus(currentStatut));
   const isExistingQuoteDocument = Boolean(editId && !quoteMode && isQuoteStatus(currentStatut));
-  const aiImportImageSrc = aiImageSrc(aiImportImage);
+  const aiImagePreviewImage = Number.isInteger(aiImagePreviewIndex) ? aiImportImages[aiImagePreviewIndex] : null;
+  const aiImagePreviewSrc = aiImageSrc(aiImagePreviewImage);
+  const hasAiImages = aiImportImages.length > 0;
 
   async function analyzeAiDocumentDraft() {
-    if ((!aiImportText.trim() && !aiImportImage) || aiDraftLoading) return;
+    if ((!aiImportText.trim() && !hasAiImages) || aiDraftLoading) return;
     setAiDraftLoading(true);
     setAiDraftError("");
     setAiDraftMessage("");
@@ -1041,7 +1065,7 @@ function NouveauBonAdmin() {
       const res = await fetch("/api/admin/work-orders/ai-draft", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: aiImportText, image: aiImportImage, documentType }),
+        body: JSON.stringify({ text: aiImportText, images: aiImportImages, documentType }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Erreur analyse IA");
@@ -1184,13 +1208,13 @@ function NouveauBonAdmin() {
         throw new Error(data.error || "Erreur lors de la creation");
       }
       const wo = await res.json();
-      if (aiImportImage) {
-        saveAiImageSession(aiImportImage, wo.id);
+      if (hasAiImages) {
+        saveAiImagesSession(aiImportImages, wo.id);
       }
       if (!editId) {
         try {
           window.localStorage.removeItem(DRAFT_KEY);
-          if (aiImportImage) clearAiImageSession();
+          if (hasAiImages) clearAiImagesSession();
         } catch {}
       }
       if ((submitAction === "invoice" || submitAction === "quote") && aiEmailDraft?.body) {
@@ -1310,7 +1334,7 @@ function NouveauBonAdmin() {
               <button
                 type="button"
                 onClick={analyzeAiDocumentDraft}
-                disabled={aiDraftLoading || (!aiImportText.trim() && !aiImportImage)}
+                disabled={aiDraftLoading || (!aiImportText.trim() && !hasAiImages)}
                 className="inline-flex items-center justify-center rounded-lg bg-cyan-700 px-4 py-2 text-sm font-bold text-white hover:bg-cyan-600 disabled:opacity-40"
               >
                 <i className={`fas ${aiDraftLoading ? "fa-spinner fa-spin" : "fa-bolt"} mr-2`}></i>
@@ -1332,71 +1356,97 @@ function NouveauBonAdmin() {
 
               <div
                 className={`rounded-lg border border-dashed p-3 transition-colors ${
-                  aiImportImage ? "border-cyan-400/50 bg-cyan-500/10" : "admin-border bg-white/[0.02]"
+                  hasAiImages ? "border-cyan-400/50 bg-cyan-500/10" : "admin-border bg-white/[0.02]"
                 }`}
                 onPaste={handleAiPaste}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => {
                   e.preventDefault();
-                  const file = Array.from(e.dataTransfer?.files || []).find((item) => item.type?.startsWith("image/"));
-                  if (file) attachAiImportImage(file);
+                  const files = Array.from(e.dataTransfer?.files || []).filter((item) => item.type?.startsWith("image/"));
+                  if (files.length > 0) attachAiImportImages(files);
                 }}
               >
                 <input
                   ref={aiImageInputRef}
                   type="file"
                   accept={AI_IMAGE_TYPES.join(",")}
+                  multiple
                   className="hidden"
                   onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) attachAiImportImage(file);
+                    const files = Array.from(e.target.files || []);
+                    if (files.length > 0) attachAiImportImages(files);
                     e.target.value = "";
                   }}
                 />
-                {aiImportImage ? (
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                    <button
-                      type="button"
-                      onClick={() => setAiImagePreviewOpen(true)}
-                      className="group relative h-20 w-28 overflow-hidden rounded-lg ring-1 ring-cyan-400/30"
-                      title="Voir l'image"
-                    >
-                      <Image
-                        src={aiImportImageSrc}
-                        alt=""
-                        fill
-                        sizes="112px"
-                        unoptimized
-                        className="object-cover transition-transform group-hover:scale-105"
-                      />
-                      <span className="absolute inset-0 flex items-center justify-center bg-black/0 text-white opacity-0 transition group-hover:bg-black/35 group-hover:opacity-100">
-                        <i className="fas fa-up-right-and-down-left-from-center"></i>
-                      </span>
-                    </button>
-                    <div className="min-w-0 flex-1">
-                      <p className="admin-text truncate text-sm font-bold">{aiImportImage.name}</p>
-                      <p className="admin-text-muted text-xs">{formatBytes(aiImportImage.size)}</p>
+                {hasAiImages ? (
+                  <div className="space-y-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="admin-text text-sm font-bold">{aiImportImages.length} image{aiImportImages.length > 1 ? "s" : ""} jointe{aiImportImages.length > 1 ? "s" : ""}</p>
+                        <p className="admin-text-muted text-xs">{formatBytes(aiImagesTotalSize(aiImportImages))} au total</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => aiImageInputRef.current?.click()}
+                        disabled={aiImportImages.length >= AI_IMAGE_MAX_COUNT}
+                        className="inline-flex items-center justify-center rounded-lg bg-slate-700 px-3 py-2 text-xs font-bold text-white hover:bg-slate-600 disabled:opacity-40"
+                      >
+                        <i className="fas fa-plus mr-2"></i>Ajouter
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setAiImagePreviewOpen(true)}
-                      className="inline-flex items-center justify-center rounded-lg bg-cyan-700 px-3 py-2 text-xs font-bold text-white hover:bg-cyan-600"
-                    >
-                      <i className="fas fa-eye mr-2"></i>Voir
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAiImportImage(null);
-                        setAiImagePreviewOpen(false);
-                        setAiDraft(null);
-                        clearAiImageSession(editId);
-                        if (!editId) clearAiImageSession();
-                      }}
-                      className="inline-flex items-center justify-center rounded-lg bg-slate-700 px-3 py-2 text-xs font-bold text-white hover:bg-slate-600"
-                    >
-                      <i className="fas fa-times mr-2"></i>Retirer
-                    </button>
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                      {aiImportImages.map((image, index) => {
+                        const src = aiImageSrc(image);
+                        return (
+                          <div key={`${image.name}-${index}`} className="rounded-lg border admin-border bg-black/20 p-2">
+                            <button
+                              type="button"
+                              onClick={() => setAiImagePreviewIndex(index)}
+                              className="group relative mb-2 h-24 w-full overflow-hidden rounded-md ring-1 ring-cyan-400/25"
+                              title="Voir l'image"
+                            >
+                              <Image
+                                src={src}
+                                alt=""
+                                fill
+                                sizes="160px"
+                                unoptimized
+                                className="object-cover transition-transform group-hover:scale-105"
+                              />
+                              <span className="absolute left-2 top-2 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-bold text-white">
+                                {index + 1}
+                              </span>
+                              <span className="absolute inset-0 flex items-center justify-center bg-black/0 text-white opacity-0 transition group-hover:bg-black/35 group-hover:opacity-100">
+                                <i className="fas fa-up-right-and-down-left-from-center"></i>
+                              </span>
+                            </button>
+                            <p className="admin-text truncate text-xs font-bold">{image.name}</p>
+                            <div className="mt-2 flex items-center justify-between gap-2">
+                              <span className="admin-text-muted text-[11px]">{formatBytes(image.size)}</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const nextImages = aiImportImages.filter((_, imageIndex) => imageIndex !== index);
+                                  setAiImportImages(nextImages);
+                                  setAiImagePreviewIndex(null);
+                                  setAiDraft(null);
+                                  if (nextImages.length > 0) {
+                                    saveAiImagesSession(nextImages, editId);
+                                  } else {
+                                    clearAiImagesSession(editId);
+                                    if (!editId) clearAiImagesSession();
+                                  }
+                                }}
+                                className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-slate-700 text-xs text-white hover:bg-slate-600"
+                                title="Retirer"
+                              >
+                                <i className="fas fa-times"></i>
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 ) : (
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -1405,8 +1455,8 @@ function NouveauBonAdmin() {
                         <i className="fas fa-image"></i>
                       </span>
                       <div>
-                        <p className="admin-text text-sm font-bold">Image</p>
-                        <p className="admin-text-muted text-xs">PNG, JPG, WEBP ou GIF</p>
+                        <p className="admin-text text-sm font-bold">Images</p>
+                        <p className="admin-text-muted text-xs">Jusqu&apos;a {AI_IMAGE_MAX_COUNT} images PNG, JPG, WEBP ou GIF</p>
                       </div>
                     </div>
                     <button
@@ -2187,12 +2237,12 @@ function NouveauBonAdmin() {
         </aside>
       </form>
 
-      {aiImagePreviewOpen && aiImportImageSrc && (
+      {Number.isInteger(aiImagePreviewIndex) && aiImagePreviewSrc && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
-          onClick={() => setAiImagePreviewOpen(false)}
+          onClick={() => setAiImagePreviewIndex(null)}
         >
           <div
             className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-xl border admin-border bg-slate-950 shadow-2xl"
@@ -2200,12 +2250,14 @@ function NouveauBonAdmin() {
           >
             <div className="flex items-center justify-between gap-3 border-b admin-border px-4 py-3">
               <div className="min-w-0">
-                <p className="admin-text truncate text-sm font-bold">{aiImportImage?.name || "Image importee"}</p>
-                <p className="admin-text-muted text-xs">{formatBytes(aiImportImage?.size)}</p>
+                <p className="admin-text truncate text-sm font-bold">{aiImagePreviewImage?.name || "Image importee"}</p>
+                <p className="admin-text-muted text-xs">
+                  Image {(aiImagePreviewIndex || 0) + 1} sur {aiImportImages.length} | {formatBytes(aiImagePreviewImage?.size)}
+                </p>
               </div>
               <button
                 type="button"
-                onClick={() => setAiImagePreviewOpen(false)}
+                onClick={() => setAiImagePreviewIndex(null)}
                 className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 admin-text hover:bg-white/15"
                 aria-label="Fermer"
               >
@@ -2214,7 +2266,7 @@ function NouveauBonAdmin() {
             </div>
             <div className="flex min-h-0 justify-center overflow-auto bg-black p-3">
               <Image
-                src={aiImportImageSrc}
+                src={aiImagePreviewSrc}
                 alt="Image importee pour l'analyse IA"
                 width={1400}
                 height={1000}
