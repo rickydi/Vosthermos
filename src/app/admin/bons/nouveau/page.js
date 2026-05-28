@@ -1072,17 +1072,19 @@ function NouveauBonAdmin() {
     setSavingAction(submitAction);
     setError("");
     try {
+      const saveOnlyAction = submitAction === "save" || submitAction === "preview";
       const isExistingQuote = ["quote", "quote_sent", "quote_accepted"].includes(currentStatut);
+      const isExistingInvoice = ["invoiced", "sent", "paid"].includes(currentStatut);
       const selectedFollowUpStatus = submitAction === "invoice"
         ? followUpStatusFromWorkOrderStatut("invoiced", followUpColumns)
         : submitAction === "quote"
           ? followUpStatusFromWorkOrderStatut("quote", followUpColumns)
-          : (submitAction === "save" && isExistingQuote)
+          : (saveOnlyAction && (isExistingQuote || isExistingInvoice))
             ? followUpStatusFromWorkOrderStatut(currentStatut, followUpColumns)
         : followUpStatus;
       const finalStatut = submitAction === "quote"
         ? "quote"
-        : (submitAction === "save" && isExistingQuote)
+        : (saveOnlyAction && (isExistingQuote || isExistingInvoice))
           ? currentStatut
         : workOrderStatutFromFollowUpStatus(selectedFollowUpStatus, followUpColumns);
       const payload = {
@@ -1149,8 +1151,9 @@ function NouveauBonAdmin() {
           }));
         } catch {}
       }
-      router.push((submitAction === "invoice" || submitAction === "quote") ? `/admin/bons/${wo.id}` : `/admin/bons/nouveau?edit=${wo.id}`);
-      if (submitAction !== "invoice" && submitAction !== "quote") {
+      const shouldPreview = submitAction === "invoice" || submitAction === "quote" || submitAction === "preview";
+      router.push(shouldPreview ? `/admin/bons/${wo.id}` : `/admin/bons/nouveau?edit=${wo.id}`);
+      if (!shouldPreview) {
         setSaving(false);
         setSavingAction(null);
       }
@@ -2098,12 +2101,15 @@ function NouveauBonAdmin() {
               </div>
             )}
             {editId && (
-              <Link
-                href={`/admin/bons/${editId}`}
-                className="flex w-full items-center justify-center rounded-lg border admin-border px-4 py-2.5 text-sm font-medium admin-text hover:bg-white/5"
+              <button
+                type="submit"
+                value="preview"
+                disabled={saving || !selectedClient}
+                className="flex w-full items-center justify-center rounded-lg border admin-border px-4 py-2.5 text-sm font-medium admin-text hover:bg-white/5 disabled:opacity-50"
               >
-                <i className="fas fa-file-lines mr-2"></i>Apercu / envoyer
-              </Link>
+                <i className="fas fa-file-lines mr-2"></i>
+                {saving && savingAction === "preview" ? "Enregistrement..." : "Apercu / envoyer"}
+              </button>
             )}
             </div>
           </div>
