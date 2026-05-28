@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
@@ -178,6 +178,19 @@ function mergeFollowUpsWithActivity(current, enriched) {
   });
 }
 
+// Reconcilie une liste fraiche (serveur) avec la liste courante en CONSERVANT la
+// reference des cartes inchangees. Indispensable pour que React.memo(KanbanCard)
+// soit efficace: une mise a jour temps reel ne redessine que les cartes qui ont
+// reellement change, pas les 128.
+function reconcileFollowUps(current, next) {
+  if (!current.length) return next;
+  const prevById = new Map(current.map((f) => [f.id, f]));
+  return next.map((n) => {
+    const old = prevById.get(n.id);
+    return old && JSON.stringify(old) === JSON.stringify(n) ? old : n;
+  });
+}
+
 function addPhotoToActivity(activity = {}, photo) {
   const existingPhotos = activity.photos || [];
   const photos = [photo, ...existingPhotos.filter((item) => item.id !== photo.id)];
@@ -276,7 +289,7 @@ export default function SuiviClientsClient() {
     const seq = loadSeq.current;
     fetchFollowUps(q, { activity: true })
       .then((list) => {
-        if (seq === loadSeq.current) setFollowUps(list);
+        if (seq === loadSeq.current) setFollowUps((cur) => reconcileFollowUps(cur, list));
       })
       .catch(() => {});
   }
@@ -640,6 +653,16 @@ export default function SuiviClientsClient() {
     const res = await fetch(`/api/admin/follow-ups/${followUp.id}`, { method: "DELETE" });
     if (res.ok) load(search);
   }
+
+  // Callbacks STABLES pour les cartes memoisees: leur reference ne change jamais
+  // (deps []), mais ils appellent toujours la derniere version via la ref -> pas de
+  // dependance perimee, et React.memo(KanbanCard) reste efficace.
+  const cardHandlersRef = useRef({});
+  useEffect(() => {
+    cardHandlersRef.current = { openEdit, deleteFollowUp };
+  });
+  const stableOpenEdit = useCallback((fu) => cardHandlersRef.current.openEdit?.(fu), []);
+  const stableDeleteFollowUp = useCallback((fu) => cardHandlersRef.current.deleteFollowUp?.(fu), []);
 
   async function saveColumns(nextColumns) {
     const normalized = normalizeColumns(nextColumns);
@@ -1195,8 +1218,8 @@ export default function SuiviClientsClient() {
                     items={byColumn.get(column.key) || []}
                     columns={columns}
                     onAdd={() => openCreate(column.key)}
-                    onEdit={openEdit}
-                    onDelete={deleteFollowUp}
+                    onEdit={stableOpenEdit}
+                    onDelete={stableDeleteFollowUp}
                     onCentral={setCentralFollowUp}
                     onArchiveLost={archiveLostFollowUps}
                     isDragOver={dragOverColumn === column.key}
@@ -1376,7 +1399,7 @@ function isInteractiveTarget(target) {
   return Boolean(target?.closest?.("a,button,input,textarea,select,label"));
 }
 
-function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, isDragging, highlighted, celebrating, targetHighlighted }) {
+const KanbanCard = memo(function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, isDragging, highlighted, celebrating, targetHighlighted }) {
   const [pressed, setPressed] = useState(false);
   const didDrag = useRef(false);
   const {
@@ -1501,7 +1524,7 @@ function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, isDragging
       ) : null}
     </article>
   );
-}
+});
 
 function KanbanCardPreview({ followUp, columns }) {
   const meta = columnMeta(columns, followUp.status);
