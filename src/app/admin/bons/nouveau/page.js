@@ -269,6 +269,18 @@ function draftItemsToWorkItems(items = []) {
     .filter((item) => item.description && item.unitPrice > 0);
 }
 
+function descriptionFromAiDraft(draft = {}) {
+  const explicit = String(draft.description || "").trim();
+  if (explicit) return explicit;
+  const descriptions = (draft.items || [])
+    .map((item) => String(item?.description || "").trim().replace(/\.$/, ""))
+    .filter(Boolean)
+    .slice(0, 5);
+  if (descriptions.length === 0) return "";
+  const prefix = draft.documentType === "quote" ? "Travaux proposes" : "Travaux effectues";
+  return `${prefix} : ${descriptions.join("; ")}.`;
+}
+
 function emailDraftStorageKey(workOrderId) {
   return `vosthermos:document-email-draft:${workOrderId}`;
 }
@@ -1019,7 +1031,8 @@ function NouveauBonAdmin() {
       setInterventionAddress(aiDraft.intervention?.address || draftClient.address || "");
       setInterventionCity(aiDraft.intervention?.city || draftClient.city || "");
       setInterventionPostalCode(aiDraft.intervention?.postalCode || draftClient.postalCode || "");
-      setDescription(aiDraft.description || "");
+      const nextDescription = descriptionFromAiDraft(aiDraft);
+      setDescription(nextDescription || description);
       setItems(draftItemsToWorkItems(aiDraft.items));
       setSections([]);
       setLaborHours(0);
@@ -1357,6 +1370,10 @@ function NouveauBonAdmin() {
                   </div>
 
                   <div className="rounded-lg border admin-border p-2">
+                    <p className="admin-text-muted mb-1 text-[10px] font-bold uppercase">Description</p>
+                    <p className="admin-text mb-3 whitespace-pre-wrap text-xs">
+                      {descriptionFromAiDraft(aiDraft) || "Aucune description detectee."}
+                    </p>
                     <p className="admin-text-muted mb-1 text-[10px] font-bold uppercase">Lignes</p>
                     <div className="space-y-1">
                       {(aiDraft.items || []).slice(0, 4).map((item, index) => (

@@ -56,6 +56,16 @@ function cleanDescriptionAndWarnings(description, warnings) {
   return { description: cleaned, warnings: nextWarnings };
 }
 
+function buildDescriptionFromItems(items, documentType) {
+  const descriptions = items
+    .map((item) => cleanText(item?.description, 180).replace(/\.$/, ""))
+    .filter(Boolean)
+    .slice(0, 5);
+  if (descriptions.length === 0) return "";
+  const prefix = documentType === "quote" ? "Travaux proposes" : "Travaux effectues";
+  return `${prefix} : ${descriptions.join("; ")}.`;
+}
+
 function parseJson(text) {
   const raw = String(text || "").trim();
   try {
@@ -113,8 +123,16 @@ function sanitizeDraft(input, fallbackDocumentType) {
   const items = Array.isArray(draft.items) ? draft.items : [];
   const initialWarnings = Array.isArray(draft.warnings) ? draft.warnings : [];
   const moved = cleanDescriptionAndWarnings(draft.description, initialWarnings);
+  const cleanItems = items.slice(0, 30)
+    .map((item) => ({
+      description: cleanText(item?.description, 300),
+      quantity: Math.max(0, Number(item?.quantity) || 1),
+      unitPrice: cleanMoney(item?.unitPrice),
+    }))
+    .filter((item) => item.description && item.unitPrice > 0);
 
   const billingName = inferBillingName(client, email.to);
+  const description = moved.description || buildDescriptionFromItems(cleanItems, documentType);
 
   return {
     documentType,
@@ -133,14 +151,8 @@ function sanitizeDraft(input, fallbackDocumentType) {
       city: cleanText(intervention.city || client.city, 80),
       postalCode: cleanText(intervention.postalCode || client.postalCode, 20),
     },
-    description: moved.description,
-    items: items.slice(0, 30)
-      .map((item) => ({
-        description: cleanText(item?.description, 300),
-        quantity: Math.max(0, Number(item?.quantity) || 1),
-        unitPrice: cleanMoney(item?.unitPrice),
-      }))
-      .filter((item) => item.description && item.unitPrice > 0),
+    description,
+    items: cleanItems,
     email: {
       to: cleanText(email.to || client.email, 160),
       subject: cleanText(email.subject, 180),
@@ -215,7 +227,7 @@ Schema:
     "type": "particulier" | "gestionnaire"
   },
   "intervention": { "address": "adresse des travaux", "city": "ville", "postalCode": "code postal" },
-  "description": "court resume professionnel des travaux confirmes seulement",
+  "description": "court resume professionnel des travaux confirmes seulement; obligatoire si au moins une ligne avec prix clair est detectee",
   "items": [{ "description": "ligne facture/soumission", "quantity": 1, "unitPrice": 0 }],
   "email": { "to": "email destinataire", "subject": "sujet email", "body": "message email court et professionnel" },
   "warnings": ["points ambigus ou prix manquants"]
@@ -227,6 +239,7 @@ Regles:
 - Si une image est fournie, lis le texte visible comme une capture, une photo de note, un courriel ou une soumission recue. Combine l'image avec le texte colle si les deux sont fournis.
 - Si une partie de l'image est illisible, ne l'invente pas; mets le point dans warnings.
 - Les lignes avec prix clair vont dans items.
+- Si au moins une ligne avec prix clair va dans items, remplis aussi description avec un resume court des travaux confirmes.
 - Les mentions sans prix clair ne vont pas dans items ni dans description; mets-les seulement dans warnings.
 - Pour les warnings, conserve les mots du client autant que possible: "A confirmer: [texte original] (prix non fourni)".
 - N'ajoute jamais "a commander", "a remplacer", "additionnel" ou une intention similaire si le message original ne le dit pas clairement.
