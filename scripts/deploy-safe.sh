@@ -18,6 +18,12 @@ flock -n 200 || { echo "[deploy] another deploy is running"; exit 1; }
 echo "[deploy] git pull"
 git pull origin master
 
+echo "[deploy] applying prisma migrations"
+npx prisma migrate deploy
+
+echo "[deploy] generating prisma client"
+npx prisma generate
+
 echo "[deploy] cleaning any old .next.new"
 rm -rf .next.new
 
