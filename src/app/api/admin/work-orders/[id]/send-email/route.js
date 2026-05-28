@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import path from "path";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { getTransporter } from "@/lib/mail";
@@ -13,7 +14,8 @@ import { documentFilename, formatMoneyCad, getDocumentDate, resolveDocumentNumbe
 import { buildPaymentTrackingData } from "@/lib/payment-tracking";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.vosthermos.com";
-const LOGO_URL = `${SITE_URL}/images/Vos-Thermos-Logo_Blanc.png`;
+const LOGO_CID = "vosthermos-logo";
+const LOGO_PATH = path.join(process.cwd(), "public", "images", "Vos-Thermos-Logo_Blanc.png");
 
 function fmt(n) { return formatMoneyCad(n); }
 
@@ -52,7 +54,7 @@ function renderCustomEmailHtml(documentMeta, documentNumber, filename, message) 
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td valign="middle">
-                    <img src="${LOGO_URL}" alt="Vosthermos" height="76" style="display:block;border:0;outline:none;text-decoration:none;height:76px;" />
+                    <img src="cid:${LOGO_CID}" alt="Vosthermos" height="76" style="display:block;border:0;outline:none;text-decoration:none;height:76px;" />
                   </td>
                   <td align="right" valign="middle" style="color:#ffffff;">
                     <div style="font-size:11px;letter-spacing:3px;opacity:.75;font-weight:600;">${escapeHtml(documentMeta.labelUpper)}</div>
@@ -125,7 +127,7 @@ function renderEmailHtml(wo, documentMeta, documentNumber, filename) {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td valign="middle">
-                    <img src="${LOGO_URL}" alt="Vosthermos" height="80" style="display:block;border:0;outline:none;text-decoration:none;height:80px;" />
+                    <img src="cid:${LOGO_CID}" alt="Vosthermos" height="80" style="display:block;border:0;outline:none;text-decoration:none;height:80px;" />
                   </td>
                   <td align="right" valign="middle" style="color:#ffffff;">
                     <div style="font-size:11px;letter-spacing:3px;opacity:.75;font-weight:600;">${documentMeta.labelUpper}</div>
@@ -327,10 +329,12 @@ export async function POST(req, { params }) {
   try {
     const transporter = getTransporter();
     const fromEmail = process.env.SMTP_USER;
+    const replyToEmail = process.env.SMTP_REPLY_TO || process.env.COMPANY_EMAIL || "info@vosthermos.com";
     await transporter.sendMail({
-      from: `"Vosthermos" <${fromEmail}>`,
+      from: `"Vosthermos - Facturation" <${fromEmail}>`,
       to,
-      replyTo: fromEmail,
+      replyTo: replyToEmail,
+      envelope: { from: fromEmail, to },
       subject: customSubject || `${documentMeta.subjectPrefix} ${documentNumber} - Vosthermos`,
       text: customMessage
         ? renderCustomEmailText(documentMeta, documentNumber, customMessage)
@@ -340,9 +344,14 @@ export async function POST(req, { params }) {
         : renderEmailHtml(serializedWo, documentMeta, documentNumber, filename),
       headers: {
         "X-Entity-Ref-ID": wo.number,
-        "List-Unsubscribe": `<mailto:${fromEmail}?subject=unsubscribe>`,
       },
       attachments: [
+        {
+          filename: "vosthermos-logo.png",
+          path: LOGO_PATH,
+          cid: LOGO_CID,
+          contentDisposition: "inline",
+        },
         {
           filename,
           content: pdfBuffer,
