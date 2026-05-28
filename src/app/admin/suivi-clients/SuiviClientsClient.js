@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
   closestCorners,
@@ -14,6 +15,8 @@ import {
 } from "@dnd-kit/core";
 import ClientPicker from "@/components/admin/ClientPicker";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
+import { usePresence, PresenceBadge } from "@/components/admin/usePresence";
+import { useAdminStream } from "@/components/admin/adminStream";
 import {
   DEFAULT_FOLLOW_UP_COLUMNS as DEFAULT_COLUMNS,
   FOLLOW_UP_COLUMNS_SETTINGS_KEY as SETTINGS_KEY,
@@ -230,6 +233,9 @@ export default function SuiviClientsClient() {
   const targetLookupRef = useRef(false);
   const targetFlashTimer = useRef(null);
   const loadSeq = useRef(0);
+  const searchRef = useRef(search);
+  searchRef.current = search;
+  const streamRefreshTimer = useRef(null);
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 8 },
@@ -260,6 +266,24 @@ export default function SuiviClientsClient() {
       .catch(() => {});
   }
 
+  // Resync de la centrale apres une action faite dans le panneau imbrique
+  // (repondre a un chat, modifier un bon, changer un statut de RDV): recharge
+  // l'activite et re-pointe la modale ouverte vers les compteurs frais.
+  function reloadCentralActivity() {
+    const seq = loadSeq.current;
+    fetchFollowUps(search, { activity: true })
+      .then((list) => {
+        if (seq !== loadSeq.current) return;
+        setFollowUps((current) => mergeFollowUpsWithActivity(current, list));
+        setCentralFollowUp((current) => {
+          if (!current) return current;
+          const fresh = list.find((f) => f.id === current.id);
+          return fresh ? { ...current, activity: fresh.activity } : current;
+        });
+      })
+      .catch(() => {});
+  }
+
   function load(q = search, { fast = true } = {}) {
     const seq = loadSeq.current + 1;
     loadSeq.current = seq;
@@ -274,6 +298,18 @@ export default function SuiviClientsClient() {
         if (seq === loadSeq.current) setLoading(false);
       });
   }
+
+  // Temps reel: rafraichit le board (debounce) quand un collegue modifie un
+  // suivi / bon / rendez-vous depuis un autre poste.
+  useAdminStream((event) => {
+    if (!event) return;
+    if (event.type === "follow_up.changed" || event.type === "work_order.changed" || event.type === "appointment.changed") {
+      clearTimeout(streamRefreshTimer.current);
+      streamRefreshTimer.current = setTimeout(() => {
+        refreshActivity(searchRef.current, loadSeq.current);
+      }, 1200);
+    }
+  });
 
   function scrollBoard(direction) {
     boardScrollRef.current?.scrollBy({
@@ -1180,6 +1216,7 @@ export default function SuiviClientsClient() {
           onClientUpdated={handleCentralClientUpdated}
           onPhotoAdded={handleCentralPhotoAdded}
           onPhotoDeleted={handleCentralPhotoDeleted}
+          onActivityChanged={reloadCentralActivity}
           onClose={() => setCentralFollowUp(null)}
         />
       )}
@@ -1543,7 +1580,8 @@ function clientFormFrom(client = {}) {
   };
 }
 
-function CentralModal({ followUp, columns, onSaveNotes, onSaveFollowUp, onClientUpdated, onPhotoAdded, onPhotoDeleted, onClose }) {
+function CentralModal({ followUp, columns, onSaveNotes, onSaveFollowUp, onClientUpdated, onPhotoAdded, onPhotoDeleted, onActivityChanged, onClose }) {
+  const router = useRouter();
   const activity = followUp.activity || {};
   const counts = activity.counts || { chats: 0, workOrders: 0, appointments: 0, photos: 0, total: 0 };
   const photos = activity.photos || [];
@@ -1551,6 +1589,11 @@ function CentralModal({ followUp, columns, onSaveNotes, onSaveFollowUp, onClient
   const phone = followUp.client?.phone || followUp.client?.secondaryPhone || followUp.phone;
   const email = followUp.client?.email || followUp.email;
   const meta = columnMeta(columns, followUp.status);
+  // Presence: on cle sur le client si lie, sinon sur le follow-up lui-meme.
+  const presenceViewers = usePresence(
+    followUp.client?.id ? "client" : "follow_up",
+    followUp.client?.id || followUp.id,
+  );
   const [activeTab, setActiveTab] = useState("suivi");
   const [notesDraft, setNotesDraft] = useState(followUp.notes || "");
   const [nextActionDraft, setNextActionDraft] = useState(followUp.nextAction || "");
@@ -1664,8 +1707,26 @@ function CentralModal({ followUp, columns, onSaveNotes, onSaveFollowUp, onClient
     }
   }
 
+  // Garde anti-perte: avertit si notes ou plan de suivi non sauvegardes.
+  function attemptClose() {
+    if (notesDirty || trackingDirty) {
+      if (!confirm("Tu as des modifications non sauvegardees (notes ou plan de suivi). Fermer quand meme et les perdre?")) return;
+    }
+    onClose();
+  }
+
+  // Cree un bon de travail pre-rempli avec ce client (ferme la centrale).
+  function createWorkOrder() {
+    const clientId = followUp.client?.id;
+    if (!clientId) {
+      alert("Ce suivi n'est pas encore relie a une fiche client. Relie-le d'abord dans l'onglet Fiche BD.");
+      return;
+    }
+    router.push(`/admin/bons/nouveau?clientId=${clientId}&fresh=1`);
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={attemptClose}>
       <div
         className="admin-bg admin-border border rounded-xl w-full max-w-6xl h-[92vh] flex flex-col overflow-hidden shadow-2xl"
         onClick={(e) => e.stopPropagation()}
@@ -1679,10 +1740,25 @@ function CentralModal({ followUp, columns, onSaveNotes, onSaveFollowUp, onClient
               {email && <a href={`mailto:${email}`} className="admin-text-muted hover:admin-text">{email}</a>}
               {followUp.client?.id && <span className="admin-text-muted">BD client #{followUp.client.id}</span>}
             </div>
+            {presenceViewers.length > 0 && (
+              <div className="mt-2">
+                <PresenceBadge viewers={presenceViewers} />
+              </div>
+            )}
           </div>
-          <button onClick={onClose} className="admin-text-muted hover:admin-text self-start lg:self-center">
-            <i className="fas fa-times"></i>
-          </button>
+          <div className="flex items-center gap-2 self-start lg:self-center">
+            <button
+              type="button"
+              onClick={createWorkOrder}
+              className="inline-flex items-center gap-2 rounded-lg bg-cyan-700 px-3 py-2 text-xs font-bold text-white hover:bg-cyan-600"
+            >
+              <i className="fas fa-clipboard-list"></i>
+              Nouveau bon
+            </button>
+            <button onClick={attemptClose} className="admin-text-muted hover:admin-text px-2">
+              <i className="fas fa-times"></i>
+            </button>
+          </div>
         </div>
 
         <div className="p-5 space-y-6 flex-1 overflow-y-auto min-h-0">
@@ -1973,7 +2049,11 @@ function CentralModal({ followUp, columns, onSaveNotes, onSaveFollowUp, onClient
         </div>
 
         {embeddedView && (
-          <EmbeddedActivityPanel view={embeddedView} onClose={() => setEmbeddedView(null)} />
+          <EmbeddedActivityPanel
+            view={embeddedView}
+            onActivityChanged={onActivityChanged}
+            onClose={() => setEmbeddedView(null)}
+          />
         )}
         {selectedPhoto && (
           <PhotoViewer photo={selectedPhoto} onClose={() => setSelectedPhoto(null)} />
@@ -2442,7 +2522,7 @@ function money(value) {
   return Number.isFinite(number) ? `${number.toFixed(2)} $` : "-";
 }
 
-function EmbeddedActivityPanel({ view, onClose }) {
+function EmbeddedActivityPanel({ view, onActivityChanged, onClose }) {
   const icon = view.type === "chat"
     ? "fa-comments"
     : view.type === "appointment"
@@ -2497,6 +2577,7 @@ function EmbeddedActivityPanel({ view, onClose }) {
       if (!res.ok) throw new Error(data.error || "Impossible d'envoyer le message");
       setReply("");
       await loadDetail();
+      onActivityChanged?.();
     } catch (err) {
       setDetailError(err.message || "Impossible d'envoyer le message");
     } finally {
@@ -2514,11 +2595,18 @@ function EmbeddedActivityPanel({ view, onClose }) {
       const res = await fetch(`/api/admin/work-orders/${view.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(patch),
+        body: JSON.stringify({ ...patch, expectedUpdatedAt: detail.updatedAt }),
       });
       const data = await res.json().catch(() => ({}));
+      if (res.status === 409) {
+        setDetail(detail);
+        setDetailError(data.message || "Bon modifie par un collegue. Rechargement de la derniere version...");
+        await loadDetail();
+        return;
+      }
       if (!res.ok) throw new Error(data.error || "Impossible de sauvegarder le bon");
       setDetail(data);
+      onActivityChanged?.();
     } catch (err) {
       setDetail(detail);
       setDetailError(err.message || "Impossible de sauvegarder le bon");
@@ -2542,6 +2630,7 @@ function EmbeddedActivityPanel({ view, onClose }) {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Impossible de sauvegarder le rendez-vous");
       setDetail(data);
+      onActivityChanged?.();
     } catch (err) {
       setDetail(previous);
       setDetailError(err.message || "Impossible de sauvegarder le rendez-vous");

@@ -368,10 +368,12 @@ function NouveauBonAdmin() {
   const quoteMode = searchParams.get("mode") === "quote";
   const freshDraft = searchParams.get("fresh") === "1";
   const resumeDraft = searchParams.get("draft") === "1";
+  const presetClientId = searchParams.get("clientId");
   const [saving, setSaving] = useState(false);
   const [savingAction, setSavingAction] = useState(null);
   const [error, setError] = useState("");
   const [loadingEdit, setLoadingEdit] = useState(!!editId);
+  const [loadedUpdatedAt, setLoadedUpdatedAt] = useState(null); // verrou optimiste anti-ecrasement
 
   const [clientSearch, setClientSearch] = useState("");
   const [clientResults, setClientResults] = useState([]);
@@ -639,6 +641,7 @@ function NouveauBonAdmin() {
         const res = await fetch(`/api/admin/work-orders/${editId}`);
         if (!res.ok) throw new Error("Bon introuvable");
         const wo = await res.json();
+        setLoadedUpdatedAt(wo.updatedAt || null);
         setSelectedClient(wo.client);
         setTechnicianId(wo.technicianId ? String(wo.technicianId) : "");
         setDate(dateOnlyString(wo.date) || todayDateInput());
@@ -679,6 +682,17 @@ function NouveauBonAdmin() {
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editId]);
+
+  // Pre-selection du client quand on arrive depuis la centrale (?clientId=).
+  useEffect(() => {
+    if (editId || !presetClientId) return;
+    let cancelled = false;
+    fetch(`/api/admin/clients/${presetClientId}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((client) => { if (!cancelled && client?.id) setSelectedClient(client); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [presetClientId, editId]);
 
   useEffect(() => {
     if (clientSearch.length < 2 || selectedClient) { setClientResults([]); return; }
@@ -1213,8 +1227,15 @@ function NouveauBonAdmin() {
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(editId ? { ...payload, expectedUpdatedAt: loadedUpdatedAt } : payload),
       });
+      if (res.status === 409) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.message || "Ce bon a ete modifie par un collegue pendant ton edition. Recharge la page (F5) avant de sauvegarder, sinon tu ecrases ses changements.");
+        setSaving(false);
+        setSavingAction(null);
+        return;
+      }
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Erreur lors de la creation");

@@ -35,6 +35,7 @@ export default function ClientsPage() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [editId, setEditId] = useState(null);
+  const [editUpdatedAt, setEditUpdatedAt] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const timer = useRef(null);
@@ -59,6 +60,7 @@ export default function ClientsPage() {
   function resetForm() {
     setForm(EMPTY_FORM);
     setEditId(null);
+    setEditUpdatedAt(null);
     setError("");
   }
 
@@ -82,6 +84,7 @@ export default function ClientsPage() {
       notes: client.notes || "",
     });
     setEditId(client.id);
+    setEditUpdatedAt(client.updatedAt || null);
     setError("");
     setShowForm(true);
   }
@@ -98,11 +101,18 @@ export default function ClientsPage() {
     try {
       const url = editId ? `/api/admin/clients/${editId}` : "/api/admin/clients";
       const method = editId ? "PUT" : "POST";
+      const payload = editId ? { ...form, expectedUpdatedAt: editUpdatedAt } : form;
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
+      if (res.status === 409) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.message || "Ce client a ete modifie par un collegue. Ferme et rouvre la fiche pour repartir de la derniere version.");
+        load(search, sort); // rafraichit la liste en arriere-plan
+        return;
+      }
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Erreur lors de l'enregistrement");

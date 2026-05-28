@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { changedFields, logAdminActivity } from "@/lib/admin-activity";
+import { staleUpdateResponse } from "@/lib/optimistic-lock";
 
 export async function GET(_req, { params }) {
   try { await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
@@ -65,6 +66,16 @@ export async function PUT(req, { params }) {
   const { id } = await params;
   const existing = await prisma.client.findUnique({ where: { id: parseInt(id) } });
   const body = await req.json();
+
+  // Verrou optimiste: refuse d'ecraser si un collegue a sauvegarde entre-temps.
+  const conflict = await staleUpdateResponse({
+    expected: body.expectedUpdatedAt,
+    current: existing?.updatedAt,
+    entityType: "client",
+    entityId: parseInt(id),
+  });
+  if (conflict) return conflict;
+
   const data = {};
   if (body.name !== undefined) data.name = body.name;
   if (body.type !== undefined) data.type = body.type === "gestionnaire" ? "gestionnaire" : "particulier";

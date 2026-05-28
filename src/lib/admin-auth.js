@@ -1,16 +1,30 @@
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 
-const JWT_SECRET = process.env.JWT_SECRET || "change-this-to-a-random-secret";
 const COOKIE_NAME = "vosthermos-admin-token";
+const INSECURE_DEFAULT = "change-this-to-a-random-secret";
+
+// Resolution paresseuse: on ne throw qu'a l'usage (pas au build) si la cle manque
+// en production. Evite qu'un secret par defaut signe des tokens admin valides.
+function getSecret() {
+  const secret = process.env.JWT_SECRET;
+  if (secret && secret !== INSECURE_DEFAULT) return secret;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "JWT_SECRET non configure: definir une vraie cle secrete dans .env avant de demarrer en production.",
+    );
+  }
+  // Developpement uniquement: cle factice pour ne pas bloquer le travail local.
+  return INSECURE_DEFAULT;
+}
 
 export function signToken(payload) {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign(payload, getSecret(), { expiresIn: "7d" });
 }
 
 export function verifyToken(token) {
   try {
-    return jwt.verify(token, JWT_SECRET);
+    return jwt.verify(token, getSecret());
   } catch {
     return null;
   }

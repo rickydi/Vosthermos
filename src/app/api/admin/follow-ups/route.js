@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { FOLLOW_UP_TERMINAL_STATUSES, normalizePhoneDigits, serializeFollowUp } from "@/lib/follow-up-utils";
 import { logAdminActivity } from "@/lib/admin-activity";
+import { publishAdminEvent } from "@/lib/event-bus";
 
 export const dynamic = "force-dynamic";
 
@@ -502,6 +503,14 @@ export async function POST(req) {
       phone: followUp.phone,
       email: followUp.email,
     },
+  });
+
+  publishAdminEvent({
+    type: "follow_up.changed",
+    entityType: "follow_up",
+    entityId: followUp.id,
+    clientId: followUp.clientId,
+    actor: session.id,
   });
 
   return NextResponse.json(serializeFollowUp(followUp));

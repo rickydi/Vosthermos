@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { serializeFollowUp, syncLatestWorkOrderFromFollowUpStatus } from "@/lib/follow-up-utils";
 import { changedFields, logAdminActivity } from "@/lib/admin-activity";
+import { publishAdminEvent } from "@/lib/event-bus";
 
 function dateOrNull(value) {
   if (value === undefined) return undefined;
@@ -105,6 +106,14 @@ export async function PUT(req, { params }) {
     },
   });
 
+  publishAdminEvent({
+    type: "follow_up.changed",
+    entityType: "follow_up",
+    entityId: followUp.id,
+    clientId: followUp.clientId,
+    actor: session.id,
+  });
+
   return NextResponse.json(serializeFollowUp(followUp));
 }
 
@@ -122,6 +131,13 @@ export async function DELETE(req, { params }) {
     entityId: id,
     label: `Suivi supprime: ${existing?.title || id}`,
     metadata: { status: existing?.status, clientId: existing?.clientId },
+  });
+  publishAdminEvent({
+    type: "follow_up.changed",
+    entityType: "follow_up",
+    entityId: Number(id),
+    clientId: existing?.clientId,
+    actor: session.id,
   });
   return NextResponse.json({ ok: true });
 }

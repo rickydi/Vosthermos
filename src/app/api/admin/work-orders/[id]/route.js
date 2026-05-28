@@ -16,6 +16,8 @@ import { workOrderStatutFromFollowUpStatus } from "@/lib/follow-up-columns";
 import { parseDateOnly } from "@/lib/date-only";
 import { changedFields, logAdminActivity } from "@/lib/admin-activity";
 import { buildPaymentTrackingData } from "@/lib/payment-tracking";
+import { staleUpdateResponse } from "@/lib/optimistic-lock";
+import { publishAdminEvent } from "@/lib/event-bus";
 
 async function validateFollowUpForClient(followUpId, clientId) {
   if (!followUpId) return null;
@@ -114,6 +116,16 @@ export async function PUT(req, { params }) {
   if (!existing) return NextResponse.json({ error: "Non trouve" }, { status: 404 });
 
   const body = await req.json();
+
+  // Verrou optimiste: refuse d'ecraser si un collegue a sauvegarde entre-temps.
+  const conflict = await staleUpdateResponse({
+    expected: body.expectedUpdatedAt,
+    current: existing.updatedAt,
+    entityType: "work_order",
+    entityId: woId,
+  });
+  if (conflict) return conflict;
+
   const nextClientId = body.clientId ? parseInt(body.clientId) : existing.clientId;
   let nextFollowUpId = existing.followUpId;
   if (body.followUpId !== undefined) {
@@ -250,6 +262,14 @@ export async function PUT(req, { params }) {
       statusTo: wo.statut,
       total: Number(wo.total),
     },
+  });
+
+  publishAdminEvent({
+    type: "work_order.changed",
+    entityType: "work_order",
+    entityId: wo.id,
+    clientId: wo.clientId,
+    actor: session.id,
   });
 
   const ser = (i) => ({
