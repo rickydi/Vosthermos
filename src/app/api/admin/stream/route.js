@@ -30,14 +30,15 @@ export async function GET(request) {
       send({ type: "connected" });
       unsubscribe = subscribeAdminEvents(send);
 
-      // Commentaire SSE periodique: garde la connexion vivante a travers les proxies.
+      // Commentaire SSE periodique: garde la connexion vivante a travers les proxies
+      // (15 s pour rester sous les timeouts d'inactivite des proxies).
       heartbeat = setInterval(() => {
         try {
           controller.enqueue(encoder.encode(`: ping\n\n`));
         } catch {
           /* ignore */
         }
-      }, 25000);
+      }, 15000);
 
       const cleanup = () => {
         if (heartbeat) clearInterval(heartbeat);

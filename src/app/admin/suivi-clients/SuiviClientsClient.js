@@ -266,6 +266,19 @@ export default function SuiviClientsClient() {
       .catch(() => {});
   }
 
+  // Reload complet silencieux (REMPLACE la liste, sans spinner) pour le temps reel:
+  // reflete les creations, suppressions ET deplacements faits par d'autres employes.
+  // (refreshActivity ne fait que fusionner l'activite sur la liste existante et ne
+  // verrait donc pas une nouvelle carte ni une carte supprimee.)
+  function streamReload(q) {
+    const seq = loadSeq.current;
+    fetchFollowUps(q, { activity: true })
+      .then((list) => {
+        if (seq === loadSeq.current) setFollowUps(list);
+      })
+      .catch(() => {});
+  }
+
   // Resync de la centrale apres une action faite dans le panneau imbrique
   // (repondre a un chat, modifier un bon, changer un statut de RDV): recharge
   // l'activite et re-pointe la modale ouverte vers les compteurs frais.
@@ -299,15 +312,17 @@ export default function SuiviClientsClient() {
       });
   }
 
-  // Temps reel: rafraichit le board (debounce) quand un collegue modifie un
-  // suivi / bon / rendez-vous depuis un autre poste.
+  // Temps reel: recharge le board quand un collegue modifie un suivi / bon /
+  // rendez-vous. "connected" est emis a CHAQUE (re)connexion SSE -> on resync aussi
+  // a ce moment pour rattraper les events manques pendant une coupure reseau.
   useAdminStream((event) => {
     if (!event) return;
-    if (event.type === "follow_up.changed" || event.type === "work_order.changed" || event.type === "appointment.changed") {
+    const t = event.type;
+    if (t === "connected" || t === "follow_up.changed" || t === "work_order.changed" || t === "appointment.changed") {
       clearTimeout(streamRefreshTimer.current);
       streamRefreshTimer.current = setTimeout(() => {
-        refreshActivity(searchRef.current, loadSeq.current);
-      }, 1200);
+        streamReload(searchRef.current);
+      }, t === "connected" ? 150 : 800);
     }
   });
 
