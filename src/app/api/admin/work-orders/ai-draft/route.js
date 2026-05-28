@@ -3,6 +3,9 @@ import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { COMPANY_INFO } from "@/lib/company-info";
 
+const ACCEPTED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
+const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+
 function cleanText(value, max = 500) {
   return String(value || "").trim().slice(0, max);
 }
@@ -72,6 +75,35 @@ function parseJson(text) {
   throw new Error("Reponse IA invalide");
 }
 
+function cleanImageInput(input) {
+  if (!input || typeof input !== "object") return null;
+
+  let mediaType = cleanText(input.mediaType || input.type, 40).toLowerCase();
+  let data = String(input.data || "").trim();
+  const dataUrl = data.match(/^data:(image\/[a-z0-9.+-]+);base64,(.+)$/i);
+  if (dataUrl) {
+    mediaType = dataUrl[1].toLowerCase();
+    data = dataUrl[2];
+  }
+
+  if (!data) return null;
+  if (!ACCEPTED_IMAGE_TYPES.has(mediaType)) {
+    throw new Error("Image non supportee. Utilise PNG, JPG, WEBP ou GIF.");
+  }
+
+  data = data.replace(/\s/g, "");
+  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(data)) {
+    throw new Error("Image invalide.");
+  }
+
+  const bytes = Buffer.byteLength(data, "base64");
+  if (bytes > MAX_IMAGE_BYTES) {
+    throw new Error("Image trop lourde. Maximum 8 MB.");
+  }
+
+  return { mediaType, data };
+}
+
 function sanitizeDraft(input, fallbackDocumentType) {
   const draft = input && typeof input === "object" ? input : {};
   const documentType = ["invoice", "quote"].includes(draft.documentType) ? draft.documentType : fallbackDocumentType;
@@ -131,7 +163,29 @@ export async function POST(req) {
   const body = await req.json().catch(() => ({}));
   const rawText = cleanText(body.text, 6000);
   const documentType = body.documentType === "quote" ? "quote" : "invoice";
-  if (!rawText) return NextResponse.json({ error: "Texte requis" }, { status: 400 });
+  let image = null;
+  try {
+    image = cleanImageInput(body.image);
+  } catch (err) {
+    return NextResponse.json({ error: err.message || "Image invalide" }, { status: 400 });
+  }
+  if (!rawText && !image) return NextResponse.json({ error: "Texte ou image requis" }, { status: 400 });
+
+  const userContent = [];
+  if (image) {
+    userContent.push({
+      type: "image",
+      source: {
+        type: "base64",
+        media_type: image.mediaType,
+        data: image.data,
+      },
+    });
+  }
+  userContent.push({
+    type: "text",
+    text: rawText || "Analyse l'image jointe et cree le brouillon de document Vosthermos a partir du texte visible.",
+  });
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -170,6 +224,8 @@ Schema:
 Regles:
 - Type demande: ${documentType}.
 - Utilise le design PDF existant: tu ne generes pas de PDF, seulement les donnees.
+- Si une image est fournie, lis le texte visible comme une capture, une photo de note, un courriel ou une soumission recue. Combine l'image avec le texte colle si les deux sont fournis.
+- Si une partie de l'image est illisible, ne l'invente pas; mets le point dans warnings.
 - Les lignes avec prix clair vont dans items.
 - Les mentions sans prix clair ne vont pas dans items ni dans description; mets-les seulement dans warnings.
 - Pour les warnings, conserve les mots du client autant que possible: "A confirmer: [texte original] (prix non fourni)".
@@ -186,7 +242,7 @@ Regles:
       messages: [
         {
           role: "user",
-          content: rawText,
+          content: userContent,
         },
       ],
     }),
