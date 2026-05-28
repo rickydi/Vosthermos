@@ -4,15 +4,24 @@ import crypto from "crypto";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.vosthermos.com";
 
 export function getTransporter() {
+  const smtpPort = parseInt(process.env.SMTP_PORT || "587");
+  const smtpHost = process.env.SMTP_HOST;
+  const connectHost = process.env.SMTP_CONNECT_HOST || smtpHost;
   return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT || "587"),
-    secure: false,
+    host: connectHost,
+    port: smtpPort,
+    secure: smtpPort === 465,
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
     },
-    tls: { rejectUnauthorized: false },
+    tls: {
+      rejectUnauthorized: false,
+      servername: smtpHost && smtpHost !== connectHost ? smtpHost : undefined,
+    },
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 30000,
   });
 }
 
