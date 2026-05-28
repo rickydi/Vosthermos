@@ -38,6 +38,14 @@ export const FOLLOW_UP_TONES = {
     border: "border-amber-400/30",
     button: "bg-amber-600 hover:bg-amber-500 text-white",
   },
+  red: {
+    label: "Rouge",
+    badge: "bg-red-500/15 text-red-300",
+    soft: "bg-red-500/10 text-red-300",
+    ring: "ring-red-400/25",
+    border: "border-red-400/30",
+    button: "bg-red-600 hover:bg-red-500 text-white",
+  },
   emerald: {
     label: "Vert",
     badge: "bg-emerald-500/15 text-emerald-300",

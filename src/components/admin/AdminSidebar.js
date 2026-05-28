@@ -23,6 +23,7 @@ function detectSectionKey(pathname, sections) {
 }
 
 function getItemBadge(href, badges) {
+  if (href === "/admin/suivi-clients") return badges.dueFollowUps;
   if (href === "/admin/chat") return badges.unreadChat;
   if (href === "/admin/bons") return badges.pendingRequests;
   if (href === "/admin/rendez-vous") return badges.pendingRdv;
@@ -30,6 +31,7 @@ function getItemBadge(href, badges) {
 }
 
 function getAlertTone(href) {
+  if (href === "/admin/suivi-clients") return "red";
   if (href === "/admin/chat") return "red";
   if (href === "/admin/rendez-vous") return "amber";
   if (href === "/admin/bons") return "amber";
@@ -134,6 +136,7 @@ export default function AdminSidebar() {
   const [unreadChat, setUnreadChat] = useState(0);
   const [pendingRdv, setPendingRdv] = useState(0);
   const [pendingRequests, setPendingRequests] = useState(0);
+  const [dueFollowUps, setDueFollowUps] = useState(0);
 
   const sections = ADMIN_MENU_SECTIONS.map((section) => ({
     ...section,
@@ -144,7 +147,7 @@ export default function AdminSidebar() {
   const activeSectionKey = detectedSectionKey || "production";
   const activeSection =
     sections.find((section) => section.key === activeSectionKey) || sections[0];
-  const activeBadges = { unreadChat, pendingRdv, pendingRequests };
+  const activeBadges = { unreadChat, pendingRdv, pendingRequests, dueFollowUps };
 
   useEffect(() => {
     let cancelled = false;
@@ -195,10 +198,11 @@ export default function AdminSidebar() {
     async function fetchBadges() {
       try {
         const noCache = { cache: "no-store", headers: { "Cache-Control": "no-cache" } };
-        const [chatRes, rdvRes, reqRes] = await Promise.all([
+        const [chatRes, rdvRes, reqRes, followUpRes] = await Promise.all([
           fetch("/api/admin/chat", noCache),
           fetch("/api/admin/appointments?status=pending", noCache),
           fetch("/api/admin/work-orders/pending-count", noCache),
+          fetch("/api/admin/follow-ups/due-count", noCache),
           fetch("/api/admin/internal-notify", {
             ...noCache,
             method: "POST",
@@ -217,6 +221,10 @@ export default function AdminSidebar() {
         const reqData = await reqRes.json();
         if (typeof reqData?.count === "number") {
           setPendingRequests(reqData.count);
+        }
+        const followUpData = await followUpRes.json();
+        if (typeof followUpData?.count === "number") {
+          setDueFollowUps(followUpData.count);
         }
       } catch {}
     }

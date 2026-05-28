@@ -96,7 +96,7 @@ function isLate(value) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const date = dateOnly(value);
-  return date ? date < today : false;
+  return date ? date <= today : false;
 }
 
 function priorityLabel(value) {
@@ -1055,7 +1055,7 @@ export default function SuiviClientsClient() {
         <StatCard label="Suivis actifs" value={stats.active} icon="fa-list-check" tone="sky" />
         <StatCard label="A appeler" value={stats.toCall} icon="fa-phone" tone="blue" />
         <StatCard label="Estimes envoyes" value={stats.estimates} icon="fa-file-invoice-dollar" tone="amber" />
-        <StatCard label="En retard" value={stats.late} icon="fa-bell" tone="amber" />
+        <StatCard label="A relancer" value={stats.late} icon="fa-bell" tone="red" />
         <StatCard label="Activites liees" value={stats.activities} icon="fa-layer-group" tone="emerald" />
       </div>
 
@@ -1408,7 +1408,7 @@ function KanbanCard({ followUp, columns, onEdit, onDelete, onCentral, isDragging
         {email && <a href={`mailto:${email}`} className="admin-text-muted hover:admin-text block truncate">{email}</a>}
       </div>
 
-      <div className={`mt-1.5 rounded-lg px-2 py-1.5 ${late ? "bg-amber-500/10 text-amber-300" : "bg-white/5 admin-text-muted"}`}>
+      <div className={`mt-1.5 rounded-lg px-2 py-1.5 ${late ? "bg-red-500/10 text-red-300 ring-1 ring-red-400/20" : "bg-white/5 admin-text-muted"}`}>
         <div className="flex items-center justify-between gap-2">
           <p className="text-[9px] uppercase tracking-wider font-bold">Prochain suivi</p>
           <p className="text-[10px] font-semibold shrink-0">{formatDate(followUp.nextActionDate)}</p>
@@ -1459,7 +1459,7 @@ function KanbanCardPreview({ followUp, columns }) {
         {email && <p className="admin-text-muted truncate">{email}</p>}
       </div>
 
-      <div className={`mt-2 rounded-lg px-2.5 py-1.5 ${late ? "bg-amber-500/10 text-amber-300" : "bg-white/5 admin-text-muted"}`}>
+      <div className={`mt-2 rounded-lg px-2.5 py-1.5 ${late ? "bg-red-500/10 text-red-300 ring-1 ring-red-400/20" : "bg-white/5 admin-text-muted"}`}>
         <div className="flex items-center justify-between gap-2">
           <p className="text-[9px] uppercase tracking-wider font-bold">Prochain suivi</p>
           <p className="text-[11px] font-semibold shrink-0">{formatDate(followUp.nextActionDate)}</p>

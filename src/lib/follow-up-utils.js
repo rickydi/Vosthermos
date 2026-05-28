@@ -7,6 +7,7 @@ import {
   workOrderStatutFromFollowUpStatus,
 } from "@/lib/follow-up-columns";
 import { getWorkOrderDocumentMeta } from "@/lib/work-order-document";
+import { getPaymentDueDate, isOpenPaymentStatus, paymentDateOnlyTime } from "@/lib/payment-tracking";
 
 export const FOLLOW_UP_TERMINAL_STATUSES = ["lost", "completed", "archived"];
 
@@ -63,6 +64,17 @@ function appendNote(existing, next) {
   if (!cleanNext) return existing || null;
   if (existing && existing.includes(cleanNext)) return existing;
   return [existing, cleanNext].filter(Boolean).join("\n");
+}
+
+function paymentDueDate(workOrder, client) {
+  if (!workOrder) return null;
+  return getPaymentDueDate({ ...workOrder, client: client || workOrder.client });
+}
+
+function isDueTodayOrLate(date, now = new Date()) {
+  const dueTime = paymentDateOnlyTime(date);
+  const todayTime = paymentDateOnlyTime(now);
+  return dueTime !== null && todayTime !== null && dueTime <= todayTime;
 }
 
 function serviceFromSource(source) {
@@ -160,22 +172,39 @@ export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client, fo
   const status = cleanText(followUpStatus) || (workOrder.statut === "draft" ? "to_call" : followUpStatusFromWorkOrderStatut(workOrder.statut, columns));
   const { followUp: existing, ambiguous } = await findRelevantFollowUp(client.id, status, workOrder);
   const documentMeta = getWorkOrderDocumentMeta(workOrder.statut);
-  const sourceText = documentMeta.type === "quote" ? "soumission" : "bon de travail";
-  const defaultNextAction = documentMeta.type === "quote" ? "Relancer la soumission" : "Appeler le client";
+  const invoiceOpen = isOpenPaymentStatus(workOrder.statut);
+  const invoicePaid = workOrder.statut === "paid";
+  const dueDate = invoiceOpen ? paymentDueDate(workOrder, client) : null;
+  const dueNow = invoiceOpen && isDueTodayOrLate(dueDate);
+  const sourceText = documentMeta.type === "invoice"
+    ? "facture"
+    : documentMeta.type === "quote"
+      ? "soumission"
+      : "bon de travail";
+  const defaultNextAction = invoiceOpen
+    ? "Relancer la facture a payer"
+    : invoicePaid
+      ? "Facture payee"
+      : documentMeta.type === "quote"
+        ? "Relancer la soumission"
+        : "Appeler le client";
 
-  const note = `[auto: ${sourceText} ${workOrder.number || `#${workOrder.id}`} ${new Date().toISOString().slice(0, 10)}]`;
+  const note = `[auto: ${sourceText} ${workOrder.number || `#${workOrder.id}`}${dueDate ? ` echeance ${dateOnlyIso(dueDate)}` : ""} ${new Date().toISOString().slice(0, 10)}]`;
 
   let followUp;
   if (existing) {
     followUp = await prisma.clientFollowUp.update({
       where: { id: existing.id },
       data: {
-        source: existing.source || sourceText,
+        source: invoiceOpen || invoicePaid ? sourceText : existing.source || sourceText,
         status,
+        priority: dueNow ? "high" : existing.priority,
         contactName: existing.contactName || client.name || null,
         phone: existing.phone || primaryContactPhone(client),
         email: existing.email || client.email || null,
-        nextAction: existing.nextAction || (status === "scheduled" ? "Suivre le bon planifie" : defaultNextAction),
+        estimateAmount: existing.estimateAmount ?? (documentMeta.type !== "work_order" ? workOrder.total : null),
+        nextAction: invoiceOpen || invoicePaid ? defaultNextAction : existing.nextAction || (status === "scheduled" ? "Suivre le bon planifie" : defaultNextAction),
+        nextActionDate: invoiceOpen ? dueDate : invoicePaid ? null : existing.nextActionDate,
         notes: appendNote(existing.notes, note),
       },
     });
@@ -186,10 +215,13 @@ export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client, fo
         title: `${client.name || "Client"} - ${workOrder.number || sourceText}`,
         source: sourceText,
         status,
+        priority: dueNow ? "high" : "normal",
         contactName: client.name || null,
         phone: primaryContactPhone(client),
         email: client.email || null,
-        nextAction: status === "scheduled" ? "Suivre le bon planifie" : defaultNextAction,
+        estimateAmount: documentMeta.type !== "work_order" ? workOrder.total : null,
+        nextAction: status === "scheduled" && !invoiceOpen ? "Suivre le bon planifie" : defaultNextAction,
+        nextActionDate: invoiceOpen ? dueDate : null,
         notes: note,
       },
     });

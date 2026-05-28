@@ -63,6 +63,20 @@ function buildAppointmentForwardText(appointment) {
   ].filter(Boolean).join("\n");
 }
 
+function followUpClientName(followUp) {
+  return followUp?.client?.name || followUp?.contactName || followUp?.title || "Suivi client";
+}
+
+function followUpHref(followUp) {
+  const params = new URLSearchParams({ flash: "1" });
+  const phone = followUp?.client?.phone || followUp?.client?.secondaryPhone || followUp?.phone;
+  const email = followUp?.client?.email || followUp?.email;
+  if (email) params.set("suiviEmail", email);
+  else if (phone) params.set("suiviPhone", phone);
+  else params.set("suiviName", followUpClientName(followUp));
+  return `/admin/suivi-clients?${params.toString()}`;
+}
+
 function getWeekDates(referenceDate) {
   const date = new Date(referenceDate);
   const day = date.getDay(); // 0=Sun
@@ -94,6 +108,7 @@ function getMonthDates(year, month) {
 export default function AdminAppointmentsPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [appointments, setAppointments] = useState([]);
+  const [followUpReminders, setFollowUpReminders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [updating, setUpdating] = useState(false);
@@ -117,20 +132,25 @@ export default function AdminAppointmentsPage() {
     const from = formatDate(new Date(periodStartTime));
     const to = formatDate(new Date(periodEndTime));
 
-    fetch(`/api/admin/appointments?from=${from}&to=${to}`)
-      .then(async (res) => {
-        if (!res.ok) return null;
-        return res.json();
-      })
-      .then((data) => {
-        if (!cancelled && data) setAppointments(data);
-      })
-      .catch((err) => {
-        console.error("Error fetching appointments:", err);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+    Promise.all([
+      fetch(`/api/admin/appointments?from=${from}&to=${to}`)
+        .then(async (res) => (res.ok ? res.json() : []))
+        .catch((err) => {
+          console.error("Error fetching appointments:", err);
+          return [];
+        }),
+      fetch(`/api/admin/follow-ups/reminders?from=${from}&to=${to}`, { cache: "no-store" })
+        .then(async (res) => (res.ok ? res.json() : []))
+        .catch((err) => {
+          console.error("Error fetching follow-up reminders:", err);
+          return [];
+        }),
+    ]).then(([appointmentsData, remindersData]) => {
+      if (cancelled) return;
+      setAppointments(Array.isArray(appointmentsData) ? appointmentsData : []);
+      setFollowUpReminders(Array.isArray(remindersData) ? remindersData : []);
+      setLoading(false);
+    });
 
     return () => { cancelled = true; };
   }, [periodStartTime, periodEndTime]);
@@ -266,6 +286,10 @@ export default function AdminAppointmentsPage() {
     return appointments.filter((a) => a.date.startsWith(dateStr));
   }
 
+  function getFollowUpsForDate(dateStr) {
+    return followUpReminders.filter((followUp) => followUp.nextActionDate?.startsWith(dateStr));
+  }
+
   // Stats
   const totalWeek = appointments.length;
   const pendingCount = appointments.filter((a) => a.status === "pending").length;
@@ -369,8 +393,10 @@ export default function AdminAppointmentsPage() {
             {monthDates.map((date) => {
               const dateStr = formatDate(date);
               const dayAppts = getAppointmentsForDate(dateStr);
+              const dayFollowUps = getFollowUpsForDate(dateStr);
               const isToday = dateStr === todayStr;
               const isCurrentMonth = date.getMonth() === currentDate.getMonth();
+              const hiddenCount = Math.max(0, dayAppts.length - 2) + Math.max(0, dayFollowUps.length - 2);
 
               return (
                 <div key={dateStr}
@@ -378,7 +404,7 @@ export default function AdminAppointmentsPage() {
                   <p className={`text-xs font-bold mb-1 ${isToday ? "text-[var(--color-red)]" : "admin-text-muted"}`}>
                     {date.getDate()}
                   </p>
-                  {dayAppts.slice(0, 3).map((appt) => {
+                  {dayAppts.slice(0, 2).map((appt) => {
                     const statusCfg = STATUS_CONFIG[appt.status] || STATUS_CONFIG.pending;
                     return (
                       <button key={appt.id} onClick={() => setSelectedAppointment(appt)}
@@ -389,8 +415,18 @@ export default function AdminAppointmentsPage() {
                       </button>
                     );
                   })}
-                  {dayAppts.length > 3 && (
-                    <p className="admin-text-muted text-[9px] text-center">+{dayAppts.length - 3} de plus</p>
+                  {dayFollowUps.slice(0, 2).map((followUp) => (
+                    <Link
+                      key={`follow-up-${followUp.id}`}
+                      href={followUpHref(followUp)}
+                      className="w-full text-left mb-0.5 px-1.5 py-0.5 rounded text-[10px] truncate flex items-center gap-1 bg-red-500/15 text-red-300 border border-red-400/20 hover:bg-red-500/25"
+                    >
+                      <span className="w-1 h-1 rounded-full bg-red-400 shrink-0"></span>
+                      <span className="truncate">Suivi {followUpClientName(followUp)}</span>
+                    </Link>
+                  ))}
+                  {hiddenCount > 0 && (
+                    <p className="admin-text-muted text-[9px] text-center">+{hiddenCount} de plus</p>
                   )}
                 </div>
               );
@@ -403,6 +439,7 @@ export default function AdminAppointmentsPage() {
           {weekDates.map((date, i) => {
             const dateStr = formatDate(date);
             const dayAppointments = getAppointmentsForDate(dateStr);
+            const dayFollowUps = getFollowUpsForDate(dateStr);
             const isToday = dateStr === todayStr;
             const isWeekend = date.getDay() === 0 || date.getDay() === 6;
 
@@ -429,7 +466,7 @@ export default function AdminAppointmentsPage() {
 
                 {/* Appointments */}
                 <div className="p-2 space-y-2 min-h-[120px]">
-                  {dayAppointments.length === 0 && !isWeekend && (
+                  {dayAppointments.length === 0 && dayFollowUps.length === 0 && !isWeekend && (
                     <p className="text-center admin-text-muted text-[10px] py-4">Aucun</p>
                   )}
                   {dayAppointments.map((appt) => {
@@ -472,6 +509,30 @@ export default function AdminAppointmentsPage() {
                       </button>
                     );
                   })}
+                  {dayFollowUps.map((followUp) => (
+                    <Link
+                      key={`follow-up-${followUp.id}`}
+                      href={followUpHref(followUp)}
+                      className="block w-full rounded-lg border border-red-400/25 bg-red-500/10 p-2.5 text-left text-red-200 transition-all hover:bg-red-500/20"
+                    >
+                      <div className="mb-1 flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5">
+                          <span className="h-1.5 w-1.5 rounded-full bg-red-400"></span>
+                          <span className="text-xs font-bold">Suivi</span>
+                        </div>
+                        <span className="rounded-full bg-red-500/15 px-1.5 py-0.5 text-[8px] font-bold uppercase text-red-300">
+                          A relancer
+                        </span>
+                      </div>
+                      <p className="text-xs font-semibold text-red-100">{followUpClientName(followUp)}</p>
+                      <p className="text-[10px] font-medium text-red-300">{followUp.nextAction || followUp.service || "Relance client"}</p>
+                      {(followUp.client?.phone || followUp.phone) && (
+                        <p className="text-[10px] text-red-200/75">
+                          <i className="fas fa-phone text-[8px] mr-1"></i>{followUp.client?.phone || followUp.phone}
+                        </p>
+                      )}
+                    </Link>
+                  ))}
                 </div>
               </div>
             );
