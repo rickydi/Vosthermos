@@ -10,7 +10,7 @@ import { logAdminActivity } from "@/lib/admin-activity";
 import { createOrTouchFollowUpFromWorkOrder } from "@/lib/follow-up-utils";
 import { getCompany } from "@/lib/company";
 import { getWorkOrderDocumentMeta } from "@/lib/work-order-document";
-import { documentFilename, formatMoneyCad, getDocumentDate, resolveDocumentNumber } from "@/lib/vosthermos-document";
+import { documentFilename, formatMoneyCad, getDocumentDate, getDocumentTargetDate, resolveDocumentNumber } from "@/lib/vosthermos-document";
 import { buildPaymentTrackingData } from "@/lib/payment-tracking";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.vosthermos.com";
@@ -18,6 +18,88 @@ const LOGO_CID = "vosthermos-logo";
 const LOGO_PATH = path.join(process.cwd(), "public", "images", "Vos-Thermos-Logo_Blanc.png");
 
 function fmt(n) { return formatMoneyCad(n); }
+
+function formatEmailDate(dateLike) {
+  return formatDateOnly(dateLike, { day: "numeric", month: "long", year: "numeric" });
+}
+
+function documentDateLabel(documentMeta) {
+  if (documentMeta.type === "invoice") return "Date de facture";
+  if (documentMeta.type === "quote") return "Date de soumission";
+  return "Date";
+}
+
+function renderDocumentSummaryRows(wo, documentMeta, documentNumber, filename) {
+  const documentDate = formatEmailDate(getDocumentDate(wo, documentMeta.type));
+  const targetDate = getDocumentTargetDate(wo, documentMeta.type);
+  const targetValue = targetDate ? formatEmailDate(targetDate) : "";
+  const targetLabel = documentMeta.dateTargetLabel || "Echeance";
+  return `
+    <div style="font-size:11px;color:#8793a3;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;">Document joint</div>
+    <div style="font-size:15px;color:#172033;font-weight:800;margin-top:3px;margin-bottom:12px;">${escapeHtml(filename)}</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #e2e8f0;padding-top:12px;">
+      <tr>
+        <td style="padding:5px 0;font-size:13px;color:#667085;">No</td>
+        <td align="right" style="padding:5px 0;font-size:13px;color:#172033;font-weight:700;">${escapeHtml(documentNumber)}</td>
+      </tr>
+      <tr>
+        <td style="padding:5px 0;font-size:13px;color:#667085;">${documentDateLabel(documentMeta)}</td>
+        <td align="right" style="padding:5px 0;font-size:13px;color:#172033;font-weight:700;">${escapeHtml(documentDate)}</td>
+      </tr>
+      ${targetValue ? `<tr>
+        <td style="padding:5px 0;font-size:13px;color:#667085;">${escapeHtml(targetLabel)}</td>
+        <td align="right" style="padding:5px 0;font-size:13px;color:#172033;font-weight:700;">${escapeHtml(targetValue)}</td>
+      </tr>` : ""}
+      <tr>
+        <td style="padding:5px 0;font-size:13px;color:#667085;">Sous-total</td>
+        <td align="right" style="padding:5px 0;font-size:13px;color:#172033;">${fmt(wo.subtotal)}</td>
+      </tr>
+      <tr>
+        <td style="padding:5px 0;font-size:13px;color:#667085;">TPS + TVQ</td>
+        <td align="right" style="padding:5px 0;font-size:13px;color:#172033;">${fmt(Number(wo.tps) + Number(wo.tvq))}</td>
+      </tr>
+      <tr>
+        <td style="padding:12px 0 0;border-top:2px solid #172033;font-size:15px;color:#172033;font-weight:800;">Total</td>
+        <td align="right" style="padding:12px 0 0;border-top:2px solid #172033;font-size:19px;color:#b91c1c;font-weight:900;">${fmt(wo.total)}</td>
+      </tr>
+    </table>`;
+}
+
+function renderDocumentSummaryBox(wo, documentMeta, documentNumber, filename) {
+  return `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;margin:22px 0 22px;">
+      <tr>
+        <td style="padding:18px 20px;">
+          ${renderDocumentSummaryRows(wo, documentMeta, documentNumber, filename)}
+        </td>
+      </tr>
+    </table>`;
+}
+
+function renderReturnNote(documentMeta) {
+  const nextNeed = documentMeta.type === "quote"
+    ? "Si vous voulez aller de l'avant, repondez simplement a ce courriel et on garde le dossier au meme endroit."
+    : "Si vous avez une autre fenetre, une porte patio a ajuster ou une piece a remplacer plus tard, vous pouvez repondre a ce courriel et on reprendra le dossier rapidement.";
+  return `
+    <div style="background-color:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:16px 18px;margin:0 0 24px;">
+      <div style="font-size:13px;color:#9a3412;font-weight:800;margin-bottom:5px;">Pour la suite</div>
+      <div style="font-size:14px;color:#4b5563;line-height:1.6;">${nextNeed}</div>
+    </div>`;
+}
+
+function renderDocumentSummaryText(wo, documentMeta, documentNumber, filename) {
+  const targetDate = getDocumentTargetDate(wo, documentMeta.type);
+  const targetLabel = documentMeta.dateTargetLabel || "Echeance";
+  return [
+    `${documentMeta.labelUpper} ${documentNumber}`,
+    `${documentDateLabel(documentMeta)}: ${formatEmailDate(getDocumentDate(wo, documentMeta.type))}`,
+    targetDate ? `${targetLabel}: ${formatEmailDate(targetDate)}` : null,
+    `Piece jointe: ${filename}`,
+    `Sous-total: ${fmt(wo.subtotal)}`,
+    `TPS + TVQ: ${fmt(Number(wo.tps) + Number(wo.tvq))}`,
+    `Total: ${fmt(wo.total)}`,
+  ].filter(Boolean).join("\n");
+}
 
 function escapeHtml(value) {
   return String(value || "")
@@ -36,7 +118,7 @@ function renderMessageHtml(message) {
     .join("");
 }
 
-function renderCustomEmailHtml(documentMeta, documentNumber, filename, message) {
+function renderCustomEmailHtml(wo, documentMeta, documentNumber, filename, message) {
   return `<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -44,21 +126,22 @@ function renderCustomEmailHtml(documentMeta, documentNumber, filename, message) 
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${escapeHtml(documentMeta.label)} ${escapeHtml(documentNumber)}</title>
 </head>
-<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#111;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f3f4f6;padding:40px 20px;">
+<body style="margin:0;padding:0;background-color:#eef1f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#172033;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#eef1f5;padding:34px 16px;">
     <tr>
       <td align="center">
-        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+        <table role="presentation" width="640" cellpadding="0" cellspacing="0" border="0" style="max-width:640px;background-color:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 12px 34px rgba(23,32,51,0.12);">
           <tr>
-            <td style="background:linear-gradient(135deg,#b91c1c 0%,#991b1b 100%);background-color:#b91c1c;padding:32px 40px;">
+            <td style="background-color:#b91c1c;padding:34px 40px 30px;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td valign="middle">
-                    <img src="cid:${LOGO_CID}" alt="Vosthermos" height="76" style="display:block;border:0;outline:none;text-decoration:none;height:76px;" />
+                    <img src="cid:${LOGO_CID}" alt="Vosthermos" height="104" style="display:block;border:0;outline:none;text-decoration:none;height:104px;width:auto;" />
                   </td>
                   <td align="right" valign="middle" style="color:#ffffff;">
-                    <div style="font-size:11px;letter-spacing:3px;opacity:.75;font-weight:600;">${escapeHtml(documentMeta.labelUpper)}</div>
-                    <div style="font-size:24px;font-weight:800;margin-top:6px;">${escapeHtml(documentNumber)}</div>
+                    <div style="font-size:11px;letter-spacing:2px;opacity:.78;font-weight:700;text-transform:uppercase;">${escapeHtml(documentMeta.labelUpper)}</div>
+                    <div style="font-size:25px;font-weight:800;margin-top:7px;line-height:1.1;">${escapeHtml(documentNumber)}</div>
+                    <div style="font-size:12px;opacity:.82;margin-top:8px;">Vosthermos - Facturation</div>
                   </td>
                 </tr>
               </table>
@@ -67,21 +150,15 @@ function renderCustomEmailHtml(documentMeta, documentNumber, filename, message) 
           <tr>
             <td style="padding:34px 40px 18px;">
               ${renderMessageHtml(message)}
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:0 40px 32px;">
-              <div style="background-color:#fef2f2;border-left:3px solid #b91c1c;padding:14px 18px;border-radius:0 8px 8px 0;">
-                <div style="font-size:13px;color:#991b1b;font-weight:600;margin-bottom:4px;">Piece jointe</div>
-                <div style="font-size:13px;color:#555;">${escapeHtml(filename)} (${escapeHtml(documentMeta.emailAttachmentDetail)})</div>
-              </div>
+              ${renderDocumentSummaryBox(wo, documentMeta, documentNumber, filename)}
+              ${renderReturnNote(documentMeta)}
             </td>
           </tr>
           <tr>
             <td style="background-color:#f9fafb;padding:24px 40px;border-top:1px solid #e5e7eb;text-align:center;">
-              <div style="font-size:12px;color:#9ca3af;line-height:1.6;">
-                <strong style="color:#111;">Vosthermos</strong> &mdash; Portes et fenetres<br>
-                Reparation et remplacement<br>
+              <div style="font-size:12px;color:#7b8794;line-height:1.6;">
+                <strong style="color:#172033;">Vosthermos</strong> - Reparation et remplacement de fenetres<br>
+                Pour une question, repondez simplement a ce courriel.<br>
                 <a href="${SITE_URL}" style="color:#b91c1c;text-decoration:none;">vosthermos.com</a>
               </div>
             </td>
@@ -94,21 +171,21 @@ function renderCustomEmailHtml(documentMeta, documentNumber, filename, message) 
 </html>`;
 }
 
-function renderCustomEmailText(documentMeta, documentNumber, message) {
+function renderCustomEmailText(wo, documentMeta, documentNumber, filename, message) {
   return `${message}
 
 ---
-${documentMeta.labelUpper} ${documentNumber}
-PDF joint a ce courriel.
+${renderDocumentSummaryText(wo, documentMeta, documentNumber, filename)}
+
+Pour la suite, repondez simplement a ce courriel. On garde votre dossier au meme endroit pour vos prochaines reparations ou ajustements.
+
 Vosthermos - Portes et fenetres
 ${SITE_URL}
 `;
 }
 
 function renderEmailHtml(wo, documentMeta, documentNumber, filename) {
-  const date = formatDateOnly(getDocumentDate(wo, documentMeta.type), {
-    day: "numeric", month: "long", year: "numeric",
-  });
+  const date = formatEmailDate(getDocumentDate(wo, documentMeta.type));
   return `<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -116,22 +193,23 @@ function renderEmailHtml(wo, documentMeta, documentNumber, filename) {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${documentMeta.label} ${documentNumber}</title>
 </head>
-<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#111;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f3f4f6;padding:40px 20px;">
+<body style="margin:0;padding:0;background-color:#eef1f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#172033;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#eef1f5;padding:34px 16px;">
     <tr>
       <td align="center">
-        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+        <table role="presentation" width="640" cellpadding="0" cellspacing="0" border="0" style="max-width:640px;background-color:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 12px 34px rgba(23,32,51,0.12);">
           <!-- Header -->
           <tr>
-            <td style="background:linear-gradient(135deg,#b91c1c 0%,#991b1b 100%);background-color:#b91c1c;padding:40px 40px;">
+            <td style="background-color:#b91c1c;padding:34px 40px 30px;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td valign="middle">
-                    <img src="cid:${LOGO_CID}" alt="Vosthermos" height="80" style="display:block;border:0;outline:none;text-decoration:none;height:80px;" />
+                    <img src="cid:${LOGO_CID}" alt="Vosthermos" height="104" style="display:block;border:0;outline:none;text-decoration:none;height:104px;width:auto;" />
                   </td>
                   <td align="right" valign="middle" style="color:#ffffff;">
-                    <div style="font-size:11px;letter-spacing:3px;opacity:.75;font-weight:600;">${documentMeta.labelUpper}</div>
-                    <div style="font-size:26px;font-weight:800;margin-top:6px;">${documentNumber}</div>
+                    <div style="font-size:11px;letter-spacing:2px;opacity:.78;font-weight:700;text-transform:uppercase;">${documentMeta.labelUpper}</div>
+                    <div style="font-size:25px;font-weight:800;margin-top:7px;line-height:1.1;">${documentNumber}</div>
+                    <div style="font-size:12px;opacity:.82;margin-top:8px;">Vosthermos - Facturation</div>
                   </td>
                 </tr>
               </table>
@@ -158,7 +236,7 @@ function renderEmailHtml(wo, documentMeta, documentNumber, filename) {
                     <div style="font-size:16px;color:#111;font-weight:600;margin-top:2px;">${documentNumber}</div>
                   </td>
                   <td align="right">
-                    <div style="font-size:11px;color:#9ca3af;font-weight:600;letter-spacing:1px;">DATE</div>
+                    <div style="font-size:11px;color:#9ca3af;font-weight:600;letter-spacing:1px;">${documentDateLabel(documentMeta)}</div>
                     <div style="font-size:14px;color:#374151;margin-top:2px;">${date}</div>
                   </td>
                 </tr>
@@ -196,15 +274,16 @@ function renderEmailHtml(wo, documentMeta, documentNumber, filename) {
               <p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:#6b7280;">
                 ${documentMeta.emailQuestion}
               </p>
+              ${renderReturnNote(documentMeta)}
             </td>
           </tr>
 
           <!-- Footer -->
           <tr>
             <td style="background-color:#f9fafb;padding:24px 40px;border-top:1px solid #e5e7eb;text-align:center;">
-              <div style="font-size:12px;color:#9ca3af;line-height:1.6;">
-                <strong style="color:#111;">Vosthermos</strong> — Portes et fenetres<br>
-                Reparation et remplacement<br>
+              <div style="font-size:12px;color:#7b8794;line-height:1.6;">
+                <strong style="color:#172033;">Vosthermos</strong> - Portes et fenetres<br>
+                Pour une question, repondez simplement a ce courriel.<br>
                 <a href="${SITE_URL}" style="color:#b91c1c;text-decoration:none;">vosthermos.com</a>
               </div>
             </td>
@@ -217,25 +296,21 @@ function renderEmailHtml(wo, documentMeta, documentNumber, filename) {
 </html>`;
 }
 
-function renderEmailText(wo, documentMeta, documentNumber) {
-  const date = formatDateOnly(getDocumentDate(wo, documentMeta.type));
+function renderEmailText(wo, documentMeta, documentNumber, filename) {
   const name = wo.client?.name?.split(" ")[0] || "";
   return `Bonjour ${name},
 
 Merci d'avoir choisi Vosthermos pour vos travaux.
 ${documentMeta.emailIntro}
 
-${documentMeta.labelUpper} ${documentNumber}
-Date: ${date}
-
-Sous-total: ${fmt(wo.subtotal)}
-TPS + TVQ:  ${fmt(Number(wo.tps) + Number(wo.tvq))}
-TOTAL:      ${fmt(wo.total)}
+${renderDocumentSummaryText(wo, documentMeta, documentNumber, filename)}
 
 ${documentMeta.emailQuestion}
 
+Pour la suite, repondez simplement a ce courriel. On garde votre dossier au meme endroit pour vos prochaines reparations ou ajustements.
+
 ---
-Vosthermos — Portes et fenetres
+Vosthermos - Portes et fenetres
 Reparation et remplacement
 ${SITE_URL}
 `;
@@ -337,10 +412,10 @@ export async function POST(req, { params }) {
       envelope: { from: fromEmail, to },
       subject: customSubject || `${documentMeta.subjectPrefix} ${documentNumber} - Vosthermos`,
       text: customMessage
-        ? renderCustomEmailText(documentMeta, documentNumber, customMessage)
-        : renderEmailText(serializedWo, documentMeta, documentNumber),
+        ? renderCustomEmailText(serializedWo, documentMeta, documentNumber, filename, customMessage)
+        : renderEmailText(serializedWo, documentMeta, documentNumber, filename),
       html: customMessage
-        ? renderCustomEmailHtml(documentMeta, documentNumber, filename, customMessage)
+        ? renderCustomEmailHtml(serializedWo, documentMeta, documentNumber, filename, customMessage)
         : renderEmailHtml(serializedWo, documentMeta, documentNumber, filename),
       headers: {
         "X-Entity-Ref-ID": wo.number,
