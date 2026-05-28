@@ -71,6 +71,7 @@ export default function BonDetailPage() {
   const [emailTo, setEmailTo] = useState("");
   const [emailSubject, setEmailSubject] = useState("");
   const [emailBody, setEmailBody] = useState("");
+  const [emailError, setEmailError] = useState("");
   const [showApprove, setShowApprove] = useState(false);
   const [technicians, setTechnicians] = useState([]);
   const [selectedTechId, setSelectedTechId] = useState("");
@@ -220,10 +221,14 @@ export default function BonDetailPage() {
   }
 
   async function sendEmail() {
-    if (!emailTo.trim()) { setMsg("Adresse email requise"); return; }
+    if (!emailTo.trim()) {
+      setEmailError("Adresse email requise");
+      return;
+    }
     const emailDocumentMeta = getWorkOrderDocumentMeta(wo?.statut);
     setSending(true);
     setMsg("");
+    setEmailError("");
     try {
       const res = await fetch(`/api/admin/work-orders/${id}/send-email`, {
         method: "POST",
@@ -235,16 +240,17 @@ export default function BonDetailPage() {
           documentType: emailDocumentMeta.type,
         }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Erreur d'envoi");
       setMsg(`Envoye a ${data.to}`);
       setShowEmail(false);
       const refreshed = await fetch(`/api/admin/work-orders/${id}`).then((r) => r.json());
       setWo(refreshed);
     } catch (err) {
-      setMsg(err.message);
+      setEmailError(err.message || "Erreur d'envoi");
+    } finally {
+      setSending(false);
     }
-    setSending(false);
   }
 
   if (!wo) return (
@@ -322,7 +328,7 @@ export default function BonDetailPage() {
             className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-medium hover:bg-white/5 transition-colors">
             <i className="fas fa-pen mr-2"></i>Modifier
           </Link>
-          <button onClick={() => setShowEmail(true)}
+          <button type="button" onClick={() => { setEmailError(""); setShowEmail(true); }}
             className="px-4 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium">
             <i className="fas fa-envelope mr-2"></i>Envoyer {documentMeta.label.toLowerCase()}
           </button>
@@ -436,12 +442,17 @@ export default function BonDetailPage() {
               rows={9}
               className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm w-full mb-4 focus:outline-none focus:ring-2 focus:ring-red-500"
             />
+            {emailError && (
+              <p className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400">
+                {emailError}
+              </p>
+            )}
             <div className="flex gap-3 justify-end">
-              <button onClick={() => setShowEmail(false)}
+              <button type="button" onClick={() => setShowEmail(false)}
                 className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-sm">
                 Annuler
               </button>
-              <button onClick={sendEmail} disabled={sending}
+              <button type="button" onClick={sendEmail} disabled={sending}
                 className="px-4 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium disabled:opacity-50">
                 {sending ? "Envoi..." : "Envoyer"}
               </button>

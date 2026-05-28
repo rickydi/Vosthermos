@@ -15,6 +15,7 @@ import {
   normalizeFollowUpColumns,
   workOrderStatutFromFollowUpStatus,
 } from "@/lib/follow-up-columns";
+import { isInvoiceStatus, isQuoteStatus } from "@/lib/work-order-document";
 
 const DRAFT_KEY = "vosthermos:nouveau-bon:draft";
 
@@ -902,13 +903,19 @@ function NouveauBonAdmin() {
     return data;
   }
 
+  const effectiveInvoiceMode = invoiceMode || isInvoiceStatus(currentStatut);
+  const effectiveQuoteMode = quoteMode || isQuoteStatus(currentStatut);
+  const showDocumentAssistant = effectiveInvoiceMode || effectiveQuoteMode;
+  const isExistingInvoiceDocument = Boolean(editId && !invoiceMode && isInvoiceStatus(currentStatut));
+  const isExistingQuoteDocument = Boolean(editId && !quoteMode && isQuoteStatus(currentStatut));
+
   async function analyzeAiDocumentDraft() {
     if (!aiImportText.trim() || aiDraftLoading) return;
     setAiDraftLoading(true);
     setAiDraftError("");
     setAiDraftMessage("");
     try {
-      const documentType = invoiceMode ? "invoice" : quoteMode ? "quote" : "invoice";
+      const documentType = effectiveQuoteMode ? "quote" : "invoice";
       const res = await fetch("/api/admin/work-orders/ai-draft", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1089,26 +1096,26 @@ function NouveauBonAdmin() {
   const pieceCount = flatPieceCount + sectionPieceCount;
   const isDirectInvoiceMode = invoiceMode && !editId;
   const isDirectQuoteMode = quoteMode && !editId;
-  const currentModeLabel = invoiceMode
+  const currentModeLabel = effectiveInvoiceMode
     ? (isDirectInvoiceMode ? "Facture directe" : "Facturation")
-    : quoteMode
+    : effectiveQuoteMode
       ? "Soumission"
       : editId
         ? "Modification"
         : "Creation";
-  const pageTitle = invoiceMode
-    ? (isDirectInvoiceMode ? "Nouvelle facture" : "Facturer le bon de travail")
-    : quoteMode
-      ? (editId ? "Modifier la soumission" : "Nouvelle soumission")
+  const pageTitle = effectiveInvoiceMode
+    ? (isDirectInvoiceMode ? "Nouvelle facture" : isExistingInvoiceDocument ? "Modifier la facture" : "Facturer le bon de travail")
+    : effectiveQuoteMode
+      ? (editId || isExistingQuoteDocument ? "Modifier la soumission" : "Nouvelle soumission")
       : (editId ? "Modifier le bon de travail" : "Nouveau bon de travail");
-  const dateLabel = invoiceMode ? "Date de facture" : quoteMode ? "Date de soumission" : "Date prevue";
-  const descriptionLabel = invoiceMode
+  const dateLabel = effectiveInvoiceMode ? "Date de facture" : effectiveQuoteMode ? "Date de soumission" : "Date prevue";
+  const descriptionLabel = effectiveInvoiceMode
     ? "Description des travaux / frais"
-    : quoteMode
+    : effectiveQuoteMode
       ? "Description du projet"
       : "Description du travail";
-  const summaryTitle = invoiceMode ? "Resume de la facture" : quoteMode ? "Resume de la soumission" : "Resume du bon";
-  const totalTitle = invoiceMode ? "Total de la facture" : quoteMode ? "Total de la soumission" : "Total a facturer";
+  const summaryTitle = effectiveInvoiceMode ? "Resume de la facture" : effectiveQuoteMode ? "Resume de la soumission" : "Resume du bon";
+  const totalTitle = effectiveInvoiceMode ? "Total de la facture" : effectiveQuoteMode ? "Total de la soumission" : "Total a facturer";
 
   return (
     <div className="px-4 py-5 lg:px-8 lg:py-6">
@@ -1155,7 +1162,7 @@ function NouveauBonAdmin() {
         </div>
       )}
 
-      {(invoiceMode || quoteMode) && (
+      {showDocumentAssistant && (
         <div className="admin-card mb-5 max-w-[1500px] overflow-hidden rounded-xl border">
           <div className="border-b admin-border bg-cyan-500/10 px-4 py-3">
             <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
@@ -1165,7 +1172,7 @@ function NouveauBonAdmin() {
                   Assistant IA
                 </h2>
                 <p className="admin-text-muted mt-0.5 text-xs">
-                  {invoiceMode ? "Facture" : "Soumission"} a partir d&apos;un message client.
+                  {effectiveInvoiceMode ? "Facture" : "Soumission"} a partir d&apos;un message client.
                 </p>
               </div>
               <button
@@ -1205,9 +1212,9 @@ function NouveauBonAdmin() {
                       <p className="admin-text-muted text-xs">{aiDraft.client?.phone || ""}{aiDraft.client?.secondaryPhone ? ` | ${aiDraft.client.secondaryPhone}` : ""}</p>
                     </div>
                     <span className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase ${
-                      invoiceMode ? "bg-orange-500/15 text-orange-500" : "bg-sky-500/15 text-sky-500"
+                      effectiveInvoiceMode ? "bg-orange-500/15 text-orange-500" : "bg-sky-500/15 text-sky-500"
                     }`}>
-                      {invoiceMode ? "Facture" : "Soumission"}
+                      {effectiveInvoiceMode ? "Facture" : "Soumission"}
                     </span>
                   </div>
 
