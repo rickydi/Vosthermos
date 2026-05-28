@@ -70,6 +70,7 @@ export async function GET(_req, { params }) {
           },
         },
       },
+      payments: { orderBy: [{ paidAt: "asc" }, { id: "asc" }] },
     },
   });
 
@@ -92,6 +93,10 @@ export async function GET(_req, { params }) {
     tps: Number(wo.tps),
     tvq: Number(wo.tvq),
     total: Number(wo.total),
+    payments: (wo.payments || []).map((payment) => ({
+      ...payment,
+      amount: Number(payment.amount || 0),
+    })),
     items: wo.items.map(ser),
     sections: wo.sections.map((s) => ({ ...s, items: s.items.map(ser) })),
     followUp,
@@ -218,6 +223,7 @@ export async function PUT(req, { params }) {
           orderBy: { position: "asc" },
           include: { items: { orderBy: { position: "asc" } } },
         },
+        payments: { orderBy: [{ paidAt: "asc" }, { id: "asc" }] },
       },
     });
   });
@@ -262,6 +268,10 @@ export async function PUT(req, { params }) {
     tps: Number(wo.tps),
     tvq: Number(wo.tvq),
     total: Number(wo.total),
+    payments: (wo.payments || []).map((payment) => ({
+      ...payment,
+      amount: Number(payment.amount || 0),
+    })),
     items: wo.items.map(ser),
     sections: wo.sections.map((s) => ({ ...s, items: s.items.map(ser) })),
   });

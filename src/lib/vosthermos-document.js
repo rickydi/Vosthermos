@@ -182,7 +182,61 @@ export function safeFileToken(value) {
 
 export function documentFilename(wo, documentMeta) {
   const prefix = documentMeta?.type === "invoice" ? "Facture" : "Soumission";
-  return `${prefix}_Vosthermos_${safeFileToken(clientLastName(wo?.client?.name))}.pdf`;
+  const paidSuffix = documentMeta?.type === "invoice" && documentPaymentSummary(wo).isPaid ? "_Payee" : "";
+  return `${prefix}_Vosthermos_${safeFileToken(clientLastName(wo?.client?.name))}${paidSuffix}.pdf`;
+}
+
+export function documentPayments(wo = {}) {
+  const payments = Array.isArray(wo.payments) ? wo.payments : [];
+  if (payments.length > 0) {
+    return payments
+      .map((payment) => ({
+        id: payment.id,
+        amount: Number(payment.amount || 0),
+        method: payment.method || null,
+        note: payment.note || null,
+        paidAt: validDocumentDate(payment.paidAt) || validDocumentDate(payment.createdAt) || null,
+        createdAt: validDocumentDate(payment.createdAt) || null,
+      }))
+      .filter((payment) => payment.amount > 0)
+      .sort((a, b) => {
+        const aTime = a.paidAt?.getTime?.() || 0;
+        const bTime = b.paidAt?.getTime?.() || 0;
+        return aTime - bTime || Number(a.id || 0) - Number(b.id || 0);
+      });
+  }
+
+  const paidAt = validDocumentDate(wo.paidAt);
+  const total = Number(wo.total || 0);
+  if (paidAt && total > 0) {
+    return [{
+      id: "paid",
+      amount: total,
+      method: wo.paymentMethod || "Paiement confirme",
+      note: wo.paymentNotes || null,
+      paidAt,
+      createdAt: paidAt,
+    }];
+  }
+
+  return [];
+}
+
+export function documentPaymentSummary(wo = {}) {
+  const payments = documentPayments(wo);
+  const total = Number(wo.total || 0);
+  const paidTotal = Math.round(payments.reduce((sum, payment) => sum + Number(payment.amount || 0), 0) * 100) / 100;
+  const rawBalance = Math.round((total - paidTotal) * 100) / 100;
+  const statusPaid = wo.statut === "paid" || Boolean(validDocumentDate(wo.paidAt));
+  const isPaid = statusPaid || (payments.length > 0 && rawBalance <= 0.005);
+  return {
+    payments,
+    total,
+    paidTotal,
+    balanceDue: isPaid ? 0 : Math.max(rawBalance, 0),
+    isPaid,
+    hasPayments: payments.length > 0,
+  };
 }
 
 export function documentConditions(documentType) {

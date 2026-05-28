@@ -34,6 +34,9 @@ function stateMeta(payment) {
   if (payment.paymentState === "paid") {
     return { label: "Paye", className: "bg-emerald-500/15 text-emerald-300", icon: "fa-check-circle" };
   }
+  if (payment.hasPartialPayments) {
+    return { label: "Depot recu", className: "bg-cyan-500/15 text-cyan-300", icon: "fa-coins" };
+  }
   if (payment.paymentState === "overdue") {
     return { label: `${payment.daysLate || 0} j. retard`, className: "bg-red-500/15 text-red-300", icon: "fa-exclamation-triangle" };
   }
@@ -61,29 +64,51 @@ function SummaryTile({ icon, label, value, detail, tone }) {
 function PaymentRow({ payment, saving, onPatch }) {
   const [dueDate, setDueDate] = useState(dateInput(payment.paymentDueAt));
   const [method, setMethod] = useState(payment.paymentMethod || "Interac");
-  const [notes, setNotes] = useState(payment.paymentNotes || "");
+  const [paymentDate, setPaymentDate] = useState(dateInput(new Date().toISOString()));
+  const [depositAmount, setDepositAmount] = useState("");
+  const [paymentNote, setPaymentNote] = useState("");
   const meta = stateMeta(payment);
-  const dirty = dueDate !== dateInput(payment.paymentDueAt) || method !== (payment.paymentMethod || "Interac") || notes !== (payment.paymentNotes || "");
+  const dirty = dueDate !== dateInput(payment.paymentDueAt);
+  const balance = Number(payment.balanceDue ?? payment.total ?? 0);
+  const payments = payment.payments || [];
 
   async function saveDetails() {
     await onPatch(payment.id, {
       paymentDueAt: dueDate || null,
-      paymentMethod: method || null,
-      paymentNotes: notes || null,
     });
+  }
+
+  async function addDeposit() {
+    await onPatch(payment.id, {
+      action: "add-payment",
+      amount: depositAmount,
+      paidAt: paymentDate || null,
+      paymentMethod: method || "Interac",
+      paymentNotes: paymentNote || null,
+    });
+    setDepositAmount("");
+    setPaymentNote("");
   }
 
   async function markPaid() {
     await onPatch(payment.id, {
       action: "mark-paid",
+      paidAt: paymentDate || null,
       paymentMethod: method || "Interac",
-      paymentNotes: notes || null,
+      paymentNotes: paymentNote || null,
+      sendEmail: true,
     });
+    setPaymentNote("");
   }
 
   async function markOpen() {
-    if (!confirm(`Remettre ${payment.number} a recevoir?`)) return;
+    if (!confirm(`Remettre ${payment.number} a recevoir et retirer les paiements inscrits?`)) return;
     await onPatch(payment.id, { action: "mark-open", statut: payment.invoiceSentAt ? "sent" : "invoiced" });
+  }
+
+  async function deletePayment(paymentEntry) {
+    if (!confirm(`Retirer ce paiement de ${money(paymentEntry.amount)}?`)) return;
+    await onPatch(payment.id, { action: "delete-payment", paymentId: paymentEntry.id, statut: payment.invoiceSentAt ? "sent" : "invoiced" });
   }
 
   return (
@@ -93,6 +118,14 @@ function PaymentRow({ payment, saving, onPatch }) {
           {payment.number}
         </Link>
         <p className="admin-text-muted mt-1 text-[11px]">Facture: {dateLabel(payment.invoiceIssuedAt || payment.date)}</p>
+        <a
+          href={`/api/admin/work-orders/${payment.id}/pdf?documentType=invoice`}
+          target="_blank"
+          rel="noreferrer"
+          className="admin-text-muted mt-2 inline-flex items-center gap-1 text-[11px] hover:underline"
+        >
+          <i className="fas fa-file-pdf"></i>PDF
+        </a>
       </td>
       <td className="px-4 py-4">
         <p className="admin-text font-semibold">{payment.client?.name || "Client"}</p>
@@ -107,63 +140,120 @@ function PaymentRow({ payment, saving, onPatch }) {
           className="admin-input w-36 rounded-lg border px-3 py-2 text-xs"
         />
         <p className="admin-text-muted mt-1 text-[11px]">Net {payment.paymentTermsDays || 30} j.</p>
-      </td>
-      <td className="px-4 py-4">
-        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ${meta.className}`}>
+        <span className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ${meta.className}`}>
           <i className={`fas ${meta.icon}`}></i>{meta.label}
         </span>
         {payment.invoiceSentAt ? <p className="admin-text-muted mt-1 text-[11px]">Envoyee {dateLabel(payment.invoiceSentAt)}</p> : null}
+        {dirty ? (
+          <button
+            type="button"
+            disabled={saving}
+            onClick={saveDetails}
+            className="mt-2 rounded-lg bg-cyan-700 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50"
+          >
+            Sauver echeance
+          </button>
+        ) : null}
       </td>
       <td className="px-4 py-4 text-right">
-        <p className="admin-text text-base font-extrabold">{money(payment.total)}</p>
-        <p className="admin-text-muted text-[11px]">TPS/TVQ incl.</p>
+        <p className="admin-text text-base font-extrabold">{money(balance)}</p>
+        <p className="admin-text-muted text-[11px]">Solde a payer</p>
+        <div className="mt-2 space-y-0.5 text-[11px]">
+          <p className="admin-text-muted">Total: <span className="admin-text">{money(payment.total)}</span></p>
+          <p className="admin-text-muted">Recu: <span className="text-emerald-300">{money(payment.paymentsTotal)}</span></p>
+        </div>
       </td>
       <td className="px-4 py-4">
+        {payments.length > 0 ? (
+          <div className="mb-3 space-y-1">
+            {payments.map((entry) => (
+              <div key={entry.id} className="flex items-center justify-between gap-2 rounded-lg border admin-border px-2 py-1.5 text-[11px]">
+                <div className="min-w-0">
+                  <p className="admin-text font-bold">{money(entry.amount)} <span className="admin-text-muted font-normal">{entry.method || ""}</span></p>
+                  <p className="admin-text-muted truncate">{dateLabel(entry.paidAt)}{entry.note ? ` - ${entry.note}` : ""}</p>
+                </div>
+                {payment.paymentState !== "paid" ? (
+                  <button
+                    type="button"
+                    disabled={saving}
+                    onClick={() => deletePayment(entry)}
+                    className="rounded-md px-2 py-1 text-red-300 admin-hover disabled:opacity-50"
+                    title="Retirer le paiement"
+                  >
+                    <i className="fas fa-trash"></i>
+                  </button>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        ) : null}
         <select
           value={method}
           onChange={(event) => setMethod(event.target.value)}
-          className="admin-input w-32 rounded-lg border px-3 py-2 text-xs"
+          className="admin-input w-36 rounded-lg border px-3 py-2 text-xs"
         >
           {METHOD_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}
         </select>
         <input
-          value={notes}
-          onChange={(event) => setNotes(event.target.value)}
-          placeholder="Note paiement"
-          className="admin-input mt-2 w-40 rounded-lg border px-3 py-2 text-xs"
+          type="date"
+          value={paymentDate}
+          onChange={(event) => setPaymentDate(event.target.value)}
+          className="admin-input ml-2 w-36 rounded-lg border px-3 py-2 text-xs"
         />
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <input
+            value={depositAmount}
+            onChange={(event) => setDepositAmount(event.target.value)}
+            placeholder="Montant depot"
+            className="admin-input w-32 rounded-lg border px-3 py-2 text-xs"
+          />
+          <input
+            value={paymentNote}
+            onChange={(event) => setPaymentNote(event.target.value)}
+            placeholder="Note"
+            className="admin-input w-44 rounded-lg border px-3 py-2 text-xs"
+          />
+          <button
+            type="button"
+            disabled={saving || !depositAmount}
+            onClick={addDeposit}
+            className="rounded-lg bg-cyan-700 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50"
+          >
+            <i className="fas fa-plus mr-1"></i>Depot
+          </button>
+        </div>
       </td>
       <td className="px-4 py-4 text-right">
         <div className="flex flex-col items-end gap-2">
           {payment.paymentState === "paid" ? (
-            <button
-              type="button"
-              disabled={saving}
-              onClick={markOpen}
-              className="rounded-lg px-3 py-2 text-xs font-bold text-amber-300 admin-hover disabled:opacity-50"
-            >
-              Reouvrir
-            </button>
+            <>
+              <span className="rounded-lg bg-emerald-500/15 px-3 py-2 text-xs font-bold text-emerald-300">
+                <i className="fas fa-check mr-1"></i>Payee
+              </span>
+              <button
+                type="button"
+                disabled={saving}
+                onClick={markOpen}
+                className="rounded-lg px-3 py-2 text-xs font-bold text-amber-300 admin-hover disabled:opacity-50"
+              >
+                Reouvrir
+              </button>
+            </>
           ) : (
             <button
               type="button"
-              disabled={saving}
+              disabled={saving || balance <= 0}
               onClick={markPaid}
               className="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-emerald-600 disabled:opacity-50"
             >
-              <i className="fas fa-check mr-1"></i>Paye
+              <i className="fas fa-paper-plane mr-1"></i>Paye + envoyer
             </button>
           )}
-          {dirty ? (
-            <button
-              type="button"
-              disabled={saving}
-              onClick={saveDetails}
-              className="rounded-lg bg-cyan-700 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50"
-            >
-              Sauver
-            </button>
-          ) : null}
+          {payment.client?.email ? (
+            <p className="admin-text-muted max-w-[150px] truncate text-[11px]" title={payment.client.email}>{payment.client.email}</p>
+          ) : (
+            <p className="text-red-300 text-[11px]">Email manquant</p>
+          )}
         </div>
       </td>
     </tr>
@@ -216,6 +306,11 @@ export default function AdminPaymentsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erreur sauvegarde paiement");
       await load(false);
+      if (data.emailError) {
+        alert(`Paiement enregistre, mais le courriel n'a pas ete envoye: ${data.emailError}`);
+      } else if (payload.action === "mark-paid" && data.emailSent) {
+        alert(`Facture payee envoyee a ${data.emailTo}`);
+      }
       return data;
     } catch (err) {
       alert(err.message);
@@ -276,22 +371,21 @@ export default function AdminPaymentsPage() {
         </div>
       ) : (
         <div className="admin-card overflow-x-auto rounded-xl border">
-          <table className="w-full min-w-[1050px] text-sm">
+          <table className="w-full min-w-[1280px] text-sm">
             <thead>
               <tr className="border-b admin-border text-left text-xs admin-text-muted">
                 <th className="px-4 py-3">Facture</th>
                 <th className="px-4 py-3">Client</th>
-                <th className="px-4 py-3">Echeance</th>
-                <th className="px-4 py-3">Etat</th>
-                <th className="px-4 py-3 text-right">Total</th>
-                <th className="px-4 py-3">Paiement</th>
+                <th className="px-4 py-3">Echeance / etat</th>
+                <th className="px-4 py-3 text-right">Solde</th>
+                <th className="px-4 py-3">Paiements</th>
                 <th className="px-4 py-3 text-right">Action</th>
               </tr>
             </thead>
             <tbody>
               {payments.map((payment) => (
                 <PaymentRow
-                  key={`${payment.id}:${payment.paymentDueAt || ""}:${payment.paymentMethod || ""}:${payment.paymentNotes || ""}:${payment.paymentState || ""}`}
+                  key={`${payment.id}:${payment.paymentDueAt || ""}:${payment.paymentState || ""}:${payment.paymentsTotal || 0}:${payment.balanceDue || 0}`}
                   payment={payment}
                   saving={savingId === payment.id}
                   onPatch={patchPayment}

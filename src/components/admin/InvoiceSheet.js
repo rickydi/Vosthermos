@@ -3,6 +3,7 @@
 import { getWorkOrderDocumentMeta } from "@/lib/work-order-document";
 import {
   documentConditions,
+  documentPaymentSummary,
   documentRows,
   formatDateFr,
   formatMoneyCad,
@@ -25,10 +26,11 @@ const MID_GRAY = "#bdc3c7";
 const TEXT_DARK = "#2c3e50";
 const TEXT_MED = "#555555";
 
-function paginateRows(rows, meta) {
-  const firstPageLimit = 4;
-  const middlePageLimit = 6;
-  const lastPageLimit = documentConditions(meta.type).length > 0 ? 3 : 6;
+function paginateRows(rows, meta, wo) {
+  const hasPaymentBlock = meta.type === "invoice" && documentPaymentSummary(wo).hasPayments;
+  const firstPageLimit = hasPaymentBlock ? 3 : 4;
+  const middlePageLimit = hasPaymentBlock ? 5 : 6;
+  const lastPageLimit = hasPaymentBlock ? 2 : (documentConditions(meta.type).length > 0 ? 3 : 6);
   if (rows.length <= firstPageLimit) return [{ rows, isFirst: true, isLast: true, index: 0, pageStartIndex: 0 }];
   const rawPages = [];
   const queue = [...rows];
@@ -55,7 +57,7 @@ function paginateRows(rows, meta) {
 export default function InvoiceSheet({ wo, company }) {
   const documentMeta = getWorkOrderDocumentMeta(wo.statut);
   const rows = documentRows(wo);
-  const pages = paginateRows(rows, documentMeta);
+  const pages = paginateRows(rows, documentMeta, wo);
   const co = resolveDocumentCompany(company || {});
   const documentNumber = resolveDocumentNumber(wo);
 
@@ -144,7 +146,7 @@ function Sheet({ page, totalPages, wo, co, meta, documentNumber }) {
       <main style={{ padding: "0.5in 0.65in 0", display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
         {page.isFirst ? (
           <>
-            <FullHeader meta={meta} co={co} />
+            <FullHeader meta={meta} co={co} wo={wo} />
             <InfoBox wo={wo} co={co} meta={meta} documentNumber={documentNumber} />
             <Description wo={wo} meta={meta} />
           </>
@@ -160,7 +162,16 @@ function Sheet({ page, totalPages, wo, co, meta, documentNumber }) {
   );
 }
 
-function FullHeader({ meta, co }) {
+function PaymentBadge() {
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", minWidth: 86, height: 20, borderRadius: 4, background: "#0f7a53", color: "white", fontSize: 10, fontWeight: 900, letterSpacing: 0.5 }}>
+      PAYE
+    </span>
+  );
+}
+
+function FullHeader({ meta, co, wo }) {
+  const isPaid = meta.type === "invoice" && documentPaymentSummary(wo).isPaid;
   return (
     <header style={{ display: "grid", gridTemplateColumns: "130px 1fr", gap: 12, alignItems: "start", marginBottom: 10 }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -169,12 +180,14 @@ function FullHeader({ meta, co }) {
         <h1 style={{ margin: 0, fontSize: 23, lineHeight: "26px", fontWeight: 800, color: ACCENT }}>{meta.labelUpper}</h1>
         <p style={{ margin: "2px 0 0", fontSize: 9, color: TEXT_MED }}>Reparation et remplacement de fenetres</p>
         <p style={{ margin: "3px 0 0", fontSize: 7.5, color: TEXT_MED }}>{co.address}, {co.city}, {co.province} | RBQ : {co.rbq}</p>
+        {isPaid && <div style={{ marginTop: 7 }}><PaymentBadge /></div>}
       </div>
     </header>
   );
 }
 
 function CompactHeader({ wo, meta, documentNumber, page, totalPages }) {
+  const isPaid = meta.type === "invoice" && documentPaymentSummary(wo).isPaid;
   return (
     <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: `1px solid ${MID_GRAY}`, paddingBottom: 10, marginBottom: 14 }}>
       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
@@ -185,7 +198,10 @@ function CompactHeader({ wo, meta, documentNumber, page, totalPages }) {
           <p style={{ margin: "2px 0 0", fontSize: 10, fontWeight: 700 }}>{wo.client?.name || ""}</p>
         </div>
       </div>
-      <p style={{ margin: 0, fontSize: 17, fontWeight: 800, color: TEXT_DARK }}>{documentNumber}</p>
+      <div style={{ textAlign: "right" }}>
+        <p style={{ margin: 0, fontSize: 17, fontWeight: 800, color: TEXT_DARK }}>{documentNumber}</p>
+        {isPaid && <div style={{ marginTop: 4 }}><PaymentBadge /></div>}
+      </div>
     </header>
   );
 }
@@ -285,17 +301,41 @@ function WorkTable({ rows, pageStartIndex }) {
 }
 
 function TotalsFooter({ wo, meta }) {
+  const paymentSummary = meta.type === "invoice" ? documentPaymentSummary(wo) : null;
+  const hasPayments = Boolean(paymentSummary?.hasPayments);
+  const visiblePayments = hasPayments
+    ? (paymentSummary.payments.length > 3 ? paymentSummary.payments.slice(-3) : paymentSummary.payments)
+    : [];
+  const hiddenCount = hasPayments ? paymentSummary.payments.length - visiblePayments.length : 0;
+  const finalLabel = hasPayments
+    ? (paymentSummary.isPaid ? "PAYE" : "SOLDE A PAYER")
+    : meta.totalLabel;
+  const finalValue = hasPayments ? paymentSummary.balanceDue : wo.total;
+
   return (
     <section style={{ marginTop: 0 }}>
-      <div style={{ height: 3, background: ACCENT }} />
+      <div style={{ height: 2, background: ACCENT }} />
       <div style={{ width: 270, marginLeft: "auto", paddingTop: 6, paddingBottom: 6 }}>
         <MoneyLine label="Sous-total" value={wo.subtotal} strong />
         <MoneyLine label="TPS (5%)" value={wo.tps} />
         <MoneyLine label="TVQ (9,975%)" value={wo.tvq} />
+        {hasPayments && <MoneyLine label="Total" value={wo.total} strong />}
+        {hasPayments && (
+          <div style={{ borderTop: `1px solid ${MID_GRAY}`, margin: "4px 10px 0", paddingTop: 5 }}>
+            <p style={{ margin: "0 0 3px", fontSize: 9, lineHeight: "12px", fontWeight: 800, color: ACCENT }}>PAIEMENTS RECUS</p>
+            {visiblePayments.map((payment) => (
+              <div key={payment.id || `${payment.paidAt}-${payment.amount}`} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 9, lineHeight: "13px", padding: "1px 0" }}>
+                <span>{formatDateFr(payment.paidAt)}{payment.method ? ` - ${payment.method}` : ""}</span>
+                <span style={{ fontWeight: 800 }}>{formatMoneyCad(payment.amount)}</span>
+              </div>
+            ))}
+            {hiddenCount > 0 && <p style={{ margin: "2px 0 0", fontSize: 8.5, lineHeight: "12px", color: TEXT_MED }}>+ {hiddenCount} paiement(s) precedent(s)</p>}
+          </div>
+        )}
       </div>
-      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 46, background: ACCENT, color: "white", padding: "8px 12px", fontSize: 12, lineHeight: "16px", fontWeight: 800 }}>
-        <span>{meta.totalLabel} :</span>
-        <span style={{ minWidth: 100, textAlign: "right" }}>{formatMoneyCad(wo.total)}</span>
+      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 46, background: hasPayments && paymentSummary.isPaid ? "#0f7a53" : ACCENT, color: "white", padding: "8px 12px", fontSize: 12, lineHeight: "16px", fontWeight: 800 }}>
+        <span>{finalLabel} :</span>
+        <span style={{ minWidth: 100, textAlign: "right" }}>{formatMoneyCad(finalValue)}</span>
       </div>
     </section>
   );

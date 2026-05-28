@@ -26,6 +26,10 @@ function serializeWorkOrder(wo) {
     tps: Number(wo.tps),
     tvq: Number(wo.tvq),
     total: Number(wo.total),
+    payments: (wo.payments || []).map((payment) => ({
+      ...payment,
+      amount: Number(payment.amount || 0),
+    })),
     items: wo.items.map(serItem),
     sections: (wo.sections || []).map((section) => ({
       ...section,
@@ -62,6 +66,7 @@ export async function GET(req, { params }) {
           },
         },
       },
+      payments: { orderBy: [{ paidAt: "asc" }, { id: "asc" }] },
     },
   });
 

@@ -4,6 +4,7 @@ import fs from "fs";
 import { getWorkOrderDocumentMeta } from "./work-order-document.js";
 import {
   documentConditions,
+  documentPaymentSummary,
   documentRows,
   formatDateFr,
   formatMoneyCad,
@@ -26,6 +27,7 @@ const MID_GRAY = "#bdc3c7";
 const TEXT_DARK = "#2c3e50";
 const TEXT_MED = "#555555";
 const WHITE = "#ffffff";
+const PAID_GREEN = "#0f7a53";
 
 const PAGE_W = 612;
 const PAGE_H = 792;
@@ -34,9 +36,8 @@ const RIGHT_M = 0.65 * 72;
 const TOP_M = 0.5 * 72;
 const CONTENT_W = PAGE_W - LEFT_M - RIGHT_M;
 const COMPANY_FOOTER_H = 24;
-const TOTALS_FOOTER_H = 96;
+const MIN_TOTALS_FOOTER_H = 96;
 const FOOTER_GAP = 8;
-const CONTENT_BOTTOM = PAGE_H - 3 - COMPANY_FOOTER_H - TOTALS_FOOTER_H - FOOTER_GAP;
 
 const BODY_FONT_SIZE = 12;
 const COL_NUM = 34;
@@ -44,6 +45,34 @@ const COL_UNIT = 68;
 const COL_QTY = 48;
 const COL_AMT = 98;
 const COL_DESC = CONTENT_W - COL_NUM - COL_UNIT - COL_QTY - COL_AMT;
+
+function invoicePaymentSummary(wo, meta) {
+  if (meta.type !== "invoice") {
+    return { payments: [], paidTotal: 0, balanceDue: Number(wo.total || 0), isPaid: false, hasPayments: false };
+  }
+  return documentPaymentSummary(wo);
+}
+
+function displayedPaymentRows(wo, meta) {
+  const payments = invoicePaymentSummary(wo, meta).payments;
+  return payments.length > 4 ? payments.slice(-4) : payments;
+}
+
+function totalsFooterHeight(wo, meta) {
+  const summary = invoicePaymentSummary(wo, meta);
+  if (!summary.hasPayments) return MIN_TOTALS_FOOTER_H;
+  const visibleRows = displayedPaymentRows(wo, meta).length;
+  const overflowRow = summary.payments.length > visibleRows ? 1 : 0;
+  return Math.max(MIN_TOTALS_FOOTER_H, 118 + (visibleRows + overflowRow) * 16);
+}
+
+function contentBottom(wo, meta) {
+  return PAGE_H - 3 - COMPANY_FOOTER_H - totalsFooterHeight(wo, meta) - FOOTER_GAP;
+}
+
+function isPaidInvoice(wo, meta) {
+  return meta.type === "invoice" && invoicePaymentSummary(wo, meta).isPaid;
+}
 
 function textHeight(doc, text, width, size = 9, font = "Helvetica") {
   doc.font(font).fontSize(size);
@@ -81,7 +110,15 @@ function drawLogo(doc, x, y, height = 70) {
   doc.fillColor(TEXT_MED).font("Helvetica-Oblique").fontSize(9).text("Reparation de fenetres", x, y + 42);
 }
 
-function drawFullHeader(doc, meta, company) {
+function drawPaidStamp(doc, x, y, width = 86, height = 20) {
+  doc.save();
+  doc.roundedRect(x, y, width, height, 4).fill(PAID_GREEN);
+  doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(10)
+    .text("PAYE", x, y + 5, { width, align: "center" });
+  doc.restore();
+}
+
+function drawFullHeader(doc, wo, meta, company) {
   const y = TOP_M + 6;
   drawLogo(doc, LEFT_M, y, 62);
 
@@ -93,6 +130,9 @@ function drawFullHeader(doc, meta, company) {
     .text("Reparation et remplacement de fenetres", rightX, y + 29, { width: rightW, align: "right" });
   doc.fillColor(TEXT_MED).font("Helvetica").fontSize(7.5)
     .text(`${company.address}, ${company.city}, ${company.province} | RBQ : ${company.rbq}`, rightX, y + 44, { width: rightW, align: "right" });
+  if (isPaidInvoice(wo, meta)) {
+    drawPaidStamp(doc, rightX + rightW - 86, y + 50);
+  }
 
   return y + 72;
 }
@@ -106,6 +146,9 @@ function drawCompactHeader(doc, wo, meta, documentNumber, pageNum) {
     .text(wo.client?.name || "", LEFT_M + 68, y + 18, { width: 260 });
   doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(17)
     .text(documentNumber, PAGE_W - RIGHT_M - 220, y + 1, { width: 220, align: "right" });
+  if (isPaidInvoice(wo, meta)) {
+    drawPaidStamp(doc, PAGE_W - RIGHT_M - 86, y + 25, 86, 18);
+  }
   doc.moveTo(LEFT_M, y + 45).lineTo(PAGE_W - RIGHT_M, y + 45).strokeColor(MID_GRAY).lineWidth(0.5).stroke();
   return y + 58;
 }
@@ -179,17 +222,18 @@ function drawSectionHeading(doc, label, y) {
   return y + 20;
 }
 
-function ensureSpace(doc, y, needed, onNewPage) {
-  if (y + needed <= CONTENT_BOTTOM) return y;
+function ensureSpace(doc, y, needed, onNewPage, bottomY) {
+  if (y + needed <= bottomY) return y;
   addDocPage(doc);
   return onNewPage();
 }
 
 function drawDescription(doc, wo, meta, y, onNewPage) {
+  const bottomY = contentBottom(wo, meta);
   y = drawSectionHeading(doc, meta.descriptionHeading, y);
   const description = wo.description || "Travaux de reparation et remplacement de fenetres selon les elements detailles ci-dessous.";
   const h = textHeight(doc, description, CONTENT_W, BODY_FONT_SIZE, "Helvetica");
-  y = ensureSpace(doc, y, h + 12, onNewPage);
+  y = ensureSpace(doc, y, h + 12, onNewPage, bottomY);
   doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(BODY_FONT_SIZE).text(description, LEFT_M, y, { width: CONTENT_W, lineGap: 1.5 });
   return y + h + 18;
 }
@@ -207,6 +251,7 @@ function drawTableHeader(doc, y) {
 
 function drawTable(doc, wo, meta, documentNumber, y) {
   let pageNum = doc.bufferedPageRange().count;
+  const bottomY = contentBottom(wo, meta);
   const onNewPage = () => {
     pageNum += 1;
     let nextY = drawCompactHeader(doc, wo, meta, documentNumber, pageNum);
@@ -219,7 +264,7 @@ function drawTable(doc, wo, meta, documentNumber, y) {
   let itemIndex = 1;
   for (const row of documentRows(wo)) {
     if (row.type === "section") {
-      y = ensureSpace(doc, y, 30, onNewPage);
+      y = ensureSpace(doc, y, 30, onNewPage, bottomY);
       doc.rect(LEFT_M, y, CONTENT_W, 30).fill(ACCENT_LIGHT);
       doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE)
         .text(row.label || "TRAVAUX", LEFT_M + COL_NUM + 6, y + 8, { width: CONTENT_W - COL_NUM - 12 });
@@ -232,7 +277,7 @@ function drawTable(doc, wo, meta, documentNumber, y) {
     const descW = COL_DESC - 12;
     const descH = textHeight(doc, row.description, descW, BODY_FONT_SIZE, "Helvetica");
     const rowH = Math.max(40, descH + 18);
-    y = ensureSpace(doc, y, rowH, onNewPage);
+    y = ensureSpace(doc, y, rowH, onNewPage, bottomY);
 
     doc.rect(LEFT_M, y, CONTENT_W, rowH).fill(WHITE);
     doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE)
@@ -255,13 +300,17 @@ function drawTable(doc, wo, meta, documentNumber, y) {
 function drawTotalsFooter(doc, wo, meta, y) {
   const width = 270;
   const x = LEFT_M + CONTENT_W - width;
+  const summary = invoicePaymentSummary(wo, meta);
+  const hasPayments = summary.hasPayments;
+  const footerH = totalsFooterHeight(wo, meta);
 
-  doc.rect(LEFT_M, y, CONTENT_W, 3).fill(ACCENT);
+  doc.rect(LEFT_M, y, CONTENT_W, 2).fill(ACCENT);
   let rowY = y + 11;
   const rows = [
     ["Sous-total", wo.subtotal, true],
     ["TPS (5%)", wo.tps, false],
     ["TVQ (9,975%)", wo.tvq, false],
+    ...(hasPayments ? [["Total", wo.total, true]] : []),
   ];
   for (const [label, value, strong] of rows) {
     doc.fillColor(TEXT_DARK).font(strong ? "Helvetica-Bold" : "Helvetica").fontSize(BODY_FONT_SIZE)
@@ -271,12 +320,41 @@ function drawTotalsFooter(doc, wo, meta, y) {
     rowY += 18;
   }
 
-  const barY = y + 66;
-  doc.rect(LEFT_M, barY, CONTENT_W, 28).fill(ACCENT);
+  if (hasPayments) {
+    rowY += 2;
+    doc.moveTo(x + 12, rowY).lineTo(x + width - 12, rowY).strokeColor(MID_GRAY).lineWidth(0.4).stroke();
+    rowY += 7;
+    doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(9)
+      .text("PAIEMENTS RECUS", x + 12, rowY, { width: width - 24 });
+    rowY += 15;
+
+    const paymentRows = displayedPaymentRows(wo, meta);
+    const hiddenCount = summary.payments.length - paymentRows.length;
+    for (const payment of paymentRows) {
+      const method = payment.method ? ` - ${payment.method}` : "";
+      const label = `${formatDateFr(payment.paidAt)}${method}`;
+      doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(9)
+        .text(label, x + 12, rowY, { width: width - 120 });
+      doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(9)
+        .text(formatMoneyCad(payment.amount), x + width - 102, rowY, { width: 90, align: "right" });
+      rowY += 16;
+    }
+    if (hiddenCount > 0) {
+      doc.fillColor(TEXT_MED).font("Helvetica-Oblique").fontSize(8.5)
+        .text(`+ ${hiddenCount} paiement(s) precedent(s)`, x + 12, rowY, { width: width - 24 });
+    }
+  }
+
+  const barY = hasPayments ? y + footerH - 30 : y + 66;
+  doc.rect(LEFT_M, barY, CONTENT_W, 28).fill(hasPayments && summary.isPaid ? PAID_GREEN : ACCENT);
+  const totalLabel = hasPayments
+    ? (summary.isPaid ? "PAYE" : "SOLDE A PAYER")
+    : meta.totalLabel;
+  const totalValue = hasPayments ? summary.balanceDue : wo.total;
   doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE)
-    .text(`${meta.totalLabel} :`, x + 12, barY + 8, { width: width - 120, align: "right" });
+    .text(`${totalLabel} :`, x + 12, barY + 8, { width: width - 120, align: "right" });
   doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE)
-    .text(formatMoneyCad(wo.total), x + width - 102, barY + 8, { width: 90, align: "right" });
+    .text(formatMoneyCad(totalValue), x + width - 102, barY + 8, { width: 90, align: "right" });
 }
 
 function conditionLineHeight(doc, condition) {
@@ -317,14 +395,15 @@ function drawFooter(doc, pageNum, totalPages, company, wo, meta) {
   ].filter(Boolean).join("  |  ");
 
   const conditionHeight = isLast ? conditionsFooterHeight(doc, meta) : 0;
+  const totalsH = totalsFooterHeight(wo, meta);
   const companyFooterY = PAGE_H - 3 - COMPANY_FOOTER_H;
   const totalsY = conditionHeight > 0
-    ? companyFooterY - conditionHeight - TOTALS_FOOTER_H - 4
-    : companyFooterY - TOTALS_FOOTER_H;
+    ? companyFooterY - conditionHeight - totalsH - 4
+    : companyFooterY - totalsH;
 
   drawTotalsFooter(doc, wo, meta, totalsY);
   if (conditionHeight > 0) {
-    drawFooterConditions(doc, meta, totalsY + TOTALS_FOOTER_H + 4);
+    drawFooterConditions(doc, meta, totalsY + totalsH + 4);
   }
 
   doc.rect(0, PAGE_H - 3, PAGE_W, 3).fill(ACCENT);
@@ -369,13 +448,13 @@ export async function generateInvoicePdf(wo, settings = {}) {
       const onNewPage = () => drawCompactHeader(doc, wo, meta, documentNumber, doc.bufferedPageRange().count);
 
       addDocPage(doc);
-      let y = drawFullHeader(doc, meta, company);
+      let y = drawFullHeader(doc, wo, meta, company);
       y = drawInfoBox(doc, wo, company, meta, documentNumber, y);
       y = drawDescription(doc, wo, meta, y, onNewPage);
       y = drawTable(doc, wo, meta, documentNumber, y);
 
       const lastPageFooterHeight = conditionsFooterHeight(doc, meta);
-      if (lastPageFooterHeight > 0 && y > CONTENT_BOTTOM - lastPageFooterHeight - 4) {
+      if (lastPageFooterHeight > 0 && y > contentBottom(wo, meta) - lastPageFooterHeight - 4) {
         addDocPage(doc);
         drawCompactHeader(doc, wo, meta, documentNumber, doc.bufferedPageRange().count);
       }

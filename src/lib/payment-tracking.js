@@ -1,4 +1,5 @@
 import { parseDateOnly } from "@/lib/date-only";
+import { documentPaymentSummary } from "@/lib/vosthermos-document";
 
 export const PAYMENT_TRACKED_STATUSES = new Set(["invoiced", "sent", "paid"]);
 export const PAYMENT_OPEN_STATUSES = new Set(["invoiced", "sent"]);
@@ -53,7 +54,8 @@ export function paymentDateOnlyTime(value) {
 }
 
 export function getPaymentState(workOrder, now = new Date()) {
-  if (workOrder?.statut === "paid" || workOrder?.paidAt) return "paid";
+  const paymentSummary = documentPaymentSummary(workOrder);
+  if (paymentSummary.isPaid) return "paid";
   if (!isOpenPaymentStatus(workOrder?.statut)) return "not_invoice";
   const due = paymentDateOnlyTime(getPaymentDueDate(workOrder));
   const today = paymentDateOnlyTime(now);
@@ -98,12 +100,30 @@ export function parsePaymentDateInput(value, fallback = null) {
   return parseDateOnly(value, fallback || new Date());
 }
 
+export function roundMoney(value) {
+  return Math.round(Number(value || 0) * 100) / 100;
+}
+
+export function serializePaymentRecord(payment) {
+  return {
+    id: payment.id,
+    amount: roundMoney(payment.amount),
+    method: payment.method || null,
+    note: payment.note || null,
+    paidAt: validDate(payment.paidAt)?.toISOString() || null,
+    createdAt: validDate(payment.createdAt)?.toISOString() || null,
+    updatedAt: validDate(payment.updatedAt)?.toISOString() || null,
+  };
+}
+
 export function serializePaymentWorkOrder(workOrder, now = new Date()) {
   const termsDays = normalizePaymentTermsDays(workOrder?.client?.paymentTermsDays);
   const invoiceIssuedAt = getInvoiceIssueDate(workOrder);
   const paymentDueAt = getPaymentDueDate(workOrder, termsDays);
+  const paymentSummary = documentPaymentSummary({ ...workOrder, paymentDueAt });
   const state = getPaymentState({ ...workOrder, paymentDueAt }, now);
   const daysDelta = paymentDueAt ? daysBetweenDateOnly(now, paymentDueAt) : null;
+  const payments = paymentSummary.payments.map(serializePaymentRecord);
 
   return {
     ...workOrder,
@@ -118,6 +138,10 @@ export function serializePaymentWorkOrder(workOrder, now = new Date()) {
     invoiceSentAt: validDate(workOrder.invoiceSentAt)?.toISOString() || null,
     paymentDueAt: paymentDueAt?.toISOString() || null,
     paidAt: validDate(workOrder.paidAt)?.toISOString() || null,
+    payments,
+    paymentsTotal: paymentSummary.paidTotal,
+    balanceDue: paymentSummary.balanceDue,
+    hasPartialPayments: payments.length > 0 && !paymentSummary.isPaid,
     paymentTermsDays: termsDays,
     paymentState: state,
     daysLate: state === "overdue" && daysDelta !== null ? Math.abs(daysDelta) : 0,

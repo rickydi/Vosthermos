@@ -30,16 +30,17 @@ function paidWithinDays(payment, days, now = new Date()) {
 function buildSummary(payments, now) {
   return payments.reduce((summary, payment) => {
     const total = Number(payment.total || 0);
+    const balance = Number(payment.balanceDue ?? total);
     if (payment.paymentState === "overdue") {
       summary.overdueCount += 1;
-      summary.overdueTotal += total;
+      summary.overdueTotal += balance;
       summary.openCount += 1;
-      summary.openTotal += total;
+      summary.openTotal += balance;
     } else if (payment.paymentState === "receivable") {
       summary.receivableCount += 1;
-      summary.receivableTotal += total;
+      summary.receivableTotal += balance;
       summary.openCount += 1;
-      summary.openTotal += total;
+      summary.openTotal += balance;
     } else if (payment.paymentState === "paid") {
       summary.paidCount += 1;
       summary.paidTotal += total;
@@ -108,6 +109,7 @@ export async function GET(req) {
       technician: { select: { id: true, name: true } },
       route: { select: { id: true, name: true, date: true, area: true } },
       followUp: { select: { id: true, title: true, status: true } },
+      payments: { orderBy: [{ paidAt: "asc" }, { id: "asc" }] },
     },
     orderBy: [{ paymentDueAt: "asc" }, { invoiceIssuedAt: "desc" }, { date: "desc" }],
     take: limit,

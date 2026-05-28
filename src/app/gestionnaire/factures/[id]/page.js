@@ -22,6 +22,7 @@ export default async function FacturePage({ params }) {
         orderBy: { position: "asc" },
         include: { items: { orderBy: { position: "asc" } } },
       },
+      payments: { orderBy: [{ paidAt: "asc" }, { id: "asc" }] },
     },
   });
 
@@ -59,6 +60,13 @@ export default async function FacturePage({ params }) {
     tps: Number(wo.tps),
     tvq: Number(wo.tvq),
     total: Number(wo.total),
+    payments: (wo.payments || []).map((payment) => ({
+      ...payment,
+      amount: Number(payment.amount || 0),
+      paidAt: payment.paidAt?.toISOString() || null,
+      createdAt: payment.createdAt?.toISOString() || null,
+      updatedAt: payment.updatedAt?.toISOString() || null,
+    })),
     paymentTermsDays: termsDays,
     dueDate: dueDate?.toISOString() || null,
     items: wo.items.map((i) => ({

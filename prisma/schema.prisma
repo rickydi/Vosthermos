@@ -554,6 +554,7 @@ model WorkOrder {
   updatedAt              DateTime        @updatedAt
   items                  WorkOrderItem[]
   sections               WorkOrderSection[]
+  payments               WorkOrderPayment[]
 
   @@index([clientId])
   @@index([technicianId])
@@ -564,6 +565,22 @@ model WorkOrder {
   @@index([paymentDueAt])
   @@index([paidAt])
   @@map("work_orders")
+}
+
+model WorkOrderPayment {
+  id          Int       @id @default(autoincrement())
+  workOrderId Int
+  workOrder   WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  amount      Decimal   @db.Decimal(10, 2)
+  method      String?
+  note        String?   @db.Text
+  paidAt      DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([workOrderId])
+  @@index([paidAt])
+  @@map("work_order_payments")
 }
 
 model RoutePlan {
