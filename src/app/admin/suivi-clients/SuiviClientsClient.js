@@ -236,6 +236,8 @@ export default function SuiviClientsClient() {
   const searchRef = useRef(search);
   searchRef.current = search;
   const streamRefreshTimer = useRef(null);
+  const pendingWrites = useRef(0);      // ecritures locales en cours (anti-rebond temps reel)
+  const localGraceUntil = useRef(0);    // delai de grace post-ecriture avant de resync
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 8 },
@@ -279,6 +281,21 @@ export default function SuiviClientsClient() {
       .catch(() => {});
   }
 
+  // Planifie un reload temps reel, mais le REPORTE tant qu'une ecriture locale est
+  // en cours ou recente (grace) -> evite que le reload serveur ecrase l'optimistic
+  // update local avec des donnees pas encore commitees (effet de rebond de carte).
+  function scheduleStreamReload(delay) {
+    clearTimeout(streamRefreshTimer.current);
+    const run = () => {
+      if (pendingWrites.current > 0 || Date.now() < localGraceUntil.current) {
+        streamRefreshTimer.current = setTimeout(run, 500);
+        return;
+      }
+      streamReload(searchRef.current);
+    };
+    streamRefreshTimer.current = setTimeout(run, delay);
+  }
+
   // Resync de la centrale apres une action faite dans le panneau imbrique
   // (repondre a un chat, modifier un bon, changer un statut de RDV): recharge
   // l'activite et re-pointe la modale ouverte vers les compteurs frais.
@@ -319,10 +336,7 @@ export default function SuiviClientsClient() {
     if (!event) return;
     const t = event.type;
     if (t === "connected" || t === "follow_up.changed" || t === "work_order.changed" || t === "appointment.changed") {
-      clearTimeout(streamRefreshTimer.current);
-      streamRefreshTimer.current = setTimeout(() => {
-        streamReload(searchRef.current);
-      }, t === "connected" ? 150 : 800);
+      scheduleStreamReload(t === "connected" ? 150 : 800);
     }
   });
 
@@ -495,6 +509,7 @@ export default function SuiviClientsClient() {
     e.preventDefault();
     setSaving(true);
     setError("");
+    pendingWrites.current += 1;
     try {
       const shouldCelebrateAccepted = editing?.id && isAcceptedStatus(columns, form.status) && !isAcceptedStatus(columns, editing.status);
       const shouldCelebrateCreatedAccepted = !editing?.id && isAcceptedStatus(columns, form.status);
@@ -530,6 +545,8 @@ export default function SuiviClientsClient() {
       setError(err.message);
     } finally {
       setSaving(false);
+      pendingWrites.current -= 1;
+      localGraceUntil.current = Date.now() + 1500; // grace post-commit avant resync
     }
   }
 
@@ -551,6 +568,7 @@ export default function SuiviClientsClient() {
       clearTimeout(celebrationTimer.current);
       setCelebratingId(null);
     }
+    pendingWrites.current += 1;
     try {
       const res = await fetch(`/api/admin/follow-ups/${followUp.id}`, {
         method: "PUT",
@@ -579,6 +597,9 @@ export default function SuiviClientsClient() {
       setMoveFeedback(null);
       setCelebratingId(null);
       setFollowUps(previous);
+    } finally {
+      pendingWrites.current -= 1;
+      localGraceUntil.current = Date.now() + 1500; // grace post-commit avant resync
     }
   }
 
