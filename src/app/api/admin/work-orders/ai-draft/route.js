@@ -83,6 +83,31 @@ function correctSuspiciousRepairText(text) {
   return { text: value, warnings: [] };
 }
 
+function normalizeHardwareRepairDescription(text) {
+  const value = cleanText(text, 300)
+    .replace(/\bcharniers\b/gi, "charnières")
+    .replace(/\bcharnier\b/gi, "charnière")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  if (!value) return "";
+
+  const normalized = normalizePlainText(value);
+  const hasWindow = /\bfenetres?\b/i.test(normalized);
+  const hasHardware = /\b(charnieres?|manivelles?|mecanisme|mecanismes|quincaillerie)\b/i.test(normalized);
+  const fullReplacement = /\b(fenetre\s+complete|complete\s+fenetre|nouvelle\s+fenetre)\b/i.test(normalized);
+  if (!hasWindow || !hasHardware || fullReplacement || /\bquincaillerie\b/i.test(normalized)) return value;
+
+  const quantityMatch = normalized.match(/^(\d+)\s+fenetres?\b/i);
+  const qty = quantityMatch ? Number(quantityMatch[1]) : 1;
+  const target = qty > 1 ? `${qty} fenêtres` : `${qty} fenêtre`;
+  const detail = value
+    .replace(/^\d+\s+fen\S*tres?\b/i, "")
+    .replace(/^fen\S*tres?\b/i, "")
+    .replace(/^\s*(?:avec\s+)?/i, "")
+    .trim();
+  return `Réparation de quincaillerie sur ${target}${detail ? ` avec ${detail}` : ""}`;
+}
+
 function cleanUnitCode(value) {
   const text = cleanText(value, 80)
     .replace(/\s{2,}/g, " ")
@@ -115,6 +140,79 @@ function splitUnitFromDescription(description) {
   }
 
   return null;
+}
+
+function parseUnitLine(line) {
+  const value = cleanText(line, 120).replace(/\s{2,}/g, " ").trim();
+  if (!value) return "";
+  if (/^(?:appartement|app\.?|apt\.?|unite|unit[eé]?|local|bureau)\s+[A-Za-z0-9][A-Za-z0-9 ._-]{0,32}$/i.test(value)) {
+    return cleanUnitCode(value);
+  }
+  if (/^[A-Za-z]\s*[- ]\s*\d{1,5}[A-Za-z]?$/i.test(value)) {
+    return cleanUnitCode(value);
+  }
+  return "";
+}
+
+function parsePricedLine(line) {
+  const value = cleanText(line, 300).replace(/\s{2,}/g, " ").trim();
+  const match = value.match(/^(.+?)\s+(\d+(?:[,.]\d{1,2})?)\s*\$?$/);
+  if (!match) return null;
+  const unitPrice = cleanMoney(match[2]);
+  if (unitPrice <= 0) return null;
+
+  let description = normalizeHardwareRepairDescription(match[1]);
+  const split = splitUnitFromDescription(description);
+  const unitCode = split?.unitCode || "";
+  if (split?.description) description = normalizeHardwareRepairDescription(split.description);
+  const corrected = correctSuspiciousRepairText(description);
+  return {
+    unitCode,
+    item: {
+      description: corrected.text,
+      quantity: 1,
+      unitPrice,
+    },
+    warnings: corrected.warnings,
+  };
+}
+
+function extractSectionsFromRawText(rawText) {
+  const sections = [];
+  const byUnit = new Map();
+  const warnings = [];
+  let currentUnit = "";
+
+  const ensureSection = (unitCode) => {
+    if (!unitCode) return null;
+    if (!byUnit.has(unitCode)) {
+      const section = { unitCode, items: [] };
+      byUnit.set(unitCode, section);
+      sections.push(section);
+    }
+    return byUnit.get(unitCode);
+  };
+
+  for (const line of String(rawText || "").split(/\r?\n/).map((entry) => entry.trim()).filter(Boolean)) {
+    const unitLine = parseUnitLine(line);
+    if (unitLine) {
+      currentUnit = unitLine;
+      ensureSection(currentUnit);
+      continue;
+    }
+
+    const priced = parsePricedLine(line);
+    if (!priced?.item) continue;
+    const unitCode = priced.unitCode || currentUnit;
+    if (!unitCode) continue;
+    warnings.push(...priced.warnings);
+    ensureSection(unitCode)?.items.push(priced.item);
+  }
+
+  return {
+    sections: sections.filter((section) => section.items.length > 0),
+    warnings,
+  };
 }
 
 function inferBillingName(client = {}, fallbackEmail = "") {
@@ -223,7 +321,13 @@ function cleanImagesInput(body) {
   return images;
 }
 
-function sanitizeDraft(input, fallbackDocumentType) {
+function samePricedRepairItem(a, b) {
+  if (Math.round(Number(a?.unitPrice || 0) * 100) !== Math.round(Number(b?.unitPrice || 0) * 100)) return false;
+  const text = normalizePlainText(`${a?.description || ""} ${b?.description || ""}`);
+  return /\b(fenetre|charnieres?|manivelles?|mecanisme|quincaillerie|porte|thermos|moustiquaire)\b/i.test(text);
+}
+
+function sanitizeDraft(input, fallbackDocumentType, rawText = "") {
   const draft = input && typeof input === "object" ? input : {};
   const documentType = ["invoice", "quote"].includes(draft.documentType) ? draft.documentType : fallbackDocumentType;
   const client = draft.client && typeof draft.client === "object" ? draft.client : {};
@@ -232,11 +336,12 @@ function sanitizeDraft(input, fallbackDocumentType) {
   const items = Array.isArray(draft.items) ? draft.items : [];
   const rawSections = Array.isArray(draft.sections) ? draft.sections : [];
   const initialWarnings = Array.isArray(draft.warnings) ? draft.warnings : [];
+  const rawExtract = extractSectionsFromRawText(rawText);
   const moved = cleanDescriptionAndWarnings(draft.description, initialWarnings);
   const correctionWarnings = [];
 
   const cleanDraftItem = (item) => {
-    const corrected = correctSuspiciousRepairText(item?.description);
+    const corrected = correctSuspiciousRepairText(normalizeHardwareRepairDescription(item?.description));
     correctionWarnings.push(...corrected.warnings);
     return {
       description: corrected.text,
@@ -270,6 +375,13 @@ function sanitizeDraft(input, fallbackDocumentType) {
     groupedByUnit.set(split.unitCode, section);
     return false;
   });
+
+  for (const rawSection of rawExtract.sections) {
+    if (!groupedByUnit.has(rawSection.unitCode)) {
+      groupedByUnit.set(rawSection.unitCode, rawSection);
+      cleanItems = cleanItems.filter((item) => !rawSection.items.some((rawItem) => samePricedRepairItem(item, rawItem)));
+    }
+  }
   const sections = Array.from(groupedByUnit.values());
 
   const billingName = formatNameCase(inferBillingName(client, email.to));
@@ -277,6 +389,7 @@ function sanitizeDraft(input, fallbackDocumentType) {
   const description = correctedDescription.text;
   const warningList = uniqueWarnings([
     ...moved.warnings,
+    ...rawExtract.warnings,
     ...correctionWarnings,
     ...correctedDescription.warnings,
   ]);
@@ -411,7 +524,7 @@ Regles:
   try {
     const data = ai.data;
     const text = data.content?.[0]?.text || "";
-    const draft = sanitizeDraft(parseJson(text), documentType);
+    const draft = sanitizeDraft(parseJson(text), documentType, rawText);
     return NextResponse.json({ draft, analysisCost: ai.analysisCost });
   } catch (err) {
     console.error("[work-orders ai-draft] parse error:", err?.message || err);
