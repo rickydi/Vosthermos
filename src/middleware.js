@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { verifyJwtAtEdge } from "@/lib/edge-jwt";
 
 // Legacy 404 cleanup: d'anciennes URLs anglaises ont ete generees avec le slug
 // FRANCAIS du service (ex: /en/services/desembuage) au lieu du slug anglais.
@@ -20,7 +21,7 @@ const FR_ONLY_SERVICES = new Set([
   "reparation-porte-fenetre",
 ]);
 
-export function middleware(request) {
+export async function middleware(request) {
   const { pathname } = request.nextUrl;
   const host = request.headers.get("host")?.toLowerCase().split(":")[0];
 
@@ -59,10 +60,13 @@ export function middleware(request) {
   // Protect admin routes (except login)
   if (pathname.startsWith("/admin") && !pathname.startsWith("/admin/login")) {
     const token = request.cookies.get("vosthermos-admin-token")?.value;
-    if (!token) {
+    const session = token ? await verifyJwtAtEdge(token) : null;
+    if (!session) {
       const loginUrl = new URL("/admin/login", request.url);
-      loginUrl.searchParams.set("callbackUrl", pathname);
-      return NextResponse.redirect(loginUrl);
+      loginUrl.searchParams.set("callbackUrl", `${pathname}${request.nextUrl.search || ""}`);
+      const response = NextResponse.redirect(loginUrl);
+      response.cookies.set("vosthermos-admin-token", "", { maxAge: 0, path: "/" });
+      return response;
     }
   }
 

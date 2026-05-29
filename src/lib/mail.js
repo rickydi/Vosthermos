@@ -1,7 +1,9 @@
 import nodemailer from "nodemailer";
-import crypto from "crypto";
+import jwt from "jsonwebtoken";
+import { textFromHtml } from "./blog-sanitize";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.vosthermos.com";
+const INSECURE_DEFAULT = "change-this-to-a-random-secret";
 
 export function getTransporter() {
   const smtpPort = parseInt(process.env.SMTP_PORT || "587");
@@ -25,16 +27,44 @@ export function getTransporter() {
   });
 }
 
-export function generateApprovalToken(postId) {
-  const secret = process.env.JWT_SECRET || "fallback-secret";
-  return crypto
-    .createHmac("sha256", secret)
-    .update(`approve-blog-${postId}`)
-    .digest("hex");
+function getApprovalSecret() {
+  const secret = process.env.JWT_SECRET;
+  if (secret && secret !== INSECURE_DEFAULT) return secret;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("JWT_SECRET requis pour generer un lien d'approbation blogue.");
+  }
+  return INSECURE_DEFAULT;
 }
 
-export function verifyApprovalToken(postId, token) {
-  return token === generateApprovalToken(postId);
+function approvalVersion(post) {
+  const date = post?.updatedAt || post?.createdAt || new Date(0);
+  const parsed = date instanceof Date ? date : new Date(date);
+  return Number.isFinite(parsed.getTime()) ? parsed.getTime() : 0;
+}
+
+export function generateApprovalToken(post) {
+  return jwt.sign(
+    {
+      purpose: "blog_approval",
+      postId: Number(post.id),
+      version: approvalVersion(post),
+    },
+    getApprovalSecret(),
+    { expiresIn: "48h" },
+  );
+}
+
+export function verifyApprovalToken(post, token) {
+  try {
+    const decoded = jwt.verify(String(token || ""), getApprovalSecret());
+    return (
+      decoded?.purpose === "blog_approval" &&
+      Number(decoded.postId) === Number(post.id) &&
+      Number(decoded.version) === approvalVersion(post)
+    );
+  } catch {
+    return false;
+  }
 }
 
 export async function sendBlogApprovalEmail(post, prisma) {
@@ -54,10 +84,10 @@ export async function sendBlogApprovalEmail(post, prisma) {
   }
 
   const emails = recipients.map((r) => r.email);
-  const token = generateApprovalToken(post.id);
+  const token = generateApprovalToken(post);
   const approveUrl = `${SITE_URL}/api/admin/blog/${post.id}/approve?token=${token}`;
   const editUrl = `${SITE_URL}/admin/blogue/${post.id}`;
-  const previewContent = post.content.replace(/<[^>]*>/g, "").substring(0, 500);
+  const previewContent = textFromHtml(post.content, 500);
 
   const html = `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #fff;">

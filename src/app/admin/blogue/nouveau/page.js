@@ -316,15 +316,11 @@ export default function AdminBlogNewPage() {
               <p className="text-gray-500 italic mb-8">
                 {form.excerpt || "Extrait..."}
               </p>
-              <div
-                className="prose prose-lg max-w-none
-                  prose-headings:text-gray-900 prose-headings:font-bold
-                  prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4
-                  prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3
-                  prose-p:text-gray-700 prose-p:leading-relaxed
-                  prose-strong:text-gray-900
-                  prose-ul:text-gray-700"
-                dangerouslySetInnerHTML={{ __html: form.content || "<p>Aucun contenu...</p>" }}
+              <iframe
+                title="Apercu securise"
+                sandbox=""
+                className="h-[420px] w-full rounded-xl border border-gray-200 bg-white"
+                srcDoc={`<!doctype html><html><head><meta charset="utf-8"><style>body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#374151;line-height:1.7;padding:20px;margin:0}h2{font-size:24px;margin:28px 0 12px;color:#111827}h3{font-size:20px;margin:22px 0 10px;color:#111827}p{margin:0 0 16px}ul,ol{padding-left:22px}strong{color:#111827}a{color:#0d9488}</style></head><body>${form.content || "<p>Aucun contenu...</p>"}</body></html>`}
               />
             </div>
           </div>

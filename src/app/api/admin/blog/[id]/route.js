@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { pingIndexNowAsync } from "@/lib/indexnow";
+import { sanitizeBlogHtml } from "@/lib/blog-sanitize";
 
 export async function GET(request, { params }) {
   try {
@@ -38,7 +39,7 @@ export async function PUT(request, { params }) {
     if (data.title !== undefined) updateData.title = data.title;
     if (data.slug !== undefined) updateData.slug = data.slug;
     if (data.excerpt !== undefined) updateData.excerpt = data.excerpt;
-    if (data.content !== undefined) updateData.content = data.content;
+    if (data.content !== undefined) updateData.content = sanitizeBlogHtml(data.content);
     if (data.coverImage !== undefined) updateData.coverImage = data.coverImage || null;
     if (data.category !== undefined) updateData.category = data.category;
     if (data.tags !== undefined) updateData.tags = data.tags;

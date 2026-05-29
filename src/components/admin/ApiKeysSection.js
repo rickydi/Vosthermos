@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+const DEFAULT_AI_MODEL = "claude-sonnet-4-6";
+
 async function fetchMaskedKeys() {
   try {
     const res = await fetch("/api/admin/settings?section=api-keys");
@@ -11,6 +13,7 @@ async function fetchMaskedKeys() {
       anthropic: data.anthropic || "",
       serper: data.serper || "",
       googlePlaces: data.googlePlaces || "",
+      aiModel: data.aiModel || DEFAULT_AI_MODEL,
     };
   } catch {
     return null;
@@ -19,8 +22,9 @@ async function fetchMaskedKeys() {
 
 export default function ApiKeysSection() {
   const [keys, setKeys] = useState({ anthropic: "", serper: "", googlePlaces: "" });
-  const [masked, setMasked] = useState({ anthropic: "", serper: "", googlePlaces: "" });
+  const [masked, setMasked] = useState({ anthropic: "", serper: "", googlePlaces: "", aiModel: DEFAULT_AI_MODEL });
   const [editing, setEditing] = useState({ anthropic: false, serper: false, googlePlaces: false });
+  const [aiModel, setAiModel] = useState(DEFAULT_AI_MODEL);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -29,7 +33,10 @@ export default function ApiKeysSection() {
     let active = true;
     fetchMaskedKeys()
       .then((data) => {
-        if (active && data) setMasked(data);
+        if (active && data) {
+          setMasked(data);
+          setAiModel(data.aiModel || DEFAULT_AI_MODEL);
+        }
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -51,6 +58,7 @@ export default function ApiKeysSection() {
       if (keys.anthropic) payload.anthropic = keys.anthropic;
       if (keys.serper) payload.serper = keys.serper;
       if (keys.googlePlaces) payload.googlePlaces = keys.googlePlaces;
+      if (aiModel.trim()) payload.aiModel = aiModel.trim();
 
       const res = await fetch("/api/admin/settings", {
         method: "POST",
@@ -63,7 +71,10 @@ export default function ApiKeysSection() {
         setEditing({ anthropic: false, serper: false, googlePlaces: false });
         setKeys({ anthropic: "", serper: "", googlePlaces: "" });
         const data = await fetchMaskedKeys();
-        if (data) setMasked(data);
+        if (data) {
+          setMasked(data);
+          setAiModel(data.aiModel || DEFAULT_AI_MODEL);
+        }
         setTimeout(() => setSaved(false), 3000);
       }
     } catch {}
@@ -75,6 +86,7 @@ export default function ApiKeysSection() {
     { key: "serper", label: "Cle API Serper (SEO)" },
     { key: "googlePlaces", label: "Cle API Google Places (adresses)" },
   ];
+  const hasPendingChanges = editing.anthropic || editing.serper || editing.googlePlaces || aiModel !== masked.aiModel;
 
   return (
     <div className="bg-white/5 border border-white/5 rounded-xl p-6">
@@ -114,11 +126,25 @@ export default function ApiKeysSection() {
             </div>
           ))}
 
-          {(editing.anthropic || editing.serper || editing.googlePlaces) && (
+          <div>
+            <label className="block text-white/50 text-sm mb-1">Modele IA admin (Claude)</label>
+            <input
+              type="text"
+              value={aiModel}
+              onChange={(e) => setAiModel(e.target.value)}
+              placeholder={DEFAULT_AI_MODEL}
+              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white font-mono text-sm placeholder-white/20 focus:outline-none focus:border-[var(--color-red)]"
+            />
+            <p className="text-white/35 text-xs mt-1">
+              Utilise par factures/soumissions IA, chat, blogue et traduction produits.
+            </p>
+          </div>
+
+          {hasPendingChanges && (
             <button
               type="button"
               onClick={handleSave}
-              disabled={saving || (!keys.anthropic && !keys.serper && !keys.googlePlaces)}
+              disabled={saving || (!keys.anthropic && !keys.serper && !keys.googlePlaces && aiModel === masked.aiModel)}
               className="bg-[var(--color-red)] text-white px-6 py-2.5 rounded-xl font-bold hover:bg-[var(--color-red-dark)] transition-all disabled:opacity-50 flex items-center gap-2"
             >
               {saved ? (
@@ -126,7 +152,7 @@ export default function ApiKeysSection() {
               ) : saving ? (
                 <><i className="fas fa-spinner fa-spin"></i> Sauvegarde...</>
               ) : (
-                <><i className="fas fa-save"></i> Sauvegarder les cles</>
+                <><i className="fas fa-save"></i> Sauvegarder IA / cles</>
               )}
             </button>
           )}

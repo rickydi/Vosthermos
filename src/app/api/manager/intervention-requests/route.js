@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getManagerFromCookie, hasPermission, canAccessClient } from "@/lib/manager-auth";
-import { generateWorkOrderNumber } from "@/lib/work-order-utils";
+import { generateWorkOrderNumber, withWorkOrderNumberRetry } from "@/lib/work-order-utils";
 import { getTransporter } from "@/lib/mail";
 import { COMPANY_INFO } from "@/lib/company-info";
 
@@ -78,7 +78,6 @@ export async function POST(req) {
     sectionsData.push({ unitCode: u.code, notes: notesLines.join("\n") });
   }
 
-  const number = await generateWorkOrderNumber();
   const date = preferredDate ? new Date(preferredDate) : new Date();
   const urgencyLabel = urgency === "urgent" ? "🚨 URGENT" : urgency === "haute" ? "⚠ Priorité haute" : "Normale";
 
@@ -90,7 +89,9 @@ export async function POST(req) {
     preferredDate ? `Date souhaitée : ${new Date(preferredDate).toLocaleDateString("fr-CA")}` : null,
   ].filter(Boolean).join("\n");
 
-  const wo = await prisma.workOrder.create({
+  const wo = await withWorkOrderNumberRetry(async () => {
+    const number = await generateWorkOrderNumber();
+    return prisma.workOrder.create({
     data: {
       number,
       clientId: Number(clientId),
@@ -105,7 +106,9 @@ export async function POST(req) {
       ...(sectionsData.length > 0 ? { sections: { create: sectionsData } } : {}),
     },
     include: { sections: true },
+    });
   });
+  const number = wo.number;
 
   // Email admin (best effort)
   if (process.env.SMTP_HOST) {

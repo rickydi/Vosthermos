@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { pingIndexNowAsync } from "@/lib/indexnow";
+import { sanitizeBlogHtml } from "@/lib/blog-sanitize";
 
 export async function GET(request) {
   try {
@@ -63,7 +64,7 @@ export async function POST(request) {
         title: data.title,
         slug: data.slug,
         excerpt: data.excerpt,
-        content: data.content,
+        content: sanitizeBlogHtml(data.content),
         coverImage: data.coverImage || null,
         category: data.category || "conseils",
         tags: data.tags || [],

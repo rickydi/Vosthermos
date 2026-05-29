@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
+import { sanitizeBlogHtml } from "@/lib/blog-sanitize";
+import { callAnthropicAdmin } from "@/lib/anthropic-admin";
 
 export async function POST(request) {
   try {
@@ -9,14 +11,6 @@ export async function POST(request) {
 
     if (!topic) {
       return NextResponse.json({ error: "Le sujet est requis" }, { status: 400 });
-    }
-
-    const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-    if (!ANTHROPIC_API_KEY) {
-      return NextResponse.json(
-        { error: "Cle API Anthropic non configuree (ANTHROPIC_API_KEY)" },
-        { status: 500 }
-      );
     }
 
     const prompt = `Tu es un expert en reparation de portes et fenetres au Quebec. Ecris un article de blogue pour Vosthermos (vosthermos.com).
@@ -41,35 +35,22 @@ Retourne UNIQUEMENT un JSON valide (sans markdown, sans backticks) avec ces cham
   "tags": ["tag1", "tag2", "tag3"]
 }`;
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 4096,
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Anthropic API error:", errorText);
+    let result;
+    let analysisCost;
+    try {
+      const ai = await callAnthropicAdmin({
+        maxTokens: 4096,
+        messages: [{ role: "user", content: prompt }],
+      });
+      result = ai.data;
+      analysisCost = ai.analysisCost;
+    } catch (err) {
+      console.error("Anthropic API error:", err.detail || err.message);
       return NextResponse.json(
-        { error: "Erreur API Anthropic" },
-        { status: 500 }
+        { error: err.message || "Erreur API Anthropic" },
+        { status: err.status || 500 }
       );
     }
-
-    const result = await response.json();
     const textContent = result.content?.[0]?.text;
 
     if (!textContent) {
@@ -119,7 +100,7 @@ Retourne UNIQUEMENT un JSON valide (sans markdown, sans backticks) avec ces cham
         title: generated.title,
         slug: finalSlug,
         excerpt: generated.excerpt,
-        content: generated.content,
+        content: sanitizeBlogHtml(generated.content),
         category: category || "conseils",
         tags: generated.tags || [],
         status: "pending_review",
@@ -133,6 +114,7 @@ Retourne UNIQUEMENT un JSON valide (sans markdown, sans backticks) avec ces cham
       publishedAt: post.publishedAt ? post.publishedAt.toISOString() : null,
       createdAt: post.createdAt.toISOString(),
       updatedAt: post.updatedAt.toISOString(),
+      analysisCost,
     });
   } catch (err) {
     if (err.message === "Unauthorized") {

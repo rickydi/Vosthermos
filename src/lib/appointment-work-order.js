@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import { createOrTouchFollowUpFromWorkOrder } from "@/lib/follow-up-utils";
 import { upsertClientFromLead } from "@/lib/upsert-client";
-import { composeDateTime, generateWorkOrderNumber } from "@/lib/work-order-utils";
+import { composeDateTime, generateWorkOrderNumber, withWorkOrderNumberRetry } from "@/lib/work-order-utils";
 
 const SERVICE_LABELS = {
   quincaillerie: "Quincaillerie",
@@ -80,7 +80,7 @@ export async function ensureWorkOrderForAppointment(appointmentId) {
     appointment.notes,
   ].filter(Boolean).join("\n\n");
 
-  const workOrder = await prisma.workOrder.create({
+  const workOrder = await withWorkOrderNumberRetry(async () => prisma.workOrder.create({
     data: {
       number: await generateWorkOrderNumber(),
       clientId: client.id,
@@ -95,7 +95,7 @@ export async function ensureWorkOrderForAppointment(appointmentId) {
       visibleAuClient: true,
     },
     include: { client: true },
-  });
+  }));
 
   try {
     await createOrTouchFollowUpFromWorkOrder({ workOrder, client, followUpStatus: "scheduled" });

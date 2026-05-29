@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { COMPANY_INFO } from "@/lib/company-info";
+import { DEFAULT_ADMIN_AI_MODEL } from "@/lib/anthropic-admin";
 
 function maskKey(value) {
   if (!value || value.length <= 8) return value ? "••••••••" : "";
@@ -53,7 +54,7 @@ export async function GET(request) {
     try {
       await requireAdmin();
       const rows = await prisma.$queryRawUnsafe(
-        `SELECT key, value FROM site_settings WHERE key IN ('api_key_anthropic', 'api_key_serper', 'api_key_google_places')`
+        `SELECT key, value FROM site_settings WHERE key IN ('api_key_anthropic', 'api_key_serper', 'api_key_google_places', 'ai_model_admin')`
       );
       const map = {};
       for (const r of rows) map[r.key] = r.value;
@@ -61,6 +62,7 @@ export async function GET(request) {
         anthropic: maskKey(map.api_key_anthropic || ""),
         serper: maskKey(map.api_key_serper || ""),
         googlePlaces: maskKey(map.api_key_google_places || ""),
+        aiModel: map.ai_model_admin || DEFAULT_ADMIN_AI_MODEL,
       });
     } catch {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -136,6 +138,16 @@ export async function POST(request) {
         await prisma.$executeRawUnsafe(
           `INSERT INTO site_settings (key, value) VALUES ('api_key_google_places', $1) ON CONFLICT (key) DO UPDATE SET value = $1`,
           body.googlePlaces
+        );
+      }
+      if (body.aiModel) {
+        const model = String(body.aiModel || "").trim();
+        if (!/^claude-[a-z0-9-]+$/i.test(model)) {
+          return NextResponse.json({ error: "Modele IA invalide" }, { status: 400 });
+        }
+        await prisma.$executeRawUnsafe(
+          `INSERT INTO site_settings (key, value) VALUES ('ai_model_admin', $1) ON CONFLICT (key) DO UPDATE SET value = $1`,
+          model
         );
       }
       return NextResponse.json({ ok: true });

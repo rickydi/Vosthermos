@@ -4,6 +4,7 @@ import Link from "next/link";
 import { autoLinkContent } from "@/lib/auto-linker";
 import { COMPANY_INFO } from "@/lib/company-info";
 import { getAbsoluteBlogImage, getBlogImage } from "@/lib/blog-images";
+import { sanitizeBlogHtml } from "@/lib/blog-sanitize";
 
 export async function generateMetadata({ params }) {
   const { slug } = await params;
@@ -100,9 +101,10 @@ export default async function BlogPostPage({ params }) {
     notFound();
   }
 
-  const headings = extractHeadings(post.content);
-  const contentWithIds = autoLinkContent(addIdsToHeadings(post.content));
-  const readingTime = estimateReadingTime(post.content);
+  const sanitizedContent = sanitizeBlogHtml(post.content);
+  const headings = extractHeadings(sanitizedContent);
+  const contentWithIds = sanitizeBlogHtml(autoLinkContent(addIdsToHeadings(sanitizedContent)));
+  const readingTime = estimateReadingTime(sanitizedContent);
   const coverImage = getBlogImage(post);
 
   const publishedDate = post.publishedAt

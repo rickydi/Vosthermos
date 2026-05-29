@@ -10,6 +10,7 @@ import {
   computeDurationMinutes,
   flattenSectionsBody,
   attachSectionsAndItems,
+  withWorkOrderNumberRetry,
 } from "@/lib/work-order-utils";
 import { parseDateOnly } from "@/lib/date-only";
 
@@ -72,7 +73,6 @@ export async function POST(req) {
   try { session = await requireTech(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
 
   const body = await req.json();
-  const number = await generateWorkOrderNumber();
   const settings = await getWorkOrderSettings();
 
   const { flatItems, sections, allForCalc } = flattenSectionsBody(body);
@@ -90,7 +90,8 @@ export async function POST(req) {
   const arrivalAt = composeDateTime(woDate, body.heureArrivee);
   const departureAt = composeDateTime(woDate, body.heureDepart);
 
-  const workOrder = await prisma.$transaction(async (tx) => {
+  const workOrder = await withWorkOrderNumberRetry(() => prisma.$transaction(async (tx) => {
+    const number = await generateWorkOrderNumber(tx);
     const created = await tx.workOrder.create({
       data: {
         number,
@@ -125,7 +126,7 @@ export async function POST(req) {
         },
       },
     });
-  });
+  }));
 
   return NextResponse.json(serializeWO(workOrder));
 }

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { COMPANY_INFO } from "@/lib/company-info";
+import { callAnthropicAdmin } from "@/lib/anthropic-admin";
 
 function latestClientMessage(messages = "") {
   const lines = String(messages || "")
@@ -34,16 +34,6 @@ export async function POST(request) {
     return NextResponse.json({ error: "Non autorise" }, { status: 401 });
   }
 
-  // Read API key from site_settings first, fallback to env
-  let apiKey = process.env.ANTHROPIC_API_KEY;
-  try {
-    const rows = await prisma.$queryRawUnsafe(`SELECT value FROM site_settings WHERE key = 'api_key_anthropic'`);
-    if (rows[0]?.value) apiKey = rows[0].value;
-  } catch {}
-  if (!apiKey) {
-    return NextResponse.json({ error: "ANTHROPIC_API_KEY manquant" }, { status: 500 });
-  }
-
   const body = await request.json();
   const { action } = body;
 
@@ -51,16 +41,10 @@ export async function POST(request) {
     const { messages, clientName } = body;
     const clientLanguage = detectReplyLanguage(latestClientMessage(messages));
 
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 300,
+    let ai;
+    try {
+      ai = await callAnthropicAdmin({
+        maxTokens: 300,
         system: `Tu es un assistant pour Vosthermos, une entreprise de reparation de portes et fenetres au Quebec.
 
 Regles de langue:
@@ -83,33 +67,24 @@ Style:
             content: `Voici la conversation avec ${clientName || "le client"}:\n\n${messages}\n\nRedige une reponse polie, naturelle et professionnelle au dernier message du client, dans la langue detectee.`,
           },
         ],
-      }),
-    });
-
-    if (!res.ok) {
-      const err = await res.text();
-      console.error("Anthropic error:", err);
-      return NextResponse.json({ error: "Erreur IA" }, { status: 500 });
+      });
+    } catch (err) {
+      console.error("Anthropic error:", err.detail || err.message);
+      return NextResponse.json({ error: err.message || "Erreur IA" }, { status: err.status || 500 });
     }
 
-    const data = await res.json();
+    const data = ai.data;
     const reply = data.content?.[0]?.text || "";
-    return NextResponse.json({ reply });
+    return NextResponse.json({ reply, analysisCost: ai.analysisCost });
   }
 
   if (action === "correct") {
     const { text } = body;
 
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 300,
+    let ai;
+    try {
+      ai = await callAnthropicAdmin({
+        maxTokens: 300,
         system: `Tu corriges et polis le texte fourni dans la meme langue que le texte original: orthographe, grammaire, ponctuation et formulation. Garde le sens et un ton professionnel, naturel et chaleureux. Retourne SEULEMENT le texte corrige, rien d'autre. Pas de guillemets, pas d'explication.`,
         messages: [
           {
@@ -117,18 +92,15 @@ Style:
             content: text,
           },
         ],
-      }),
-    });
-
-    if (!res.ok) {
-      const err = await res.text();
-      console.error("Anthropic error:", err);
-      return NextResponse.json({ error: "Erreur IA" }, { status: 500 });
+      });
+    } catch (err) {
+      console.error("Anthropic error:", err.detail || err.message);
+      return NextResponse.json({ error: err.message || "Erreur IA" }, { status: err.status || 500 });
     }
 
-    const data = await res.json();
+    const data = ai.data;
     const corrected = data.content?.[0]?.text || text;
-    return NextResponse.json({ corrected });
+    return NextResponse.json({ corrected, analysisCost: ai.analysisCost });
   }
 
   return NextResponse.json({ error: "Action inconnue" }, { status: 400 });

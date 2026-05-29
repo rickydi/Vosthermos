@@ -1,17 +1,12 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { COMPANY_INFO } from "@/lib/company-info";
+import { callAnthropicAdmin } from "@/lib/anthropic-admin";
 
 const ACCEPTED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
-const AI_MODEL = "claude-sonnet-4-6";
 const MAX_IMAGE_COUNT = 6;
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const MAX_IMAGES_TOTAL_BYTES = 20 * 1024 * 1024;
-const INPUT_COST_PER_MILLION_USD = 3;
-const OUTPUT_COST_PER_MILLION_USD = 15;
-const CACHE_WRITE_MULTIPLIER = 1.25;
-const CACHE_READ_MULTIPLIER = 0.1;
 
 function cleanText(value, max = 500) {
   return String(value || "").trim().slice(0, max);
@@ -172,28 +167,6 @@ function cleanImagesInput(body) {
   return images;
 }
 
-function estimateAnalysisCost(usage = {}) {
-  const inputTokens = Number(usage.input_tokens || 0);
-  const outputTokens = Number(usage.output_tokens || 0);
-  const cacheCreationInputTokens = Number(usage.cache_creation_input_tokens || 0);
-  const cacheReadInputTokens = Number(usage.cache_read_input_tokens || 0);
-  const inputCost = (inputTokens / 1_000_000) * INPUT_COST_PER_MILLION_USD;
-  const outputCost = (outputTokens / 1_000_000) * OUTPUT_COST_PER_MILLION_USD;
-  const cacheWriteCost = (cacheCreationInputTokens / 1_000_000) * INPUT_COST_PER_MILLION_USD * CACHE_WRITE_MULTIPLIER;
-  const cacheReadCost = (cacheReadInputTokens / 1_000_000) * INPUT_COST_PER_MILLION_USD * CACHE_READ_MULTIPLIER;
-  const estimatedUsd = Math.round((inputCost + outputCost + cacheWriteCost + cacheReadCost) * 1000000) / 1000000;
-
-  return {
-    model: AI_MODEL,
-    currency: "USD",
-    inputTokens,
-    outputTokens,
-    cacheCreationInputTokens,
-    cacheReadInputTokens,
-    estimatedUsd,
-  };
-}
-
 function sanitizeDraft(input, fallbackDocumentType) {
   const draft = input && typeof input === "object" ? input : {};
   const documentType = ["invoice", "quote"].includes(draft.documentType) ? draft.documentType : fallbackDocumentType;
@@ -256,13 +229,6 @@ function sanitizeDraft(input, fallbackDocumentType) {
 export async function POST(req) {
   try { await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
 
-  let apiKey = process.env.ANTHROPIC_API_KEY;
-  try {
-    const rows = await prisma.$queryRawUnsafe("SELECT value FROM site_settings WHERE key = 'api_key_anthropic'");
-    if (rows[0]?.value) apiKey = rows[0].value;
-  } catch {}
-  if (!apiKey) return NextResponse.json({ error: "ANTHROPIC_API_KEY manquant" }, { status: 500 });
-
   const body = await req.json().catch(() => ({}));
   const rawText = cleanText(body.text, 6000);
   const documentType = body.documentType === "quote" ? "quote" : "invoice";
@@ -290,16 +256,10 @@ export async function POST(req) {
     text: rawText || "Analyse les images jointes et cree le brouillon de document Vosthermos a partir du texte visible.",
   });
 
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      model: AI_MODEL,
-      max_tokens: 1800,
+  let ai;
+  try {
+    ai = await callAnthropicAdmin({
+      maxTokens: 1800,
       system: `Tu extrais un brouillon de document Vosthermos a partir d'un message brut.
 
 Retourne STRICTEMENT un objet JSON valide, sans markdown.
@@ -352,20 +312,17 @@ Regles:
           content: userContent,
         },
       ],
-    }),
-  });
-
-  if (!res.ok) {
-    const error = await res.text();
-    console.error("Anthropic draft error:", error);
-    return NextResponse.json({ error: "Erreur IA" }, { status: 500 });
+    });
+  } catch (err) {
+    console.error("Anthropic draft error:", err.detail || err.message);
+    return NextResponse.json({ error: err.message || "Erreur IA" }, { status: err.status || 500 });
   }
 
   try {
-    const data = await res.json();
+    const data = ai.data;
     const text = data.content?.[0]?.text || "";
     const draft = sanitizeDraft(parseJson(text), documentType);
-    return NextResponse.json({ draft, analysisCost: estimateAnalysisCost(data.usage) });
+    return NextResponse.json({ draft, analysisCost: ai.analysisCost });
   } catch (err) {
     console.error("[work-orders ai-draft] parse error:", err?.message || err);
     return NextResponse.json({ error: "Impossible de lire le brouillon IA" }, { status: 500 });

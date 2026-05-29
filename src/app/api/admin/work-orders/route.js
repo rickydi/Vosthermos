@@ -10,12 +10,14 @@ import {
   computeDurationMinutes,
   flattenSectionsBody,
   attachSectionsAndItems,
+  withWorkOrderNumberRetry,
 } from "@/lib/work-order-utils";
 import { createOrTouchFollowUpFromWorkOrder, getSavedFollowUpColumns } from "@/lib/follow-up-utils";
 import { workOrderStatutFromFollowUpStatus } from "@/lib/follow-up-columns";
 import { parseDateOnly } from "@/lib/date-only";
 import { logAdminActivity } from "@/lib/admin-activity";
 import { buildPaymentTrackingData } from "@/lib/payment-tracking";
+import { clampInt } from "@/lib/api-utils";
 
 async function validateFollowUpForClient(followUpId, clientId) {
   if (!followUpId) return null;
@@ -34,8 +36,8 @@ export async function GET(req) {
   const statut = searchParams.get("statut");
   const techId = searchParams.get("technicianId");
   const q = searchParams.get("q") || "";
-  const page = parseInt(searchParams.get("page") || "1");
-  const limit = parseInt(searchParams.get("limit") || "50");
+  const page = clampInt(searchParams.get("page"), 1, { min: 1, max: 100000 });
+  const limit = clampInt(searchParams.get("limit"), 50, { min: 1, max: 200 });
 
   const where = {};
   if (statut) where.statut = statut;
@@ -99,7 +101,6 @@ export async function POST(req) {
     return NextResponse.json({ error: err.message }, { status: 400 });
   }
 
-  const number = await generateWorkOrderNumber();
   const settings = await getWorkOrderSettings();
   const followUpColumns = body.followUpStatus ? await getSavedFollowUpColumns() : null;
   const explicitStatut = typeof body.statut === "string" && body.statut.trim() ? body.statut.trim() : null;
@@ -128,7 +129,8 @@ export async function POST(req) {
     invoiceDate: woDate,
   });
 
-  const workOrder = await prisma.$transaction(async (tx) => {
+  const workOrder = await withWorkOrderNumberRetry(() => prisma.$transaction(async (tx) => {
+    const number = await generateWorkOrderNumber(tx);
     const created = await tx.workOrder.create({
       data: {
         number,
@@ -165,7 +167,7 @@ export async function POST(req) {
         },
       },
     });
-  });
+  }));
 
   try {
     await createOrTouchFollowUpFromWorkOrder({ workOrder, client: workOrder.client, followUpStatus: body.followUpStatus });

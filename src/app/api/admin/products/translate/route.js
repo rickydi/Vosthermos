@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
+import { callAnthropicAdmin } from "@/lib/anthropic-admin";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
-
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-const MODEL = "claude-sonnet-4-20250514";
 
 function buildPrompt(products) {
   const list = products.map((p) => ({
@@ -56,26 +54,12 @@ ${JSON.stringify(list, null, 2)}`;
 }
 
 async function callClaude(prompt) {
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": ANTHROPIC_API_KEY,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 4096,
-      messages: [{ role: "user", content: prompt }],
-    }),
+  const ai = await callAnthropicAdmin({
+    maxTokens: 4096,
+    messages: [{ role: "user", content: prompt }],
   });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Anthropic API error ${response.status}: ${errorText.slice(0, 200)}`);
-  }
-
-  const result = await response.json();
+  const result = ai.data;
   const text = result.content?.[0]?.text;
   if (!text) throw new Error("Empty response from Claude");
 
@@ -86,7 +70,7 @@ async function callClaude(prompt) {
   }
 
   try {
-    return JSON.parse(jsonText);
+    return { parsed: JSON.parse(jsonText), analysisCost: ai.analysisCost };
   } catch (e) {
     throw new Error(`Failed to parse JSON response: ${jsonText.slice(0, 300)}`);
   }
@@ -118,10 +102,6 @@ export async function POST(req) {
   try { await requireAdmin(); }
   catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
 
-  if (!ANTHROPIC_API_KEY) {
-    return NextResponse.json({ error: "ANTHROPIC_API_KEY non configuree" }, { status: 500 });
-  }
-
   const body = await req.json().catch(() => ({}));
   const limit = Math.min(body.limit || 10, 15); // max 15 per batch to stay within token limits
 
@@ -152,10 +132,13 @@ export async function POST(req) {
   const prompt = buildPrompt(products);
 
   let parsed;
+  let analysisCost;
   try {
-    parsed = await callClaude(prompt);
+    const aiResult = await callClaude(prompt);
+    parsed = aiResult.parsed;
+    analysisCost = aiResult.analysisCost;
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return NextResponse.json({ error: e.message }, { status: e.status || 500 });
   }
 
   if (!Array.isArray(parsed?.translations)) {
@@ -197,6 +180,7 @@ export async function POST(req) {
     remaining,
     done: remaining === 0,
     translations: saved,
+    analysisCost,
     errors: errors.length ? errors : undefined,
   });
 }

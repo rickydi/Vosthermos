@@ -4,6 +4,20 @@ import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 
+function safeAdminCallbackUrl(value) {
+  if (!value || typeof value !== "string") return "/admin";
+  if (value.startsWith("//")) return "/admin";
+
+  try {
+    const url = new URL(value, window.location.origin);
+    if (url.origin !== window.location.origin) return "/admin";
+    if (!(url.pathname === "/admin" || url.pathname.startsWith("/admin/")) || url.pathname.startsWith("/admin/login")) return "/admin";
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return "/admin";
+  }
+}
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -25,8 +39,7 @@ function LoginForm() {
 
     const data = await res.json();
     if (data.success) {
-      const callbackUrl = searchParams.get("callbackUrl") || "/admin";
-      router.push(callbackUrl);
+      router.push(safeAdminCallbackUrl(searchParams.get("callbackUrl")));
     } else {
       setError(data.error || "Erreur de connexion");
       setLoading(false);

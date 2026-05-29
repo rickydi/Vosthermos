@@ -5,10 +5,10 @@ import { buildDocumentNumber, sanitizeDocumentPrefix } from "./vosthermos-docume
 
 export const DEFAULT_LABOR_RATE = 85;
 
-export async function generateWorkOrderNumber() {
+export async function generateWorkOrderNumber(db = prisma) {
   let prefix = "VOS";
   try {
-    const rows = await prisma.$queryRawUnsafe(
+    const rows = await db.$queryRawUnsafe(
       `SELECT value FROM site_settings WHERE key = 'work_order_prefix'`
     );
     if (rows[0]?.value) prefix = sanitizeDocumentPrefix(rows[0].value);
@@ -18,7 +18,7 @@ export async function generateWorkOrderNumber() {
 
   for (let offset = 0; offset < 60; offset++) {
     const candidate = buildDocumentNumber(new Date(now.getTime() + offset * 60000), prefix);
-    const existing = await prisma.workOrder.findUnique({
+    const existing = await db.workOrder.findUnique({
       where: { number: candidate },
       select: { id: true },
     });
@@ -26,6 +26,28 @@ export async function generateWorkOrderNumber() {
   }
 
   return buildDocumentNumber(new Date(now.getTime() + 60 * 60000), prefix);
+}
+
+export function isWorkOrderNumberCollision(err) {
+  if (err?.code !== "P2002") return false;
+  const target = Array.isArray(err?.meta?.target)
+    ? err.meta.target.join(",")
+    : String(err?.meta?.target || "");
+  return target.includes("number") || target.includes("work_orders_number");
+}
+
+export async function withWorkOrderNumberRetry(factory, attempts = 5) {
+  let lastError;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      return await factory(attempt);
+    } catch (err) {
+      if (!isWorkOrderNumberCollision(err) || attempt === attempts - 1) throw err;
+      lastError = err;
+      await new Promise((resolve) => setTimeout(resolve, 50 + attempt * 25));
+    }
+  }
+  throw lastError;
 }
 
 // Compose a full DateTime from a base date + "HH:mm" string.

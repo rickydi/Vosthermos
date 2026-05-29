@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
+import { clampInt } from "@/lib/api-utils";
 
 export async function GET(request) {
   try {
     await requireAdmin();
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
+    const page = clampInt(searchParams.get("page"), 1, { min: 1, max: 100000 });
+    const limit = clampInt(searchParams.get("limit"), 20, { min: 1, max: 100 });
     const q = searchParams.get("q") || "";
     const categoryId = searchParams.get("categoryId");
 
