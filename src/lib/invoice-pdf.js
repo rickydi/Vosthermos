@@ -38,6 +38,7 @@ const CONTENT_W = PAGE_W - LEFT_M - RIGHT_M;
 const COMPANY_FOOTER_H = 24;
 const MIN_TOTALS_FOOTER_H = 96;
 const FOOTER_GAP = 8;
+const LINE_GAP = 1; // interligne resserre (avant 1.5) pour densifier le PDF
 
 const BODY_FONT_SIZE = 12;
 const COL_NUM = 34;
@@ -76,7 +77,7 @@ function isPaidInvoice(wo, meta) {
 
 function textHeight(doc, text, width, size = 9, font = "Helvetica") {
   doc.font(font).fontSize(size);
-  return doc.heightOfString(String(text || ""), { width, lineGap: 1.5 });
+  return doc.heightOfString(String(text || ""), { width, lineGap: LINE_GAP });
 }
 
 function drawPageBars(doc) {
@@ -189,7 +190,7 @@ function drawInfoBox(doc, wo, company, meta, documentNumber, y) {
       .text("ADRESSE DES TRAVAUX", leftX, cy, { width: lineW });
     cy += 17;
     doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(BODY_FONT_SIZE)
-      .text(projectAddress, leftX, cy, { width: lineW, lineGap: 1.5 });
+      .text(projectAddress, leftX, cy, { width: lineW, lineGap: LINE_GAP });
   }
 
   doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE).text("DETAILS", rightX, y + 12, { width: lineW });
@@ -210,7 +211,7 @@ function drawInfoBox(doc, wo, company, meta, documentNumber, y) {
   for (const [label, value] of details) {
     const rowH = Math.max(18, textHeight(doc, value || "-", valueW, BODY_FONT_SIZE, "Helvetica") + 3);
     doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE).text(`${label} :`, rightX, dy, { width: labelW });
-    doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(BODY_FONT_SIZE).text(String(value || "-"), valueX, dy, { width: valueW, lineGap: 1.5 });
+    doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(BODY_FONT_SIZE).text(String(value || "-"), valueX, dy, { width: valueW, lineGap: LINE_GAP });
     dy += rowH;
   }
 
@@ -234,8 +235,8 @@ function drawDescription(doc, wo, meta, y, onNewPage) {
   const description = wo.description || "Travaux de reparation et remplacement de fenetres selon les elements detailles ci-dessous.";
   const h = textHeight(doc, description, CONTENT_W, BODY_FONT_SIZE, "Helvetica");
   y = ensureSpace(doc, y, h + 12, onNewPage, bottomY);
-  doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(BODY_FONT_SIZE).text(description, LEFT_M, y, { width: CONTENT_W, lineGap: 1.5 });
-  return y + h + 18;
+  doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(BODY_FONT_SIZE).text(description, LEFT_M, y, { width: CONTENT_W, lineGap: LINE_GAP });
+  return y + h + 12;
 }
 
 function drawTableHeader(doc, y) {
@@ -276,14 +277,14 @@ function drawTable(doc, wo, meta, documentNumber, y) {
     const descX = LEFT_M + COL_NUM + 6;
     const descW = COL_DESC - 12;
     const descH = textHeight(doc, row.description, descW, BODY_FONT_SIZE, "Helvetica");
-    const rowH = Math.max(40, descH + 18);
+    const rowH = Math.max(32, descH + 12);
     y = ensureSpace(doc, y, rowH, onNewPage, bottomY);
 
     doc.rect(LEFT_M, y, CONTENT_W, rowH).fill(WHITE);
     doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE)
       .text(String(itemIndex++), LEFT_M, y + 9, { width: COL_NUM, align: "center" });
     doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(BODY_FONT_SIZE)
-      .text(row.description, descX, y + 9, { width: descW, lineGap: 1.5 });
+      .text(row.description, descX, y + 9, { width: descW, lineGap: LINE_GAP });
     doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(BODY_FONT_SIZE)
       .text(row.unit || "Unite", LEFT_M + COL_NUM + COL_DESC, y + 9, { width: COL_UNIT, align: "center" });
     doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(BODY_FONT_SIZE)
@@ -379,7 +380,7 @@ function drawFooterConditions(doc, meta, y) {
     const text = stripHtmlTags(condition);
     const h = conditionLineHeight(doc, condition);
     doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(BODY_FONT_SIZE)
-      .text(`- ${text}`, LEFT_M + 10, cy, { width: CONTENT_W - 10, lineGap: 1.5 });
+      .text(`- ${text}`, LEFT_M + 10, cy, { width: CONTENT_W - 10, lineGap: LINE_GAP });
     cy += h;
   }
 }
