@@ -67,6 +67,47 @@ export function verifyApprovalToken(post, token) {
   }
 }
 
+// Envoie le code de connexion 2FA a l'admin. Lance une erreur si l'envoi
+// echoue (le flux de login doit alors refuser la connexion plutot que de
+// laisser l'utilisateur sans code).
+export async function sendAdminLoginCodeEmail(toEmail, code) {
+  if (!process.env.SMTP_HOST) {
+    console.log("SMTP not configured, skipping admin login code email");
+    return false;
+  }
+
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; background: #fff;">
+      <div style="background: #0a1628; padding: 24px; text-align: center;">
+        <h1 style="color: #fff; margin: 0; font-size: 18px;">Code de connexion</h1>
+        <p style="color: rgba(255,255,255,0.6); margin: 8px 0 0; font-size: 13px;">Panneau d'administration Vosthermos</p>
+      </div>
+      <div style="padding: 28px 24px; text-align: center;">
+        <p style="color: #555; font-size: 14px; margin: 0 0 16px;">Voici votre code de connexion. Il expire dans 10 minutes.</p>
+        <div style="display: inline-block; background: #f3f4f6; border-radius: 12px; padding: 16px 28px; font-size: 34px; font-weight: 800; letter-spacing: 10px; color: #111;">
+          ${code}
+        </div>
+        <p style="color: #999; font-size: 12px; line-height: 1.6; margin: 24px 0 0;">
+          Si vous n'avez pas tente de vous connecter, ignorez ce courriel et changez votre mot de passe.
+        </p>
+      </div>
+      <div style="background: #f9fafb; padding: 14px; text-align: center; border-top: 1px solid #e5e7eb;">
+        <p style="color: #999; font-size: 11px; margin: 0;">Vosthermos — securite du compte</p>
+      </div>
+    </div>
+  `;
+
+  const transporter = getTransporter();
+  await transporter.sendMail({
+    from: `"Vosthermos" <${process.env.SMTP_USER}>`,
+    to: toEmail,
+    subject: "Votre code de connexion Vosthermos",
+    html,
+    text: `Votre code de connexion Vosthermos : ${code}\nIl expire dans 10 minutes.\nSi vous n'avez pas tente de vous connecter, ignorez ce courriel.`,
+  });
+  return true;
+}
+
 export async function sendBlogApprovalEmail(post, prisma) {
   if (!process.env.SMTP_HOST) {
     console.log("SMTP not configured, skipping approval email");

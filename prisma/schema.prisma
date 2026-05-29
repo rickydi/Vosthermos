@@ -78,8 +78,29 @@ model AdminUser {
   email        String             @unique
   passwordHash String
   activities   AdminActivityLog[]
+  loginCodes   AdminLoginCode[]
 
   @@map("admin_users")
+}
+
+// Code a 5 chiffres pour la verification 2FA par email a la connexion admin.
+// Le code n'est jamais stocke en clair (hash bcrypt). Expire vite, nombre de
+// tentatives limite. Cree apres validation du mot de passe, avant l'emission
+// du cookie de session.
+model AdminLoginCode {
+  id          Int       @id @default(autoincrement())
+  adminUserId Int
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  codeHash    String
+  expiresAt   DateTime
+  usedAt      DateTime?
+  attempts    Int       @default(0)
+  ipAddress   String?
+  createdAt   DateTime  @default(now())
+
+  @@index([adminUserId, createdAt])
+  @@index([expiresAt])
+  @@map("admin_login_codes")
 }
 
 model AdminActivityLog {

@@ -1,11 +1,14 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
+import { nameFromEmail } from "@/lib/presence";
 
 export const dynamic = "force-dynamic";
 
 const ACTION_LABELS = {
   login: "Connexion",
+  login_code_sent: "Code 2FA envoye",
+  login_failed: "Connexion echouee",
   logout: "Deconnexion",
   create: "Creation",
   update: "Modification",
@@ -57,7 +60,7 @@ function activityHref(activity) {
   return null;
 }
 
-function detailText(metadata) {
+function detailText(metadata, entityType) {
   if (!metadata || typeof metadata !== "object") return null;
   if (Array.isArray(metadata.changedFields) && metadata.changedFields.length) {
     return `Champs modifies: ${metadata.changedFields.join(", ")}`;
@@ -65,7 +68,9 @@ function detailText(metadata) {
   if (metadata.statusFrom && metadata.statusTo) {
     return `Statut: ${metadata.statusFrom} -> ${metadata.statusTo}`;
   }
-  if (metadata.email) return metadata.email;
+  // Les logs de session (auth) portent l'email de l'acteur dans metadata: on
+  // ne l'affiche pas pour ne pas reexposer l'email qu'on masque par ailleurs.
+  if (metadata.email && entityType !== "auth") return metadata.email;
   if (metadata.number) return metadata.number;
   return null;
 }
@@ -114,7 +119,7 @@ export default async function AdminActivityPage({ searchParams }) {
         <select name="userId" defaultValue={userId} className="admin-input border rounded-lg px-3 py-2.5 text-sm">
           <option value="">Tous les utilisateurs</option>
           {users.map((user) => (
-            <option key={user.id} value={user.id}>{user.email}</option>
+            <option key={user.id} value={user.id}>{nameFromEmail(user.email)}</option>
           ))}
         </select>
         <select name="entityType" defaultValue={entityType} className="admin-input border rounded-lg px-3 py-2.5 text-sm">
@@ -156,11 +161,10 @@ export default async function AdminActivityPage({ searchParams }) {
                       <span className="admin-text-muted text-sm">{ENTITY_LABELS[activity.entityType] || activity.entityType}</span>
                     </div>
                     <p className="admin-text text-sm truncate">{activity.label || "Action admin"}</p>
-                    {detailText(activity.metadata) && (
-                      <p className="admin-text-muted text-xs mt-1 truncate">{detailText(activity.metadata)}</p>
+                    {detailText(activity.metadata, activity.entityType) && (
+                      <p className="admin-text-muted text-xs mt-1 truncate">{detailText(activity.metadata, activity.entityType)}</p>
                     )}
                     <div className="admin-text-muted text-xs mt-2 flex flex-wrap gap-x-3 gap-y-1">
-                      <span><i className="fas fa-user mr-1"></i>{activity.adminUser?.email || activity.adminEmail || "Utilisateur supprime"}</span>
                       <span><i className="fas fa-clock mr-1"></i>{formatDate(activity.createdAt)}</span>
                       {activity.ipAddress && <span><i className="fas fa-location-dot mr-1"></i>{activity.ipAddress}</span>}
                     </div>

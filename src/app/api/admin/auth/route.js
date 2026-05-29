@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-import { signToken, COOKIE_NAME, getAdminSession } from "@/lib/admin-auth";
+import { signPendingToken, COOKIE_NAME, getAdminSession } from "@/lib/admin-auth";
 import { logAdminActivity } from "@/lib/admin-activity";
+import { generateLoginCode, storeLoginCode, getTwoFactorEmail, maskEmail } from "@/lib/admin-2fa";
+import { sendAdminLoginCodeEmail } from "@/lib/mail";
 
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const MAX_FAILED_LOGINS = 8;
@@ -34,12 +36,14 @@ async function countRecentFailures(request, email) {
 }
 
 async function logFailedLogin(request, email, reason) {
+  // adminEmail (colonne dediee) sert au comptage anti-bruteforce; on ne duplique
+  // pas l'email dans metadata pour ne pas l'exposer dans le journal.
   await logAdminActivity(request, { email }, {
     action: "login_failed",
     entityType: "auth",
     entityId: email,
     label: "Tentative de connexion admin echouee",
-    metadata: { email, reason },
+    metadata: { reason },
   });
 }
 
@@ -74,25 +78,36 @@ export async function POST(request) {
       return NextResponse.json({ error: "Email ou mot de passe invalide" }, { status: 401 });
     }
 
-    const token = signToken({ id: user.id, email: user.email });
+    // Mot de passe valide -> on n'ouvre PAS encore la session. On genere un code
+    // a 5 chiffres, on l'envoie par email, et on ne le PERSISTE qu'apres l'envoi
+    // reussi (jamais de code valide non transmis en base).
+    const ip = clientIp(request);
+    const code = generateLoginCode();
+    const twoFactorEmail = getTwoFactorEmail();
+    try {
+      await sendAdminLoginCodeEmail(twoFactorEmail, code);
+    } catch (err) {
+      console.error("[admin auth] envoi du code 2FA echoue:", err?.message || err);
+      return NextResponse.json(
+        { error: "Impossible d'envoyer le code de connexion. Reessaie dans un moment." },
+        { status: 502 },
+      );
+    }
+    await storeLoginCode(user.id, code, ip);
+
     await logAdminActivity(request, { id: user.id, email: user.email }, {
-      action: "login",
+      action: "login_code_sent",
       entityType: "auth",
       entityId: user.id,
-      label: "Connexion admin",
-      metadata: { email: user.email },
+      label: "Code de connexion 2FA envoye",
+      metadata: {},
     });
 
-    const response = NextResponse.json({ success: true });
-    response.cookies.set(COOKIE_NAME, token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: "/",
+    return NextResponse.json({
+      step: "verify_code",
+      pendingToken: signPendingToken({ id: user.id, email: user.email }),
+      sentTo: maskEmail(twoFactorEmail),
     });
-
-    return response;
   } catch (err) {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
@@ -106,7 +121,7 @@ export async function DELETE(request) {
       entityType: "auth",
       entityId: session.id,
       label: "Deconnexion admin",
-      metadata: { email: session.email },
+      metadata: {},
     });
   }
   const response = NextResponse.json({ success: true });
