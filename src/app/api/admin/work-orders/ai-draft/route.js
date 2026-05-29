@@ -17,6 +17,10 @@ function cleanMoney(value) {
   return Number.isFinite(number) ? Math.max(0, Math.round(number * 100) / 100) : 0;
 }
 
+function normalizePlainText(value) {
+  return String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
 function formatNameCase(value) {
   const text = cleanText(value, 160).replace(/\s{2,}/g, " ");
   if (!text) return "";
@@ -46,7 +50,7 @@ function correctSuspiciousRepairText(text) {
   const value = cleanText(text, 300);
   if (!value) return { text: value, warnings: [] };
 
-  const normalized = value.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const normalized = normalizePlainText(value);
   const repairContext = /\b(porte\s+patio|porte|fenetres?|thermos|moustiquaire|manivelle|charniere|coupe[-\s]?froid|roulettes?|rail|calfeutrage|vitre)\b/i;
   if (/\brelation\b/i.test(normalized) && repairContext.test(normalized)) {
     const corrected = value.replace(/\brelation\b/gi, (match) => (
@@ -59,7 +63,58 @@ function correctSuspiciousRepairText(text) {
       };
     }
   }
+
+  if (
+    /\bremplacement\s+d['’]une?\s+fenetre\b/i.test(normalized) &&
+    /\b(charnieres?|manivelles?|quincaillerie|mecanisme)\b/i.test(normalized) &&
+    !/\b(fenetre\s+complete|complete\s+fenetre|nouvelle\s+fenetre)\b/i.test(normalized)
+  ) {
+    const corrected = value.replace(
+      /\bremplacement\s+d['’]une?\s+fen\S*tre\b/i,
+      "Réparation de quincaillerie sur une fenêtre",
+    );
+    if (corrected !== value) {
+      return {
+        text: corrected,
+        warnings: [`Correction appliquee: "${value}" -> "${corrected}".`],
+      };
+    }
+  }
   return { text: value, warnings: [] };
+}
+
+function cleanUnitCode(value) {
+  const text = cleanText(value, 80)
+    .replace(/\s{2,}/g, " ")
+    .replace(/\bapp\.?\b/gi, "appartement")
+    .replace(/\bapt\.?\b/gi, "appartement")
+    .replace(/\bunité\b/gi, "unite")
+    .trim();
+  return text ? text.toUpperCase() : "";
+}
+
+function splitUnitFromDescription(description) {
+  const value = cleanText(description, 300).replace(/\s{2,}/g, " ").trim();
+  if (!value) return null;
+
+  const serviceStart = "(?:r[eé]paration|remplacement|ajustement|installation|nettoyage|calfeutrage|relation|1\\s+fen[eê]tre|\\d+\\s+fen[eê]tres?)";
+  const withLabel = value.match(new RegExp(
+    `^((?:appartement|app\\.?|apt\\.?|unite|unit[eé]?|local|bureau)\\s+[A-Za-z0-9][A-Za-z0-9 ._-]{0,32}?)\\s+(?=${serviceStart}\\b)(.+)$`,
+    "i",
+  ));
+  if (withLabel) {
+    return { unitCode: cleanUnitCode(withLabel[1]), description: withLabel[2].trim() };
+  }
+
+  const compactCode = value.match(new RegExp(
+    `^([A-Za-z]\\s*[- ]\\s*\\d{1,5}[A-Za-z]?)\\s+(?=${serviceStart}\\b)(.+)$`,
+    "i",
+  ));
+  if (compactCode) {
+    return { unitCode: cleanUnitCode(compactCode[1]), description: compactCode[2].trim() };
+  }
+
+  return null;
 }
 
 function inferBillingName(client = {}, fallbackEmail = "") {
@@ -95,8 +150,9 @@ function cleanDescriptionAndWarnings(description, warnings) {
   return { description: cleaned, warnings: nextWarnings };
 }
 
-function buildDescriptionFromItems(items, documentType) {
-  const descriptions = items
+function buildDescriptionFromItems(items, documentType, sections = []) {
+  const sectionItems = sections.flatMap((section) => section.items || []);
+  const descriptions = [...items, ...sectionItems]
     .map((item) => cleanText(item?.description, 180).replace(/\.$/, ""))
     .filter(Boolean)
     .slice(0, 5);
@@ -174,23 +230,50 @@ function sanitizeDraft(input, fallbackDocumentType) {
   const intervention = draft.intervention && typeof draft.intervention === "object" ? draft.intervention : {};
   const email = draft.email && typeof draft.email === "object" ? draft.email : {};
   const items = Array.isArray(draft.items) ? draft.items : [];
+  const rawSections = Array.isArray(draft.sections) ? draft.sections : [];
   const initialWarnings = Array.isArray(draft.warnings) ? draft.warnings : [];
   const moved = cleanDescriptionAndWarnings(draft.description, initialWarnings);
   const correctionWarnings = [];
-  const cleanItems = items.slice(0, 30)
-    .map((item) => {
-      const corrected = correctSuspiciousRepairText(item?.description);
-      correctionWarnings.push(...corrected.warnings);
-      return {
-        description: corrected.text,
-        quantity: Math.max(0, Number(item?.quantity) || 1),
-        unitPrice: cleanMoney(item?.unitPrice),
-      };
-    })
+
+  const cleanDraftItem = (item) => {
+    const corrected = correctSuspiciousRepairText(item?.description);
+    correctionWarnings.push(...corrected.warnings);
+    return {
+      description: corrected.text,
+      quantity: Math.max(0, Number(item?.quantity) || 1),
+      unitPrice: cleanMoney(item?.unitPrice),
+    };
+  };
+
+  let cleanItems = items.slice(0, 30)
+    .map(cleanDraftItem)
     .filter((item) => item.description && item.unitPrice > 0);
 
+  const cleanSections = rawSections.slice(0, 30)
+    .map((item) => {
+      const unitCode = cleanUnitCode(item?.unitCode || item?.unit || item?.code || item?.title);
+      return {
+        unitCode,
+        items: Array.isArray(item?.items) ? item.items.slice(0, 30).map(cleanDraftItem).filter((line) => line.description && line.unitPrice > 0) : [],
+      };
+    })
+    .filter((section) => section.unitCode && section.items.length > 0);
+
+  const groupedByUnit = new Map(cleanSections.map((section) => [section.unitCode, section]));
+  cleanItems = cleanItems.filter((item) => {
+    const split = splitUnitFromDescription(item.description);
+    if (!split?.unitCode || !split.description) return true;
+    const corrected = correctSuspiciousRepairText(split.description);
+    correctionWarnings.push(...corrected.warnings);
+    const section = groupedByUnit.get(split.unitCode) || { unitCode: split.unitCode, items: [] };
+    section.items.push({ ...item, description: corrected.text });
+    groupedByUnit.set(split.unitCode, section);
+    return false;
+  });
+  const sections = Array.from(groupedByUnit.values());
+
   const billingName = formatNameCase(inferBillingName(client, email.to));
-  const correctedDescription = correctSuspiciousRepairText(moved.description || buildDescriptionFromItems(cleanItems, documentType));
+  const correctedDescription = correctSuspiciousRepairText(moved.description || buildDescriptionFromItems(cleanItems, documentType, sections));
   const description = correctedDescription.text;
   const warningList = uniqueWarnings([
     ...moved.warnings,
@@ -208,7 +291,7 @@ function sanitizeDraft(input, fallbackDocumentType) {
       address: cleanText(client.address, 180),
       city: cleanText(client.city, 80),
       postalCode: cleanText(client.postalCode, 20),
-      type: inferClientType({ ...client, name: billingName }),
+      type: sections.length > 0 ? "gestionnaire" : inferClientType({ ...client, name: billingName }),
     },
     intervention: {
       address: cleanText(intervention.address || client.address, 180),
@@ -217,6 +300,7 @@ function sanitizeDraft(input, fallbackDocumentType) {
     },
     description,
     items: cleanItems,
+    sections,
     email: {
       to: cleanText(email.to || client.email, 160),
       subject: cleanText(email.subject, 180),
@@ -280,6 +364,7 @@ Schema:
   "intervention": { "address": "adresse des travaux", "city": "ville", "postalCode": "code postal" },
   "description": "court resume professionnel des travaux confirmes seulement; obligatoire si au moins une ligne avec prix clair est detectee",
   "items": [{ "description": "ligne facture/soumission", "quantity": 1, "unitPrice": 0 }],
+  "sections": [{ "unitCode": "APPARTEMENT E-0918", "items": [{ "description": "ligne facture/soumission pour cette unite", "quantity": 1, "unitPrice": 0 }] }],
   "email": { "to": "email destinataire", "subject": "sujet email", "body": "message email court et professionnel" },
   "warnings": ["points ambigus ou prix manquants"]
 }
@@ -290,16 +375,21 @@ Regles:
 - Si une ou plusieurs images sont fournies, lis le texte visible comme des captures, photos de notes, courriels ou soumissions recues. Combine toutes les images avec le texte colle si les deux sont fournis.
 - Si plusieurs images sont fournies, traite-les comme des pages ou photos du meme dossier client, dans l'ordre recu.
 - Si une partie d'une image est illisible, ne l'invente pas; mets le point dans warnings.
-- Les lignes avec prix clair vont dans items.
-- Si au moins une ligne avec prix clair va dans items, remplis aussi description avec un resume court des travaux confirmes.
+- Les lignes avec prix clair vont dans items, ou dans sections[].items lorsqu'une unite/appartement est detecte.
+- Si une ligne ou un bloc commence par APPARTEMENT, APT, APP, UNITE, LOCAL, BUREAU ou un code du genre E-0918, mets cette valeur dans sections[].unitCode et les lignes facturees qui suivent dans sections[].items.
+- Quand une ligne est mise dans sections[].items, ne repete pas le code d'unite dans items.description.
+- Si aucune unite n'est detectee, utilise items comme avant.
+- Si des unites/appartements sont detectes pour un syndicat, gestionnaire, immeuble ou copropriete, utilise client.type "gestionnaire".
+- Si au moins une ligne avec prix clair va dans items ou sections[].items, remplis aussi description avec un resume court des travaux confirmes.
 - Les mentions sans prix clair ne vont pas dans items ni dans description; mets-les seulement dans warnings.
 - Pour les warnings, conserve les mots du client autant que possible: "A confirmer: [texte original] (prix non fourni)".
 - Si un mot semble incoherent mais la correction est evidente, applique la correction dans description/items et signale-la dans warnings. Exemple: "Relation de la porte patio" devient "Reparation de la porte patio" et ajoute un warning de correction appliquee.
 - N'ajoute jamais "a commander", "a remplacer", "additionnel" ou une intention similaire si le message original ne le dit pas clairement.
 - Si le message dit "Envoyer la facture a [email]" et que l'email identifie une entite de facturation, utilise cette entite comme client.name. Exemple: syndicat315@... => "Syndicat 315".
 - Les personnes dans "coordonnees" sont des contacts; ne remplace pas le client facture par un contact si une entite de facturation est donnee.
-- Ne mets pas type "gestionnaire" seulement parce qu'il y a un syndicat ou un condo; utilise "particulier" sauf si le message dit clairement gestionnaire, compagnie ou compte commercial.
+- Ne mets pas type "gestionnaire" seulement parce qu'il y a un syndicat ou un condo; utilise "particulier" sauf si le message dit clairement gestionnaire, compagnie, compte commercial, immeuble ou contient des unites/appartements a facturer.
 - Pour items.description, redige des lignes professionnelles et completes. Si le prix semble global pour la reparation, precise que main-d'oeuvre et pieces sont incluses.
+- Si le texte dit "fenetre" avec charnieres, manivelle, mecanisme ou quincaillerie, il s'agit d'une reparation/remplacement de quincaillerie sur la fenetre. N'ecris jamais "remplacement d'une fenetre" sauf si le texte original dit clairement que la fenetre complete est remplacee.
 - Ne calcule pas les taxes. Les prix unitaires sont avant taxes.
 - Si le message donne un email ou dit "envoyer la facture a", mets cet email dans client.email et email.to.
 - Mets les noms propres avec majuscules normales. Exemple: "claudine inizan" doit devenir "Claudine Inizan".

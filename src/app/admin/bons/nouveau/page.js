@@ -331,10 +331,27 @@ function draftItemsToWorkItems(items = []) {
     .filter((item) => item.description && item.unitPrice > 0);
 }
 
+function draftSectionsToWorkSections(sections = []) {
+  const byUnit = new Map();
+  for (const section of sections || []) {
+    const unitCode = String(section?.unitCode || section?.unit || section?.code || "").trim().toUpperCase();
+    if (!unitCode) continue;
+    const items = draftItemsToWorkItems(section?.items || []);
+    if (items.length === 0) continue;
+    if (!byUnit.has(unitCode)) byUnit.set(unitCode, { unitCode, items: [] });
+    byUnit.get(unitCode).items.push(...items);
+  }
+  return Array.from(byUnit.values());
+}
+
+function draftSectionItems(sections = []) {
+  return draftSectionsToWorkSections(sections).flatMap((section) => section.items);
+}
+
 function descriptionFromAiDraft(draft = {}) {
   const explicit = String(draft.description || "").trim();
   if (explicit) return explicit;
-  const descriptions = (draft.items || [])
+  const descriptions = [...(draft.items || []), ...draftSectionItems(draft.sections)]
     .map((item) => String(item?.description || "").trim().replace(/\.$/, ""))
     .filter(Boolean)
     .slice(0, 5);
@@ -439,7 +456,7 @@ function NouveauBonAdmin() {
   const [aiImagePreviewIndex, setAiImagePreviewIndex] = useState(null);
   const aiImageInputRef = useRef(null);
 
-  const isB2B = selectedClient?.type === "gestionnaire";
+  const isB2B = selectedClient?.type === "gestionnaire" || sections.length > 0;
 
   function setLaborRateValue(value) {
     const parsedRate = Number(value);
@@ -600,7 +617,6 @@ function NouveauBonAdmin() {
   useEffect(() => {
     if (!selectedClient?.id || selectedClient.type !== "gestionnaire") {
       setKnownUnits([]);
-      if (!editId) setSections([]);
       return;
     }
     fetch(`/api/admin/clients/${selectedClient.id}/units`)
@@ -1018,14 +1034,14 @@ function NouveauBonAdmin() {
     return null;
   }
 
-  async function createClientForAiDraft(draftClient = {}) {
+  async function createClientForAiDraft(draftClient = {}, options = {}) {
     const name = String(draftClient.name || draftClient.email || draftClient.phone || "Client a verifier").trim();
     const res = await fetch("/api/admin/clients", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name,
-        type: draftClient.type === "gestionnaire" ? "gestionnaire" : "particulier",
+        type: options.forceGestionnaire || draftClient.type === "gestionnaire" ? "gestionnaire" : "particulier",
         phone: draftClient.phone || null,
         secondaryPhone: draftClient.secondaryPhone || null,
         email: draftClient.email || null,
@@ -1111,11 +1127,13 @@ function NouveauBonAdmin() {
     setAiDraftMessage("");
     try {
       const draftClient = aiDraft.client || {};
+      const draftSections = draftSectionsToWorkSections(aiDraft.sections);
+      const hasDraftSections = draftSections.length > 0;
       let client = selectedClient;
       let clientAction = "Client conserve";
       if (!client) {
         const existingClient = await findClientForAiDraft(draftClient);
-        client = existingClient || await createClientForAiDraft(draftClient);
+        client = existingClient || await createClientForAiDraft(draftClient, { forceGestionnaire: hasDraftSections });
         clientAction = existingClient ? "Client existant utilise" : "Client cree";
         selectClient(client);
         setClientSearch("");
@@ -1129,7 +1147,7 @@ function NouveauBonAdmin() {
       const nextDescription = descriptionFromAiDraft(aiDraft);
       setDescription(nextDescription || description);
       setItems(draftItemsToWorkItems(aiDraft.items));
-      setSections([]);
+      setSections(draftSections);
       setLaborHours(0);
 
       const emailDraft = aiDraft.email?.body ? aiDraft.email : null;
@@ -1146,7 +1164,8 @@ function NouveauBonAdmin() {
         setNotes((current) => [current, noteParts.join("\n\n")].filter(Boolean).join("\n\n"));
       }
 
-      setAiDraftMessage(`${clientAction}. Brouillon applique au formulaire.`);
+      const sectionMessage = hasDraftSections ? ` ${draftSections.length} unite${draftSections.length > 1 ? "s" : ""} ajoutee${draftSections.length > 1 ? "s" : ""}.` : "";
+      setAiDraftMessage(`${clientAction}. Brouillon applique au formulaire.${sectionMessage}`);
     } catch (err) {
       setAiDraftError(err.message);
     } finally {
@@ -1545,13 +1564,24 @@ function NouveauBonAdmin() {
                     </p>
                     <p className="admin-text-muted mb-1 text-[10px] font-bold uppercase">Lignes</p>
                     <div className="space-y-1">
+                      {draftSectionsToWorkSections(aiDraft.sections).slice(0, 3).map((section) => (
+                        <div key={section.unitCode} className="rounded border admin-border bg-white/[0.02] px-2 py-1">
+                          <p className="admin-text-muted text-[10px] font-bold uppercase">{section.unitCode}</p>
+                          {section.items.slice(0, 2).map((item, index) => (
+                            <div key={index} className="flex items-start justify-between gap-2 text-xs">
+                              <span className="admin-text min-w-0 break-words">{item.description}</span>
+                              <span className="font-bold text-cyan-600">{Number(item.unitPrice || 0).toFixed(2)}$</span>
+                            </div>
+                          ))}
+                        </div>
+                      ))}
                       {(aiDraft.items || []).slice(0, 4).map((item, index) => (
                         <div key={index} className="flex items-start justify-between gap-2 text-xs">
                           <span className="admin-text min-w-0 break-words">{item.description}</span>
                           <span className="font-bold text-cyan-600">{Number(item.unitPrice || 0).toFixed(2)}$</span>
                         </div>
                       ))}
-                      {(aiDraft.items || []).length === 0 && (
+                      {(aiDraft.items || []).length === 0 && draftSectionsToWorkSections(aiDraft.sections).length === 0 && (
                         <p className="admin-text-muted text-xs">Aucune ligne avec prix clair.</p>
                       )}
                     </div>

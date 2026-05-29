@@ -112,6 +112,48 @@ export function flattenSectionsBody(body) {
   return { flatItems, sections, allForCalc };
 }
 
+function normalizePlainText(value) {
+  return String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function inferBuildingCode(unitCode) {
+  const normalized = normalizePlainText(unitCode).trim().toUpperCase();
+  if (!normalized) return null;
+
+  const labeled = normalized.match(/\b(?:APPARTEMENT|APP|APT|UNITE|UNIT|LOCAL|BUREAU)\s+([A-Z])[-\s]?\d{1,5}\b/);
+  if (labeled?.[1]) return labeled[1];
+
+  const compact = normalized.match(/^([A-Z])[-\s]?\d{1,5}\b/);
+  if (compact?.[1]) return compact[1];
+
+  return null;
+}
+
+async function buildingIdForSectionUnit(tx, clientId, unitCode) {
+  if (!clientId) return null;
+  const buildingCode = inferBuildingCode(unitCode);
+  if (!buildingCode) return null;
+
+  const client = await tx.client.findUnique({
+    where: { id: clientId },
+    select: { type: true, address: true },
+  });
+  if (client?.type !== "gestionnaire") return null;
+
+  const building = await tx.building.upsert({
+    where: { clientId_code: { clientId, code: buildingCode } },
+    create: {
+      clientId,
+      code: buildingCode,
+      name: `Batiment ${buildingCode}`,
+      address: client.address || null,
+    },
+    update: {},
+    select: { id: true },
+  });
+  return building.id;
+}
+
 // Create sections + their items + flat items in a transaction.
 // Also upserts a ClientUnit for each unitCode (auto-learn from usage).
 // Returns the full WorkOrder with nested sections.items loaded.
@@ -133,11 +175,20 @@ export async function attachSectionsAndItems(tx, workOrderId, clientId, flatItem
     const unitCode = (s.unitCode || `Unite ${sIdx + 1}`).trim();
 
     if (clientId) {
-      await tx.clientUnit.upsert({
+      const buildingId = await buildingIdForSectionUnit(tx, clientId, unitCode);
+      const existingUnit = await tx.clientUnit.findUnique({
         where: { clientId_code: { clientId, code: unitCode } },
-        create: { clientId, code: unitCode },
-        update: {}, // no-op: just ensure it exists
+        select: { id: true, buildingId: true },
       });
+      if (existingUnit) {
+        if (buildingId && !existingUnit.buildingId) {
+          await tx.clientUnit.update({ where: { id: existingUnit.id }, data: { buildingId } });
+        }
+      } else {
+        await tx.clientUnit.create({
+          data: { clientId, code: unitCode, buildingId },
+        });
+      }
     }
 
     const section = await tx.workOrderSection.create({
