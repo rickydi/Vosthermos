@@ -123,6 +123,7 @@ export async function PUT(req, { params }) {
     current: existing.updatedAt,
     entityType: "work_order",
     entityId: woId,
+    actorEmail: session.email,
   });
   if (conflict) return conflict;
 

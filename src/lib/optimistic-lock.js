@@ -16,24 +16,30 @@ function toIso(value) {
 //
 // Retro-compatible: si le client n'envoie pas `expected`, on laisse passer.
 // Retourne une NextResponse 409 a renvoyer telle quelle, ou null si OK.
-export async function staleUpdateResponse({ expected, current, entityType, entityId }) {
+export async function staleUpdateResponse({ expected, current, entityType, entityId, actorEmail }) {
   const expectedIso = toIso(expected);
   if (!expectedIso) return null; // client ne participe pas au verrou
   const currentIso = toIso(current);
   if (!currentIso || currentIso === expectedIso) return null; // a jour
 
-  let by = null;
+  let lastEmail = null;
   try {
     const last = await prisma.adminActivityLog.findFirst({
       where: { entityType, entityId: String(entityId), action: "update" },
       orderBy: { id: "desc" },
       select: { adminEmail: true },
     });
-    if (last?.adminEmail) by = nameFromEmail(last.adminEmail);
+    lastEmail = last?.adminEmail || null;
   } catch {
-    /* best effort: le message reste utile sans le nom */
+    /* best effort */
   }
 
+  // Si la derniere modification vient du MEME compte (autre onglet, double-clic,
+  // sync automatique, autre session), ce n'est pas un conflit entre employes
+  // distincts -> on laisse passer (evite les faux positifs pour un utilisateur seul).
+  if (lastEmail && actorEmail && lastEmail === actorEmail) return null;
+
+  const by = lastEmail ? nameFromEmail(lastEmail) : null;
   return NextResponse.json(
     {
       error: "conflict",

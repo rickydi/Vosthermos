@@ -73,6 +73,7 @@ export async function PUT(req, { params }) {
     current: existing?.updatedAt,
     entityType: "client",
     entityId: parseInt(id),
+    actorEmail: session.email,
   });
   if (conflict) return conflict;
 
