@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { createOrTouchFollowUpFromLead } from "@/lib/follow-up-utils";
 import { logAdminActivity } from "@/lib/admin-activity";
+import { clampInt } from "@/lib/api-utils";
 
 export async function GET(req) {
   try { await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
@@ -10,8 +11,8 @@ export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q") || "";
   const sort = searchParams.get("sort") || "updated_desc";
-  const page = parseInt(searchParams.get("page") || "1");
-  const limit = parseInt(searchParams.get("limit") || "50");
+  const page = clampInt(searchParams.get("page"), 1, { min: 1, max: 100000 });
+  const limit = clampInt(searchParams.get("limit"), 50, { min: 1, max: 200 });
 
   const where = q ? {
     OR: [
@@ -54,21 +55,35 @@ export async function POST(req) {
   try { session = await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
 
   const body = await req.json();
-  const client = await prisma.client.create({
-    data: {
-      name: body.name,
-      type: body.type === "gestionnaire" ? "gestionnaire" : "particulier",
-      company: body.company || null,
-      address: body.address || null,
-      city: body.city || null,
-      province: body.province || "QC",
-      postalCode: body.postalCode || null,
-      phone: body.phone || null,
-      secondaryPhone: body.secondaryPhone || null,
-      email: body.email || null,
-      notes: body.notes || null,
-    },
-  });
+  if (!body.name || !String(body.name).trim()) {
+    return NextResponse.json({ error: "Le nom est requis" }, { status: 400 });
+  }
+  let client;
+  try {
+    client = await prisma.client.create({
+      data: {
+        name: body.name,
+        type: body.type === "gestionnaire" ? "gestionnaire" : "particulier",
+        company: body.company || null,
+        address: body.address || null,
+        city: body.city || null,
+        province: body.province || "QC",
+        postalCode: body.postalCode || null,
+        phone: body.phone || null,
+        secondaryPhone: body.secondaryPhone || null,
+        email: body.email || null,
+        notes: body.notes || null,
+      },
+    });
+  } catch (err) {
+    if (err?.code === "P2002") {
+      return NextResponse.json(
+        { error: "Un client utilise deja cette adresse courriel. Verifie l'adresse ou laisse le champ vide." },
+        { status: 400 },
+      );
+    }
+    throw err;
+  }
 
   try {
     await createOrTouchFollowUpFromLead({

@@ -90,7 +90,18 @@ export async function PUT(req, { params }) {
   if (body.notes !== undefined) data.notes = body.notes || null;
   if (body.paymentTermsDays !== undefined) data.paymentTermsDays = Number(body.paymentTermsDays) || 30;
 
-  const client = await prisma.client.update({ where: { id: parseInt(id) }, data });
+  let client;
+  try {
+    client = await prisma.client.update({ where: { id: parseInt(id) }, data });
+  } catch (err) {
+    if (err?.code === "P2002") {
+      return NextResponse.json(
+        { error: "Un client utilise deja cette adresse courriel. Verifie l'adresse ou laisse le champ vide." },
+        { status: 400 },
+      );
+    }
+    throw err;
+  }
   await logAdminActivity(req, session, {
     action: "update",
     entityType: "client",
