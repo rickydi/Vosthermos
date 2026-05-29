@@ -110,6 +110,24 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
+function emailGreetingName(client) {
+  const fallback = client?.type === "gestionnaire" ? "" : client?.name;
+  return String(client?.contactName || fallback || "").trim().replace(/\s{2,}/g, " ");
+}
+
+function personalizePlainMessage(message, client) {
+  const body = String(message || "").replace(/\r\n/g, "\n").trim();
+  const name = emailGreetingName(client);
+  if (!body || !name) return body;
+
+  const english = /^hello\b/i.test(body);
+  const greeting = `${english ? "Hello" : "Bonjour"} ${name},`;
+  if (/^(bonjour|hello)\b[^\n]*(\n|$)/i.test(body)) {
+    return body.replace(/^(bonjour|hello)\b[^\n]*(\n|$)/i, `${greeting}\n`).trim();
+  }
+  return `${greeting}\n\n${body}`.trim();
+}
+
 function renderMessageHtml(message) {
   return escapeHtml(message)
     .split(/\n{2,}/)
@@ -186,6 +204,7 @@ ${SITE_URL}
 
 function renderEmailHtml(wo, documentMeta, documentNumber, filename) {
   const date = formatEmailDate(getDocumentDate(wo, documentMeta.type));
+  const name = emailGreetingName(wo.client);
   return `<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -219,7 +238,7 @@ function renderEmailHtml(wo, documentMeta, documentNumber, filename) {
           <!-- Greeting -->
           <tr>
             <td style="padding:40px 40px 20px;">
-              <h1 style="margin:0 0 12px;font-size:20px;font-weight:700;color:#111;">Bonjour ${wo.client?.name?.split(" ")[0] || ""},</h1>
+              <h1 style="margin:0 0 12px;font-size:20px;font-weight:700;color:#111;">Bonjour${name ? ` ${escapeHtml(name)}` : ""},</h1>
               <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#374151;">
                 Merci d'avoir choisi <strong>Vosthermos</strong> pour vos travaux. ${documentMeta.emailIntro}
               </p>
@@ -297,8 +316,8 @@ function renderEmailHtml(wo, documentMeta, documentNumber, filename) {
 }
 
 function renderEmailText(wo, documentMeta, documentNumber, filename) {
-  const name = wo.client?.name?.split(" ")[0] || "";
-  return `Bonjour ${name},
+  const name = emailGreetingName(wo.client);
+  return `Bonjour${name ? ` ${name}` : ""},
 
 Merci d'avoir choisi Vosthermos pour vos travaux.
 ${documentMeta.emailIntro}
@@ -357,7 +376,7 @@ export async function POST(req, { params }) {
   const documentNumber = resolveDocumentNumber(wo);
   const filename = documentFilename(wo, documentMeta);
   const customSubject = String(body.subject || "").trim();
-  const customMessage = String(body.message || "").trim();
+  const customMessage = personalizePlainMessage(body.message, wo.client);
   const nextStatut = documentMeta.sentStatus || wo.statut;
   const paymentTracking = buildPaymentTrackingData({
     statut: nextStatut,

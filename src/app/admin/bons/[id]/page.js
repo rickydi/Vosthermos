@@ -42,10 +42,28 @@ function defaultEmailSubject(wo, documentMeta) {
   return `${documentMeta.subjectPrefix}${number} - Vosthermos`;
 }
 
+function emailGreetingName(client) {
+  const fallback = client?.type === "gestionnaire" ? "" : client?.name;
+  return String(client?.contactName || fallback || "").trim().replace(/\s{2,}/g, " ");
+}
+
+function personalizeEmailBody(body, client) {
+  const message = String(body || "").replace(/\r\n/g, "\n").trim();
+  const name = emailGreetingName(client);
+  if (!message || !name) return message;
+
+  const english = /^hello\b/i.test(message);
+  const greeting = `${english ? "Hello" : "Bonjour"} ${name},`;
+  if (/^(bonjour|hello)\b[^\n]*(\n|$)/i.test(message)) {
+    return message.replace(/^(bonjour|hello)\b[^\n]*(\n|$)/i, `${greeting}\n`).trim();
+  }
+  return `${greeting}\n\n${message}`.trim();
+}
+
 function defaultEmailBody(wo, documentMeta) {
-  const firstName = String(wo?.client?.name || "").trim().split(/\s+/).filter(Boolean)[0] || "";
+  const name = emailGreetingName(wo?.client);
   return [
-    `Bonjour${firstName ? ` ${firstName}` : ""},`,
+    `Bonjour${name ? ` ${name}` : ""},`,
     "",
     documentMeta.emailIntro,
     "",
@@ -96,7 +114,7 @@ export default function BonDetailPage() {
           if (stored && typeof stored === "object") {
             setEmailTo(stored.to || data?.client?.email || "");
             setEmailSubject(stored.subject || defaultEmailSubject(data, meta));
-            setEmailBody(stored.body || defaultEmailBody(data, meta));
+            setEmailBody(personalizeEmailBody(stored.body || defaultEmailBody(data, meta), data?.client));
             window.localStorage.removeItem(key);
             setShowEmail(true);
           }

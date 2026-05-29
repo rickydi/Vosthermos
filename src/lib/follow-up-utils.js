@@ -59,6 +59,10 @@ function primaryContactPhone(client) {
   return client?.phone || client?.secondaryPhone || null;
 }
 
+function primaryContactName(client) {
+  return client?.contactName || client?.name || null;
+}
+
 function appendNote(existing, next) {
   const cleanNext = cleanText(next);
   if (!cleanNext) return existing || null;
@@ -109,7 +113,7 @@ export async function createOrTouchFollowUpFromLead({ client, source, notes, ser
       where: { id: existing.id },
       data: {
         source: existing.source || sourceText,
-        contactName: existing.contactName || client.name || null,
+        contactName: existing.contactName || primaryContactName(client),
         phone: existing.phone || primaryContactPhone(client),
         email: existing.email || client.email || null,
         service: existing.service || serviceText,
@@ -123,7 +127,7 @@ export async function createOrTouchFollowUpFromLead({ client, source, notes, ser
       clientId: client.id,
       title: `${client.name || "Client"} - suivi`,
       source: sourceText,
-      contactName: client.name || null,
+      contactName: primaryContactName(client),
       phone: primaryContactPhone(client),
       email: client.email || null,
       service: serviceText,
@@ -199,7 +203,7 @@ export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client, fo
         source: invoiceOpen || invoicePaid ? sourceText : existing.source || sourceText,
         status,
         priority: dueNow ? "high" : existing.priority,
-        contactName: existing.contactName || client.name || null,
+        contactName: existing.contactName || primaryContactName(client),
         phone: existing.phone || primaryContactPhone(client),
         email: existing.email || client.email || null,
         estimateAmount: existing.estimateAmount ?? (documentMeta.type !== "work_order" ? workOrder.total : null),
@@ -216,7 +220,7 @@ export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client, fo
         source: sourceText,
         status,
         priority: dueNow ? "high" : "normal",
-        contactName: client.name || null,
+        contactName: primaryContactName(client),
         phone: primaryContactPhone(client),
         email: client.email || null,
         estimateAmount: documentMeta.type !== "work_order" ? workOrder.total : null,

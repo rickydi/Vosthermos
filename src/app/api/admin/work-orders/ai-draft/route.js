@@ -34,6 +34,25 @@ function formatNameCase(value) {
   }).join("");
 }
 
+function emailGreetingName(value) {
+  return cleanText(value, 160).replace(/\s{2,}/g, " ").trim();
+}
+
+function personalizeEmailBody(body, clientName) {
+  const message = cleanText(body, 2000).replace(/\r\n/g, "\n").trim();
+  if (!message) return "";
+
+  const name = emailGreetingName(clientName);
+  if (!name) return message;
+
+  const english = /^hello\b/i.test(message);
+  const greeting = `${english ? "Hello" : "Bonjour"} ${name},`;
+  if (/^(bonjour|hello)\b[^\n]*(\n|$)/i.test(message)) {
+    return message.replace(/^(bonjour|hello)\b[^\n]*(\n|$)/i, `${greeting}\n`).trim();
+  }
+  return `${greeting}\n\n${message}`.trim();
+}
+
 function cleanWarning(value) {
   return cleanText(value, 240)
     .replace(/\s+(additionnelles?|supplementaires?)\s+(a|à)\s+commander\b/gi, "")
@@ -385,6 +404,8 @@ function sanitizeDraft(input, fallbackDocumentType, rawText = "") {
   const sections = Array.from(groupedByUnit.values());
 
   const billingName = formatNameCase(inferBillingName(client, email.to));
+  const clientType = sections.length > 0 ? "gestionnaire" : inferClientType({ ...client, name: billingName });
+  const contactName = formatNameCase(client.contactName || client.contact || client.attention || "");
   const correctedDescription = correctSuspiciousRepairText(moved.description || buildDescriptionFromItems(cleanItems, documentType, sections));
   const description = correctedDescription.text;
   const warningList = uniqueWarnings([
@@ -398,13 +419,14 @@ function sanitizeDraft(input, fallbackDocumentType, rawText = "") {
     documentType,
     client: {
       name: billingName,
+      contactName,
       email: cleanText(client.email || email.to, 160),
       phone: cleanText(client.phone, 80),
       secondaryPhone: cleanText(client.secondaryPhone, 80),
       address: cleanText(client.address, 180),
       city: cleanText(client.city, 80),
       postalCode: cleanText(client.postalCode, 20),
-      type: sections.length > 0 ? "gestionnaire" : inferClientType({ ...client, name: billingName }),
+      type: clientType,
     },
     intervention: {
       address: cleanText(intervention.address || client.address, 180),
@@ -417,7 +439,7 @@ function sanitizeDraft(input, fallbackDocumentType, rawText = "") {
     email: {
       to: cleanText(email.to || client.email, 160),
       subject: cleanText(email.subject, 180),
-      body: cleanText(email.body, 2000),
+      body: personalizeEmailBody(email.body, contactName || (clientType === "gestionnaire" ? "" : billingName)),
     },
     warnings: warningList,
   };
@@ -466,6 +488,7 @@ Schema:
   "documentType": "invoice" | "quote",
   "client": {
     "name": "nom a facturer",
+    "contactName": "nom complet du contact humain pour les courriels, surtout en B2B",
     "email": "email de facturation",
     "phone": "telephone principal, avec nom du contact si present",
     "secondaryPhone": "autre telephone, avec nom du contact si present",
@@ -499,13 +522,17 @@ Regles:
 - Si un mot semble incoherent mais la correction est evidente, applique la correction dans description/items et signale-la dans warnings. Exemple: "Relation de la porte patio" devient "Reparation de la porte patio" et ajoute un warning de correction appliquee.
 - N'ajoute jamais "a commander", "a remplacer", "additionnel" ou une intention similaire si le message original ne le dit pas clairement.
 - Si le message dit "Envoyer la facture a [email]" et que l'email identifie une entite de facturation, utilise cette entite comme client.name. Exemple: syndicat315@... => "Syndicat 315".
-- Les personnes dans "coordonnees" sont des contacts; ne remplace pas le client facture par un contact si une entite de facturation est donnee.
+- Les personnes dans "coordonnees" sont des contacts; mets le meilleur contact humain dans client.contactName, mais ne remplace pas le client facture par ce contact si une entite de facturation est donnee.
 - Ne mets pas type "gestionnaire" seulement parce qu'il y a un syndicat ou un condo; utilise "particulier" sauf si le message dit clairement gestionnaire, compagnie, compte commercial, immeuble ou contient des unites/appartements a facturer.
 - Pour items.description, redige des lignes professionnelles et completes. Si le prix semble global pour la reparation, precise que main-d'oeuvre et pieces sont incluses.
 - Si le texte dit "fenetre" avec charnieres, manivelle, mecanisme ou quincaillerie, il s'agit d'une reparation/remplacement de quincaillerie sur la fenetre. N'ecris jamais "remplacement d'une fenetre" sauf si le texte original dit clairement que la fenetre complete est remplacee.
 - Ne calcule pas les taxes. Les prix unitaires sont avant taxes.
 - Si le message donne un email ou dit "envoyer la facture a", mets cet email dans client.email et email.to.
 - Mets les noms propres avec majuscules normales. Exemple: "claudine inizan" doit devenir "Claudine Inizan".
+- email.body doit commencer par "Bonjour [nom complet]," ou "Hello [full name]," si la demande est en anglais.
+- Pour un client B2B/gestionnaire/copropriete, email.body doit saluer client.contactName si disponible, jamais le nom de l'immeuble ou du syndicat. Exemple: pas "Bonjour Le Maronier,"; utiliser "Bonjour Marie-Claude Tremblay,".
+- Pour un client particulier, email.body utilise le nom complet de client.name, pas seulement le premier prenom. Garde les noms composes, traits d'union, doubles noms et noms de famille complets.
+- Personnalise email.body avec le type de document, les travaux/adresse ou le contexte utile detecte; evite un texte generique qui pourrait etre envoye a n'importe qui.
 - Si la demande est en anglais, genere email.body en anglais. Sinon en francais quebecois professionnel.
 - Pour une facture, sujet: "Facture Vosthermos - [client ou adresse]". Pour une soumission: "Soumission Vosthermos - [client ou adresse]".
 - Le numero de telephone Vosthermos est ${COMPANY_INFO.phone}.`,

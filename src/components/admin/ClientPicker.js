@@ -69,7 +69,7 @@ export default function ClientPicker({ open, onClose, onPick }) {
         <div className="p-4 border-b admin-border flex gap-3">
           <input
             type="text"
-            placeholder="Rechercher par nom, telephone principal ou autre, email, ville..."
+            placeholder="Rechercher par nom, contact, telephone, email, ville..."
             onChange={(e) => handleSearchChange(e.target.value)}
             className="admin-input border rounded-lg px-4 py-2.5 text-sm flex-1"
             autoFocus
@@ -114,6 +114,7 @@ export default function ClientPicker({ open, onClose, onPick }) {
                   >
                     <td className="px-4 py-3">
                       <p className="admin-text font-medium">{c.name}</p>
+                      {c.contactName && <p className="admin-text-muted text-xs">Contact: {c.contactName}</p>}
                       {c.email && <p className="admin-text-muted text-xs">{c.email}</p>}
                     </td>
                     <td className="px-4 py-3 admin-text-muted">

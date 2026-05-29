@@ -73,11 +73,16 @@ function paymentRowsText(payments) {
     .join("\n");
 }
 
+function emailGreetingName(client) {
+  const fallback = client?.type === "gestionnaire" ? "" : client?.name;
+  return String(client?.contactName || fallback || "").trim().replace(/\s{2,}/g, " ");
+}
+
 function renderPaidEmailHtml(wo, documentNumber, filename) {
   const summary = documentPaymentSummary(wo);
   const invoiceDate = formatLongDateFr(getDocumentDate(wo, "invoice"));
   const paidDate = formatLongDateFr(wo.paidAt) || formatLongDateFr(summary.payments.at(-1)?.paidAt) || "";
-  const firstName = String(wo.client?.name || "").split(/\s+/).filter(Boolean)[0] || "";
+  const contactName = emailGreetingName(wo.client);
   const logoExists = fs.existsSync(LOGO_PATH);
 
   return `<!DOCTYPE html>
@@ -110,7 +115,7 @@ function renderPaidEmailHtml(wo, documentNumber, filename) {
           </tr>
           <tr>
             <td style="padding:36px 40px 18px;">
-              <h1 style="margin:0 0 12px;font-size:20px;font-weight:800;color:#111;">Bonjour ${escapeHtml(firstName)},</h1>
+              <h1 style="margin:0 0 12px;font-size:20px;font-weight:800;color:#111;">Bonjour${contactName ? ` ${escapeHtml(contactName)}` : ""},</h1>
               <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#374151;">
                 Nous confirmons que le paiement de votre facture a bien ete recu${paidDate ? ` le <strong>${escapeHtml(paidDate)}</strong>` : ""}. Le PDF paye est joint a ce courriel pour vos dossiers.
               </p>
@@ -163,9 +168,9 @@ function renderPaidEmailText(wo, documentNumber, filename) {
   const summary = documentPaymentSummary(wo);
   const invoiceDate = formatLongDateFr(getDocumentDate(wo, "invoice"));
   const paidDate = formatLongDateFr(wo.paidAt) || formatLongDateFr(summary.payments.at(-1)?.paidAt) || "";
-  const firstName = String(wo.client?.name || "").split(/\s+/).filter(Boolean)[0] || "";
+  const contactName = emailGreetingName(wo.client);
 
-  return `Bonjour ${firstName},
+  return `Bonjour${contactName ? ` ${contactName}` : ""},
 
 Nous confirmons que le paiement de votre facture a bien ete recu${paidDate ? ` le ${paidDate}` : ""}.
 

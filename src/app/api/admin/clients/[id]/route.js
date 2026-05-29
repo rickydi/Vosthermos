@@ -81,6 +81,7 @@ export async function PUT(req, { params }) {
   if (body.name !== undefined) data.name = body.name;
   if (body.type !== undefined) data.type = body.type === "gestionnaire" ? "gestionnaire" : "particulier";
   if (body.company !== undefined) data.company = body.company || null;
+  if (body.contactName !== undefined) data.contactName = body.contactName || null;
   if (body.address !== undefined) data.address = body.address || null;
   if (body.city !== undefined) data.city = body.city || null;
   if (body.province !== undefined) data.province = body.province || "QC";
@@ -112,6 +113,7 @@ export async function PUT(req, { params }) {
       changedFields: changedFields(existing, client, Object.keys(data)),
       email: client.email,
       phone: client.phone,
+      contactName: client.contactName,
     },
   });
   return NextResponse.json(client);

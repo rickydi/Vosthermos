@@ -21,6 +21,7 @@ export async function GET(req) {
       { secondaryPhone: { contains: q } },
       { email: { contains: q, mode: "insensitive" } },
       { company: { contains: q, mode: "insensitive" } },
+      { contactName: { contains: q, mode: "insensitive" } },
       { city: { contains: q, mode: "insensitive" } },
     ],
   } : {};
@@ -65,6 +66,7 @@ export async function POST(req) {
         name: body.name,
         type: body.type === "gestionnaire" ? "gestionnaire" : "particulier",
         company: body.company || null,
+        contactName: body.contactName || null,
         address: body.address || null,
         city: body.city || null,
         province: body.province || "QC",

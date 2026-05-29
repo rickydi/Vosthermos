@@ -34,6 +34,7 @@ export default function ClientDetail({ client }) {
   // Infos client éditables
   const [infoForm, setInfoForm] = useState({
     name: client.name || "",
+    contactName: client.contactName || "",
     address: client.address || "",
     city: client.city || "",
     postalCode: client.postalCode || "",
@@ -164,6 +165,7 @@ export default function ClientDetail({ client }) {
           <p className="admin-text-muted text-sm mt-1">
             {isB2B ? "Copropriété / gestionnaire" : "Client particulier"}
             {client.city && ` · ${client.city}`}
+            {client.contactName && ` · Contact: ${client.contactName}`}
             {client.phone && ` · ${client.phone}`}
             {client.secondaryPhone && ` · ${client.secondaryPhone}`}
           </p>
@@ -196,6 +198,14 @@ export default function ClientDetail({ client }) {
               <input value={infoForm.name} onChange={(e) => setInfoForm({ ...infoForm, name: e.target.value })}
                 className="admin-input border rounded-lg px-3 py-2 text-sm w-full" />
             </div>
+            {isB2B && (
+              <div className="md:col-span-2">
+                <label className="admin-text-muted text-xs mb-1 block font-medium">Nom du contact courriel</label>
+                <input value={infoForm.contactName} onChange={(e) => setInfoForm({ ...infoForm, contactName: e.target.value })}
+                  placeholder="Ex: Marie-Claude Tremblay"
+                  className="admin-input border rounded-lg px-3 py-2 text-sm w-full" />
+              </div>
+            )}
             <div className="md:col-span-2">
               <label className="admin-text-muted text-xs mb-1 block font-medium">Adresse</label>
               <AddressAutocomplete

@@ -402,6 +402,7 @@ function NouveauBonAdmin() {
     name: "",
     phone: "",
     secondaryPhone: "",
+    contactName: "",
     email: "",
     address: "",
     city: "",
@@ -983,6 +984,7 @@ function NouveauBonAdmin() {
           name: quickClient.name.trim(),
           phone: quickClient.phone.trim() || null,
           secondaryPhone: quickClient.secondaryPhone.trim() || null,
+          contactName: quickClient.contactName.trim() || null,
           email: quickClient.email.trim() || null,
           address: quickClient.address.trim() || null,
           city: quickClient.city.trim() || null,
@@ -1002,6 +1004,7 @@ function NouveauBonAdmin() {
         name: "",
         phone: "",
         secondaryPhone: "",
+        contactName: "",
         email: "",
         address: "",
         city: "",
@@ -1044,6 +1047,7 @@ function NouveauBonAdmin() {
         type: options.forceGestionnaire || draftClient.type === "gestionnaire" ? "gestionnaire" : "particulier",
         phone: draftClient.phone || null,
         secondaryPhone: draftClient.secondaryPhone || null,
+        contactName: draftClient.contactName || null,
         email: draftClient.email || null,
         address: draftClient.address || null,
         city: draftClient.city || null,
@@ -1053,6 +1057,19 @@ function NouveauBonAdmin() {
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || "Erreur creation client IA");
     return data;
+  }
+
+  async function updateClientContactName(client, contactName) {
+    const name = String(contactName || "").trim();
+    if (!client?.id || !name || client.contactName) return client;
+    const res = await fetch(`/api/admin/clients/${client.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contactName: name }),
+    });
+    if (!res.ok) return client;
+    const updated = await res.json().catch(() => null);
+    return updated?.id ? updated : { ...client, contactName: name };
   }
 
   async function attachAiImportImages(filesInput) {
@@ -1139,6 +1156,13 @@ function NouveauBonAdmin() {
         setClientSearch("");
         setClientResults([]);
         setQuickClientOpen(false);
+      }
+      if ((client?.type === "gestionnaire" || hasDraftSections) && draftClient.contactName) {
+        const updatedClient = await updateClientContactName(client, draftClient.contactName);
+        if (updatedClient !== client) {
+          client = updatedClient;
+          selectClient(updatedClient);
+        }
       }
 
       setInterventionAddress(aiDraft.intervention?.address || draftClient.address || "");
@@ -1535,6 +1559,7 @@ function NouveauBonAdmin() {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="admin-text text-sm font-bold">{aiDraft.client?.name || "Client a verifier"}</p>
+                      {aiDraft.client?.contactName && <p className="admin-text-muted text-xs">Contact: {aiDraft.client.contactName}</p>}
                       <p className="admin-text-muted text-xs">{aiDraft.client?.email || aiDraft.email?.to || "Email a verifier"}</p>
                       <p className="admin-text-muted text-xs">{aiDraft.client?.phone || ""}{aiDraft.client?.secondaryPhone ? ` | ${aiDraft.client.secondaryPhone}` : ""}</p>
                     </div>
@@ -1705,6 +1730,11 @@ function NouveauBonAdmin() {
                       <option value="particulier">Particulier</option>
                       <option value="gestionnaire">Gestionnaire / B2B</option>
                     </select>
+                    {quickClient.type === "gestionnaire" && (
+                      <input type="text" placeholder="Nom du contact courriel" value={quickClient.contactName}
+                        onChange={(e) => setQuickClient((p) => ({ ...p, contactName: e.target.value }))}
+                        className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
+                    )}
                     <AddressAutocomplete
                       value={quickClient.address}
                       onChange={(address) => setQuickClient((p) => ({ ...p, address }))}
@@ -1734,6 +1764,7 @@ function NouveauBonAdmin() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="admin-text font-medium">{selectedClient.name}</p>
+                {selectedClient.contactName && <p className="admin-text-muted text-sm">Contact: {selectedClient.contactName}</p>}
                 <p className="admin-text-muted text-sm">{selectedClient.phone || "-"}</p>
                 {selectedClient.secondaryPhone && <p className="admin-text-muted text-sm">{selectedClient.secondaryPhone}</p>}
                 {selectedClient.address && <p className="admin-text-muted text-sm">{selectedClient.address}{selectedClient.city ? `, ${selectedClient.city}` : ""}</p>}

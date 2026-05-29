@@ -8,6 +8,7 @@ const EMPTY_FORM = {
   name: "",
   type: "particulier",
   company: "",
+  contactName: "",
   phone: "",
   secondaryPhone: "",
   email: "",
@@ -74,6 +75,7 @@ export default function ClientsPage() {
       name: client.name || "",
       type: client.type || "particulier",
       company: client.company || "",
+      contactName: client.contactName || "",
       phone: client.phone || "",
       secondaryPhone: client.secondaryPhone || "",
       email: client.email || "",
@@ -198,7 +200,7 @@ export default function ClientsPage() {
           {form.type === "gestionnaire" && (
             <p className="text-xs admin-text-muted -mt-2">
               <i className="fas fa-info-circle mr-1"></i>
-              Les batiments, unites et ouvertures se gerent dans la fiche complete.
+              Le nom du client reste la copropriete; le contact sert au bonjour dans les courriels.
             </p>
           )}
 
@@ -216,6 +218,14 @@ export default function ClientsPage() {
               onChange={(e) => setForm({ ...form, company: e.target.value })}
               className="admin-input border rounded-lg px-4 py-2.5 text-sm"
             />
+            {form.type === "gestionnaire" && (
+              <input
+                placeholder="Nom du contact courriel"
+                value={form.contactName}
+                onChange={(e) => setForm({ ...form, contactName: e.target.value })}
+                className="admin-input border rounded-lg px-4 py-2.5 text-sm md:col-span-2"
+              />
+            )}
             <input
               placeholder="Telephone"
               value={form.phone}
@@ -296,7 +306,7 @@ export default function ClientsPage() {
       <div className="flex flex-col md:flex-row gap-3 mb-6">
         <input
           type="text"
-          placeholder="Rechercher par nom, telephone principal ou autre, email, ville..."
+          placeholder="Rechercher par nom, contact, telephone, email, ville..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="admin-input border rounded-xl px-4 py-3 text-sm flex-1"
@@ -340,6 +350,7 @@ export default function ClientsPage() {
                         <span className="text-[10px] uppercase bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">B2B</span>
                       )}
                     </div>
+                    {client.contactName && <p className="admin-text-muted text-xs">Contact: {client.contactName}</p>}
                     {client.email && <p className="admin-text-muted text-xs">{client.email}</p>}
                   </td>
                   <td className="px-4 py-3 admin-text-muted">{client.company || "-"}</td>
