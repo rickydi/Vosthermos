@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import InvoiceSheet from "@/components/admin/InvoiceSheet";
 import { formatDateOnly } from "@/lib/date-only";
 import { buildWhatsAppUrl, openWhatsAppWindow } from "@/lib/whatsapp";
 import { getWorkOrderDocumentMeta, isQuoteStatus } from "@/lib/work-order-document";
@@ -64,6 +63,7 @@ export default function BonDetailPage() {
   const { id } = useParams();
   const [wo, setWo] = useState(null);
   const [company, setCompany] = useState(null);
+  const pdfFrameRef = useRef(null);
   const [sending, setSending] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [msg, setMsg] = useState("");
@@ -335,7 +335,11 @@ export default function BonDetailPage() {
             className="px-4 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium">
             <i className="fas fa-envelope mr-2"></i>Envoyer {documentMeta.label.toLowerCase()}
           </button>
-          <button onClick={() => window.print()}
+          <button onClick={() => {
+              const w = pdfFrameRef.current?.contentWindow;
+              if (w) { try { w.focus(); w.print(); return; } catch { /* fallback */ } }
+              window.open(`/api/admin/work-orders/${id}/pdf?documentType=${documentMeta.type}&inline=1`, "_blank");
+            }}
             className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-medium">
             <i className="fas fa-print mr-2"></i>Imprimer
           </button>
@@ -464,8 +468,16 @@ export default function BonDetailPage() {
         </div>
       )}
 
-      {/* Invoice sheet — WYSIWYG 8.5x11, paginated, prints 1:1 */}
-      <InvoiceSheet wo={wo} company={company} />
+      {/* Apercu = le VRAI PDF (identique au telechargement et a l'email envoye au client) */}
+      <div className="max-w-5xl mx-auto print-hide">
+        <iframe
+          ref={pdfFrameRef}
+          src={`/api/admin/work-orders/${id}/pdf?documentType=${documentMeta.type}&inline=1`}
+          title={`Apercu ${documentMeta.label}`}
+          className="w-full rounded-lg border admin-border bg-white"
+          style={{ height: "min(1150px, calc(100vh - 150px))" }}
+        />
+      </div>
 
       {/* Admin-only extras (NOT in print): signature + photos */}
       {(wo.signatureUrl || (wo.photos && wo.photos.length > 0)) && (

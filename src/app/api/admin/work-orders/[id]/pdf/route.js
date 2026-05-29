@@ -87,10 +87,12 @@ export async function GET(req, { params }) {
   }
 
   const filename = documentFilename(serializedWo, documentMeta);
+  // ?inline=1 -> affichage dans le navigateur (apercu en iframe); sinon telechargement.
+  const disposition = searchParams.get("inline") ? "inline" : "attachment";
   return new Response(pdfBuffer, {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="${filename}"`,
+      "Content-Disposition": `${disposition}; filename="${filename}"`,
       "Cache-Control": "no-store",
     },
   });
