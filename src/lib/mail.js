@@ -1,9 +1,12 @@
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
+import path from "path";
 import { textFromHtml } from "./blog-sanitize";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.vosthermos.com";
 const INSECURE_DEFAULT = "change-this-to-a-random-secret";
+const LOGO_CID = "vosthermos-logo";
+const LOGO_PATH = path.join(process.cwd(), "public", "images", "Vos-Thermos-Logo_Blanc.png");
 
 export function getTransporter() {
   const smtpPort = parseInt(process.env.SMTP_PORT || "587");
@@ -67,43 +70,109 @@ export function verifyApprovalToken(post, token) {
   }
 }
 
-// Envoie le code de connexion 2FA a l'admin. Lance une erreur si l'envoi
-// echoue (le flux de login doit alors refuser la connexion plutot que de
-// laisser l'utilisateur sans code).
+// Envoie le code de connexion 2FA a l'admin. Reproduit EXACTEMENT la recette des
+// emails de facture (envelope/Return-Path aligne, replyTo, header transactionnel
+// X-Entity-Ref-ID, logo inline cid, HTML riche) car ces emails-la arrivent vite
+// chez Gmail. Un mini-email "OTP" nu est traite avec mefiance (livraison lente).
+// Lance une erreur si l'envoi echoue (le flux de login doit alors refuser la
+// connexion plutot que de laisser l'utilisateur sans code).
 export async function sendAdminLoginCodeEmail(toEmail, code) {
   if (!process.env.SMTP_HOST) {
     console.log("SMTP not configured, skipping admin login code email");
     return false;
   }
 
-  const html = `
-    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; background: #fff;">
-      <div style="background: #0a1628; padding: 24px; text-align: center;">
-        <h1 style="color: #fff; margin: 0; font-size: 18px;">Code de connexion</h1>
-        <p style="color: rgba(255,255,255,0.6); margin: 8px 0 0; font-size: 13px;">Panneau d'administration Vosthermos</p>
-      </div>
-      <div style="padding: 28px 24px; text-align: center;">
-        <p style="color: #555; font-size: 14px; margin: 0 0 16px;">Voici votre code de connexion. Il expire dans 30 minutes.</p>
-        <div style="display: inline-block; background: #f3f4f6; border-radius: 12px; padding: 16px 28px; font-size: 34px; font-weight: 800; letter-spacing: 10px; color: #111;">
-          ${code}
-        </div>
-        <p style="color: #999; font-size: 12px; line-height: 1.6; margin: 24px 0 0;">
-          Si vous n'avez pas tente de vous connecter, ignorez ce courriel et changez votre mot de passe.
-        </p>
-      </div>
-      <div style="background: #f9fafb; padding: 14px; text-align: center; border-top: 1px solid #e5e7eb;">
-        <p style="color: #999; font-size: 11px; margin: 0;">Vosthermos — securite du compte</p>
-      </div>
-    </div>
-  `;
+  const fromEmail = process.env.SMTP_USER;
+  const replyToEmail = process.env.SMTP_REPLY_TO || process.env.COMPANY_EMAIL || "info@vosthermos.com";
+
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Code de connexion Vosthermos</title>
+</head>
+<body style="margin:0;padding:0;background-color:#eef1f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#172033;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#eef1f5;padding:34px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="640" cellpadding="0" cellspacing="0" border="0" style="max-width:640px;background-color:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 12px 34px rgba(23,32,51,0.12);">
+          <tr>
+            <td style="background-color:#b91c1c;padding:34px 40px 30px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td valign="middle">
+                    <img src="cid:${LOGO_CID}" alt="Vosthermos" height="104" style="display:block;border:0;outline:none;text-decoration:none;height:104px;width:auto;" />
+                  </td>
+                  <td align="right" valign="middle" style="color:#ffffff;">
+                    <div style="font-size:11px;letter-spacing:2px;opacity:.78;font-weight:700;text-transform:uppercase;">Securite</div>
+                    <div style="font-size:25px;font-weight:800;margin-top:7px;line-height:1.1;">Connexion</div>
+                    <div style="font-size:12px;opacity:.82;margin-top:8px;">Panneau d'administration</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:40px 40px 16px;">
+              <h1 style="margin:0 0 12px;font-size:20px;font-weight:700;color:#111;">Votre code de connexion</h1>
+              <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#374151;">
+                Saisissez ce code pour finaliser votre connexion a l'administration <strong>Vosthermos</strong>. Il expire dans 30 minutes.
+              </p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px;">
+                <tr>
+                  <td align="center">
+                    <div style="display:inline-block;background-color:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:18px 34px;font-size:38px;font-weight:900;letter-spacing:12px;color:#172033;">${code}</div>
+                  </td>
+                </tr>
+              </table>
+              <div style="background-color:#fef2f2;border-left:3px solid #b91c1c;padding:14px 18px;border-radius:0 8px 8px 0;">
+                <div style="font-size:13px;color:#991b1b;font-weight:600;margin-bottom:4px;">Vous n'avez pas tente de vous connecter ?</div>
+                <div style="font-size:13px;color:#555;">Ignorez ce courriel et changez votre mot de passe par precaution.</div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color:#f9fafb;padding:24px 40px;border-top:1px solid #e5e7eb;text-align:center;">
+              <div style="font-size:12px;color:#7b8794;line-height:1.6;">
+                <strong style="color:#172033;">Vosthermos</strong> - Portes et fenetres<br>
+                <a href="${SITE_URL}" style="color:#b91c1c;text-decoration:none;">vosthermos.com</a>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+  const text = `Votre code de connexion Vosthermos : ${code}
+Il expire dans 30 minutes.
+Si vous n'avez pas tente de vous connecter, ignorez ce courriel et changez votre mot de passe.
+
+---
+Vosthermos - Portes et fenetres
+${SITE_URL}`;
 
   const transporter = getTransporter();
   await transporter.sendMail({
-    from: `"Vosthermos" <${process.env.SMTP_USER}>`,
+    from: `"Vosthermos - Securite" <${fromEmail}>`,
     to: toEmail,
+    replyTo: replyToEmail,
+    envelope: { from: fromEmail, to: toEmail },
     subject: "Votre code de connexion Vosthermos",
+    text,
     html,
-    text: `Votre code de connexion Vosthermos : ${code}\nIl expire dans 30 minutes.\nSi vous n'avez pas tente de vous connecter, ignorez ce courriel.`,
+    headers: { "X-Entity-Ref-ID": `vosthermos-2fa-${Date.now()}` },
+    attachments: [
+      {
+        filename: "vosthermos-logo.png",
+        path: LOGO_PATH,
+        cid: LOGO_CID,
+        contentDisposition: "inline",
+      },
+    ],
   });
   return true;
 }
