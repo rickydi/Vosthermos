@@ -1,6 +1,7 @@
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminHeader from "@/components/admin/AdminHeader";
 import AdminThemeProvider from "@/components/admin/AdminThemeProvider";
+import VersionWatcher from "@/components/admin/VersionWatcher";
 
 export const metadata = {
   robots: "noindex, nofollow",
@@ -9,6 +10,7 @@ export const metadata = {
 export default function AdminLayout({ children }) {
   return (
     <AdminThemeProvider>
+      <VersionWatcher />
       <div className="min-h-screen admin-bg flex">
         <AdminSidebar />
         <div className="flex-1 min-w-0 lg:ml-64 min-h-screen flex flex-col">
