@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 
 // Verification 2FA par code email a la connexion admin.
-const CODE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+const CODE_TTL_MS = 30 * 60 * 1000; // 30 minutes (marge pour le delai de livraison Gmail)
 const MAX_ATTEMPTS = 5; // tentatives de saisie par code
 const RESEND_COOLDOWN_MS = 30 * 1000; // anti-spam sur le bouton "renvoyer"
 const BCRYPT_COST = 10;

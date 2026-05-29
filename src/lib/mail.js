@@ -83,7 +83,7 @@ export async function sendAdminLoginCodeEmail(toEmail, code) {
         <p style="color: rgba(255,255,255,0.6); margin: 8px 0 0; font-size: 13px;">Panneau d'administration Vosthermos</p>
       </div>
       <div style="padding: 28px 24px; text-align: center;">
-        <p style="color: #555; font-size: 14px; margin: 0 0 16px;">Voici votre code de connexion. Il expire dans 10 minutes.</p>
+        <p style="color: #555; font-size: 14px; margin: 0 0 16px;">Voici votre code de connexion. Il expire dans 30 minutes.</p>
         <div style="display: inline-block; background: #f3f4f6; border-radius: 12px; padding: 16px 28px; font-size: 34px; font-weight: 800; letter-spacing: 10px; color: #111;">
           ${code}
         </div>
@@ -103,7 +103,7 @@ export async function sendAdminLoginCodeEmail(toEmail, code) {
     to: toEmail,
     subject: "Votre code de connexion Vosthermos",
     html,
-    text: `Votre code de connexion Vosthermos : ${code}\nIl expire dans 10 minutes.\nSi vous n'avez pas tente de vous connecter, ignorez ce courriel.`,
+    text: `Votre code de connexion Vosthermos : ${code}\nIl expire dans 30 minutes.\nSi vous n'avez pas tente de vous connecter, ignorez ce courriel.`,
   });
   return true;
 }
