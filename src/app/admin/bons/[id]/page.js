@@ -7,6 +7,12 @@ import { formatDateOnly } from "@/lib/date-only";
 import { buildWhatsAppUrl, openWhatsAppWindow } from "@/lib/whatsapp";
 import { getWorkOrderDocumentMeta, isQuoteStatus } from "@/lib/work-order-document";
 import { workOrderStatusClass, workOrderStatusLabel } from "@/lib/work-order-status";
+import {
+  buildFriendlyDocumentEmailBody,
+  emailGreetingName,
+  isFriendlyBusinessClient,
+  personalizeDocumentEmailText,
+} from "@/lib/b2b-email-tone";
 
 // Map DB snake_case settings to InvoiceSheet company prop shape
 function mapCompany(s) {
@@ -42,25 +48,15 @@ function defaultEmailSubject(wo, documentMeta) {
   return `${documentMeta.subjectPrefix}${number} - Vosthermos`;
 }
 
-function emailGreetingName(client) {
-  const fallback = client?.type === "gestionnaire" ? "" : client?.name;
-  return String(client?.contactName || fallback || "").trim().replace(/\s{2,}/g, " ");
-}
-
 function personalizeEmailBody(body, client) {
-  const message = String(body || "").replace(/\r\n/g, "\n").trim();
-  const name = emailGreetingName(client);
-  if (!message || !name) return message;
-
-  const english = /^hello\b/i.test(message);
-  const greeting = `${english ? "Hello" : "Bonjour"} ${name},`;
-  if (/^(bonjour|hello)\b[^\n]*(\n|$)/i.test(message)) {
-    return message.replace(/^(bonjour|hello)\b[^\n]*(\n|$)/i, `${greeting}\n`).trim();
-  }
-  return `${greeting}\n\n${message}`.trim();
+  return personalizeDocumentEmailText(body, client);
 }
 
 function defaultEmailBody(wo, documentMeta) {
+  if (isFriendlyBusinessClient(wo?.client)) {
+    return buildFriendlyDocumentEmailBody(wo, documentMeta);
+  }
+
   const name = emailGreetingName(wo?.client);
   return [
     `Bonjour${name ? ` ${name}` : ""},`,

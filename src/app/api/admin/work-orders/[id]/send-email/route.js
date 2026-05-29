@@ -12,6 +12,12 @@ import { getCompany } from "@/lib/company";
 import { getWorkOrderDocumentMeta } from "@/lib/work-order-document";
 import { documentFilename, formatMoneyCad, getDocumentDate, getDocumentTargetDate, resolveDocumentNumber } from "@/lib/vosthermos-document";
 import { buildPaymentTrackingData } from "@/lib/payment-tracking";
+import {
+  buildFriendlyDocumentEmailBody,
+  emailGreetingName,
+  isFriendlyBusinessClient,
+  personalizeDocumentEmailText,
+} from "@/lib/b2b-email-tone";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.vosthermos.com";
 const LOGO_CID = "vosthermos-logo";
@@ -110,22 +116,8 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
-function emailGreetingName(client) {
-  const fallback = client?.type === "gestionnaire" ? "" : client?.name;
-  return String(client?.contactName || fallback || "").trim().replace(/\s{2,}/g, " ");
-}
-
 function personalizePlainMessage(message, client) {
-  const body = String(message || "").replace(/\r\n/g, "\n").trim();
-  const name = emailGreetingName(client);
-  if (!body || !name) return body;
-
-  const english = /^hello\b/i.test(body);
-  const greeting = `${english ? "Hello" : "Bonjour"} ${name},`;
-  if (/^(bonjour|hello)\b[^\n]*(\n|$)/i.test(body)) {
-    return body.replace(/^(bonjour|hello)\b[^\n]*(\n|$)/i, `${greeting}\n`).trim();
-  }
-  return `${greeting}\n\n${body}`.trim();
+  return personalizeDocumentEmailText(message, client);
 }
 
 function renderMessageHtml(message) {
@@ -190,12 +182,12 @@ function renderCustomEmailHtml(wo, documentMeta, documentNumber, filename, messa
 }
 
 function renderCustomEmailText(wo, documentMeta, documentNumber, filename, message) {
+  const hasReplyLine = /repond(re|s|ez)?\s+(simplement\s+)?(ici|a ce courriel)|reply (here|to this email)/i.test(message || "");
   return `${message}
 
 ---
 ${renderDocumentSummaryText(wo, documentMeta, documentNumber, filename)}
-
-Pour la suite, repondez simplement a ce courriel. On garde votre dossier au meme endroit pour vos prochaines reparations ou ajustements.
+${hasReplyLine ? "" : "\nPour la suite, repondez simplement a ce courriel. On garde votre dossier au meme endroit pour vos prochaines reparations ou ajustements.\n"}
 
 Vosthermos - Portes et fenetres
 ${SITE_URL}
@@ -203,6 +195,10 @@ ${SITE_URL}
 }
 
 function renderEmailHtml(wo, documentMeta, documentNumber, filename) {
+  if (isFriendlyBusinessClient(wo.client)) {
+    return renderCustomEmailHtml(wo, documentMeta, documentNumber, filename, buildFriendlyDocumentEmailBody(wo, documentMeta));
+  }
+
   const date = formatEmailDate(getDocumentDate(wo, documentMeta.type));
   const name = emailGreetingName(wo.client);
   return `<!DOCTYPE html>
@@ -316,6 +312,10 @@ function renderEmailHtml(wo, documentMeta, documentNumber, filename) {
 }
 
 function renderEmailText(wo, documentMeta, documentNumber, filename) {
+  if (isFriendlyBusinessClient(wo.client)) {
+    return renderCustomEmailText(wo, documentMeta, documentNumber, filename, buildFriendlyDocumentEmailBody(wo, documentMeta));
+  }
+
   const name = emailGreetingName(wo.client);
   return `Bonjour${name ? ` ${name}` : ""},
 

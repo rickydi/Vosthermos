@@ -9,6 +9,7 @@ const EMPTY_FORM = {
   type: "particulier",
   company: "",
   contactName: "",
+  friendlyEmail: false,
   phone: "",
   secondaryPhone: "",
   email: "",
@@ -70,12 +71,21 @@ export default function ClientsPage() {
     setShowForm(true);
   }
 
+  function setClientType(type) {
+    setForm((prev) => ({
+      ...prev,
+      type,
+      friendlyEmail: type === "gestionnaire" ? (prev.type === "gestionnaire" ? prev.friendlyEmail : true) : false,
+    }));
+  }
+
   function startEdit(client) {
     setForm({
       name: client.name || "",
       type: client.type || "particulier",
       company: client.company || "",
       contactName: client.contactName || "",
+      friendlyEmail: client.friendlyEmail === true,
       phone: client.phone || "",
       secondaryPhone: client.secondaryPhone || "",
       email: client.email || "",
@@ -179,7 +189,7 @@ export default function ClientsPage() {
           <div className="flex gap-2">
             <button
               type="button"
-              onClick={() => setForm({ ...form, type: "particulier" })}
+              onClick={() => setClientType("particulier")}
               className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 form.type === "particulier" ? "bg-[var(--color-red)] text-white" : "admin-card border admin-border admin-text"
               }`}
@@ -188,7 +198,7 @@ export default function ClientsPage() {
             </button>
             <button
               type="button"
-              onClick={() => setForm({ ...form, type: "gestionnaire" })}
+              onClick={() => setClientType("gestionnaire")}
               className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 form.type === "gestionnaire" ? "bg-[var(--color-red)] text-white" : "admin-card border admin-border admin-text"
               }`}
@@ -219,12 +229,26 @@ export default function ClientsPage() {
               className="admin-input border rounded-lg px-4 py-2.5 text-sm"
             />
             {form.type === "gestionnaire" && (
-              <input
-                placeholder="Nom du contact courriel"
-                value={form.contactName}
-                onChange={(e) => setForm({ ...form, contactName: e.target.value })}
-                className="admin-input border rounded-lg px-4 py-2.5 text-sm md:col-span-2"
-              />
+              <>
+                <input
+                  placeholder="Nom du contact courriel"
+                  value={form.contactName}
+                  onChange={(e) => setForm({ ...form, contactName: e.target.value })}
+                  className="admin-input border rounded-lg px-4 py-2.5 text-sm"
+                />
+                <label className="admin-card border admin-border rounded-lg px-4 py-2.5 flex items-center justify-between gap-3 cursor-pointer">
+                  <span>
+                    <span className="admin-text text-sm font-medium block">Courriel amical</span>
+                    <span className="admin-text-muted text-xs">Ton relationnel pour les clients recurrents.</span>
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={form.friendlyEmail}
+                    onChange={(e) => setForm({ ...form, friendlyEmail: e.target.checked })}
+                    className="h-5 w-5 accent-[var(--color-red)]"
+                  />
+                </label>
+              </>
             )}
             <input
               placeholder="Telephone"
@@ -348,6 +372,9 @@ export default function ClientsPage() {
                       </Link>
                       {client.type === "gestionnaire" && (
                         <span className="text-[10px] uppercase bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">B2B</span>
+                      )}
+                      {client.type === "gestionnaire" && client.friendlyEmail && (
+                        <span className="text-[10px] uppercase bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded">Amical</span>
                       )}
                     </div>
                     {client.contactName && <p className="admin-text-muted text-xs">Contact: {client.contactName}</p>}

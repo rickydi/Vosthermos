@@ -403,6 +403,7 @@ function NouveauBonAdmin() {
     phone: "",
     secondaryPhone: "",
     contactName: "",
+    friendlyEmail: false,
     email: "",
     address: "",
     city: "",
@@ -985,6 +986,7 @@ function NouveauBonAdmin() {
           phone: quickClient.phone.trim() || null,
           secondaryPhone: quickClient.secondaryPhone.trim() || null,
           contactName: quickClient.contactName.trim() || null,
+          friendlyEmail: quickClient.type === "gestionnaire" && quickClient.friendlyEmail === true,
           email: quickClient.email.trim() || null,
           address: quickClient.address.trim() || null,
           city: quickClient.city.trim() || null,
@@ -1005,6 +1007,7 @@ function NouveauBonAdmin() {
         phone: "",
         secondaryPhone: "",
         contactName: "",
+        friendlyEmail: false,
         email: "",
         address: "",
         city: "",
@@ -1039,15 +1042,17 @@ function NouveauBonAdmin() {
 
   async function createClientForAiDraft(draftClient = {}, options = {}) {
     const name = String(draftClient.name || draftClient.email || draftClient.phone || "Client a verifier").trim();
+    const type = options.forceGestionnaire || draftClient.type === "gestionnaire" ? "gestionnaire" : "particulier";
     const res = await fetch("/api/admin/clients", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name,
-        type: options.forceGestionnaire || draftClient.type === "gestionnaire" ? "gestionnaire" : "particulier",
+        type,
         phone: draftClient.phone || null,
         secondaryPhone: draftClient.secondaryPhone || null,
         contactName: draftClient.contactName || null,
+        friendlyEmail: type === "gestionnaire",
         email: draftClient.email || null,
         address: draftClient.address || null,
         city: draftClient.city || null,
@@ -1725,15 +1730,33 @@ function NouveauBonAdmin() {
                       onChange={(e) => setQuickClient((p) => ({ ...p, email: e.target.value }))}
                       className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
                     <select value={quickClient.type}
-                      onChange={(e) => setQuickClient((p) => ({ ...p, type: e.target.value }))}
+                      onChange={(e) => {
+                        const type = e.target.value;
+                        setQuickClient((p) => ({
+                          ...p,
+                          type,
+                          friendlyEmail: type === "gestionnaire" ? (p.type === "gestionnaire" ? p.friendlyEmail : true) : false,
+                        }));
+                      }}
                       className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full">
                       <option value="particulier">Particulier</option>
                       <option value="gestionnaire">Gestionnaire / B2B</option>
                     </select>
                     {quickClient.type === "gestionnaire" && (
-                      <input type="text" placeholder="Nom du contact courriel" value={quickClient.contactName}
-                        onChange={(e) => setQuickClient((p) => ({ ...p, contactName: e.target.value }))}
-                        className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
+                      <>
+                        <input type="text" placeholder="Nom du contact courriel" value={quickClient.contactName}
+                          onChange={(e) => setQuickClient((p) => ({ ...p, contactName: e.target.value }))}
+                          className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
+                        <label className="admin-card border admin-border rounded-lg px-3 py-2.5 flex items-center justify-between gap-3 cursor-pointer">
+                          <span className="admin-text text-sm font-medium">Courriel amical</span>
+                          <input
+                            type="checkbox"
+                            checked={quickClient.friendlyEmail}
+                            onChange={(e) => setQuickClient((p) => ({ ...p, friendlyEmail: e.target.checked }))}
+                            className="h-5 w-5 accent-[var(--color-red)]"
+                          />
+                        </label>
+                      </>
                     )}
                     <AddressAutocomplete
                       value={quickClient.address}

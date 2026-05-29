@@ -315,6 +315,7 @@ model Client {
   type           String       @default("particulier") // "particulier" | "gestionnaire"
   company        String?
   contactName    String?      @map("contact_name")
+  friendlyEmail  Boolean      @default(false) @map("friendly_email")
   address        String?
   city           String?
   province       String       @default("QC")

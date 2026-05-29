@@ -78,10 +78,16 @@ export async function PUT(req, { params }) {
   if (conflict) return conflict;
 
   const data = {};
+  const nextType = body.type !== undefined
+    ? (body.type === "gestionnaire" ? "gestionnaire" : "particulier")
+    : existing?.type;
   if (body.name !== undefined) data.name = body.name;
-  if (body.type !== undefined) data.type = body.type === "gestionnaire" ? "gestionnaire" : "particulier";
+  if (body.type !== undefined) data.type = nextType;
   if (body.company !== undefined) data.company = body.company || null;
   if (body.contactName !== undefined) data.contactName = body.contactName || null;
+  if (body.friendlyEmail !== undefined) data.friendlyEmail = nextType === "gestionnaire" && body.friendlyEmail === true;
+  else if (body.type !== undefined && nextType === "gestionnaire" && existing?.type !== "gestionnaire") data.friendlyEmail = true;
+  else if (body.type !== undefined && nextType !== "gestionnaire") data.friendlyEmail = false;
   if (body.address !== undefined) data.address = body.address || null;
   if (body.city !== undefined) data.city = body.city || null;
   if (body.province !== undefined) data.province = body.province || "QC";
@@ -114,6 +120,7 @@ export async function PUT(req, { params }) {
       email: client.email,
       phone: client.phone,
       contactName: client.contactName,
+      friendlyEmail: client.friendlyEmail,
     },
   });
   return NextResponse.json(client);

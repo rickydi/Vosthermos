@@ -13,6 +13,7 @@ import {
   getDocumentDate,
   resolveDocumentNumber,
 } from "@/lib/vosthermos-document";
+import { emailGreetingName, isFriendlyBusinessClient } from "@/lib/b2b-email-tone";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.vosthermos.com";
 const LOGO_CID = "vosthermos-logo";
@@ -73,17 +74,13 @@ function paymentRowsText(payments) {
     .join("\n");
 }
 
-function emailGreetingName(client) {
-  const fallback = client?.type === "gestionnaire" ? "" : client?.name;
-  return String(client?.contactName || fallback || "").trim().replace(/\s{2,}/g, " ");
-}
-
 function renderPaidEmailHtml(wo, documentNumber, filename) {
   const summary = documentPaymentSummary(wo);
   const invoiceDate = formatLongDateFr(getDocumentDate(wo, "invoice"));
   const paidDate = formatLongDateFr(wo.paidAt) || formatLongDateFr(summary.payments.at(-1)?.paidAt) || "";
   const contactName = emailGreetingName(wo.client);
   const logoExists = fs.existsSync(LOGO_PATH);
+  const friendly = isFriendlyBusinessClient(wo.client);
 
   return `<!DOCTYPE html>
 <html lang="fr">
@@ -116,8 +113,11 @@ function renderPaidEmailHtml(wo, documentNumber, filename) {
           <tr>
             <td style="padding:36px 40px 18px;">
               <h1 style="margin:0 0 12px;font-size:20px;font-weight:800;color:#111;">Bonjour${contactName ? ` ${escapeHtml(contactName)}` : ""},</h1>
+              ${friendly ? `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#374151;">J'espere que tu vas bien.</p>` : ""}
               <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#374151;">
-                Nous confirmons que le paiement de votre facture a bien ete recu${paidDate ? ` le <strong>${escapeHtml(paidDate)}</strong>` : ""}. Le PDF paye est joint a ce courriel pour vos dossiers.
+                ${friendly
+                  ? `Nous confirmons que le paiement de la facture a bien ete recu${paidDate ? ` le <strong>${escapeHtml(paidDate)}</strong>` : ""}. Le PDF paye est joint a ce courriel pour tes dossiers.`
+                  : `Nous confirmons que le paiement de votre facture a bien ete recu${paidDate ? ` le <strong>${escapeHtml(paidDate)}</strong>` : ""}. Le PDF paye est joint a ce courriel pour vos dossiers.`}
               </p>
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;margin:22px 0;">
                 <tr>
@@ -143,7 +143,9 @@ function renderPaidEmailHtml(wo, documentNumber, filename) {
               </table>
               <div style="background-color:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 18px;margin:0 0 24px;">
                 <div style="font-size:13px;color:#0f7a53;font-weight:900;margin-bottom:5px;">Pour vos prochains besoins</div>
-                <div style="font-size:14px;color:#4b5563;line-height:1.6;">Gardez ce courriel sous la main. Si une autre fenetre, une porte patio ou une piece de quincaillerie demande un ajustement, repondez simplement ici et on reprendra le dossier rapidement.</div>
+                <div style="font-size:14px;color:#4b5563;line-height:1.6;">${friendly
+                  ? "Si tu as une autre unite, une fenetre difficile a ouvrir ou une piece a remplacer, tu peux simplement me repondre ici et on gardera le dossier au meme endroit."
+                  : "Gardez ce courriel sous la main. Si une autre fenetre, une porte patio ou une piece de quincaillerie demande un ajustement, repondez simplement ici et on reprendra le dossier rapidement."}</div>
               </div>
             </td>
           </tr>
@@ -169,10 +171,11 @@ function renderPaidEmailText(wo, documentNumber, filename) {
   const invoiceDate = formatLongDateFr(getDocumentDate(wo, "invoice"));
   const paidDate = formatLongDateFr(wo.paidAt) || formatLongDateFr(summary.payments.at(-1)?.paidAt) || "";
   const contactName = emailGreetingName(wo.client);
+  const friendly = isFriendlyBusinessClient(wo.client);
 
   return `Bonjour${contactName ? ` ${contactName}` : ""},
 
-Nous confirmons que le paiement de votre facture a bien ete recu${paidDate ? ` le ${paidDate}` : ""}.
+${friendly ? "J'espere que tu vas bien.\n\n" : ""}Nous confirmons que le paiement ${friendly ? "de la facture" : "de votre facture"} a bien ete recu${paidDate ? ` le ${paidDate}` : ""}.
 
 Facture: ${documentNumber}
 Date de facture: ${invoiceDate}
@@ -181,7 +184,7 @@ Total facture: ${formatMoneyCad(summary.total)}
 Paiements recus: ${formatMoneyCad(summary.paidTotal)}
 Solde: ${formatMoneyCad(summary.balanceDue)}
 
-${summary.payments.length ? `Paiements:\n${paymentRowsText(summary.payments)}\n\n` : ""}Gardez ce courriel sous la main. Si une autre fenetre, une porte patio ou une piece de quincaillerie demande un ajustement, repondez simplement ici et on reprendra le dossier rapidement.
+${summary.payments.length ? `Paiements:\n${paymentRowsText(summary.payments)}\n\n` : ""}${friendly ? "Si tu as une autre unite, une fenetre difficile a ouvrir ou une piece a remplacer, tu peux simplement me repondre ici et on gardera le dossier au meme endroit." : "Gardez ce courriel sous la main. Si une autre fenetre, une porte patio ou une piece de quincaillerie demande un ajustement, repondez simplement ici et on reprendra le dossier rapidement."}
 
 Vosthermos
 ${SITE_URL}

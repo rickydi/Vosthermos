@@ -60,13 +60,15 @@ export async function POST(req) {
     return NextResponse.json({ error: "Le nom est requis" }, { status: 400 });
   }
   let client;
+  const type = body.type === "gestionnaire" ? "gestionnaire" : "particulier";
   try {
     client = await prisma.client.create({
       data: {
         name: body.name,
-        type: body.type === "gestionnaire" ? "gestionnaire" : "particulier",
+        type,
         company: body.company || null,
         contactName: body.contactName || null,
+        friendlyEmail: type === "gestionnaire" ? body.friendlyEmail !== false : false,
         address: body.address || null,
         city: body.city || null,
         province: body.province || "QC",
