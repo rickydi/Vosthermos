@@ -47,15 +47,7 @@ export default function RealisationsGrid({ projects, categories }) {
           >
             {/* Before/After visual */}
             <div className="relative aspect-[4/3] overflow-hidden">
-              {project.cardImage ? (
-                <Image
-                  src={project.cardImage}
-                  alt={project.imageAlt || project.title}
-                  fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-              ) : project.comparisonImage ? (
+              {project.comparisonImage ? (
                 <>
                   <Image
                     src={project.comparisonImage}
@@ -73,6 +65,14 @@ export default function RealisationsGrid({ projects, categories }) {
                     </span>
                   </div>
                 </>
+              ) : project.cardImage ? (
+                <Image
+                  src={project.cardImage}
+                  alt={project.imageAlt || project.title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
               ) : project.beforeImage && project.afterImage ? (
                 <>
                   <div className="grid grid-cols-2 h-full">

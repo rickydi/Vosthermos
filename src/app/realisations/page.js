@@ -50,9 +50,9 @@ const projects = [
     city: "Montreal",
     description:
       "Remplacement de la poignee, du mecanisme de verrouillage et des rouleaux d'une porte-patio coulissante. La porte glisse maintenant sans effort et se verrouille parfaitement.",
-    cardImage: "/images/realisations/porte-patio-quincaillerie-remplacement.jpg",
+    comparisonImage: "/images/realisations/quincaillerie-porte-patio-montreal-avant-apres.jpg",
     imageAlt:
-      "Technicien Vos Thermos qui remplace la quincaillerie d'une porte-patio sur un balcon a Montreal",
+      "Avant apres remplacement de quincaillerie de porte-patio sur un duplex a Montreal",
     beforeImage: "/images/realisations/quincaillerie-ajustement-before.jpg",
     afterImage: "/images/realisations/quincaillerie-ajustement-after.jpg",
   },
@@ -63,6 +63,9 @@ const projects = [
     city: "Longueuil",
     description:
       "Restauration complete d'une porte d'entree en bois massif datant de 1920. Poncage, reparation des fissures, remplacement de la quincaillerie et finition avec vernis marin protecteur.",
+    comparisonImage: "/images/realisations/porte-bois-longueuil-avant-apres.jpg",
+    imageAlt:
+      "Avant apres restauration d'une porte en bois centenaire sur une maison de Longueuil",
     beforeImage: "/images/realisations/project-3-before.jpg",
     afterImage: "/images/realisations/project-3-after.jpg",
   },
@@ -73,6 +76,9 @@ const projects = [
     city: "Laval",
     description:
       "Fabrication et installation de 8 moustiquaires sur mesure pour une veranda trois-saisons. Cadres en aluminium avec toile en fibre de verre haute resistance.",
+    comparisonImage: "/images/realisations/moustiquaires-veranda-laval-avant-apres.jpg",
+    imageAlt:
+      "Avant apres installation de moustiquaires sur mesure dans une veranda a Laval",
     beforeImage: "/images/realisations/project-4-before.jpg",
     afterImage: "/images/realisations/project-4-after.jpg",
   },
@@ -83,6 +89,9 @@ const projects = [
     city: "Saint-Hyacinthe",
     description:
       "Remplacement du calfeutrage deteriore sur 12 fenetres en PVC. Elimination des infiltrations d'air et d'eau, amelioration significative de l'efficacite energetique de la maison.",
+    comparisonImage: "/images/realisations/calfeutrage-pvc-saint-hyacinthe-avant-apres.jpg",
+    imageAlt:
+      "Avant apres calfeutrage de fenetres en PVC sur une maison a Saint-Hyacinthe",
     beforeImage: "/images/realisations/project-5-before.jpg",
     afterImage: "/images/realisations/project-5-after.jpg",
   },
@@ -93,6 +102,9 @@ const projects = [
     city: "Boucherville",
     description:
       "Remplacement de 6 unites thermos triple avec gaz argon et Low-E dans un condo au 8e etage. Intervention realisee en une seule journee avec nacelle exterieure.",
+    comparisonImage: "/images/realisations/thermos-condo-boucherville-avant-apres.jpg",
+    imageAlt:
+      "Avant apres remplacement de thermos triple dans un condo a Boucherville",
     beforeImage: "/images/realisations/project-6-before.jpg",
     afterImage: "/images/realisations/project-6-after.jpg",
   },
@@ -103,6 +115,9 @@ const projects = [
     city: "Terrebonne",
     description:
       "Remplacement des mecanismes a cremone defectueux sur 4 fenetres a battant. Les fenetres s'ouvrent et se ferment maintenant facilement et l'etancheite est retrouvee.",
+    comparisonImage: "/images/realisations/cremone-fenetre-terrebonne-avant-apres.jpg",
+    imageAlt:
+      "Avant apres reparation de mecanisme a cremone sur une fenetre a battant a Terrebonne",
     beforeImage: "/images/realisations/project-7-before.jpg",
     afterImage: "/images/realisations/project-7-after.jpg",
   },
@@ -113,6 +128,9 @@ const projects = [
     city: "Chambly",
     description:
       "Restauration de deux portes-fenetres francaises en chene. Reparation des moulures, remplacement des vitres fendillees et application d'une teinture noyer pour retrouver l'eclat original.",
+    comparisonImage: "/images/realisations/portes-fenetres-bois-chambly-avant-apres.jpg",
+    imageAlt:
+      "Avant apres restauration de portes-fenetres francaises en bois a Chambly",
     beforeImage: "/images/realisations/project-8-before.jpg",
     afterImage: "/images/realisations/project-8-after.jpg",
   },
@@ -123,6 +141,9 @@ const projects = [
     city: "Repentigny",
     description:
       "Installation de moustiquaires a enroulement retractables sur 3 portes-patio. Solution elegante et pratique qui s'integre parfaitement au cadre existant.",
+    comparisonImage: "/images/realisations/moustiquaire-enroulement-repentigny-avant-apres.jpg",
+    imageAlt:
+      "Avant apres installation de moustiquaire a enroulement sur une porte-patio a Repentigny",
     beforeImage: "/images/realisations/project-9-before.jpg",
     afterImage: "/images/realisations/project-9-after.jpg",
   },
@@ -133,6 +154,9 @@ const projects = [
     city: "Granby",
     description:
       "Projet complet incluant le remplacement de 10 thermos embues et le recalfeutrage de toutes les fenetres d'une maison bi-generation. Economies d'energie estimees a 25%.",
+    comparisonImage: "/images/realisations/thermos-calfeutrage-granby-avant-apres.jpg",
+    imageAlt:
+      "Avant apres remplacement de thermos et calfeutrage sur une maison bi-generation a Granby",
     beforeImage: "/images/realisations/project-10-before.jpg",
     afterImage: "/images/realisations/project-10-after.jpg",
   },
@@ -143,6 +167,9 @@ const projects = [
     city: "Blainville",
     description:
       "Remplacement des rouleaux uses et du rail endommage d'une porte-patio de 8 pieds. Le proprietaire n'arrivait plus a ouvrir sa porte; elle glisse maintenant comme neuve.",
+    comparisonImage: "/images/realisations/rail-porte-patio-blainville-avant-apres.jpg",
+    imageAlt:
+      "Avant apres remplacement de rail et rouleaux de porte-patio a Blainville",
     beforeImage: "/images/realisations/project-11-before.jpg",
     afterImage: "/images/realisations/project-11-after.jpg",
   },
@@ -153,6 +180,9 @@ const projects = [
     city: "Chateauguay",
     description:
       "Remplacement du calfeutrage exterieur et des coupe-froid sur 20 fenetres d'un immeuble commercial. Travaux realises en fin de semaine pour ne pas perturber les activites.",
+    comparisonImage: "/images/realisations/calfeutrage-commercial-chateauguay-avant-apres.jpg",
+    imageAlt:
+      "Avant apres calfeutrage et coupe-froid sur un immeuble commercial a Chateauguay",
     beforeImage: "/images/realisations/project-12-before.jpg",
     afterImage: "/images/realisations/project-12-after.jpg",
   },
