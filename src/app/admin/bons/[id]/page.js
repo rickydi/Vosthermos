@@ -31,12 +31,67 @@ function mapCompany(s) {
   };
 }
 
+const JASON_WHATSAPP_PHONE = "15148258411";
+
 function formatPhoneForWhatsapp(phone) {
   if (!phone) return "";
   const digits = String(phone).replace(/\D/g, "");
   if (digits.length === 10) return `1${digits}`;
   if (digits.length === 11 && digits.startsWith("1")) return digits;
   return digits;
+}
+
+function adminAbsoluteUrl(path) {
+  if (typeof window === "undefined") return `https://www.vosthermos.com${path}`;
+  return `${window.location.origin}${path}`;
+}
+
+function formatCurrency(value) {
+  return new Intl.NumberFormat("fr-CA", {
+    style: "currency",
+    currency: "CAD",
+  }).format(Number(value) || 0);
+}
+
+function workOrderAddressLine(wo) {
+  return [wo?.interventionAddress, wo?.interventionCity, wo?.interventionPostalCode]
+    .filter(Boolean)
+    .join(", ")
+    || [wo?.client?.address, wo?.client?.city, wo?.client?.postalCode]
+      .filter(Boolean)
+      .join(", ");
+}
+
+function documentDateLabel(documentMeta) {
+  if (documentMeta.type === "invoice") return "Date facture";
+  if (documentMeta.type === "quote") return "Date soumission";
+  return "Date prevue";
+}
+
+function buildJasonDocumentMessage(wo, documentMeta) {
+  const documentUrl = adminAbsoluteUrl(`/admin/bons/${wo.id}`);
+  const pdfUrl = adminAbsoluteUrl(`/api/admin/work-orders/${wo.id}/pdf?documentType=${documentMeta.type}&inline=1`);
+  const address = workOrderAddressLine(wo);
+  const date = wo.date ? formatDateOnly(wo.date, { weekday: "long", day: "numeric", month: "long" }) : "";
+  const units = wo.sections?.length > 0 ? wo.sections.map((section) => section.unitCode).filter(Boolean).join(", ") : "";
+  const description = String(wo.description || "").trim();
+
+  return [
+    `${documentMeta.label} Vosthermos${wo.number ? ` ${wo.number}` : ""}`,
+    "",
+    `Client : ${wo.client?.name || "-"}`,
+    wo.client?.phone ? `Tel : ${wo.client.phone}` : null,
+    address ? `Adresse : ${address}` : null,
+    date ? `${documentDateLabel(documentMeta)} : ${date}` : null,
+    units ? `Unites : ${units}` : null,
+    `Total : ${formatCurrency(wo.total)}`,
+    wo.technician?.name ? `Technicien : ${wo.technician.name}` : null,
+    description ? "" : null,
+    description ? `Description : ${description}` : null,
+    "",
+    `Document admin : ${documentUrl}`,
+    `PDF : ${pdfUrl}`,
+  ].filter((line) => line !== null).join("\n");
 }
 
 function emailDraftStorageKey(workOrderId) {
@@ -267,6 +322,15 @@ export default function BonDetailPage() {
     }
   }
 
+  function sendDocumentToJason() {
+    const meta = getWorkOrderDocumentMeta(wo?.statut);
+    const message = buildJasonDocumentMessage(wo, meta);
+    const popup = openWhatsAppWindow(buildWhatsAppUrl(JASON_WHATSAPP_PHONE, message), 0);
+    setMsg(popup
+      ? `${meta.label} ${wo.number || ""} pret a envoyer a Jason sur WhatsApp.`
+      : "WhatsApp a ete bloque par le navigateur. Autorisez les popups, puis reessayez.");
+  }
+
   if (!wo) return (
     <div className="p-6 lg:p-8 text-center py-12 admin-text-muted">
       <i className="fas fa-spinner fa-spin text-2xl"></i>
@@ -348,6 +412,14 @@ export default function BonDetailPage() {
           <button type="button" onClick={() => { setEmailError(""); setShowEmail(true); }}
             className="px-4 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium">
             <i className="fas fa-envelope mr-2"></i>Envoyer {documentMeta.label.toLowerCase()}
+          </button>
+          <button
+            type="button"
+            onClick={sendDocumentToJason}
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold"
+            title={`Envoyer ${documentMeta.label.toLowerCase()} a Jason sur WhatsApp`}
+          >
+            <i className="fab fa-whatsapp mr-2"></i>Jason
           </button>
           <button onClick={() => {
               const w = pdfFrameRef.current?.contentWindow;
