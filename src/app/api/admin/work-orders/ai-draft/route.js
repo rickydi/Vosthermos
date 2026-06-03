@@ -38,6 +38,24 @@ function emailGreetingName(value) {
   return cleanText(value, 160).replace(/\s{2,}/g, " ").trim();
 }
 
+function looksLikeBusinessName(value) {
+  return /\b(gestion|immobili|syndicat|condo|copropriete|copropriÃ©tÃ©|inc\.?|ltee|ltÃ©e|senc|compagnie|corporation|groupe|proprietes|propriÃ©tÃ©s)\b/i
+    .test(String(value || ""));
+}
+
+function extractCompanyFromRawText(rawText) {
+  const firstLine = String(rawText || "").split(/\r?\n/).map((line) => line.trim()).find(Boolean) || "";
+  if (!firstLine) return "";
+  const emailMatch = firstLine.match(/^(.+?)(?:,|\s)+[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i);
+  const beforeEmail = cleanText(emailMatch?.[1], 160).replace(/[,;]+$/g, "").trim();
+  return beforeEmail && looksLikeBusinessName(beforeEmail) ? formatNameCase(beforeEmail) : "";
+}
+
+function extractContactNameFromRawText(rawText) {
+  const match = String(rawText || "").match(/\bcontact\s*:\s*([^\n\r]+)/i);
+  return formatNameCase(match?.[1] || "");
+}
+
 function personalizeEmailBody(body, clientName) {
   const message = cleanText(body, 2000).replace(/\r\n/g, "\n").trim();
   if (!message) return "";
@@ -130,6 +148,7 @@ function normalizeHardwareRepairDescription(text) {
 function cleanUnitCode(value) {
   const text = cleanText(value, 80)
     .replace(/\s{2,}/g, " ")
+    .replace(/[.;:]+$/g, "")
     .replace(/\bapp\.?\b/gi, "appartement")
     .replace(/\bapt\.?\b/gi, "appartement")
     .replace(/\bunité\b/gi, "unite")
@@ -162,7 +181,7 @@ function splitUnitFromDescription(description) {
 }
 
 function parseUnitLine(line) {
-  const value = cleanText(line, 120).replace(/\s{2,}/g, " ").trim();
+  const value = cleanText(line, 120).replace(/\s{2,}/g, " ").replace(/[.;:]+$/g, "").trim();
   if (!value) return "";
   if (/^(?:appartement|app\.?|apt\.?|unite|unit[eé]?|local|bureau)\s+[A-Za-z0-9][A-Za-z0-9 ._-]{0,32}$/i.test(value)) {
     return cleanUnitCode(value);
@@ -175,7 +194,7 @@ function parseUnitLine(line) {
 
 function parsePricedLine(line) {
   const value = cleanText(line, 300).replace(/\s{2,}/g, " ").trim();
-  const match = value.match(/^(.+?)\s+(\d+(?:[,.]\d{1,2})?)\s*\$?$/);
+  const match = value.match(/^(.+?)\s+(\d+(?:[,.]\d{1,2})?)\s*\$?(?:\s*(?:plus\s*(?:tx|taxes?)|avant\s*taxes?|taxes?\s*en\s*sus))?$/i);
   if (!match) return null;
   const unitPrice = cleanMoney(match[2]);
   if (unitPrice <= 0) return null;
@@ -196,11 +215,19 @@ function parsePricedLine(line) {
   };
 }
 
+function parsePriceOnlyLine(line) {
+  const value = cleanText(line, 80).replace(/\s{2,}/g, " ").trim();
+  const match = value.match(/^(\d+(?:[,.]\d{1,2})?)\s*\$?(?:\s*(?:plus\s*(?:tx|taxes?)|avant\s*taxes?|taxes?\s*en\s*sus))?$/i);
+  if (!match) return 0;
+  return cleanMoney(match[1]);
+}
+
 function extractSectionsFromRawText(rawText) {
   const sections = [];
   const byUnit = new Map();
   const warnings = [];
   let currentUnit = "";
+  let pendingDescription = "";
 
   const ensureSection = (unitCode) => {
     if (!unitCode) return null;
@@ -216,16 +243,37 @@ function extractSectionsFromRawText(rawText) {
     const unitLine = parseUnitLine(line);
     if (unitLine) {
       currentUnit = unitLine;
+      pendingDescription = "";
       ensureSection(currentUnit);
       continue;
     }
 
     const priced = parsePricedLine(line);
-    if (!priced?.item) continue;
-    const unitCode = priced.unitCode || currentUnit;
-    if (!unitCode) continue;
-    warnings.push(...priced.warnings);
-    ensureSection(unitCode)?.items.push(priced.item);
+    if (priced?.item) {
+      const unitCode = priced.unitCode || currentUnit;
+      if (!unitCode) continue;
+      pendingDescription = "";
+      warnings.push(...priced.warnings);
+      ensureSection(unitCode)?.items.push(priced.item);
+      continue;
+    }
+
+    const priceOnly = parsePriceOnlyLine(line);
+    if (priceOnly > 0 && currentUnit && pendingDescription) {
+      const corrected = correctSuspiciousRepairText(normalizeHardwareRepairDescription(pendingDescription));
+      warnings.push(...corrected.warnings);
+      ensureSection(currentUnit)?.items.push({
+        description: corrected.text,
+        quantity: 1,
+        unitPrice: priceOnly,
+      });
+      pendingDescription = "";
+      continue;
+    }
+
+    if (currentUnit && /\b(r[eÃ©]paration|replacement|remplacement|installation|ajustement|nettoyage|fen[eÃª]tre|vitre|thermos|manivelle|charnieres?|charniers?|rail|operateur|op[eÃ©]rateur)\b/i.test(line)) {
+      pendingDescription = pendingDescription ? `${pendingDescription} ${line}` : line;
+    }
   }
 
   return {
@@ -358,6 +406,8 @@ function sanitizeDraft(input, fallbackDocumentType, rawText = "") {
   const rawExtract = extractSectionsFromRawText(rawText);
   const moved = cleanDescriptionAndWarnings(draft.description, initialWarnings);
   const correctionWarnings = [];
+  const rawCompany = extractCompanyFromRawText(rawText);
+  const rawContactName = extractContactNameFromRawText(rawText);
 
   const cleanDraftItem = (item) => {
     const corrected = correctSuspiciousRepairText(normalizeHardwareRepairDescription(item?.description));
@@ -403,9 +453,15 @@ function sanitizeDraft(input, fallbackDocumentType, rawText = "") {
   }
   const sections = Array.from(groupedByUnit.values());
 
-  const billingName = formatNameCase(inferBillingName(client, email.to));
+  const companyName = formatNameCase(client.company || rawCompany || "");
+  const inferredName = inferBillingName(client, email.to);
+  const billingName = formatNameCase(
+    companyName && (!inferredName || !looksLikeBusinessName(inferredName))
+      ? companyName
+      : inferredName,
+  );
   const clientType = sections.length > 0 ? "gestionnaire" : inferClientType({ ...client, name: billingName });
-  const contactName = formatNameCase(client.contactName || client.contact || client.attention || "");
+  const contactName = formatNameCase(client.contactName || client.contact || client.attention || rawContactName || "");
   const correctedDescription = correctSuspiciousRepairText(moved.description || buildDescriptionFromItems(cleanItems, documentType, sections));
   const description = correctedDescription.text;
   const warningList = uniqueWarnings([
@@ -419,6 +475,7 @@ function sanitizeDraft(input, fallbackDocumentType, rawText = "") {
     documentType,
     client: {
       name: billingName,
+      company: companyName || (looksLikeBusinessName(billingName) ? billingName : ""),
       contactName,
       email: cleanText(client.email || email.to, 160),
       phone: cleanText(client.phone, 80),
@@ -488,6 +545,7 @@ Schema:
   "documentType": "invoice" | "quote",
   "client": {
     "name": "nom a facturer",
+    "company": "compagnie ou gestion immobiliere si presente",
     "contactName": "nom complet du contact humain pour les courriels, surtout en B2B",
     "email": "email de facturation",
     "phone": "telephone principal, avec nom du contact si present",
@@ -522,6 +580,7 @@ Regles:
 - Si un mot semble incoherent mais la correction est evidente, applique la correction dans description/items et signale-la dans warnings. Exemple: "Relation de la porte patio" devient "Reparation de la porte patio" et ajoute un warning de correction appliquee.
 - N'ajoute jamais "a commander", "a remplacer", "additionnel" ou une intention similaire si le message original ne le dit pas clairement.
 - Si le message dit "Envoyer la facture a [email]" et que l'email identifie une entite de facturation, utilise cette entite comme client.name. Exemple: syndicat315@... => "Syndicat 315".
+- Si le message commence par une compagnie suivie d'un email, exemple "Gestion Immobiliere Tremcor, aguay@...", mets la compagnie dans client.name et client.company, mets l'email dans client.email et email.to.
 - Les personnes dans "coordonnees" sont des contacts; mets le meilleur contact humain dans client.contactName, mais ne remplace pas le client facture par ce contact si une entite de facturation est donnee.
 - Ne mets pas type "gestionnaire" seulement parce qu'il y a un syndicat ou un condo; utilise "particulier" sauf si le message dit clairement gestionnaire, compagnie, compte commercial, immeuble ou contient des unites/appartements a facturer.
 - Pour items.description, redige des lignes professionnelles et completes. Si le prix semble global pour la reparation, precise que main-d'oeuvre et pieces sont incluses.

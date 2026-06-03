@@ -20,6 +20,7 @@ import { isInvoiceStatus, isQuoteStatus } from "@/lib/work-order-document";
 
 const DRAFT_KEY = "vosthermos:nouveau-bon:draft";
 const AI_IMAGE_SESSION_KEY = "vosthermos:nouveau-bon:ai-image";
+const AI_ANALYSIS_SESSION_KEY = "vosthermos:nouveau-bon:ai-analysis";
 const AI_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 const AI_IMAGE_MAX_COUNT = 6;
 const AI_IMAGE_MAX_BYTES = 8 * 1024 * 1024;
@@ -119,6 +120,45 @@ function clearAiImagesSession(workOrderId) {
   if (typeof window === "undefined") return;
   try {
     window.sessionStorage.removeItem(aiImageStorageKey(workOrderId));
+  } catch {}
+}
+
+function aiAnalysisStorageKey(workOrderId) {
+  return workOrderId ? `${AI_ANALYSIS_SESSION_KEY}:${workOrderId}` : `${AI_ANALYSIS_SESSION_KEY}:draft`;
+}
+
+function normalizeAiAnalysisSession(value) {
+  if (!value || typeof value !== "object") return null;
+  const text = String(value.text || "");
+  const draft = value.draft && typeof value.draft === "object" ? value.draft : null;
+  const emailDraft = value.emailDraft && typeof value.emailDraft === "object" ? value.emailDraft : null;
+  if (!text.trim() && !draft && !emailDraft) return null;
+  return { text, draft, emailDraft };
+}
+
+function saveAiAnalysisSession(value, workOrderId) {
+  const clean = normalizeAiAnalysisSession(value);
+  if (typeof window === "undefined" || !clean) return;
+  try {
+    window.localStorage.setItem(aiAnalysisStorageKey(workOrderId), JSON.stringify(clean));
+  } catch {}
+}
+
+function loadAiAnalysisSession(workOrderId) {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(aiAnalysisStorageKey(workOrderId));
+    if (!raw) return null;
+    return normalizeAiAnalysisSession(JSON.parse(raw));
+  } catch {
+    return null;
+  }
+}
+
+function clearAiAnalysisSession(workOrderId) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(aiAnalysisStorageKey(workOrderId));
   } catch {}
 }
 
@@ -306,21 +346,44 @@ function onlyDigits(value) {
   return String(value || "").replace(/\D/g, "");
 }
 
+function hasMeaningfulText(value) {
+  return String(value || "").trim().length > 0;
+}
+
+function looksLikeProvinceOnly(value) {
+  return /^(qc|quebec|québec)$/i.test(String(value || "").trim());
+}
+
+function looksLikeBusinessName(value) {
+  return /\b(gestion|immobili|syndicat|condo|copropriete|copropriété|inc\.?|ltee|ltée|senc|s\.a\.|compagnie|corporation|groupe|proprietes|propriétés)\b/i
+    .test(String(value || ""));
+}
+
+function draftBusinessName(draftClient = {}) {
+  const company = String(draftClient.company || "").trim();
+  if (company) return company;
+  const name = String(draftClient.name || "").trim();
+  return looksLikeBusinessName(name) ? name : "";
+}
+
 function clientMatchesDraft(client, draftClient = {}) {
   const email = String(draftClient.email || "").trim().toLowerCase();
   const phone = onlyDigits(draftClient.phone);
   const secondaryPhone = onlyDigits(draftClient.secondaryPhone);
   const name = String(draftClient.name || "").trim().toLowerCase();
+  const company = String(draftClient.company || "").trim().toLowerCase();
   if (email && String(client.email || "").trim().toLowerCase() === email) return true;
   const clientPhones = [client.phone, client.secondaryPhone].map(onlyDigits).filter(Boolean);
   if (phone && clientPhones.includes(phone)) return true;
   if (secondaryPhone && clientPhones.includes(secondaryPhone)) return true;
+  if (company && String(client.company || "").trim().toLowerCase() === company) return true;
   return Boolean(name && String(client.name || "").trim().toLowerCase() === name);
 }
 
 function formatDraftClientLine(draftClient = {}) {
   const parts = [
     draftClient.name,
+    draftClient.company ? `Compagnie: ${draftClient.company}` : "",
     draftClient.contactName ? `Contact: ${draftClient.contactName}` : "",
     draftClient.email,
     draftClient.phone,
@@ -328,6 +391,41 @@ function formatDraftClientLine(draftClient = {}) {
     [draftClient.address, draftClient.city, draftClient.postalCode].filter(Boolean).join(", "),
   ].map((value) => String(value || "").trim()).filter(Boolean);
   return parts.length ? parts.join("\n") : "Client a verifier";
+}
+
+function resolveAiEmailDraft(aiDraft = {}, client = null) {
+  const draft = aiDraft && typeof aiDraft === "object" ? aiDraft : {};
+  const email = draft.email && typeof draft.email === "object" ? draft.email : {};
+  const to = [
+    email.to,
+    draft.client?.email,
+    client?.email,
+  ].map((value) => String(value || "").trim()).find(Boolean) || "";
+  const subject = String(email.subject || "").trim();
+  const body = String(email.body || "").trim();
+  if (!to && !subject && !body) return null;
+  return { to, subject, body };
+}
+
+function formatEmailDraftNote(emailDraft) {
+  if (!emailDraft?.body) return "";
+  return [
+    "Email IA propose:",
+    emailDraft.to ? `Destinataire: ${emailDraft.to}` : null,
+    emailDraft.subject ? `Sujet: ${emailDraft.subject}` : null,
+    "",
+    emailDraft.body,
+  ].filter((line) => line !== null).join("\n");
+}
+
+function appendUniqueNoteBlocks(current, blocks) {
+  const existing = String(current || "").trim();
+  const nextBlocks = blocks
+    .map((block) => String(block || "").trim())
+    .filter(Boolean)
+    .filter((block) => !existing.includes(block.slice(0, Math.min(block.length, 220))));
+  if (nextBlocks.length === 0) return existing;
+  return [existing, nextBlocks.join("\n\n")].filter(Boolean).join("\n\n");
 }
 
 function draftItemsToWorkItems(items = []) {
@@ -541,6 +639,7 @@ function NouveauBonAdmin() {
     if (freshDraft) {
       try {
         window.localStorage.removeItem(DRAFT_KEY);
+        clearAiAnalysisSession();
       } catch {}
       draftReady.current = true;
       return;
@@ -571,6 +670,15 @@ function NouveauBonAdmin() {
       if (Array.isArray(draft.sections)) setSections(draft.sections);
       if (draft.laborHours !== undefined) setLaborHours(draft.laborHours);
       if (draft.laborRate !== undefined) setLaborRateValue(Number(draft.laborRate) || 85);
+      if (draft.aiImportText !== undefined) setAiImportText(draft.aiImportText);
+      if (draft.aiDraft && typeof draft.aiDraft === "object") setAiDraft(draft.aiDraft);
+      if (draft.aiEmailDraft && typeof draft.aiEmailDraft === "object") setAiEmailDraft(draft.aiEmailDraft);
+      const savedAi = loadAiAnalysisSession();
+      if (savedAi) {
+        setAiImportText(savedAi.text || "");
+        if (savedAi.draft) setAiDraft(savedAi.draft);
+        if (savedAi.emailDraft) setAiEmailDraft(savedAi.emailDraft);
+      }
       const savedImages = loadAiImagesSession();
       if (savedImages) setAiImportImages(savedImages);
     } catch {
@@ -602,6 +710,9 @@ function NouveauBonAdmin() {
           sections,
           laborHours,
           laborRate,
+          aiImportText,
+          aiDraft,
+          aiEmailDraft,
         }));
       } catch {}
     }, 400);
@@ -625,6 +736,9 @@ function NouveauBonAdmin() {
     sections,
     laborHours,
     laborRate,
+    aiImportText,
+    aiDraft,
+    aiEmailDraft,
   ]);
 
   // Fetch known units when a gestionnaire client is selected
@@ -703,6 +817,12 @@ function NouveauBonAdmin() {
         setLaborHours(rate > 0 ? Math.round((Number(wo.totalLabor) / rate) * 100) / 100 : 0);
         const savedImages = loadAiImagesSession(editId);
         if (savedImages) setAiImportImages(savedImages);
+        const savedAi = loadAiAnalysisSession(editId);
+        if (savedAi) {
+          setAiImportText(savedAi.text || "");
+          if (savedAi.draft) setAiDraft(savedAi.draft);
+          if (savedAi.emailDraft) setAiEmailDraft(savedAi.emailDraft);
+        }
       } catch (err) {
         setError(err.message || "Erreur chargement");
       } finally {
@@ -1053,7 +1173,7 @@ function NouveauBonAdmin() {
   }
 
   async function createClientForAiDraft(draftClient = {}, options = {}) {
-    const name = String(draftClient.name || draftClient.email || draftClient.phone || "Client a verifier").trim();
+    const name = String(draftClient.name || draftClient.company || draftClient.email || draftClient.phone || "Client a verifier").trim();
     const type = options.forceGestionnaire || draftClient.type === "gestionnaire" ? "gestionnaire" : "particulier";
     const res = await fetch("/api/admin/clients", {
       method: "POST",
@@ -1061,6 +1181,7 @@ function NouveauBonAdmin() {
       body: JSON.stringify({
         name,
         type,
+        company: draftClient.company || (looksLikeBusinessName(name) ? name : null),
         phone: draftClient.phone || null,
         secondaryPhone: draftClient.secondaryPhone || null,
         contactName: draftClient.contactName || null,
@@ -1076,17 +1197,49 @@ function NouveauBonAdmin() {
     return data;
   }
 
-  async function updateClientContactName(client, contactName) {
-    const name = String(contactName || "").trim();
-    if (!client?.id || !name || client.contactName) return client;
+  async function updateClientFromAiDraft(client, draftClient = {}, options = {}) {
+    if (!client?.id) return { client, changed: false, error: "" };
+    const data = {};
+    const typeShouldBeGestionnaire = options.forceGestionnaire || draftClient.type === "gestionnaire";
+    const businessName = draftBusinessName(draftClient);
+    const contactName = String(draftClient.contactName || "").trim();
+    const email = String(draftClient.email || "").trim();
+    const phone = String(draftClient.phone || "").trim();
+    const secondaryPhone = String(draftClient.secondaryPhone || "").trim();
+
+    if (typeShouldBeGestionnaire && client.type !== "gestionnaire") {
+      data.type = "gestionnaire";
+      data.friendlyEmail = true;
+    }
+    if (businessName && (!hasMeaningfulText(client.company) || looksLikeProvinceOnly(client.company))) {
+      data.company = businessName;
+    }
+    if (contactName && !hasMeaningfulText(client.contactName)) data.contactName = contactName;
+    if (email && !hasMeaningfulText(client.email)) data.email = email;
+    if (phone && !hasMeaningfulText(client.phone)) data.phone = phone;
+    if (
+      secondaryPhone &&
+      !hasMeaningfulText(client.secondaryPhone) &&
+      onlyDigits(secondaryPhone) !== onlyDigits(client.phone || phone)
+    ) {
+      data.secondaryPhone = secondaryPhone;
+    }
+    if (draftClient.address && !hasMeaningfulText(client.address)) data.address = draftClient.address;
+    if (draftClient.city && !hasMeaningfulText(client.city)) data.city = draftClient.city;
+    if (draftClient.postalCode && !hasMeaningfulText(client.postalCode)) data.postalCode = draftClient.postalCode;
+
+    if (Object.keys(data).length === 0) return { client, changed: false, error: "" };
     const res = await fetch(`/api/admin/clients/${client.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contactName: name }),
+      body: JSON.stringify(data),
     });
-    if (!res.ok) return client;
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      return { client, changed: false, error: error.error || "Fiche client non mise a jour" };
+    }
     const updated = await res.json().catch(() => null);
-    return updated?.id ? updated : { ...client, contactName: name };
+    return { client: updated?.id ? updated : { ...client, ...data }, changed: true, error: "" };
   }
 
   async function attachAiImportImages(filesInput) {
@@ -1145,7 +1298,11 @@ function NouveauBonAdmin() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Erreur analyse IA");
-      setAiDraft(data.draft ? { ...data.draft, analysisCost: data.analysisCost || null } : null);
+      const nextDraft = data.draft ? { ...data.draft, analysisCost: data.analysisCost || null } : null;
+      const nextEmailDraft = nextDraft ? resolveAiEmailDraft(nextDraft, selectedClient) : null;
+      setAiDraft(nextDraft);
+      setAiEmailDraft(nextEmailDraft);
+      saveAiAnalysisSession({ text: aiImportText, draft: nextDraft, emailDraft: nextEmailDraft }, editId);
     } catch (err) {
       setAiDraftError(err.message);
       setAiDraft(null);
@@ -1186,12 +1343,14 @@ function NouveauBonAdmin() {
         setClientResults([]);
         setQuickClientOpen(false);
       }
-      if ((client?.type === "gestionnaire" || hasDraftSections) && draftClient.contactName) {
-        const updatedClient = await updateClientContactName(client, draftClient.contactName);
-        if (updatedClient !== client) {
-          client = updatedClient;
-          selectClient(updatedClient);
-        }
+      const clientUpdate = await updateClientFromAiDraft(client, draftClient, { forceGestionnaire: hasDraftSections });
+      let clientUpdateMessage = "";
+      if (clientUpdate.changed) {
+        client = clientUpdate.client;
+        selectClient(client);
+        clientUpdateMessage = " Fiche client enrichie.";
+      } else if (clientUpdate.error) {
+        clientUpdateMessage = ` Fiche client a verifier: ${clientUpdate.error}`;
       }
 
       setInterventionAddress(aiDraft.intervention?.address || draftClient.address || "");
@@ -1203,22 +1362,22 @@ function NouveauBonAdmin() {
       setSections(draftSections);
       setLaborHours(0);
 
-      const emailDraft = aiDraft.email?.body ? aiDraft.email : null;
+      const emailDraft = resolveAiEmailDraft(aiDraft, client);
       setAiEmailDraft(emailDraft);
+      saveAiAnalysisSession({ text: aiImportText, draft: aiDraft, emailDraft }, editId);
 
       const noteParts = [];
-      if (emailDraft?.body) {
-        noteParts.push(`Email IA propose:\n${emailDraft.body}`);
-      }
+      if (aiImportText.trim()) noteParts.push(`Texte analyse client:\n${aiImportText.trim()}`);
+      if (emailDraft?.body) noteParts.push(formatEmailDraftNote(emailDraft));
       if (Array.isArray(aiDraft.warnings) && aiDraft.warnings.length > 0) {
         noteParts.push(`A verifier:\n- ${aiDraft.warnings.join("\n- ")}`);
       }
       if (noteParts.length > 0) {
-        setNotes((current) => [current, noteParts.join("\n\n")].filter(Boolean).join("\n\n"));
+        setNotes((current) => appendUniqueNoteBlocks(current, noteParts));
       }
 
       const sectionMessage = hasDraftSections ? ` ${draftSections.length} unite${draftSections.length > 1 ? "s" : ""} ajoutee${draftSections.length > 1 ? "s" : ""}.` : "";
-      setAiDraftMessage(`${clientAction}. Brouillon applique au formulaire.${sectionMessage}`);
+      setAiDraftMessage(`${clientAction}.${clientUpdateMessage} Brouillon applique au formulaire.${sectionMessage}`);
     } catch (err) {
       setAiDraftError(err.message);
     } finally {
@@ -1316,9 +1475,17 @@ function NouveauBonAdmin() {
       if (hasAiImages) {
         saveAiImagesSession(aiImportImages, wo.id);
       }
+      if (aiImportText.trim() || aiDraft || aiEmailDraft) {
+        saveAiAnalysisSession({
+          text: aiImportText,
+          draft: aiDraft,
+          emailDraft: aiEmailDraft,
+        }, wo.id);
+      }
       if (!editId) {
         try {
           window.localStorage.removeItem(DRAFT_KEY);
+          clearAiAnalysisSession();
           if (hasAiImages) clearAiImagesSession();
         } catch {}
       }
@@ -1588,8 +1755,10 @@ function NouveauBonAdmin() {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="admin-text text-sm font-bold">{aiDraft.client?.name || "Client a verifier"}</p>
+                      {aiDraft.client?.company && <p className="admin-text-muted text-xs">Compagnie: {aiDraft.client.company}</p>}
                       {aiDraft.client?.contactName && <p className="admin-text-muted text-xs">Contact: {aiDraft.client.contactName}</p>}
-                      <p className="admin-text-muted text-xs">{aiDraft.client?.email || aiDraft.email?.to || "Email a verifier"}</p>
+                      <p className="admin-text-muted text-xs">Client: {aiDraft.client?.email || "Email client a verifier"}</p>
+                      <p className="admin-text-muted text-xs">Destinataire email: {resolveAiEmailDraft(aiDraft, selectedClient)?.to || "A verifier"}</p>
                       <p className="admin-text-muted text-xs">{aiDraft.client?.phone || ""}{aiDraft.client?.secondaryPhone ? ` | ${aiDraft.client.secondaryPhone}` : ""}</p>
                     </div>
                     <span className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase ${
@@ -1651,6 +1820,16 @@ function NouveauBonAdmin() {
                   {aiDraft.email?.body && (
                     <details className="rounded-lg border admin-border p-2">
                       <summary className="cursor-pointer admin-text text-xs font-bold">Email propose</summary>
+                      {resolveAiEmailDraft(aiDraft, selectedClient)?.to && (
+                        <p className="mt-2 text-[10px] font-bold uppercase text-cyan-600">
+                          Destinataire: {resolveAiEmailDraft(aiDraft, selectedClient).to}
+                        </p>
+                      )}
+                      {resolveAiEmailDraft(aiDraft, selectedClient)?.subject && (
+                        <p className="admin-text-muted mt-1 text-xs">
+                          Sujet: {resolveAiEmailDraft(aiDraft, selectedClient).subject}
+                        </p>
+                      )}
                       <p className="admin-text-muted mt-2 whitespace-pre-wrap text-xs">{aiDraft.email.body}</p>
                     </details>
                   )}
@@ -1811,7 +1990,9 @@ function NouveauBonAdmin() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="admin-text font-medium">{selectedClient.name}</p>
+                {selectedClient.company && <p className="admin-text-muted text-sm">Compagnie: {selectedClient.company}</p>}
                 {selectedClient.contactName && <p className="admin-text-muted text-sm">Contact: {selectedClient.contactName}</p>}
+                {selectedClient.email && <p className="admin-text-muted text-sm">{selectedClient.email}</p>}
                 <p className="admin-text-muted text-sm">{selectedClient.phone || "-"}</p>
                 {selectedClient.secondaryPhone && <p className="admin-text-muted text-sm">{selectedClient.secondaryPhone}</p>}
                 {selectedClient.address && <p className="admin-text-muted text-sm">{selectedClient.address}{selectedClient.city ? `, ${selectedClient.city}` : ""}</p>}
