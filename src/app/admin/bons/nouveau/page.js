@@ -318,6 +318,18 @@ function clientMatchesDraft(client, draftClient = {}) {
   return Boolean(name && String(client.name || "").trim().toLowerCase() === name);
 }
 
+function formatDraftClientLine(draftClient = {}) {
+  const parts = [
+    draftClient.name,
+    draftClient.contactName ? `Contact: ${draftClient.contactName}` : "",
+    draftClient.email,
+    draftClient.phone,
+    draftClient.secondaryPhone,
+    [draftClient.address, draftClient.city, draftClient.postalCode].filter(Boolean).join(", "),
+  ].map((value) => String(value || "").trim()).filter(Boolean);
+  return parts.length ? parts.join("\n") : "Client a verifier";
+}
+
 function draftItemsToWorkItems(items = []) {
   return items
     .map((item) => ({
@@ -1155,8 +1167,20 @@ function NouveauBonAdmin() {
       let clientAction = "Client conserve";
       if (!client) {
         const existingClient = await findClientForAiDraft(draftClient);
-        client = existingClient || await createClientForAiDraft(draftClient, { forceGestionnaire: hasDraftSections });
-        clientAction = existingClient ? "Client existant utilise" : "Client cree";
+        if (existingClient) {
+          client = existingClient;
+          clientAction = "Client existant utilise";
+        } else {
+          const shouldCreateClient = window.confirm(
+            `Nouveau client detecte.\n\nAucun client existant n'a ete trouve dans la base de donnees pour:\n\n${formatDraftClientLine(draftClient)}\n\nVoulez-vous l'ajouter a la base de donnees et appliquer au formulaire?`
+          );
+          if (!shouldCreateClient) {
+            setAiDraftMessage("Application annulee. Aucun client cree.");
+            return;
+          }
+          client = await createClientForAiDraft(draftClient, { forceGestionnaire: hasDraftSections });
+          clientAction = "Nouveau client ajoute";
+        }
         selectClient(client);
         setClientSearch("");
         setClientResults([]);
