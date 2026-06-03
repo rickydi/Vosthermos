@@ -73,6 +73,39 @@ export default function RealisationsGrid({ projects, categories }) {
                     </span>
                   </div>
                 </>
+              ) : project.beforeImage && project.afterImage ? (
+                <>
+                  <div className="grid grid-cols-2 h-full">
+                    <div className="relative h-full overflow-hidden">
+                      <Image
+                        src={project.beforeImage}
+                        alt={`${project.title} avant`}
+                        fill
+                        sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 16vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <div className="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded">
+                        Avant
+                      </div>
+                    </div>
+                    <div className="relative h-full overflow-hidden">
+                      <Image
+                        src={project.afterImage}
+                        alt={`${project.title} apres`}
+                        fill
+                        sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 16vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <div className="absolute bottom-2 right-2 bg-[var(--color-red)] text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded">
+                        Apres
+                      </div>
+                    </div>
+                  </div>
+                  <div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-white/80 shadow-sm z-10"></div>
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center z-20">
+                    <i className="fas fa-arrows-alt-h text-gray-400 text-xs"></i>
+                  </div>
+                </>
               ) : (
                 <>
                   <div className="grid grid-cols-2 h-full">
