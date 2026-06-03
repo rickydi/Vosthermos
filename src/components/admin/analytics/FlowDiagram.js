@@ -35,10 +35,34 @@ function getLabel(page) {
     if (page === prefix) return label;
     if (page.startsWith(prefix + "/")) {
       const sub = page.replace(prefix + "/", "");
-      return label + " / " + (sub.length > 10 ? sub.substring(0, 10) + "…" : sub);
+      return label + " / " + (sub.length > 28 ? sub.substring(0, 28) + "..." : sub);
     }
   }
-  return page.length > 16 ? page.substring(0, 16) + "…" : page;
+  return page.length > 36 ? page.substring(0, 36) + "..." : page;
+}
+
+function getPageHref(page) {
+  if (!page) return "/";
+  if (page.startsWith("http://") || page.startsWith("https://")) return page;
+  return page.startsWith("/") ? page : `/${page}`;
+}
+
+function PageLink({ page, x, y, textAnchor }) {
+  return (
+    <a href={getPageHref(page)} target="_blank" rel="noopener noreferrer">
+      <title>{`Ouvrir ${page}`}</title>
+      <text
+        x={x}
+        y={y}
+        textAnchor={textAnchor}
+        fill="#bfdbfe"
+        fontSize={5}
+        style={{ cursor: "pointer" }}
+      >
+        {getLabel(page)}
+      </text>
+    </a>
+  );
 }
 
 export default function FlowDiagram({ query }) {
@@ -103,7 +127,7 @@ export default function FlowDiagram({ query }) {
             <g key={`f-${page}`}>
               <circle cx={lx} cy={y} r={5} fill={getColor(page)} fillOpacity={0.2} stroke={getColor(page)} strokeWidth={1} />
               <text x={lx} y={y + 2} textAnchor="middle" fill="#fff" fontSize={4.5} fontWeight="bold">{fromTotals.get(page) || 0}</text>
-              <text x={lx - 8} y={y + 2} textAnchor="end" fill="#9ca3af" fontSize={5}>{getLabel(page)}</text>
+              <PageLink page={page} x={lx - 8} y={y + 2} textAnchor="end" />
             </g>
           );
         })}
@@ -114,7 +138,7 @@ export default function FlowDiagram({ query }) {
             <g key={`t-${page}`}>
               <circle cx={rx} cy={y} r={5} fill={getColor(page)} fillOpacity={0.2} stroke={getColor(page)} strokeWidth={1} />
               <text x={rx} y={y + 2} textAnchor="middle" fill="#fff" fontSize={4.5} fontWeight="bold">{toTotals.get(page) || 0}</text>
-              <text x={rx + 8} y={y + 2} textAnchor="start" fill="#9ca3af" fontSize={5}>{getLabel(page)}</text>
+              <PageLink page={page} x={rx + 8} y={y + 2} textAnchor="start" />
             </g>
           );
         })}
@@ -143,9 +167,10 @@ export default function FlowDiagram({ query }) {
                   <animateMotion dur="3s" begin={`${(p / pc) * 3}s`} repeatCount="indefinite" path={d} />
                 </circle>
               ))}
-              <path d={d} fill="none" stroke="transparent" strokeWidth={Math.max(t, 10)} style={{ cursor: "pointer" }}>
-                <title>{`${getLabel(f.from)} → ${getLabel(f.to)}: ${f.count}`}</title>
-              </path>
+              <a href={getPageHref(f.to)} target="_blank" rel="noopener noreferrer">
+                <title>{`${f.from} -> ${f.to}: ${f.count}`}</title>
+                <path d={d} fill="none" stroke="transparent" strokeWidth={Math.max(t, 10)} style={{ cursor: "pointer" }} />
+              </a>
             </g>
           );
         })}
