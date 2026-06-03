@@ -18,6 +18,7 @@ import { changedFields, logAdminActivity } from "@/lib/admin-activity";
 import { buildPaymentTrackingData } from "@/lib/payment-tracking";
 import { staleUpdateResponse } from "@/lib/optimistic-lock";
 import { publishAdminEvent } from "@/lib/event-bus";
+import { isInvoiceStatus, isQuoteStatus } from "@/lib/work-order-document";
 
 async function validateFollowUpForClient(followUpId, clientId) {
   if (!followUpId) return null;
@@ -143,7 +144,8 @@ export async function PUT(req, { params }) {
   const followUpStatut = body.followUpStatus
     ? workOrderStatutFromFollowUpStatus(body.followUpStatus, followUpColumns)
     : null;
-  const statut = followUpStatut || explicitStatut || existing.statut;
+  const explicitDocumentStatut = isQuoteStatus(explicitStatut) || isInvoiceStatus(explicitStatut);
+  const statut = explicitDocumentStatut ? explicitStatut : followUpStatut || explicitStatut || existing.statut;
   const rebuildLines = body.items !== undefined || body.sections !== undefined;
   const shouldRecalcTotals = rebuildLines || body.laborHours !== undefined || body.laborRate !== undefined;
   const { flatItems, sections, allForCalc } = flattenSectionsBody(body);

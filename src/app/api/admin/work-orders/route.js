@@ -18,6 +18,7 @@ import { parseDateOnly } from "@/lib/date-only";
 import { logAdminActivity } from "@/lib/admin-activity";
 import { buildPaymentTrackingData } from "@/lib/payment-tracking";
 import { clampInt } from "@/lib/api-utils";
+import { isInvoiceStatus, isQuoteStatus } from "@/lib/work-order-document";
 
 async function validateFollowUpForClient(followUpId, clientId) {
   if (!followUpId) return null;
@@ -107,7 +108,8 @@ export async function POST(req) {
   const followUpStatut = body.followUpStatus
     ? workOrderStatutFromFollowUpStatus(body.followUpStatus, followUpColumns)
     : null;
-  const statut = followUpStatut || explicitStatut || "draft";
+  const explicitDocumentStatut = isQuoteStatus(explicitStatut) || isInvoiceStatus(explicitStatut);
+  const statut = explicitDocumentStatut ? explicitStatut : followUpStatut || explicitStatut || "draft";
 
   const { flatItems, sections, allForCalc } = flattenSectionsBody(body);
   const laborHours = Number(body.laborHours) || 0;
