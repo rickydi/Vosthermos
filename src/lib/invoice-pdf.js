@@ -41,6 +41,11 @@ const FOOTER_GAP = 8;
 const LINE_GAP = 1; // interligne resserre (avant 1.5) pour densifier le PDF
 
 const BODY_FONT_SIZE = 12;
+const INFO_TITLE_SIZE = 10;
+const INFO_NAME_SIZE = 10.5;
+const INFO_BODY_SIZE = 10;
+const INFO_PAD_X = 12;
+const INFO_PAD_Y = 11;
 const COL_NUM = 34;
 const COL_UNIT = 68;
 const COL_QTY = 48;
@@ -155,23 +160,18 @@ function drawCompactHeader(doc, wo, meta, documentNumber, pageNum) {
 }
 
 function drawInfoBox(doc, wo, company, meta, documentNumber, y) {
-  const h = 188;
-  const colW = CONTENT_W / 2;
   const date = getDocumentDate(wo, meta.type);
   const targetDate = getDocumentTargetDate(wo, meta.type);
   const companyName = (company.legal || "Vosthermos").split(" - ")[0];
   const projectAddress = getProjectAddress(wo, false);
 
-  doc.rect(LEFT_M, y, CONTENT_W, h).fillAndStroke(LIGHT_GRAY, MID_GRAY);
-  doc.moveTo(LEFT_M + colW, y).lineTo(LEFT_M + colW, y + h).strokeColor(MID_GRAY).lineWidth(0.5).stroke();
+  const leftW = Math.round(CONTENT_W * 0.49);
+  const rightW = CONTENT_W - leftW;
+  const leftX = LEFT_M + INFO_PAD_X;
+  const rightX = LEFT_M + leftW + INFO_PAD_X;
+  const leftLineW = leftW - INFO_PAD_X * 2;
+  const rightLineW = rightW - INFO_PAD_X * 2;
 
-  const leftX = LEFT_M + 10;
-  const rightX = LEFT_M + colW + 10;
-  const lineW = colW - 20;
-
-  doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE).text("CLIENT", leftX, y + 12, { width: lineW });
-  doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE).text(wo.client?.name || "-", leftX, y + 34, { width: lineW });
-  let cy = y + 54;
   const clientLines = [
     wo.client?.company,
     wo.client?.address,
@@ -179,22 +179,6 @@ function drawInfoBox(doc, wo, company, meta, documentNumber, y) {
     wo.client?.phone ? `Tel. : ${wo.client.phone}` : null,
     wo.client?.email,
   ].filter(Boolean);
-  doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(BODY_FONT_SIZE);
-  for (const line of clientLines) {
-    doc.text(line, leftX, cy, { width: lineW });
-    cy += 16;
-  }
-  if (projectAddress) {
-    cy += 6;
-    doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE)
-      .text("ADRESSE DES TRAVAUX", leftX, cy, { width: lineW });
-    cy += 17;
-    doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(BODY_FONT_SIZE)
-      .text(projectAddress, leftX, cy, { width: lineW, lineGap: LINE_GAP });
-  }
-
-  doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE).text("DETAILS", rightX, y + 12, { width: lineW });
-  let dy = y + 36;
   const details = [
     ["Compagnie", companyName],
     ["Email", company.email || "info@vosthermos.com"],
@@ -203,16 +187,61 @@ function drawInfoBox(doc, wo, company, meta, documentNumber, y) {
     ["Type", getProjectType(wo)],
     [meta.numberLabel, documentNumber],
   ].filter(Boolean);
+  const labelW = meta.numberLabel.length > 13 ? 104 : 92;
+  const valueGap = 8;
+  const valueW = rightLineW - labelW - valueGap;
 
-  const labelW = 116;
-  const valueGap = 6;
-  const valueX = rightX + labelW + valueGap;
-  const valueW = lineW - labelW - valueGap;
+  const titleH = textHeight(doc, "CLIENT", leftLineW, INFO_TITLE_SIZE, "Helvetica-Bold");
+  let leftContentH = titleH + 8 + textHeight(doc, wo.client?.name || "-", leftLineW, INFO_NAME_SIZE, "Helvetica-Bold") + 6;
+  for (const line of clientLines) {
+    leftContentH += Math.max(12, textHeight(doc, line, leftLineW, INFO_BODY_SIZE, "Helvetica")) + 2;
+  }
+  if (projectAddress) {
+    leftContentH += 7 + textHeight(doc, "ADRESSE DES TRAVAUX", leftLineW, INFO_TITLE_SIZE, "Helvetica-Bold") + 5;
+    leftContentH += textHeight(doc, projectAddress, leftLineW, INFO_BODY_SIZE, "Helvetica") + 2;
+  }
+
+  let rightContentH = textHeight(doc, "DETAILS", rightLineW, INFO_TITLE_SIZE, "Helvetica-Bold") + 12;
   for (const [label, value] of details) {
-    const rowH = Math.max(18, textHeight(doc, value || "-", valueW, BODY_FONT_SIZE, "Helvetica") + 3);
-    doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE).text(`${label} :`, rightX, dy, { width: labelW });
-    doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(BODY_FONT_SIZE).text(String(value || "-"), valueX, dy, { width: valueW, lineGap: LINE_GAP });
-    dy += rowH;
+    const labelH = textHeight(doc, `${label} :`, labelW, INFO_BODY_SIZE, "Helvetica-Bold");
+    const valueH = textHeight(doc, value || "-", valueW, INFO_BODY_SIZE, "Helvetica");
+    rightContentH += Math.max(13, labelH, valueH) + 4;
+  }
+
+  const h = Math.max(150, Math.ceil(Math.max(leftContentH, rightContentH) + INFO_PAD_Y * 2));
+
+  doc.rect(LEFT_M, y, CONTENT_W, h).fillAndStroke(LIGHT_GRAY, MID_GRAY);
+  doc.moveTo(LEFT_M + leftW, y).lineTo(LEFT_M + leftW, y + h).strokeColor(MID_GRAY).lineWidth(0.5).stroke();
+
+  doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(INFO_TITLE_SIZE).text("CLIENT", leftX, y + INFO_PAD_Y, { width: leftLineW });
+  let cy = y + INFO_PAD_Y + titleH + 8;
+  doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(INFO_NAME_SIZE).text(wo.client?.name || "-", leftX, cy, { width: leftLineW });
+  cy += textHeight(doc, wo.client?.name || "-", leftLineW, INFO_NAME_SIZE, "Helvetica-Bold") + 6;
+  doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(INFO_BODY_SIZE);
+  for (const line of clientLines) {
+    const lineH = Math.max(12, textHeight(doc, line, leftLineW, INFO_BODY_SIZE, "Helvetica"));
+    doc.text(line, leftX, cy, { width: leftLineW, lineGap: LINE_GAP });
+    cy += lineH + 2;
+  }
+  if (projectAddress) {
+    cy += 7;
+    doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(INFO_TITLE_SIZE)
+      .text("ADRESSE DES TRAVAUX", leftX, cy, { width: leftLineW });
+    cy += textHeight(doc, "ADRESSE DES TRAVAUX", leftLineW, INFO_TITLE_SIZE, "Helvetica-Bold") + 5;
+    doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(INFO_BODY_SIZE)
+      .text(projectAddress, leftX, cy, { width: leftLineW, lineGap: LINE_GAP });
+  }
+
+  doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(INFO_TITLE_SIZE).text("DETAILS", rightX, y + INFO_PAD_Y, { width: rightLineW });
+  let dy = y + INFO_PAD_Y + textHeight(doc, "DETAILS", rightLineW, INFO_TITLE_SIZE, "Helvetica-Bold") + 12;
+  const valueX = rightX + labelW + valueGap;
+  for (const [label, value] of details) {
+    const labelH = textHeight(doc, `${label} :`, labelW, INFO_BODY_SIZE, "Helvetica-Bold");
+    const valueH = textHeight(doc, value || "-", valueW, INFO_BODY_SIZE, "Helvetica");
+    const rowH = Math.max(13, labelH, valueH);
+    doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(INFO_BODY_SIZE).text(`${label} :`, rightX, dy, { width: labelW });
+    doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(INFO_BODY_SIZE).text(String(value || "-"), valueX, dy, { width: valueW, lineGap: LINE_GAP });
+    dy += rowH + 4;
   }
 
   return y + h + 16;
