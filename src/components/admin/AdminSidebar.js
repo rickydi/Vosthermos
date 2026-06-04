@@ -127,6 +127,7 @@ function initialMenuLayout() {
 export default function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const isLoginRoute = pathname === "/admin/login";
   const sectionPickerRef = useRef(null);
   const originalTitleRef = useRef(null);
   const originalFaviconHrefRef = useRef(null);
@@ -150,6 +151,8 @@ export default function AdminSidebar() {
   const activeBadges = { unreadChat, pendingRdv, pendingRequests, dueFollowUps };
 
   useEffect(() => {
+    if (isLoginRoute) return undefined;
+
     let cancelled = false;
     queueMicrotask(() => {
       if (cancelled) return;
@@ -181,7 +184,7 @@ export default function AdminSidebar() {
       cancelled = true;
       window.removeEventListener("admin-menu-updated", handleMenuUpdate);
     };
-  }, []);
+  }, [isLoginRoute]);
 
   useEffect(() => {
     if (!sectionPickerOpen) return undefined;
@@ -195,10 +198,24 @@ export default function AdminSidebar() {
   }, [sectionPickerOpen]);
 
   useEffect(() => {
+    if (isLoginRoute) return undefined;
+
+    let cancelled = false;
+    let authBlocked = false;
+
+    function clearBadges() {
+      setUnreadChat(0);
+      setPendingRdv(0);
+      setPendingRequests(0);
+      setDueFollowUps(0);
+    }
+
     async function fetchBadges() {
+      if (authBlocked || cancelled) return;
+
       try {
         const noCache = { cache: "no-store", headers: { "Cache-Control": "no-cache" } };
-        const [chatRes, rdvRes, reqRes, followUpRes] = await Promise.all([
+        const responses = await Promise.all([
           fetch("/api/admin/chat", noCache),
           fetch("/api/admin/appointments?status=pending", noCache),
           fetch("/api/admin/work-orders/pending-count", noCache),
@@ -210,19 +227,34 @@ export default function AdminSidebar() {
             body: JSON.stringify({ action: "process-due" }),
           }),
         ]);
+        if (cancelled) return;
+
+        if (responses.some((res) => res.status === 401 || res.status === 403)) {
+          authBlocked = true;
+          clearBadges();
+          return;
+        }
+
+        if (responses.some((res) => !res.ok)) return;
+
+        const [chatRes, rdvRes, reqRes, followUpRes] = responses;
         const chatData = await chatRes.json();
+        if (cancelled) return;
         if (Array.isArray(chatData)) {
           setUnreadChat(chatData.filter((c) => Number(c.unreadCount || 0) > 0).length);
         }
         const rdvData = await rdvRes.json();
+        if (cancelled) return;
         if (Array.isArray(rdvData)) {
           setPendingRdv(rdvData.length);
         }
         const reqData = await reqRes.json();
+        if (cancelled) return;
         if (typeof reqData?.count === "number") {
           setPendingRequests(reqData.count);
         }
         const followUpData = await followUpRes.json();
+        if (cancelled) return;
         if (typeof followUpData?.count === "number") {
           setDueFollowUps(followUpData.count);
         }
@@ -234,11 +266,12 @@ export default function AdminSidebar() {
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onFocus);
     return () => {
+      cancelled = true;
       clearInterval(interval);
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onFocus);
     };
-  }, []);
+  }, [isLoginRoute]);
 
   useEffect(() => {
     if (!originalTitleRef.current) {
@@ -267,7 +300,7 @@ export default function AdminSidebar() {
     return () => clearInterval(interval);
   }, [unreadChat, pathname]);
 
-  if (pathname === "/admin/login") return null;
+  if (isLoginRoute) return null;
 
   function handleSectionSelect(sectionKey) {
     const section = sections.find((item) => item.key === sectionKey);
