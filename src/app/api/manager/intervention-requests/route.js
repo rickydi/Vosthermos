@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getManagerFromCookie, hasPermission, canAccessClient } from "@/lib/manager-auth";
 import { generateWorkOrderNumber, withWorkOrderNumberRetry } from "@/lib/work-order-utils";
-import { getMailEnvelopeFrom, getMailFromHeader, getReplyToEmail, getTransporter } from "@/lib/mail";
+import { getMailEnvelopeFrom, getMailFromHeader, getReplyToEmail, getTransporter, isMailDeliveryConfigured } from "@/lib/mail";
 import { COMPANY_INFO } from "@/lib/company-info";
 
 export const dynamic = "force-dynamic";
@@ -111,7 +111,7 @@ export async function POST(req) {
   const number = wo.number;
 
   // Email admin (best effort)
-  if (process.env.SMTP_HOST) {
+  if (isMailDeliveryConfigured()) {
     try {
       const transporter = getTransporter();
       const unitsHtml = sectionsData.length > 0

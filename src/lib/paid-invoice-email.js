@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { getMailEnvelopeFrom, getMailFromHeader, getReplyToEmail, getTransporter } from "@/lib/mail";
+import { getMailConfigurationError, getMailEnvelopeFrom, getMailFromHeader, getReplyToEmail, getTransporter, isMailDeliveryConfigured } from "@/lib/mail";
 import { getWorkOrderSettings } from "@/lib/work-order-utils";
 import { generateInvoicePdf } from "@/lib/invoice-pdf";
 import { getCompany } from "@/lib/company";
@@ -192,8 +192,8 @@ ${SITE_URL}
 }
 
 export async function sendPaidInvoiceEmail(workOrder, { to } = {}) {
-  if (!process.env.SMTP_HOST) {
-    throw new Error("SMTP non configure (SMTP_HOST manquant)");
+  if (!isMailDeliveryConfigured()) {
+    throw new Error(getMailConfigurationError() || "Courriel non configure");
   }
 
   const recipient = String(to || workOrder.client?.email || "").trim();

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import path from "path";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
-import { getMailEnvelopeFrom, getMailFromHeader, getReplyToEmail, getTransporter } from "@/lib/mail";
+import { getMailConfigurationError, getMailEnvelopeFrom, getMailFromHeader, getReplyToEmail, getTransporter, isMailDeliveryConfigured } from "@/lib/mail";
 import { getWorkOrderSettings } from "@/lib/work-order-utils";
 import { generateInvoicePdf } from "@/lib/invoice-pdf";
 import { formatDateOnly } from "@/lib/date-only";
@@ -339,8 +339,8 @@ export async function POST(req, { params }) {
   let session;
   try { session = await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
 
-  if (!process.env.SMTP_HOST) {
-    return NextResponse.json({ error: "SMTP non configure (SMTP_HOST manquant)" }, { status: 500 });
+  if (!isMailDeliveryConfigured()) {
+    return NextResponse.json({ error: getMailConfigurationError() || "Courriel non configure" }, { status: 500 });
   }
 
   const { id } = await params;

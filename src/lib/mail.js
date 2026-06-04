@@ -2,6 +2,7 @@ import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 import path from "path";
 import { textFromHtml } from "./blog-sanitize";
+import { getGmailApiConfigStatus, sendMailWithGmailApi } from "./gmail-api-mail";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.vosthermos.com";
 const INSECURE_DEFAULT = "change-this-to-a-random-secret";
@@ -9,7 +10,9 @@ const LOGO_CID = "vosthermos-logo";
 const LOGO_PATH = path.join(process.cwd(), "public", "images", "Vos-Thermos-Logo_Blanc.png");
 const DEFAULT_COMPANY_EMAIL = "info@vosthermos.com";
 
-export function getTransporter() {
+let warnedGmailFallback = false;
+
+function getSmtpTransporter() {
   const smtpPort = parseInt(process.env.SMTP_PORT || "587");
   const smtpHost = process.env.SMTP_HOST;
   const connectHost = process.env.SMTP_CONNECT_HOST || smtpHost;
@@ -31,8 +34,49 @@ export function getTransporter() {
   });
 }
 
+export function isMailDeliveryConfigured() {
+  const gmailStatus = getGmailApiConfigStatus();
+  if (gmailStatus.requested && gmailStatus.configured) return true;
+  return Boolean(process.env.SMTP_HOST);
+}
+
+export function getMailConfigurationError() {
+  const gmailStatus = getGmailApiConfigStatus();
+  if (gmailStatus.requested && !gmailStatus.configured && !process.env.SMTP_HOST) {
+    return `Gmail API incomplet (${gmailStatus.missing.join(", ")}) et SMTP_HOST manquant`;
+  }
+  if (!process.env.SMTP_HOST) {
+    return "Aucun transport courriel configure (Gmail API ou SMTP_HOST)";
+  }
+  return null;
+}
+
+export function getMailTransportName() {
+  const gmailStatus = getGmailApiConfigStatus();
+  if (gmailStatus.requested && gmailStatus.configured) return `gmail-api:${gmailStatus.mode}`;
+  return "smtp";
+}
+
+export function getTransporter() {
+  const gmailStatus = getGmailApiConfigStatus();
+  if (gmailStatus.requested && gmailStatus.configured) {
+    return {
+      sendMail: sendMailWithGmailApi,
+    };
+  }
+
+  if (gmailStatus.requested && !gmailStatus.configured && process.env.SMTP_HOST && !warnedGmailFallback) {
+    warnedGmailFallback = true;
+    console.warn(`[mail] Gmail API incomplet (${gmailStatus.missing.join(", ")}). Fallback SMTP actif.`);
+  }
+
+  return getSmtpTransporter();
+}
+
 export function getMailFromEmail() {
   return (
+    process.env.GMAIL_API_FROM ||
+    process.env.GMAIL_API_USER ||
     process.env.SMTP_FROM ||
     process.env.MAIL_FROM ||
     process.env.COMPANY_EMAIL ||
@@ -46,7 +90,7 @@ export function getMailEnvelopeFrom() {
 }
 
 export function getReplyToEmail() {
-  return (process.env.SMTP_REPLY_TO || process.env.COMPANY_EMAIL || getMailFromEmail() || DEFAULT_COMPANY_EMAIL).trim();
+  return (process.env.GMAIL_API_REPLY_TO || process.env.SMTP_REPLY_TO || process.env.COMPANY_EMAIL || getMailFromEmail() || DEFAULT_COMPANY_EMAIL).trim();
 }
 
 export function getMailFromHeader(label = "Vosthermos") {
@@ -100,8 +144,8 @@ export function verifyApprovalToken(post, token) {
 // Lance une erreur si l'envoi echoue (le flux de login doit alors refuser la
 // connexion plutot que de laisser l'utilisateur sans code).
 export async function sendAdminLoginCodeEmail(toEmail, code) {
-  if (!process.env.SMTP_HOST) {
-    console.log("SMTP not configured, skipping admin login code email");
+  if (!isMailDeliveryConfigured()) {
+    console.log("Mail not configured, skipping admin login code email");
     return false;
   }
 
@@ -200,8 +244,8 @@ ${SITE_URL}`;
 }
 
 export async function sendBlogApprovalEmail(post, prisma) {
-  if (!process.env.SMTP_HOST) {
-    console.log("SMTP not configured, skipping approval email");
+  if (!isMailDeliveryConfigured()) {
+    console.log("Mail not configured, skipping approval email");
     return false;
   }
 

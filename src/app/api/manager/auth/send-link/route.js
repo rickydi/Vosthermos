@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { createMagicToken } from "@/lib/manager-auth";
-import { getMailEnvelopeFrom, getMailFromHeader, getReplyToEmail, getTransporter } from "@/lib/mail";
+import { getMailEnvelopeFrom, getMailFromHeader, getReplyToEmail, getTransporter, isMailDeliveryConfigured } from "@/lib/mail";
 import { COMPANY_INFO } from "@/lib/company-info";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.vosthermos.com";
@@ -25,9 +25,9 @@ export async function POST(req) {
     const token = await createMagicToken(manager);
     const loginUrl = `${SITE_URL}/api/manager/auth/verify?token=${token}`;
 
-    if (!process.env.SMTP_HOST) {
+    if (!isMailDeliveryConfigured()) {
       if (isProduction) {
-        console.error("Manager magic link requested but SMTP_HOST is not configured.");
+        console.error("Manager magic link requested but mail delivery is not configured.");
         return NextResponse.json({ error: "Envoi du lien temporairement indisponible" }, { status: 503 });
       }
       console.log(`[DEV] Magic link for ${normalized}: ${loginUrl}`);

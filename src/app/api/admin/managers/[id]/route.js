@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { createMagicToken, createSession, MANAGER_COOKIE } from "@/lib/manager-auth";
 import { DEFAULT_MANAGER_PERMISSIONS } from "@/lib/manager-permissions";
-import { getMailEnvelopeFrom, getMailFromHeader, getReplyToEmail, getTransporter } from "@/lib/mail";
+import { getMailConfigurationError, getMailEnvelopeFrom, getMailFromHeader, getReplyToEmail, getTransporter, isMailDeliveryConfigured } from "@/lib/mail";
 import { COMPANY_INFO } from "@/lib/company-info";
 
 export const dynamic = "force-dynamic";
@@ -125,9 +125,9 @@ export async function POST(req, { params }) {
     const token = await createMagicToken(manager);
     const loginUrl = `${SITE_URL}/api/manager/auth/verify?token=${token}`;
 
-    if (!process.env.SMTP_HOST) {
+    if (!isMailDeliveryConfigured()) {
       if (isProduction) {
-        return NextResponse.json({ error: "SMTP non configure" }, { status: 503 });
+        return NextResponse.json({ error: getMailConfigurationError() || "Courriel non configure" }, { status: 503 });
       }
       return NextResponse.json({ ok: true, devLink: loginUrl });
     }
