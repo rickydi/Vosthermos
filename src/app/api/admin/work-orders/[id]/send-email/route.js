@@ -411,7 +411,7 @@ export async function POST(req, { params }) {
       ...payment,
       amount: Number(payment.amount || 0),
     })),
-    items: wo.items.map(serItem),
+    items: wo.items.filter((item) => !item.sectionId).map(serItem),
     sections: (wo.sections || []).map((s) => ({
       ...s,
       items: (s.items || []).map(serItem),

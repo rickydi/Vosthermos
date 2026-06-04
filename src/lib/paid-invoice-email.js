@@ -50,7 +50,7 @@ function serializeMoneyFields(wo) {
       ...payment,
       amount: Number(payment.amount || 0),
     })),
-    items: (wo.items || []).map(serItem),
+    items: (wo.items || []).filter((item) => !item.sectionId).map(serItem),
     sections: (wo.sections || []).map((section) => ({
       ...section,
       items: (section.items || []).map(serItem),

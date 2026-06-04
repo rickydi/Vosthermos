@@ -100,7 +100,7 @@ export async function GET(_req, { params }) {
       ...payment,
       amount: Number(payment.amount || 0),
     })),
-    items: wo.items.map(ser),
+    items: wo.items.filter((item) => !item.sectionId).map(ser),
     sections: wo.sections.map((s) => ({ ...s, items: s.items.map(ser) })),
     followUp,
     followUpStatus: followUp?.status || null,
@@ -295,7 +295,7 @@ export async function PUT(req, { params }) {
       ...payment,
       amount: Number(payment.amount || 0),
     })),
-    items: wo.items.map(ser),
+    items: wo.items.filter((item) => !item.sectionId).map(ser),
     sections: wo.sections.map((s) => ({ ...s, items: s.items.map(ser) })),
   });
 }

@@ -1094,7 +1094,7 @@ function NouveauBonAdmin() {
         setInterventionCity(wo.interventionCity || "");
         setInterventionPostalCode(wo.interventionPostalCode || "");
         setVisibleAuClient(wo.visibleAuClient ?? true);
-        setItems(Array.isArray(wo.items) ? wo.items.map(normalizeWorkItem) : []);
+        setItems(Array.isArray(wo.items) ? wo.items.filter((item) => !item.sectionId).map(normalizeWorkItem) : []);
         setSections(Array.isArray(wo.sections) ? wo.sections.map((s) => ({
           unitCode: s.unitCode,
           items: (s.items || []).map(normalizeWorkItem),

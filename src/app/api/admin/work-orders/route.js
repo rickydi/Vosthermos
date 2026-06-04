@@ -198,5 +198,20 @@ export async function POST(req) {
     totalPieces: Number(workOrder.totalPieces),
     totalLabor: Number(workOrder.totalLabor),
     laborRate: Number(workOrder.laborRate),
+    items: (workOrder.items || []).filter((item) => !item.sectionId).map((item) => ({
+      ...item,
+      quantity: Number(item.quantity),
+      unitPrice: Number(item.unitPrice),
+      totalPrice: Number(item.totalPrice),
+    })),
+    sections: (workOrder.sections || []).map((section) => ({
+      ...section,
+      items: (section.items || []).map((item) => ({
+        ...item,
+        quantity: Number(item.quantity),
+        unitPrice: Number(item.unitPrice),
+        totalPrice: Number(item.totalPrice),
+      })),
+    })),
   });
 }

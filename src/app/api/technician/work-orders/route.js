@@ -30,7 +30,7 @@ function serializeWO(wo) {
     tps: Number(wo.tps),
     tvq: Number(wo.tvq),
     total: Number(wo.total),
-    items: wo.items?.map(serItem),
+    items: wo.items?.filter((item) => !item.sectionId).map(serItem),
     sections: wo.sections?.map((s) => ({ ...s, items: s.items?.map(serItem) })),
   };
 }

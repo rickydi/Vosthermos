@@ -69,7 +69,7 @@ export default async function FacturePage({ params }) {
     })),
     paymentTermsDays: termsDays,
     dueDate: dueDate?.toISOString() || null,
-    items: wo.items.map((i) => ({
+    items: wo.items.filter((item) => !item.sectionId).map((i) => ({
       ...i,
       quantity: Number(i.quantity),
       unitPrice: Number(i.unitPrice),
