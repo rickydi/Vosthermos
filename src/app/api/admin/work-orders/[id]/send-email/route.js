@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import path from "path";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
-import { getTransporter } from "@/lib/mail";
+import { getMailEnvelopeFrom, getMailFromHeader, getReplyToEmail, getTransporter } from "@/lib/mail";
 import { getWorkOrderSettings } from "@/lib/work-order-utils";
 import { generateInvoicePdf } from "@/lib/invoice-pdf";
 import { formatDateOnly } from "@/lib/date-only";
@@ -427,13 +427,12 @@ export async function POST(req, { params }) {
 
   try {
     const transporter = getTransporter();
-    const fromEmail = process.env.SMTP_USER;
-    const replyToEmail = process.env.SMTP_REPLY_TO || process.env.COMPANY_EMAIL || "info@vosthermos.com";
+    const replyToEmail = getReplyToEmail();
     await transporter.sendMail({
-      from: `"Vosthermos - Facturation" <${fromEmail}>`,
+      from: getMailFromHeader("Vosthermos - Facturation"),
       to,
       replyTo: replyToEmail,
-      envelope: { from: fromEmail, to },
+      envelope: { from: getMailEnvelopeFrom(), to },
       subject: customSubject || `${documentMeta.subjectPrefix} ${documentNumber} - Vosthermos`,
       text: customMessage
         ? renderCustomEmailText(serializedWo, documentMeta, documentNumber, filename, customMessage)

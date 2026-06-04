@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { createMagicToken, createSession, MANAGER_COOKIE } from "@/lib/manager-auth";
 import { DEFAULT_MANAGER_PERMISSIONS } from "@/lib/manager-permissions";
-import { getTransporter } from "@/lib/mail";
+import { getMailEnvelopeFrom, getMailFromHeader, getReplyToEmail, getTransporter } from "@/lib/mail";
 import { COMPANY_INFO } from "@/lib/company-info";
 
 export const dynamic = "force-dynamic";
@@ -135,8 +135,10 @@ export async function POST(req, { params }) {
     try {
       const transporter = getTransporter();
       await transporter.sendMail({
-        from: `"Vosthermos" <${process.env.SMTP_USER}>`,
+        from: getMailFromHeader("Vosthermos"),
         to: manager.email,
+        replyTo: getReplyToEmail(),
+        envelope: { from: getMailEnvelopeFrom(), to: manager.email },
         subject: "Acces a votre portail Vosthermos",
         html: `<p>Bonjour ${manager.firstName},</p><p>Voici votre lien d'acces au portail Vosthermos (valide 15 minutes) :</p><p><a href="${loginUrl}" style="display:inline-block; padding:12px 24px; background:#e30718; color:white; text-decoration:none; border-radius:6px; font-weight:700;">Acceder au portail</a></p><p>Vosthermos - ${COMPANY_INFO.phone}</p>`,
         text: `Bonjour ${manager.firstName}, voici votre lien d'acces (15 min): ${loginUrl}`,

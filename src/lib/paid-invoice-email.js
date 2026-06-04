@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { getTransporter } from "@/lib/mail";
+import { getMailEnvelopeFrom, getMailFromHeader, getReplyToEmail, getTransporter } from "@/lib/mail";
 import { getWorkOrderSettings } from "@/lib/work-order-utils";
 import { generateInvoicePdf } from "@/lib/invoice-pdf";
 import { getCompany } from "@/lib/company";
@@ -210,8 +210,7 @@ export async function sendPaidInvoiceEmail(workOrder, { to } = {}) {
 
   const pdfBuffer = await generateInvoicePdf(serializedWo, { ...settings, company, documentType: "invoice" });
   const transporter = getTransporter();
-  const fromEmail = process.env.SMTP_USER;
-  const replyToEmail = process.env.SMTP_REPLY_TO || process.env.COMPANY_EMAIL || "info@vosthermos.com";
+  const replyToEmail = getReplyToEmail();
   const logoExists = fs.existsSync(LOGO_PATH);
   const attachments = [
     {
@@ -231,10 +230,10 @@ export async function sendPaidInvoiceEmail(workOrder, { to } = {}) {
   }
 
   await transporter.sendMail({
-    from: `"Vosthermos - Facturation" <${fromEmail}>`,
+    from: getMailFromHeader("Vosthermos - Facturation"),
     to: recipient,
     replyTo: replyToEmail,
-    envelope: { from: fromEmail, to: recipient },
+    envelope: { from: getMailEnvelopeFrom(), to: recipient },
     subject: `Facture payee ${documentNumber} - Vosthermos`,
     text: renderPaidEmailText(serializedWo, documentNumber, filename),
     html: renderPaidEmailHtml(serializedWo, documentNumber, filename),

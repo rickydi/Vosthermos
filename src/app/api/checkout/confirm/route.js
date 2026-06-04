@@ -1,23 +1,10 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import nodemailer from "nodemailer";
 import prisma from "@/lib/prisma";
 import { COMPANY_INFO } from "@/lib/company-info";
+import { getMailEnvelopeFrom, getMailFromHeader, getReplyToEmail, getTransporter } from "@/lib/mail";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
-function getTransporter() {
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT || "587"),
-    secure: false,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-    tls: { rejectUnauthorized: false },
-  });
-}
 
 export async function POST(request) {
   try {
@@ -127,8 +114,10 @@ export async function POST(request) {
     // Email to customer
     if (session.customer_email) {
       await transporter.sendMail({
-        from: '"Vosthermos" <noreply@vosthermos.com>',
+        from: getMailFromHeader("Vosthermos"),
         to: session.customer_email,
+        replyTo: getReplyToEmail(),
+        envelope: { from: getMailEnvelopeFrom(), to: session.customer_email },
         subject: `Confirmation de commande #${order.id} — Vosthermos`,
         html: emailHtml,
       });
@@ -136,8 +125,10 @@ export async function POST(request) {
 
     // Email to admin
     await transporter.sendMail({
-      from: '"Vosthermos Boutique" <noreply@vosthermos.com>',
+      from: getMailFromHeader("Vosthermos Boutique"),
       to: COMPANY_INFO.email,
+      replyTo: getReplyToEmail(),
+      envelope: { from: getMailEnvelopeFrom(), to: COMPANY_INFO.email },
       subject: `Nouvelle commande #${order.id} — ${total} $ — ${session.metadata?.customerName || "Client"}`,
       html: emailHtml.replace("Confirmation de commande", "NOUVELLE COMMANDE").replace("Bonjour " + (session.metadata?.customerName || ""), `<strong>Client:</strong> ${session.metadata?.customerName || ""}<br><strong>Tel:</strong> ${session.metadata?.customerPhone || ""}<br><strong>Email:</strong> ${session.customer_email || ""}<br><strong>Adresse:</strong> ${session.metadata?.customerAddress || ""}`),
     });

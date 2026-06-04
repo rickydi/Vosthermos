@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { createMagicToken } from "@/lib/manager-auth";
-import { getTransporter } from "@/lib/mail";
+import { getMailEnvelopeFrom, getMailFromHeader, getReplyToEmail, getTransporter } from "@/lib/mail";
 import { COMPANY_INFO } from "@/lib/company-info";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.vosthermos.com";
@@ -36,8 +36,10 @@ export async function POST(req) {
 
     const transporter = getTransporter();
     await transporter.sendMail({
-      from: `"Vosthermos" <${process.env.SMTP_USER}>`,
+      from: getMailFromHeader("Vosthermos"),
       to: normalized,
+      replyTo: getReplyToEmail(),
+      envelope: { from: getMailEnvelopeFrom(), to: normalized },
       subject: "Votre lien d'accès au portail Vosthermos",
       html: `
 <!DOCTYPE html>

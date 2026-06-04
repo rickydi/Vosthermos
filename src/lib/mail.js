@@ -7,6 +7,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.vosthermos.com
 const INSECURE_DEFAULT = "change-this-to-a-random-secret";
 const LOGO_CID = "vosthermos-logo";
 const LOGO_PATH = path.join(process.cwd(), "public", "images", "Vos-Thermos-Logo_Blanc.png");
+const DEFAULT_COMPANY_EMAIL = "info@vosthermos.com";
 
 export function getTransporter() {
   const smtpPort = parseInt(process.env.SMTP_PORT || "587");
@@ -28,6 +29,28 @@ export function getTransporter() {
     greetingTimeout: 15000,
     socketTimeout: 30000,
   });
+}
+
+export function getMailFromEmail() {
+  return (
+    process.env.SMTP_FROM ||
+    process.env.MAIL_FROM ||
+    process.env.COMPANY_EMAIL ||
+    process.env.SMTP_USER ||
+    DEFAULT_COMPANY_EMAIL
+  ).trim();
+}
+
+export function getMailEnvelopeFrom() {
+  return (process.env.SMTP_ENVELOPE_FROM || getMailFromEmail()).trim();
+}
+
+export function getReplyToEmail() {
+  return (process.env.SMTP_REPLY_TO || process.env.COMPANY_EMAIL || getMailFromEmail() || DEFAULT_COMPANY_EMAIL).trim();
+}
+
+export function getMailFromHeader(label = "Vosthermos") {
+  return `"${label}" <${getMailFromEmail()}>`;
 }
 
 function getApprovalSecret() {
@@ -82,8 +105,7 @@ export async function sendAdminLoginCodeEmail(toEmail, code) {
     return false;
   }
 
-  const fromEmail = process.env.SMTP_USER;
-  const replyToEmail = process.env.SMTP_REPLY_TO || process.env.COMPANY_EMAIL || "info@vosthermos.com";
+  const replyToEmail = getReplyToEmail();
 
   const html = `<!DOCTYPE html>
 <html lang="fr">
@@ -157,10 +179,10 @@ ${SITE_URL}`;
 
   const transporter = getTransporter();
   await transporter.sendMail({
-    from: `"Vosthermos - Securite" <${fromEmail}>`,
+    from: getMailFromHeader("Vosthermos - Securite"),
     to: toEmail,
     replyTo: replyToEmail,
-    envelope: { from: fromEmail, to: toEmail },
+    envelope: { from: getMailEnvelopeFrom(), to: toEmail },
     subject: "Votre code de connexion Vosthermos",
     text,
     html,
@@ -243,8 +265,10 @@ export async function sendBlogApprovalEmail(post, prisma) {
 
   const transporter = getTransporter();
   await transporter.sendMail({
-    from: `"Vosthermos Blog" <${process.env.SMTP_USER}>`,
+    from: getMailFromHeader("Vosthermos Blog"),
     to: emails.join(", "),
+    replyTo: getReplyToEmail(),
+    envelope: { from: getMailEnvelopeFrom(), to: emails },
     subject: `[Blog] Nouvel article : ${post.title}`,
     html,
   });

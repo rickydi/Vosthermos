@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getManagerFromCookie, hasPermission, canAccessClient } from "@/lib/manager-auth";
 import { generateWorkOrderNumber, withWorkOrderNumberRetry } from "@/lib/work-order-utils";
-import { getTransporter } from "@/lib/mail";
+import { getMailEnvelopeFrom, getMailFromHeader, getReplyToEmail, getTransporter } from "@/lib/mail";
 import { COMPANY_INFO } from "@/lib/company-info";
 
 export const dynamic = "force-dynamic";
@@ -120,8 +120,10 @@ export async function POST(req) {
       const detailsHtml = sectionsData.map((s) => `<div style="margin-bottom:8px"><strong>${s.unitCode}</strong><br><small style="color:#718096;white-space:pre-line">${s.notes}</small></div>`).join("");
 
       await transporter.sendMail({
-        from: `"Vosthermos" <${process.env.SMTP_USER}>`,
+        from: getMailFromHeader("Vosthermos"),
         to: COMPANY_INFO.email,
+        replyTo: getReplyToEmail(),
+        envelope: { from: getMailEnvelopeFrom(), to: COMPANY_INFO.email },
         subject: `[Portail] ${urgency === "urgent" ? "URGENT - " : ""}Nouvelle demande d'intervention · ${client?.name}`,
         html: `
 <!DOCTYPE html>
