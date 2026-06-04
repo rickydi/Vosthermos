@@ -121,6 +121,16 @@ function statusDisplayMeta(wo, documentView) {
   };
 }
 
+function editDocumentHref(wo, documentView) {
+  const params = new URLSearchParams({ edit: String(wo.id) });
+  if (documentView === "quotes" || ["quote", "quote_sent", "quote_accepted"].includes(wo.statut)) {
+    params.set("mode", "quote");
+  } else if (documentView === "invoices" || ["invoiced", "sent", "paid"].includes(wo.statut)) {
+    params.set("mode", "invoice");
+  }
+  return `/admin/bons/nouveau?${params.toString()}`;
+}
+
 export default function BonsPage({ documentView = "all" } = {}) {
   const config = DOCUMENT_VIEW_CONFIG[documentView] || DOCUMENT_VIEW_CONFIG.all;
   const [workOrders, setWorkOrders] = useState([]);
@@ -242,11 +252,12 @@ export default function BonsPage({ documentView = "all" } = {}) {
                 const isNewManagerRequest = wo.statut === "draft" && typeof wo.notes === "string" && wo.notes.startsWith("Demande du gestionnaire");
                 const statusMeta = statusDisplayMeta(wo, documentView);
                 const sentLabel = invoiceSentLabel(wo);
+                const editHref = editDocumentHref(wo, documentView);
                 return (
                   <tr
                     key={wo.id}
                     className={"border-b admin-border admin-hover cursor-pointer" + (isNewManagerRequest ? " bg-amber-500/5" : "")}
-                    onClick={() => { window.location.href = `/admin/bons/nouveau?edit=${wo.id}`; }}
+                    onClick={() => { window.location.href = editHref; }}
                   >
                     <td className="px-4 py-3 font-mono text-xs">
                       <div className="flex items-center gap-2">
@@ -291,7 +302,7 @@ export default function BonsPage({ documentView = "all" } = {}) {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                      <Link href={`/admin/bons/nouveau?edit=${wo.id}`} className="admin-text-muted hover:admin-text text-xs mr-3" title="Modifier">
+                      <Link href={editHref} className="admin-text-muted hover:admin-text text-xs mr-3" title="Modifier">
                         <i className="fas fa-pen"></i>
                       </Link>
                       <button onClick={(e) => handleDelete(wo, e)} className="text-amber-400 hover:text-amber-300 text-xs" title="Supprimer">

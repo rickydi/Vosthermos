@@ -1586,6 +1586,8 @@ function NouveauBonAdmin() {
   const showDocumentAssistant = effectiveInvoiceMode || effectiveQuoteMode;
   const isExistingInvoiceDocument = Boolean(editId && !invoiceMode && isInvoiceStatus(currentStatut));
   const isExistingQuoteDocument = Boolean(editId && !quoteMode && isQuoteStatus(currentStatut));
+  const isExistingInvoiceSaved = Boolean(editId && isInvoiceStatus(currentStatut));
+  const isExistingQuoteSaved = Boolean(editId && isQuoteStatus(currentStatut));
   const aiImagePreviewImage = Number.isInteger(aiImagePreviewIndex) ? aiImportImages[aiImagePreviewIndex] : null;
   const aiImagePreviewSrc = aiImageSrc(aiImagePreviewImage);
   const hasAiImages = aiImportImages.length > 0;
@@ -1841,6 +1843,9 @@ function NouveauBonAdmin() {
   const pieceCount = flatPieceCount + sectionPieceCount;
   const isDirectInvoiceMode = invoiceMode && !editId;
   const isDirectQuoteMode = quoteMode && !editId;
+  const documentFollowUpStatut = currentStatut || (effectiveInvoiceMode ? "invoiced" : effectiveQuoteMode ? "quote" : "draft");
+  const documentFollowUpStatus = followUpStatusFromWorkOrderStatut(documentFollowUpStatut, followUpColumns);
+  const documentFollowUpStatusLabel = visibleFollowUpColumns.find((column) => column.key === documentFollowUpStatus)?.label || documentFollowUpStatus;
   const currentModeLabel = effectiveInvoiceMode
     ? (isDirectInvoiceMode ? "Facture directe" : "Facturation")
     : effectiveQuoteMode
@@ -2873,7 +2878,7 @@ function NouveauBonAdmin() {
             </div>
 
             <div className="space-y-4 border-t admin-border pt-4">
-            {selectedClient && (
+            {selectedClient && !effectiveInvoiceMode && !effectiveQuoteMode && (
               <div>
                 <label className="admin-text-muted text-xs mb-1 block">Rattacher au suivi client</label>
                 <select
@@ -2902,19 +2907,27 @@ function NouveauBonAdmin() {
                 </p>
               </div>
             )}
-            {(isDirectInvoiceMode || isDirectQuoteMode) ? (
-              <div>
-                <p className="admin-text-muted text-xs mb-1 block">Statut</p>
-                <div className="rounded-lg border admin-border px-3 py-2.5">
-                  <p className="admin-text text-sm font-bold">
-                    {isDirectInvoiceMode ? "Facture a recevoir" : "Soumission"}
+            {selectedClient && (effectiveInvoiceMode || effectiveQuoteMode) && (
+              <div className={`rounded-lg border px-3 py-2.5 ${
+                effectiveInvoiceMode ? "border-orange-500/25 bg-orange-500/10" : "border-sky-500/25 bg-sky-500/10"
+              }`}>
+                <p className="admin-text-muted text-[10px] font-bold uppercase tracking-wider">
+                  Suivi clients
+                </p>
+                <p className="admin-text mt-1 text-sm font-bold">
+                  {effectiveInvoiceMode ? "Facture" : "Soumission"} | {documentFollowUpStatusLabel}
+                </p>
+                <p className="admin-text-muted mt-1 text-[10px]">
+                  Le suivi est mis a jour automatiquement avec ce document.
+                </p>
+                {selectedFollowUp && (
+                  <p className="admin-text-muted mt-1 truncate text-[10px]">
+                    Lie a: {selectedFollowUp.title || `suivi #${selectedFollowUp.id}`}
                   </p>
-                  <p className="admin-text-muted text-[10px] mt-1">
-                    Le statut sera applique automatiquement a la creation.
-                  </p>
-                </div>
+                )}
               </div>
-            ) : (
+            )}
+            {!effectiveInvoiceMode && !effectiveQuoteMode && (
             <div>
               <label className="admin-text-muted text-xs mb-1 block">Statut</label>
               <select value={followUpStatus} onChange={(e) => setFollowUpStatus(e.target.value)}
@@ -2927,38 +2940,48 @@ function NouveauBonAdmin() {
             </div>
             )}
             {error && <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-600">{error}</p>}
-            {invoiceMode ? (
+            {effectiveInvoiceMode ? (
               <div className="flex flex-col gap-2">
-                {editId && (
+                {editId && !isExistingInvoiceSaved && (
                   <button
                     type="submit"
                     value="save"
                     disabled={saving || !selectedClient}
                     className="w-full rounded-lg border admin-border px-5 py-3 text-sm font-medium admin-text hover:bg-white/5 disabled:opacity-50"
                   >
-                    {saving && savingAction === "save" ? "Enregistrement..." : "Enregistrer (sans facturer)"}
+                    {saving && savingAction === "save" ? "Enregistrement..." : "Enregistrer les modifications"}
                   </button>
                 )}
                 <button
                   type="submit"
-                  value="invoice"
+                  value={isExistingInvoiceSaved ? "save" : "invoice"}
                   disabled={saving || !selectedClient}
                   className="w-full rounded-lg bg-orange-600 px-6 py-3 text-sm font-bold text-white hover:bg-orange-700 disabled:opacity-50"
                 >
                   <i className="fas fa-file-invoice-dollar mr-2"></i>
-                  {saving && savingAction === "invoice" ? "Facturation..." : (isDirectInvoiceMode ? "Creer la facture" : "Facturer ce bon")}
+                  {saving && ["invoice", "save"].includes(savingAction)
+                    ? "Enregistrement..."
+                    : isExistingInvoiceSaved
+                      ? "Enregistrer la facture"
+                      : isDirectInvoiceMode
+                        ? "Creer la facture"
+                        : "Facturer ce bon"}
                 </button>
               </div>
-            ) : quoteMode ? (
+            ) : effectiveQuoteMode ? (
               <div className="flex flex-col gap-2">
                 <button
                   type="submit"
-                  value="quote"
+                  value={isExistingQuoteSaved ? "save" : "quote"}
                   disabled={saving || !selectedClient}
                   className="w-full rounded-lg border border-sky-500/40 px-5 py-3 text-sm font-bold text-sky-600 hover:bg-sky-500/10 disabled:opacity-50"
                 >
                   <i className="fas fa-file-signature mr-2"></i>
-                  {saving && savingAction === "quote" ? "Creation..." : (editId ? "Enregistrer comme soumission" : "Creer la soumission")}
+                  {saving && ["quote", "save"].includes(savingAction)
+                    ? "Enregistrement..."
+                    : isExistingQuoteSaved
+                      ? "Enregistrer la soumission"
+                      : "Creer la soumission"}
                 </button>
               </div>
             ) : (
