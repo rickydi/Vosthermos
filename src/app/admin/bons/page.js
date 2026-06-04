@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { formatDateOnly } from "@/lib/date-only";
-import { WORK_ORDER_LIST_FILTERS, workOrderStatusClass, workOrderStatusLabel } from "@/lib/work-order-status";
+import { workOrderStatusClass, workOrderStatusLabel } from "@/lib/work-order-status";
 
 function invoicePaymentStatusMeta(wo) {
   if (!["invoiced", "sent"].includes(wo?.statut)) return null;
@@ -35,14 +35,19 @@ function invoiceSentLabel(wo) {
 
 const DOCUMENT_VIEW_CONFIG = {
   all: {
-    title: "Bons, soumissions et factures",
-    emptyLabel: "Aucun document",
+    title: "Bons de travail",
+    emptyLabel: "Aucun bon de travail",
     emptyIcon: "fa-clipboard-list",
-    filters: WORK_ORDER_LIST_FILTERS,
+    documentType: "work_order",
+    filters: [
+      { key: "all", label: "Tous les bons" },
+      { key: "draft", label: "Brouillons / demandes" },
+      { key: "scheduled", label: "Jobs planifies" },
+      { key: "in_progress", label: "En cours" },
+      { key: "completed", label: "Jobs faits" },
+    ],
     actions: [
       { href: "/admin/bons/nouveau?fresh=1", label: "Bon de travail", icon: "fa-clipboard-list" },
-      { href: "/admin/bons/nouveau?fresh=1&mode=quote", label: "Soumission", icon: "fa-file-signature" },
-      { href: "/admin/bons/nouveau?fresh=1&mode=invoice", label: "Facture", icon: "fa-file-invoice-dollar" },
     ],
   },
   quotes: {

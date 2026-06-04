@@ -1,5 +1,6 @@
 export const QUOTE_STATUSES = new Set(["quote", "quote_sent", "quote_accepted"]);
 export const INVOICE_STATUSES = new Set(["invoiced", "sent", "paid"]);
+export const WORK_ORDER_STATUSES = new Set(["draft", "scheduled", "in_progress", "completed"]);
 
 export function isQuoteStatus(statut) {
   return QUOTE_STATUSES.has(statut);

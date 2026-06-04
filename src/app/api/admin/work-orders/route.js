@@ -18,7 +18,7 @@ import { parseDateOnly } from "@/lib/date-only";
 import { logAdminActivity } from "@/lib/admin-activity";
 import { buildPaymentTrackingData, serializePaymentWorkOrder } from "@/lib/payment-tracking";
 import { clampInt } from "@/lib/api-utils";
-import { INVOICE_STATUSES, QUOTE_STATUSES, isInvoiceStatus, isQuoteStatus } from "@/lib/work-order-document";
+import { INVOICE_STATUSES, QUOTE_STATUSES, WORK_ORDER_STATUSES, isInvoiceStatus, isQuoteStatus } from "@/lib/work-order-document";
 
 async function validateFollowUpForClient(followUpId, clientId) {
   if (!followUpId) return null;
@@ -49,6 +49,8 @@ export async function GET(req) {
     where.statut = { in: [...QUOTE_STATUSES] };
   } else if (documentType === "invoice") {
     where.statut = { in: [...INVOICE_STATUSES] };
+  } else if (documentType === "work_order") {
+    where.statut = { in: [...WORK_ORDER_STATUSES] };
   }
   if (techId) where.technicianId = parseInt(techId);
   if (q) {
