@@ -364,6 +364,8 @@ export default function BonDetailPage({ forcedDocumentType = null } = {}) {
   const quoteCanBeAccepted = isQuoteStatus(wo.statut) && wo.statut !== "quote_accepted";
   const quoteReadyToSchedule = wo.statut === "quote_accepted";
   const canAssignWorkOrder = wo.statut === "draft" || quoteReadyToSchedule;
+  const neutralActionClass = "px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-medium hover:bg-white/5 transition-colors disabled:opacity-50";
+  const neutralLinkActionClass = `${neutralActionClass} inline-flex items-center`;
 
   return (
     <div className="p-6 lg:p-8">
@@ -396,7 +398,7 @@ export default function BonDetailPage({ forcedDocumentType = null } = {}) {
             <button
               onClick={markQuoteAccepted}
               disabled={acceptingQuote}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold disabled:opacity-50"
+              className={neutralActionClass}
             >
               <i className={`fas ${acceptingQuote ? "fa-spinner fa-spin" : "fa-check"} mr-2`}></i>
               {acceptingQuote ? "Mise a jour..." : "Marquer acceptee"}
@@ -405,7 +407,7 @@ export default function BonDetailPage({ forcedDocumentType = null } = {}) {
           {canAssignWorkOrder && (
             <button
               onClick={() => setShowApprove(true)}
-              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold"
+              className={neutralActionClass}
             >
               <i className="fab fa-whatsapp mr-2"></i>{quoteReadyToSchedule ? "Planifier & envoyer WhatsApp" : "Approuver & envoyer WhatsApp"}
             </button>
@@ -413,7 +415,7 @@ export default function BonDetailPage({ forcedDocumentType = null } = {}) {
           {(wo.statut === "scheduled" || wo.statut === "in_progress") && (
             <button
               onClick={() => setShowApprove(true)}
-              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold"
+              className={neutralActionClass}
               title={wo.technician?.name ? `Actuellement assigné à ${wo.technician.name}` : "Aucun technicien assigné"}
             >
               <i className="fab fa-whatsapp mr-2"></i>Réassigner &amp; renvoyer WhatsApp
@@ -422,18 +424,18 @@ export default function BonDetailPage({ forcedDocumentType = null } = {}) {
           {(wo.statut === "scheduled" || wo.statut === "in_progress" || wo.statut === "completed") && (
             <Link
               href={adminDocumentEditHref(id, "invoice")}
-              className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-bold inline-flex items-center"
+              className={neutralLinkActionClass}
             >
               <i className="fas fa-file-invoice-dollar mr-2"></i>
               Facturer ce bon
             </Link>
           )}
           <Link href={editHref}
-            className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-medium hover:bg-white/5 transition-colors">
+            className={neutralLinkActionClass}>
             <i className="fas fa-pen mr-2"></i>Modifier
           </Link>
           <button type="button" onClick={() => { setEmailError(""); setShowEmail(true); }}
-            className="px-4 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium">
+            className={neutralActionClass}>
             <i className="fas fa-envelope mr-2"></i>Envoyer {documentMeta.label.toLowerCase()}
           </button>
           <button
@@ -449,12 +451,12 @@ export default function BonDetailPage({ forcedDocumentType = null } = {}) {
               if (w) { try { w.focus(); w.print(); return; } catch { /* fallback */ } }
               window.open(`/api/admin/work-orders/${id}/pdf?documentType=${documentMeta.type}&inline=1`, "_blank");
             }}
-            className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-medium">
+            className={neutralActionClass}>
             <i className="fas fa-print mr-2"></i>Imprimer
           </button>
           <a
             href={`/api/admin/work-orders/${id}/pdf?documentType=${documentMeta.type}`}
-            className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-medium"
+            className={neutralLinkActionClass}
           >
             <i className="fas fa-file-pdf mr-2"></i>Telecharger PDF
           </a>
