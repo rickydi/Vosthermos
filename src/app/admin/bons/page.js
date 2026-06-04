@@ -5,6 +5,34 @@ import Link from "next/link";
 import { formatDateOnly } from "@/lib/date-only";
 import { WORK_ORDER_LIST_FILTERS, workOrderStatusClass, workOrderStatusLabel } from "@/lib/work-order-status";
 
+function invoicePaymentStatusMeta(wo) {
+  if (!["invoiced", "sent"].includes(wo?.statut)) return null;
+  if (wo.paymentState === "overdue") {
+    return {
+      label: `${wo.daysLate || 0} j. retard`,
+      className: "bg-red-500/20 text-red-300",
+      icon: "fa-exclamation-triangle",
+    };
+  }
+  if (wo.hasPartialPayments) {
+    return {
+      label: "Depot recu",
+      className: "bg-cyan-500/20 text-cyan-300",
+      icon: "fa-coins",
+    };
+  }
+  return {
+    label: "A payer",
+    className: "bg-orange-500/20 text-orange-400",
+    icon: "fa-dollar-sign",
+  };
+}
+
+function invoiceSentLabel(wo) {
+  if (wo?.statut !== "sent") return null;
+  return wo.invoiceSentAt ? `Envoyee ${formatDateOnly(wo.invoiceSentAt)}` : "Facture envoyee";
+}
+
 export default function BonsPage() {
   const [workOrders, setWorkOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -54,7 +82,7 @@ export default function BonsPage() {
 
   const totalUnpaid = workOrders
     .filter((wo) => ["invoiced", "sent"].includes(wo.statut))
-    .reduce((sum, wo) => sum + Number(wo.total || 0), 0);
+    .reduce((sum, wo) => sum + Number(wo.balanceDue ?? wo.total ?? 0), 0);
   const documentActionClass = "px-4 py-2 bg-cyan-700 hover:bg-cyan-600 text-white rounded-lg text-sm font-medium";
 
   return (
@@ -126,6 +154,8 @@ export default function BonsPage() {
             <tbody>
               {workOrders.map((wo) => {
                 const isNewManagerRequest = wo.statut === "draft" && typeof wo.notes === "string" && wo.notes.startsWith("Demande du gestionnaire");
+                const paymentStatus = invoicePaymentStatusMeta(wo);
+                const sentLabel = invoiceSentLabel(wo);
                 return (
                   <tr
                     key={wo.id}
@@ -162,9 +192,17 @@ export default function BonsPage() {
                     </td>
                     <td className="px-4 py-3 font-bold">{Number(wo.total || 0).toFixed(2)}$</td>
                     <td className="px-4 py-3">
-                      <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${workOrderStatusClass(wo.statut)}`}>
-                        {workOrderStatusLabel(wo.statut)}
-                      </span>
+                      <div className="flex flex-col items-start gap-1">
+                        <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-[10px] font-bold uppercase ${paymentStatus?.className || workOrderStatusClass(wo.statut)}`}>
+                          {paymentStatus?.icon ? <i className={`fas ${paymentStatus.icon}`}></i> : null}
+                          {paymentStatus?.label || workOrderStatusLabel(wo.statut)}
+                        </span>
+                        {sentLabel ? (
+                          <span className="rounded-full bg-blue-500/10 px-2 py-0.5 text-[10px] font-bold uppercase text-blue-300">
+                            {sentLabel}
+                          </span>
+                        ) : null}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                       <Link href={`/admin/bons/nouveau?edit=${wo.id}`} className="admin-text-muted hover:admin-text text-xs mr-3" title="Modifier">

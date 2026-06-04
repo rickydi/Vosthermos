@@ -16,7 +16,7 @@ import { createOrTouchFollowUpFromWorkOrder, getSavedFollowUpColumns } from "@/l
 import { workOrderStatutFromFollowUpStatus } from "@/lib/follow-up-columns";
 import { parseDateOnly } from "@/lib/date-only";
 import { logAdminActivity } from "@/lib/admin-activity";
-import { buildPaymentTrackingData } from "@/lib/payment-tracking";
+import { buildPaymentTrackingData, serializePaymentWorkOrder } from "@/lib/payment-tracking";
 import { clampInt } from "@/lib/api-utils";
 import { isInvoiceStatus, isQuoteStatus } from "@/lib/work-order-document";
 
@@ -56,9 +56,10 @@ export async function GET(req) {
     prisma.workOrder.findMany({
       where,
       include: {
-        client: { select: { id: true, name: true, phone: true, secondaryPhone: true, address: true, city: true } },
+        client: { select: { id: true, name: true, phone: true, secondaryPhone: true, address: true, city: true, paymentTermsDays: true } },
         technician: { select: { id: true, name: true } },
         route: { select: { id: true, name: true, date: true, area: true } },
+        payments: { orderBy: [{ paidAt: "asc" }, { id: "asc" }] },
         _count: { select: { items: true } },
       },
       orderBy: { date: "desc" },
@@ -69,14 +70,7 @@ export async function GET(req) {
   ]);
 
   return NextResponse.json({
-    workOrders: workOrders.map((wo) => ({
-      ...wo,
-      total: Number(wo.total),
-      subtotal: Number(wo.subtotal),
-      totalPieces: Number(wo.totalPieces),
-      totalLabor: Number(wo.totalLabor),
-      laborRate: Number(wo.laborRate),
-    })),
+    workOrders: workOrders.map((wo) => serializePaymentWorkOrder(wo)),
     total,
     page,
     pages: Math.ceil(total / limit),
