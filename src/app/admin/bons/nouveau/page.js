@@ -380,6 +380,205 @@ function clientMatchesDraft(client, draftClient = {}) {
   return Boolean(name && String(client.name || "").trim().toLowerCase() === name);
 }
 
+const CLIENT_STOP_WORDS = new Set([
+  "le", "la", "les", "l", "de", "du", "des", "d", "un", "une", "the",
+  "gestion", "immobiliere", "immobilier", "syndicat", "copropriete", "condo",
+  "inc", "ltee", "ltd", "compagnie", "corporation", "groupe",
+]);
+
+function normalizeClientLookupText(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/['’`]/g, " ")
+    .replace(/&/g, " et ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+function stripLeadingClientArticles(value) {
+  return normalizeClientLookupText(value)
+    .replace(/^(?:l |le |la |les |de |du |des |d |un |une |the )+/i, "")
+    .trim();
+}
+
+function stripLeadingClientArticlesRaw(value) {
+  return String(value || "")
+    .trim()
+    .replace(/^(?:l['’]\s*|le\s+|la\s+|les\s+|de\s+|du\s+|des\s+|d['’]\s*|un\s+|une\s+|the\s+)/i, "")
+    .trim();
+}
+
+function clientLookupTokens(value) {
+  return Array.from(new Set(
+    normalizeClientLookupText(value)
+      .split(" ")
+      .map((token) => token.trim())
+      .filter((token) => token.length >= 3 && !CLIENT_STOP_WORDS.has(token))
+  ));
+}
+
+function textSimilarityScore(a, b) {
+  const left = stripLeadingClientArticles(a);
+  const right = stripLeadingClientArticles(b);
+  if (!left || !right) return 0;
+  if (left === right) return 1;
+  if (left.includes(right) || right.includes(left)) {
+    const shortLength = Math.min(left.length, right.length);
+    const longLength = Math.max(left.length, right.length);
+    return Math.max(0.72, shortLength / longLength);
+  }
+
+  const leftTokens = clientLookupTokens(left);
+  const rightTokens = clientLookupTokens(right);
+  if (leftTokens.length === 0 || rightTokens.length === 0) return 0;
+  const rightSet = new Set(rightTokens);
+  const common = leftTokens.filter((token) => rightSet.has(token)).length;
+  if (!common) return 0;
+  return (2 * common) / (leftTokens.length + rightTokens.length);
+}
+
+function bestSimilarity(leftValues, rightValues) {
+  let best = 0;
+  for (const left of leftValues) {
+    for (const right of rightValues) {
+      best = Math.max(best, textSimilarityScore(left, right));
+    }
+  }
+  return best;
+}
+
+function scoreClientForDraft(client, draftClient = {}) {
+  const reasons = [];
+  const email = String(draftClient.email || "").trim().toLowerCase();
+  const clientEmail = String(client.email || "").trim().toLowerCase();
+  const draftPhones = [draftClient.phone, draftClient.secondaryPhone].map(onlyDigits).filter(Boolean);
+  const clientPhones = [client.phone, client.secondaryPhone].map(onlyDigits).filter(Boolean);
+
+  if (email && clientEmail && email === clientEmail) {
+    return { score: 100, reasons: ["Email identique"] };
+  }
+  if (draftPhones.some((phone) => phone && clientPhones.includes(phone))) {
+    return { score: 98, reasons: ["Telephone identique"] };
+  }
+
+  const draftBusinessValues = [draftClient.company, draftClient.name].filter(Boolean);
+  const clientBusinessValues = [client.company, client.name].filter(Boolean);
+  const nameScore = bestSimilarity(clientBusinessValues, draftBusinessValues);
+  const contactScore = bestSimilarity([client.contactName].filter(Boolean), [draftClient.contactName].filter(Boolean));
+  const addressScore = bestSimilarity([client.address].filter(Boolean), [draftClient.address].filter(Boolean));
+  const cityScore = textSimilarityScore(client.city, draftClient.city);
+
+  let score = 0;
+  if (nameScore >= 0.95) {
+    score = Math.max(score, 94);
+    reasons.push("Nom pratiquement identique");
+  } else if (nameScore >= 0.78) {
+    score = Math.max(score, 82);
+    reasons.push("Nom tres proche");
+  } else if (nameScore >= 0.5) {
+    score = Math.max(score, 62);
+    reasons.push("Mots importants en commun");
+  }
+
+  if (contactScore >= 0.9) {
+    score = Math.max(score, 72);
+    reasons.push("Contact proche");
+  }
+  if (addressScore >= 0.82) {
+    score = Math.min(96, score + 10);
+    reasons.push("Adresse proche");
+  }
+  if (cityScore >= 0.95 && score > 0) {
+    score = Math.min(96, score + 4);
+    reasons.push("Meme ville");
+  }
+
+  return { score, reasons };
+}
+
+function clientSearchQueriesForDraft(draftClient = {}) {
+  const rawValues = [
+    draftClient.email,
+    draftClient.phone,
+    draftClient.secondaryPhone,
+    draftClient.company,
+    draftClient.name,
+    draftClient.contactName,
+    draftClient.address,
+  ].map((value) => String(value || "").trim()).filter(Boolean);
+  const strippedRawValues = rawValues.map(stripLeadingClientArticlesRaw).filter(Boolean);
+
+  const tokenValues = clientLookupTokens([
+    draftClient.company,
+    draftClient.name,
+    draftClient.contactName,
+    draftClient.address,
+  ].filter(Boolean).join(" "));
+
+  const phoneFragments = [draftClient.phone, draftClient.secondaryPhone]
+    .map(onlyDigits)
+    .filter((value) => value.length >= 7)
+    .flatMap((value) => [value.slice(-7), value.slice(-4)]);
+
+  return Array.from(new Set([...rawValues, ...strippedRawValues, ...tokenValues, ...phoneFragments]))
+    .filter((value) => value.length >= 3)
+    .slice(0, 12);
+}
+
+function decorateClientSuggestion(client, score, reasons) {
+  return {
+    ...client,
+    matchScore: score,
+    matchReasons: reasons.length ? reasons : ["Client semblable"],
+  };
+}
+
+async function findClientCandidatesForAiDraft(draftClient = {}) {
+  const queries = clientSearchQueriesForDraft(draftClient);
+  const byId = new Map();
+
+  const addClients = (clients) => {
+    for (const client of clients) {
+      if (client?.id && !byId.has(client.id)) byId.set(client.id, client);
+    }
+  };
+
+  for (const query of queries) {
+    const res = await fetch(`/api/admin/clients?q=${encodeURIComponent(query)}&limit=20`, { cache: "no-store" });
+    if (!res.ok) continue;
+    const data = await res.json().catch(() => ({}));
+    addClients(Array.isArray(data.clients) ? data.clients : []);
+  }
+
+  if (byId.size < 5) {
+    const res = await fetch("/api/admin/clients?limit=200&sort=updated_desc", { cache: "no-store" });
+    if (res.ok) {
+      const data = await res.json().catch(() => ({}));
+      addClients(Array.isArray(data.clients) ? data.clients : []);
+    }
+  }
+
+  const scored = Array.from(byId.values())
+    .map((client) => {
+      const match = scoreClientForDraft(client, draftClient);
+      return { client, ...match };
+    })
+    .filter((item) => item.score >= 55 || clientMatchesDraft(item.client, draftClient))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5);
+
+  const exact = scored.find((item) => clientMatchesDraft(item.client, draftClient));
+  return {
+    exact: exact ? decorateClientSuggestion(exact.client, Math.max(exact.score, 100), ["Correspondance exacte"]) : null,
+    suggestions: scored
+      .filter((item) => !exact || item.client.id !== exact.client.id)
+      .map((item) => decorateClientSuggestion(item.client, item.score, item.reasons)),
+  };
+}
+
 function formatDraftClientLine(draftClient = {}) {
   const parts = [
     draftClient.name,
@@ -564,6 +763,9 @@ function NouveauBonAdmin() {
   const [aiDraftLoading, setAiDraftLoading] = useState(false);
   const [aiDraftApplying, setAiDraftApplying] = useState(false);
   const [aiDraftMessage, setAiDraftMessage] = useState("");
+  const [aiClientSuggestions, setAiClientSuggestions] = useState([]);
+  const [aiClientSuggestionLoading, setAiClientSuggestionLoading] = useState(false);
+  const [aiClientLookupComplete, setAiClientLookupComplete] = useState(false);
   const [aiEmailDraft, setAiEmailDraft] = useState(null);
   const [aiImagePreviewIndex, setAiImagePreviewIndex] = useState(null);
   const aiImageInputRef = useRef(null);
@@ -740,6 +942,37 @@ function NouveauBonAdmin() {
     aiDraft,
     aiEmailDraft,
   ]);
+
+  useEffect(() => {
+    if (!aiDraft?.client || selectedClient) {
+      setAiClientSuggestions([]);
+      setAiClientSuggestionLoading(false);
+      setAiClientLookupComplete(false);
+      return;
+    }
+
+    let cancelled = false;
+    setAiClientSuggestionLoading(true);
+    setAiClientLookupComplete(false);
+
+    findClientCandidatesForAiDraft(aiDraft.client)
+      .then(({ exact, suggestions }) => {
+        if (cancelled) return;
+        setAiClientSuggestions(exact ? [exact, ...suggestions] : suggestions);
+      })
+      .catch(() => {
+        if (!cancelled) setAiClientSuggestions([]);
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setAiClientSuggestionLoading(false);
+        setAiClientLookupComplete(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [aiDraft, selectedClient]);
 
   // Fetch known units when a gestionnaire client is selected
   useEffect(() => {
@@ -1153,23 +1386,16 @@ function NouveauBonAdmin() {
     }
   }
 
-  async function findClientForAiDraft(draftClient = {}) {
-    const queries = [
-      draftClient.email,
-      draftClient.phone,
-      draftClient.secondaryPhone,
-      draftClient.name,
-    ].map((value) => String(value || "").trim()).filter(Boolean);
-
-    for (const query of queries) {
-      const res = await fetch(`/api/admin/clients?q=${encodeURIComponent(query)}&limit=10`, { cache: "no-store" });
-      if (!res.ok) continue;
-      const data = await res.json().catch(() => ({}));
-      const clients = Array.isArray(data.clients) ? data.clients : [];
-      const exact = clients.find((client) => clientMatchesDraft(client, draftClient));
-      if (exact) return exact;
-    }
-    return null;
+  function selectAiClientSuggestion(client) {
+    if (!client?.id) return;
+    selectClient(client);
+    setClientSearch("");
+    setClientResults([]);
+    setQuickClientOpen(false);
+    setAiClientSuggestions([]);
+    setAiClientLookupComplete(false);
+    const scoreLabel = client.matchScore ? ` (${Math.round(client.matchScore)}%)` : "";
+    setAiDraftMessage(`Client selectionne: ${client.name}${scoreLabel}. Clique sur "Appliquer au formulaire" pour remplir le document.`);
   }
 
   async function createClientForAiDraft(draftClient = {}, options = {}) {
@@ -1195,6 +1421,29 @@ function NouveauBonAdmin() {
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || "Erreur creation client IA");
     return data;
+  }
+
+  async function createAiDraftClientAndSelect() {
+    if (!aiDraft || aiDraftApplying) return;
+    setAiDraftApplying(true);
+    setAiDraftError("");
+    setAiDraftMessage("");
+    try {
+      const draftClient = aiDraft.client || {};
+      const hasDraftSections = draftSectionsToWorkSections(aiDraft.sections).length > 0;
+      const client = await createClientForAiDraft(draftClient, { forceGestionnaire: hasDraftSections });
+      selectClient(client);
+      setClientSearch("");
+      setClientResults([]);
+      setQuickClientOpen(false);
+      setAiClientSuggestions([]);
+      setAiClientLookupComplete(false);
+      setAiDraftMessage(`Nouveau client ajoute: ${client.name}. Clique sur "Appliquer au formulaire" pour remplir le document.`);
+    } catch (err) {
+      setAiDraftError(err.message);
+    } finally {
+      setAiDraftApplying(false);
+    }
   }
 
   async function updateClientFromAiDraft(client, draftClient = {}, options = {}) {
@@ -1258,6 +1507,8 @@ function NouveauBonAdmin() {
       }
       setAiImportImages(nextImages);
       setAiDraft(null);
+      setAiClientSuggestions([]);
+      setAiClientLookupComplete(false);
       saveAiImagesSession(nextImages, editId);
     } catch (err) {
       setAiDraftError(err.message || "Impossible d'ajouter les images");
@@ -1289,6 +1540,8 @@ function NouveauBonAdmin() {
     setAiDraftLoading(true);
     setAiDraftError("");
     setAiDraftMessage("");
+    setAiClientSuggestions([]);
+    setAiClientLookupComplete(false);
     try {
       const documentType = effectiveQuoteMode ? "quote" : "invoice";
       const res = await fetch("/api/admin/work-orders/ai-draft", {
@@ -1306,6 +1559,8 @@ function NouveauBonAdmin() {
     } catch (err) {
       setAiDraftError(err.message);
       setAiDraft(null);
+      setAiClientSuggestions([]);
+      setAiClientLookupComplete(false);
     } finally {
       setAiDraftLoading(false);
     }
@@ -1323,10 +1578,15 @@ function NouveauBonAdmin() {
       let client = selectedClient;
       let clientAction = "Client conserve";
       if (!client) {
-        const existingClient = await findClientForAiDraft(draftClient);
-        if (existingClient) {
-          client = existingClient;
+        const { exact, suggestions } = await findClientCandidatesForAiDraft(draftClient);
+        if (exact) {
+          client = exact;
           clientAction = "Client existant utilise";
+        } else if (suggestions.length > 0) {
+          setAiClientSuggestions(suggestions);
+          setAiClientLookupComplete(true);
+          setAiDraftMessage("Clients semblables trouves. Clique sur le bon client dans les choix proposes, ou cree un nouveau client si aucun ne correspond.");
+          return;
         } else {
           const shouldCreateClient = window.confirm(
             `Nouveau client detecte.\n\nAucun client existant n'a ete trouve dans la base de donnees pour:\n\n${formatDraftClientLine(draftClient)}\n\nVoulez-vous l'ajouter a la base de donnees et appliquer au formulaire?`
@@ -1342,6 +1602,8 @@ function NouveauBonAdmin() {
         setClientSearch("");
         setClientResults([]);
         setQuickClientOpen(false);
+        setAiClientSuggestions([]);
+        setAiClientLookupComplete(false);
       }
       const clientUpdate = await updateClientFromAiDraft(client, draftClient, { forceGestionnaire: hasDraftSections });
       let clientUpdateMessage = "";
@@ -1544,6 +1806,11 @@ function NouveauBonAdmin() {
       : "Description du travail";
   const summaryTitle = effectiveInvoiceMode ? "Resume de la facture" : effectiveQuoteMode ? "Resume de la soumission" : "Resume du bon";
   const totalTitle = effectiveInvoiceMode ? "Total de la facture" : effectiveQuoteMode ? "Total de la soumission" : "Total a facturer";
+  const showAiClientSuggestionPanel = Boolean(
+    aiDraft?.client &&
+    !selectedClient &&
+    (aiClientSuggestionLoading || aiClientLookupComplete || aiClientSuggestions.length > 0)
+  );
 
   return (
     <div className="px-4 py-5 lg:px-8 lg:py-6">
@@ -1767,6 +2034,90 @@ function NouveauBonAdmin() {
                       {effectiveInvoiceMode ? "Facture" : "Soumission"}
                     </span>
                   </div>
+
+                  {showAiClientSuggestionPanel && (
+                    <div className="rounded-lg border border-sky-500/30 bg-sky-500/10 p-2">
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <p className="text-[10px] font-bold uppercase text-sky-500">
+                          Clients similaires
+                        </p>
+                        {aiClientSuggestionLoading && (
+                          <span className="admin-text-muted inline-flex items-center gap-1 text-[10px]">
+                            <i className="fas fa-spinner fa-spin"></i>Recherche
+                          </span>
+                        )}
+                      </div>
+
+                      {!aiClientSuggestionLoading && aiClientSuggestions.length === 0 && (
+                        <p className="admin-text-muted mb-2 text-xs">
+                          Aucun client proche trouve dans la base.
+                        </p>
+                      )}
+
+                      {aiClientSuggestions.length > 0 && (
+                        <div className="space-y-2">
+                          {aiClientSuggestions.map((client) => (
+                            <button
+                              key={client.id}
+                              type="button"
+                              onClick={() => selectAiClientSuggestion(client)}
+                              className="w-full rounded-md border border-sky-500/25 bg-white/[0.03] px-2.5 py-2 text-left transition hover:border-sky-400 hover:bg-sky-500/15"
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0">
+                                  <p className="admin-text truncate text-xs font-black">{client.name || "Client sans nom"}</p>
+                                  {client.company && (
+                                    <p className="admin-text-muted truncate text-[11px]">Compagnie: {client.company}</p>
+                                  )}
+                                  {client.contactName && (
+                                    <p className="admin-text-muted truncate text-[11px]">Contact: {client.contactName}</p>
+                                  )}
+                                </div>
+                                <span className="shrink-0 rounded-full bg-sky-500/20 px-2 py-0.5 text-[10px] font-black text-sky-500">
+                                  {Math.round(client.matchScore || 0)}%
+                                </span>
+                              </div>
+                              <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] admin-text-muted">
+                                {client.email && <span>{client.email}</span>}
+                                {client.phone && <span>{client.phone}</span>}
+                                {client.city && <span>{client.city}</span>}
+                                {client._count?.workOrders ? <span>{client._count.workOrders} bon{client._count.workOrders > 1 ? "s" : ""}</span> : null}
+                              </div>
+                              {client.matchReasons?.length > 0 && (
+                                <div className="mt-1 flex flex-wrap gap-1">
+                                  {client.matchReasons.slice(0, 3).map((reason) => (
+                                    <span key={reason} className="rounded bg-sky-500/15 px-1.5 py-0.5 text-[10px] font-bold text-sky-500">
+                                      {reason}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={createAiDraftClientAndSelect}
+                        disabled={aiDraftApplying || aiClientSuggestionLoading}
+                        className="mt-2 inline-flex w-full items-center justify-center rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-600 hover:bg-emerald-500/15 disabled:opacity-40"
+                      >
+                        <i className={`fas ${aiDraftApplying ? "fa-spinner fa-spin" : "fa-user-plus"} mr-2`}></i>
+                        Creer un nouveau client avec cette analyse
+                      </button>
+                    </div>
+                  )}
+
+                  {aiDraft?.client && selectedClient && (
+                    <div className="rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-3 py-2">
+                      <p className="text-[10px] font-bold uppercase text-emerald-600">Client selectionne</p>
+                      <p className="admin-text mt-0.5 text-xs font-bold">{selectedClient.name}</p>
+                      <p className="admin-text-muted text-[11px]">
+                        {[selectedClient.company, selectedClient.email, selectedClient.phone].filter(Boolean).join(" | ")}
+                      </p>
+                    </div>
+                  )}
 
                   {aiDraft.analysisCost && (
                     <div
