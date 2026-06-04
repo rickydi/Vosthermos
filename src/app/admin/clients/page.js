@@ -154,7 +154,7 @@ export default function ClientsPage() {
     <div className="p-6 lg:p-8">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
         <div>
-          <h1 className="admin-text text-2xl font-bold">Base clients</h1>
+          <h1 className="admin-text text-2xl font-bold">Clients</h1>
           <p className="admin-text-muted text-sm mt-1">
             Coordonnees et fiches. Le travail courant se fait dans Suivi clients.
           </p>

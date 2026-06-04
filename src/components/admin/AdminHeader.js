@@ -12,6 +12,7 @@ const pageTitles = {
   "/admin/suivi-clients": "Suivi clients",
   "/admin/soumissions": "Soumissions",
   "/admin/factures": "Factures",
+  "/admin/clients": "Clients",
   "/admin/paiements": "Paiements",
   "/admin/calculateur-thermos": "Calculateur thermos",
   "/admin/analytics": "Analytics",
@@ -31,6 +32,7 @@ export default function AdminHeader() {
   let title = pageTitles[pathname];
   if (!title) {
     if (pathname.startsWith("/admin/produits/")) title = "Editer un produit";
+    else if (pathname.startsWith("/admin/clients/")) title = "Client";
     else if (pathname.startsWith("/admin/gestionnaires/")) title = "Gestionnaire";
     else title = "Administration";
   }

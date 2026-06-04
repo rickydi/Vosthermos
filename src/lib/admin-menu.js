@@ -12,7 +12,7 @@ export const ADMIN_MENU_ITEMS = {
   chat: { href: "/admin/chat", label: "Chat clients", icon: "fa-comments" },
   techniciens: { href: "/admin/techniciens", label: "Techniciens", icon: "fa-hard-hat" },
 
-  clients: { href: "/admin/clients", label: "Base clients", icon: "fa-address-book" },
+  clients: { href: "/admin/clients", label: "Clients", icon: "fa-address-book" },
   vendeur: { href: "/admin/vendeur", label: "Vendeur", icon: "fa-handshake" },
   gestionnaires: { href: "/admin/gestionnaires", label: "Acces gestionnaires", icon: "fa-door-open" },
 
@@ -68,13 +68,21 @@ export const ADMIN_MENU_SECTIONS = [
 ];
 
 export const DEFAULT_ADMIN_MENU_LAYOUT = {
-  production: ["suiviClients", "soumissions", "factures", "bons", "paiements", "routes", "calculateurThermos", "rendezVous", "chat", "techniciens"],
+  production: ["suiviClients", "chat", "bons", "factures", "soumissions", "clients", "paiements", "routes", "calculateurThermos", "rendezVous", "techniciens"],
   boutique: ["commandes", "produits", "categories", "promotions"],
   site: ["analytics", "seo", "blogue", "services", "vendeur"],
-  systeme: ["clients", "gestionnaires", "activite", "parametres", "utilisateurs", "menu"],
+  systeme: ["gestionnaires", "activite", "parametres", "utilisateurs", "menu"],
 };
 
+const PINNED_PRODUCTION_ITEMS = ["suiviClients", "chat", "bons", "factures", "soumissions", "clients"];
+
 const LEGACY_DEFAULT_ADMIN_MENU_LAYOUTS = [
+  {
+    production: ["suiviClients", "soumissions", "factures", "bons", "paiements", "routes", "calculateurThermos", "rendezVous", "chat", "techniciens"],
+    boutique: ["commandes", "produits", "categories", "promotions"],
+    site: ["analytics", "seo", "blogue", "services", "vendeur"],
+    systeme: ["clients", "gestionnaires", "activite", "parametres", "utilisateurs", "menu"],
+  },
   {
     production: ["suiviClients", "bons", "paiements", "routes", "calculateurThermos", "rendezVous", "chat", "techniciens"],
     boutique: ["commandes", "produits", "categories", "promotions"],
@@ -109,6 +117,24 @@ function migrateAdminMenuLayout(saved) {
   return saved;
 }
 
+function pinProductionItems(result) {
+  const pinned = PINNED_PRODUCTION_ITEMS.filter((itemKey) => ADMIN_MENU_ITEMS[itemKey]);
+  const pinnedSet = new Set(pinned);
+  for (const section of ADMIN_MENU_SECTIONS) {
+    result[section.key] = (result[section.key] || []).filter((itemKey) => !pinnedSet.has(itemKey));
+  }
+  result.production = [...pinned, ...(result.production || [])];
+  return result;
+}
+
+function normalizeItemLabels(itemLabels) {
+  const labels = { ...(itemLabels || {}) };
+  if (String(labels.clients || "").trim().toLowerCase() === "base clients") {
+    delete labels.clients;
+  }
+  return labels;
+}
+
 export function normalizeAdminMenuLayout(saved) {
   const migrated = migrateAdminMenuLayout(saved);
   const result = {};
@@ -132,8 +158,10 @@ export function normalizeAdminMenuLayout(saved) {
     result[defaultSection?.key || "systeme"].push(itemKey);
   }
 
+  pinProductionItems(result);
+
   result.labels = { ...DEFAULT_ADMIN_MENU_LABELS, ...(migrated?.labels || {}) };
-  result.itemLabels = migrated?.itemLabels || {};
+  result.itemLabels = normalizeItemLabels(migrated?.itemLabels);
 
   return result;
 }
