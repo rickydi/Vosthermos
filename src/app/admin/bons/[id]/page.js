@@ -1,11 +1,18 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { formatDateOnly } from "@/lib/date-only";
 import { buildWhatsAppUrl, openWhatsAppWindow } from "@/lib/whatsapp";
-import { getWorkOrderDocumentMeta, isQuoteStatus } from "@/lib/work-order-document";
+import {
+  adminDocumentDetailHref,
+  adminDocumentEditHref,
+  adminDocumentListHref,
+  adminDocumentListLabel,
+  adminDocumentTypeFromPathname,
+} from "@/lib/admin-document-routes";
+import { getWorkOrderDocumentMeta, getWorkOrderDocumentType, isQuoteStatus } from "@/lib/work-order-document";
 import { workOrderStatusClass, workOrderStatusLabel } from "@/lib/work-order-status";
 import {
   buildFriendlyDocumentEmailBody,
@@ -68,8 +75,8 @@ function documentDateLabel(documentMeta) {
   return "Date prevue";
 }
 
-function buildJasonDocumentMessage(wo, documentMeta) {
-  const documentUrl = adminAbsoluteUrl(`/admin/bons/${wo.id}`);
+function buildJasonDocumentMessage(wo, documentMeta, detailHref) {
+  const documentUrl = adminAbsoluteUrl(detailHref || `/admin/bons/${wo.id}`);
   const pdfUrl = adminAbsoluteUrl(`/api/admin/work-orders/${wo.id}/pdf?documentType=${documentMeta.type}&inline=1`);
   const address = workOrderAddressLine(wo);
   const date = wo.date ? formatDateOnly(wo.date, { weekday: "long", day: "numeric", month: "long" }) : "";
@@ -127,8 +134,9 @@ function defaultEmailBody(wo, documentMeta) {
   ].join("\n");
 }
 
-export default function BonDetailPage() {
+export default function BonDetailPage({ forcedDocumentType = null } = {}) {
   const router = useRouter();
+  const pathname = usePathname();
   const { id } = useParams();
   const [wo, setWo] = useState(null);
   const [company, setCompany] = useState(null);
@@ -146,6 +154,14 @@ export default function BonDetailPage() {
   const [selectedTechId, setSelectedTechId] = useState("");
   const [approving, setApproving] = useState(false);
   const [acceptingQuote, setAcceptingQuote] = useState(false);
+
+  const pathDocumentType = forcedDocumentType || adminDocumentTypeFromPathname(pathname);
+
+  function adminDocumentTypeFor(statut) {
+    if (!statut) return pathDocumentType || "work_order";
+    const statusType = getWorkOrderDocumentType(statut);
+    return statusType;
+  }
 
   useEffect(() => {
     fetch(`/api/admin/work-orders/${id}`)
@@ -274,7 +290,9 @@ export default function BonDetailPage() {
   }
 
   async function handleDelete() {
-    if (!confirm(`Supprimer definitivement le bon ${wo?.number || `#${id}`}? Cette action est irreversible.`)) return;
+    const deleteDocumentType = adminDocumentTypeFor(wo?.statut);
+    const deleteDocumentMeta = getWorkOrderDocumentMeta(wo?.statut, deleteDocumentType);
+    if (!confirm(`Supprimer definitivement ${deleteDocumentMeta.label.toLowerCase()} ${wo?.number || `#${id}`}? Cette action est irreversible.`)) return;
     setDeleting(true);
     try {
       const res = await fetch(`/api/admin/work-orders/${id}`, { method: "DELETE" });
@@ -282,7 +300,7 @@ export default function BonDetailPage() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Erreur de suppression");
       }
-      router.push("/admin/bons");
+      router.push(adminDocumentListHref(deleteDocumentType));
     } catch (err) {
       setMsg(err.message);
       setDeleting(false);
@@ -324,7 +342,7 @@ export default function BonDetailPage() {
 
   function sendDocumentToJason() {
     const meta = getWorkOrderDocumentMeta(wo?.statut);
-    const message = buildJasonDocumentMessage(wo, meta);
+    const message = buildJasonDocumentMessage(wo, meta, detailHref);
     const popup = openWhatsAppWindow(buildWhatsAppUrl(JASON_WHATSAPP_PHONE, message), 0);
     setMsg(popup
       ? `${meta.label} ${wo.number || ""} pret a envoyer a Jason sur WhatsApp.`
@@ -338,6 +356,11 @@ export default function BonDetailPage() {
   );
 
   const documentMeta = getWorkOrderDocumentMeta(wo.statut);
+  const adminDocumentType = adminDocumentTypeFor(wo.statut);
+  const detailHref = adminDocumentDetailHref(id, adminDocumentType);
+  const editHref = adminDocumentEditHref(id, adminDocumentType);
+  const listHref = adminDocumentListHref(adminDocumentType);
+  const listLabel = adminDocumentListLabel(adminDocumentType);
   const quoteCanBeAccepted = isQuoteStatus(wo.statut) && wo.statut !== "quote_accepted";
   const quoteReadyToSchedule = wo.statut === "quote_accepted";
   const canAssignWorkOrder = wo.statut === "draft" || quoteReadyToSchedule;
@@ -347,11 +370,11 @@ export default function BonDetailPage() {
       {/* Top bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6 print-hide">
         <div className="flex items-center gap-3 flex-wrap">
-          <Link href={`/admin/bons/nouveau?edit=${id}`} className="admin-text-muted text-sm hover:admin-text">
+          <Link href={editHref} className="admin-text-muted text-sm hover:admin-text">
             <i className="fas fa-arrow-left mr-2"></i>Retour a la modification
           </Link>
-          <Link href="/admin/bons" className="admin-text-muted text-sm hover:admin-text">
-            Tous les documents
+          <Link href={listHref} className="admin-text-muted text-sm hover:admin-text">
+            {listLabel}
           </Link>
           <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${workOrderStatusClass(wo.statut)}`}>
             {workOrderStatusLabel(wo.statut)}
@@ -398,14 +421,14 @@ export default function BonDetailPage() {
           )}
           {(wo.statut === "scheduled" || wo.statut === "in_progress" || wo.statut === "completed") && (
             <Link
-              href={`/admin/bons/nouveau?edit=${id}&mode=invoice`}
+              href={adminDocumentEditHref(id, "invoice")}
               className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-bold inline-flex items-center"
             >
               <i className="fas fa-file-invoice-dollar mr-2"></i>
               Facturer ce bon
             </Link>
           )}
-          <Link href={`/admin/bons/nouveau?edit=${id}`}
+          <Link href={editHref}
             className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-medium hover:bg-white/5 transition-colors">
             <i className="fas fa-pen mr-2"></i>Modifier
           </Link>

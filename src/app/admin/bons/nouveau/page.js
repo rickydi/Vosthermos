@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useState, useEffect, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import CatalogPicker from "@/components/admin/CatalogPicker";
@@ -16,6 +16,12 @@ import {
   normalizeFollowUpColumns,
   workOrderStatutFromFollowUpStatus,
 } from "@/lib/follow-up-columns";
+import {
+  adminDocumentDetailHref,
+  adminDocumentEditHref,
+  adminDocumentListHref,
+  adminDocumentTypeFromPathname,
+} from "@/lib/admin-document-routes";
 import { isInvoiceStatus, isQuoteStatus } from "@/lib/work-order-document";
 
 const DRAFT_KEY = "vosthermos:nouveau-bon:draft";
@@ -733,20 +739,22 @@ function followUpDateLabel(value) {
   return date ? ` | ${date}` : "";
 }
 
-export default function NouveauBonPage() {
+export default function NouveauBonPage(props = {}) {
   return (
     <Suspense fallback={<div className="p-6 lg:p-8 admin-text-muted"><i className="fas fa-spinner fa-spin mr-2"></i>Chargement...</div>}>
-      <NouveauBonAdmin />
+      <NouveauBonAdmin {...props} />
     </Suspense>
   );
 }
 
-function NouveauBonAdmin() {
+function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
-  const invoiceMode = searchParams.get("mode") === "invoice";
-  const quoteMode = searchParams.get("mode") === "quote";
+  const routeDocumentType = forcedDocumentType || adminDocumentTypeFromPathname(pathname);
+  const invoiceMode = routeDocumentType === "invoice" || searchParams.get("mode") === "invoice";
+  const quoteMode = !invoiceMode && (routeDocumentType === "quote" || searchParams.get("mode") === "quote");
   const freshDraft = searchParams.get("fresh") === "1";
   const resumeDraft = searchParams.get("draft") === "1";
   const presetClientId = searchParams.get("clientId");
@@ -1583,6 +1591,8 @@ function NouveauBonAdmin() {
 
   const effectiveInvoiceMode = invoiceMode || isInvoiceStatus(currentStatut);
   const effectiveQuoteMode = quoteMode || isQuoteStatus(currentStatut);
+  const currentDocumentType = effectiveInvoiceMode ? "invoice" : effectiveQuoteMode ? "quote" : "work_order";
+  const currentDocumentListHref = adminDocumentListHref(currentDocumentType);
   const showDocumentAssistant = effectiveInvoiceMode || effectiveQuoteMode;
   const isExistingInvoiceDocument = Boolean(editId && !invoiceMode && isInvoiceStatus(currentStatut));
   const isExistingQuoteDocument = Boolean(editId && !quoteMode && isQuoteStatus(currentStatut));
@@ -1817,8 +1827,17 @@ function NouveauBonAdmin() {
           }));
         } catch {}
       }
+      const targetDocumentType = submitAction === "invoice"
+        ? "invoice"
+        : submitAction === "quote"
+          ? "quote"
+          : isInvoiceStatus(finalStatut)
+            ? "invoice"
+            : isQuoteStatus(finalStatut)
+              ? "quote"
+              : "work_order";
       const shouldPreview = submitAction === "invoice" || submitAction === "quote" || submitAction === "preview";
-      router.push(shouldPreview ? `/admin/bons/${wo.id}` : `/admin/bons/nouveau?edit=${wo.id}`);
+      router.push(shouldPreview ? adminDocumentDetailHref(wo.id, targetDocumentType) : adminDocumentEditHref(wo.id, targetDocumentType));
       if (!shouldPreview) {
         setSaving(false);
         setSavingAction(null);
@@ -1876,7 +1895,7 @@ function NouveauBonAdmin() {
     <div className="px-4 py-5 lg:px-8 lg:py-6">
       <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <Link href="/admin/bons" className="admin-text-muted text-sm hover:admin-text">
+          <Link href={currentDocumentListHref} className="admin-text-muted text-sm hover:admin-text">
             <i className="fas fa-arrow-left mr-2"></i>Retour aux documents
           </Link>
           <div className="mt-2 flex flex-wrap items-center gap-3">
@@ -2999,7 +3018,7 @@ function NouveauBonAdmin() {
                 </button>
                 {editId && (
                   <Link
-                    href={`/admin/bons/nouveau?edit=${editId}&mode=invoice`}
+                    href={adminDocumentEditHref(editId, "invoice")}
                     className="flex w-full items-center justify-center rounded-lg border border-orange-500/40 px-4 py-2.5 text-sm font-bold text-orange-600 hover:bg-orange-500/10"
                   >
                     <i className="fas fa-file-invoice-dollar mr-2"></i>Passer en facturation

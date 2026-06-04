@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { formatDateOnly } from "@/lib/date-only";
+import { adminDocumentEditHref, adminDocumentNewHref } from "@/lib/admin-document-routes";
 import { workOrderStatusClass, workOrderStatusLabel } from "@/lib/work-order-status";
 
 function invoicePaymentStatusMeta(wo) {
@@ -62,7 +63,7 @@ const DOCUMENT_VIEW_CONFIG = {
       { key: "quote_accepted", label: "Acceptes" },
     ],
     actions: [
-      { href: "/admin/bons/nouveau?fresh=1&mode=quote", label: "Nouvelle soumission", icon: "fa-file-signature" },
+      { href: adminDocumentNewHref("quote", { fresh: 1 }), label: "Nouvelle soumission", icon: "fa-file-signature" },
     ],
   },
   invoices: {
@@ -80,7 +81,7 @@ const DOCUMENT_VIEW_CONFIG = {
       { key: "all", label: "Toutes" },
     ],
     actions: [
-      { href: "/admin/bons/nouveau?fresh=1&mode=invoice", label: "Nouvelle facture", icon: "fa-file-invoice-dollar" },
+      { href: adminDocumentNewHref("invoice", { fresh: 1 }), label: "Nouvelle facture", icon: "fa-file-invoice-dollar" },
       { href: "/admin/paiements", label: "Paiements", icon: "fa-money-check-alt", secondary: true },
     ],
   },
@@ -122,13 +123,12 @@ function statusDisplayMeta(wo, documentView) {
 }
 
 function editDocumentHref(wo, documentView) {
-  const params = new URLSearchParams({ edit: String(wo.id) });
   if (documentView === "quotes" || ["quote", "quote_sent", "quote_accepted"].includes(wo.statut)) {
-    params.set("mode", "quote");
+    return adminDocumentEditHref(wo.id, "quote");
   } else if (documentView === "invoices" || ["invoiced", "sent", "paid"].includes(wo.statut)) {
-    params.set("mode", "invoice");
+    return adminDocumentEditHref(wo.id, "invoice");
   }
-  return `/admin/bons/nouveau?${params.toString()}`;
+  return adminDocumentEditHref(wo.id, "work_order");
 }
 
 export default function BonsPage({ documentView = "all" } = {}) {
