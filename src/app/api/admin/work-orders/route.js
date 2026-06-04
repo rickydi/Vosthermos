@@ -13,12 +13,12 @@ import {
   withWorkOrderNumberRetry,
 } from "@/lib/work-order-utils";
 import { createOrTouchFollowUpFromWorkOrder, getSavedFollowUpColumns } from "@/lib/follow-up-utils";
-import { workOrderStatutFromFollowUpStatus } from "@/lib/follow-up-columns";
+import { followUpColumnMeta, followUpStatusFromWorkOrderStatut, workOrderStatutFromFollowUpStatus } from "@/lib/follow-up-columns";
 import { parseDateOnly } from "@/lib/date-only";
 import { logAdminActivity } from "@/lib/admin-activity";
 import { buildPaymentTrackingData, serializePaymentWorkOrder } from "@/lib/payment-tracking";
 import { clampInt } from "@/lib/api-utils";
-import { isInvoiceStatus, isQuoteStatus } from "@/lib/work-order-document";
+import { INVOICE_STATUSES, QUOTE_STATUSES, isInvoiceStatus, isQuoteStatus } from "@/lib/work-order-document";
 
 async function validateFollowUpForClient(followUpId, clientId) {
   if (!followUpId) return null;
@@ -35,13 +35,21 @@ export async function GET(req) {
 
   const { searchParams } = new URL(req.url);
   const statut = searchParams.get("statut");
+  const documentType = searchParams.get("documentType");
+  const paymentState = searchParams.get("paymentState");
   const techId = searchParams.get("technicianId");
   const q = searchParams.get("q") || "";
   const page = clampInt(searchParams.get("page"), 1, { min: 1, max: 100000 });
   const limit = clampInt(searchParams.get("limit"), 50, { min: 1, max: 200 });
 
   const where = {};
-  if (statut) where.statut = statut;
+  if (statut) {
+    where.statut = statut;
+  } else if (documentType === "quote") {
+    where.statut = { in: [...QUOTE_STATUSES] };
+  } else if (documentType === "invoice") {
+    where.statut = { in: [...INVOICE_STATUSES] };
+  }
   if (techId) where.technicianId = parseInt(techId);
   if (q) {
     where.OR = [
@@ -52,7 +60,7 @@ export async function GET(req) {
     ];
   }
 
-  const [workOrders, total] = await Promise.all([
+  const [workOrders, total, followUpColumns] = await Promise.all([
     prisma.workOrder.findMany({
       where,
       include: {
@@ -67,13 +75,36 @@ export async function GET(req) {
       take: limit,
     }),
     prisma.workOrder.count({ where }),
+    getSavedFollowUpColumns(),
   ]);
 
+  let serializedWorkOrders = workOrders.map((wo) => {
+    const followUpStatus = followUpStatusFromWorkOrderStatut(wo.statut, followUpColumns);
+    const followUpStatusMeta = followUpColumnMeta(followUpColumns, followUpStatus);
+    return {
+      ...serializePaymentWorkOrder(wo),
+      followUpStatus,
+      followUpStatusLabel: followUpStatusMeta.label,
+      followUpStatusIcon: followUpStatusMeta.icon,
+      followUpStatusTone: followUpStatusMeta.tone,
+    };
+  });
+
+  if (paymentState === "open") {
+    serializedWorkOrders = serializedWorkOrders.filter((wo) => ["receivable", "overdue"].includes(wo.paymentState));
+  } else if (paymentState === "partial") {
+    serializedWorkOrders = serializedWorkOrders.filter((wo) => wo.hasPartialPayments && wo.paymentState !== "paid");
+  } else if (["receivable", "overdue", "paid"].includes(paymentState)) {
+    serializedWorkOrders = serializedWorkOrders.filter((wo) => wo.paymentState === paymentState);
+  }
+
+  const responseTotal = paymentState ? serializedWorkOrders.length : total;
+
   return NextResponse.json({
-    workOrders: workOrders.map((wo) => serializePaymentWorkOrder(wo)),
-    total,
+    workOrders: serializedWorkOrders,
+    total: responseTotal,
     page,
-    pages: Math.ceil(total / limit),
+    pages: Math.ceil(responseTotal / limit),
   });
 }
 

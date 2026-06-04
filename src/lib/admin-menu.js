@@ -2,6 +2,8 @@ export const ADMIN_MENU_SETTINGS_KEY = "admin_menu_layout";
 
 export const ADMIN_MENU_ITEMS = {
   suiviClients: { href: "/admin/suivi-clients", label: "Suivi clients", icon: "fa-tasks" },
+  soumissions: { href: "/admin/soumissions", label: "Soumissions", icon: "fa-file-signature" },
+  factures: { href: "/admin/factures", label: "Factures", icon: "fa-file-invoice-dollar" },
   bons: { href: "/admin/bons", label: "Bons de travail", icon: "fa-clipboard-list" },
   paiements: { href: "/admin/paiements", label: "Paiements", icon: "fa-money-check-alt" },
   routes: { href: "/admin/routes", label: "Routes", icon: "fa-route" },
@@ -37,7 +39,7 @@ export const ADMIN_MENU_SECTIONS = [
     icon: "fa-clipboard-check",
     dotClass: "bg-emerald-400",
     accentClass: "text-emerald-400",
-    summary: "Suivis, bons, rendez-vous",
+    summary: "Suivis, soumissions, factures",
   },
   {
     key: "boutique",
@@ -66,13 +68,19 @@ export const ADMIN_MENU_SECTIONS = [
 ];
 
 export const DEFAULT_ADMIN_MENU_LAYOUT = {
-  production: ["suiviClients", "bons", "paiements", "routes", "calculateurThermos", "rendezVous", "chat", "techniciens"],
+  production: ["suiviClients", "soumissions", "factures", "bons", "paiements", "routes", "calculateurThermos", "rendezVous", "chat", "techniciens"],
   boutique: ["commandes", "produits", "categories", "promotions"],
   site: ["analytics", "seo", "blogue", "services", "vendeur"],
   systeme: ["clients", "gestionnaires", "activite", "parametres", "utilisateurs", "menu"],
 };
 
 const LEGACY_DEFAULT_ADMIN_MENU_LAYOUTS = [
+  {
+    production: ["suiviClients", "bons", "paiements", "routes", "calculateurThermos", "rendezVous", "chat", "techniciens"],
+    boutique: ["commandes", "produits", "categories", "promotions"],
+    site: ["analytics", "seo", "blogue", "services", "vendeur"],
+    systeme: ["clients", "gestionnaires", "activite", "parametres", "utilisateurs", "menu"],
+  },
   {
     production: ["suiviClients", "bons", "rendezVous", "chat", "techniciens", "clients", "vendeur", "gestionnaires"],
     boutique: ["commandes", "produits", "categories", "promotions"],
