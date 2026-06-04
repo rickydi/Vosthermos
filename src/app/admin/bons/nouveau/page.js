@@ -436,8 +436,50 @@ function textSimilarityScore(a, b) {
   if (leftTokens.length === 0 || rightTokens.length === 0) return 0;
   const rightSet = new Set(rightTokens);
   const common = leftTokens.filter((token) => rightSet.has(token)).length;
-  if (!common) return 0;
-  return (2 * common) / (leftTokens.length + rightTokens.length);
+  let fuzzyCommon = common;
+  if (common < Math.min(leftTokens.length, rightTokens.length)) {
+    for (const token of leftTokens) {
+      if (rightSet.has(token)) continue;
+      const bestTokenScore = Math.max(...rightTokens.map((rightToken) => wordSimilarityScore(token, rightToken)));
+      if (bestTokenScore >= 0.68) fuzzyCommon += bestTokenScore;
+    }
+  }
+  if (!fuzzyCommon) return 0;
+  return Math.min(1, (2 * fuzzyCommon) / (leftTokens.length + rightTokens.length));
+}
+
+function wordSimilarityScore(a, b) {
+  const left = normalizeClientLookupText(a).replace(/\s/g, "");
+  const right = normalizeClientLookupText(b).replace(/\s/g, "");
+  if (!left || !right) return 0;
+  if (left === right) return 1;
+  if (left.length < 5 || right.length < 5) return 0;
+  if (left.includes(right) || right.includes(left)) {
+    return Math.min(left.length, right.length) / Math.max(left.length, right.length);
+  }
+
+  const rows = left.length + 1;
+  const cols = right.length + 1;
+  const distances = Array.from({ length: rows }, (_, row) => {
+    const line = Array(cols).fill(0);
+    line[0] = row;
+    return line;
+  });
+  for (let col = 0; col < cols; col += 1) distances[0][col] = col;
+
+  for (let row = 1; row < rows; row += 1) {
+    for (let col = 1; col < cols; col += 1) {
+      const cost = left[row - 1] === right[col - 1] ? 0 : 1;
+      distances[row][col] = Math.min(
+        distances[row - 1][col] + 1,
+        distances[row][col - 1] + 1,
+        distances[row - 1][col - 1] + cost
+      );
+    }
+  }
+
+  const distance = distances[left.length][right.length];
+  return 1 - distance / Math.max(left.length, right.length);
 }
 
 function bestSimilarity(leftValues, rightValues) {
@@ -478,6 +520,9 @@ function scoreClientForDraft(client, draftClient = {}) {
   } else if (nameScore >= 0.78) {
     score = Math.max(score, 82);
     reasons.push("Nom tres proche");
+  } else if (nameScore >= 0.66) {
+    score = Math.max(score, 74);
+    reasons.push("Nom proche avec orthographe differente");
   } else if (nameScore >= 0.5) {
     score = Math.max(score, 62);
     reasons.push("Mots importants en commun");
@@ -517,15 +562,18 @@ function clientSearchQueriesForDraft(draftClient = {}) {
     draftClient.contactName,
     draftClient.address,
   ].filter(Boolean).join(" "));
+  const tokenPrefixes = tokenValues
+    .filter((token) => token.length >= 6)
+    .flatMap((token) => [token.slice(0, 4), token.slice(0, 3)]);
 
   const phoneFragments = [draftClient.phone, draftClient.secondaryPhone]
     .map(onlyDigits)
     .filter((value) => value.length >= 7)
     .flatMap((value) => [value.slice(-7), value.slice(-4)]);
 
-  return Array.from(new Set([...rawValues, ...strippedRawValues, ...tokenValues, ...phoneFragments]))
+  return Array.from(new Set([...rawValues, ...strippedRawValues, ...tokenValues, ...tokenPrefixes, ...phoneFragments]))
     .filter((value) => value.length >= 3)
-    .slice(0, 12);
+    .slice(0, 20);
 }
 
 function decorateClientSuggestion(client, score, reasons) {
@@ -547,17 +595,24 @@ async function findClientCandidatesForAiDraft(draftClient = {}) {
   };
 
   for (const query of queries) {
-    const res = await fetch(`/api/admin/clients?q=${encodeURIComponent(query)}&limit=20`, { cache: "no-store" });
+    const res = await fetch(`/api/admin/clients?q=${encodeURIComponent(query)}&limit=50`, { cache: "no-store" });
     if (!res.ok) continue;
     const data = await res.json().catch(() => ({}));
     addClients(Array.isArray(data.clients) ? data.clients : []);
   }
 
   if (byId.size < 5) {
-    const res = await fetch("/api/admin/clients?limit=200&sort=updated_desc", { cache: "no-store" });
+    const res = await fetch("/api/admin/clients?limit=200&sort=name_asc", { cache: "no-store" });
     if (res.ok) {
       const data = await res.json().catch(() => ({}));
       addClients(Array.isArray(data.clients) ? data.clients : []);
+      const pages = Math.min(Number(data.pages || 1), 12);
+      for (let page = 2; page <= pages; page += 1) {
+        const pageRes = await fetch(`/api/admin/clients?limit=200&sort=name_asc&page=${page}`, { cache: "no-store" });
+        if (!pageRes.ok) continue;
+        const pageData = await pageRes.json().catch(() => ({}));
+        addClients(Array.isArray(pageData.clients) ? pageData.clients : []);
+      }
     }
   }
 
