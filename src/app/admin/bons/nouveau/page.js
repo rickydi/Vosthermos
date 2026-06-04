@@ -2063,6 +2063,36 @@ function NouveauBonAdmin() {
                   </div>
                 )}
               </div>
+
+              {aiDraft?.warnings?.length > 0 && (
+                <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <p className="text-[10px] font-bold uppercase text-amber-500">
+                      A verifier
+                    </p>
+                    <span className="admin-text-muted text-[11px]">
+                      {aiDraft.warnings.length} point{aiDraft.warnings.length > 1 ? "s" : ""}
+                    </span>
+                  </div>
+                  <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+                    {aiDraft.warnings.map((warning, index) => (
+                      <div
+                        key={`${warning}-${index}`}
+                        className="min-w-0 rounded-md border border-amber-500/20 bg-black/10 px-3 py-2"
+                      >
+                        <div className="flex items-start gap-2">
+                          <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-[10px] font-black text-amber-500">
+                            {index + 1}
+                          </span>
+                          <p className="admin-text min-w-0 break-words text-xs leading-snug">
+                            {warning}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="rounded-lg border admin-border bg-white/[0.02] p-3">
@@ -2215,13 +2245,6 @@ function NouveauBonAdmin() {
                       )}
                     </div>
                   </div>
-
-                  {aiDraft.warnings?.length > 0 && (
-                    <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-2">
-                      <p className="text-[10px] font-bold uppercase text-amber-500">A verifier</p>
-                      <p className="admin-text-muted mt-1 text-xs">{aiDraft.warnings.join(" | ")}</p>
-                    </div>
-                  )}
 
                   {aiDraft.email?.body && (
                     <details className="rounded-lg border admin-border p-2">
