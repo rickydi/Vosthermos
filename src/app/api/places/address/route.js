@@ -3,6 +3,32 @@ import prisma from "@/lib/prisma";
 
 const GOOGLE_AUTOCOMPLETE_URL = "https://places.googleapis.com/v1/places:autocomplete";
 const GOOGLE_PLACE_URL = "https://places.googleapis.com/v1/places";
+const DEFAULT_GOOGLE_REFERER = "https://www.vosthermos.com/";
+
+function normalizeReferer(value) {
+  try {
+    const url = new URL(value);
+    return `${url.origin}/`;
+  } catch {
+    return "";
+  }
+}
+
+function getGoogleReferer(request) {
+  const origin = normalizeReferer(request.headers.get("origin") || "");
+  if (origin) return origin;
+
+  const referer = normalizeReferer(request.headers.get("referer") || "");
+  if (referer) return referer;
+
+  const host = request.headers.get("x-forwarded-host") || request.headers.get("host");
+  if (host) {
+    const proto = request.headers.get("x-forwarded-proto") || "https";
+    return `${proto}://${host}/`;
+  }
+
+  return normalizeReferer(process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "") || DEFAULT_GOOGLE_REFERER;
+}
 
 async function getApiKey() {
   if (process.env.GOOGLE_PLACES_API_KEY) return process.env.GOOGLE_PLACES_API_KEY;
@@ -44,7 +70,7 @@ function parsePlaceAddress(place) {
   };
 }
 
-async function autocomplete({ input, sessionToken }) {
+async function autocomplete({ input, sessionToken, googleReferer }) {
   const apiKey = await getApiKey();
   if (!apiKey) return NextResponse.json({ configured: false, predictions: [] });
 
@@ -57,6 +83,7 @@ async function autocomplete({ input, sessionToken }) {
       "Content-Type": "application/json",
       "X-Goog-Api-Key": apiKey,
       "X-Goog-FieldMask": "suggestions.placePrediction.placeId,suggestions.placePrediction.text",
+      Referer: googleReferer || DEFAULT_GOOGLE_REFERER,
     },
     body: JSON.stringify({
       input: cleanInput,
@@ -92,7 +119,7 @@ async function autocomplete({ input, sessionToken }) {
   return NextResponse.json({ configured: true, predictions });
 }
 
-async function details({ placeId, sessionToken }) {
+async function details({ placeId, sessionToken, googleReferer }) {
   const apiKey = await getApiKey();
   if (!apiKey) return NextResponse.json({ configured: false, address: null });
 
@@ -106,6 +133,7 @@ async function details({ placeId, sessionToken }) {
     headers: {
       "X-Goog-Api-Key": apiKey,
       "X-Goog-FieldMask": "id,formattedAddress,addressComponents",
+      Referer: googleReferer || DEFAULT_GOOGLE_REFERER,
     },
   });
 
@@ -121,8 +149,9 @@ async function details({ placeId, sessionToken }) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    if (body.action === "details") return details(body);
-    return autocomplete(body);
+    const googleReferer = getGoogleReferer(request);
+    if (body.action === "details") return details({ ...body, googleReferer });
+    return autocomplete({ ...body, googleReferer });
   } catch (err) {
     return NextResponse.json({ error: err?.message || "Adresse indisponible" }, { status: 500 });
   }
