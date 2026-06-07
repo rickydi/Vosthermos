@@ -212,17 +212,6 @@ function normalizeTimeInput(value) {
   return `${pad2(hours)}:${pad2(minutes)}`;
 }
 
-const TIME_OPTIONS = Array.from({ length: 24 * 4 }, (_, index) => {
-  const totalMinutes = index * 15;
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  const value = `${pad2(hours)}:${pad2(minutes)}`;
-  return {
-    value,
-    label: `${pad2(hours)}h${pad2(minutes)}`,
-  };
-});
-
 const LABOR_HOUR_OPTIONS = Array.from({ length: 16 * 4 + 1 }, (_, index) => {
   const value = index / 4;
   return { value, label: formatLaborHours(value) };
@@ -234,13 +223,6 @@ function formatLaborHours(value) {
   const minutes = totalMinutes % 60;
   if (hours === 0 && minutes === 0) return "0h";
   return `${hours > 0 ? `${hours}h` : ""}${minutes > 0 ? pad2(minutes) : ""}`;
-}
-
-function timeLabel(value) {
-  const normalized = normalizeTimeInput(value);
-  const found = TIME_OPTIONS.find((option) => option.value === normalized);
-  if (found) return found.label;
-  return normalized ? `${normalized} (heure existante)` : "";
 }
 
 function normalizeWorkItem(it) {
@@ -266,28 +248,6 @@ function normalizeWorkItem(it) {
     unitPrice,
     itemType: it.itemType || "piece",
   };
-}
-
-function TimeSelect({ label, value, onChange }) {
-  const normalizedValue = normalizeTimeInput(value);
-  const hasCustomValue = normalizedValue && !TIME_OPTIONS.some((option) => option.value === normalizedValue);
-
-  return (
-    <div>
-      <label className="admin-text-muted text-xs mb-1 block">{label}</label>
-      <select
-        value={normalizedValue}
-        onChange={(e) => onChange(e.target.value)}
-        className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full"
-      >
-        <option value="">Aucune heure</option>
-        {hasCustomValue && <option value={normalizedValue}>{timeLabel(normalizedValue)}</option>}
-        {TIME_OPTIONS.map((option) => (
-          <option key={option.value} value={option.value}>{option.label}</option>
-        ))}
-      </select>
-    </div>
-  );
 }
 
 function LaborHoursSelect({ value, onChange }) {
@@ -2461,24 +2421,22 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
         {/* Details */}
         <div className="admin-card border rounded-xl p-4 space-y-4">
           <h2 className="admin-text font-bold">Details</h2>
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="admin-text-muted text-xs mb-1 block">{dateLabel}</label>
               <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
                 className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
             </div>
-            <TimeSelect label="Heure arrivee" value={heureArrivee} onChange={setHeureArrivee} />
-            <TimeSelect label="Heure depart" value={heureDepart} onChange={setHeureDepart} />
-          </div>
-          <div>
-            <label className="admin-text-muted text-xs mb-1 block">Technicien</label>
-            <select value={technicianId} onChange={(e) => setTechnicianId(e.target.value)}
-              className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full">
-              <option value="">Aucun</option>
-              {technicians.map((t) => (
-                <option key={t.id} value={t.id}>{t.name}</option>
-              ))}
-            </select>
+            <div>
+              <label className="admin-text-muted text-xs mb-1 block">Technicien</label>
+              <select value={technicianId} onChange={(e) => setTechnicianId(e.target.value)}
+                className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full">
+                <option value="">Aucun</option>
+                {technicians.map((t) => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </select>
+            </div>
           </div>
           <div>
             <div className="flex items-center justify-between gap-3 mb-1">
