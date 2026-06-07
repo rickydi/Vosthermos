@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import MonthlyInvoiceReportSection from "@/components/admin/MonthlyInvoiceReportSection";
 import { formatDateOnly } from "@/lib/date-only";
 import { adminDocumentEditHref, adminDocumentNewHref } from "@/lib/admin-document-routes";
 import { workOrderStatusClass, workOrderStatusLabel } from "@/lib/work-order-status";
@@ -209,6 +210,8 @@ export default function BonsPage({ documentView = "all" } = {}) {
           ))}
         </div>
       </div>
+
+      {documentView === "invoices" ? <MonthlyInvoiceReportSection /> : null}
 
       <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
         {config.filters.map((tab) => (

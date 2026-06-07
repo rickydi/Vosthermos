@@ -6,6 +6,7 @@ import BlogNotifyMembersSection from "@/components/admin/BlogNotifyMembersSectio
 import ApiKeysSection from "@/components/admin/ApiKeysSection";
 import CompanyInfoSection from "@/components/admin/CompanyInfoSection";
 import ThermosPricingSettings from "@/components/admin/ThermosPricingSettings";
+import AccountantEmailSection from "@/components/admin/AccountantEmailSection";
 
 export default function AdminSettingsPage() {
   const [laborRate, setLaborRate] = useState("85.00");
@@ -87,6 +88,10 @@ export default function AdminSettingsPage() {
 
       <div className="mb-8">
         <ThermosPricingSettings />
+      </div>
+
+      <div className="mb-8">
+        <AccountantEmailSection />
       </div>
 
       <div className="mt-8">

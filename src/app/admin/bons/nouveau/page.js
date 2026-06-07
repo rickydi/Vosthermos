@@ -1914,22 +1914,20 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
         </div>
       </div>
 
-      {(invoiceMode || quoteMode) && (
+      {invoiceMode && (
         <div className={`mb-5 max-w-[1500px] rounded-lg border p-4 ${
-          invoiceMode ? "border-orange-500/40 bg-orange-500/10" : "border-sky-500/40 bg-sky-500/10"
+          "border-orange-500/40 bg-orange-500/10"
         }`}>
           <div className="flex items-start gap-3">
-            <i className={`fas ${invoiceMode ? "fa-file-invoice-dollar text-orange-500" : "fa-file-signature text-sky-500"} text-xl mt-0.5`}></i>
+            <i className="fas fa-file-invoice-dollar text-orange-500 text-xl mt-0.5"></i>
             <div className="flex-1">
-              <h3 className={`font-bold mb-1 ${invoiceMode ? "text-orange-500" : "text-sky-500"}`}>
-                {invoiceMode ? (isDirectInvoiceMode ? "Facture directe" : "Mode facturation") : "Mode soumission"}
+              <h3 className="font-bold mb-1 text-orange-500">
+                {isDirectInvoiceMode ? "Facture directe" : "Mode facturation"}
               </h3>
               <p className="text-sm admin-text-muted">
-                {invoiceMode
-                  ? (isDirectInvoiceMode
-                      ? "Choisissez un client normal ou gestionnaire, ajoutez les lignes, puis creez la facture sans passer par un bon de travail."
-                      : "Ajoutez les heures et les pieces, puis utilisez le panneau de droite pour facturer ou enregistrer sans facturer.")
-                  : "Choisissez le client, ajoutez les lignes, puis creez la soumission. Elle pourra etre acceptee et planifiee ensuite au besoin."}
+                {isDirectInvoiceMode
+                  ? "Choisissez un client normal ou gestionnaire, ajoutez les lignes, puis creez la facture sans passer par un bon de travail."
+                  : "Ajoutez les heures et les pieces, puis utilisez le panneau de droite pour facturer ou enregistrer sans facturer."}
               </p>
             </div>
           </div>
