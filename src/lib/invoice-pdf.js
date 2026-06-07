@@ -93,7 +93,7 @@ function drawPageBars(doc, paid = false) {
   doc.rect(0, 0, PAGE_W, topBarH).fill(paid ? PAID_GREEN : ACCENT);
   if (paid) {
     doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(PAID_BAR_FONT_SIZE)
-      .text("PAYE", 0, 6, { width: PAGE_W, align: "center" });
+      .text("PAYE", 0, PAID_BAR_H / 2, { width: PAGE_W, align: "center", baseline: "middle" });
   }
   doc.rect(0, PAGE_H - 3, PAGE_W, 3).fill(ACCENT);
   doc.restore();

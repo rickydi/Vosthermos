@@ -181,7 +181,7 @@ function TopStatusBar({ meta, wo }) {
         boxSizing: "border-box",
         fontSize: PAID_BAR_FONT_SIZE,
         fontWeight: 900,
-        lineHeight: "24px",
+        lineHeight: 1,
         letterSpacing: 1.2,
       }}
     >
