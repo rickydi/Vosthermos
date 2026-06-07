@@ -59,7 +59,7 @@ export default function CatalogPicker({ open, onClose, onPick }) {
   const pages = Math.ceil(total / LIMIT);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 backdrop-blur-sm sm:p-4" onClick={onClose}>
       <div
         className="admin-bg admin-border border rounded-xl w-full max-w-6xl h-[85vh] flex flex-col overflow-hidden shadow-2xl"
         onClick={(e) => e.stopPropagation()}
@@ -72,9 +72,9 @@ export default function CatalogPicker({ open, onClose, onPick }) {
           </button>
         </div>
 
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
           {/* Sidebar — categories */}
-          <aside className="w-60 border-r admin-border overflow-y-auto p-3">
+          <aside className="max-h-36 w-full shrink-0 overflow-y-auto border-b admin-border p-3 md:max-h-none md:w-60 md:border-b-0 md:border-r">
             <button
               onClick={() => setSelectedCatId(null)}
               className={`w-full text-left px-3 py-2 rounded-lg text-sm mb-1 ${selectedCatId === null ? "bg-[var(--color-red)]/10 text-[var(--color-red)] font-medium" : "admin-text-muted admin-hover"}`}

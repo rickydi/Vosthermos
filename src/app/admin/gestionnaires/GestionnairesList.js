@@ -226,8 +226,8 @@ export default function GestionnairesList({ initialManagers, clients }) {
         </div>
       )}
 
-      <div className="admin-card border rounded-xl overflow-hidden">
-        <table className="w-full">
+      <div className="admin-card overflow-x-auto rounded-xl border">
+        <table className="w-full min-w-[960px]">
           <thead className="admin-bg border-b admin-border">
             <tr>
               <th className="text-left px-4 py-3 admin-text-muted text-xs font-bold uppercase tracking-wider">Gestionnaire</th>

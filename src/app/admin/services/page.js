@@ -159,11 +159,11 @@ export default function ServicesPage() {
       ) : (
         <div className="space-y-6">
           {grouped.map((g) => (
-            <div key={g.value} className="admin-card border rounded-xl overflow-hidden">
+            <div key={g.value} className="admin-card overflow-x-auto rounded-xl border">
               <div className="px-6 py-3 border-b admin-border">
                 <h2 className="admin-text font-bold text-sm uppercase tracking-wider">{g.label}</h2>
               </div>
-              <table className="w-full text-sm">
+              <table className="w-full min-w-[720px] text-sm">
                 <thead>
                   <tr className="admin-text-muted text-xs uppercase">
                     <th className="text-left px-6 py-2">Nom</th>

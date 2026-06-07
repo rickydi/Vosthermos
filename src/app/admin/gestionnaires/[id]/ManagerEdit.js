@@ -355,9 +355,9 @@ export default function ManagerEdit({ manager, allClients }) {
       </div>
 
       {manager.sessions.length > 0 && (
-        <div className="admin-card border rounded-xl p-6">
+        <div className="admin-card overflow-x-auto rounded-xl border p-6">
           <h2 className="admin-text font-bold mb-4">Sessions recentes</h2>
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[820px] text-sm">
             <thead className="admin-text-muted">
               <tr>
                 <th className="text-left py-2 text-xs font-bold uppercase tracking-wider">Token</th>

@@ -3093,7 +3093,7 @@ function FollowUpForm({
           {error && <p className="text-sm text-amber-300">{error}</p>}
         </div>
 
-        <div className="px-5 py-4 border-t admin-border flex justify-end gap-3">
+        <div className="flex flex-col-reverse gap-3 border-t admin-border px-5 py-4 sm:flex-row sm:justify-end">
           <button type="button" onClick={onClose} className="px-4 py-2 admin-text-muted admin-hover rounded-lg text-sm">
             Annuler
           </button>
@@ -3239,11 +3239,11 @@ function ColumnEditor({ columns, onSave, onClose }) {
           </div>
         </div>
 
-        <div className="px-5 py-4 border-t admin-border flex justify-between gap-3">
+        <div className="flex flex-col gap-3 border-t admin-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <button type="button" onClick={() => setDraft(DEFAULT_COLUMNS)} className="px-4 py-2 admin-text-muted admin-hover rounded-lg text-sm">
             Restaurer defaut
           </button>
-          <div className="flex gap-3">
+          <div className="flex flex-col-reverse gap-3 sm:flex-row">
             <button type="button" onClick={onClose} className="px-4 py-2 admin-text-muted admin-hover rounded-lg text-sm">
               Annuler
             </button>

@@ -54,7 +54,7 @@ export default function ClientPicker({ open, onClose, onPick }) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 backdrop-blur-sm sm:p-4" onClick={onClose}>
       <div
         className="admin-bg admin-border border rounded-xl w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden shadow-2xl"
         onClick={(e) => e.stopPropagation()}
@@ -66,18 +66,18 @@ export default function ClientPicker({ open, onClose, onPick }) {
           </button>
         </div>
 
-        <div className="p-4 border-b admin-border flex gap-3">
+        <div className="flex flex-col gap-3 border-b admin-border p-4 sm:flex-row">
           <input
             type="text"
             placeholder="Rechercher par nom, contact, telephone, email, ville..."
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="admin-input border rounded-lg px-4 py-2.5 text-sm flex-1"
+            className="admin-input w-full border rounded-lg px-4 py-2.5 text-sm sm:flex-1"
             autoFocus
           />
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value)}
-            className="admin-input border rounded-lg px-3 py-2.5 text-sm w-52"
+            className="admin-input w-full border rounded-lg px-3 py-2.5 text-sm sm:w-52"
           >
             {SORT_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
@@ -85,7 +85,7 @@ export default function ClientPicker({ open, onClose, onPick }) {
           </select>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-auto">
           {loading ? (
             <div className="text-center admin-text-muted py-12">
               <i className="fas fa-spinner fa-spin text-2xl"></i>
@@ -96,7 +96,7 @@ export default function ClientPicker({ open, onClose, onPick }) {
               <p>Aucun client</p>
             </div>
           ) : (
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[720px] text-sm">
               <thead className="sticky top-0 admin-card">
                 <tr className="border-b admin-border admin-text-muted text-xs text-left">
                   <th className="px-4 py-3">Nom</th>

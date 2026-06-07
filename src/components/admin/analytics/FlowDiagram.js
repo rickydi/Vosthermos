@@ -112,7 +112,8 @@ export default function FlowDiagram({ query }) {
   return (
     <div className="admin-card rounded-xl p-4 border">
       <h3 className="admin-text-muted text-xs uppercase tracking-wider mb-3">Flow de navigation</h3>
-      <svg viewBox={`0 0 ${w} ${h}`} className="w-full" style={{ display: "block" }}>
+      <div className="overflow-x-auto pb-1">
+        <svg viewBox={`0 0 ${w} ${h}`} className="w-full min-w-[640px]" style={{ display: "block" }}>
         <defs>
           {flows.map((f, i) => (
             <marker key={`a${i}`} id={`a${i}`} viewBox="0 0 10 6" refX={10} refY={3} markerWidth={8} markerHeight={6} orient="auto">
@@ -174,7 +175,8 @@ export default function FlowDiagram({ query }) {
             </g>
           );
         })}
-      </svg>
+        </svg>
+      </div>
     </div>
   );
 }

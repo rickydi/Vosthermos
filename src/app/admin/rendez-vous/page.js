@@ -383,13 +383,13 @@ export default function AdminAppointmentsPage() {
         </div>
       ) : view === "month" ? (
         /* Monthly view */
-        <div>
-          <div className="grid grid-cols-7 gap-px mb-px">
+        <div className="overflow-x-auto pb-2">
+          <div className="grid min-w-[680px] grid-cols-7 gap-px mb-px">
             {DAYS_SHORT.map((d) => (
               <div key={d} className="admin-text-muted text-[10px] font-bold uppercase tracking-widest text-center py-2">{d}</div>
             ))}
           </div>
-          <div className="grid grid-cols-7 gap-1">
+          <div className="grid min-w-[680px] grid-cols-7 gap-1">
             {monthDates.map((date) => {
               const dateStr = formatDate(date);
               const dayAppts = getAppointmentsForDate(dateStr);

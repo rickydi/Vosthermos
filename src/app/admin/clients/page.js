@@ -350,8 +350,8 @@ export default function ClientsPage() {
           <p>Aucun client trouve</p>
         </div>
       ) : (
-        <div className="admin-card border rounded-xl overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="admin-card overflow-x-auto rounded-xl border">
+          <table className="w-full min-w-[920px] text-sm">
             <thead>
               <tr className="border-b admin-border admin-text-muted text-xs text-left">
                 <th className="px-4 py-3">Nom</th>

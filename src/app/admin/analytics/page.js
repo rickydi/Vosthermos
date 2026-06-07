@@ -89,15 +89,15 @@ export default function AdminAnalyticsPage() {
   return (
     <div className="p-6 lg:p-8">
       {/* Header + Period selector */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-extrabold admin-text">Analytics</h1>
-        <div className="flex items-center gap-2">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
           <button
             onClick={() => {
               setCustomDate("");
               setDays(0);
             }}
-            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+            className={`whitespace-nowrap px-4 py-2 rounded-lg text-sm font-bold transition-all ${
               !customDate && days === 0
                 ? "bg-[var(--color-red)] text-white"
                 : "admin-card admin-text-muted border"
@@ -112,7 +112,7 @@ export default function AdminAnalyticsPage() {
                 setCustomDate("");
                 setDays(d);
               }}
-              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+              className={`whitespace-nowrap px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                 !customDate && days === d
                   ? "bg-[var(--color-red)] text-white"
                   : "admin-card admin-text-muted border"
@@ -127,7 +127,7 @@ export default function AdminAnalyticsPage() {
             onChange={(e) => {
               setCustomDate(e.target.value);
             }}
-            className="admin-input rounded-lg text-sm px-3 py-2 border"
+            className="admin-input w-full rounded-lg border px-3 py-2 text-sm sm:w-auto"
           />
         </div>
       </div>
