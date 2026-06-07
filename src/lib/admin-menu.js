@@ -4,6 +4,7 @@ export const ADMIN_MENU_ITEMS = {
   suiviClients: { href: "/admin/suivi-clients", label: "Suivi clients", icon: "fa-tasks" },
   soumissions: { href: "/admin/soumissions", label: "Soumissions", icon: "fa-file-signature" },
   factures: { href: "/admin/factures", label: "Factures", icon: "fa-file-invoice-dollar" },
+  rapportsFactures: { href: "/admin/rapports-factures", label: "Rapports factures", icon: "fa-chart-pie" },
   bons: { href: "/admin/bons", label: "Bons de travail", icon: "fa-clipboard-list" },
   paiements: { href: "/admin/paiements", label: "Paiements", icon: "fa-money-check-alt" },
   routes: { href: "/admin/routes", label: "Routes", icon: "fa-route" },
@@ -68,13 +69,13 @@ export const ADMIN_MENU_SECTIONS = [
 ];
 
 export const DEFAULT_ADMIN_MENU_LAYOUT = {
-  production: ["suiviClients", "chat", "bons", "factures", "soumissions", "clients", "paiements", "routes", "calculateurThermos", "rendezVous", "techniciens"],
+  production: ["suiviClients", "chat", "bons", "factures", "rapportsFactures", "soumissions", "clients", "paiements", "routes", "calculateurThermos", "rendezVous", "techniciens"],
   boutique: ["commandes", "produits", "categories", "promotions"],
   site: ["analytics", "seo", "blogue", "services", "vendeur"],
   systeme: ["gestionnaires", "activite", "parametres", "utilisateurs", "menu"],
 };
 
-const PINNED_PRODUCTION_ITEMS = ["suiviClients", "chat", "bons", "factures", "soumissions", "clients"];
+const PINNED_PRODUCTION_ITEMS = ["suiviClients", "chat", "bons", "factures", "rapportsFactures", "soumissions", "clients"];
 
 const LEGACY_DEFAULT_ADMIN_MENU_LAYOUTS = [
   {

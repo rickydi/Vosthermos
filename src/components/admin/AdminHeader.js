@@ -12,6 +12,7 @@ const pageTitles = {
   "/admin/suivi-clients": "Suivi clients",
   "/admin/soumissions": "Soumissions",
   "/admin/factures": "Factures",
+  "/admin/rapports-factures": "Rapports factures",
   "/admin/clients": "Clients",
   "/admin/paiements": "Paiements",
   "/admin/calculateur-thermos": "Calculateur thermos",
