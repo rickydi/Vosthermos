@@ -28,6 +28,8 @@ const TEXT_DARK = "#2c3e50";
 const TEXT_MED = "#555555";
 const WHITE = "#ffffff";
 const PAID_GREEN = "#0f7a53";
+const PAID_BAR_H = 34;
+const PAID_BAR_FONT_SIZE = 17;
 
 const PAGE_W = 612;
 const PAGE_H = 792;
@@ -87,11 +89,11 @@ function textHeight(doc, text, width, size = 9, font = "Helvetica") {
 
 function drawPageBars(doc, paid = false) {
   doc.save();
-  const topBarH = paid ? 24 : 8;
+  const topBarH = paid ? PAID_BAR_H : 8;
   doc.rect(0, 0, PAGE_W, topBarH).fill(paid ? PAID_GREEN : ACCENT);
   if (paid) {
-    doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(10)
-      .text("PAYE", LEFT_M, 7, { width: CONTENT_W, align: "right" });
+    doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(PAID_BAR_FONT_SIZE)
+      .text("PAYE", 0, 8, { width: PAGE_W, align: "center" });
   }
   doc.rect(0, PAGE_H - 3, PAGE_W, 3).fill(ACCENT);
   doc.restore();

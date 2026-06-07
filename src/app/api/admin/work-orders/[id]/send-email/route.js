@@ -22,6 +22,7 @@ import {
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.vosthermos.com";
 const LOGO_CID = "vosthermos-logo";
 const LOGO_PATH = path.join(process.cwd(), "public", "images", "Vos-Thermos-Logo_Blanc.png");
+const EMAIL_LOGO_HEIGHT = 128;
 
 function fmt(n) { return formatMoneyCad(n); }
 
@@ -146,7 +147,7 @@ function renderCustomEmailHtml(wo, documentMeta, documentNumber, filename, messa
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td valign="middle">
-                    <img src="cid:${LOGO_CID}" alt="Vosthermos" height="104" style="display:block;border:0;outline:none;text-decoration:none;height:104px;width:auto;" />
+                    <img src="cid:${LOGO_CID}" alt="Vosthermos" height="${EMAIL_LOGO_HEIGHT}" style="display:block;border:0;outline:none;text-decoration:none;height:${EMAIL_LOGO_HEIGHT}px;width:auto;" />
                   </td>
                   <td align="right" valign="middle" style="color:#ffffff;">
                     <div style="font-size:11px;letter-spacing:2px;opacity:.78;font-weight:700;text-transform:uppercase;">${escapeHtml(documentMeta.labelUpper)}</div>
@@ -219,7 +220,7 @@ function renderEmailHtml(wo, documentMeta, documentNumber, filename) {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td valign="middle">
-                    <img src="cid:${LOGO_CID}" alt="Vosthermos" height="104" style="display:block;border:0;outline:none;text-decoration:none;height:104px;width:auto;" />
+                    <img src="cid:${LOGO_CID}" alt="Vosthermos" height="${EMAIL_LOGO_HEIGHT}" style="display:block;border:0;outline:none;text-decoration:none;height:${EMAIL_LOGO_HEIGHT}px;width:auto;" />
                   </td>
                   <td align="right" valign="middle" style="color:#ffffff;">
                     <div style="font-size:11px;letter-spacing:2px;opacity:.78;font-weight:700;text-transform:uppercase;">${documentMeta.labelUpper}</div>

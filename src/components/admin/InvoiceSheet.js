@@ -25,6 +25,9 @@ const LIGHT_GRAY = "#f8f9fa";
 const MID_GRAY = "#bdc3c7";
 const TEXT_DARK = "#2c3e50";
 const TEXT_MED = "#555555";
+const PAID_GREEN = "#0f7a53";
+const PAID_BAR_H = 34;
+const PAID_BAR_FONT_SIZE = 17;
 
 function paginateRows(rows, meta, wo) {
   const hasPaymentBlock = meta.type === "invoice" && documentPaymentSummary(wo).hasPayments;
@@ -167,17 +170,18 @@ function TopStatusBar({ meta, wo }) {
   return (
     <div
       style={{
-        height: isPaid ? 24 : 8,
-        background: isPaid ? "#0f7a53" : ACCENT,
+        height: isPaid ? PAID_BAR_H : 8,
+        background: isPaid ? PAID_GREEN : ACCENT,
         color: "white",
         flexShrink: 0,
         display: "flex",
         alignItems: "center",
-        justifyContent: "flex-end",
-        padding: isPaid ? "0 0.65in" : 0,
+        justifyContent: "center",
+        padding: 0,
         boxSizing: "border-box",
-        fontSize: 10,
+        fontSize: PAID_BAR_FONT_SIZE,
         fontWeight: 900,
+        letterSpacing: 1.2,
       }}
     >
       {isPaid ? "PAYE" : null}
