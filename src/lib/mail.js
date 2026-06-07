@@ -7,7 +7,7 @@ import { getGmailApiConfigStatus, sendMailWithGmailApi } from "./gmail-api-mail"
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.vosthermos.com";
 const INSECURE_DEFAULT = "change-this-to-a-random-secret";
 const LOGO_CID = "vosthermos-logo";
-const LOGO_PATH = path.join(process.cwd(), "public", "images", "Vos-Thermos-Logo.png");
+const LOGO_PATH = path.join(process.cwd(), "public", "images", "Vos-Thermos-Logo_Blanc.png");
 const DEFAULT_COMPANY_EMAIL = "info@vosthermos.com";
 
 let warnedGmailFallback = false;

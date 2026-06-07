@@ -21,7 +21,7 @@ import {
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.vosthermos.com";
 const LOGO_CID = "vosthermos-logo";
-const LOGO_PATH = path.join(process.cwd(), "public", "images", "Vos-Thermos-Logo.png");
+const LOGO_PATH = path.join(process.cwd(), "public", "images", "Vos-Thermos-Logo_Blanc.png");
 const EMAIL_LOGO_HEIGHT = 128;
 
 function fmt(n) { return formatMoneyCad(n); }

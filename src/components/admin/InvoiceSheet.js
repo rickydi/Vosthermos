@@ -27,7 +27,7 @@ const TEXT_DARK = "#2c3e50";
 const TEXT_MED = "#555555";
 const PAID_GREEN = "#0f7a53";
 const PAID_BAR_H = 34;
-const PAID_BAR_FONT_SIZE = 26;
+const PAID_BAR_FONT_SIZE = 22;
 
 function paginateRows(rows, meta, wo) {
   const hasPaymentBlock = meta.type === "invoice" && documentPaymentSummary(wo).hasPayments;
@@ -181,7 +181,7 @@ function TopStatusBar({ meta, wo }) {
         boxSizing: "border-box",
         fontSize: PAID_BAR_FONT_SIZE,
         fontWeight: 900,
-        lineHeight: `${PAID_BAR_H}px`,
+        lineHeight: "24px",
         letterSpacing: 1.2,
       }}
     >
