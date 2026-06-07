@@ -1872,10 +1872,11 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
       : editId
         ? "Modification"
         : "Creation";
+  const showModePill = !effectiveQuoteMode;
   const pageTitle = effectiveInvoiceMode
     ? (isDirectInvoiceMode ? "Nouvelle facture" : isExistingInvoiceDocument ? "Modifier la facture" : "Facturer le bon de travail")
     : effectiveQuoteMode
-      ? (editId || isExistingQuoteDocument ? "Modifier la soumission" : "Nouvelle soumission")
+      ? (editId || isExistingQuoteDocument ? "Modifier" : "Nouvelle")
       : (editId ? "Modifier le bon de travail" : "Nouveau bon de travail");
   const dateLabel = effectiveInvoiceMode ? "Date de facture" : effectiveQuoteMode ? "Date de soumission" : "Date prevue";
   const descriptionLabel = effectiveInvoiceMode
@@ -1902,9 +1903,11 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
             <h1 className="admin-text text-2xl font-bold">
               {pageTitle}
             </h1>
-            <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-bold text-cyan-600">
-              {currentModeLabel}
-            </span>
+            {showModePill && (
+              <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-bold text-cyan-600">
+                {currentModeLabel}
+              </span>
+            )}
             {editId && (
               <span className="rounded-full border admin-border px-3 py-1 text-xs font-medium admin-text-muted">
                 {selectedStatusLabel}
