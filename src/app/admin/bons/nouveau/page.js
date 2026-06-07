@@ -2492,26 +2492,26 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
                 </button>
               )}
             </div>
-            <div className="grid md:grid-cols-3 gap-3">
+            <div className="grid gap-3 md:grid-cols-[minmax(0,2fr)_minmax(150px,1fr)_150px]">
               <AddressAutocomplete
                 value={interventionAddress}
                 onChange={setInterventionAddress}
                 onSelect={(address) => {
-                  setInterventionAddress(address.address || "");
-                  setInterventionCity(address.city || "");
-                  setInterventionPostalCode(address.postalCode || "");
+                  setInterventionAddress(address.address || interventionAddress || "");
+                  setInterventionCity(address.city || interventionCity || "");
+                  setInterventionPostalCode(address.postalCode || interventionPostalCode || "");
                 }}
                 placeholder="Adresse"
-                className="md:col-span-2"
+                className="min-w-0"
                 inputClassName="admin-input border rounded-lg px-3 py-2.5 text-sm w-full"
               />
               <input type="text" placeholder="Ville" value={interventionCity}
                 onChange={(e) => setInterventionCity(e.target.value)}
-                className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
+                className="admin-input min-w-0 border rounded-lg px-3 py-2.5 text-sm w-full" />
+              <input type="text" placeholder="Code postal" value={interventionPostalCode}
+                onChange={(e) => setInterventionPostalCode(e.target.value)}
+                className="admin-input min-w-0 border rounded-lg px-3 py-2.5 text-sm w-full" />
             </div>
-            <input type="text" placeholder="Code postal" value={interventionPostalCode}
-              onChange={(e) => setInterventionPostalCode(e.target.value)}
-              className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full mt-3 md:w-48" />
           </div>
           <div>
             <label className="admin-text-muted text-xs mb-1 block">{descriptionLabel}</label>
