@@ -101,6 +101,15 @@ function PaymentRow({ payment, saving, onPatch }) {
     setPaymentNote("");
   }
 
+  async function resendPaidEmail() {
+    if (!payment.client?.email) return;
+    if (!confirm(`Renvoyer la facture payee a ${payment.client.email}?`)) return;
+    await onPatch(payment.id, {
+      action: "resend-paid-email",
+      to: payment.client.email,
+    });
+  }
+
   async function markOpen() {
     if (!confirm(`Remettre ${payment.number} a recevoir et retirer les paiements inscrits?`)) return;
     await onPatch(payment.id, { action: "mark-open", statut: payment.invoiceSentAt ? "sent" : "invoiced" });
@@ -232,6 +241,14 @@ function PaymentRow({ payment, saving, onPatch }) {
               </span>
               <button
                 type="button"
+                disabled={saving || !payment.client?.email}
+                onClick={resendPaidEmail}
+                className="rounded-lg border border-emerald-500/40 px-3 py-2 text-xs font-bold text-emerald-300 transition-colors hover:bg-emerald-500/10 disabled:opacity-50 disabled:hover:bg-transparent"
+              >
+                <i className="fas fa-paper-plane mr-1"></i>Renvoyer
+              </button>
+              <button
+                type="button"
                 disabled={saving}
                 onClick={markOpen}
                 className="rounded-lg px-3 py-2 text-xs font-bold text-amber-300 admin-hover disabled:opacity-50"
@@ -308,7 +325,7 @@ export default function AdminPaymentsPage() {
       await load(false);
       if (data.emailError) {
         alert(`Paiement enregistre, mais le courriel n'a pas ete envoye: ${data.emailError}`);
-      } else if (payload.action === "mark-paid" && data.emailSent) {
+      } else if ((payload.action === "mark-paid" || payload.action === "resend-paid-email") && data.emailSent) {
         alert(`Facture payee envoyee a ${data.emailTo}`);
       }
       return data;

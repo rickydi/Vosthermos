@@ -253,6 +253,11 @@ export async function PATCH(req, { params }) {
     } else if (body.action === "mark-paid") {
       await prisma.$transaction((tx) => markPaidWithFinalPayment(tx, existing, body));
       activityLabel = `Facture payee: ${existing.number}`;
+    } else if (body.action === "resend-paid-email") {
+      if (existing.statut !== "paid" && !documentPaymentSummary(existing).isPaid) {
+        return NextResponse.json({ error: "La facture n'est pas payee" }, { status: 400 });
+      }
+      activityLabel = `Facture payee renvoyee: ${existing.number}`;
     } else if (body.action === "mark-open") {
       const statut = openStatusFromBody(body, existing);
       await prisma.$transaction(async (tx) => {
@@ -306,7 +311,7 @@ export async function PATCH(req, { params }) {
 
   let emailResult = null;
   let emailError = null;
-  if (body.action === "mark-paid" && body.sendEmail !== false) {
+  if ((body.action === "mark-paid" && body.sendEmail !== false) || body.action === "resend-paid-email") {
     try {
       const fullWorkOrder = await fetchFullWorkOrder(workOrderId);
       emailResult = await sendPaidInvoiceEmail(fullWorkOrder, { to: cleanText(body.to) });

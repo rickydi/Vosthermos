@@ -29,7 +29,7 @@ const TEXT_MED = "#555555";
 const WHITE = "#ffffff";
 const PAID_GREEN = "#0f7a53";
 const PAID_BAR_H = 34;
-const PAID_BAR_FONT_SIZE = 17;
+const PAID_BAR_FONT_SIZE = 26;
 
 const PAGE_W = 612;
 const PAGE_H = 792;
@@ -93,7 +93,7 @@ function drawPageBars(doc, paid = false) {
   doc.rect(0, 0, PAGE_W, topBarH).fill(paid ? PAID_GREEN : ACCENT);
   if (paid) {
     doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(PAID_BAR_FONT_SIZE)
-      .text("PAYE", 0, 8, { width: PAGE_W, align: "center" });
+      .text("PAYE", 0, 3, { width: PAGE_W, align: "center" });
   }
   doc.rect(0, PAGE_H - 3, PAGE_W, 3).fill(ACCENT);
   doc.restore();
