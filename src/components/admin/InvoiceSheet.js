@@ -142,7 +142,7 @@ function Sheet({ page, totalPages, wo, co, meta, documentNumber }) {
         color: TEXT_DARK,
       }}
     >
-      <div style={{ height: 8, background: ACCENT, flexShrink: 0 }} />
+      <TopStatusBar meta={meta} wo={wo} />
       <main style={{ padding: "0.5in 0.65in 0", display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
         {page.isFirst ? (
           <>
@@ -162,16 +162,30 @@ function Sheet({ page, totalPages, wo, co, meta, documentNumber }) {
   );
 }
 
-function PaymentBadge() {
+function TopStatusBar({ meta, wo }) {
+  const isPaid = meta.type === "invoice" && documentPaymentSummary(wo).isPaid;
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", minWidth: 86, height: 20, borderRadius: 4, background: "#0f7a53", color: "white", fontSize: 10, fontWeight: 900, letterSpacing: 0.5 }}>
-      PAYE
-    </span>
+    <div
+      style={{
+        height: isPaid ? 24 : 8,
+        background: isPaid ? "#0f7a53" : ACCENT,
+        color: "white",
+        flexShrink: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "flex-end",
+        padding: isPaid ? "0 0.65in" : 0,
+        boxSizing: "border-box",
+        fontSize: 10,
+        fontWeight: 900,
+      }}
+    >
+      {isPaid ? "PAYE" : null}
+    </div>
   );
 }
 
 function FullHeader({ meta, co, wo }) {
-  const isPaid = meta.type === "invoice" && documentPaymentSummary(wo).isPaid;
   return (
     <header style={{ display: "grid", gridTemplateColumns: "130px 1fr", gap: 12, alignItems: "start", marginBottom: 10 }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -180,14 +194,12 @@ function FullHeader({ meta, co, wo }) {
         <h1 style={{ margin: 0, fontSize: 23, lineHeight: "26px", fontWeight: 800, color: ACCENT }}>{meta.labelUpper}</h1>
         <p style={{ margin: "2px 0 0", fontSize: 9, color: TEXT_MED }}>Reparation et remplacement de fenetres</p>
         <p style={{ margin: "3px 0 0", fontSize: 7.5, color: TEXT_MED }}>{co.address}, {co.city}, {co.province} | RBQ : {co.rbq}</p>
-        {isPaid && <div style={{ marginTop: 7 }}><PaymentBadge /></div>}
       </div>
     </header>
   );
 }
 
 function CompactHeader({ wo, meta, documentNumber, page, totalPages }) {
-  const isPaid = meta.type === "invoice" && documentPaymentSummary(wo).isPaid;
   return (
     <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: `1px solid ${MID_GRAY}`, paddingBottom: 10, marginBottom: 14 }}>
       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
@@ -200,7 +212,6 @@ function CompactHeader({ wo, meta, documentNumber, page, totalPages }) {
       </div>
       <div style={{ textAlign: "right" }}>
         <p style={{ margin: 0, fontSize: 17, fontWeight: 800, color: TEXT_DARK }}>{documentNumber}</p>
-        {isPaid && <div style={{ marginTop: 4 }}><PaymentBadge /></div>}
       </div>
     </header>
   );

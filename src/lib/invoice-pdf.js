@@ -85,16 +85,21 @@ function textHeight(doc, text, width, size = 9, font = "Helvetica") {
   return doc.heightOfString(String(text || ""), { width, lineGap: LINE_GAP });
 }
 
-function drawPageBars(doc) {
+function drawPageBars(doc, paid = false) {
   doc.save();
-  doc.rect(0, 0, PAGE_W, 8).fill(ACCENT);
+  const topBarH = paid ? 24 : 8;
+  doc.rect(0, 0, PAGE_W, topBarH).fill(paid ? PAID_GREEN : ACCENT);
+  if (paid) {
+    doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(10)
+      .text("PAYE", LEFT_M, 7, { width: CONTENT_W, align: "right" });
+  }
   doc.rect(0, PAGE_H - 3, PAGE_W, 3).fill(ACCENT);
   doc.restore();
 }
 
-function addDocPage(doc) {
+function addDocPage(doc, paid = false) {
   doc.addPage({ size: "LETTER", margin: 0 });
-  drawPageBars(doc);
+  drawPageBars(doc, paid);
 }
 
 function drawLogo(doc, x, y, height = 70) {
@@ -116,14 +121,6 @@ function drawLogo(doc, x, y, height = 70) {
   doc.fillColor(TEXT_MED).font("Helvetica-Oblique").fontSize(9).text("Reparation de fenetres", x, y + 42);
 }
 
-function drawPaidStamp(doc, x, y, width = 86, height = 20) {
-  doc.save();
-  doc.roundedRect(x, y, width, height, 4).fill(PAID_GREEN);
-  doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(10)
-    .text("PAYE", x, y + 5, { width, align: "center" });
-  doc.restore();
-}
-
 function drawFullHeader(doc, wo, meta, company) {
   const y = TOP_M + 6;
   drawLogo(doc, LEFT_M, y, 62);
@@ -136,9 +133,6 @@ function drawFullHeader(doc, wo, meta, company) {
     .text("Reparation et remplacement de fenetres", rightX, y + 29, { width: rightW, align: "right" });
   doc.fillColor(TEXT_MED).font("Helvetica").fontSize(7.5)
     .text(`${company.address}, ${company.city}, ${company.province} | RBQ : ${company.rbq}`, rightX, y + 44, { width: rightW, align: "right" });
-  if (isPaidInvoice(wo, meta)) {
-    drawPaidStamp(doc, rightX + rightW - 86, y + 50);
-  }
 
   return y + 72;
 }
@@ -152,9 +146,6 @@ function drawCompactHeader(doc, wo, meta, documentNumber, pageNum) {
     .text(wo.client?.name || "", LEFT_M + 68, y + 18, { width: 260 });
   doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(17)
     .text(documentNumber, PAGE_W - RIGHT_M - 220, y + 1, { width: 220, align: "right" });
-  if (isPaidInvoice(wo, meta)) {
-    drawPaidStamp(doc, PAGE_W - RIGHT_M - 86, y + 25, 86, 18);
-  }
   doc.moveTo(LEFT_M, y + 45).lineTo(PAGE_W - RIGHT_M, y + 45).strokeColor(MID_GRAY).lineWidth(0.5).stroke();
   return y + 58;
 }
@@ -252,9 +243,9 @@ function drawSectionHeading(doc, label, y) {
   return y + 20;
 }
 
-function ensureSpace(doc, y, needed, onNewPage, bottomY) {
+function ensureSpace(doc, y, needed, onNewPage, bottomY, paid = false) {
   if (y + needed <= bottomY) return y;
-  addDocPage(doc);
+  addDocPage(doc, paid);
   return onNewPage();
 }
 
@@ -263,7 +254,7 @@ function drawDescription(doc, wo, meta, y, onNewPage) {
   y = drawSectionHeading(doc, meta.descriptionHeading, y);
   const description = wo.description || "Travaux de reparation et remplacement de fenetres selon les elements detailles ci-dessous.";
   const h = textHeight(doc, description, CONTENT_W, BODY_FONT_SIZE, "Helvetica");
-  y = ensureSpace(doc, y, h + 12, onNewPage, bottomY);
+  y = ensureSpace(doc, y, h + 12, onNewPage, bottomY, isPaidInvoice(wo, meta));
   doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(BODY_FONT_SIZE).text(description, LEFT_M, y, { width: CONTENT_W, lineGap: LINE_GAP });
   return y + h + 12;
 }
@@ -294,7 +285,7 @@ function drawTable(doc, wo, meta, documentNumber, y) {
   let itemIndex = 1;
   for (const row of documentRows(wo)) {
     if (row.type === "section") {
-      y = ensureSpace(doc, y, 30, onNewPage, bottomY);
+      y = ensureSpace(doc, y, 30, onNewPage, bottomY, isPaidInvoice(wo, meta));
       doc.rect(LEFT_M, y, CONTENT_W, 30).fill(ACCENT_LIGHT);
       doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE)
         .text(row.label || "TRAVAUX", LEFT_M + COL_NUM + 6, y + 8, { width: CONTENT_W - COL_NUM - 12 });
@@ -307,7 +298,7 @@ function drawTable(doc, wo, meta, documentNumber, y) {
     const descW = COL_DESC - 12;
     const descH = textHeight(doc, row.description, descW, BODY_FONT_SIZE, "Helvetica");
     const rowH = Math.max(32, descH + 12);
-    y = ensureSpace(doc, y, rowH, onNewPage, bottomY);
+    y = ensureSpace(doc, y, rowH, onNewPage, bottomY, isPaidInvoice(wo, meta));
 
     doc.rect(LEFT_M, y, CONTENT_W, rowH).fill(WHITE);
     doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE)
@@ -477,7 +468,7 @@ export async function generateInvoicePdf(wo, settings = {}) {
 
       const onNewPage = () => drawCompactHeader(doc, wo, meta, documentNumber, doc.bufferedPageRange().count);
 
-      addDocPage(doc);
+      addDocPage(doc, isPaidInvoice(wo, meta));
       let y = drawFullHeader(doc, wo, meta, company);
       y = drawInfoBox(doc, wo, company, meta, documentNumber, y);
       y = drawDescription(doc, wo, meta, y, onNewPage);
@@ -485,7 +476,7 @@ export async function generateInvoicePdf(wo, settings = {}) {
 
       const lastPageFooterHeight = conditionsFooterHeight(doc, meta);
       if (lastPageFooterHeight > 0 && y > contentBottom(wo, meta) - lastPageFooterHeight - 4) {
-        addDocPage(doc);
+        addDocPage(doc, isPaidInvoice(wo, meta));
         drawCompactHeader(doc, wo, meta, documentNumber, doc.bufferedPageRange().count);
       }
 
