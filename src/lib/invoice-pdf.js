@@ -385,20 +385,20 @@ function conditionLineHeight(doc, condition) {
   return Math.max(16, textHeight(doc, `- ${text}`, CONTENT_W - 10, BODY_FONT_SIZE, "Helvetica")) + 4;
 }
 
-function conditionsFooterHeight(doc, meta) {
-  const conditions = documentConditions(meta.type);
+function conditionsFooterHeight(doc, meta, wo) {
+  const conditions = documentConditions(meta.type, wo);
   if (conditions.length === 0) return 0;
   return conditions.reduce((sum, condition) => sum + conditionLineHeight(doc, condition), 26);
 }
 
-function drawFooterConditions(doc, meta, y) {
-  const conditions = documentConditions(meta.type);
+function drawFooterConditions(doc, meta, wo, y) {
+  const conditions = documentConditions(meta.type, wo);
   if (conditions.length === 0) return;
 
   doc.moveTo(LEFT_M, y).lineTo(LEFT_M + CONTENT_W, y).strokeColor(MID_GRAY).lineWidth(0.5).stroke();
   doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(BODY_FONT_SIZE).text("CONDITIONS", LEFT_M, y + 6, { width: CONTENT_W });
   let cy = y + 26;
-  for (const condition of documentConditions(meta.type)) {
+  for (const condition of conditions) {
     const text = stripHtmlTags(condition);
     const h = conditionLineHeight(doc, condition);
     doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(BODY_FONT_SIZE)
@@ -417,7 +417,7 @@ function drawFooter(doc, pageNum, totalPages, company, wo, meta) {
     `TVQ : ${company.tvq}`,
   ].filter(Boolean).join("  |  ");
 
-  const conditionHeight = isLast ? conditionsFooterHeight(doc, meta) : 0;
+  const conditionHeight = isLast ? conditionsFooterHeight(doc, meta, wo) : 0;
   const totalsH = totalsFooterHeight(wo, meta);
   const companyFooterY = PAGE_H - 3 - COMPANY_FOOTER_H;
   const totalsY = conditionHeight > 0
@@ -426,7 +426,7 @@ function drawFooter(doc, pageNum, totalPages, company, wo, meta) {
 
   drawTotalsFooter(doc, wo, meta, totalsY);
   if (conditionHeight > 0) {
-    drawFooterConditions(doc, meta, totalsY + totalsH + 4);
+    drawFooterConditions(doc, meta, wo, totalsY + totalsH + 4);
   }
 
   doc.rect(0, PAGE_H - 3, PAGE_W, 3).fill(ACCENT);

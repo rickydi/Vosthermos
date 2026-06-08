@@ -239,7 +239,35 @@ export function documentPaymentSummary(wo = {}) {
   };
 }
 
-export function documentConditions(documentType) {
+export function normalizeQuoteDepositPercent(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const number = Number(String(value).replace(",", "."));
+  if (!Number.isFinite(number) || number < 0 || number > 100) return undefined;
+  return Math.round(number * 100) / 100;
+}
+
+function formatPercentFr(value) {
+  const number = Number(value || 0);
+  if (Number.isInteger(number)) return String(number);
+  return number.toFixed(2).replace(/0+$/, "").replace(/\.$/, "").replace(".", ",");
+}
+
+export function quotePaymentCondition(wo = {}) {
+  const manualPercent = normalizeQuoteDepositPercent(wo.quoteDepositPercent);
+  const total = Number(wo.total || 0);
+  const percent = manualPercent ?? (total < 1000 ? 0 : 50);
+  const balancePercent = Math.max(0, Math.round((100 - percent) * 100) / 100);
+
+  if (percent <= 0) {
+    return "<b>Paiement :</b> Aucun acompte requis; paiement complet a la fin des travaux.";
+  }
+  if (balancePercent <= 0) {
+    return `<b>Paiement :</b> ${formatPercentFr(percent)} % a l'acceptation de la commande.`;
+  }
+  return `<b>Paiement :</b> ${formatPercentFr(percent)} % a l'acceptation de la commande, ${formatPercentFr(balancePercent)} % a la fin des travaux.`;
+}
+
+export function documentConditions(documentType, wo = {}) {
   if (documentType === "invoice") {
     return [
       "<b>Merci :</b> Merci d'avoir choisi Vosthermos pour vos travaux.",
@@ -254,7 +282,7 @@ export function documentConditions(documentType) {
       "<b>Validite :</b> Cette soumission est valide pour une periode de 30 jours a compter de la date d'emission.",
       "<b>Mesures :</b> Les dimensions indiquees sont approximatives. Une prise de mesure precise sera effectuee avant la fabrication. Toute variation significative pourrait entrainer un ajustement du prix.",
       "<b>Delai de fabrication :</b> Environ 2 a 4 semaines suivant l'acceptation de la soumission et la prise de mesures finales, selon le calendrier du fabricant.",
-      "<b>Paiement :</b> 10 % a la signature du contrat, 40 % au debut des travaux pour la commande des materiaux, 50 % a la fin de l'installation.",
+      quotePaymentCondition(wo),
       "<b>Exclusions :</b> Cadres, mecanismes, moustiquaires, peinture, modifications structurales et permis municipaux, sauf mention contraire dans la soumission.",
     ];
   }

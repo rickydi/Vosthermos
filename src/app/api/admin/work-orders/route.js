@@ -19,6 +19,7 @@ import { logAdminActivity } from "@/lib/admin-activity";
 import { buildPaymentTrackingData, serializePaymentWorkOrder } from "@/lib/payment-tracking";
 import { clampInt } from "@/lib/api-utils";
 import { INVOICE_STATUSES, QUOTE_STATUSES, WORK_ORDER_STATUSES, isInvoiceStatus, isQuoteStatus } from "@/lib/work-order-document";
+import { normalizeQuoteDepositPercent } from "@/lib/vosthermos-document";
 
 async function validateFollowUpForClient(followUpId, clientId) {
   if (!followUpId) return null;
@@ -137,6 +138,10 @@ export async function POST(req) {
     : null;
   const explicitDocumentStatut = isQuoteStatus(explicitStatut) || isInvoiceStatus(explicitStatut);
   const statut = explicitDocumentStatut ? explicitStatut : followUpStatut || explicitStatut || "draft";
+  const quoteDepositPercent = normalizeQuoteDepositPercent(body.quoteDepositPercent);
+  if (quoteDepositPercent === undefined) {
+    return NextResponse.json({ error: "Pourcentage d'acompte invalide" }, { status: 400 });
+  }
 
   const { flatItems, sections, allForCalc } = flattenSectionsBody(body);
   const laborHours = Number(body.laborHours) || 0;
@@ -179,6 +184,7 @@ export async function POST(req) {
         notes: body.notes || null,
         statut,
         visibleAuClient: body.visibleAuClient ?? true,
+        quoteDepositPercent,
         laborRate,
         ...totals,
         ...paymentTracking,

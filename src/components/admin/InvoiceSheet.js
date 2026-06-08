@@ -33,7 +33,7 @@ function paginateRows(rows, meta, wo) {
   const hasPaymentBlock = meta.type === "invoice" && documentPaymentSummary(wo).hasPayments;
   const firstPageLimit = hasPaymentBlock ? 3 : 4;
   const middlePageLimit = hasPaymentBlock ? 5 : 6;
-  const lastPageLimit = hasPaymentBlock ? 2 : (documentConditions(meta.type).length > 0 ? 3 : 6);
+  const lastPageLimit = hasPaymentBlock ? 2 : (documentConditions(meta.type, wo).length > 0 ? 3 : 6);
   if (rows.length <= firstPageLimit) return [{ rows, isFirst: true, isLast: true, index: 0, pageStartIndex: 0 }];
   const rawPages = [];
   const queue = [...rows];
@@ -357,8 +357,8 @@ function TotalsFooter({ wo, meta }) {
   );
 }
 
-function ConditionsFooter({ meta }) {
-  const conditions = documentConditions(meta.type);
+function ConditionsFooter({ meta, wo }) {
+  const conditions = documentConditions(meta.type, wo);
   if (conditions.length === 0) return null;
 
   return (
@@ -376,12 +376,12 @@ function ConditionsFooter({ meta }) {
 }
 
 function DocumentFooter({ co, page, wo, meta, isLast }) {
-  const showConditions = isLast && documentConditions(meta.type).length > 0;
+  const showConditions = isLast && documentConditions(meta.type, wo).length > 0;
 
   return (
     <footer style={{ flexShrink: 0, padding: "0 0.45in 3px", color: TEXT_MED }}>
       <TotalsFooter wo={wo} meta={meta} />
-      {showConditions && <ConditionsFooter meta={meta} />}
+      {showConditions && <ConditionsFooter meta={meta} wo={wo} />}
       <div style={{ paddingTop: 4, fontSize: 7, textAlign: "center" }}>
         <p style={{ margin: 0 }}>
           Vosthermos - Reparation et remplacement de fenetres | {co.address}, {co.city}, {co.province} | RBQ : {co.rbq} | TPS : {co.tps} | TVQ : {co.tvq}

@@ -116,6 +116,20 @@ function readAiPdfFile(file) {
   });
 }
 
+function formatPercentInput(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return "";
+  return Number.isInteger(number) ? String(number) : String(number).replace(".", ",");
+}
+
+function parseQuoteDepositPercentInput(value) {
+  const text = String(value || "").trim().replace(",", ".");
+  if (!text) return null;
+  const number = Number(text);
+  if (!Number.isFinite(number) || number < 0 || number > 100) return undefined;
+  return Math.round(number * 100) / 100;
+}
+
 function aiImageSrc(image) {
   if (!image) return "";
   if (image.url) return image.url;
@@ -798,6 +812,7 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
   const [interventionCity, setInterventionCity] = useState("");
   const [interventionPostalCode, setInterventionPostalCode] = useState("");
   const [visibleAuClient, setVisibleAuClient] = useState(true);
+  const [quoteDepositPercentText, setQuoteDepositPercentText] = useState("");
 
   const [items, setItems] = useState([]);
   const [catalogOpen, setCatalogOpen] = useState(false);
@@ -930,6 +945,7 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
       if (draft.interventionCity !== undefined) setInterventionCity(draft.interventionCity);
       if (draft.interventionPostalCode !== undefined) setInterventionPostalCode(draft.interventionPostalCode);
       if (draft.visibleAuClient !== undefined) setVisibleAuClient(draft.visibleAuClient);
+      if (draft.quoteDepositPercentText !== undefined) setQuoteDepositPercentText(draft.quoteDepositPercentText);
       if (Array.isArray(draft.items)) setItems(draft.items);
       if (Array.isArray(draft.sections)) setSections(draft.sections);
       if (draft.laborHours !== undefined) setLaborHours(draft.laborHours);
@@ -970,6 +986,7 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
           interventionCity,
           interventionPostalCode,
           visibleAuClient,
+          quoteDepositPercentText,
           items,
           sections,
           laborHours,
@@ -996,6 +1013,7 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
     interventionCity,
     interventionPostalCode,
     visibleAuClient,
+    quoteDepositPercentText,
     items,
     sections,
     laborHours,
@@ -1108,6 +1126,7 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
         setInterventionCity(wo.interventionCity || "");
         setInterventionPostalCode(wo.interventionPostalCode || "");
         setVisibleAuClient(wo.visibleAuClient ?? true);
+        setQuoteDepositPercentText(formatPercentInput(wo.quoteDepositPercent));
         setItems(Array.isArray(wo.items) ? wo.items.filter((item) => !item.sectionId).map(normalizeWorkItem) : []);
         setSections(Array.isArray(wo.sections) ? wo.sections.map((s) => ({
           unitCode: s.unitCode,
@@ -1812,6 +1831,13 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
     setSavingAction(submitAction);
     setError("");
     try {
+      const quoteDepositPercent = parseQuoteDepositPercentInput(quoteDepositPercentText);
+      if (quoteDepositPercent === undefined) {
+        setError("Le pourcentage d'acompte doit etre entre 0 et 100.");
+        setSaving(false);
+        setSavingAction(null);
+        return;
+      }
       const saveOnlyAction = submitAction === "save" || submitAction === "preview";
       const isExistingQuote = ["quote", "quote_sent", "quote_accepted"].includes(currentStatut);
       const isExistingInvoice = ["invoiced", "sent", "paid"].includes(currentStatut);
@@ -1837,6 +1863,7 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
         interventionCity: interventionCity || null,
         interventionPostalCode: interventionPostalCode || null,
         visibleAuClient,
+        quoteDepositPercent,
         description: description || null,
         notes: notes || null,
         statut: finalStatut,
@@ -2691,6 +2718,27 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
             <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2}
               className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
           </div>
+          {effectiveQuoteMode && (
+            <div className="grid gap-3 md:grid-cols-[minmax(0,220px)_1fr] md:items-end">
+              <div>
+                <label className="admin-text-muted text-xs mb-1 block">Acompte soumission (%)</label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={quoteDepositPercentText}
+                    onChange={(e) => setQuoteDepositPercentText(e.target.value.replace(/[^0-9.,]/g, ""))}
+                    placeholder="Auto"
+                    className="admin-input border rounded-lg px-3 py-2.5 pr-8 text-sm w-full"
+                  />
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 admin-text-muted text-xs">%</span>
+                </div>
+              </div>
+              <p className="admin-text-muted text-xs leading-relaxed">
+                Vide = auto: moins de 1 000 $ aucun acompte, 1 000 $ et plus 50 % a l&apos;acceptation et 50 % a la fin.
+              </p>
+            </div>
+          )}
           <details className="rounded-lg border admin-border bg-white/[0.02] p-3">
             <summary className="cursor-pointer text-sm font-medium admin-text">
               Options avancees

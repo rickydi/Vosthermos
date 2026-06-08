@@ -19,6 +19,7 @@ import { buildPaymentTrackingData } from "@/lib/payment-tracking";
 import { staleUpdateResponse } from "@/lib/optimistic-lock";
 import { publishAdminEvent } from "@/lib/event-bus";
 import { isInvoiceStatus, isQuoteStatus } from "@/lib/work-order-document";
+import { normalizeQuoteDepositPercent } from "@/lib/vosthermos-document";
 
 async function validateFollowUpForClient(followUpId, clientId) {
   if (!followUpId) return null;
@@ -96,6 +97,7 @@ export async function GET(_req, { params }) {
     tps: Number(wo.tps),
     tvq: Number(wo.tvq),
     total: Number(wo.total),
+    quoteDepositPercent: wo.quoteDepositPercent === null ? null : Number(wo.quoteDepositPercent),
     payments: (wo.payments || []).map((payment) => ({
       ...payment,
       amount: Number(payment.amount || 0),
@@ -146,6 +148,12 @@ export async function PUT(req, { params }) {
     : null;
   const explicitDocumentStatut = isQuoteStatus(explicitStatut) || isInvoiceStatus(explicitStatut);
   const statut = explicitDocumentStatut ? explicitStatut : followUpStatut || explicitStatut || existing.statut;
+  const quoteDepositPercent = body.quoteDepositPercent !== undefined
+    ? normalizeQuoteDepositPercent(body.quoteDepositPercent)
+    : existing.quoteDepositPercent;
+  if (quoteDepositPercent === undefined) {
+    return NextResponse.json({ error: "Pourcentage d'acompte invalide" }, { status: 400 });
+  }
   const rebuildLines = body.items !== undefined || body.sections !== undefined;
   const shouldRecalcTotals = rebuildLines || body.laborHours !== undefined || body.laborRate !== undefined;
   const { flatItems, sections, allForCalc } = flattenSectionsBody(body);
@@ -217,6 +225,7 @@ export async function PUT(req, { params }) {
         notes: body.notes ?? existing.notes,
         statut,
         visibleAuClient: body.visibleAuClient ?? existing.visibleAuClient,
+        quoteDepositPercent,
         laborRate,
         ...totals,
         ...paymentTracking,
@@ -259,7 +268,7 @@ export async function PUT(req, { params }) {
       changedFields: changedFields(existing, wo, [
         "clientId", "technicianId", "appointmentId", "date", "interventionAddress",
         "interventionCity", "description", "notes", "statut", "followUpId", "visibleAuClient",
-        "invoiceIssuedAt", "paymentDueAt", "paidAt",
+        "quoteDepositPercent", "invoiceIssuedAt", "paymentDueAt", "paidAt",
       ]),
       statusFrom: existing.statut,
       statusTo: wo.statut,
@@ -291,6 +300,7 @@ export async function PUT(req, { params }) {
     tps: Number(wo.tps),
     tvq: Number(wo.tvq),
     total: Number(wo.total),
+    quoteDepositPercent: wo.quoteDepositPercent === null ? null : Number(wo.quoteDepositPercent),
     payments: (wo.payments || []).map((payment) => ({
       ...payment,
       amount: Number(payment.amount || 0),
