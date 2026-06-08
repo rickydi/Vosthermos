@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   distDir: process.env.NEXT_DIST_DIR || ".next",
-  serverExternalPackages: ["pdfkit"],
+  serverExternalPackages: ["pdfkit", "pdf-parse", "pdfjs-dist", "@napi-rs/canvas"],
   experimental: {
     cpus: 2,
     serverActions: {
