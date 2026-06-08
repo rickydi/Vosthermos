@@ -674,10 +674,11 @@ export async function POST(req) {
   let ai;
   try {
     ai = await callAnthropicAdmin({
-      maxTokens: 1800,
+      maxTokens: 3200,
       system: `Tu extrais un brouillon de document Vosthermos a partir d'un message brut.
 
 Retourne STRICTEMENT un objet JSON valide, sans markdown.
+Garde le JSON compact. Maximum 8 lignes facturees et 6 warnings; regroupe les details semblables au lieu de lister chaque note repetee.
 
 Schema:
 {
