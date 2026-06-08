@@ -2112,7 +2112,7 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
                       </span>
                       <div>
                         <p className="admin-text text-sm font-bold">PDF a analyser</p>
-                        <p className="admin-text-muted text-xs">Un fichier PDF texte, maximum {formatBytes(AI_PDF_MAX_BYTES)}</p>
+                        <p className="admin-text-muted text-xs">PDF texte ou scanne, maximum {formatBytes(AI_PDF_MAX_BYTES)}</p>
                       </div>
                     </div>
                     <button

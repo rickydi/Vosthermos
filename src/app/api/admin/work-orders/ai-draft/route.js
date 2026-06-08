@@ -7,11 +7,15 @@ export const runtime = "nodejs";
 
 const ACCEPTED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
 const MAX_IMAGE_COUNT = 6;
+const MAX_AI_IMAGE_BLOCKS = 10;
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const MAX_IMAGES_TOTAL_BYTES = 20 * 1024 * 1024;
 const ACCEPTED_PDF_TYPES = new Set(["application/pdf"]);
 const MAX_PDF_BYTES = 12 * 1024 * 1024;
 const MAX_PDF_TEXT_CHARS = 12000;
+const MIN_MEANINGFUL_PDF_TEXT_CHARS = 40;
+const MAX_PDF_RENDERED_PAGES = 8;
+const PDF_RENDERED_PAGE_WIDTH = 1200;
 
 function cleanText(value, max = 500) {
   return String(value || "").trim().slice(0, max);
@@ -422,13 +426,63 @@ function cleanPdfInput(body) {
   };
 }
 
-async function extractPdfText(pdf) {
-  if (!pdf?.data) return "";
+function cleanExtractedPdfText(value) {
+  return cleanText(value, MAX_PDF_TEXT_CHARS)
+    .replace(/--\s*\d+\s+of\s+\d+\s*--/gi, "")
+    .replace(/\s+\n/g, "\n")
+    .replace(/\n{4,}/g, "\n\n\n")
+    .trim();
+}
+
+function hasMeaningfulPdfText(value) {
+  return String(value || "").replace(/\s/g, "").length >= MIN_MEANINGFUL_PDF_TEXT_CHARS;
+}
+
+async function extractPdfContent(pdf, maxRenderedPages = MAX_PDF_RENDERED_PAGES) {
+  if (!pdf?.data) return { text: "", images: [], totalPages: 0, renderedPages: 0 };
   const { PDFParse } = await import("pdf-parse");
   const parser = new PDFParse({ data: Buffer.from(pdf.data, "base64") });
   try {
-    const result = await parser.getText();
-    return cleanText(result.text, MAX_PDF_TEXT_CHARS).replace(/\s+\n/g, "\n").replace(/\n{4,}/g, "\n\n\n");
+    let text = "";
+    let totalPages = 0;
+    let textError = null;
+    try {
+      const result = await parser.getText();
+      text = cleanExtractedPdfText(result.text);
+      totalPages = Number(result.total) || 0;
+    } catch (err) {
+      textError = err;
+    }
+
+    const shouldRenderPages = !hasMeaningfulPdfText(text) && maxRenderedPages > 0;
+    if (!shouldRenderPages) {
+      if (textError && !text) throw textError;
+      return { text, images: [], totalPages, renderedPages: 0 };
+    }
+
+    try {
+      const screenshots = await parser.getScreenshot({
+        desiredWidth: PDF_RENDERED_PAGE_WIDTH,
+        first: Math.min(maxRenderedPages, MAX_PDF_RENDERED_PAGES),
+      });
+      totalPages = Number(screenshots.total) || totalPages;
+      const images = (Array.isArray(screenshots.pages) ? screenshots.pages : [])
+        .map((page, index) => {
+          const data = Buffer.from(page.data || "");
+          return {
+            data: data.toString("base64"),
+            mediaType: "image/png",
+            name: `${pdf.name || "document.pdf"} page ${page.pageNumber || index + 1}.png`,
+            size: data.length,
+          };
+        })
+        .filter((image) => image.data && image.size > 0 && image.size <= MAX_IMAGE_BYTES);
+      if (images.length === 0 && textError) throw textError;
+      return { text, images, totalPages, renderedPages: images.length };
+    } catch (err) {
+      if (textError) throw textError;
+      throw err;
+    }
   } finally {
     await parser.destroy();
   }
@@ -557,6 +611,9 @@ export async function POST(req) {
   let images = [];
   let pdf = null;
   let pdfText = "";
+  let pdfImages = [];
+  let pdfTotalPages = 0;
+  let pdfRenderedPages = 0;
   try {
     images = cleanImagesInput(body);
     pdf = cleanPdfInput(body);
@@ -565,24 +622,41 @@ export async function POST(req) {
   }
   if (pdf) {
     try {
-      pdfText = await extractPdfText(pdf);
+      const availablePdfImageSlots = Math.max(0, MAX_AI_IMAGE_BLOCKS - images.length);
+      const pdfContent = await extractPdfContent(pdf, availablePdfImageSlots);
+      pdfText = pdfContent.text;
+      pdfImages = pdfContent.images;
+      pdfTotalPages = pdfContent.totalPages;
+      pdfRenderedPages = pdfContent.renderedPages;
     } catch (err) {
       console.error("[work-orders ai-draft] pdf parse error:", err?.message || err);
-      return NextResponse.json({ error: "Impossible de lire le PDF. Essaie un PDF texte ou ajoute une image/capture." }, { status: 400 });
+      return NextResponse.json({ error: "Impossible de lire le PDF. Essaie un autre PDF ou ajoute une image/capture." }, { status: 400 });
     }
   }
-  if (pdf && !pdfText && !pastedText && images.length === 0) {
-    return NextResponse.json({ error: "PDF sans texte lisible. Pour un PDF scanne, ajoute une image ou une capture." }, { status: 400 });
+  if (pdf && !pdfText && pdfImages.length === 0) {
+    return NextResponse.json({ error: "PDF sans texte lisible et impossible a rendre en images. Ajoute une capture ou une photo du document." }, { status: 400 });
   }
 
   const rawText = [
     pastedText,
     pdfText ? `Texte extrait du PDF "${pdf.name}":\n${pdfText}` : "",
   ].filter(Boolean).join("\n\n");
-  if (!rawText && images.length === 0) return NextResponse.json({ error: "Texte, PDF ou image requis" }, { status: 400 });
+  const pdfImageNotice = pdfImages.length > 0
+    ? `PDF "${pdf.name}" fourni en images: ${pdfRenderedPages}${pdfTotalPages ? ` de ${pdfTotalPages}` : ""} page${pdfRenderedPages > 1 ? "s" : ""}. Analyse ces pages comme le PDF original.`
+    : "";
+  const analysisText = [rawText, pdfImageNotice].filter(Boolean).join("\n\n");
+  const analysisImages = [...images, ...pdfImages];
+  const analysisImagesTotalBytes = analysisImages.reduce((sum, image) => sum + (Number(image.size) || 0), 0);
+  if (analysisImages.length > MAX_AI_IMAGE_BLOCKS) {
+    return NextResponse.json({ error: `Trop d'images a analyser. Maximum ${MAX_AI_IMAGE_BLOCKS} images incluant les pages PDF.` }, { status: 400 });
+  }
+  if (analysisImagesTotalBytes > MAX_IMAGES_TOTAL_BYTES) {
+    return NextResponse.json({ error: `Images trop lourdes ensemble. Maximum ${Math.round(MAX_IMAGES_TOTAL_BYTES / 1024 / 1024)} MB au total.` }, { status: 400 });
+  }
+  if (!analysisText && analysisImages.length === 0) return NextResponse.json({ error: "Texte, PDF ou image requis" }, { status: 400 });
 
   const userContent = [];
-  for (const image of images) {
+  for (const image of analysisImages) {
     userContent.push({
       type: "image",
       source: {
@@ -594,7 +668,7 @@ export async function POST(req) {
   }
   userContent.push({
     type: "text",
-    text: rawText || "Analyse les images jointes et cree le brouillon de document Vosthermos a partir du texte visible.",
+    text: analysisText || "Analyse les images jointes et cree le brouillon de document Vosthermos a partir du texte visible.",
   });
 
   let ai;
@@ -635,6 +709,7 @@ Regles:
 - Si plusieurs images sont fournies, traite-les comme des pages ou photos du meme dossier client, dans l'ordre recu.
 - Si une partie d'une image est illisible, ne l'invente pas; mets le point dans warnings.
 - Si un PDF est fourni, le texte extrait est inclus sous "Texte extrait du PDF". Utilise-le comme le contenu original du document recu.
+- Si un PDF scanne ou sans texte est fourni, ses pages peuvent etre ajoutees comme images. Traite ces images comme les pages du PDF original, dans l'ordre recu.
 - Si le texte extrait du PDF semble incomplet, ambigu ou mal segmente, garde les champs certains seulement et mets le reste dans warnings.
 - Les lignes avec prix clair vont dans items, ou dans sections[].items lorsqu'une unite/appartement est detecte.
 - Si une ligne ou un bloc commence par APPARTEMENT, APT, APP, UNITE, LOCAL, BUREAU ou un code du genre E-0918, mets cette valeur dans sections[].unitCode et les lignes facturees qui suivent dans sections[].items.
