@@ -3,10 +3,15 @@ import { requireAdmin } from "@/lib/admin-auth";
 import { COMPANY_INFO } from "@/lib/company-info";
 import { callAnthropicAdmin } from "@/lib/anthropic-admin";
 
+export const runtime = "nodejs";
+
 const ACCEPTED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
 const MAX_IMAGE_COUNT = 6;
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const MAX_IMAGES_TOTAL_BYTES = 20 * 1024 * 1024;
+const ACCEPTED_PDF_TYPES = new Set(["application/pdf"]);
+const MAX_PDF_BYTES = 12 * 1024 * 1024;
+const MAX_PDF_TEXT_CHARS = 12000;
 
 function cleanText(value, max = 500) {
   return String(value || "").trim().slice(0, max);
@@ -388,6 +393,47 @@ function cleanImagesInput(body) {
   return images;
 }
 
+function cleanPdfInput(body) {
+  const rawPdf = body.pdf && typeof body.pdf === "object" ? body.pdf : null;
+  if (!rawPdf) return null;
+
+  const mediaType = cleanText(rawPdf.mediaType || rawPdf.type || "application/pdf", 80).toLowerCase();
+  if (!ACCEPTED_PDF_TYPES.has(mediaType)) {
+    throw new Error("PDF non supporte.");
+  }
+
+  let data = String(rawPdf.data || "");
+  if (data.includes(",")) data = data.split(",").pop();
+  data = data.replace(/\s/g, "");
+  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(data)) {
+    throw new Error("PDF invalide.");
+  }
+
+  const bytes = Buffer.byteLength(data, "base64");
+  if (bytes > MAX_PDF_BYTES) {
+    throw new Error(`PDF trop lourd. Maximum ${Math.round(MAX_PDF_BYTES / 1024 / 1024)} MB.`);
+  }
+
+  return {
+    mediaType,
+    data,
+    name: cleanText(rawPdf.name || "document.pdf", 180),
+    size: bytes,
+  };
+}
+
+async function extractPdfText(pdf) {
+  if (!pdf?.data) return "";
+  const { PDFParse } = await import("pdf-parse");
+  const parser = new PDFParse({ data: Buffer.from(pdf.data, "base64") });
+  try {
+    const result = await parser.getText();
+    return cleanText(result.text, MAX_PDF_TEXT_CHARS).replace(/\s+\n/g, "\n").replace(/\n{4,}/g, "\n\n\n");
+  } finally {
+    await parser.destroy();
+  }
+}
+
 function samePricedRepairItem(a, b) {
   if (Math.round(Number(a?.unitPrice || 0) * 100) !== Math.round(Number(b?.unitPrice || 0) * 100)) return false;
   const text = normalizePlainText(`${a?.description || ""} ${b?.description || ""}`);
@@ -506,15 +552,34 @@ export async function POST(req) {
   try { await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
 
   const body = await req.json().catch(() => ({}));
-  const rawText = cleanText(body.text, 6000);
+  const pastedText = cleanText(body.text, 6000);
   const documentType = body.documentType === "quote" ? "quote" : "invoice";
   let images = [];
+  let pdf = null;
+  let pdfText = "";
   try {
     images = cleanImagesInput(body);
+    pdf = cleanPdfInput(body);
   } catch (err) {
-    return NextResponse.json({ error: err.message || "Image invalide" }, { status: 400 });
+    return NextResponse.json({ error: err.message || "Document invalide" }, { status: 400 });
   }
-  if (!rawText && images.length === 0) return NextResponse.json({ error: "Texte ou image requis" }, { status: 400 });
+  if (pdf) {
+    try {
+      pdfText = await extractPdfText(pdf);
+    } catch (err) {
+      console.error("[work-orders ai-draft] pdf parse error:", err?.message || err);
+      return NextResponse.json({ error: "Impossible de lire le PDF. Essaie un PDF texte ou ajoute une image/capture." }, { status: 400 });
+    }
+  }
+  if (pdf && !pdfText && !pastedText && images.length === 0) {
+    return NextResponse.json({ error: "PDF sans texte lisible. Pour un PDF scanne, ajoute une image ou une capture." }, { status: 400 });
+  }
+
+  const rawText = [
+    pastedText,
+    pdfText ? `Texte extrait du PDF "${pdf.name}":\n${pdfText}` : "",
+  ].filter(Boolean).join("\n\n");
+  if (!rawText && images.length === 0) return NextResponse.json({ error: "Texte, PDF ou image requis" }, { status: 400 });
 
   const userContent = [];
   for (const image of images) {
@@ -569,6 +634,8 @@ Regles:
 - Si une ou plusieurs images sont fournies, lis le texte visible comme des captures, photos de notes, courriels ou soumissions recues. Combine toutes les images avec le texte colle si les deux sont fournis.
 - Si plusieurs images sont fournies, traite-les comme des pages ou photos du meme dossier client, dans l'ordre recu.
 - Si une partie d'une image est illisible, ne l'invente pas; mets le point dans warnings.
+- Si un PDF est fourni, le texte extrait est inclus sous "Texte extrait du PDF". Utilise-le comme le contenu original du document recu.
+- Si le texte extrait du PDF semble incomplet, ambigu ou mal segmente, garde les champs certains seulement et mets le reste dans warnings.
 - Les lignes avec prix clair vont dans items, ou dans sections[].items lorsqu'une unite/appartement est detecte.
 - Si une ligne ou un bloc commence par APPARTEMENT, APT, APP, UNITE, LOCAL, BUREAU ou un code du genre E-0918, mets cette valeur dans sections[].unitCode et les lignes facturees qui suivent dans sections[].items.
 - Quand une ligne est mise dans sections[].items, ne repete pas le code d'unite dans items.description.

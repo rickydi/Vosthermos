@@ -31,6 +31,8 @@ const AI_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 const AI_IMAGE_MAX_COUNT = 6;
 const AI_IMAGE_MAX_BYTES = 8 * 1024 * 1024;
 const AI_IMAGE_TOTAL_MAX_BYTES = 20 * 1024 * 1024;
+const AI_PDF_TYPES = ["application/pdf"];
+const AI_PDF_MAX_BYTES = 12 * 1024 * 1024;
 
 function formatBytes(bytes) {
   const size = Number(bytes) || 0;
@@ -78,6 +80,38 @@ function readAiImageFile(file) {
       });
     };
     reader.onerror = () => reject(new Error("Impossible de lire l'image"));
+    reader.readAsDataURL(file);
+  });
+}
+
+function readAiPdfFile(file) {
+  return new Promise((resolve, reject) => {
+    if (!file) {
+      reject(new Error("PDF manquant"));
+      return;
+    }
+    const isPdf = file.type === "application/pdf" || String(file.name || "").toLowerCase().endsWith(".pdf");
+    if (!isPdf) {
+      reject(new Error("Fichier non supporte. Utilise un PDF."));
+      return;
+    }
+    if (file.size > AI_PDF_MAX_BYTES) {
+      reject(new Error(`PDF trop lourd. Maximum ${formatBytes(AI_PDF_MAX_BYTES)}.`));
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = String(reader.result || "");
+      const data = result.includes(",") ? result.split(",").pop() : result;
+      resolve({
+        data,
+        mediaType: "application/pdf",
+        name: file.name || "document.pdf",
+        size: file.size,
+      });
+    };
+    reader.onerror = () => reject(new Error("Impossible de lire le PDF"));
     reader.readAsDataURL(file);
   });
 }
@@ -781,9 +815,11 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
   const [settings, setSettings] = useState({ labor_rate_per_hour: 85, tps_rate: 0.05, tvq_rate: 0.09975 });
   const [aiImportText, setAiImportText] = useState("");
   const [aiImportImages, setAiImportImages] = useState([]);
+  const [aiImportPdf, setAiImportPdf] = useState(null);
   const [aiDraft, setAiDraft] = useState(null);
   const [aiDraftError, setAiDraftError] = useState("");
   const [aiDraftLoading, setAiDraftLoading] = useState(false);
+  const [aiDraftProgress, setAiDraftProgress] = useState({ percent: 0, label: "" });
   const [aiDraftApplying, setAiDraftApplying] = useState(false);
   const [aiDraftMessage, setAiDraftMessage] = useState("");
   const [aiClientSuggestions, setAiClientSuggestions] = useState([]);
@@ -792,6 +828,9 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
   const [aiEmailDraft, setAiEmailDraft] = useState(null);
   const [aiImagePreviewIndex, setAiImagePreviewIndex] = useState(null);
   const aiImageInputRef = useRef(null);
+  const aiPdfInputRef = useRef(null);
+  const aiDraftProgressTimerRef = useRef(null);
+  const aiDraftProgressClearTimerRef = useRef(null);
 
   const isB2B = selectedClient?.type === "gestionnaire" || sections.length > 0;
 
@@ -965,6 +1004,13 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
     aiDraft,
     aiEmailDraft,
   ]);
+
+  useEffect(() => {
+    return () => {
+      if (aiDraftProgressTimerRef.current) clearInterval(aiDraftProgressTimerRef.current);
+      if (aiDraftProgressClearTimerRef.current) clearTimeout(aiDraftProgressClearTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (!aiDraft?.client || selectedClient) {
@@ -1538,6 +1584,73 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
     }
   }
 
+  async function attachAiImportPdf(filesInput) {
+    setAiDraftError("");
+    setAiDraftMessage("");
+    try {
+      const file = Array.from(filesInput || []).find((item) => (
+        item?.type === "application/pdf" || String(item?.name || "").toLowerCase().endsWith(".pdf")
+      ));
+      if (!file) return;
+      const pdf = await readAiPdfFile(file);
+      setAiImportPdf(pdf);
+      setAiDraft(null);
+      setAiClientSuggestions([]);
+      setAiClientLookupComplete(false);
+    } catch (err) {
+      setAiDraftError(err.message || "Impossible d'ajouter le PDF");
+    }
+  }
+
+  function clearAiDraftProgressTimers() {
+    if (aiDraftProgressTimerRef.current) {
+      clearInterval(aiDraftProgressTimerRef.current);
+      aiDraftProgressTimerRef.current = null;
+    }
+    if (aiDraftProgressClearTimerRef.current) {
+      clearTimeout(aiDraftProgressClearTimerRef.current);
+      aiDraftProgressClearTimerRef.current = null;
+    }
+  }
+
+  function setAiDraftProgressStep(percent, label) {
+    if (aiDraftProgressClearTimerRef.current) {
+      clearTimeout(aiDraftProgressClearTimerRef.current);
+      aiDraftProgressClearTimerRef.current = null;
+    }
+    setAiDraftProgress({
+      percent: Math.max(0, Math.min(100, Number(percent) || 0)),
+      label,
+    });
+  }
+
+  function startAiDraftProgressTicker() {
+    if (aiDraftProgressTimerRef.current) clearInterval(aiDraftProgressTimerRef.current);
+    aiDraftProgressTimerRef.current = setInterval(() => {
+      setAiDraftProgress((current) => {
+        const currentPercent = Math.max(0, Math.min(88, Number(current.percent) || 0));
+        if (currentPercent >= 88) return current;
+        const step = currentPercent < 45 ? 5 : currentPercent < 72 ? 3 : 1;
+        return {
+          percent: Math.min(88, currentPercent + step),
+          label: current.label || "Analyse IA en cours",
+        };
+      });
+    }, 850);
+  }
+
+  function finishAiDraftProgress(label = "Analyse terminee") {
+    if (aiDraftProgressTimerRef.current) {
+      clearInterval(aiDraftProgressTimerRef.current);
+      aiDraftProgressTimerRef.current = null;
+    }
+    setAiDraftProgress({ percent: 100, label });
+    aiDraftProgressClearTimerRef.current = setTimeout(() => {
+      setAiDraftProgress({ percent: 0, label: "" });
+      aiDraftProgressClearTimerRef.current = null;
+    }, 1200);
+  }
+
   function handleAiPaste(event) {
     const itemsList = Array.from(event.clipboardData?.items || []);
     const files = itemsList
@@ -1561,21 +1674,30 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
   const aiImagePreviewImage = Number.isInteger(aiImagePreviewIndex) ? aiImportImages[aiImagePreviewIndex] : null;
   const aiImagePreviewSrc = aiImageSrc(aiImagePreviewImage);
   const hasAiImages = aiImportImages.length > 0;
+  const hasAiPdf = Boolean(aiImportPdf);
+  const hasAiImportSource = Boolean(aiImportText.trim() || hasAiImages || hasAiPdf);
+  const aiProgressPercent = Math.max(0, Math.min(100, Number(aiDraftProgress.percent) || 0));
 
   async function analyzeAiDocumentDraft() {
-    if ((!aiImportText.trim() && !hasAiImages) || aiDraftLoading) return;
+    if (!hasAiImportSource || aiDraftLoading) return;
     setAiDraftLoading(true);
     setAiDraftError("");
     setAiDraftMessage("");
     setAiClientSuggestions([]);
     setAiClientLookupComplete(false);
+    clearAiDraftProgressTimers();
+    setAiDraftProgressStep(8, "Preparation de l'analyse");
     try {
       const documentType = effectiveQuoteMode ? "quote" : "invoice";
+      setAiDraftProgressStep(hasAiPdf ? 24 : 28, hasAiPdf ? "Lecture du PDF" : "Preparation du contenu");
+      setAiDraftProgressStep(42, "Envoi a l'IA");
+      startAiDraftProgressTicker();
       const res = await fetch("/api/admin/work-orders/ai-draft", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: aiImportText, images: aiImportImages, documentType }),
+        body: JSON.stringify({ text: aiImportText, images: aiImportImages, pdf: aiImportPdf, documentType }),
       });
+      setAiDraftProgressStep(92, "Lecture du resultat");
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Erreur analyse IA");
       const nextDraft = data.draft ? { ...data.draft, analysisCost: data.analysisCost || null } : null;
@@ -1583,7 +1705,10 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
       setAiDraft(nextDraft);
       setAiEmailDraft(nextEmailDraft);
       saveAiAnalysisSession({ text: aiImportText, draft: nextDraft, emailDraft: nextEmailDraft }, editId);
+      finishAiDraftProgress("Brouillon pret");
     } catch (err) {
+      clearAiDraftProgressTimers();
+      setAiDraftProgress({ percent: 0, label: "" });
       setAiDraftError(err.message);
       setAiDraft(null);
       setAiClientSuggestions([]);
@@ -1913,7 +2038,7 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
               <button
                 type="button"
                 onClick={analyzeAiDocumentDraft}
-                disabled={aiDraftLoading || (!aiImportText.trim() && !hasAiImages)}
+                disabled={aiDraftLoading || !hasAiImportSource}
                 className="inline-flex items-center justify-center rounded-lg bg-cyan-700 px-4 py-2 text-sm font-bold text-white hover:bg-cyan-600 disabled:opacity-40"
               >
                 <i className={`fas ${aiDraftLoading ? "fa-spinner fa-spin" : "fa-bolt"} mr-2`}></i>
@@ -1933,6 +2058,74 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
                 placeholder="Coller ici le texto, courriel ou notes brutes..."
               />
 
+              <div className={`rounded-lg border p-3 ${
+                hasAiPdf ? "border-cyan-400/50 bg-cyan-500/10" : "admin-border bg-white/[0.02]"
+              }`}>
+                <input
+                  ref={aiPdfInputRef}
+                  type="file"
+                  accept={AI_PDF_TYPES.join(",")}
+                  className="hidden"
+                  onChange={(e) => {
+                    attachAiImportPdf(e.target.files);
+                    e.target.value = "";
+                  }}
+                />
+                {hasAiPdf ? (
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-500/10 text-red-500">
+                        <i className="fas fa-file-pdf"></i>
+                      </span>
+                      <div className="min-w-0">
+                        <p className="admin-text truncate text-sm font-bold">{aiImportPdf.name}</p>
+                        <p className="admin-text-muted text-xs">PDF joint | {formatBytes(aiImportPdf.size)}</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => aiPdfInputRef.current?.click()}
+                        className="inline-flex items-center justify-center rounded-lg bg-slate-700 px-3 py-2 text-xs font-bold text-white hover:bg-slate-600"
+                      >
+                        <i className="fas fa-rotate mr-2"></i>Remplacer
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAiImportPdf(null);
+                          setAiDraft(null);
+                          setAiClientSuggestions([]);
+                          setAiClientLookupComplete(false);
+                        }}
+                        className="inline-flex items-center justify-center rounded-lg border border-red-500/30 px-3 py-2 text-xs font-bold text-red-500 hover:bg-red-500/10"
+                      >
+                        <i className="fas fa-times mr-2"></i>Retirer
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-500/10 text-red-500">
+                        <i className="fas fa-file-pdf"></i>
+                      </span>
+                      <div>
+                        <p className="admin-text text-sm font-bold">PDF a analyser</p>
+                        <p className="admin-text-muted text-xs">Un fichier PDF texte, maximum {formatBytes(AI_PDF_MAX_BYTES)}</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => aiPdfInputRef.current?.click()}
+                      className="inline-flex items-center justify-center rounded-lg bg-slate-700 px-3 py-2 text-xs font-bold text-white hover:bg-slate-600"
+                    >
+                      <i className="fas fa-paperclip mr-2"></i>Ajouter PDF
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <div
                 className={`rounded-lg border border-dashed p-3 transition-colors ${
                   hasAiImages ? "border-cyan-400/50 bg-cyan-500/10" : "admin-border bg-white/[0.02]"
@@ -1941,8 +2134,13 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => {
                   e.preventDefault();
-                  const files = Array.from(e.dataTransfer?.files || []).filter((item) => item.type?.startsWith("image/"));
-                  if (files.length > 0) attachAiImportImages(files);
+                  const files = Array.from(e.dataTransfer?.files || []);
+                  const imageFiles = files.filter((item) => item.type?.startsWith("image/"));
+                  const pdfFiles = files.filter((item) => (
+                    item.type === "application/pdf" || String(item.name || "").toLowerCase().endsWith(".pdf")
+                  ));
+                  if (imageFiles.length > 0) attachAiImportImages(imageFiles);
+                  if (pdfFiles.length > 0) attachAiImportPdf(pdfFiles);
                 }}
               >
                 <input
@@ -2048,6 +2246,23 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
                   </div>
                 )}
               </div>
+
+              {(aiDraftLoading || aiProgressPercent > 0) && (
+                <div className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 p-3">
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <span className="admin-text text-xs font-bold">
+                      {aiDraftProgress.label || "Analyse IA en cours"}
+                    </span>
+                    <span className="font-mono text-xs font-bold text-cyan-500">{aiProgressPercent}%</span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-black/20">
+                    <div
+                      className="h-full rounded-full bg-cyan-500 transition-all duration-500"
+                      style={{ width: `${aiProgressPercent}%` }}
+                    />
+                  </div>
+                </div>
+              )}
 
               {aiDraft?.warnings?.length > 0 && (
                 <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
