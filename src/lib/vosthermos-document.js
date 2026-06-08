@@ -252,10 +252,72 @@ function formatPercentFr(value) {
   return number.toFixed(2).replace(/0+$/, "").replace(/\.$/, "").replace(".", ",");
 }
 
+function paymentScheduleLabel(index, count) {
+  if (count <= 1) return "paiement complet";
+  if (index === 0) return "a l'acceptation de la commande";
+  if (index === count - 1) return "a la fin des travaux";
+  return `au paiement ${index + 1}`;
+}
+
+function cleanPaymentScheduleLabel(value, index, count) {
+  const text = String(value || "").replace(/[<>]/g, "").trim();
+  return text || paymentScheduleLabel(index, count);
+}
+
+export function normalizeQuotePaymentSchedule(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const rawList = Array.isArray(value) ? value : (Array.isArray(value.payments) ? value.payments : []);
+  if (rawList.length === 0) return null;
+
+  const normalized = [];
+  for (let index = 0; index < rawList.length; index += 1) {
+    const entry = rawList[index];
+    const rawPercent = typeof entry === "object" && entry !== null ? entry.percent : entry;
+    const percent = normalizeQuoteDepositPercent(rawPercent);
+    if (percent === undefined || percent === null || percent <= 0) return undefined;
+    normalized.push({
+      percent,
+      label: cleanPaymentScheduleLabel(entry?.label, index, rawList.length),
+    });
+  }
+
+  const totalPercent = Math.round(normalized.reduce((sum, payment) => sum + payment.percent, 0) * 100) / 100;
+  if (Math.abs(totalPercent - 100) > 0.01) return undefined;
+  return normalized;
+}
+
+function numberValue(value) {
+  const number = Number(value || 0);
+  return Number.isFinite(number) ? number : 0;
+}
+
+function resolveQuoteTotal(wo = {}) {
+  const directTotal = numberValue(wo.total);
+  if (directTotal > 0) return directTotal;
+
+  const subtotalTotal = numberValue(wo.subtotal) + numberValue(wo.tps) + numberValue(wo.tvq);
+  if (subtotalTotal > 0) return subtotalTotal;
+
+  const itemTotal = [
+    ...(Array.isArray(wo.items) ? wo.items : []),
+    ...(Array.isArray(wo.sections) ? wo.sections.flatMap((section) => section.items || []) : []),
+  ].reduce((sum, item) => sum + numberValue(item.totalPrice), 0);
+  return itemTotal;
+}
+
 export function quotePaymentCondition(wo = {}) {
+  const schedule = normalizeQuotePaymentSchedule(wo.quotePaymentSchedule);
+  if (schedule && schedule.length > 0) {
+    const parts = schedule.map((payment, index) => {
+      const label = cleanPaymentScheduleLabel(payment.label, index, schedule.length);
+      return `${formatPercentFr(payment.percent)} % ${label}`;
+    });
+    return `<b>Paiement :</b> ${parts.join(", ")}.`;
+  }
+
   const manualPercent = normalizeQuoteDepositPercent(wo.quoteDepositPercent);
-  const total = Number(wo.total || 0);
-  const percent = manualPercent ?? (total < 1000 ? 0 : 50);
+  const total = resolveQuoteTotal(wo);
+  const percent = manualPercent && manualPercent > 0 ? manualPercent : (total < 1000 ? 0 : 50);
   const balancePercent = Math.max(0, Math.round((100 - percent) * 100) / 100);
 
   if (percent <= 0) {

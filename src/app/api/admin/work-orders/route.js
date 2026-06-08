@@ -19,7 +19,7 @@ import { logAdminActivity } from "@/lib/admin-activity";
 import { buildPaymentTrackingData, serializePaymentWorkOrder } from "@/lib/payment-tracking";
 import { clampInt } from "@/lib/api-utils";
 import { INVOICE_STATUSES, QUOTE_STATUSES, WORK_ORDER_STATUSES, isInvoiceStatus, isQuoteStatus } from "@/lib/work-order-document";
-import { normalizeQuoteDepositPercent } from "@/lib/vosthermos-document";
+import { normalizeQuoteDepositPercent, normalizeQuotePaymentSchedule } from "@/lib/vosthermos-document";
 
 async function validateFollowUpForClient(followUpId, clientId) {
   if (!followUpId) return null;
@@ -142,6 +142,10 @@ export async function POST(req) {
   if (quoteDepositPercent === undefined) {
     return NextResponse.json({ error: "Pourcentage d'acompte invalide" }, { status: 400 });
   }
+  const quotePaymentSchedule = normalizeQuotePaymentSchedule(body.quotePaymentSchedule);
+  if (quotePaymentSchedule === undefined) {
+    return NextResponse.json({ error: "Echeancier de paiement invalide: le total doit faire 100 %" }, { status: 400 });
+  }
 
   const { flatItems, sections, allForCalc } = flattenSectionsBody(body);
   const laborHours = Number(body.laborHours) || 0;
@@ -185,6 +189,7 @@ export async function POST(req) {
         statut,
         visibleAuClient: body.visibleAuClient ?? true,
         quoteDepositPercent,
+        quotePaymentSchedule,
         laborRate,
         ...totals,
         ...paymentTracking,
@@ -231,6 +236,8 @@ export async function POST(req) {
     totalPieces: Number(workOrder.totalPieces),
     totalLabor: Number(workOrder.totalLabor),
     laborRate: Number(workOrder.laborRate),
+    quoteDepositPercent: workOrder.quoteDepositPercent === null ? null : Number(workOrder.quoteDepositPercent),
+    quotePaymentSchedule: workOrder.quotePaymentSchedule || null,
     items: (workOrder.items || []).filter((item) => !item.sectionId).map((item) => ({
       ...item,
       quantity: Number(item.quantity),

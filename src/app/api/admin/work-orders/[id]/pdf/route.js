@@ -26,6 +26,8 @@ function serializeWorkOrder(wo) {
     tps: Number(wo.tps),
     tvq: Number(wo.tvq),
     total: Number(wo.total),
+    quoteDepositPercent: wo.quoteDepositPercent === null ? null : Number(wo.quoteDepositPercent),
+    quotePaymentSchedule: wo.quotePaymentSchedule || null,
     payments: (wo.payments || []).map((payment) => ({
       ...payment,
       amount: Number(payment.amount || 0),

@@ -117,6 +117,7 @@ function readAiPdfFile(file) {
 }
 
 function formatPercentInput(value) {
+  if (value === null || value === undefined || value === "") return "";
   const number = Number(value);
   if (!Number.isFinite(number)) return "";
   return Number.isInteger(number) ? String(number) : String(number).replace(".", ",");
@@ -128,6 +129,77 @@ function parseQuoteDepositPercentInput(value) {
   const number = Number(text);
   if (!Number.isFinite(number) || number < 0 || number > 100) return undefined;
   return Math.round(number * 100) / 100;
+}
+
+function defaultQuotePaymentTexts(count) {
+  const safeCount = Math.max(1, Math.min(6, Number(count) || 2));
+  if (safeCount === 1) return ["100"];
+  if (safeCount === 2) return ["50", "50"];
+  const base = Math.floor((100 / safeCount) * 100) / 100;
+  const values = Array.from({ length: safeCount }, () => base);
+  values[safeCount - 1] = Math.round((100 - base * (safeCount - 1)) * 100) / 100;
+  return values.map(formatPercentInput);
+}
+
+function resizeQuotePaymentTexts(current, count) {
+  const defaults = defaultQuotePaymentTexts(count);
+  return defaults.map((value, index) => {
+    const currentValue = current[index];
+    return currentValue === undefined || currentValue === "" ? value : currentValue;
+  });
+}
+
+function quotePaymentUiLabel(index, count) {
+  if (count <= 1) return "Paiement complet";
+  if (index === 0) return "Acceptation";
+  if (index === count - 1) return "Fin des travaux";
+  return `Paiement ${index + 1}`;
+}
+
+function quotePaymentConditionLabel(index, count) {
+  if (count <= 1) return "paiement complet";
+  if (index === 0) return "a l'acceptation de la commande";
+  if (index === count - 1) return "a la fin des travaux";
+  return `au paiement ${index + 1}`;
+}
+
+function parseQuotePaymentScheduleInput(countValue, percentTexts) {
+  if (countValue === "auto") return null;
+  const count = Number(countValue);
+  if (!Number.isInteger(count) || count < 1 || count > 6) return undefined;
+  const payments = [];
+  for (let index = 0; index < count; index += 1) {
+    const percent = parseQuoteDepositPercentInput(percentTexts[index]);
+    if (percent === undefined || percent === null || percent <= 0) return undefined;
+    payments.push({
+      percent,
+      label: quotePaymentConditionLabel(index, count),
+    });
+  }
+  const total = Math.round(payments.reduce((sum, payment) => sum + payment.percent, 0) * 100) / 100;
+  if (Math.abs(total - 100) > 0.01) return undefined;
+  return payments;
+}
+
+function quotePaymentEditorFromWorkOrder(wo) {
+  const schedule = Array.isArray(wo?.quotePaymentSchedule) ? wo.quotePaymentSchedule : [];
+  if (schedule.length > 0) {
+    return {
+      count: String(schedule.length),
+      texts: schedule.map((payment) => formatPercentInput(payment.percent)),
+    };
+  }
+
+  const legacyDeposit = parseQuoteDepositPercentInput(wo?.quoteDepositPercent);
+  if (legacyDeposit && legacyDeposit > 0) {
+    if (legacyDeposit >= 100) return { count: "1", texts: ["100"] };
+    return {
+      count: "2",
+      texts: [formatPercentInput(legacyDeposit), formatPercentInput(100 - legacyDeposit)],
+    };
+  }
+
+  return { count: "auto", texts: defaultQuotePaymentTexts(2) };
 }
 
 function aiImageSrc(image) {
@@ -812,7 +884,8 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
   const [interventionCity, setInterventionCity] = useState("");
   const [interventionPostalCode, setInterventionPostalCode] = useState("");
   const [visibleAuClient, setVisibleAuClient] = useState(true);
-  const [quoteDepositPercentText, setQuoteDepositPercentText] = useState("");
+  const [quotePaymentCount, setQuotePaymentCount] = useState("auto");
+  const [quotePaymentPercentTexts, setQuotePaymentPercentTexts] = useState(() => defaultQuotePaymentTexts(2));
 
   const [items, setItems] = useState([]);
   const [catalogOpen, setCatalogOpen] = useState(false);
@@ -945,7 +1018,13 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
       if (draft.interventionCity !== undefined) setInterventionCity(draft.interventionCity);
       if (draft.interventionPostalCode !== undefined) setInterventionPostalCode(draft.interventionPostalCode);
       if (draft.visibleAuClient !== undefined) setVisibleAuClient(draft.visibleAuClient);
-      if (draft.quoteDepositPercentText !== undefined) setQuoteDepositPercentText(draft.quoteDepositPercentText);
+      if (draft.quotePaymentCount !== undefined) setQuotePaymentCount(draft.quotePaymentCount);
+      if (Array.isArray(draft.quotePaymentPercentTexts)) setQuotePaymentPercentTexts(draft.quotePaymentPercentTexts);
+      if (draft.quotePaymentCount === undefined && draft.quoteDepositPercentText !== undefined) {
+        const editor = quotePaymentEditorFromWorkOrder({ quoteDepositPercent: draft.quoteDepositPercentText });
+        setQuotePaymentCount(editor.count);
+        setQuotePaymentPercentTexts(editor.texts);
+      }
       if (Array.isArray(draft.items)) setItems(draft.items);
       if (Array.isArray(draft.sections)) setSections(draft.sections);
       if (draft.laborHours !== undefined) setLaborHours(draft.laborHours);
@@ -986,7 +1065,8 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
           interventionCity,
           interventionPostalCode,
           visibleAuClient,
-          quoteDepositPercentText,
+          quotePaymentCount,
+          quotePaymentPercentTexts,
           items,
           sections,
           laborHours,
@@ -1013,7 +1093,8 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
     interventionCity,
     interventionPostalCode,
     visibleAuClient,
-    quoteDepositPercentText,
+    quotePaymentCount,
+    quotePaymentPercentTexts,
     items,
     sections,
     laborHours,
@@ -1126,7 +1207,9 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
         setInterventionCity(wo.interventionCity || "");
         setInterventionPostalCode(wo.interventionPostalCode || "");
         setVisibleAuClient(wo.visibleAuClient ?? true);
-        setQuoteDepositPercentText(formatPercentInput(wo.quoteDepositPercent));
+        const quotePaymentEditor = quotePaymentEditorFromWorkOrder(wo);
+        setQuotePaymentCount(quotePaymentEditor.count);
+        setQuotePaymentPercentTexts(quotePaymentEditor.texts);
         setItems(Array.isArray(wo.items) ? wo.items.filter((item) => !item.sectionId).map(normalizeWorkItem) : []);
         setSections(Array.isArray(wo.sections) ? wo.sections.map((s) => ({
           unitCode: s.unitCode,
@@ -1831,13 +1914,16 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
     setSavingAction(submitAction);
     setError("");
     try {
-      const quoteDepositPercent = parseQuoteDepositPercentInput(quoteDepositPercentText);
-      if (quoteDepositPercent === undefined) {
-        setError("Le pourcentage d'acompte doit etre entre 0 et 100.");
+      const quotePaymentSchedule = parseQuotePaymentScheduleInput(quotePaymentCount, quotePaymentPercentTexts);
+      if (quotePaymentSchedule === undefined) {
+        setError("Les paiements de la soumission doivent etre entre 0 et 100 %, et le total doit faire 100 %.");
         setSaving(false);
         setSavingAction(null);
         return;
       }
+      const quoteDepositPercent = Array.isArray(quotePaymentSchedule) && quotePaymentSchedule.length > 0
+        ? quotePaymentSchedule[0].percent
+        : null;
       const saveOnlyAction = submitAction === "save" || submitAction === "preview";
       const isExistingQuote = ["quote", "quote_sent", "quote_accepted"].includes(currentStatut);
       const isExistingInvoice = ["invoiced", "sent", "paid"].includes(currentStatut);
@@ -1864,6 +1950,7 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
         interventionPostalCode: interventionPostalCode || null,
         visibleAuClient,
         quoteDepositPercent,
+        quotePaymentSchedule,
         description: description || null,
         notes: notes || null,
         statut: finalStatut,
@@ -2719,24 +2806,59 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
               className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full" />
           </div>
           {effectiveQuoteMode && (
-            <div className="grid gap-3 md:grid-cols-[minmax(0,220px)_1fr] md:items-end">
-              <div>
-                <label className="admin-text-muted text-xs mb-1 block">Acompte soumission (%)</label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={quoteDepositPercentText}
-                    onChange={(e) => setQuoteDepositPercentText(e.target.value.replace(/[^0-9.,]/g, ""))}
-                    placeholder="Auto"
-                    className="admin-input border rounded-lg px-3 py-2.5 pr-8 text-sm w-full"
-                  />
-                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 admin-text-muted text-xs">%</span>
+            <div className="rounded-lg border admin-border bg-white/[0.02] p-3">
+              <div className="grid gap-3 md:grid-cols-[minmax(0,220px)_1fr] md:items-end">
+                <div>
+                  <label className="admin-text-muted text-xs mb-1 block">Paiements soumission</label>
+                  <select
+                    value={quotePaymentCount}
+                    onChange={(e) => {
+                      const nextCount = e.target.value;
+                      setQuotePaymentCount(nextCount);
+                      if (nextCount !== "auto") {
+                        setQuotePaymentPercentTexts((current) => resizeQuotePaymentTexts(current, Number(nextCount)));
+                      }
+                    }}
+                    className="admin-input border rounded-lg px-3 py-2.5 text-sm w-full"
+                  >
+                    <option value="auto">Auto</option>
+                    <option value="1">1 paiement</option>
+                    <option value="2">2 paiements</option>
+                    <option value="3">3 paiements</option>
+                    <option value="4">4 paiements</option>
+                    <option value="5">5 paiements</option>
+                    <option value="6">6 paiements</option>
+                  </select>
                 </div>
+                <p className="admin-text-muted text-xs leading-relaxed">
+                  Auto: moins de 1 000 $ aucun acompte; 1 000 $ et plus 50 % a l&apos;acceptation et 50 % a la fin.
+                </p>
               </div>
-              <p className="admin-text-muted text-xs leading-relaxed">
-                Vide = auto: moins de 1 000 $ aucun acompte, 1 000 $ et plus 50 % a l&apos;acceptation et 50 % a la fin.
-              </p>
+              {quotePaymentCount !== "auto" && (
+                <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {Array.from({ length: Number(quotePaymentCount) || 0 }).map((_, index) => (
+                    <div key={index}>
+                      <label className="admin-text-muted text-[11px] mb-1 block">
+                        {quotePaymentUiLabel(index, Number(quotePaymentCount))}
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={quotePaymentPercentTexts[index] || ""}
+                          onChange={(e) => {
+                            const next = [...quotePaymentPercentTexts];
+                            next[index] = e.target.value.replace(/[^0-9.,]/g, "");
+                            setQuotePaymentPercentTexts(next);
+                          }}
+                          className="admin-input border rounded-lg px-3 py-2.5 pr-8 text-sm w-full"
+                        />
+                        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 admin-text-muted text-xs">%</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
           <details className="rounded-lg border admin-border bg-white/[0.02] p-3">

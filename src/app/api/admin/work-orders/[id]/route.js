@@ -19,7 +19,7 @@ import { buildPaymentTrackingData } from "@/lib/payment-tracking";
 import { staleUpdateResponse } from "@/lib/optimistic-lock";
 import { publishAdminEvent } from "@/lib/event-bus";
 import { isInvoiceStatus, isQuoteStatus } from "@/lib/work-order-document";
-import { normalizeQuoteDepositPercent } from "@/lib/vosthermos-document";
+import { normalizeQuoteDepositPercent, normalizeQuotePaymentSchedule } from "@/lib/vosthermos-document";
 
 async function validateFollowUpForClient(followUpId, clientId) {
   if (!followUpId) return null;
@@ -98,6 +98,7 @@ export async function GET(_req, { params }) {
     tvq: Number(wo.tvq),
     total: Number(wo.total),
     quoteDepositPercent: wo.quoteDepositPercent === null ? null : Number(wo.quoteDepositPercent),
+    quotePaymentSchedule: wo.quotePaymentSchedule || null,
     payments: (wo.payments || []).map((payment) => ({
       ...payment,
       amount: Number(payment.amount || 0),
@@ -153,6 +154,12 @@ export async function PUT(req, { params }) {
     : existing.quoteDepositPercent;
   if (quoteDepositPercent === undefined) {
     return NextResponse.json({ error: "Pourcentage d'acompte invalide" }, { status: 400 });
+  }
+  const quotePaymentSchedule = body.quotePaymentSchedule !== undefined
+    ? normalizeQuotePaymentSchedule(body.quotePaymentSchedule)
+    : existing.quotePaymentSchedule;
+  if (quotePaymentSchedule === undefined) {
+    return NextResponse.json({ error: "Echeancier de paiement invalide: le total doit faire 100 %" }, { status: 400 });
   }
   const rebuildLines = body.items !== undefined || body.sections !== undefined;
   const shouldRecalcTotals = rebuildLines || body.laborHours !== undefined || body.laborRate !== undefined;
@@ -226,6 +233,7 @@ export async function PUT(req, { params }) {
         statut,
         visibleAuClient: body.visibleAuClient ?? existing.visibleAuClient,
         quoteDepositPercent,
+        quotePaymentSchedule,
         laborRate,
         ...totals,
         ...paymentTracking,
@@ -268,7 +276,7 @@ export async function PUT(req, { params }) {
       changedFields: changedFields(existing, wo, [
         "clientId", "technicianId", "appointmentId", "date", "interventionAddress",
         "interventionCity", "description", "notes", "statut", "followUpId", "visibleAuClient",
-        "quoteDepositPercent", "invoiceIssuedAt", "paymentDueAt", "paidAt",
+        "quoteDepositPercent", "quotePaymentSchedule", "invoiceIssuedAt", "paymentDueAt", "paidAt",
       ]),
       statusFrom: existing.statut,
       statusTo: wo.statut,
@@ -301,6 +309,7 @@ export async function PUT(req, { params }) {
     tvq: Number(wo.tvq),
     total: Number(wo.total),
     quoteDepositPercent: wo.quoteDepositPercent === null ? null : Number(wo.quoteDepositPercent),
+    quotePaymentSchedule: wo.quotePaymentSchedule || null,
     payments: (wo.payments || []).map((payment) => ({
       ...payment,
       amount: Number(payment.amount || 0),
