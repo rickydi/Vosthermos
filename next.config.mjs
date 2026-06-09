@@ -4,6 +4,12 @@ const nextConfig = {
   serverExternalPackages: ["pdfkit", "pdf-parse", "pdfjs-dist", "@napi-rs/canvas"],
   experimental: {
     cpus: 2,
+    // Backstop memoire : l'optimiseur /_next/image (endpoint public) decode toute image locale
+    // avec sharp/libvips. Le defaut Next (~268 MP) laisse passer des images-bombes capables de
+    // faire exploser la memoire native sur ce conteneur 16 Go sans swap. On l'aligne sur la borne
+    // d'upload (80 MP) ; les uploads etant deja bornes a 2048px a la source, ceci ne couvre que
+    // les fichiers legacy / un acces direct forge a l'optimiseur.
+    imgOptMaxInputPixels: 80_000_000,
     serverActions: {
       bodySizeLimit: "30mb",
     },
