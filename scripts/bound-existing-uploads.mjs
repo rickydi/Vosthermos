@@ -21,6 +21,10 @@ const SHARP_MAX_INPUT_PIXELS = 80_000_000;
 const ROOT = path.join(process.cwd(), "public", "uploads");
 const DRY = process.argv.includes("--dry-run");
 const IMG_RE = /\.(jpe?g|png|webp|gif|avif|tiff?|heic|heif)$/i;
+// Formats que sharp ré-encode dans le MEME conteneur -> redimensionnables en place sans
+// changer l'extension (donc sans casser les URLs/refs DB). heif/svg en sont exclus : les
+// convertir changerait l'extension. Ils restent <= 80 MP donc sous le backstop de l'optimiseur.
+const IN_PLACE_OK = new Set(["jpeg", "png", "webp", "gif", "tiff", "avif"]);
 
 async function walk(dir, acc = []) {
   let entries;
@@ -37,7 +41,7 @@ async function walk(dir, acc = []) {
   return acc;
 }
 
-const stats = { scanned: 0, resized: 0, skipped: 0, errors: 0, savedBytes: 0 };
+const stats = { scanned: 0, resized: 0, skipped: 0, skippedFormat: 0, errors: 0, savedBytes: 0 };
 
 async function processFile(p) {
   stats.scanned++;
@@ -53,6 +57,11 @@ async function processFile(p) {
   const h = meta.height || 0;
   if (w <= MAX_DIMENSION && h <= MAX_DIMENSION) {
     stats.skipped++;
+    return;
+  }
+  if (!IN_PLACE_OK.has(meta.format)) {
+    stats.skippedFormat++;
+    console.log(`  ~ skip (format ${meta.format}, conversion changerait l'URL): ${path.relative(ROOT, p)} ${w}x${h}`);
     return;
   }
 
@@ -89,7 +98,7 @@ async function processFile(p) {
   for (const f of files) await processFile(f);
   console.log(
     `\nTermine. scannees=${stats.scanned} redimensionnees=${stats.resized} ` +
-      `deja_ok=${stats.skipped} erreurs=${stats.errors} ` +
+      `deja_ok=${stats.skipped} skip_format=${stats.skippedFormat} erreurs=${stats.errors} ` +
       `espace_libere=${(stats.savedBytes / 1024 / 1024).toFixed(1)} Mo`,
   );
 })();
