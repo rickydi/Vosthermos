@@ -14,8 +14,22 @@ const ACCEPTED_PDF_TYPES = new Set(["application/pdf"]);
 const MAX_PDF_BYTES = 12 * 1024 * 1024;
 const MAX_PDF_TEXT_CHARS = 12000;
 const MIN_MEANINGFUL_PDF_TEXT_CHARS = 40;
-const MAX_PDF_RENDERED_PAGES = 8;
-const PDF_RENDERED_PAGE_WIDTH = 1200;
+const MAX_PDF_RENDERED_PAGES = 4;
+const PDF_RENDERED_PAGE_WIDTH = 1000;
+
+// Verrou de concurrence pour le rendu PDF->image. @napi-rs/canvas alloue en memoire
+// NATIVE hors-tas (non bornee par Node). Deux rendus simultanes (double-clic, plusieurs
+// admins) = double allocation native => sur ce conteneur 16 Go sans swap, l'hote reset.
+// On serialise : un seul rendu PDF a la fois par process.
+let pdfRenderChain = Promise.resolve();
+function withPdfRenderLock(fn) {
+  const run = pdfRenderChain.then(fn, fn);
+  pdfRenderChain = run.then(
+    () => {},
+    () => {}
+  );
+  return run;
+}
 
 function cleanText(value, max = 500) {
   return String(value || "").trim().slice(0, max);
@@ -461,10 +475,12 @@ async function extractPdfContent(pdf, maxRenderedPages = MAX_PDF_RENDERED_PAGES)
     }
 
     try {
-      const screenshots = await parser.getScreenshot({
-        desiredWidth: PDF_RENDERED_PAGE_WIDTH,
-        first: Math.min(maxRenderedPages, MAX_PDF_RENDERED_PAGES),
-      });
+      const screenshots = await withPdfRenderLock(() =>
+        parser.getScreenshot({
+          desiredWidth: PDF_RENDERED_PAGE_WIDTH,
+          first: Math.min(maxRenderedPages, MAX_PDF_RENDERED_PAGES),
+        })
+      );
       totalPages = Number(screenshots.total) || totalPages;
       const images = (Array.isArray(screenshots.pages) ? screenshots.pages : [])
         .map((page, index) => {

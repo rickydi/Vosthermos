@@ -15,7 +15,11 @@ const nextConfig = {
         hostname: "static.wixstatic.com",
       },
     ],
-    formats: ["image/webp", "image/avif"],
+    // AVIF retire : son encodage est tres lourd en CPU/memoire native et s'execute
+    // sur CHAQUE image affichee (next/image). Sur ce conteneur 16 Go sans swap, le
+    // ré-encodage AVIF d'images sources pleine resolution participait aux pics memoire
+    // qui faisaient hard-reset le conteneur. WebP suffit et coute bien moins cher.
+    formats: ["image/webp"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
