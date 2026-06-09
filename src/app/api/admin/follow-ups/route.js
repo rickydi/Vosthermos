@@ -90,11 +90,30 @@ async function attachCentralActivity(followUps) {
   const phoneSuffixes = [...new Set(contacts.flatMap((c) => c.phones.map((p) => p.slice(-7))).filter(Boolean))];
   const emails = [...new Set(contacts.flatMap((c) => c.emails).filter(Boolean))];
 
-  const clientOr = [];
-  if (clientIds.length) clientOr.push({ clientId: { in: clientIds } });
-  for (const email of emails) clientOr.push({ client: { email: { equals: email, mode: "insensitive" } } });
-  for (const suffix of phoneSuffixes) clientOr.push({ client: { phone: { contains: suffix } } });
-  for (const suffix of phoneSuffixes) clientOr.push({ client: { secondaryPhone: { contains: suffix } } });
+  // FIX explosion memoire (hard-reset du conteneur): AVANT, clientOr contenait une condition
+  // { client: {...} } par email et par telephone. Prisma emet alors un LEFT JOIN clients PAR
+  // condition -> sur work_orders, des CENTAINES de jointures identiques -> le planificateur
+  // PostgreSQL explosait (plusieurs Go, etat BIND) et faisait tomber toute la VM (swap=0).
+  // Solution: resoudre les IDs clients correspondants en UNE requete sur la table clients
+  // (predicats OR sur une seule table = aucune jointure), puis filtrer work_orders par
+  // clientId IN (...) = une seule condition, zero jointure superflue.
+  const matchedClientIds = new Set(clientIds);
+  if (emails.length || phoneSuffixes.length) {
+    const matchedClients = await prisma.client.findMany({
+      where: {
+        OR: [
+          ...emails.map((email) => ({ email: { equals: email, mode: "insensitive" } })),
+          ...phoneSuffixes.map((suffix) => ({ phone: { contains: suffix } })),
+          ...phoneSuffixes.map((suffix) => ({ secondaryPhone: { contains: suffix } })),
+        ],
+      },
+      select: { id: true },
+    });
+    for (const c of matchedClients) matchedClientIds.add(c.id);
+  }
+  const allClientIds = [...matchedClientIds];
+
+  const clientOr = allClientIds.length ? [{ clientId: { in: allClientIds } }] : [];
 
   const clientMatchOr = [];
   if (clientIds.length) clientMatchOr.push({ id: { in: clientIds } });
