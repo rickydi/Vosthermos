@@ -2,6 +2,7 @@
 
 import GscTab from "@/components/admin/GscTab";
 import IndexNowPanel from "@/components/admin/IndexNowPanel";
+import SeoCityOverview from "@/components/admin/SeoCityOverview";
 
 const QUICK_LINKS = [
   {
@@ -49,6 +50,10 @@ export default function AdminSeoPage() {
             </a>
           ))}
         </div>
+      </div>
+
+      <div className="mb-8">
+        <SeoCityOverview />
       </div>
 
       <GscTab />
