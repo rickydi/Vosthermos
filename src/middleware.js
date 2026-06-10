@@ -70,8 +70,11 @@ export async function middleware(request) {
     }
   }
 
-  // Protect terrain routes (except login)
-  if (pathname.startsWith("/terrain") && !pathname.startsWith("/terrain/login")) {
+  // Protect terrain PAGE routes (except login). On ne matche QUE /terrain exact ou
+  // /terrain/... — pas les assets PWA publics (/terrain.webmanifest, /terrain-sw.js,
+  // /terrain-icon-*.png) qui doivent rester accessibles sans session pour l'installation.
+  const isTerrainPage = pathname === "/terrain" || pathname.startsWith("/terrain/");
+  if (isTerrainPage && !pathname.startsWith("/terrain/login")) {
     const token = request.cookies.get("vosthermos-tech-token")?.value;
     if (!token) {
       const loginUrl = new URL("/terrain/login", request.url);
