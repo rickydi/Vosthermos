@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
+import { workOrderStatusClass } from "@/lib/work-order-status";
 
 const OPENING_TYPES = [
   { value: "fenetre", label: "Fenêtre" },
@@ -13,12 +14,40 @@ const OPENING_TYPES = [
   { value: "mur-rideau", label: "Mur-rideau" },
 ];
 
+// ─── Vue 360 : helpers d'affichage ───────────────────────────────
+const fmtDate = (v) => (v ? new Date(v).toLocaleDateString("fr-CA", { day: "2-digit", month: "short", year: "numeric" }) : "—");
+const fmtDateTime = (v) => (v ? new Date(v).toLocaleString("fr-CA", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "—");
+const fmtMoney = (n) => (n === null || n === undefined ? "—" : new Intl.NumberFormat("fr-CA", { style: "currency", currency: "CAD" }).format(n));
+
+const SOUMISSION_STATUTS = new Set(["quote", "quote_sent", "quote_accepted"]);
+const FACTURE_STATUTS = new Set(["invoiced", "sent", "paid"]);
+const dossierFilterFn = (f) => (wo) =>
+  f === "all" ? true : f === "soumissions" ? SOUMISSION_STATUTS.has(wo.statut) : FACTURE_STATUTS.has(wo.statut);
+
+function TabLoading() {
+  return <div className="admin-text-muted text-sm py-12 text-center"><i className="fas fa-spinner fa-spin mr-2"></i>Chargement…</div>;
+}
+function TabEmpty({ icon, text }) {
+  return (
+    <div className="admin-card border rounded-xl p-12 text-center admin-text-muted">
+      <i className={`fas ${icon} text-3xl opacity-30 mb-3 block`}></i>
+      {text}
+    </div>
+  );
+}
+
 export default function ClientDetail({ client }) {
   const router = useRouter();
   const [tab, setTab] = useState("infos");
   const isB2B = client.type === "gestionnaire";
   const tabs = [
     { id: "infos", label: "Infos", icon: "fa-id-card" },
+    { id: "suivi", label: "Suivi", icon: "fa-list-check" },
+    { id: "dossiers", label: "Dossiers", icon: "fa-file-invoice-dollar" },
+    { id: "photos", label: "Photos", icon: "fa-images" },
+    { id: "notes", label: "Notes", icon: "fa-note-sticky" },
+    { id: "rdv", label: "RDV", icon: "fa-calendar-check" },
+    { id: "chats", label: "Chats", icon: "fa-comments" },
     ...(isB2B
       ? [
           { id: "batiments", label: "Bâtiments", icon: "fa-building" },
@@ -26,6 +55,42 @@ export default function ClientDetail({ client }) {
         ]
       : []),
   ];
+
+  // Vue 360 (suivis, dossiers, photos, RDV, chats) chargée à la demande.
+  const [overview, setOverview] = useState(null);
+  const [loadingOverview, setLoadingOverview] = useState(true);
+  const [dossierFilter, setDossierFilter] = useState("all");
+  useEffect(() => {
+    let alive = true;
+    setLoadingOverview(true);
+    fetch(`/api/admin/clients/${client.id}/overview`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (alive) { setOverview(d); setLoadingOverview(false); } })
+      .catch(() => { if (alive) setLoadingOverview(false); });
+    return () => { alive = false; };
+  }, [client.id]);
+
+  // Notes client (onglet Notes)
+  const [notesDraft, setNotesDraft] = useState(client.notes || "");
+  const [savingNotes, setSavingNotes] = useState(false);
+  const [notesMsg, setNotesMsg] = useState("");
+  async function saveNotes() {
+    setSavingNotes(true);
+    setNotesMsg("");
+    try {
+      const res = await fetch(`/api/admin/clients/${client.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes: notesDraft }),
+      });
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || "Erreur d'enregistrement"); }
+      setNotesMsg("Enregistré ✓");
+      setTimeout(() => setNotesMsg(""), 2500);
+    } catch (err) {
+      setNotesMsg(err.message);
+    }
+    setSavingNotes(false);
+  }
 
   // State local pour bâtiments et unités
   const [buildings, setBuildings] = useState(client.buildings);
@@ -277,6 +342,181 @@ export default function ClientDetail({ client }) {
             </button>
             {infoMsg && <span className={`text-sm ${infoMsg.includes("✓") ? "text-green-500" : "text-red-500"}`}>{infoMsg}</span>}
           </div>
+        </div>
+      )}
+
+      {/* ─── Onglet Suivi ─────────────────────────────────────── */}
+      {tab === "suivi" && (
+        <div className="max-w-4xl">
+          {loadingOverview ? <TabLoading /> : !overview?.followUps?.length ? (
+            <TabEmpty icon="fa-list-check" text="Aucun suivi pour ce client." />
+          ) : (
+            <div className="space-y-3">
+              {overview.followUps.map((f) => (
+                <div key={f.id} className="admin-card border rounded-xl p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="admin-text font-bold">{f.title}</div>
+                      {f.service && <div className="admin-text-muted text-xs mt-0.5">{f.service}</div>}
+                    </div>
+                    <span className="text-[11px] font-bold px-2 py-1 rounded-full bg-white/10 admin-text whitespace-nowrap">{f.status}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-x-5 gap-y-1 mt-3 text-xs admin-text-muted">
+                    {f.estimateAmount != null && <span><i className="fas fa-dollar-sign mr-1"></i>{fmtMoney(f.estimateAmount)}</span>}
+                    {f.estimateSentAt && <span>Soumission envoyée · {fmtDate(f.estimateSentAt)}</span>}
+                    {f.acceptedAt && <span>Approuvé · {fmtDate(f.acceptedAt)}</span>}
+                    {f.jobCompletedAt && <span>Service fait · {fmtDate(f.jobCompletedAt)}</span>}
+                  </div>
+                  {f.nextAction && (
+                    <div className="mt-2 text-xs admin-text">
+                      <i className="fas fa-arrow-right mr-1 text-[var(--color-red)]"></i>{f.nextAction}
+                      {f.nextActionDate && ` · ${fmtDate(f.nextActionDate)}`}
+                    </div>
+                  )}
+                  {f.notes && <div className="mt-2 admin-text-muted text-xs whitespace-pre-wrap">{f.notes}</div>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ─── Onglet Dossiers (bons / soumissions / factures) ──── */}
+      {tab === "dossiers" && (
+        <div>
+          {loadingOverview ? <TabLoading /> : !overview?.workOrders?.length ? (
+            <TabEmpty icon="fa-file-invoice-dollar" text="Aucun bon, soumission ou facture." />
+          ) : (
+            <>
+              <div className="flex gap-2 mb-4 flex-wrap">
+                {[["all", "Tous"], ["soumissions", "Soumissions"], ["factures", "Factures"]].map(([k, l]) => (
+                  <button key={k} onClick={() => setDossierFilter(k)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${dossierFilter === k ? "bg-[var(--color-red)] text-white" : "admin-card border admin-border admin-text-muted hover:admin-text"}`}>
+                    {l}
+                  </button>
+                ))}
+              </div>
+              <div className="grid md:grid-cols-2 gap-3">
+                {overview.workOrders.filter(dossierFilterFn(dossierFilter)).map((wo) => (
+                  <Link key={wo.id} href={`/admin/bons/${wo.id}`}
+                    className="admin-card border rounded-xl p-4 hover:border-[var(--color-red)] transition-colors block">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="admin-text font-bold">#{wo.number}</span>
+                      <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${workOrderStatusClass(wo.statut)}`}>{wo.statutLabel}</span>
+                    </div>
+                    {wo.description && <div className="admin-text-muted text-xs mt-2 line-clamp-2">{wo.description}</div>}
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-xs admin-text-muted">
+                      <span>{fmtDate(wo.date)}</span>
+                      <span className="admin-text font-bold">{fmtMoney(wo.total)}</span>
+                      {wo.technicianName && <span><i className="fas fa-user-gear mr-1"></i>{wo.technicianName}</span>}
+                      {wo.photosCount > 0 && <span><i className="fas fa-image mr-1"></i>{wo.photosCount}</span>}
+                      {wo.paidAt ? <span className="text-emerald-400">Payé · {fmtDate(wo.paidAt)}</span>
+                        : wo.invoiceSentAt ? <span className="text-orange-400">Facturé · {fmtDate(wo.invoiceSentAt)}</span> : null}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* ─── Onglet Photos ────────────────────────────────────── */}
+      {tab === "photos" && (
+        <div>
+          {loadingOverview ? <TabLoading /> : !overview?.photos?.length ? (
+            <TabEmpty icon="fa-images" text="Aucune photo pour ce client." />
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {overview.photos.map((p) => (
+                <a key={p.id} href={p.url} target="_blank" rel="noreferrer" className="admin-card border rounded-lg overflow-hidden block group">
+                  <div className="aspect-square bg-white/5">
+                    <img src={p.url} alt={p.title || ""} loading="lazy" className="w-full h-full object-cover group-hover:opacity-90 transition-opacity" />
+                  </div>
+                  <div className="p-2">
+                    <div className="admin-text-muted text-[11px] truncate">{p.from}</div>
+                    {p.title && <div className="admin-text text-xs truncate">{p.title}</div>}
+                    <div className="admin-text-muted text-[10px]">{fmtDate(p.date)}</div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ─── Onglet Notes ─────────────────────────────────────── */}
+      {tab === "notes" && (
+        <div className="max-w-3xl">
+          <div className="admin-card border rounded-xl p-6">
+            <h2 className="admin-text font-bold mb-2">Notes internes</h2>
+            <p className="admin-text-muted text-xs mb-4">Visible uniquement par l'équipe (pas envoyé au client).</p>
+            <textarea rows={8} value={notesDraft} onChange={(e) => setNotesDraft(e.target.value)}
+              placeholder="Notes, rappels, préférences du client…"
+              className="admin-input border rounded-lg px-3 py-2 text-sm w-full" />
+            <div className="mt-4 flex items-center gap-3">
+              <button onClick={saveNotes} disabled={savingNotes}
+                className="px-5 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-bold disabled:opacity-50">
+                {savingNotes ? "Enregistrement…" : "Enregistrer"}
+              </button>
+              {notesMsg && <span className={`text-sm ${notesMsg.includes("✓") ? "text-green-500" : "text-red-500"}`}>{notesMsg}</span>}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Onglet RDV ───────────────────────────────────────── */}
+      {tab === "rdv" && (
+        <div className="max-w-3xl">
+          {loadingOverview ? <TabLoading /> : !overview?.appointments?.length ? (
+            <TabEmpty icon="fa-calendar-check" text="Aucun rendez-vous." />
+          ) : (
+            <div className="space-y-3">
+              {overview.appointments.map((a) => (
+                <div key={a.id} className="admin-card border rounded-xl p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="admin-text font-bold">{a.serviceType || "Rendez-vous"}</div>
+                    <span className="text-[11px] font-bold px-2 py-1 rounded-full bg-white/10 admin-text whitespace-nowrap">{a.status}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs admin-text-muted">
+                    <span><i className="fas fa-calendar mr-1"></i>{fmtDate(a.date)}{a.timeSlot && ` · ${a.timeSlot}`}</span>
+                    {(a.address || a.city) && <span><i className="fas fa-location-dot mr-1"></i>{[a.address, a.city].filter(Boolean).join(", ")}</span>}
+                  </div>
+                  {a.notes && <div className="mt-2 admin-text-muted text-xs whitespace-pre-wrap">{a.notes}</div>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ─── Onglet Chats ─────────────────────────────────────── */}
+      {tab === "chats" && (
+        <div className="max-w-3xl">
+          {loadingOverview ? <TabLoading /> : !overview?.chats?.length ? (
+            <TabEmpty icon="fa-comments" text="Aucune conversation de clavardage." />
+          ) : (
+            <div className="space-y-3">
+              {overview.chats.map((c) => (
+                <Link key={c.id} href={`/admin/chat/${c.id}`} className="admin-card border rounded-xl p-4 hover:border-[var(--color-red)] transition-colors block">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="admin-text font-bold">{c.clientName || "Conversation"}</div>
+                    <div className="flex items-center gap-2">
+                      {c.unreadCount > 0 && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--color-red)] text-white">{c.unreadCount}</span>}
+                      <span className="admin-text-muted text-[11px] whitespace-nowrap">{fmtDateTime(c.lastMessageAt)}</span>
+                    </div>
+                  </div>
+                  {c.messages?.[0] && (
+                    <div className="mt-2 admin-text-muted text-xs line-clamp-2">
+                      <span className="font-semibold">{c.messages[0].senderType === "admin" ? "Nous : " : ""}</span>
+                      {c.messages[0].imageUrl && <i className="fas fa-image mr-1"></i>}
+                      {c.messages[0].content}
+                    </div>
+                  )}
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
