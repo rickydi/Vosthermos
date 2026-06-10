@@ -141,11 +141,19 @@ export default function SuiviSimple() {
               <div key={fu.id} className={`admin-card border rounded-xl p-3.5 transition-opacity ${isLost ? "opacity-55" : ""}`}>
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="min-w-0">
-                    {fu.clientId ? (
-                      <Link href={`/admin/clients/${fu.clientId}`} className="admin-text font-bold hover:text-[var(--color-red)] transition-colors">{name}</Link>
-                    ) : (
-                      <span className="admin-text font-bold">{name}</span>
-                    )}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {fu.clientId ? (
+                        <Link href={`/admin/clients/${fu.clientId}`} className="admin-text font-bold hover:text-[var(--color-red)] transition-colors">{name}</Link>
+                      ) : (
+                        <span className="admin-text font-bold">{name}</span>
+                      )}
+                      {fu.clientId && (
+                        <Link href={`/admin/clients/${fu.clientId}`}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[var(--color-red)]/10 text-[var(--color-red)] hover:bg-[var(--color-red)] hover:text-white transition-colors">
+                          <i className="fas fa-folder-open"></i>Ouvrir client
+                        </Link>
+                      )}
+                    </div>
                     <div className="admin-text-muted text-xs mt-0.5 flex flex-wrap gap-x-3">
                       {fu.service && <span>{fu.service}</span>}
                       {fu.phone && <span><i className="fas fa-phone mr-1 opacity-60"></i>{fu.phone}</span>}
