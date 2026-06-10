@@ -3,9 +3,19 @@ import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { signTechToken, TECH_COOKIE_NAME } from "@/lib/technician-auth";
+import { rateLimit, clientIp } from "@/lib/rate-limit";
 
 export async function POST(req) {
   try {
+    // Anti-brute-force du PIN 4 chiffres (10 essais / 5 min par IP).
+    const limited = rateLimit(`tech-auth:${clientIp(req)}`, { max: 10, windowMs: 5 * 60_000 });
+    if (!limited.ok) {
+      return NextResponse.json(
+        { error: "Trop d'essais. Réessaie dans quelques minutes." },
+        { status: 429, headers: { "Retry-After": String(limited.retryAfter) } },
+      );
+    }
+
     const { pin } = await req.json();
     if (!pin || pin.length !== 4) {
       return NextResponse.json({ error: "PIN invalide" }, { status: 400 });

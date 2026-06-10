@@ -562,6 +562,8 @@ model WorkOrder {
   appointment            Appointment?    @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
   date                   DateTime        @db.Date
   arrivalAt              DateTime?
+  arrivalLat             Float?
+  arrivalLng             Float?
   departureAt            DateTime?
   durationMinutes        Int?
   interventionAddress    String?

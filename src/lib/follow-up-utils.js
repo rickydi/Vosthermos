@@ -234,6 +234,26 @@ export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client, fo
     });
   }
 
+  // Jalons horodatés dérivés de l'état du bon (refonte suivi : arrivée terrain -> Visite faite,
+  // job fait -> Service fait, facturé -> Facturé). Idempotent : ne remplit que les jalons vides.
+  if (followUp?.id) {
+    const st = workOrder.statut;
+    const ms = {};
+    if (workOrder.arrivalAt) {
+      if (!followUp.contactedAt) ms.contactedAt = workOrder.arrivalAt;
+      if (!followUp.visitDoneAt) ms.visitDoneAt = workOrder.arrivalAt;
+    }
+    if (["quote_sent", "quote_accepted", "scheduled", "in_progress", "completed", "invoiced", "sent", "paid"].includes(st) && !followUp.estimateSentAt) ms.estimateSentAt = new Date();
+    if (["quote_accepted", "scheduled", "in_progress", "completed", "invoiced", "sent", "paid"].includes(st) && !followUp.acceptedAt) ms.acceptedAt = new Date();
+    if (["completed", "invoiced", "sent", "paid"].includes(st) && !followUp.jobCompletedAt) ms.jobCompletedAt = workOrder.departureAt || new Date();
+    if (["invoiced", "sent", "paid"].includes(st) && !followUp.invoicedAt) ms.invoicedAt = workOrder.invoiceSentAt || workOrder.invoiceIssuedAt || new Date();
+    const wantWon = ["quote_accepted", "scheduled", "in_progress", "completed", "invoiced", "sent", "paid"].includes(st);
+    if (wantWon && followUp.outcome !== "won" && followUp.outcome !== "lost") ms.outcome = "won";
+    if (Object.keys(ms).length) {
+      followUp = await prisma.clientFollowUp.update({ where: { id: followUp.id }, data: ms });
+    }
+  }
+
   if (followUp?.id && workOrder.followUpId !== followUp.id) {
     await prisma.workOrder.update({
       where: { id: workOrder.id },
