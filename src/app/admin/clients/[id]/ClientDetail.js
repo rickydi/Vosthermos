@@ -410,8 +410,11 @@ export default function ClientDetail({ client }) {
                       <span className="admin-text font-bold">{fmtMoney(wo.total)}</span>
                       {wo.technicianName && <span><i className="fas fa-user-gear mr-1"></i>{wo.technicianName}</span>}
                       {wo.photosCount > 0 && <span><i className="fas fa-image mr-1"></i>{wo.photosCount}</span>}
-                      {wo.paidAt ? <span className="text-emerald-400">Payé · {fmtDate(wo.paidAt)}</span>
-                        : wo.invoiceSentAt ? <span className="text-orange-400">Facturé · {fmtDate(wo.invoiceSentAt)}</span> : null}
+                      {/* Garde-fou : on n'affiche Payé/Facturé que si le STATUT le confirme.
+                          Un bon "soumission" avec une vieille date paidAt résiduelle ne montre rien. */}
+                      {FACTURE_STATUTS.has(wo.statut) && (wo.paidAt
+                        ? <span className="text-emerald-400">Payé · {fmtDate(wo.paidAt)}</span>
+                        : wo.invoiceSentAt ? <span className="text-orange-400">Facturé · {fmtDate(wo.invoiceSentAt)}</span> : null)}
                     </div>
                   </Link>
                 ))}
