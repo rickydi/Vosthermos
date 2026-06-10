@@ -149,7 +149,7 @@ export default function SuiviSimple() {
                       )}
                       {fu.clientId && (
                         <Link href={`/admin/clients/${fu.clientId}`}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[var(--color-red)]/10 text-[var(--color-red)] hover:bg-[var(--color-red)] hover:text-white transition-colors">
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[var(--color-red)] text-white shadow-sm hover:opacity-90 transition-opacity">
                           <i className="fas fa-folder-open"></i>Ouvrir client
                         </Link>
                       )}
