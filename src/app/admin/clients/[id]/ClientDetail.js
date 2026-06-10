@@ -221,9 +221,11 @@ export default function ClientDetail({ client }) {
 
   return (
     <div className="p-6 lg:p-8">
-      <Link href="/admin/clients" className="admin-text-muted hover:admin-text text-sm mb-3 inline-block">
-        <i className="fas fa-arrow-left mr-1"></i>Retour aux clients
-      </Link>
+      <button
+        onClick={() => { if (typeof window !== "undefined" && window.history.length > 1) router.back(); else router.push("/admin/clients"); }}
+        className="admin-text-muted hover:admin-text text-sm mb-3 inline-flex items-center cursor-pointer">
+        <i className="fas fa-arrow-left mr-1"></i>Retour
+      </button>
 
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
