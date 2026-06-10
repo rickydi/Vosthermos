@@ -466,10 +466,41 @@ export async function POST(req) {
   catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
 
   const body = await req.json().catch(() => ({}));
-  const clientId = body.clientId ? Number(body.clientId) : null;
-  const client = clientId
+  let clientId = body.clientId ? Number(body.clientId) : null;
+  let client = clientId
     ? await prisma.client.findUnique({ where: { id: clientId } })
     : null;
+
+  // "Tout pend d'une fiche client" : si aucun client fourni, on rattache à un client
+  // existant (match unique tél/email) ou on crée une fiche légère.
+  if (!client) {
+    const phone = clean(body.phone);
+    const email = cleanEmail(body.email);
+    const suffix = normalizePhoneDigits(phone);
+    if (suffix || email) {
+      const matches = await prisma.client.findMany({
+        where: {
+          OR: [
+            ...(email ? [{ email: { equals: email, mode: "insensitive" } }] : []),
+            ...(suffix ? [{ phone: { contains: suffix.slice(-7) } }, { secondaryPhone: { contains: suffix.slice(-7) } }] : []),
+          ],
+        },
+        select: { id: true, name: true, phone: true, secondaryPhone: true, email: true },
+        take: 2,
+      });
+      if (matches.length === 1) client = matches[0];
+    }
+    if (!client) {
+      const newName = clean(body.contactName) || clean(body.title) || "Client";
+      try {
+        client = await prisma.client.create({ data: { name: newName, phone, email } });
+      } catch (e) {
+        if (e?.code === "P2002" && email) client = await prisma.client.findUnique({ where: { email } });
+        else throw e;
+      }
+    }
+    clientId = client?.id || null;
+  }
 
   const title = clean(body.title) || client?.name || clean(body.contactName);
   if (!title) {

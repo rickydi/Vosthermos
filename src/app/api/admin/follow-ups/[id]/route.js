@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { serializeFollowUp, syncLatestWorkOrderFromFollowUpStatus } from "@/lib/follow-up-utils";
+import { deriveFollowUpStatus, FOLLOW_UP_MILESTONE_KEYS } from "@/lib/follow-up-columns";
 import { changedFields, logAdminActivity } from "@/lib/admin-activity";
 import { publishAdminEvent } from "@/lib/event-bus";
 
@@ -52,19 +53,33 @@ export async function PUT(req, { params }) {
   const estimateAmount = numberOrNull(body.estimateAmount);
   if (estimateAmount !== undefined) data.estimateAmount = estimateAmount;
 
-  for (const key of ["estimateSentAt", "acceptedAt", "jobCompletedAt", "nextActionDate"]) {
+  for (const key of ["estimateSentAt", "acceptedAt", "jobCompletedAt", "contactedAt", "visitDoneAt", "invoicedAt", "nextActionDate"]) {
     const value = dateOrNull(body[key]);
     if (value !== undefined) data[key] = value;
   }
 
-  if (body.status === "estimate_sent" && !existing.estimateSentAt && data.estimateSentAt === undefined) {
-    data.estimateSentAt = new Date();
+  // Issue finale (open/won/lost) — refonte suivi.
+  if (body.outcome !== undefined) {
+    data.outcome = ["won", "lost"].includes(body.outcome) ? body.outcome : "open";
   }
-  if (body.status === "won" && !existing.acceptedAt && data.acceptedAt === undefined) {
-    data.acceptedAt = new Date();
+
+  // Toggle d'un jalon depuis la liste à cases : { toggleMilestone: "visitDoneAt", on: true|false }.
+  // Cocher horodate (now) ; décocher remet à null. Idempotent si déjà dans cet état.
+  if (body.toggleMilestone && FOLLOW_UP_MILESTONE_KEYS.includes(body.toggleMilestone)) {
+    data[body.toggleMilestone] = body.on ? (existing[body.toggleMilestone] || new Date()) : null;
   }
-  if (body.status === "completed" && !existing.jobCompletedAt && data.jobCompletedAt === undefined) {
-    data.jobCompletedAt = new Date();
+
+  // Auto-horodatage legacy si un status est poussé directement.
+  if (body.status === "estimate_sent" && !existing.estimateSentAt && data.estimateSentAt === undefined) data.estimateSentAt = new Date();
+  if (body.status === "won" && !existing.acceptedAt && data.acceptedAt === undefined) data.acceptedAt = new Date();
+  if (body.status === "completed" && !existing.jobCompletedAt && data.jobCompletedAt === undefined) data.jobCompletedAt = new Date();
+
+  // Statut legacy dérivé des jalons (sauf si un status explicite est fourni) -> garde la sync WorkOrder cohérente.
+  const touchesMilestones =
+    body.toggleMilestone ||
+    ["contactedAt", "visitDoneAt", "estimateSentAt", "acceptedAt", "jobCompletedAt", "invoicedAt", "outcome"].some((k) => data[k] !== undefined);
+  if (touchesMilestones && body.status === undefined) {
+    data.status = deriveFollowUpStatus({ ...existing, ...data });
   }
 
   const followUp = await prisma.clientFollowUp.update({

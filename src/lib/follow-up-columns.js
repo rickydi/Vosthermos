@@ -2,6 +2,29 @@ export const FOLLOW_UP_COLUMNS_SETTINGS_KEY = "admin_follow_up_columns";
 
 export const FOLLOW_UP_TERMINAL_SET = new Set(["lost", "completed", "archived"]);
 
+// ─── Refonte suivi : jalons horodatés (ordre = progression) ───────
+// Chaque jalon = un champ DateTime sur ClientFollowUp. Cocher = horodater.
+export const FOLLOW_UP_MILESTONES = [
+  { key: "contactedAt", label: "Contacté", icon: "fa-phone" },
+  { key: "visitDoneAt", label: "Visite faite", icon: "fa-location-dot" },
+  { key: "estimateSentAt", label: "Soumission", icon: "fa-file-lines" },
+  { key: "acceptedAt", label: "Approuvé", icon: "fa-thumbs-up" },
+  { key: "jobCompletedAt", label: "Service fait", icon: "fa-screwdriver-wrench" },
+  { key: "invoicedAt", label: "Facturé", icon: "fa-file-invoice-dollar" },
+];
+export const FOLLOW_UP_MILESTONE_KEYS = FOLLOW_UP_MILESTONES.map((m) => m.key);
+
+// Statut Kanban legacy dérivé des jalons + issue, pour garder la sync WorkOrder cohérente.
+export function deriveFollowUpStatus(fu) {
+  if (fu.outcome === "lost") return "lost";
+  if (fu.invoicedAt) return "a_payer";
+  if (fu.jobCompletedAt) return "completed";
+  if (fu.acceptedAt) return "won";
+  if (fu.estimateSentAt) return "estimate_sent";
+  if (fu.visitDoneAt || fu.contactedAt) return "called";
+  return "to_call";
+}
+
 export const DEFAULT_FOLLOW_UP_COLUMNS = [
   { key: "to_call", label: "A appeler", icon: "fa-phone", tone: "sky", visible: true, locked: true },
   { key: "called", label: "Appel fait", icon: "fa-headset", tone: "blue", visible: true, locked: true },
