@@ -56,16 +56,17 @@ async function runSnapshot() {
   for (const r of rows) {
     const query = r.keys[0];
     const position = r.position == null ? null : Math.round(r.position);
+    const impressions = r.impressions || 0;
     const c = matchCity(query);
     if (c) {
-      records.push({ city: c.slug, cityName: c.name, keyword: query, position, aiMention: false, url: null, source: "gsc", checkedAt: now });
+      records.push({ city: c.slug, cityName: c.name, keyword: query, position, impressions, aiMention: false, url: null, source: "gsc", checkedAt: now });
     } else {
-      general.push({ query, position, impressions: r.impressions || 0 });
+      general.push({ query, position, impressions });
     }
   }
   general.sort((a, b) => b.impressions - a.impressions);
   for (const g of general.slice(0, MAX_GENERAL)) {
-    records.push({ city: "_general", cityName: "Recherches générales", keyword: g.query, position: g.position, aiMention: false, url: null, source: "gsc", checkedAt: now });
+    records.push({ city: "_general", cityName: "Recherches générales", keyword: g.query, position: g.position, impressions: g.impressions, aiMention: false, url: null, source: "gsc", checkedAt: now });
   }
 
   if (records.length) await prisma.seoRanking.createMany({ data: records });
