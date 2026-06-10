@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 
 const iso = (v) => v?.toISOString?.() || null;
 const num = (v) => (v === null || v === undefined ? null : Number(v));
+const IMG_RE = /\.(jpe?g|png|webp|gif|avif|heic|heif)$/i; // exclut les vidéos du chat
 
 // Vue 360 d'UN client : suivis, dossiers (bons/soumissions/factures = WorkOrder),
 // photos, RDV et chats. RDV/chats n'ont pas encore de clientId -> rattachés par
@@ -64,6 +65,7 @@ export async function GET(req, { params }) {
     ...phoneSuffixes.map((s) => ({ phone: { contains: s } })),
   ];
   const chatOr = [
+    { clientId },
     ...emails.map((e) => ({ clientEmail: { equals: e, mode: "insensitive" } })),
     ...phoneSuffixes.map((s) => ({ clientPhone: { contains: s } })),
   ];
@@ -90,7 +92,28 @@ export async function GET(req, { params }) {
       : [],
   ]);
 
+  // Photos envoyées dans le clavardage du site (surtout par le client via le widget).
+  const convIds = chats.map((c) => c.id);
+  const chatImages = convIds.length
+    ? await prisma.chatMessage.findMany({
+        where: { conversationId: { in: convIds }, imageUrl: { not: null } },
+        orderBy: { createdAt: "desc" },
+        take: 200,
+        select: { id: true, imageUrl: true, senderType: true, createdAt: true },
+      })
+    : [];
+
   const photos = [
+    ...chatImages
+      .filter((m) => IMG_RE.test(m.imageUrl))
+      .map((m) => ({
+        id: `chat-${m.id}`,
+        url: m.imageUrl,
+        title: null,
+        source: "chat",
+        date: iso(m.createdAt),
+        from: m.senderType === "CLIENT" ? "Chat (client)" : "Chat (nous)",
+      })),
     ...clientPhotos.map((p) => ({
       id: `cp-${p.id}`,
       url: p.url,
