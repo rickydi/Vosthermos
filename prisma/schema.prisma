@@ -184,6 +184,8 @@ model AnalyticsFormEvent {
 
 model ChatConversation {
   id             String        @id @default(cuid())
+  clientId       Int?
+  client         Client?       @relation(fields: [clientId], references: [id], onDelete: SetNull)
   clientName     String
   clientPhone    String        @unique
   clientEmail    String?
@@ -196,6 +198,7 @@ model ChatConversation {
   updatedAt      DateTime      @updatedAt
   messages       ChatMessage[]
 
+  @@index([clientId])
   @@map("chat_conversations")
 }
 
@@ -279,6 +282,8 @@ model BlogPost {
 
 model Appointment {
   id          Int        @id @default(autoincrement())
+  clientId    Int?
+  client      Client?    @relation(fields: [clientId], references: [id], onDelete: SetNull)
   name        String
   phone       String
   email       String?
@@ -295,6 +300,7 @@ model Appointment {
   @@unique([date, timeSlot])
   @@index([date])
   @@index([status])
+  @@index([clientId])
   @@map("appointments")
 }
 
@@ -357,6 +363,8 @@ model Client {
   managers       ManagerClient[]
   followUps      ClientFollowUp[]
   photos         ClientPhoto[]
+  appointments   Appointment[]
+  chatConversations ChatConversation[]
 
   @@index([phone])
   @@index([secondaryPhone])
@@ -380,6 +388,12 @@ model ClientFollowUp {
   estimateSentAt  DateTime?
   acceptedAt      DateTime?
   jobCompletedAt  DateTime?
+  // Jalons horodatés (refonte suivi Phase 0). estimateSentAt/acceptedAt/jobCompletedAt
+  // existaient déjà ; on ajoute les manquants. outcome = issue finale (open/won/lost).
+  contactedAt     DateTime?
+  visitDoneAt     DateTime?
+  invoicedAt      DateTime?
+  outcome         String    @default("open")
   nextAction      String?
   nextActionDate  DateTime?
   lostReason      String?
