@@ -28,7 +28,7 @@ export default function SuiviSimple() {
   const load = useCallback(async (q = searchRef.current) => {
     const my = ++seq.current;
     try {
-      const res = await fetch(`/api/admin/follow-ups?status=all&activity=0&limit=200${q.trim() ? `&q=${encodeURIComponent(q.trim())}` : ""}`);
+      const res = await fetch(`/api/admin/follow-ups?status=all&activity=0&limit=500${q.trim() ? `&q=${encodeURIComponent(q.trim())}` : ""}`);
       const data = res.ok ? await res.json() : [];
       if (my === seq.current) { setItems(Array.isArray(data) ? data : []); setLoading(false); }
     } catch { if (my === seq.current) setLoading(false); }

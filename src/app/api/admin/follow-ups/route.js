@@ -403,7 +403,7 @@ export async function GET(req) {
   const status = searchParams.get("status") || "active";
   const q = clean(searchParams.get("q"));
   const clientId = Number(searchParams.get("clientId"));
-  const limit = Math.min(parseInt(searchParams.get("limit") || "100", 10), 200);
+  const limit = Math.min(parseInt(searchParams.get("limit") || "100", 10), 500);
   const includeActivity = searchParams.get("activity") !== "0";
 
   const where = {};
@@ -445,10 +445,7 @@ export async function GET(req) {
         },
       },
     },
-    orderBy: [
-      { nextActionDate: "asc" },
-      { updatedAt: "desc" },
-    ],
+    orderBy: { createdAt: "desc" }, // plus récents en haut, anciens en bas
     take: limit,
   });
 
