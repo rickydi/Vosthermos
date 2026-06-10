@@ -312,9 +312,11 @@ model SeoRanking {
   position  Int?
   aiMention Boolean  @default(false)
   url       String?
+  source    String   @default("serper") // "serper" | "gsc"
   checkedAt DateTime @default(now())
 
   @@index([city, checkedAt])
+  @@index([source, checkedAt])
   @@map("seo_rankings")
 }
 
