@@ -84,17 +84,26 @@ export default function SuiviSimple() {
     }
   }
 
-  // Tentative de contact sans réponse : +1 (ou reset). Optimiste puis réconcilié.
-  async function changeAttempts(fu, action) {
-    const optimistic = action === "reset"
-      ? { contactAttempts: 0, lastAttemptAt: null }
-      : { contactAttempts: Math.min((fu.contactAttempts || 0) + 1, 9), lastAttemptAt: new Date().toISOString() };
+  // État de contact via le menu déroulant : rejoint / 1-2 tentatives sans réponse / réinit.
+  // Un seul appel : pose contactedAt et/ou contactAttempts de façon cohérente.
+  async function setContactState(fu, state) {
+    const now = new Date().toISOString();
+    const optimistic =
+      state === "reached" ? { contactedAt: fu.contactedAt || now }
+      : state === "a1" ? { contactAttempts: 1, contactedAt: null, lastAttemptAt: now }
+      : state === "a2" ? { contactAttempts: 2, contactedAt: null, lastAttemptAt: now }
+      : { contactAttempts: 0, contactedAt: null, lastAttemptAt: null };
     patchLocal(fu.id, optimistic);
+    const body =
+      state === "reached" ? { toggleMilestone: "contactedAt", on: true }
+      : state === "a1" ? { contactAttempts: 1, toggleMilestone: "contactedAt", on: false }
+      : state === "a2" ? { contactAttempts: 2, toggleMilestone: "contactedAt", on: false }
+      : { resetAttempts: true, toggleMilestone: "contactedAt", on: false };
     try {
       const res = await fetch(`/api/admin/follow-ups/${fu.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(action === "reset" ? { resetAttempts: true } : { bumpAttempt: true }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) throw new Error();
       patchLocal(fu.id, await res.json());
@@ -196,29 +205,8 @@ export default function SuiviSimple() {
                 </div>
 
                 <div className="flex items-center gap-1.5 mt-3 flex-wrap">
-                  {!reached && !isWon && (
-                    <div className={`inline-flex items-center rounded-lg border text-xs font-semibold overflow-hidden ${attempts >= 2 ? "border-rose-400/50 text-rose-300 bg-rose-500/10" : attempts === 1 ? "border-amber-400/50 text-amber-300 bg-amber-500/10" : "admin-bg admin-border admin-text-muted"}`}>
-                      <button
-                        onClick={() => changeAttempts(fu, "bump")}
-                        title={attempts > 0 ? `${attempts} tentative${attempts > 1 ? "s" : ""} sans réponse · dernière ${fmtDate(fu.lastAttemptAt)} · clique pour +1` : "Aucune réponse ? Clique pour noter une tentative"}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 hover:bg-white/5 transition-colors"
-                      >
-                        <i className="fas fa-phone-slash opacity-80"></i>
-                        {attempts === 0 ? "Sans réponse ?" : `${attempts} tentative${attempts > 1 ? "s" : ""}`}
-                        <span className="inline-flex items-center gap-0.5 ml-0.5">
-                          {[0, 1].map((i) => (
-                            <span key={i} className={`w-1.5 h-1.5 rounded-full bg-current ${i < attempts ? "" : "opacity-25"}`}></span>
-                          ))}
-                        </span>
-                      </button>
-                      {attempts > 0 && (
-                        <button onClick={() => changeAttempts(fu, "reset")} title="Réinitialiser les tentatives" className="px-1.5 py-1.5 border-l border-current/20 hover:bg-white/5 transition-colors">
-                          <i className="fas fa-xmark text-[10px]"></i>
-                        </button>
-                      )}
-                    </div>
-                  )}
-                  {FOLLOW_UP_MILESTONES.map((m) => {
+                  <ContactMenu fu={fu} onPick={(state) => setContactState(fu, state)} />
+                  {FOLLOW_UP_MILESTONES.filter((m) => m.key !== "contactedAt").map((m) => {
                     const on = !!fu[m.key];
                     return (
                       <button key={m.key} onClick={() => toggleMilestone(fu, m.key)} title={on ? `${m.label} · ${fmtDate(fu[m.key])}` : m.label}
@@ -250,6 +238,61 @@ export default function SuiviSimple() {
       )}
 
       {creating && <CreateModal onClose={() => setCreating(false)} onCreated={() => { setCreating(false); load(); }} />}
+    </div>
+  );
+}
+
+// Menu déroulant compact pour l'état de contact (remplace les 2 boutons "Contacté"
+// + "Sans réponse"). 4 choix : rejoint / 1-2 tentatives sans réponse / à contacter.
+const CONTACT_STATES = {
+  none: { label: "À contacter", icon: "fa-circle", cls: "admin-bg admin-border admin-text-muted" },
+  a1: { label: "1 tentative", icon: "fa-phone-slash", cls: "border-amber-400/50 text-amber-300 bg-amber-500/10" },
+  a2: { label: "2 tentatives", icon: "fa-phone-slash", cls: "border-rose-400/50 text-rose-300 bg-rose-500/10" },
+  reached: { label: "Contacté", icon: "fa-circle-check", cls: "bg-emerald-500/15 border-emerald-400/40 text-emerald-300" },
+};
+const CONTACT_OPTIONS = [
+  { key: "reached", label: "Contacté (rejoint)", icon: "fa-circle-check", tone: "text-emerald-400" },
+  { key: "a1", label: "1 tentative — sans réponse", icon: "fa-phone-slash", tone: "text-amber-400" },
+  { key: "a2", label: "2 tentatives — sans réponse", icon: "fa-phone-slash", tone: "text-rose-400" },
+  { key: "none", label: "À contacter (réinitialiser)", icon: "fa-rotate-left", tone: "admin-text-muted" },
+];
+
+function ContactMenu({ fu, onPick }) {
+  const [open, setOpen] = useState(false);
+  const attempts = fu.contactAttempts || 0;
+  const reached = !!fu.contactedAt;
+  const current = reached ? "reached" : attempts >= 2 ? "a2" : attempts === 1 ? "a1" : "none";
+  const cur = CONTACT_STATES[current];
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        title={attempts > 0 && !reached ? `${attempts} tentative${attempts > 1 ? "s" : ""} sans réponse · dernière ${fmtDate(fu.lastAttemptAt)}` : "Statut de contact"}
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${cur.cls}`}
+      >
+        <i className={`fas ${cur.icon}`}></i>
+        {cur.label}
+        <i className="fas fa-chevron-down text-[9px] opacity-60 ml-0.5"></i>
+      </button>
+      {open && (
+        <>
+          <button aria-hidden tabIndex={-1} onClick={() => setOpen(false)} className="fixed inset-0 z-40 cursor-default"></button>
+          <div className="absolute left-0 top-full mt-1 z-50 w-60 admin-bg border admin-border rounded-lg shadow-xl py-1">
+            {CONTACT_OPTIONS.map((o) => (
+              <button
+                key={o.key}
+                onClick={() => { setOpen(false); onPick(o.key); }}
+                className={`w-full text-left px-3 py-2 text-xs font-medium hover:bg-white/5 flex items-center gap-2 transition-colors ${current === o.key ? "bg-white/5" : ""}`}
+              >
+                <i className={`fas ${o.icon} w-4 text-center ${o.tone}`}></i>
+                <span className="admin-text">{o.label}</span>
+                {current === o.key && <i className="fas fa-check ml-auto text-emerald-400 text-[10px]"></i>}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
