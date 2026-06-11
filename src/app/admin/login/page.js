@@ -154,7 +154,7 @@ function LoginForm() {
                   required
                   autoFocus
                   className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-[var(--color-red)]"
-                  placeholder="info@vosthermos.com"
+                  placeholder="ton@courriel.com"
                 />
               </div>
 
