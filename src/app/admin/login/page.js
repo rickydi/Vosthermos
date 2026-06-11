@@ -21,9 +21,8 @@ function safeAdminCallbackUrl(value) {
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [step, setStep] = useState("password"); // "password" | "code"
+  const [step, setStep] = useState("email"); // "email" | "code"
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
   const [pendingToken, setPendingToken] = useState("");
   const [sentTo, setSentTo] = useState("");
@@ -32,7 +31,7 @@ function LoginForm() {
   const [resending, setResending] = useState(false);
   const [resendMsg, setResendMsg] = useState("");
 
-  async function handlePasswordSubmit(e) {
+  async function handleEmailSubmit(e) {
     e.preventDefault();
     setLoading(true);
     setError("");
@@ -41,7 +40,7 @@ function LoginForm() {
       const res = await fetch("/api/admin/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email }),
       });
       const data = await res.json();
 
@@ -52,7 +51,7 @@ function LoginForm() {
         setResendMsg("");
         setStep("code");
       } else if (data.success) {
-        // Retro-compatibilite (ne devrait plus arriver avec le 2FA actif).
+        // Retro-compatibilite (ne devrait plus arriver avec le code email actif).
         router.push(safeAdminCallbackUrl(searchParams.get("callbackUrl")));
         return;
       } else {
@@ -110,8 +109,8 @@ function LoginForm() {
     setResending(false);
   }
 
-  function backToPassword() {
-    setStep("password");
+  function backToEmail() {
+    setStep("email");
     setCode("");
     setError("");
     setResendMsg("");
@@ -139,32 +138,24 @@ function LoginForm() {
             </div>
           )}
 
-          {step === "password" ? (
-            <form key="password" onSubmit={handlePasswordSubmit} className="transition-opacity duration-500">
-              <h1 className="text-xl font-bold text-white mb-6">Connexion</h1>
+          {step === "email" ? (
+            <form key="email" onSubmit={handleEmailSubmit} className="transition-opacity duration-500">
+              <h1 className="text-xl font-bold text-white mb-2">Connexion</h1>
+              <p className="text-white/60 text-sm mb-6">
+                Entre ton courriel : on t&apos;envoie un code à 5 chiffres pour te connecter. Aucun mot de passe.
+              </p>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-white/70 text-sm mb-1">Courriel</label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-[var(--color-red)]"
-                    placeholder="admin@vosthermos.com"
-                  />
-                </div>
-                <div>
-                  <label className="block text-white/70 text-sm mb-1">Mot de passe</label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-[var(--color-red)]"
-                  />
-                </div>
+              <div>
+                <label className="block text-white/70 text-sm mb-1">Courriel</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoFocus
+                  className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-[var(--color-red)]"
+                  placeholder="info@vosthermos.com"
+                />
               </div>
 
               <button
@@ -172,15 +163,15 @@ function LoginForm() {
                 disabled={loading}
                 className="w-full mt-6 bg-[var(--color-red)] text-white py-3 rounded-lg font-bold hover:bg-[var(--color-red-dark)] transition-all disabled:opacity-50"
               >
-                {loading ? "Verification..." : "Se connecter"}
+                {loading ? "Envoi…" : "Recevoir le code"}
               </button>
             </form>
           ) : (
             <form key="code" onSubmit={handleCodeSubmit} className="transition-opacity duration-500">
-              <h1 className="text-xl font-bold text-white mb-2">Verification</h1>
+              <h1 className="text-xl font-bold text-white mb-2">Vérification</h1>
               <p className="text-white/60 text-sm mb-6">
-                Un code a 5 chiffres a ete envoye a{" "}
-                <span className="text-white font-semibold">{sentTo || "ton courriel"}</span>. Saisis-le pour continuer.
+                Un code à 5 chiffres a été envoyé à{" "}
+                <span className="text-white font-semibold">{sentTo || "ta boîte courriel"}</span>. Saisis-le pour continuer.
               </p>
 
               <div>
@@ -207,13 +198,13 @@ function LoginForm() {
                 disabled={loading || code.length !== 5}
                 className="w-full mt-6 bg-[var(--color-red)] text-white py-3 rounded-lg font-bold hover:bg-[var(--color-red-dark)] transition-all disabled:opacity-50"
               >
-                {loading ? "Verification..." : "Verifier et se connecter"}
+                {loading ? "Vérification…" : "Vérifier et se connecter"}
               </button>
 
               <div className="mt-4 flex items-center justify-between text-sm">
                 <button
                   type="button"
-                  onClick={backToPassword}
+                  onClick={backToEmail}
                   className="text-white/50 hover:text-white/80 transition-colors"
                 >
                   Retour

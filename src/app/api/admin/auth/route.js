@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import bcrypt from "bcryptjs";
 import { signPendingToken, COOKIE_NAME, getAdminSession } from "@/lib/admin-auth";
 import { logAdminActivity } from "@/lib/admin-activity";
-import { generateLoginCode, storeLoginCode, getTwoFactorEmail, maskEmail } from "@/lib/admin-2fa";
+import { generateLoginCode, storeLoginCode, getTwoFactorEmail, maskEmail, canResend } from "@/lib/admin-2fa";
 import { sendAdminLoginCodeEmail } from "@/lib/mail";
 
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
@@ -49,11 +48,11 @@ async function logFailedLogin(request, email, reason) {
 
 export async function POST(request) {
   try {
-    const { email, password } = await request.json();
+    const { email } = await request.json();
     const normalizedEmail = normalizeEmail(email);
 
-    if (!normalizedEmail || !password) {
-      return NextResponse.json({ error: "Email ou mot de passe invalide" }, { status: 401 });
+    if (!normalizedEmail) {
+      return NextResponse.json({ error: "Courriel requis" }, { status: 400 });
     }
 
     const recentFailures = await countRecentFailures(request, normalizedEmail);
@@ -64,44 +63,44 @@ export async function POST(request) {
       );
     }
 
+    // Connexion sans mot de passe: on identifie le compte par courriel, puis tout
+    // le controle d'acces repose sur le code a 5 chiffres envoye a la boite 2FA
+    // (ADMIN_2FA_EMAIL). Seul quelqu'un qui lit cette boite peut terminer la connexion.
     const user = await prisma.adminUser.findFirst({
       where: { email: { equals: normalizedEmail, mode: "insensitive" } },
     });
     if (!user) {
       await logFailedLogin(request, normalizedEmail, "unknown_email");
-      return NextResponse.json({ error: "Email ou mot de passe invalide" }, { status: 401 });
+      return NextResponse.json({ error: "Courriel non reconnu" }, { status: 401 });
     }
 
-    const valid = await bcrypt.compare(password, user.passwordHash);
-    if (!valid) {
-      await logFailedLogin(request, normalizedEmail, "bad_password");
-      return NextResponse.json({ error: "Email ou mot de passe invalide" }, { status: 401 });
-    }
-
-    // Mot de passe valide -> on n'ouvre PAS encore la session. On genere un code
-    // a 5 chiffres, on l'envoie par email, et on ne le PERSISTE qu'apres l'envoi
-    // reussi (jamais de code valide non transmis en base).
     const ip = clientIp(request);
-    const code = generateLoginCode();
     const twoFactorEmail = getTwoFactorEmail();
-    try {
-      await sendAdminLoginCodeEmail(twoFactorEmail, code);
-    } catch (err) {
-      console.error("[admin auth] envoi du code 2FA echoue:", err?.message || err);
-      return NextResponse.json(
-        { error: "Impossible d'envoyer le code de connexion. Reessaie dans un moment." },
-        { status: 502 },
-      );
-    }
-    await storeLoginCode(user.id, code, ip);
 
-    await logAdminActivity(request, { id: user.id, email: user.email }, {
-      action: "login_code_sent",
-      entityType: "auth",
-      entityId: user.id,
-      label: "Code de connexion 2FA envoye",
-      metadata: {},
-    });
+    // Anti-spam de la boite 2FA: si un code a deja ete envoye il y a moins de 30 s,
+    // on ne renvoie pas d'email -> le code en cours reste valide, on laisse juste
+    // l'utilisateur le saisir. Empeche de marteler la boite info@ en rejouant l'etape 1.
+    if (await canResend(user.id)) {
+      const code = generateLoginCode();
+      try {
+        await sendAdminLoginCodeEmail(twoFactorEmail, code);
+      } catch (err) {
+        console.error("[admin auth] envoi du code 2FA echoue:", err?.message || err);
+        return NextResponse.json(
+          { error: "Impossible d'envoyer le code de connexion. Reessaie dans un moment." },
+          { status: 502 },
+        );
+      }
+      await storeLoginCode(user.id, code, ip);
+
+      await logAdminActivity(request, { id: user.id, email: user.email }, {
+        action: "login_code_sent",
+        entityType: "auth",
+        entityId: user.id,
+        label: "Code de connexion 2FA envoye",
+        metadata: {},
+      });
+    }
 
     return NextResponse.json({
       step: "verify_code",
