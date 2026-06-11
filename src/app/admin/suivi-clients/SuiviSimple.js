@@ -84,6 +84,25 @@ export default function SuiviSimple() {
     }
   }
 
+  // Tentative de contact sans réponse : +1 (ou reset). Optimiste puis réconcilié.
+  async function changeAttempts(fu, action) {
+    const optimistic = action === "reset"
+      ? { contactAttempts: 0, lastAttemptAt: null }
+      : { contactAttempts: Math.min((fu.contactAttempts || 0) + 1, 9), lastAttemptAt: new Date().toISOString() };
+    patchLocal(fu.id, optimistic);
+    try {
+      const res = await fetch(`/api/admin/follow-ups/${fu.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(action === "reset" ? { resetAttempts: true } : { bumpAttempt: true }),
+      });
+      if (!res.ok) throw new Error();
+      patchLocal(fu.id, await res.json());
+    } catch {
+      load();
+    }
+  }
+
   const visible = items.filter((fu) => {
     if (filter === "all") return true;
     if (filter === "won") return fu.outcome === "won";
@@ -137,8 +156,12 @@ export default function SuiviSimple() {
             const name = fu.client?.name || fu.contactName || fu.title || "Sans nom";
             const isLost = fu.outcome === "lost";
             const isWon = fu.outcome === "won";
+            const attempts = fu.contactAttempts || 0;
+            const reached = !!fu.contactedAt;
+            // "À relancer" : 2 tentatives sans réponse, pas encore rejoint, dossier ouvert.
+            const flagged = attempts >= 2 && !reached && !isWon && !isLost;
             return (
-              <div key={fu.id} className={`admin-card border rounded-xl p-3.5 transition-opacity ${isLost ? "opacity-55" : ""}`}>
+              <div key={fu.id} className={`admin-card border rounded-xl p-3.5 transition-opacity ${isLost ? "opacity-55" : ""} ${flagged ? "ring-1 ring-rose-400/50 border-rose-400/40" : ""}`}>
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -173,6 +196,28 @@ export default function SuiviSimple() {
                 </div>
 
                 <div className="flex items-center gap-1.5 mt-3 flex-wrap">
+                  {!reached && !isWon && (
+                    <div className={`inline-flex items-center rounded-lg border text-xs font-semibold overflow-hidden ${attempts >= 2 ? "border-rose-400/50 text-rose-300 bg-rose-500/10" : attempts === 1 ? "border-amber-400/50 text-amber-300 bg-amber-500/10" : "admin-bg admin-border admin-text-muted"}`}>
+                      <button
+                        onClick={() => changeAttempts(fu, "bump")}
+                        title={attempts > 0 ? `${attempts} tentative${attempts > 1 ? "s" : ""} sans réponse · dernière ${fmtDate(fu.lastAttemptAt)} · clique pour +1` : "Aucune réponse ? Clique pour noter une tentative"}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 hover:bg-white/5 transition-colors"
+                      >
+                        <i className="fas fa-phone-slash opacity-80"></i>
+                        {attempts === 0 ? "Sans réponse ?" : `${attempts} tentative${attempts > 1 ? "s" : ""}`}
+                        <span className="inline-flex items-center gap-0.5 ml-0.5">
+                          {[0, 1].map((i) => (
+                            <span key={i} className={`w-1.5 h-1.5 rounded-full bg-current ${i < attempts ? "" : "opacity-25"}`}></span>
+                          ))}
+                        </span>
+                      </button>
+                      {attempts > 0 && (
+                        <button onClick={() => changeAttempts(fu, "reset")} title="Réinitialiser les tentatives" className="px-1.5 py-1.5 border-l border-current/20 hover:bg-white/5 transition-colors">
+                          <i className="fas fa-xmark text-[10px]"></i>
+                        </button>
+                      )}
+                    </div>
+                  )}
                   {FOLLOW_UP_MILESTONES.map((m) => {
                     const on = !!fu[m.key];
                     return (
@@ -185,6 +230,12 @@ export default function SuiviSimple() {
                     );
                   })}
                 </div>
+
+                {flagged && (
+                  <div className="mt-2 text-xs text-rose-300 font-semibold">
+                    <i className="fas fa-triangle-exclamation mr-1"></i>2 tentatives sans réponse — relancer ou marquer perdu
+                  </div>
+                )}
 
                 {fu.nextAction && (
                   <div className="mt-2 text-xs admin-text">

@@ -69,6 +69,23 @@ export async function PUT(req, { params }) {
     data[body.toggleMilestone] = body.on ? (existing[body.toggleMilestone] || new Date()) : null;
   }
 
+  // Tentatives de contact sans réponse. { bumpAttempt: true } = +1 et horodate la
+  // tentative ; { resetAttempts: true } = remet à zéro. On accepte aussi une valeur
+  // directe contactAttempts (clampée >= 0).
+  if (body.bumpAttempt) {
+    data.contactAttempts = Math.min((existing.contactAttempts || 0) + 1, 9);
+    data.lastAttemptAt = new Date();
+  } else if (body.resetAttempts) {
+    data.contactAttempts = 0;
+    data.lastAttemptAt = null;
+  } else {
+    const attempts = numberOrNull(body.contactAttempts);
+    if (attempts !== undefined) {
+      data.contactAttempts = attempts === null ? 0 : Math.max(0, Math.min(Math.round(attempts), 9));
+      if (data.contactAttempts > (existing.contactAttempts || 0)) data.lastAttemptAt = new Date();
+    }
+  }
+
   // Auto-horodatage legacy si un status est poussé directement.
   if (body.status === "estimate_sent" && !existing.estimateSentAt && data.estimateSentAt === undefined) data.estimateSentAt = new Date();
   if (body.status === "won" && !existing.acceptedAt && data.acceptedAt === undefined) data.acceptedAt = new Date();

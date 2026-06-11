@@ -396,6 +396,9 @@ model ClientFollowUp {
   contactedAt     DateTime?
   visitDoneAt     DateTime?
   invoicedAt      DateTime?
+  // Tentatives de contact restées sans réponse (suivi des relances).
+  contactAttempts Int       @default(0)
+  lastAttemptAt   DateTime?
   outcome         String    @default("open")
   nextAction      String?
   nextActionDate  DateTime?

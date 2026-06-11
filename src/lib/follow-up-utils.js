@@ -28,6 +28,7 @@ export function serializeFollowUp(followUp) {
     contactedAt: followUp.contactedAt?.toISOString() || null,
     visitDoneAt: followUp.visitDoneAt?.toISOString() || null,
     invoicedAt: followUp.invoicedAt?.toISOString() || null,
+    lastAttemptAt: followUp.lastAttemptAt?.toISOString() || null,
     nextActionDate: dateOnlyIso(followUp.nextActionDate),
     createdAt: followUp.createdAt?.toISOString() || null,
     updatedAt: followUp.updatedAt?.toISOString() || null,
@@ -243,7 +244,10 @@ export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client, fo
       if (!followUp.contactedAt) ms.contactedAt = workOrder.arrivalAt;
       if (!followUp.visitDoneAt) ms.visitDoneAt = workOrder.arrivalAt;
     }
-    if (["quote_sent", "quote_accepted", "scheduled", "in_progress", "completed", "invoiced", "sent", "paid"].includes(st) && !followUp.estimateSentAt) ms.estimateSentAt = new Date();
+    // "quote" inclus : dès qu'une soumission existe dans le système (même pas encore
+    // envoyée), le jalon "Soumission" se coche tout seul. La soumission verbale, elle,
+    // reste cochée à la main depuis le suivi.
+    if (["quote", "quote_sent", "quote_accepted", "scheduled", "in_progress", "completed", "invoiced", "sent", "paid"].includes(st) && !followUp.estimateSentAt) ms.estimateSentAt = new Date();
     if (["quote_accepted", "scheduled", "in_progress", "completed", "invoiced", "sent", "paid"].includes(st) && !followUp.acceptedAt) ms.acceptedAt = new Date();
     if (["completed", "invoiced", "sent", "paid"].includes(st) && !followUp.jobCompletedAt) ms.jobCompletedAt = workOrder.departureAt || new Date();
     if (["invoiced", "sent", "paid"].includes(st) && !followUp.invoicedAt) ms.invoicedAt = workOrder.invoiceSentAt || workOrder.invoiceIssuedAt || new Date();
