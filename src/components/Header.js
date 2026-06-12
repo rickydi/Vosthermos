@@ -77,8 +77,32 @@ export default function Header({ company }) {
       if (!enSlug) return "/en/#services";
       return `/en/services/${enSlug}${rest}`;
     }
-    // Add /en prefix for English URL (autres pages)
-    return `/en${pathname === "/" ? "" : pathname}`;
+    // Routes FR sans équivalent EN direct → meilleure cible EN existante.
+    // (L'ancien fallback aveugle `/en${pathname}` générait ~75 URLs 404 distinctes,
+    // liées et PRÉFETCHÉES depuis chaque page FR = 2000+ hits 404/mois pour les bots.)
+    const villeMatch = pathname.match(/^\/reparation-portes-et-fenetres\/([^/]+)$/);
+    if (villeMatch) return `/en/services/sealed-glass-replacement/${villeMatch[1]}`;
+    const calfMatch = pathname.match(/^\/calfeutrage\/([^/]+)$/);
+    if (calfMatch) return `/en/services/caulking/${calfMatch[1]}`;
+    if (pathname.startsWith("/guides")) return "/en/blogue";
+    if (pathname.startsWith("/outils")) return "/en/diagnostic";
+    if (pathname.startsWith("/copropriete")) return "/en/contact?subject=condos";
+    if (pathname.startsWith("/commercial")) return "/en/contact?subject=commercial";
+    if (pathname.startsWith("/carrieres")) return "/en/contact?subject=careers";
+    if (pathname === "/") return "/en";
+    // Allowlist des sections qui existent réellement sous /en — tout le reste → /en
+    const EN_SECTIONS = [
+      "/blogue", "/boutique", "/calculateur", "/diagnostic", "/faq", "/garantie",
+      "/glossaire", "/opti-fenetre", "/politique-confidentialite", "/prix",
+      "/problemes", "/produit",
+    ];
+    const topSegment = "/" + pathname.split("/")[1];
+    if (EN_SECTIONS.includes(topSegment)) {
+      // /en/blogue n'a pas de pages articles individuelles
+      if (topSegment === "/blogue" && pathname !== "/blogue") return "/en/blogue";
+      return `/en${pathname}`;
+    }
+    return "/en";
   };
 
   // Prefix for internal links
@@ -179,9 +203,11 @@ export default function Header({ company }) {
           </nav>
 
           <div className="flex items-center gap-4">
-            {/* Language switcher */}
+            {/* Language switcher — prefetch désactivé: pas de préchargement de la
+                version alternative à chaque affichage de page */}
             <Link
               href={getAlternateLangUrl()}
+              prefetch={false}
               className="flex items-center gap-1 text-white/60 hover:text-white text-xs font-bold uppercase tracking-wider border border-white/20 hover:border-white/40 px-2.5 py-1.5 rounded-md transition-all"
               title={labels.langTitle}
             >
@@ -251,6 +277,7 @@ export default function Header({ company }) {
           {/* Mobile language switcher */}
           <Link
             href={getAlternateLangUrl()}
+            prefetch={false}
             className="flex items-center gap-2 text-white/60 hover:text-white font-medium mt-2 border border-white/20 px-4 py-2 rounded-lg"
             onClick={() => setMenuOpen(false)}
           >

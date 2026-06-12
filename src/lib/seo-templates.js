@@ -70,9 +70,12 @@ export function getServiceSeo(serviceSlug, city, fallbackShortTitle) {
 
 // Pour les pages generalistes (non-service specifique)
 export const CITY_PAGE_SEO = {
+  // Dé-cannibalisation: la page ville est un HUB « réparation portes et fenêtres ».
+  // Le mot-clé « thermos » et le prix appartiennent à /services/remplacement-vitre-thermos/[ville]
+  // et /prix — ne plus les cibler ici (3 pages du site se battaient sur chaque requête thermos).
   "reparation-portes-et-fenetres": {
-    title: (c) => `Réparation Portes et Fenêtres ${c.name} • Dès 150$`,
-    description: (c) => `Thermos embué, porte bois, quincaillerie à ${c.name}? Vosthermos répare tout en 24-48h. 740+ pièces en stock, 15 ans d'expérience ☎ ${COMPANY_INFO.phone}`,
+    title: (c) => `Réparation de Portes et Fenêtres à ${c.name} | Vosthermos`,
+    description: (c) => `Spécialiste de la réparation de portes et fenêtres à ${c.name} : quincaillerie, coupe-froid, ajustements, bois. 700+ pièces en stock, service 24-48h ☎ ${COMPANY_INFO.phone}`,
   },
   "calfeutrage": {
     title: (c) => `Calfeutrage ${c.name} • Infiltrations Éliminées`,

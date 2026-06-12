@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 
 export default function CarrieresEnRedirect() {
-  redirect("/en/contact?subject=careers");
+  permanentRedirect("/en/contact?subject=careers");
 }

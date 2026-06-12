@@ -23,6 +23,7 @@ export async function generateMetadata({ params }) {
   return {
     title: `${product.sku} - ${product.name} | Vosthermos Boutique`,
     description: `Achetez ${product.name} (${product.sku}) en ligne. ${product.description || "Piece de remplacement pour portes et fenetres."} Prix: ${Number(product.price).toFixed(2)} $. Livraison disponible.`,
+    robots: { index: false, follow: true },
     alternates: {
       canonical: `${BASE}/produit/${slug}`,
       languages: {

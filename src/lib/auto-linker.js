@@ -76,10 +76,15 @@ export function autoLinkContent(html, maxLinks = 8) {
     const escaped = entry.keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const regex = new RegExp(`(?<![<\\/a-zA-Z"=])\\b(${escaped})\\b(?![^<]*>|[^<]*<\\/a>)`, "i");
 
-    const match = result.match(regex);
+    const match = regex.exec(result);
     if (match) {
+      // FIX bug critique: l'ancien result.replace(match[0], ...) remplaçait la
+      // PREMIÈRE occurrence littérale du texte — qui pouvait être à l'intérieur
+      // du href d'un lien existant (d'où des URLs cassées « /services/...-<a href= »
+      // crawlées par Google). On insère désormais à la position EXACTE validée
+      // par la regex.
       const linked = `<a href="${entry.url}" class="text-[var(--color-teal)] font-medium hover:underline" title="${entry.title}">${match[0]}</a>`;
-      result = result.replace(match[0], linked);
+      result = result.slice(0, match.index) + linked + result.slice(match.index + match[0].length);
       usedUrls.add(entry.url);
       linkCount++;
     }

@@ -29,6 +29,7 @@ export async function generateMetadata({ params }) {
   return {
     title,
     description,
+    robots: { index: false, follow: true },
     alternates: {
       canonical: url,
       languages: {
@@ -185,7 +186,9 @@ export default async function ServiceCityPage({ params }) {
                 {service.shortTitle} in {city.name}
               </h2>
               <p className="text-gray-600 leading-relaxed mb-4">
-                {city.description}
+                We provide fast door and window repair services throughout {city.name} and
+                surrounding areas — same specialists, same 15+ years of expertise, wherever
+                you are on the South Shore.
               </p>
               <p className="text-gray-600 leading-relaxed">
                 Vosthermos offers a complete {service.shortTitle.toLowerCase()} service to {city.name} residents.
@@ -194,25 +197,6 @@ export default async function ServiceCityPage({ params }) {
                 )}
               </p>
             </div>
-
-            {/* Common issues */}
-            {city.commonIssues && city.commonIssues.length > 0 && (
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                  Common problems in {city.name}
-                </h2>
-                <div className="space-y-3">
-                  {city.commonIssues.map((issue, i) => (
-                    <div key={i} className="flex items-start gap-3 bg-gray-50 rounded-xl p-4">
-                      <div className="w-8 h-8 rounded-lg bg-[var(--color-red)]/10 text-[var(--color-red)] flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <i className="fas fa-exclamation-triangle text-xs"></i>
-                      </div>
-                      <p className="text-gray-700 text-sm">{issue}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {/* Service details */}
             {service.sections && service.sections[0] && (

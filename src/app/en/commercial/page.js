@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 
 export default function CommercialEnRedirect() {
-  redirect("/en/contact?subject=commercial");
+  permanentRedirect("/en/contact?subject=commercial");
 }

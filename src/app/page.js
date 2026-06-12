@@ -6,17 +6,20 @@ import { COMPANY_INFO } from "@/lib/company-info";
 import "./preview-accueil/preview-accueil.css";
 
 export const metadata = {
-  title: "Vosthermos | Reparation portes et fenetres des 150$",
+  // Title différencié des pages villes (plus de « Dès 150$ » partagé partout) et
+  // accentué — l'ancien « Reparation portes et fenetres des 150$ » s'affichait
+  // tel quel, sans accents, dans la SERP.
+  title: "Réparation de portes et fenêtres Rive-Sud et Montréal | Vosthermos",
   description:
-    `Thermos embue? Porte qui bloque? Vosthermos remplace vos vitres thermos des 150$ avec garantie 10 ans. 15 ans d'experience, soumission gratuite 24h, Grand Montreal, Rive-Sud et Laval. ${COMPANY_INFO.phone}`,
+    `Vitre thermos embuée, porte-patio difficile, quincaillerie brisée? Vosthermos répare vos portes et fenêtres sur la Rive-Sud, à Montréal et Laval. Soumission gratuite 24 h ☎ ${COMPANY_INFO.phone}`,
   keywords:
-    "reparation portes fenetres, vitre thermos, remplacement thermos, remplacement quincaillerie, moustiquaire sur mesure, porte-patio, porte en bois, calfeutrage fenetres, desembuage, coupe-froid, insertion porte, boutique pieces portes fenetres, quincaillerie porte fenetre en ligne, Delson, Montreal, Rive-Sud, Laval, Longueuil, Brossard, Granby, Saint-Hyacinthe, Terrebonne, Repentigny",
+    "réparation portes fenêtres, vitre thermos, remplacement thermos, remplacement quincaillerie, moustiquaire sur mesure, porte-patio, porte en bois, calfeutrage fenêtres, désembuage, coupe-froid, insertion porte, boutique pièces portes fenêtres, Delson, Montréal, Rive-Sud, Laval, Longueuil, Brossard, Granby, Saint-Hyacinthe",
   robots: "index, follow",
   alternates: {
     canonical: "https://www.vosthermos.com/",
     languages: {
       "fr-CA": "https://www.vosthermos.com/",
-      "en-CA": "https://www.vosthermos.com/en/",
+      "en-CA": "https://www.vosthermos.com/en",
       "x-default": "https://www.vosthermos.com/",
     },
   },
@@ -24,16 +27,16 @@ export const metadata = {
     type: "website",
     siteName: "Vosthermos",
     url: "https://www.vosthermos.com/",
-    title: "Vosthermos | Reparation portes et fenetres",
+    title: "Réparation de portes et fenêtres Rive-Sud et Montréal | Vosthermos",
     description:
-      `Thermos embue? Vosthermos remplace vos vitres thermos des 150$. Garantie 10 ans, soumission gratuite 24h. Grand Montreal, Rive-Sud, Laval. ${COMPANY_INFO.phone}`,
+      `Vitre thermos embuée? Porte qui bloque? Vosthermos répare au lieu de remplacer. Garantie, soumission gratuite 24 h. Rive-Sud, Montréal, Laval. ${COMPANY_INFO.phone}`,
     images: [{ url: COMPANY_INFO.logo }],
     locale: "fr_CA",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Vosthermos - Reparation portes et fenetres",
-    description: `Experts en remplacement de thermos depuis 2010. Soumission gratuite 24h. ${COMPANY_INFO.phone}`,
+    title: "Réparation de portes et fenêtres | Vosthermos",
+    description: `Experts en réparation de portes et fenêtres depuis 2010. Soumission gratuite 24 h. ${COMPANY_INFO.phone}`,
     images: [COMPANY_INFO.logo],
   },
 };
@@ -311,7 +314,7 @@ export default async function Home() {
             <SectionHeader
               kicker="Services clés"
               title="Les réparations les plus demandées, sans refaire tout le projet."
-              text="La page garde le contenu commercial important, mais avec une hiérarchie plus simple et plus premium."
+              text="Remplacement de vitre thermos, quincaillerie de portes et fenêtres, réparation de porte-patio : la même équipe, les pièces en stock, et une garantie sur chaque travail."
             />
             <div className="hp-service-grid">
               {services.map((service) => (
@@ -351,10 +354,11 @@ export default async function Home() {
           <div className="hp-shell hp-problem-grid">
             <div>
               <span className="hp-red-tag">Diagnostic rapide</span>
-              <h2>Vos clients se reconnaissent tout de suite dans le problème.</h2>
+              <h2>Vous reconnaissez l&apos;un de ces problèmes?</h2>
               <p>
-                Au lieu d&apos;empiler trop d&apos;informations en haut de page, l&apos;accueil
-                guide vers les problèmes concrets qui créent la demande.
+                La plupart se règlent par une réparation ciblée — sans remplacer
+                la porte ou la fenêtre au complet. Décrivez le vôtre, on vous dit
+                exactement quoi faire.
               </p>
             </div>
             <div className="hp-problem-list">
@@ -372,8 +376,8 @@ export default async function Home() {
           <div className="hp-shell">
             <SectionHeader
               kicker="Réalisations"
-              title="Un aperçu visuel avant/après plus haut dans la page."
-              text="Ça rassure vite et ça rend l'accueil moins catalogue."
+              title="Avant / après : nos réparations en images"
+              text="Des travaux réels effectués par notre équipe sur la Rive-Sud, à Montréal et à Laval — thermos, restauration de fenêtres et quincaillerie."
             />
             <div className="hp-gallery-grid">
               {gallery.map((item) => (
@@ -399,10 +403,11 @@ export default async function Home() {
           <div className="hp-shell hp-shop-grid">
             <div>
               <span className="hp-red-tag">Boutique intégrée</span>
-              <h2>La boutique reste visible, mais elle ne prend pas toute la première impression.</h2>
+              <h2>La bonne pièce pour votre porte ou fenêtre, en stock.</h2>
               <p>
-                L&apos;objectif est de convertir d&apos;abord en soumission, puis de montrer les pièces
-                disponibles pour renforcer l&apos;expertise.
+                Plus de 740 pièces de quincaillerie : roulettes de porte-patio, poignées,
+                serrures, coupe-froid et moustiquaires. Commandez en ligne ou laissez notre
+                technicien l&apos;installer pour vous.
               </p>
               <Link href="/boutique" className="hp-btn hp-btn-dark">Parcourir la boutique</Link>
             </div>
@@ -440,7 +445,7 @@ export default async function Home() {
           <div className="hp-shell">
             <SectionHeader
               kicker="Confiance"
-              title="Des avis plus courts, plus visibles, plus faciles à scanner."
+              title="Ce que nos clients disent"
             />
             <div className="hp-review-grid">
               {reviews.map((review) => (
@@ -458,7 +463,8 @@ export default async function Home() {
           <div className="hp-shell">
             <SectionHeader
               kicker="Secteurs desservis"
-              title="Couverture locale claire pour le SEO et la conversion."
+              title="Nous desservons la Rive-Sud, Montréal et Laval"
+              text="Notre technicien se déplace chez vous pour la soumission et les travaux — réparation de portes et fenêtres dans plus de 60 villes."
             />
             <div className="hp-sector-grid">
               {sectors.map((city) => (
@@ -467,6 +473,31 @@ export default async function Home() {
                 </Link>
               ))}
             </div>
+            {/* Maillage vers le gabarit service×ville (le mieux positionné) avec
+                ancres exactes — la home n'envoyait que 2 liens vers ce système. */}
+            <div className="mt-10 rounded-2xl border border-[var(--color-border)] bg-white p-6">
+              <h3 className="text-lg font-extrabold mb-4">Remplacement de vitre thermos près de chez vous</h3>
+              <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+                {[
+                  ["brossard", "Brossard"],
+                  ["longueuil", "Longueuil"],
+                  ["laval", "Laval"],
+                  ["saint-hyacinthe", "Saint-Hyacinthe"],
+                  ["granby", "Granby"],
+                  ["la-prairie", "La Prairie"],
+                  ["boisbriand", "Boisbriand"],
+                  ["mascouche", "Mascouche"],
+                ].map(([slug, name]) => (
+                  <Link
+                    key={slug}
+                    href={`/services/remplacement-vitre-thermos/${slug}`}
+                    className="text-[var(--color-teal)] font-semibold hover:underline"
+                  >
+                    Remplacement vitre thermos {name}
+                  </Link>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
 
@@ -474,7 +505,7 @@ export default async function Home() {
           <div className="hp-shell hp-faq-grid">
             <div>
               <span className="hp-red-tag">FAQ</span>
-              <h2>Répondre aux objections sans alourdir le haut de page.</h2>
+              <h2>Questions fréquentes avant de réparer</h2>
             </div>
             <div className="hp-faq-list">
               {faqs.map((faq) => (

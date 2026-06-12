@@ -4,6 +4,7 @@ export const CITIES = [
   {
     slug: "montreal",
     name: "Montréal",
+    coords: { lat: 45.5019, lng: -73.5674 },
     region: "Île de Montréal",
     distance: "30 min",
     population: "1.8M habitants",
@@ -25,6 +26,7 @@ export const CITIES = [
   {
     slug: "laval",
     name: "Laval",
+    coords: { lat: 45.6066, lng: -73.7124 },
     region: "Laval",
     distance: "35 min",
     population: "440 000 habitants",
@@ -45,6 +47,7 @@ export const CITIES = [
   {
     slug: "longueuil",
     name: "Longueuil",
+    coords: { lat: 45.5312, lng: -73.5183 },
     region: "Rive-Sud",
     distance: "20 min",
     population: "260 000 habitants",
@@ -66,6 +69,7 @@ export const CITIES = [
   {
     slug: "brossard",
     name: "Brossard",
+    coords: { lat: 45.4514, lng: -73.4660 },
     region: "Rive-Sud",
     distance: "25 min",
     population: "90 000 habitants",
@@ -86,6 +90,7 @@ export const CITIES = [
   {
     slug: "boucherville",
     name: "Boucherville",
+    coords: { lat: 45.5910, lng: -73.4360 },
     region: "Rive-Sud",
     distance: "20 min",
     population: "44 000 habitants",
@@ -106,6 +111,7 @@ export const CITIES = [
   {
     slug: "saint-hyacinthe",
     name: "Saint-Hyacinthe",
+    coords: { lat: 45.6304, lng: -72.9570 },
     region: "Montérégie",
     distance: "45 min",
     population: "58 000 habitants",
@@ -127,6 +133,7 @@ export const CITIES = [
   {
     slug: "granby",
     name: "Granby",
+    coords: { lat: 45.4040, lng: -72.7330 },
     region: "Estrie",
     distance: "55 min",
     population: "70 000 habitants",
@@ -147,6 +154,7 @@ export const CITIES = [
   {
     slug: "saint-jean-sur-richelieu",
     name: "Saint-Jean-sur-Richelieu",
+    coords: { lat: 45.3071, lng: -73.2626 },
     region: "Montérégie",
     distance: "35 min",
     population: "100 000 habitants",
@@ -168,6 +176,7 @@ export const CITIES = [
   {
     slug: "chambly",
     name: "Chambly",
+    coords: { lat: 45.4509, lng: -73.2898 },
     region: "Montérégie",
     distance: "25 min",
     population: "31 000 habitants",
@@ -188,6 +197,7 @@ export const CITIES = [
   {
     slug: "terrebonne",
     name: "Terrebonne",
+    coords: { lat: 45.7000, lng: -73.6333 },
     region: "Lanaudière",
     distance: "40 min",
     population: "121 000 habitants",
@@ -209,6 +219,7 @@ export const CITIES = [
   {
     slug: "repentigny",
     name: "Repentigny",
+    coords: { lat: 45.7422, lng: -73.4500 },
     region: "Lanaudière",
     distance: "40 min",
     population: "87 000 habitants",
@@ -229,6 +240,7 @@ export const CITIES = [
   {
     slug: "blainville",
     name: "Blainville",
+    coords: { lat: 45.6667, lng: -73.8833 },
     region: "Laurentides",
     distance: "45 min",
     population: "61 000 habitants",
@@ -250,6 +262,7 @@ export const CITIES = [
   {
     slug: "chateauguay",
     name: "Châteauguay",
+    coords: { lat: 45.3833, lng: -73.7500 },
     region: "Montérégie",
     distance: "30 min",
     population: "52 000 habitants",
@@ -270,6 +283,7 @@ export const CITIES = [
   {
     slug: "la-prairie",
     name: "La Prairie",
+    coords: { lat: 45.4170, lng: -73.4990 },
     region: "Montérégie",
     distance: "20 min",
     population: "27 000 habitants",
@@ -291,6 +305,7 @@ export const CITIES = [
   {
     slug: "sainte-julie",
     name: "Sainte-Julie",
+    coords: { lat: 45.5860, lng: -73.3320 },
     region: "Montérégie",
     distance: "25 min",
     population: "34 000 habitants",
@@ -311,6 +326,7 @@ export const CITIES = [
   {
     slug: "varennes",
     name: "Varennes",
+    coords: { lat: 45.6833, lng: -73.4333 },
     region: "Montérégie",
     distance: "25 min",
     population: "23 000 habitants",
@@ -331,6 +347,7 @@ export const CITIES = [
   {
     slug: "delson",
     name: "Delson",
+    coords: { lat: 45.3700, lng: -73.5440 },
     region: "Montérégie",
     distance: "15 min",
     population: "12 500 habitants",
@@ -352,6 +369,7 @@ export const CITIES = [
   {
     slug: "candiac",
     name: "Candiac",
+    coords: { lat: 45.3840, lng: -73.5190 },
     region: "Montérégie",
     distance: "20 min",
     population: "24 000 habitants",
@@ -373,6 +391,7 @@ export const CITIES = [
   {
     slug: "saint-bruno",
     name: "Saint-Bruno-de-Montarville",
+    coords: { lat: 45.5336, lng: -73.3492 },
     region: "Montérégie",
     distance: "20 min",
     population: "28 000 habitants",
@@ -394,6 +413,7 @@ export const CITIES = [
   {
     slug: "mascouche",
     name: "Mascouche",
+    coords: { lat: 45.7500, lng: -73.6000 },
     region: "Lanaudière",
     distance: "45 min",
     population: "53 000 habitants",
@@ -415,6 +435,7 @@ export const CITIES = [
   {
     slug: "vaudreuil-dorion",
     name: "Vaudreuil-Dorion",
+    coords: { lat: 45.4000, lng: -74.0333 },
     region: "Vaudreuil-Soulanges",
     distance: "40 min",
     population: "55 000 habitants",
@@ -435,6 +456,7 @@ export const CITIES = [
   {
     slug: "valleyfield",
     name: "Salaberry-de-Valleyfield",
+    coords: { lat: 45.2500, lng: -74.1333 },
     region: "Vaudreuil-Soulanges",
     distance: "55 min",
     population: "42 000 habitants",
@@ -455,6 +477,7 @@ export const CITIES = [
   {
     slug: "ile-perrot",
     name: "Île-Perrot",
+    coords: { lat: 45.3833, lng: -73.9500 },
     region: "Vaudreuil-Soulanges",
     distance: "35 min",
     population: "11 000 habitants",
@@ -475,6 +498,7 @@ export const CITIES = [
   {
     slug: "pincourt",
     name: "Pincourt",
+    coords: { lat: 45.3833, lng: -73.9833 },
     region: "Vaudreuil-Soulanges",
     distance: "35 min",
     population: "15 000 habitants",
@@ -495,6 +519,7 @@ export const CITIES = [
   {
     slug: "notre-dame-ile-perrot",
     name: "Notre-Dame-de-l'Île-Perrot",
+    coords: { lat: 45.3667, lng: -73.9333 },
     region: "Vaudreuil-Soulanges",
     distance: "35 min",
     population: "12 000 habitants",
@@ -515,6 +540,7 @@ export const CITIES = [
   {
     slug: "saint-lazare",
     name: "Saint-Lazare",
+    coords: { lat: 45.4000, lng: -74.1333 },
     region: "Vaudreuil-Soulanges",
     distance: "40 min",
     population: "22 000 habitants",
@@ -535,6 +561,7 @@ export const CITIES = [
   {
     slug: "beauharnois",
     name: "Beauharnois",
+    coords: { lat: 45.3167, lng: -73.8667 },
     region: "Vaudreuil-Soulanges",
     distance: "35 min",
     population: "14 000 habitants",
@@ -555,6 +582,7 @@ export const CITIES = [
   {
     slug: "saint-jerome",
     name: "Saint-Jérôme",
+    coords: { lat: 45.7804, lng: -74.0036 },
     region: "Laurentides",
     distance: "50 min",
     population: "80 000 habitants",
@@ -575,6 +603,7 @@ export const CITIES = [
   {
     slug: "mirabel",
     name: "Mirabel",
+    coords: { lat: 45.6500, lng: -74.0833 },
     region: "Laurentides",
     distance: "45 min",
     population: "63 000 habitants",
@@ -595,6 +624,7 @@ export const CITIES = [
   {
     slug: "boisbriand",
     name: "Boisbriand",
+    coords: { lat: 45.6167, lng: -73.8333 },
     region: "Laurentides",
     distance: "40 min",
     population: "27 000 habitants",
@@ -615,6 +645,7 @@ export const CITIES = [
   {
     slug: "sainte-therese",
     name: "Sainte-Thérèse",
+    coords: { lat: 45.6395, lng: -73.8420 },
     region: "Laurentides",
     distance: "40 min",
     population: "27 000 habitants",
@@ -635,6 +666,7 @@ export const CITIES = [
   {
     slug: "rosemere",
     name: "Rosemère",
+    coords: { lat: 45.6360, lng: -73.8000 },
     region: "Laurentides",
     distance: "40 min",
     population: "15 000 habitants",
@@ -655,6 +687,7 @@ export const CITIES = [
   {
     slug: "lorraine",
     name: "Lorraine",
+    coords: { lat: 45.6833, lng: -73.7833 },
     region: "Laurentides",
     distance: "40 min",
     population: "10 000 habitants",
@@ -675,6 +708,7 @@ export const CITIES = [
   {
     slug: "deux-montagnes",
     name: "Deux-Montagnes",
+    coords: { lat: 45.5333, lng: -73.9000 },
     region: "Laurentides",
     distance: "45 min",
     population: "18 000 habitants",
@@ -695,6 +729,7 @@ export const CITIES = [
   {
     slug: "saint-eustache",
     name: "Saint-Eustache",
+    coords: { lat: 45.5650, lng: -73.9050 },
     region: "Laurentides",
     distance: "45 min",
     population: "46 000 habitants",
@@ -715,6 +750,7 @@ export const CITIES = [
   {
     slug: "sainte-marthe-sur-le-lac",
     name: "Sainte-Marthe-sur-le-Lac",
+    coords: { lat: 45.5333, lng: -73.9333 },
     region: "Laurentides",
     distance: "45 min",
     population: "20 000 habitants",
@@ -735,6 +771,7 @@ export const CITIES = [
   {
     slug: "lassomption",
     name: "L'Assomption",
+    coords: { lat: 45.8230, lng: -73.4290 },
     region: "Lanaudière",
     distance: "40 min",
     population: "23 000 habitants",
@@ -755,6 +792,7 @@ export const CITIES = [
   {
     slug: "lavaltrie",
     name: "Lavaltrie",
+    coords: { lat: 45.8833, lng: -73.2833 },
     region: "Lanaudière",
     distance: "50 min",
     population: "14 000 habitants",
@@ -775,6 +813,7 @@ export const CITIES = [
   {
     slug: "saint-constant",
     name: "Saint-Constant",
+    coords: { lat: 45.3667, lng: -73.5667 },
     region: "Rive-Sud",
     distance: "15 min",
     population: "28 000 habitants",
@@ -795,6 +834,7 @@ export const CITIES = [
   {
     slug: "sainte-catherine",
     name: "Sainte-Catherine",
+    coords: { lat: 45.4000, lng: -73.5833 },
     region: "Rive-Sud",
     distance: "15 min",
     population: "18 000 habitants",
@@ -815,6 +855,7 @@ export const CITIES = [
   {
     slug: "saint-lambert",
     name: "Saint-Lambert",
+    coords: { lat: 45.4950, lng: -73.5080 },
     region: "Rive-Sud",
     distance: "20 min",
     population: "22 000 habitants",
@@ -835,6 +876,7 @@ export const CITIES = [
   {
     slug: "saint-hubert",
     name: "Saint-Hubert",
+    coords: { lat: 45.4833, lng: -73.4167 },
     region: "Rive-Sud",
     distance: "20 min",
     population: "87 000 habitants",
@@ -855,6 +897,7 @@ export const CITIES = [
   {
     slug: "greenfield-park",
     name: "Greenfield Park",
+    coords: { lat: 45.4877, lng: -73.4744 },
     region: "Rive-Sud",
     distance: "20 min",
     population: "17 000 habitants",
@@ -875,6 +918,7 @@ export const CITIES = [
   {
     slug: "saint-remi",
     name: "Saint-Rémi",
+    coords: { lat: 45.2667, lng: -73.6167 },
     region: "Montérégie",
     distance: "25 min",
     population: "8 000 habitants",
@@ -895,6 +939,7 @@ export const CITIES = [
   {
     slug: "saint-mathieu",
     name: "Saint-Mathieu",
+    coords: { lat: 45.3167, lng: -73.5167 },
     region: "Montérégie",
     distance: "15 min",
     population: "2 500 habitants",
@@ -915,6 +960,7 @@ export const CITIES = [
   {
     slug: "saint-isidore",
     name: "Saint-Isidore",
+    coords: { lat: 45.3000, lng: -73.6833 },
     region: "Montérégie",
     distance: "20 min",
     population: "3 000 habitants",
@@ -935,6 +981,7 @@ export const CITIES = [
   {
     slug: "saint-edouard",
     name: "Saint-Édouard",
+    coords: { lat: 45.2333, lng: -73.5167 },
     region: "Montérégie",
     distance: "30 min",
     population: "1 400 habitants",
@@ -955,6 +1002,7 @@ export const CITIES = [
   {
     slug: "saint-michel",
     name: "Saint-Michel",
+    coords: { lat: 45.2333, lng: -73.5667 },
     region: "Montérégie",
     distance: "25 min",
     population: "3 500 habitants",
@@ -975,6 +1023,7 @@ export const CITIES = [
   {
     slug: "napierville",
     name: "Napierville",
+    coords: { lat: 45.1864, lng: -73.4048 },
     region: "Montérégie",
     distance: "30 min",
     population: "4 000 habitants",
@@ -995,6 +1044,7 @@ export const CITIES = [
   {
     slug: "carignan",
     name: "Carignan",
+    coords: { lat: 45.4500, lng: -73.3000 },
     region: "Montérégie",
     distance: "20 min",
     population: "10 000 habitants",
@@ -1015,6 +1065,7 @@ export const CITIES = [
   {
     slug: "saint-basile-le-grand",
     name: "Saint-Basile-le-Grand",
+    coords: { lat: 45.5333, lng: -73.2833 },
     region: "Montérégie",
     distance: "20 min",
     population: "18 000 habitants",
@@ -1035,6 +1086,7 @@ export const CITIES = [
   {
     slug: "beloeil",
     name: "Beloeil",
+    coords: { lat: 45.5667, lng: -73.2000 },
     region: "Montérégie",
     distance: "25 min",
     population: "24 000 habitants",
@@ -1055,6 +1107,7 @@ export const CITIES = [
   {
     slug: "mont-saint-hilaire",
     name: "Mont-Saint-Hilaire",
+    coords: { lat: 45.5622, lng: -73.1917 },
     region: "Montérégie",
     distance: "25 min",
     population: "20 000 habitants",
@@ -1075,6 +1128,7 @@ export const CITIES = [
   {
     slug: "otterburn-park",
     name: "Otterburn Park",
+    coords: { lat: 45.5333, lng: -73.2167 },
     region: "Montérégie",
     distance: "25 min",
     population: "9 000 habitants",
@@ -1095,6 +1149,7 @@ export const CITIES = [
   {
     slug: "marieville",
     name: "Marieville",
+    coords: { lat: 45.4333, lng: -73.1667 },
     region: "Montérégie",
     distance: "30 min",
     population: "12 000 habitants",
@@ -1115,6 +1170,7 @@ export const CITIES = [
   {
     slug: "contrecoeur",
     name: "Contrecœur",
+    coords: { lat: 45.8500, lng: -73.2333 },
     region: "Montérégie",
     distance: "35 min",
     population: "8 000 habitants",
@@ -1135,6 +1191,7 @@ export const CITIES = [
   {
     slug: "saint-amable",
     name: "Saint-Amable",
+    coords: { lat: 45.6500, lng: -73.3000 },
     region: "Montérégie",
     distance: "20 min",
     population: "14 000 habitants",
@@ -1155,6 +1212,7 @@ export const CITIES = [
   {
     slug: "mercier",
     name: "Mercier",
+    coords: { lat: 45.3167, lng: -73.7500 },
     region: "Montérégie",
     distance: "15 min",
     population: "14 000 habitants",
@@ -1175,6 +1233,7 @@ export const CITIES = [
   {
     slug: "mcmasterville",
     name: "McMasterville",
+    coords: { lat: 45.5500, lng: -73.2333 },
     region: "Montérégie",
     distance: "25 min",
     population: "6 000 habitants",
@@ -1195,6 +1254,7 @@ export const CITIES = [
   {
     slug: "richelieu",
     name: "Richelieu",
+    coords: { lat: 45.4500, lng: -73.2500 },
     region: "Montérégie",
     distance: "30 min",
     population: "5 000 habitants",
@@ -1215,6 +1275,7 @@ export const CITIES = [
   {
     slug: "saint-philippe",
     name: "Saint-Philippe",
+    coords: { lat: 45.3500, lng: -73.4667 },
     region: "Montérégie",
     distance: "10 min",
     population: "8 000 habitants",
@@ -1235,6 +1296,7 @@ export const CITIES = [
   {
     slug: "vercheres",
     name: "Verchères",
+    coords: { lat: 45.7833, lng: -73.3500 },
     region: "Montérégie",
     distance: "30 min",
     population: "6 000 habitants",

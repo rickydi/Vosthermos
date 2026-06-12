@@ -1,4 +1,97 @@
+# Vosthermos — robots.txt
+# Résumé structuré pour assistants IA : https://www.vosthermos.com/llms.txt
+# Serveur MCP pour agents IA : https://www.vosthermos.com/api/mcp (doc: /mcp-docs)
+
 User-agent: *
+Allow: /
+Disallow: /admin
+Allow: /api/mcp
+Allow: /api/public/
+Disallow: /api/
+Disallow: /user
+
+# ── Robots IA explicitement bienvenus (mêmes règles que ci-dessus) ──
+User-agent: GPTBot
+Allow: /
+Disallow: /admin
+Allow: /api/mcp
+Allow: /api/public/
+Disallow: /api/
+Disallow: /user
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /admin
+Allow: /api/mcp
+Allow: /api/public/
+Disallow: /api/
+Disallow: /user
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin
+Allow: /api/mcp
+Allow: /api/public/
+Disallow: /api/
+Disallow: /user
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin
+Allow: /api/mcp
+Allow: /api/public/
+Disallow: /api/
+Disallow: /user
+
+User-agent: Claude-User
+Allow: /
+Disallow: /admin
+Allow: /api/mcp
+Allow: /api/public/
+Disallow: /api/
+Disallow: /user
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin
+Allow: /api/mcp
+Allow: /api/public/
+Disallow: /api/
+Disallow: /user
+
+User-agent: Perplexity-User
+Allow: /
+Disallow: /admin
+Allow: /api/mcp
+Allow: /api/public/
+Disallow: /api/
+Disallow: /user
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /admin
+Allow: /api/mcp
+Allow: /api/public/
+Disallow: /api/
+Disallow: /user
+
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /admin
+Allow: /api/mcp
+Allow: /api/public/
+Disallow: /api/
+Disallow: /user
+
+User-agent: CCBot
+Allow: /
+Disallow: /admin
+Allow: /api/mcp
+Allow: /api/public/
+Disallow: /api/
+Disallow: /user
+
+User-agent: meta-externalagent
 Allow: /
 Disallow: /admin
 Allow: /api/mcp

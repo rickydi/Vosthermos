@@ -13,17 +13,17 @@ export const metadata = {
     "door repair, window repair, sealed glass replacement, patio door hardware, screen repair, wood door repair, caulking, weatherstripping, Montreal, South Shore, Laval, Delson",
   robots: "index, follow",
   alternates: {
-    canonical: "https://www.vosthermos.com/en/",
+    canonical: "https://www.vosthermos.com/en",
     languages: {
       "fr-CA": "https://www.vosthermos.com/",
-      "en-CA": "https://www.vosthermos.com/en/",
+      "en-CA": "https://www.vosthermos.com/en",
       "x-default": "https://www.vosthermos.com/",
     },
   },
   openGraph: {
     type: "website",
     siteName: "Vosthermos",
-    url: "https://www.vosthermos.com/en/",
+    url: "https://www.vosthermos.com/en",
     title: "Door and Window Repair from $150 | Vosthermos",
     description:
       `Vosthermos replaces foggy sealed glass units and repairs patio doors, hardware and screens. Free quote. ${COMPANY_INFO.phone}`,
@@ -326,8 +326,8 @@ export default async function HomeEn() {
           <div className="hp-shell">
             <SectionHeader
               kicker="Key services"
-              title="The repairs clients ask for most, without replacing everything."
-              text="The English homepage now follows the same premium hierarchy as the French homepage."
+              title="Our most requested repairs"
+              text="Sealed glass units, hardware, doors and windows — repaired by the same local team, with guaranteed work and no unnecessary replacement."
             />
             <div className="hp-service-grid">
               {services.map((service) => (
@@ -351,10 +351,10 @@ export default async function HomeEn() {
           <div className="hp-shell hp-problem-grid">
             <div>
               <span className="hp-red-tag">Fast diagnostic</span>
-              <h2>Clients recognize their problem right away.</h2>
+              <h2>Sealed glass unit replacement from $150</h2>
               <p>
-                The homepage guides people toward concrete issues first, then moves
-                them to a quote or the correct repair service.
+                Recognize one of these problems? A targeted repair is usually all it
+                takes — no need to replace the whole door or window.
               </p>
             </div>
             <div className="hp-problem-list">
@@ -372,8 +372,8 @@ export default async function HomeEn() {
           <div className="hp-shell">
             <SectionHeader
               kicker="Recent work"
-              title="Before and after examples higher on the page."
-              text="Visual proof builds trust faster than a catalog-first layout."
+              title="Before / after: real repair projects"
+              text="Foggy sealed units, worn windows and tired hardware brought back to like-new condition by our technicians."
             />
             <div className="hp-gallery-grid">
               {gallery.map((item) => (
@@ -399,10 +399,10 @@ export default async function HomeEn() {
           <div className="hp-shell hp-shop-grid">
             <div>
               <span className="hp-red-tag">Integrated shop</span>
-              <h2>The parts shop stays visible, but it no longer owns the first impression.</h2>
+              <h2>The right part for your door or window, in stock.</h2>
               <p>
-                The priority is repair conversion first, then the parts catalog supports
-                the company expertise.
+                Patio door rollers, handles, locks, weatherstripping and screens —
+                order online or let our technicians install them for you.
               </p>
               <Link href="/en/boutique" className="hp-btn hp-btn-dark">Browse the shop</Link>
             </div>
@@ -440,7 +440,7 @@ export default async function HomeEn() {
           <div className="hp-shell">
             <SectionHeader
               kicker="Trust"
-              title="Shorter reviews that are easier to scan."
+              title="What our customers say"
             />
             <div className="hp-review-grid">
               {reviews.map((review) => (
@@ -458,7 +458,7 @@ export default async function HomeEn() {
           <div className="hp-shell">
             <SectionHeader
               kicker="Service areas"
-              title="Clear local coverage for SEO and conversion."
+              title="Serving the South Shore, Montreal and Laval"
             />
             <div className="hp-sector-grid">
               {sectors.map((city) => (
@@ -474,7 +474,7 @@ export default async function HomeEn() {
           <div className="hp-shell hp-faq-grid">
             <div>
               <span className="hp-red-tag">FAQ</span>
-              <h2>Answer objections without weighing down the hero.</h2>
+              <h2>Questions? We answer before you commit.</h2>
             </div>
             <div className="hp-faq-list">
               {faqs.map((faq) => (

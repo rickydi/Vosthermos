@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 
 export default function CoproprieteEnRedirect() {
-  redirect("/en/contact?subject=condos");
+  permanentRedirect("/en/contact?subject=condos");
 }

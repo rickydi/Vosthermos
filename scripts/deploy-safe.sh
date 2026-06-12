@@ -47,6 +47,16 @@ rm -rf .next.old
 [ -d .next ] && mv .next .next.old
 mv .next.new .next
 
+# Conserver les assets statiques du build precedent: les pages en cache chez
+# Google/CDN referencent encore les anciens chunks CSS/JS hashes. Sans ca,
+# Googlebot recevait des 404 sur /_next/static/css/* et rendait les pages SANS
+# styles pendant des jours (mesure dans les logs). Les noms sont hashes -> zero
+# collision; -n = ne jamais ecraser un fichier du nouveau build.
+if [ -d .next.old/static ]; then
+  echo "[deploy] preserving previous build static assets (no-clobber merge)"
+  cp -rn .next.old/static/. .next/static/ 2>/dev/null || true
+fi
+
 echo "[deploy] zero-downtime reload pm2 $APP_NAME (cluster mode)"
 pm2 reload "$APP_NAME" --update-env
 

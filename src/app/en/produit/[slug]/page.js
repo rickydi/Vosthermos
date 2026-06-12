@@ -23,6 +23,7 @@ export async function generateMetadata({ params }) {
   return {
     title: `${product.sku} - ${product.nameEn || product.name} | Vosthermos Shop`,
     description: `Buy ${product.nameEn || product.name} (${product.sku}) online. ${product.descriptionEn || product.description || "Replacement part for doors and windows."} Price: $${Number(product.price).toFixed(2)}. Delivery available.`,
+    robots: { index: false, follow: true },
     alternates: {
       canonical: `${BASE}/en/produit/${slug}`,
       languages: {

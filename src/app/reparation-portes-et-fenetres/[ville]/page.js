@@ -53,15 +53,15 @@ const allServices = [
 
 const LOCAL_REPAIR_CITY_PAGES = {
   montreal: {
-    seoTitle: "Reparation fenetres Montreal | Vosthermos",
+    seoTitle: "Réparation fenêtres Montréal | Vosthermos",
     seoDescription:
-      `Reparation fenetres Montreal: thermos embues, manivelles, coupe-froid, calfeutrage, quincaillerie et portes-patio. Reparer avant de remplacer. Soumission gratuite ${COMPANY_INFO.phone}.`,
-    h1: "Reparation fenetres Montreal",
+      `Réparation fenêtres Montréal: thermos embués, manivelles, coupe-froid, calfeutrage, quincaillerie et portes-patio. Réparer avant de remplacer. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Réparation fenêtres Montréal",
     lead:
-      "Service specialise de reparation fenetres Montreal pour triplex, duplex, condos et maisons: thermos embues, manivelles, pentures, coupe-froid, calfeutrage, moustiquaires, cadres de bois, portes-patio et quincaillerie. L'objectif est simple: reparer l'ouverture existante avant de proposer un remplacement complet.",
-    schemaName: "Reparation fenetres Montreal",
+      "Service spécialisé de réparation fenêtres Montréal pour triplex, duplex, condos et maisons: thermos embués, manivelles, pentures, coupe-froid, calfeutrage, moustiquaires, cadres de bois, portes-patio et quincaillerie. L'objectif est simple: réparer l'ouverture existante avant de proposer un remplacement complet.",
+    schemaName: "Réparation fenêtres Montréal",
     schemaDescription:
-      "Service local de reparation de fenetres a Montreal: vitres thermos, quincaillerie, manivelles, portes patio, calfeutrage, coupe-froid, moustiquaires, desembuage, portes et restauration de bois.",
+      "Service local de réparation de fenêtres à Montréal: vitres thermos, quincaillerie, manivelles, portes patio, calfeutrage, coupe-froid, moustiquaires, désembuage, portes et restauration de bois.",
     alternateName: [
       "reparation fenetres Montreal",
       "reparation fenetre Montreal",
@@ -77,63 +77,63 @@ const LOCAL_REPAIR_CITY_PAGES = {
     ],
     sections: [
       {
-        heading: "Reparation fenetres Montreal: reparer avant de remplacer",
+        heading: "Réparation fenêtres Montréal: réparer avant de remplacer",
         paragraphs: [
-          "A Montreal, plusieurs recherches partent d'une seule intention: trouver quelqu'un qui repare les fenetres sans vendre automatiquement une fenetre neuve. Les problemes les plus frequents sont les thermos embues, les manivelles qui tournent dans le vide, les pentures usees, les coupe-froid fatigues, le calfeutrage fissure et les moustiquaires dechirees.",
-          "Le service repond directement a cette intention de reparation fenetres Montreal. Nos techniciens evaluent chaque ouverture et priorisent les reparations ciblees qui prolongent la vie des fenetres existantes lorsque le cadre est encore sain.",
-          "Nous desservons notamment Rosemont, Villeray, Ahuntsic, Verdun, le Plateau, Hochelaga, NDG et les arrondissements centraux pour les soumissions, la prise de mesures, les pieces de quincaillerie, le remplacement de thermos et les travaux d'etancheite.",
+          "À Montréal, plusieurs recherches partent d'une seule intention: trouver quelqu'un qui répare les fenêtres sans vendre automatiquement une fenêtre neuve. Les problèmes les plus fréquents sont les thermos embués, les manivelles qui tournent dans le vide, les pentures usées, les coupe-froid fatigués, le calfeutrage fissuré et les moustiquaires déchirées.",
+          "Le service répond directement à cette intention de réparation fenêtres Montréal. Nos techniciens évaluent chaque ouverture et priorisent les réparations ciblées qui prolongent la vie des fenêtres existantes lorsque le cadre est encore sain.",
+          "Nous desservons notamment Rosemont, Villeray, Ahuntsic, Verdun, le Plateau, Hochelaga, NDG et les arrondissements centraux pour les soumissions, la prise de mesures, les pièces de quincaillerie, le remplacement de thermos et les travaux d'étanchéité.",
         ],
       },
       {
-        heading: "Thermos, quincaillerie, coupe-froid et calfeutrage a Montreal",
+        heading: "Thermos, quincaillerie, coupe-froid et calfeutrage à Montréal",
         paragraphs: [
-          "Une meme fenetre peut demander plus qu'un seul service: remplacement de vitre thermos, reparation de manivelle, changement de serrure, coupe-froid neuf, calfeutrage exterieur ou ajustement du cadre. C'est pourquoi la page Montreal relie les services specialises au lieu de laisser Google choisir une mauvaise page.",
-          "Pour une vitre thermos embuee ou fissuree, la page de remplacement de thermos Montreal est la plus precise. Pour une buee legere, le desembuage Montreal peut etre analyse. Pour une fenetre qui ouvre mal, la quincaillerie et les mecanismes sont verifies en premier.",
-          "Ce maillage garde la page principale forte pour reparation fenetres Montreal, tout en envoyant les recherches plus precises vers la bonne page specialisee.",
+          "Une même fenêtre peut demander plus qu'un seul service: remplacement de vitre thermos, réparation de manivelle, changement de serrure, coupe-froid neuf, calfeutrage extérieur ou ajustement du cadre. C'est pourquoi la page Montréal relie les services spécialisés au lieu de laisser Google choisir une mauvaise page.",
+          "Pour une vitre thermos embuée ou fissurée, la page de remplacement de thermos Montréal est la plus précise. Pour une buée légère, le désembuage Montréal peut être analysé. Pour une fenêtre qui ouvre mal, la quincaillerie et les mécanismes sont vérifiés en premier.",
+          "Ce maillage garde la page principale forte pour réparation fenêtres Montréal, tout en envoyant les recherches plus précises vers la bonne page spécialisée.",
         ],
       },
       {
-        heading: "Preuves utiles pour une soumission a Montreal",
+        heading: "Preuves utiles pour une soumission à Montréal",
         paragraphs: [
-          "Pour accelerer l'estimation, les clients peuvent envoyer des photos de la fenetre, du thermos embue, de la manivelle, de la serrure, du coupe-froid ou du calfeutrage. Cela permet d'identifier la bonne piece et de confirmer si une visite de mesure est necessaire.",
-          "Vosthermos garde un inventaire de plus de 740 pieces de portes et fenetres afin de regler plus rapidement les demandes de quincaillerie, roulettes, poignees, serrures, manivelles, moustiquaires et coupe-froid dans le secteur de Montreal.",
-          "Les travaux courants a Montreal touchent autant les triplex et duplex que les condos, coproprietes, maisons de ville et immeubles locatifs. Le but est de donner une recommandation claire: reparer, remplacer seulement le thermos, ou remplacer l'ouverture seulement si la reparation n'est plus rentable.",
+          "Pour accélérer l'estimation, les clients peuvent envoyer des photos de la fenêtre, du thermos embué, de la manivelle, de la serrure, du coupe-froid ou du calfeutrage. Cela permet d'identifier la bonne pièce et de confirmer si une visite de mesure est nécessaire.",
+          "Vosthermos garde un inventaire de plus de 740 pièces de portes et fenêtres afin de régler plus rapidement les demandes de quincaillerie, roulettes, poignées, serrures, manivelles, moustiquaires et coupe-froid dans le secteur de Montréal.",
+          "Les travaux courants à Montréal touchent autant les triplex et duplex que les condos, copropriétés, maisons de ville et immeubles locatifs. Le but est de donner une recommandation claire: réparer, remplacer seulement le thermos, ou remplacer l'ouverture seulement si la réparation n'est plus rentable.",
         ],
       },
     ],
     faq: [
       {
-        q: "Offrez-vous la reparation fenetres a Montreal?",
-        a: "Oui. Pour une reparation fenetres Montreal, nous verifions le thermos, la manivelle, les pentures, la quincaillerie, le coupe-froid, le calfeutrage, la moustiquaire et le cadre. L'objectif est de reparer la fenetre existante lorsque c'est possible au lieu de proposer un remplacement complet.",
+        q: "Offrez-vous la réparation fenêtres à Montréal?",
+        a: "Oui. Pour une réparation fenêtres Montréal, nous vérifions le thermos, la manivelle, les pentures, la quincaillerie, le coupe-froid, le calfeutrage, la moustiquaire et le cadre. L'objectif est de réparer la fenêtre existante lorsque c'est possible au lieu de proposer un remplacement complet.",
       },
       {
-        q: "Quels problemes de fenetre reparez-vous a Montreal?",
-        a: "Nous reparons les fenetres a Montreal pour les thermos embues, infiltrations d'air, manivelles brisees, serrures usees, coupe-froid fatigues, moustiquaires dechirees, cadres de bois abimes et calfeutrage fissure.",
+        q: "Quels problèmes de fenêtre réparez-vous à Montréal?",
+        a: "Nous réparons les fenêtres à Montréal pour les thermos embués, infiltrations d'air, manivelles brisées, serrures usées, coupe-froid fatigués, moustiquaires déchirées, cadres de bois abîmés et calfeutrage fissuré.",
       },
       {
-        q: "Faites-vous la reparation de portes et fenetres a Montreal?",
-        a: "Oui. Nous reparons les portes et fenetres a Montreal: vitres thermos embuees, quincaillerie, portes patio, calfeutrage, coupe-froid, moustiquaires, desembuage et portes de bois. Le technicien verifie les ouvertures sur place et recommande les travaux utiles.",
+        q: "Faites-vous la réparation de portes et fenêtres à Montréal?",
+        a: "Oui. Nous réparons les portes et fenêtres à Montréal: vitres thermos embuées, quincaillerie, portes patio, calfeutrage, coupe-froid, moustiquaires, désembuage et portes de bois. Le technicien vérifie les ouvertures sur place et recommande les travaux utiles.",
       },
       {
-        q: "Pourquoi reparer plutot que remplacer les portes et fenetres a Montreal?",
-        a: "Dans beaucoup de triplex, duplex et condos de Montreal, le cadre est encore reparable. Remplacer le thermos, la quincaillerie ou le calfeutrage coute souvent beaucoup moins cher qu'une fenetre complete et evite des travaux inutiles.",
+        q: "Pourquoi réparer plutôt que remplacer les portes et fenêtres à Montréal?",
+        a: "Dans beaucoup de triplex, duplex et condos de Montréal, le cadre est encore réparable. Remplacer le thermos, la quincaillerie ou le calfeutrage coûte souvent beaucoup moins cher qu'une fenêtre complète et évite des travaux inutiles.",
       },
       {
-        q: "Quelle page dois-je choisir si ma vitre thermos est embuee a Montreal?",
-        a: "Si la buee est entre les deux vitres, il faut verifier l'unite scellee. La page remplacement vitre thermos Montreal est la plus precise lorsque le thermos doit etre change. La page desembuage Montreal sert a evaluer si une recuperation est possible avant le remplacement.",
+        q: "Quelle page dois-je choisir si ma vitre thermos est embuée à Montréal?",
+        a: "Si la buée est entre les deux vitres, il faut vérifier l'unité scellée. La page remplacement vitre thermos Montréal est la plus précise lorsque le thermos doit être changé. La page désembuage Montréal sert à évaluer si une récupération est possible avant le remplacement.",
       },
     ],
   },
   chateauguay: {
-    seoTitle: "Reparation de portes et fenetres Chateauguay | Vosthermos",
+    seoTitle: "Réparation de portes et fenêtres Châteauguay | Vosthermos",
     seoDescription:
-      `Reparation de portes et fenetres a Chateauguay: thermos embues, quincaillerie, portes patio, calfeutrage, coupe-froid et cadres affectes par l'humidite. Soumission gratuite ${COMPANY_INFO.phone}.`,
-    h1: "Reparation de portes et fenetres a Chateauguay",
+      `Réparation de portes et fenêtres à Châteauguay: thermos embués, quincaillerie, portes patio, calfeutrage, coupe-froid et cadres affectés par l'humidité. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Réparation de portes et fenêtres à Châteauguay",
     lead:
-      "Service complet de reparation de portes et fenetres a Chateauguay pour bungalows, split-levels, maisons unifamiliales et proprietes pres de la riviere: thermos embues, quincaillerie usee, portes patio, calfeutrage, coupe-froid et cadres fatigues.",
-    schemaName: "Reparation de portes et fenetres a Chateauguay",
+      "Service complet de réparation de portes et fenêtres à Châteauguay pour bungalows, split-levels, maisons unifamiliales et propriétés près de la rivière: thermos embués, quincaillerie usée, portes patio, calfeutrage, coupe-froid et cadres fatigués.",
+    schemaName: "Réparation de portes et fenêtres à Châteauguay",
     schemaDescription:
-      "Service local de reparation de portes et fenetres a Chateauguay: vitres thermos, quincaillerie, portes patio, calfeutrage, coupe-froid, moustiquaires, cadres et etancheite.",
+      "Service local de réparation de portes et fenêtres à Châteauguay: vitres thermos, quincaillerie, portes patio, calfeutrage, coupe-froid, moustiquaires, cadres et étanchéité.",
     alternateName: [
       "reparation de portes et fenetres Chateauguay",
       "reparation portes et fenetres Chateauguay",
@@ -143,135 +143,132 @@ const LOCAL_REPAIR_CITY_PAGES = {
     ],
     sections: [
       {
-        heading: "Reparation de portes et fenetres Chateauguay: humidite, thermos et quincaillerie",
+        heading: "Réparation de portes et fenêtres Châteauguay: humidité, thermos et quincaillerie",
         paragraphs: [
-          "A Chateauguay, la proximite de la riviere Chateauguay et du fleuve Saint-Laurent expose les portes et fenetres a plus d'humidite. Les joints fatiguent, les cadres travaillent, les thermos deviennent embues et la quincaillerie peut s'user plus rapidement.",
-          "Le service a Chateauguay couvre la reparation complete de portes et fenetres, pas seulement une porte-fenetre a battant. Nos techniciens verifient les thermos, manivelles, roulettes, serrures, coupe-froid, calfeutrage, moustiquaires et cadres avant de recommander une intervention.",
-          "Nous desservons le centre-ville, Chateauguay-Centre, Maple Grove, Lery et Mercier-Ouest pour les bungalows et split-levels des annees 1960 a 1980, ou une reparation ciblee coute souvent moins cher qu'un remplacement complet.",
+          "À Châteauguay, la proximité de la rivière Châteauguay et du fleuve Saint-Laurent expose les portes et fenêtres à plus d'humidité. Les joints fatiguent, les cadres travaillent, les thermos deviennent embués et la quincaillerie peut s'user plus rapidement.",
+          "Le service à Châteauguay couvre la réparation complète de portes et fenêtres, pas seulement une porte-fenêtre à battant. Nos techniciens vérifient les thermos, manivelles, roulettes, serrures, coupe-froid, calfeutrage, moustiquaires et cadres avant de recommander une intervention.",
+          "Nous desservons le centre-ville, Châteauguay-Centre, Maple Grove, Léry et Mercier-Ouest pour les bungalows et split-levels des années 1960 à 1980, où une réparation ciblée coûte souvent moins cher qu'un remplacement complet.",
         ],
       },
     ],
     faq: [
       {
-        q: "Faites-vous la reparation de portes et fenetres a Chateauguay?",
-        a: "Oui. Nous reparons les portes et fenetres a Chateauguay: vitres thermos embuees, quincaillerie, portes patio, calfeutrage, coupe-froid, moustiquaires et cadres. Le technicien verifie chaque ouverture et recommande la reparation utile.",
+        q: "Faites-vous la réparation de portes et fenêtres à Châteauguay?",
+        a: "Oui. Nous réparons les portes et fenêtres à Châteauguay: vitres thermos embuées, quincaillerie, portes patio, calfeutrage, coupe-froid, moustiquaires et cadres. Le technicien vérifie chaque ouverture et recommande la réparation utile.",
       },
       {
-        q: "Quelle est la difference entre reparation de portes et fenetres et porte-fenetre?",
-        a: "Une porte-fenetre vise surtout un type de porte a battant avec mecanisme, charnieres et poignee. La reparation de portes et fenetres couvre l'ensemble des ouvertures: fenetres, thermos, portes patio, quincaillerie, calfeutrage, coupe-froid et cadres.",
+        q: "Quelle est la différence entre réparation de portes et fenêtres et porte-fenêtre?",
+        a: "Une porte-fenêtre vise surtout un type de porte à battant avec mécanisme, charnières et poignée. La réparation de portes et fenêtres couvre l'ensemble des ouvertures: fenêtres, thermos, portes patio, quincaillerie, calfeutrage, coupe-froid et cadres.",
       },
     ],
   },
   "saint-lambert": {
-    seoTitle: "Reparation de portes et fenetres Saint-Lambert | Vosthermos",
+    seoTitle: "Réparation de portes et fenêtres Saint-Lambert | Vosthermos",
     seoDescription:
-      `Reparation de portes et fenetres a Saint-Lambert: thermos embues, fenetres en bois, quincaillerie, calfeutrage, coupe-froid et portes patio. Soumission gratuite ${COMPANY_INFO.phone}.`,
-    h1: "Reparation de portes et fenetres a Saint-Lambert",
+      `Réparation de portes et fenêtres à Saint-Lambert: thermos embués, fenêtres en bois, quincaillerie, calfeutrage, coupe-froid et portes patio. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Réparation de portes et fenêtres à Saint-Lambert",
     lead:
-      "Service local de reparation de portes et fenetres a Saint-Lambert pour maisons de caractere, condos et coproprietes: remplacement de thermos, quincaillerie, calfeutrage, coupe-froid, moustiquaires, portes patio et fenetres en bois.",
-    schemaName: "Reparation de portes et fenetres a Saint-Lambert",
+      "Service local de réparation de portes et fenêtres à Saint-Lambert pour maisons de caractère, condos et copropriétés: remplacement de thermos, quincaillerie, calfeutrage, coupe-froid, moustiquaires, portes patio et fenêtres en bois.",
+    schemaName: "Réparation de portes et fenêtres à Saint-Lambert",
     schemaDescription:
-      "Service local a Saint-Lambert pour reparer portes et fenetres: vitres thermos, fenetres en bois, quincaillerie, portes patio, calfeutrage, coupe-froid et moustiquaires.",
+      "Service local à Saint-Lambert pour réparer portes et fenêtres: vitres thermos, fenêtres en bois, quincaillerie, portes patio, calfeutrage, coupe-froid et moustiquaires.",
     alternateName: [
       "reparation fenetre Saint-Lambert",
       "reparation fenetres Saint-Lambert",
       "reparation portes et fenetres Saint-Lambert",
-      "remplacement thermos Saint-Lambert",
       "fenetre Saint-Lambert",
     ],
     sections: [
       {
-        heading: "Reparation de fenetres Saint-Lambert: thermos, bois et etancheite",
+        heading: "Réparation de fenêtres Saint-Lambert: thermos, bois et étanchéité",
         paragraphs: [
-          "A Saint-Lambert, plusieurs proprietes ont une valeur architecturale ou un niveau de finition qui merite une reparation precise plutot qu'un remplacement complet. Les thermos peuvent etre changes, les cadres en bois peuvent etre ajustes et la quincaillerie peut etre remise en fonction sans denaturer la maison.",
-          "Nous intervenons dans le Village, Preville, Riverside, Alexandra et les secteurs pres de la gare pour les fenetres embuees, les portes patio difficiles a glisser, le calfeutrage fatigue et les coupe-froid qui laissent passer l'air.",
-          "L'objectif est de garder le cadre existant lorsqu'il est sain, de corriger la vraie cause du probleme et d'eviter les travaux inutiles.",
+          "À Saint-Lambert, plusieurs propriétés ont une valeur architecturale ou un niveau de finition qui mérite une réparation précise plutôt qu'un remplacement complet. Les thermos peuvent être changés, les cadres en bois peuvent être ajustés et la quincaillerie peut être remise en fonction sans dénaturer la maison.",
+          "Nous intervenons dans le Village, Préville, Riverside, Alexandra et les secteurs près de la gare pour les fenêtres embuées, les portes patio difficiles à glisser, le calfeutrage fatigué et les coupe-froid qui laissent passer l'air.",
+          "L'objectif est de garder le cadre existant lorsqu'il est sain, de corriger la vraie cause du problème et d'éviter les travaux inutiles.",
         ],
       },
     ],
     faq: [
       {
-        q: "Reparez-vous les fenetres en bois a Saint-Lambert?",
-        a: "Oui. Nous pouvons restaurer les cadres en bois, remplacer le thermos, ajuster les mecanismes, refaire le calfeutrage et ameliorer l'etancheite sans enlever le cachet de la propriete.",
+        q: "Réparez-vous les fenêtres en bois à Saint-Lambert?",
+        a: "Oui. Nous pouvons restaurer les cadres en bois, remplacer le thermos, ajuster les mécanismes, refaire le calfeutrage et améliorer l'étanchéité sans enlever le cachet de la propriété.",
       },
       {
-        q: "Faites-vous les condos et coproprietes a Saint-Lambert?",
-        a: "Oui. Nous pouvons intervenir pour une unite ou regrouper plusieurs thermos dans une copropriete afin de simplifier la prise de mesures, la commande et l'installation.",
+        q: "Faites-vous les condos et copropriétés à Saint-Lambert?",
+        a: "Oui. Nous pouvons intervenir pour une unité ou regrouper plusieurs thermos dans une copropriété afin de simplifier la prise de mesures, la commande et l'installation.",
       },
     ],
   },
   "saint-hubert": {
-    seoTitle: "Reparation de portes et fenetres Saint-Hubert | Vosthermos",
+    seoTitle: "Réparation de portes et fenêtres Saint-Hubert | Vosthermos",
     seoDescription:
-      `Reparation de portes et fenetres a Saint-Hubert: thermos embues, portes patio, manivelles, quincaillerie, calfeutrage et coupe-froid. Soumission gratuite ${COMPANY_INFO.phone}.`,
-    h1: "Reparation de portes et fenetres a Saint-Hubert",
+      `Réparation de portes et fenêtres à Saint-Hubert: thermos embués, portes patio, manivelles, quincaillerie, calfeutrage et coupe-froid. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Réparation de portes et fenêtres à Saint-Hubert",
     lead:
-      "Service complet de reparation de portes et fenetres a Saint-Hubert pour bungalows, split-levels, jumeles, maisons de ville et condos: thermos, portes patio, quincaillerie, coupe-froid, moustiquaires et calfeutrage.",
-    schemaName: "Reparation de portes et fenetres a Saint-Hubert",
+      "Service complet de réparation de portes et fenêtres à Saint-Hubert pour bungalows, split-levels, jumelés, maisons de ville et condos: thermos, portes patio, quincaillerie, coupe-froid, moustiquaires et calfeutrage.",
+    schemaName: "Réparation de portes et fenêtres à Saint-Hubert",
     schemaDescription:
-      "Service local de reparation a Saint-Hubert pour vitres thermos, portes patio, quincaillerie, manivelles, coupe-froid, moustiquaires et calfeutrage.",
+      "Service local de réparation à Saint-Hubert pour vitres thermos, portes patio, quincaillerie, manivelles, coupe-froid, moustiquaires et calfeutrage.",
     alternateName: [
       "reparation fenetre Saint-Hubert",
       "reparation portes et fenetres Saint-Hubert",
-      "remplacement thermos Saint-Hubert",
       "reparation porte patio Saint-Hubert",
       "fenetre Saint-Hubert",
     ],
     sections: [
       {
-        heading: "Reparation Saint-Hubert: thermos, portes patio et quincaillerie",
+        heading: "Réparation Saint-Hubert: thermos, portes patio et quincaillerie",
         paragraphs: [
-          "Saint-Hubert regroupe un tres grand nombre de maisons construites entre les annees 1970 et 2000. C'est exactement l'age ou les thermos perdent leur etancheite, ou les manivelles fatiguent et ou les portes patio deviennent lourdes a glisser.",
-          "Nous couvrons Lafleche, Maricourt, Orchard, Grande Allee et les secteurs pres du Parc de la Cite pour verifier chaque ouverture et proposer la reparation la plus rentable.",
-          "Quand le cadre est sain, remplacer le thermos, les roulettes, la manivelle, le coupe-froid ou le calfeutrage coute beaucoup moins cher qu'une fenetre neuve.",
+          "Saint-Hubert regroupe un très grand nombre de maisons construites entre les années 1970 et 2000. C'est exactement l'âge où les thermos perdent leur étanchéité, où les manivelles fatiguent et où les portes patio deviennent lourdes à glisser.",
+          "Nous couvrons Laflèche, Maricourt, Orchard, Grande Allée et les secteurs près du Parc de la Cité pour vérifier chaque ouverture et proposer la réparation la plus rentable.",
+          "Quand le cadre est sain, remplacer le thermos, les roulettes, la manivelle, le coupe-froid ou le calfeutrage coûte beaucoup moins cher qu'une fenêtre neuve.",
         ],
       },
     ],
     faq: [
       {
-        q: "Faites-vous le remplacement de thermos a Saint-Hubert?",
-        a: "Oui. Nous remplacons les vitres thermos embuees ou fissurees a Saint-Hubert en conservant le cadre existant lorsque possible.",
+        q: "Faites-vous le remplacement de thermos à Saint-Hubert?",
+        a: "Oui. Nous remplaçons les vitres thermos embuées ou fissurées à Saint-Hubert en conservant le cadre existant lorsque possible.",
       },
       {
-        q: "Reparez-vous les portes patio a Saint-Hubert?",
-        a: "Oui. Nous remplacons les roulettes, ajustons le rail, changeons la serrure, la poignee et le coupe-froid afin que la porte glisse mieux sans devoir remplacer toute la porte.",
+        q: "Réparez-vous les portes patio à Saint-Hubert?",
+        a: "Oui. Nous remplaçons les roulettes, ajustons le rail, changeons la serrure, la poignée et le coupe-froid afin que la porte glisse mieux sans devoir remplacer toute la porte.",
       },
     ],
   },
   "greenfield-park": {
-    seoTitle: "Reparation de portes et fenetres Greenfield Park | Vosthermos",
+    seoTitle: "Réparation de portes et fenêtres Greenfield Park | Vosthermos",
     seoDescription:
-      `Reparation de portes et fenetres a Greenfield Park: thermos embues, quincaillerie, portes patio, coupe-froid, moustiquaires et calfeutrage. Soumission gratuite ${COMPANY_INFO.phone}.`,
-    h1: "Reparation de portes et fenetres a Greenfield Park",
+      `Réparation de portes et fenêtres à Greenfield Park: thermos embués, quincaillerie, portes patio, coupe-froid, moustiquaires et calfeutrage. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Réparation de portes et fenêtres à Greenfield Park",
     lead:
-      "Service local a Greenfield Park pour reparer les portes et fenetres des maisons, duplex, petits immeubles et condos: thermos, quincaillerie, portes patio, calfeutrage, coupe-froid et moustiquaires.",
-    schemaName: "Reparation de portes et fenetres a Greenfield Park",
+      "Service local à Greenfield Park pour réparer les portes et fenêtres des maisons, duplex, petits immeubles et condos: thermos, quincaillerie, portes patio, calfeutrage, coupe-froid et moustiquaires.",
+    schemaName: "Réparation de portes et fenêtres à Greenfield Park",
     schemaDescription:
-      "Service de reparation de portes et fenetres a Greenfield Park: vitres thermos, quincaillerie, portes patio, coupe-froid, moustiquaires et calfeutrage.",
+      "Service de réparation de portes et fenêtres à Greenfield Park: vitres thermos, quincaillerie, portes patio, coupe-froid, moustiquaires et calfeutrage.",
     alternateName: [
       "reparation fenetre Greenfield Park",
       "reparation portes et fenetres Greenfield Park",
-      "remplacement thermos Greenfield Park",
       "fenetre Greenfield Park",
     ],
     sections: [
       {
-        heading: "Greenfield Park: reparer les fenetres existantes avant de remplacer",
+        heading: "Greenfield Park: réparer les fenêtres existantes avant de remplacer",
         paragraphs: [
-          "Greenfield Park compte beaucoup de maisons et petits immeubles dont les cadres sont encore reparables, meme si les thermos, manivelles, coupe-froid ou portes patio montrent des signes d'usure.",
-          "Nous intervenons dans les secteurs Churchill, Bellevue, Empire, Victoria et Regent pour les fenetres embuees, les portes patio lourdes, les moustiquaires endommagees et les problemes d'infiltration d'air.",
-          "La reparation ciblee permet souvent de prolonger la vie des ouvertures existantes tout en ameliorant le confort et l'isolation.",
+          "Greenfield Park compte beaucoup de maisons et petits immeubles dont les cadres sont encore réparables, même si les thermos, manivelles, coupe-froid ou portes patio montrent des signes d'usure.",
+          "Nous intervenons dans les secteurs Churchill, Bellevue, Empire, Victoria et Regent pour les fenêtres embuées, les portes patio lourdes, les moustiquaires endommagées et les problèmes d'infiltration d'air.",
+          "La réparation ciblée permet souvent de prolonger la vie des ouvertures existantes tout en améliorant le confort et l'isolation.",
         ],
       },
     ],
     faq: [
       {
         q: "Desservez-vous Greenfield Park?",
-        a: "Oui. Greenfield Park fait partie de notre zone de service locale pour la reparation de portes et fenetres, le remplacement de thermos, les portes patio, la quincaillerie et le calfeutrage.",
+        a: "Oui. Greenfield Park fait partie de notre zone de service locale pour la réparation de portes et fenêtres, le remplacement de thermos, les portes patio, la quincaillerie et le calfeutrage.",
       },
       {
-        q: "Une vieille fenetre de Greenfield Park peut-elle etre reparee?",
-        a: "Souvent oui. Si le cadre est sain, remplacer le thermos, la quincaillerie ou le coupe-froid peut eviter un remplacement complet beaucoup plus couteux.",
+        q: "Une vieille fenêtre de Greenfield Park peut-elle être réparée?",
+        a: "Souvent oui. Si le cadre est sain, remplacer le thermos, la quincaillerie ou le coupe-froid peut éviter un remplacement complet beaucoup plus coûteux.",
       },
     ],
   },
@@ -375,7 +372,21 @@ export default async function ReparationVillePage({ params }) {
     return service;
   };
 
-  const otherCities = CITIES.filter((c) => c.slug !== city.slug).slice(0, 12);
+  // « Villes à proximité » triées par VRAIE distance (haversine sur les coords
+  // de cities.js) — avant: slice(0,12) listait Montréal comme « proche » de Granby,
+  // et ~50 villes ne recevaient aucun lien interne.
+  const distKm = (a, b) => {
+    const rad = Math.PI / 180;
+    const dLat = (b.lat - a.lat) * rad;
+    const dLng = (b.lng - a.lng) * rad;
+    const s = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLng / 2) ** 2;
+    return 6371 * 2 * Math.asin(Math.sqrt(s));
+  };
+  const otherCities = city.coords
+    ? CITIES.filter((c) => c.slug !== city.slug && c.coords)
+        .sort((x, y) => distKm(city.coords, x.coords) - distKm(city.coords, y.coords))
+        .slice(0, 12)
+    : CITIES.filter((c) => c.slug !== city.slug).slice(0, 12);
 
   const provider = {
     "@type": "LocalBusiness",
@@ -449,15 +460,21 @@ export default async function ReparationVillePage({ params }) {
     },
   };
 
+  // Dé-cannibalisation: la page ville ne répond plus elle-même aux questions
+  // « thermos » (prix, remplacement) — c'est le territoire exclusif de
+  // /services/remplacement-vitre-thermos/[ville]. On garde ici uniquement
+  // l'intention « réparation de portes et fenêtres » + les FAQ locales non-thermos.
+  const cityFaq = (city.faq || []).filter((f) => !/thermos/i.test(f.question || ""));
+
   const faqItems = [
     ...(localPage?.faq || []),
     {
       q: `Quels services de réparation de portes et fenêtres offrez-vous à ${city.name}?`,
-      a: `À ${city.name}, nous offrons la gamme complète de réparation de portes et fenêtres : remplacement de quincaillerie (poignées, serrures, roulettes), remplacement de vitres thermos embuées, réparation de portes en bois, fabrication de moustiquaires sur mesure, calfeutrage, coupe-froid, désembuage et insertion de porte. Tous nos travaux sont garantis.`,
+      a: `À ${city.name}, nous offrons la gamme complète de réparation de portes et fenêtres : remplacement de quincaillerie (poignées, serrures, roulettes), réparation de portes en bois, fabrication de moustiquaires sur mesure, calfeutrage, coupe-froid et insertion de porte. Pour une vitre embuée, consultez notre page dédiée au remplacement de vitre. Tous nos travaux sont garantis.`,
     },
     {
       q: `Combien coûte une réparation de fenêtres à ${city.name}?`,
-      a: `Le coût varie selon le type de réparation. Un remplacement de thermos débute à environ 150$ par unité installée, la quincaillerie à partir de 4.99$ la pièce. Nous offrons des soumissions gratuites à domicile partout à ${city.name} et dans la région de ${city.region}. Appelez-nous au ${COMPANY_INFO.phone}.`,
+      a: `Le coût dépend du type de réparation : la quincaillerie débute à 4,99$ la pièce et la majorité des réparations coûtent une fraction du prix d'une fenêtre neuve. Nous offrons des soumissions gratuites à domicile partout à ${city.name} et dans la région de ${city.region}. Appelez-nous au ${COMPANY_INFO.phone}.`,
     },
     {
       q: `Est-ce que Vosthermos se déplace à ${city.name}?`,
@@ -465,18 +482,28 @@ export default async function ReparationVillePage({ params }) {
     },
     {
       q: `Vaut-il mieux réparer ou remplacer mes fenêtres à ${city.name}?`,
-      a: `Dans la majorité des cas, la réparation est beaucoup plus économique que le remplacement complet. Un remplacement de thermos ou de quincaillerie peut prolonger la vie de vos fenêtres de 15 à 20 ans à une fraction du coût d'une fenêtre neuve. Notre technicien évaluera l'état de vos fenêtres lors de la soumission gratuite et vous recommandera la meilleure option.`,
+      a: `Dans la majorité des cas, la réparation est beaucoup plus économique que le remplacement complet. Une réparation ciblée (vitre, quincaillerie, coupe-froid) peut prolonger la vie de vos fenêtres de 15 à 20 ans à une fraction du coût d'une fenêtre neuve. Notre technicien évaluera l'état de vos fenêtres lors de la soumission gratuite et vous recommandera la meilleure option.`,
     },
   ];
 
   const faqJsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: faqItems.map((item) => ({
-      "@type": "Question",
-      name: item.q,
-      acceptedAnswer: { "@type": "Answer", text: item.a },
-    })),
+    // Les FAQ locales de cities.js (le contenu le plus différenciant de la page)
+    // font maintenant partie du schema — elles étaient affichées mais absentes
+    // du JSON-LD, donc invisibles pour les rich results.
+    mainEntity: [
+      ...faqItems.map((item) => ({
+        "@type": "Question",
+        name: item.q,
+        acceptedAnswer: { "@type": "Answer", text: item.a },
+      })),
+      ...cityFaq.map((item) => ({
+        "@type": "Question",
+        name: item.question,
+        acceptedAnswer: { "@type": "Answer", text: item.answer },
+      })),
+    ],
   };
 
   return (
@@ -586,6 +613,23 @@ export default async function ReparationVillePage({ params }) {
             <p className="text-[var(--color-muted)] leading-relaxed">
               Avec plus de 15 ans d&apos;expérience et un inventaire de plus de 700 pièces de quincaillerie, nous sommes en mesure de réparer la très grande majorité des portes et fenêtres résidentielles, peu importe la marque ou l&apos;année d&apos;installation. Tous nos travaux sont garantis et nos soumissions sont gratuites.
             </p>
+            {/* Problèmes courants locaux (cities.js) — le contenu le plus différenciant
+                par ville, auparavant affiché uniquement sur les pages service×ville. */}
+            {city.commonIssues && city.commonIssues.length > 0 && (
+              <div className="mt-10">
+                <h2 className="text-2xl font-extrabold mb-4">
+                  Problèmes courants à {city.name}
+                </h2>
+                <ul className="space-y-3">
+                  {city.commonIssues.map((issue) => (
+                    <li key={issue} className="flex items-start gap-3 text-[var(--color-muted)] leading-relaxed">
+                      <i className="fas fa-circle-check text-[var(--color-teal)] mt-1.5 flex-shrink-0"></i>
+                      <span>{issue}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             {localPage?.sections?.map((section) => (
               <div key={section.heading} className="mt-10">
                 <h2 className="text-2xl font-extrabold mb-4">
@@ -733,8 +777,8 @@ export default async function ReparationVillePage({ params }) {
                 </div>
               </details>
             ))}
-            {/* Also display city-specific FAQ if available */}
-            {city.faq && city.faq.map((item, i) => (
+            {/* FAQ locales (non-thermos: celles-ci vivent sur la page service dédiée) */}
+            {cityFaq.map((item, i) => (
               <details
                 key={`city-${i}`}
                 className="group bg-white rounded-xl shadow-sm border border-[var(--color-border)] overflow-hidden"

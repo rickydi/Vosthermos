@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { SERVICES, getService } from "@/lib/services-data";
-import { SERVICES_EN } from "@/lib/services-data-en";
 import { CITIES, getCity } from "@/lib/cities";
 import { getServiceSeo } from "@/lib/seo-templates";
 import QuoteForm from "@/components/QuoteForm";
@@ -9,92 +8,92 @@ import { COMPANY_INFO } from "@/lib/company-info";
 
 const LOCAL_SERVICE_CITY_PAGES = {
   "reparation-porte-patio:beloeil": {
-    seoTitle: "Reparation porte patio Beloeil | Roulettes et rail",
+    seoTitle: "Réparation porte patio Beloeil | Roulettes et rail",
     seoDescription:
-      `Porte patio difficile a ouvrir a Beloeil? Reparation de roulettes, rail, serrure, poignee et coupe-froid. Service a domicile a Beloeil. Soumission gratuite ${COMPANY_INFO.phone}.`,
-    h1: "Reparation de porte patio a Beloeil",
+      `Porte patio difficile à ouvrir à Beloeil? Réparation de roulettes, rail, serrure, poignée et coupe-froid. Service à domicile à Beloeil. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Réparation de porte patio à Beloeil",
     lead:
-      "Service specialise de reparation de porte patio a Beloeil: roulettes usees, rail encrasse, serrure bloquee, poignee brisee, coupe-froid fatigue ou thermos embue.",
-    schemaName: "Reparation de porte patio a Beloeil",
+      "Service spécialisé de réparation de porte patio à Beloeil: roulettes usées, rail encrassé, serrure bloquée, poignée brisée, coupe-froid fatigué ou thermos embué.",
+    schemaName: "Réparation de porte patio à Beloeil",
     schemaDescription:
-      "Reparation de portes patio coulissantes a Beloeil: remplacement de roulettes, ajustement de rail, serrure, poignee, coupe-froid et thermos.",
-    serviceType: "Reparation de porte patio",
+      "Réparation de portes patio coulissantes à Beloeil: remplacement de roulettes, ajustement de rail, serrure, poignée, coupe-froid et thermos.",
+    serviceType: "Réparation de porte patio",
     alternateName: ["reparation porte patio Beloeil", "reparation porte-patio Beloeil"],
     sections: [
       {
-        heading: "Reparation porte patio Beloeil: roulettes, rail et serrure",
+        heading: "Réparation porte patio Beloeil: roulettes, rail et serrure",
         paragraphs: [
-          "A Beloeil, beaucoup de portes patio installees dans les maisons des annees 1970 a 2000 commencent a forcer sur le rail. Les roulettes s'aplatissent, le rail accumule de la salete et la porte devient lourde a ouvrir.",
-          "Nos techniciens interviennent dans le Vieux-Beloeil, le secteur de la Montagne, le Domaine Beloeil, la rue Richelieu et le boulevard Sir-Wilfrid-Laurier pour remettre les portes patio en fonction sans remplacer la porte complete.",
-          "La proximite de la riviere Richelieu peut aussi accelerer la corrosion de la quincaillerie et fatiguer les coupe-froids. On verifie les roulettes, le rail, la poignee, la serrure et l'etancheite avant de recommander la reparation la plus economique.",
+          "À Beloeil, beaucoup de portes patio installées dans les maisons des années 1970 à 2000 commencent à forcer sur le rail. Les roulettes s'aplatissent, le rail accumule de la saleté et la porte devient lourde à ouvrir.",
+          "Nos techniciens interviennent dans le Vieux-Beloeil, le secteur de la Montagne, le Domaine Beloeil, la rue Richelieu et le boulevard Sir-Wilfrid-Laurier pour remettre les portes patio en fonction sans remplacer la porte complète.",
+          "La proximité de la rivière Richelieu peut aussi accélérer la corrosion de la quincaillerie et fatiguer les coupe-froids. On vérifie les roulettes, le rail, la poignée, la serrure et l'étanchéité avant de recommander la réparation la plus économique.",
         ],
       },
     ],
     issues: [
-      "Porte patio lourde ou difficile a glisser dans les maisons du Domaine Beloeil et du secteur de la Montagne",
-      "Roulettes usees, rail sale ou seuil abime sur les portes patio des constructions 1970-2000",
-      "Poignee, serrure ou coupe-froid fatigues dans les secteurs plus humides pres de la rue Richelieu",
+      "Porte patio lourde ou difficile à glisser dans les maisons du Domaine Beloeil et du secteur de la Montagne",
+      "Roulettes usées, rail sale ou seuil abîmé sur les portes patio des constructions 1970-2000",
+      "Poignée, serrure ou coupe-froid fatigués dans les secteurs plus humides près de la rue Richelieu",
     ],
     faq: [
       {
-        q: "Reparez-vous les portes patio a Beloeil?",
-        a: "Oui. Nous reparons les portes patio a Beloeil: roulettes, rail, serrure, poignee, coupe-froid et thermos. Le technicien se deplace sur place et verifie si la porte peut etre reparee avant de proposer un remplacement complet.",
+        q: "Réparez-vous les portes patio à Beloeil?",
+        a: "Oui. Nous réparons les portes patio à Beloeil: roulettes, rail, serrure, poignée, coupe-froid et thermos. Le technicien se déplace sur place et vérifie si la porte peut être réparée avant de proposer un remplacement complet.",
       },
       {
-        q: "Combien coute une reparation de porte patio a Beloeil?",
-        a: "La plupart des reparations de porte patio coutent entre 150$ et 600$ selon le probleme. Le remplacement de roulettes ou l'ajustement du rail coute beaucoup moins cher qu'une porte neuve. La soumission est gratuite.",
+        q: "Combien coûte une réparation de porte patio à Beloeil?",
+        a: "La plupart des réparations de porte patio coûtent entre 150$ et 600$ selon le problème. Le remplacement de roulettes ou l'ajustement du rail coûte beaucoup moins cher qu'une porte neuve. La soumission est gratuite.",
       },
     ],
   },
   "reparation-porte-patio:beauharnois": {
-    seoTitle: "Reparation porte patio Beauharnois | Roulettes et rail",
+    seoTitle: "Réparation porte patio Beauharnois | Roulettes et rail",
     seoDescription:
-      `Porte patio difficile a ouvrir a Beauharnois? Reparation de roulettes, rail, serrure, poignee et coupe-froid. Service a domicile a Beauharnois. Soumission gratuite ${COMPANY_INFO.phone}.`,
-    h1: "Reparation de porte patio a Beauharnois",
+      `Porte patio difficile à ouvrir à Beauharnois? Réparation de roulettes, rail, serrure, poignée et coupe-froid. Service à domicile à Beauharnois. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Réparation de porte patio à Beauharnois",
     lead:
-      "Service specialise de reparation de porte patio a Beauharnois: roulettes usees, rail encrasse, serrure bloquee, poignee brisee, coupe-froid fatigue ou thermos embue.",
-    schemaName: "Reparation de porte patio a Beauharnois",
+      "Service spécialisé de réparation de porte patio à Beauharnois: roulettes usées, rail encrassé, serrure bloquée, poignée brisée, coupe-froid fatigué ou thermos embué.",
+    schemaName: "Réparation de porte patio à Beauharnois",
     schemaDescription:
-      "Reparation de portes patio coulissantes a Beauharnois: remplacement de roulettes, ajustement de rail, serrure, poignee, coupe-froid et thermos.",
-    serviceType: "Reparation de porte patio",
+      "Réparation de portes patio coulissantes à Beauharnois: remplacement de roulettes, ajustement de rail, serrure, poignée, coupe-froid et thermos.",
+    serviceType: "Réparation de porte patio",
     alternateName: ["reparation porte patio Beauharnois", "reparation porte-patio Beauharnois"],
     sections: [
       {
-        heading: "Reparation porte patio Beauharnois: roulettes, rail et serrure",
+        heading: "Réparation porte patio Beauharnois: roulettes, rail et serrure",
         paragraphs: [
-          "A Beauharnois, l'humidite du canal de Beauharnois et du lac Saint-Louis peut accelerer la corrosion des roulettes, serrures et rails de portes patio. Une porte qui devient lourde a ouvrir n'a pas toujours besoin d'etre remplacee.",
-          "Nos techniciens interviennent dans le centre-ville, Maple Grove, le secteur du Canal, Melocheville et Saint-Etienne-de-Beauharnois pour reparer les portes patio sur place: roulettes, rail, poignee, serrure, coupe-froid et thermos.",
-          "Les maisons ouvrieres plus anciennes et les constructions des annees 1980-2000 ont souvent des portes patio reparables. On verifie l'alignement, l'etat du rail et la quincaillerie avant de recommander la solution la plus economique.",
+          "À Beauharnois, l'humidité du canal de Beauharnois et du lac Saint-Louis peut accélérer la corrosion des roulettes, serrures et rails de portes patio. Une porte qui devient lourde à ouvrir n'a pas toujours besoin d'être remplacée.",
+          "Nos techniciens interviennent dans le centre-ville, Maple Grove, le secteur du Canal, Melocheville et Saint-Étienne-de-Beauharnois pour réparer les portes patio sur place: roulettes, rail, poignée, serrure, coupe-froid et thermos.",
+          "Les maisons ouvrières plus anciennes et les constructions des années 1980-2000 ont souvent des portes patio réparables. On vérifie l'alignement, l'état du rail et la quincaillerie avant de recommander la solution la plus économique.",
         ],
       },
     ],
     issues: [
-      "Roulettes et rails de porte patio corrodes par l'humidite du canal de Beauharnois",
-      "Portes patio lourdes ou difficiles a glisser dans les maisons de Maple Grove et du centre-ville",
-      "Poignee, serrure ou coupe-froid fatigues dans les secteurs riverains pres du lac Saint-Louis",
+      "Roulettes et rails de porte patio corrodés par l'humidité du canal de Beauharnois",
+      "Portes patio lourdes ou difficiles à glisser dans les maisons de Maple Grove et du centre-ville",
+      "Poignée, serrure ou coupe-froid fatigués dans les secteurs riverains près du lac Saint-Louis",
     ],
     faq: [
       {
-        q: "Reparez-vous les portes patio a Beauharnois?",
-        a: "Oui. Nous reparons les portes patio a Beauharnois: roulettes, rail, serrure, poignee, coupe-froid et thermos. Le technicien se deplace sur place et verifie si la porte peut etre reparee avant de proposer un remplacement complet.",
+        q: "Réparez-vous les portes patio à Beauharnois?",
+        a: "Oui. Nous réparons les portes patio à Beauharnois: roulettes, rail, serrure, poignée, coupe-froid et thermos. Le technicien se déplace sur place et vérifie si la porte peut être réparée avant de proposer un remplacement complet.",
       },
       {
-        q: "Combien coute une reparation de porte patio a Beauharnois?",
-        a: "La plupart des reparations de porte patio coutent entre 150$ et 600$ selon le probleme. Le remplacement de roulettes, l'ajustement du rail ou le changement de serrure coute beaucoup moins cher qu'une porte neuve. La soumission est gratuite.",
+        q: "Combien coûte une réparation de porte patio à Beauharnois?",
+        a: "La plupart des réparations de porte patio coûtent entre 150$ et 600$ selon le problème. Le remplacement de roulettes, l'ajustement du rail ou le changement de serrure coûte beaucoup moins cher qu'une porte neuve. La soumission est gratuite.",
       },
     ],
   },
   "reparation-porte-patio:montreal": {
-    seoTitle: "Reparation porte patio Montreal | Roulettes et rail",
+    seoTitle: "Réparation porte patio Montréal | Roulettes et rail",
     seoDescription:
-      `Porte patio difficile a ouvrir a Montreal? Reparation de roulettes, rail, serrure, poignee, coupe-froid et thermos. Service a domicile a Montreal. Soumission gratuite ${COMPANY_INFO.phone}.`,
-    h1: "Reparation porte patio a Montreal",
+      `Porte patio difficile à ouvrir à Montréal? Réparation de roulettes, rail, serrure, poignée, coupe-froid et thermos. Service à domicile à Montréal. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Réparation porte patio à Montréal",
     lead:
-      "Service specialise de reparation porte patio a Montreal: porte coulissante lourde, roulettes usees, rail encrasse, serrure bloquee, poignee brisee, coupe-froid fatigue ou thermos embue.",
-    schemaName: "Reparation porte patio a Montreal",
+      "Service spécialisé de réparation porte patio à Montréal: porte coulissante lourde, roulettes usées, rail encrassé, serrure bloquée, poignée brisée, coupe-froid fatigué ou thermos embué.",
+    schemaName: "Réparation porte patio à Montréal",
     schemaDescription:
-      "Reparation de portes patio coulissantes a Montreal: remplacement de roulettes, ajustement de rail, serrure, poignee, coupe-froid, thermos et alignement de porte.",
-    serviceType: "Reparation de porte patio",
+      "Réparation de portes patio coulissantes à Montréal: remplacement de roulettes, ajustement de rail, serrure, poignée, coupe-froid, thermos et alignement de porte.",
+    serviceType: "Réparation de porte patio",
     alternateName: [
       "reparation porte patio Montreal",
       "reparation porte-patio Montreal",
@@ -104,42 +103,42 @@ const LOCAL_SERVICE_CITY_PAGES = {
     ],
     sections: [
       {
-        heading: "Reparation porte patio Montreal: roulettes, rail et serrure",
+        heading: "Réparation porte patio Montréal: roulettes, rail et serrure",
         paragraphs: [
-          "A Montreal, les portes patio des triplex, duplex, condos et maisons de ville subissent beaucoup de cycles gel-degel, de poussiere urbaine et d'usure sur les rails. Une porte qui devient lourde a glisser n'a pas toujours besoin d'etre remplacee.",
-          "Nos techniciens interviennent dans les quartiers comme Rosemont, Villeray, Ahuntsic, Verdun, le Plateau, Hochelaga, NDG et les arrondissements centraux pour remettre les portes patio en fonction: roulettes, rail, poignee, serrure, coupe-froid et thermos.",
-          "La reparation est souvent plus logique qu'une installation de porte patio neuve lorsque le cadre est encore sain. On verifie l'alignement, l'etat du rail, les roulettes et l'etancheite avant de recommander la solution la plus economique.",
+          "À Montréal, les portes patio des triplex, duplex, condos et maisons de ville subissent beaucoup de cycles gel-dégel, de poussière urbaine et d'usure sur les rails. Une porte qui devient lourde à glisser n'a pas toujours besoin d'être remplacée.",
+          "Nos techniciens interviennent dans les quartiers comme Rosemont, Villeray, Ahuntsic, Verdun, le Plateau, Hochelaga, NDG et les arrondissements centraux pour remettre les portes patio en fonction: roulettes, rail, poignée, serrure, coupe-froid et thermos.",
+          "La réparation est souvent plus logique qu'une installation de porte patio neuve lorsque le cadre est encore sain. On vérifie l'alignement, l'état du rail, les roulettes et l'étanchéité avant de recommander la solution la plus économique.",
         ],
       },
     ],
-    issuesHeading: "Problemes de porte patio frequents a Montreal",
+    issuesHeading: "Problèmes de porte patio fréquents à Montréal",
     issues: [
-      "Porte patio lourde a ouvrir dans les triplex, duplex et condos montrealais",
-      "Roulettes usees, rail sale ou seuil abime par la poussiere, le sel et les cycles gel-degel",
-      "Poignee, serrure ou coupe-froid fatigues sur les portes patio de balcons et cours arriere",
+      "Porte patio lourde à ouvrir dans les triplex, duplex et condos montréalais",
+      "Roulettes usées, rail sale ou seuil abîmé par la poussière, le sel et les cycles gel-dégel",
+      "Poignée, serrure ou coupe-froid fatigués sur les portes patio de balcons et cours arrière",
     ],
     faq: [
       {
-        q: "Reparez-vous les portes patio a Montreal?",
-        a: "Oui. Nous reparons les portes patio a Montreal: roulettes, rail, serrure, poignee, coupe-froid, thermos et ajustement. Le technicien verifie si la porte peut etre reparee avant de proposer un remplacement complet.",
+        q: "Réparez-vous les portes patio à Montréal?",
+        a: "Oui. Nous réparons les portes patio à Montréal: roulettes, rail, serrure, poignée, coupe-froid, thermos et ajustement. Le technicien vérifie si la porte peut être réparée avant de proposer un remplacement complet.",
       },
       {
-        q: "Faut-il reparer ou installer une porte patio neuve a Montreal?",
-        a: "Si le cadre est sain, la reparation de porte patio est souvent la meilleure option. Le remplacement de roulettes, l'ajustement du rail ou le changement de serrure coute beaucoup moins cher qu'une porte neuve. Si la porte est trop endommagee, nous vous le dirons clairement.",
+        q: "Faut-il réparer ou installer une porte patio neuve à Montréal?",
+        a: "Si le cadre est sain, la réparation de porte patio est souvent la meilleure option. Le remplacement de roulettes, l'ajustement du rail ou le changement de serrure coûte beaucoup moins cher qu'une porte neuve. Si la porte est trop endommagée, nous vous le dirons clairement.",
       },
     ],
   },
   "remplacement-quincaillerie:montreal": {
-    seoTitle: "Quincaillerie fenetre Montreal | Manivelles et serrures",
+    seoTitle: "Quincaillerie fenêtre Montréal | Manivelles et serrures",
     seoDescription:
-      `Quincaillerie fenetre Montreal: manivelles, poignees, serrures, pentures, roulettes et mecanismes. Pieces en stock et installation. Soumission gratuite ${COMPANY_INFO.phone}.`,
-    h1: "Quincaillerie fenetre a Montreal",
+      `Quincaillerie fenêtre Montréal: manivelles, poignées, serrures, pentures, roulettes et mécanismes. Pièces en stock et installation. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Quincaillerie fenêtre à Montréal",
     lead:
-      "Service specialise de quincaillerie fenetre a Montreal: manivelle brisee, poignee lousse, serrure usee, penture fatiguee, mecanisme bloque, roulettes de porte-patio ou piece difficile a trouver.",
-    schemaName: "Quincaillerie fenetre a Montreal",
+      "Service spécialisé de quincaillerie fenêtre à Montréal: manivelle brisée, poignée lousse, serrure usée, penture fatiguée, mécanisme bloqué, roulettes de porte-patio ou pièce difficile à trouver.",
+    schemaName: "Quincaillerie fenêtre à Montréal",
     schemaDescription:
-      "Remplacement de quincaillerie de fenetres et portes a Montreal: manivelles, poignees, serrures, pentures, roulettes, mecanismes et ajustements.",
-    serviceType: "Remplacement de quincaillerie de fenetres",
+      "Remplacement de quincaillerie de fenêtres et portes à Montréal: manivelles, poignées, serrures, pentures, roulettes, mécanismes et ajustements.",
+    serviceType: "Remplacement de quincaillerie de fenêtres",
     alternateName: [
       "quincaillerie fenetre Montreal",
       "quincaillerie de fenetre Montreal",
@@ -150,42 +149,42 @@ const LOCAL_SERVICE_CITY_PAGES = {
     ],
     sections: [
       {
-        heading: "Quincaillerie fenetre Montreal: pieces, mecanismes et ajustement",
+        heading: "Quincaillerie fenêtre Montréal: pièces, mécanismes et ajustement",
         paragraphs: [
-          "A Montreal, beaucoup de fenetres plus anciennes sont encore bonnes, mais leur quincaillerie fatigue: manivelle qui tourne dans le vide, serrure qui ne verrouille plus, pentures usees, mecanisme coince ou poignee cassee.",
-          "Vosthermos garde un inventaire de plus de 740 pieces de portes et fenetres pour accelerer l'identification et le remplacement de quincaillerie. Une photo de la piece aide souvent a trouver le bon modele avant la visite.",
-          "Nous intervenons dans les triplex, duplex, condos, maisons de ville et immeubles locatifs de Montreal pour remettre les fenetres en fonction sans remplacer l'ouverture complete.",
+          "À Montréal, beaucoup de fenêtres plus anciennes sont encore bonnes, mais leur quincaillerie fatigue: manivelle qui tourne dans le vide, serrure qui ne verrouille plus, pentures usées, mécanisme coincé ou poignée cassée.",
+          "Vosthermos garde un inventaire de plus de 740 pièces de portes et fenêtres pour accélérer l'identification et le remplacement de quincaillerie. Une photo de la pièce aide souvent à trouver le bon modèle avant la visite.",
+          "Nous intervenons dans les triplex, duplex, condos, maisons de ville et immeubles locatifs de Montréal pour remettre les fenêtres en fonction sans remplacer l'ouverture complète.",
         ],
       },
     ],
-    issuesHeading: "Problemes de quincaillerie frequents a Montreal",
+    issuesHeading: "Problèmes de quincaillerie fréquents à Montréal",
     issues: [
-      "Manivelle de fenetre qui tourne dans le vide ou ne ferme plus completement",
-      "Serrure, poignee ou penture usee sur des fenetres de triplex et condos",
-      "Piece de quincaillerie difficile a identifier ou modele discontinu",
+      "Manivelle de fenêtre qui tourne dans le vide ou ne ferme plus complètement",
+      "Serrure, poignée ou penture usée sur des fenêtres de triplex et condos",
+      "Pièce de quincaillerie difficile à identifier ou modèle discontinu",
     ],
     faq: [
       {
-        q: "Remplacez-vous la quincaillerie de fenetre a Montreal?",
-        a: "Oui. Nous remplacons les manivelles, poignees, serrures, pentures, mecanismes et autres pieces de quincaillerie de fenetres a Montreal. Une photo de la piece aide a confirmer le bon modele.",
+        q: "Remplacez-vous la quincaillerie de fenêtre à Montréal?",
+        a: "Oui. Nous remplaçons les manivelles, poignées, serrures, pentures, mécanismes et autres pièces de quincaillerie de fenêtres à Montréal. Une photo de la pièce aide à confirmer le bon modèle.",
       },
       {
-        q: "Faut-il remplacer la fenetre si la manivelle est brisee?",
-        a: "Pas necessairement. Si le cadre et le volet sont encore en bon etat, remplacer la manivelle ou le mecanisme coute beaucoup moins cher qu'une fenetre neuve.",
+        q: "Faut-il remplacer la fenêtre si la manivelle est brisée?",
+        a: "Pas nécessairement. Si le cadre et le volet sont encore en bon état, remplacer la manivelle ou le mécanisme coûte beaucoup moins cher qu'une fenêtre neuve.",
       },
     ],
   },
   "reparation-porte-fenetre:montreal": {
-    seoTitle: "Reparation porte-fenetre Montreal | Mecanisme et thermos",
+    seoTitle: "Réparation porte-fenêtre Montréal | Mécanisme et thermos",
     seoDescription:
-      `Reparation porte-fenetre a Montreal: mecanisme multipoint, pentures, poignee, ajustement, coupe-froid et thermos. Service a domicile. Soumission gratuite ${COMPANY_INFO.phone}.`,
-    h1: "Reparation porte-fenetre a Montreal",
+      `Réparation porte-fenêtre à Montréal: mécanisme multipoint, pentures, poignée, ajustement, coupe-froid et thermos. Service à domicile. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Réparation porte-fenêtre à Montréal",
     lead:
-      "Service specialise de reparation porte-fenetre a Montreal: porte-fenetre qui ferme mal, mecanisme multipoint bloque, pentures usees, poignee brisee, coupe-froid fatigue ou thermos embue.",
-    schemaName: "Reparation porte-fenetre a Montreal",
+      "Service spécialisé de réparation porte-fenêtre à Montréal: porte-fenêtre qui ferme mal, mécanisme multipoint bloqué, pentures usées, poignée brisée, coupe-froid fatigué ou thermos embué.",
+    schemaName: "Réparation porte-fenêtre à Montréal",
     schemaDescription:
-      "Reparation de portes-fenetres a Montreal: mecanisme multipoint, pentures, poignee, ajustement, coupe-froid, thermos et etancheite.",
-    serviceType: "Reparation de porte-fenetre",
+      "Réparation de portes-fenêtres à Montréal: mécanisme multipoint, pentures, poignée, ajustement, coupe-froid, thermos et étanchéité.",
+    serviceType: "Réparation de porte-fenêtre",
     alternateName: [
       "reparation porte-fenetre Montreal",
       "reparation porte fenetre Montreal",
@@ -195,78 +194,78 @@ const LOCAL_SERVICE_CITY_PAGES = {
     ],
     sections: [
       {
-        heading: "Reparation porte-fenetre Montreal: mecanisme, pentures et etancheite",
+        heading: "Réparation porte-fenêtre Montréal: mécanisme, pentures et étanchéité",
         paragraphs: [
-          "Une porte-fenetre a Montreal peut etre confondue avec une demande generale de portes et fenetres, mais l'intention est differente: on parle souvent d'un mecanisme multipoint, de pentures, d'une poignee, d'un thermos ou d'un ajustement de battant.",
-          "Nos techniciens verifient l'alignement, la fermeture, le verrouillage, le coupe-froid et l'etat du thermos pour corriger la vraie cause du probleme.",
-          "Quand la demande touche plusieurs ouvertures, la page reparation fenetres Montreal reste la meilleure entree. Quand le probleme est precisement la porte-fenetre, cette page specialisee envoie le bon signal a Google et au client.",
+          "Une porte-fenêtre à Montréal peut être confondue avec une demande générale de portes et fenêtres, mais l'intention est différente: on parle souvent d'un mécanisme multipoint, de pentures, d'une poignée, d'un thermos ou d'un ajustement de battant.",
+          "Nos techniciens vérifient l'alignement, la fermeture, le verrouillage, le coupe-froid et l'état du thermos pour corriger la vraie cause du problème.",
+          "Quand la demande touche plusieurs ouvertures, la page réparation fenêtres Montréal reste la meilleure entrée. Quand le problème est précisément la porte-fenêtre, cette page spécialisée envoie le bon signal à Google et au client.",
         ],
       },
     ],
     issues: [
-      "Porte-fenetre qui frotte, ferme mal ou laisse passer l'air",
-      "Mecanisme multipoint bloque, poignee lousse ou pentures fatiguees",
-      "Thermos embue ou coupe-froid use dans une porte-fenetre a battant",
+      "Porte-fenêtre qui frotte, ferme mal ou laisse passer l'air",
+      "Mécanisme multipoint bloqué, poignée lousse ou pentures fatiguées",
+      "Thermos embué ou coupe-froid usé dans une porte-fenêtre à battant",
     ],
     faq: [
       {
-        q: "Reparez-vous les portes-fenetres a Montreal?",
-        a: "Oui. Nous reparons les portes-fenetres a Montreal: mecanisme multipoint, pentures, poignee, ajustement, coupe-froid et thermos.",
+        q: "Réparez-vous les portes-fenêtres à Montréal?",
+        a: "Oui. Nous réparons les portes-fenêtres à Montréal: mécanisme multipoint, pentures, poignée, ajustement, coupe-froid et thermos.",
       },
       {
-        q: "Quelle est la difference avec la reparation de fenetres Montreal?",
-        a: "La reparation de fenetres Montreal couvre toutes les fenetres et ouvertures. La porte-fenetre vise un produit precis avec battant, poignee, pentures et souvent un mecanisme multipoint.",
+        q: "Quelle est la différence avec la réparation de fenêtres Montréal?",
+        a: "La réparation de fenêtres Montréal couvre toutes les fenêtres et ouvertures. La porte-fenêtre vise un produit précis avec battant, poignée, pentures et souvent un mécanisme multipoint.",
       },
     ],
   },
   "calfeutrage:montreal": {
-    seoTitle: "Calfeutrage Montreal | Fenetres et joints exterieurs",
+    seoTitle: "Calfeutrage Montréal | Fenêtres et joints extérieurs",
     seoDescription:
-      `Calfeutrage a Montreal pour fenetres, portes, joints exterieurs et infiltrations d'air ou d'eau. Service a domicile, scellant professionnel. Soumission gratuite ${COMPANY_INFO.phone}.`,
-    h1: "Calfeutrage a Montreal",
+      `Calfeutrage à Montréal pour fenêtres, portes, joints extérieurs et infiltrations d'air ou d'eau. Service à domicile, scellant professionnel. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Calfeutrage à Montréal",
     lead:
-      "Service specialise de calfeutrage a Montreal: joints de fenetres fissures, scellant decolle, infiltrations d'air, infiltrations d'eau et contours de portes a refaire.",
-    schemaName: "Calfeutrage a Montreal",
+      "Service spécialisé de calfeutrage à Montréal: joints de fenêtres fissurés, scellant décollé, infiltrations d'air, infiltrations d'eau et contours de portes à refaire.",
+    schemaName: "Calfeutrage à Montréal",
     schemaDescription:
-      "Calfeutrage de portes et fenetres a Montreal: retrait de l'ancien scellant, preparation des surfaces, application de scellant professionnel et correction des infiltrations.",
-    serviceType: "Calfeutrage de portes et fenetres",
+      "Calfeutrage de portes et fenêtres à Montréal: retrait de l'ancien scellant, préparation des surfaces, application de scellant professionnel et correction des infiltrations.",
+    serviceType: "Calfeutrage de portes et fenêtres",
     alternateName: ["calfeutrage Montreal", "calfeutrage fenetre Montreal", "calfeutrage exterieur Montreal"],
     sections: [
       {
-        heading: "Calfeutrage Montreal: fenetres, portes et joints exterieurs",
+        heading: "Calfeutrage Montréal: fenêtres, portes et joints extérieurs",
         paragraphs: [
-          "A Montreal, les triplex, duplex et maisons plus anciennes subissent beaucoup de mouvements de structure, de cycles gel-degel et d'exposition au vent. Les joints de calfeutrage autour des fenetres finissent par craquer, se decoller ou perdre leur elasticite.",
-          "Nos techniciens interviennent dans les arrondissements de Montreal pour retirer l'ancien scellant, nettoyer les surfaces et appliquer un calfeutrage professionnel adapte au PVC, a l'aluminium, au bois, a la brique et au revetement exterieur.",
-          "Le but est de corriger les infiltrations d'air et d'eau sans remplacer inutilement les fenetres. On verifie aussi les zones a risque: appuis de fenetres, joints verticaux, portes-patio, sous-sol, contours de portes et sections exposees au soleil.",
+          "À Montréal, les triplex, duplex et maisons plus anciennes subissent beaucoup de mouvements de structure, de cycles gel-dégel et d'exposition au vent. Les joints de calfeutrage autour des fenêtres finissent par craquer, se décoller ou perdre leur élasticité.",
+          "Nos techniciens interviennent dans les arrondissements de Montréal pour retirer l'ancien scellant, nettoyer les surfaces et appliquer un calfeutrage professionnel adapté au PVC, à l'aluminium, au bois, à la brique et au revêtement extérieur.",
+          "Le but est de corriger les infiltrations d'air et d'eau sans remplacer inutilement les fenêtres. On vérifie aussi les zones à risque: appuis de fenêtres, joints verticaux, portes-patio, sous-sol, contours de portes et sections exposées au soleil.",
         ],
       },
     ],
     issues: [
-      "Calfeutrage fissure ou decolle autour des fenetres de triplex et duplex montrealais",
-      "Infiltrations d'air dans les pieces exposees au vent, surtout sur les facades plus anciennes",
-      "Joints exterieurs fatigues autour des portes, portes-patio et fenetres de sous-sol",
+      "Calfeutrage fissuré ou décollé autour des fenêtres de triplex et duplex montréalais",
+      "Infiltrations d'air dans les pièces exposées au vent, surtout sur les façades plus anciennes",
+      "Joints extérieurs fatigués autour des portes, portes-patio et fenêtres de sous-sol",
     ],
     faq: [
       {
-        q: "Faites-vous le calfeutrage a Montreal?",
-        a: "Oui. Nous faisons le calfeutrage de fenetres, portes, portes-patio et joints exterieurs a Montreal. Le technicien retire l'ancien scellant lorsque necessaire, prepare les surfaces et applique un scellant professionnel adapte au support.",
+        q: "Faites-vous le calfeutrage à Montréal?",
+        a: "Oui. Nous faisons le calfeutrage de fenêtres, portes, portes-patio et joints extérieurs à Montréal. Le technicien retire l'ancien scellant lorsque nécessaire, prépare les surfaces et applique un scellant professionnel adapté au support.",
       },
       {
-        q: "Combien coute le calfeutrage a Montreal?",
-        a: "Le prix depend du nombre d'ouvertures, de l'etat de l'ancien scellant et de l'acces aux fenetres. Pour une maison typique, le calfeutrage complet se situe souvent entre 500$ et 1 500$. La soumission est gratuite.",
+        q: "Combien coûte le calfeutrage à Montréal?",
+        a: "Le prix dépend du nombre d'ouvertures, de l'état de l'ancien scellant et de l'accès aux fenêtres. Pour une maison typique, le calfeutrage complet se situe souvent entre 500$ et 1 500$. La soumission est gratuite.",
       },
     ],
   },
   "coupe-froid:montreal": {
-    seoTitle: "Coupe-froid fenetre Montreal | Courants d'air",
+    seoTitle: "Coupe-froid fenêtre Montréal | Courants d'air",
     seoDescription:
-      `Coupe-froid fenetre Montreal: remplacement de joints uses, infiltration d'air, portes et fenetres mal etanches. Service a domicile. Soumission gratuite ${COMPANY_INFO.phone}.`,
-    h1: "Coupe-froid fenetre a Montreal",
+      `Coupe-froid fenêtre Montréal: remplacement de joints usés, infiltration d'air, portes et fenêtres mal étanches. Service à domicile. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Coupe-froid fenêtre à Montréal",
     lead:
-      "Service specialise de coupe-froid fenetre a Montreal: courants d'air, joints ecrases, portes et fenetres mal etanches, perte de chaleur et inconfort pres des ouvertures.",
-    schemaName: "Coupe-froid fenetre a Montreal",
+      "Service spécialisé de coupe-froid fenêtre à Montréal: courants d'air, joints écrasés, portes et fenêtres mal étanches, perte de chaleur et inconfort près des ouvertures.",
+    schemaName: "Coupe-froid fenêtre à Montréal",
     schemaDescription:
-      "Remplacement de coupe-froid de fenetres et portes a Montreal: joints uses, infiltration d'air, etancheite et ajustement des ouvertures.",
+      "Remplacement de coupe-froid de fenêtres et portes à Montréal: joints usés, infiltration d'air, étanchéité et ajustement des ouvertures.",
     serviceType: "Remplacement de coupe-froid",
     alternateName: [
       "coupe-froid fenetre Montreal",
@@ -277,40 +276,40 @@ const LOCAL_SERVICE_CITY_PAGES = {
     ],
     sections: [
       {
-        heading: "Coupe-froid fenetre Montreal: bloquer les courants d'air",
+        heading: "Coupe-froid fenêtre Montréal: bloquer les courants d'air",
         paragraphs: [
-          "A Montreal, les cycles gel-degel et les vieilles ouvertures fatiguent les coupe-froid. Un joint ecrase ou dechire laisse entrer l'air froid, force le chauffage et donne l'impression que la fenetre doit etre remplacee.",
-          "Dans plusieurs cas, remplacer le coupe-froid et ajuster la fenetre suffit a recuperer du confort sans changer l'ouverture complete.",
-          "Nous verifions les fenetres, portes, portes-patio et portes-fenetres afin de choisir le bon profil de coupe-froid et corriger les zones d'infiltration.",
+          "À Montréal, les cycles gel-dégel et les vieilles ouvertures fatiguent les coupe-froid. Un joint écrasé ou déchiré laisse entrer l'air froid, force le chauffage et donne l'impression que la fenêtre doit être remplacée.",
+          "Dans plusieurs cas, remplacer le coupe-froid et ajuster la fenêtre suffit à récupérer du confort sans changer l'ouverture complète.",
+          "Nous vérifions les fenêtres, portes, portes-patio et portes-fenêtres afin de choisir le bon profil de coupe-froid et corriger les zones d'infiltration.",
         ],
       },
     ],
     issues: [
-      "Courants d'air autour des fenetres de triplex, duplex et condos",
-      "Coupe-froid ecrase, sec, decolle ou manquant",
-      "Porte ou fenetre qui ferme mal apres plusieurs hivers",
+      "Courants d'air autour des fenêtres de triplex, duplex et condos",
+      "Coupe-froid écrasé, sec, décollé ou manquant",
+      "Porte ou fenêtre qui ferme mal après plusieurs hivers",
     ],
     faq: [
       {
-        q: "Remplacez-vous les coupe-froid de fenetre a Montreal?",
-        a: "Oui. Nous remplacons les coupe-froid de fenetres, portes, portes-patio et portes-fenetres a Montreal. Le technicien verifie aussi l'ajustement, car un mauvais alignement peut causer une infiltration meme avec un nouveau joint.",
+        q: "Remplacez-vous les coupe-froid de fenêtre à Montréal?",
+        a: "Oui. Nous remplaçons les coupe-froid de fenêtres, portes, portes-patio et portes-fenêtres à Montréal. Le technicien vérifie aussi l'ajustement, car un mauvais alignement peut causer une infiltration même avec un nouveau joint.",
       },
       {
-        q: "Un coupe-froid neuf peut-il eviter un remplacement de fenetre?",
-        a: "Souvent oui. Si le cadre et le thermos sont encore bons, remplacer le coupe-froid et ajuster la fenetre peut regler le courant d'air a beaucoup plus faible cout.",
+        q: "Un coupe-froid neuf peut-il éviter un remplacement de fenêtre?",
+        a: "Souvent oui. Si le cadre et le thermos sont encore bons, remplacer le coupe-froid et ajuster la fenêtre peut régler le courant d'air à beaucoup plus faible coût.",
       },
     ],
   },
   "moustiquaires-sur-mesure:montreal": {
-    seoTitle: "Moustiquaire fenetre Montreal | Reparation sur mesure",
+    seoTitle: "Moustiquaire fenêtre Montréal | Réparation sur mesure",
     seoDescription:
-      `Moustiquaire fenetre Montreal: fabrication, reparation, toile dechiree, cadre croche et moustiquaire sur mesure pour fenetres et portes-patio. Soumission gratuite ${COMPANY_INFO.phone}.`,
-    h1: "Moustiquaire fenetre a Montreal",
+      `Moustiquaire fenêtre Montréal: fabrication, réparation, toile déchirée, cadre croche et moustiquaire sur mesure pour fenêtres et portes-patio. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Moustiquaire fenêtre à Montréal",
     lead:
-      "Service specialise de moustiquaire fenetre a Montreal: toile dechiree, cadre croche, moustiquaire manquante, fabrication sur mesure et ajustement pour fenetres ou portes-patio.",
-    schemaName: "Moustiquaire fenetre a Montreal",
+      "Service spécialisé de moustiquaire fenêtre à Montréal: toile déchirée, cadre croche, moustiquaire manquante, fabrication sur mesure et ajustement pour fenêtres ou portes-patio.",
+    schemaName: "Moustiquaire fenêtre à Montréal",
     schemaDescription:
-      "Fabrication et reparation de moustiquaires de fenetres et portes-patio a Montreal: toile, cadre, ajustement et remplacement sur mesure.",
+      "Fabrication et réparation de moustiquaires de fenêtres et portes-patio à Montréal: toile, cadre, ajustement et remplacement sur mesure.",
     serviceType: "Moustiquaires sur mesure",
     alternateName: [
       "moustiquaire fenetre Montreal",
@@ -321,41 +320,41 @@ const LOCAL_SERVICE_CITY_PAGES = {
     ],
     sections: [
       {
-        heading: "Moustiquaire fenetre Montreal: reparer ou fabriquer sur mesure",
+        heading: "Moustiquaire fenêtre Montréal: réparer ou fabriquer sur mesure",
         paragraphs: [
-          "Les moustiquaires de fenetres et portes-patio s'abiment vite dans les logements, condos et maisons de Montreal: toile dechiree, cadre croche, moustiquaire perdue ou modele qui n'est plus disponible.",
-          "Nous pouvons reparer la toile existante, refaire un cadre ou fabriquer une moustiquaire sur mesure selon l'ouverture.",
-          "Ce service complete la reparation de fenetres a Montreal, surtout lorsque la fenetre fonctionne encore mais qu'il manque la protection contre les insectes.",
+          "Les moustiquaires de fenêtres et portes-patio s'abîment vite dans les logements, condos et maisons de Montréal: toile déchirée, cadre croche, moustiquaire perdue ou modèle qui n'est plus disponible.",
+          "Nous pouvons réparer la toile existante, refaire un cadre ou fabriquer une moustiquaire sur mesure selon l'ouverture.",
+          "Ce service complète la réparation de fenêtres à Montréal, surtout lorsque la fenêtre fonctionne encore mais qu'il manque la protection contre les insectes.",
         ],
       },
     ],
     issues: [
-      "Toile de moustiquaire dechiree ou sortie du cadre",
-      "Cadre de moustiquaire croche, perdu ou impossible a replacer",
-      "Besoin d'une moustiquaire sur mesure pour fenetre ou porte-patio",
+      "Toile de moustiquaire déchirée ou sortie du cadre",
+      "Cadre de moustiquaire croche, perdu ou impossible à replacer",
+      "Besoin d'une moustiquaire sur mesure pour fenêtre ou porte-patio",
     ],
     faq: [
       {
-        q: "Faites-vous des moustiquaires sur mesure a Montreal?",
-        a: "Oui. Nous reparons et fabriquons des moustiquaires sur mesure pour fenetres et portes-patio a Montreal, selon les dimensions et le type d'ouverture.",
+        q: "Faites-vous des moustiquaires sur mesure à Montréal?",
+        a: "Oui. Nous réparons et fabriquons des moustiquaires sur mesure pour fenêtres et portes-patio à Montréal, selon les dimensions et le type d'ouverture.",
       },
       {
         q: "Peut-on seulement changer la toile?",
-        a: "Oui. Si le cadre est encore bon, remplacer seulement la toile est souvent suffisant et moins couteux qu'une moustiquaire neuve.",
+        a: "Oui. Si le cadre est encore bon, remplacer seulement la toile est souvent suffisant et moins coûteux qu'une moustiquaire neuve.",
       },
     ],
   },
   "reparation-portes-bois:montreal": {
-    seoTitle: "Reparation fenetre bois Montreal | Cadres et restauration",
+    seoTitle: "Réparation fenêtre bois Montréal | Cadres et restauration",
     seoDescription:
-      `Reparation fenetre bois Montreal: cadres abimes, bois pourri, ajustement, finition, coupe-froid et thermos dans cadre existant. Soumission gratuite ${COMPANY_INFO.phone}.`,
-    h1: "Reparation fenetre en bois a Montreal",
+      `Réparation fenêtre bois Montréal: cadres abîmés, bois pourri, ajustement, finition, coupe-froid et thermos dans cadre existant. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Réparation fenêtre en bois à Montréal",
     lead:
-      "Service specialise de reparation fenetre en bois a Montreal: cadre abime, bois pourri, ajustement, coupe-froid, finition, thermos dans cadre existant et restauration d'ouverture ancienne.",
-    schemaName: "Reparation fenetre en bois a Montreal",
+      "Service spécialisé de réparation fenêtre en bois à Montréal: cadre abîmé, bois pourri, ajustement, coupe-froid, finition, thermos dans cadre existant et restauration d'ouverture ancienne.",
+    schemaName: "Réparation fenêtre en bois à Montréal",
     schemaDescription:
-      "Restauration et reparation de fenetres en bois a Montreal: cadres, greffes, ajustement, coupe-froid, finition et remplacement de thermos dans le cadre existant.",
-    serviceType: "Reparation de fenetres en bois",
+      "Restauration et réparation de fenêtres en bois à Montréal: cadres, greffes, ajustement, coupe-froid, finition et remplacement de thermos dans le cadre existant.",
+    serviceType: "Réparation de fenêtres en bois",
     alternateName: [
       "reparation fenetre bois Montreal",
       "reparation fenetre en bois Montreal",
@@ -365,41 +364,41 @@ const LOCAL_SERVICE_CITY_PAGES = {
     ],
     sections: [
       {
-        heading: "Reparation fenetre bois Montreal: conserver le cachet sans remplacer",
+        heading: "Réparation fenêtre bois Montréal: conserver le cachet sans remplacer",
         paragraphs: [
-          "Montreal compte beaucoup de triplex, duplex et maisons avec des fenetres ou cadres de bois qui meritent une reparation precise avant un remplacement complet.",
-          "Nous verifions le bois pourri, les sections a greffer, l'ajustement, le coupe-froid, le calfeutrage et la possibilite de remplacer le thermos tout en conservant le cadre existant.",
-          "Cette approche est utile pour les proprietes anciennes, les facades a conserver et les clients qui veulent prolonger la vie des ouvertures sans changer tout le caractere du batiment.",
+          "Montréal compte beaucoup de triplex, duplex et maisons avec des fenêtres ou cadres de bois qui méritent une réparation précise avant un remplacement complet.",
+          "Nous vérifions le bois pourri, les sections à greffer, l'ajustement, le coupe-froid, le calfeutrage et la possibilité de remplacer le thermos tout en conservant le cadre existant.",
+          "Cette approche est utile pour les propriétés anciennes, les façades à conserver et les clients qui veulent prolonger la vie des ouvertures sans changer tout le caractère du bâtiment.",
         ],
       },
     ],
     issues: [
-      "Cadre de fenetre en bois abime ou section basse fatiguee par l'humidite",
-      "Fenetre en bois qui ferme mal, frotte ou laisse passer l'air",
-      "Thermos ou vitrage a remplacer dans un cadre de bois existant",
+      "Cadre de fenêtre en bois abîmé ou section basse fatiguée par l'humidité",
+      "Fenêtre en bois qui ferme mal, frotte ou laisse passer l'air",
+      "Thermos ou vitrage à remplacer dans un cadre de bois existant",
     ],
     faq: [
       {
-        q: "Reparez-vous les fenetres en bois a Montreal?",
-        a: "Oui. Nous reparons les fenetres en bois a Montreal: cadre, greffe de bois, ajustement, coupe-froid, finition et remplacement de thermos lorsque le cadre peut etre conserve.",
+        q: "Réparez-vous les fenêtres en bois à Montréal?",
+        a: "Oui. Nous réparons les fenêtres en bois à Montréal: cadre, greffe de bois, ajustement, coupe-froid, finition et remplacement de thermos lorsque le cadre peut être conserve.",
       },
       {
-        q: "Est-ce mieux de restaurer ou remplacer une fenetre en bois?",
-        a: "Si le cadre est recuperable, la restauration peut conserver le cachet du batiment et couter moins cher qu'un remplacement complet. Si la structure est trop endommagee, nous le signalons clairement.",
+        q: "Est-ce mieux de restaurer ou remplacer une fenêtre en bois?",
+        a: "Si le cadre est récupérable, la restauration peut conserver le cachet du bâtiment et coûter moins cher qu'un remplacement complet. Si la structure est trop endommagée, nous le signalons clairement.",
       },
     ],
   },
   "desembuage:montreal": {
-    seoTitle: "Vitre thermos embuee Montreal | Desembuage",
+    seoTitle: "Vitre thermos embuée Montréal | Désembuage",
     seoDescription:
-      `Vitre thermos embuee a Montreal? Desembuage de thermos, buee entre les vitres, halo blanchatre et condensation. Evaluation a domicile. Soumission gratuite ${COMPANY_INFO.phone}.`,
-    h1: "Vitre thermos embuee a Montreal",
+      `Vitre thermos embuée à Montréal? Désembuage de thermos, buée entre les vitres, halo blanchâtre et condensation. Évaluation à domicile. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Vitre thermos embuée à Montréal",
     lead:
-      "Service specialise pour vitre thermos embuee a Montreal: buee entre les vitres, halo blanchatre, condensation persistante et evaluation entre desembuage ou remplacement du thermos.",
-    schemaName: "Vitre thermos embuee a Montreal",
+      "Service spécialisé pour vitre thermos embuée à Montréal: buée entre les vitres, halo blanchâtre, condensation persistante et évaluation entre désembuage ou remplacement du thermos.",
+    schemaName: "Vitre thermos embuée à Montréal",
     schemaDescription:
-      "Desembuage de vitres thermos embuees a Montreal: evaluation de la buee, nettoyage interne, evacuation de l'humidite et recommandation honnete si le remplacement du thermos est preferable.",
-    serviceType: "Desembuage de vitre thermos",
+      "Désembuage de vitres thermos embuées à Montréal: évaluation de la buée, nettoyage interne, évacuation de l'humidité et recommandation honnête si le remplacement du thermos est préférable.",
+    serviceType: "Désembuage de vitre thermos",
     alternateName: [
       "vitre thermos embuee Montreal",
       "thermos embue Montreal",
@@ -409,80 +408,80 @@ const LOCAL_SERVICE_CITY_PAGES = {
     ],
     sections: [
       {
-        heading: "Vitre thermos embuee Montreal: buee, halo et condensation",
+        heading: "Vitre thermos embuée Montréal: buée, halo et condensation",
         paragraphs: [
-          "A Montreal, les thermos des triplex, duplex, condos et maisons plus anciennes peuvent developper de la buee entre les vitres apres plusieurs cycles gel-degel. Quand l'humidite reste prisonniere dans l'unite scellee, la vitre devient voilee, blanchatre ou embuee.",
-          "Nos techniciens evaluent les vitres thermos embuees dans les secteurs comme Rosemont, Villeray, Ahuntsic, Verdun, le Plateau, Hochelaga, NDG et les arrondissements centraux pour determiner si le desembuage est encore une bonne option.",
-          "Le desembuage peut etre interessant lorsque la buee est recente ou legere. Si le verre est trop attaque, fissure ou rempli de depots permanents, nous recommandons plutot le remplacement du thermos afin d'eviter une reparation inutile.",
+          "À Montréal, les thermos des triplex, duplex, condos et maisons plus anciennes peuvent développer de la buée entre les vitres après plusieurs cycles gel-dégel. Quand l'humidité reste prisonnière dans l'unité scellée, la vitre devient voilée, blanchâtre ou embuée.",
+          "Nos techniciens évaluent les vitres thermos embuées dans les secteurs comme Rosemont, Villeray, Ahuntsic, Verdun, le Plateau, Hochelaga, NDG et les arrondissements centraux pour déterminer si le désembuage est encore une bonne option.",
+          "Le désembuage peut être intéressant lorsque la buée est récente ou légère. Si le verre est trop attaqué, fissuré ou rempli de dépôts permanents, nous recommandons plutôt le remplacement du thermos afin d'éviter une réparation inutile.",
         ],
       },
     ],
-    issuesHeading: "Problemes de vitre thermos embuee a Montreal",
+    issuesHeading: "Problèmes de vitre thermos embuée à Montréal",
     issues: [
-      "Buee ou condensation entre les vitres thermos dans les triplex et condos montrealais",
-      "Halo blanchatre sur les thermos exposes au soleil, au froid et aux cycles gel-degel",
-      "Thermos embue dont il faut verifier s'il peut etre desembue ou s'il doit etre remplace",
+      "Buée ou condensation entre les vitres thermos dans les triplex et condos montréalais",
+      "Halo blanchâtre sur les thermos exposés au soleil, au froid et aux cycles gel-dégel",
+      "Thermos embué dont il faut vérifier s'il peut être désembué ou s'il doit être remplacé",
     ],
     faq: [
       {
-        q: "Peut-on desembuer une vitre thermos embuee a Montreal?",
-        a: "Oui, dans certains cas. Le desembuage fonctionne surtout lorsque la buee est recente, que le verre n'est pas fissure et que les depots ne sont pas incrustes. Le technicien verifie la vitre sur place avant de recommander le desembuage.",
+        q: "Peut-on désembuer une vitre thermos embuée à Montréal?",
+        a: "Oui, dans certains cas. Le désembuage fonctionne surtout lorsque la buée est récente, que le verre n'est pas fissuré et que les dépôts ne sont pas incrustés. Le technicien vérifie la vitre sur place avant de recommander le désembuage.",
       },
       {
-        q: "Quelle est la difference entre desembuage et remplacement de thermos?",
-        a: "Le desembuage vise a evacuer l'humidite et ameliorer la clarte du thermos existant. Le remplacement installe une unite scellee neuve. Si la vitre thermos est trop endommagee, le remplacement est plus durable que le desembuage.",
+        q: "Quelle est la différence entre désembuage et remplacement de thermos?",
+        a: "Le désembuage vise à évacuer l'humidité et améliorer la clarté du thermos existant. Le remplacement installe une unité scellée neuve. Si la vitre thermos est trop endommagée, le remplacement est plus durable que le désembuage.",
       },
     ],
   },
   "remplacement-vitre-thermos:montreal": {
-    seoTitle: "Remplacement vitre thermos Montreal | Des 150$",
+    seoTitle: "Remplacement vitre thermos Montréal | Dès 150$",
     seoDescription:
-      `Remplacement vitre thermos a Montreal pour fenetres embuees, vitres thermos fissurees et unites scellees en fin de vie. Service a domicile. Soumission gratuite ${COMPANY_INFO.phone}.`,
-    h1: "Remplacement vitre thermos a Montreal",
+      `Remplacement vitre thermos à Montréal pour fenêtres embuées, vitres thermos fissurées et unités scellées en fin de vie. Service à domicile. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Remplacement vitre thermos à Montréal",
     lead:
-      "Service specialise de remplacement vitre thermos a Montreal: vitres thermos embuees, unites scellees fissurees, perte d'isolation et thermos de triplex ou duplex en fin de vie.",
-    schemaName: "Remplacement vitre thermos a Montreal",
+      "Service spécialisé de remplacement vitre thermos à Montréal: vitres thermos embuées, unités scellées fissurées, perte d'isolation et thermos de triplex ou duplex en fin de vie.",
+    schemaName: "Remplacement vitre thermos à Montréal",
     schemaDescription:
-      "Remplacement de vitres thermos et unites scellees a Montreal: prise de mesures, fabrication sur mesure, installation et service garanti pour fenetres residentielles.",
+      "Remplacement de vitres thermos et unités scellées à Montréal: prise de mesures, fabrication sur mesure, installation et service garanti pour fenêtres résidentielles.",
     serviceType: "Remplacement de vitre thermos",
     alternateName: ["remplacement vitre thermos Montreal", "remplacement de vitre thermos Montreal", "remplacement thermos Montreal", "vitre thermos Montreal"],
     sections: [
       {
-        heading: "Remplacement vitre thermos Montreal: triplex, duplex et maisons anciennes",
+        heading: "Remplacement vitre thermos Montréal: triplex, duplex et maisons anciennes",
         paragraphs: [
-          "A Montreal, les thermos des fenetres installees dans les annees 1980 a 2000 arrivent souvent en fin de vie. La buee entre les vitres, les taches blanchatres et la perte d'isolation indiquent que l'unite scellee doit etre remplacee.",
-          "Nos techniciens interviennent dans les secteurs comme le Plateau, Rosemont, Verdun, Villeray, NDG et les quartiers centraux pour prendre les mesures, commander le thermos sur mesure et remplacer uniquement la vitre, sans changer la fenetre complete.",
-          "Cette approche conserve le cadre existant des triplex, duplex et maisons plus anciennes tout en ameliorant l'isolation. C'est habituellement beaucoup moins couteux qu'un remplacement complet de fenetre.",
+          "À Montréal, les thermos des fenêtres installées dans les années 1980 à 2000 arrivent souvent en fin de vie. La buée entre les vitres, les taches blanchâtres et la perte d'isolation indiquent que l'unité scellée doit être remplacée.",
+          "Nos techniciens interviennent dans les secteurs comme le Plateau, Rosemont, Verdun, Villeray, NDG et les quartiers centraux pour prendre les mesures, commander le thermos sur mesure et remplacer uniquement la vitre, sans changer la fenêtre complète.",
+          "Cette approche conserve le cadre existant des triplex, duplex et maisons plus anciennes tout en améliorant l'isolation. C'est habituellement beaucoup moins coûteux qu'un remplacement complet de fenêtre.",
         ],
       },
     ],
-    issuesHeading: "Problemes de thermos frequents a Montreal",
+    issuesHeading: "Problèmes de thermos fréquents à Montréal",
     issues: [
-      "Vitres thermos embuees dans les triplex et duplex montrealais",
-      "Unites scellees des annees 1980-2000 en fin de vie dans les quartiers centraux",
-      "Perte d'isolation et condensation entre les vitres durant les hivers de Montreal",
+      "Vitres thermos embuées dans les triplex et duplex montréalais",
+      "Unités scellées des années 1980-2000 en fin de vie dans les quartiers centraux",
+      "Perte d'isolation et condensation entre les vitres durant les hivers de Montréal",
     ],
     faq: [
       {
-        q: "Faites-vous le remplacement vitre thermos a Montreal?",
-        a: "Oui. Nous remplacons les vitres thermos et unites scellees a Montreal. Le technicien prend les mesures sur place, commande le thermos sur mesure et revient l'installer en conservant le cadre existant lorsque possible.",
+        q: "Faites-vous le remplacement vitre thermos à Montréal?",
+        a: "Oui. Nous remplaçons les vitres thermos et unités scellées à Montréal. Le technicien prend les mesures sur place, commande le thermos sur mesure et revient l'installer en conservant le cadre existant lorsque possible.",
       },
       {
-        q: "Combien coute un remplacement thermos a Montreal?",
-        a: "Le prix varie selon la dimension, le type de verre et l'acces a la fenetre. Un thermos standard coute souvent entre 150$ et 350$ installe. La soumission est gratuite a domicile.",
+        q: "Combien coûte un remplacement thermos à Montréal?",
+        a: "Le prix varie selon la dimension, le type de verre et l'accès à la fenêtre. Un thermos standard coûte souvent entre 150$ et 350$ installé. La soumission est gratuite à domicile.",
       },
     ],
   },
   "remplacement-vitre-thermos:delson": {
-    seoTitle: "Remplacement vitre thermos Delson | Des 150$",
+    seoTitle: "Remplacement vitre thermos Delson | Dès 150$",
     seoDescription:
-      `Remplacement vitre thermos a Delson pour thermos embues, vitres fissurees et unites scellees en fin de vie. Service rapide a Delson. Soumission gratuite ${COMPANY_INFO.phone}.`,
-    h1: "Remplacement vitre thermos a Delson",
+      `Remplacement vitre thermos à Delson pour thermos embués, vitres fissurées et unités scellées en fin de vie. Service rapide à Delson. Soumission gratuite ${COMPANY_INFO.phone}.`,
+    h1: "Remplacement vitre thermos à Delson",
     lead:
-      "Service specialise de remplacement vitre thermos a Delson: thermos embues, unites scellees fissurees, perte d'isolation et vitres de maisons unifamiliales ou jumelees en fin de vie.",
-    schemaName: "Remplacement vitre thermos a Delson",
+      "Service spécialisé de remplacement vitre thermos à Delson: thermos embués, unités scellées fissurées, perte d'isolation et vitres de maisons unifamiliales ou jumelées en fin de vie.",
+    schemaName: "Remplacement vitre thermos à Delson",
     schemaDescription:
-      "Remplacement de vitres thermos et unites scellees a Delson: prise de mesures, fabrication sur mesure et installation dans le cadre existant.",
+      "Remplacement de vitres thermos et unités scellées à Delson: prise de mesures, fabrication sur mesure et installation dans le cadre existant.",
     serviceType: "Remplacement de vitre thermos",
     alternateName: [
       "remplacement vitre thermos Delson",
@@ -493,32 +492,32 @@ const LOCAL_SERVICE_CITY_PAGES = {
     ],
     sections: [
       {
-        heading: "Remplacement vitre thermos Delson: thermos embues et unites scellees",
+        heading: "Remplacement vitre thermos Delson: thermos embués et unités scellées",
         paragraphs: [
-          "A Delson, beaucoup de maisons unifamiliales et jumelees construites entre les annees 1970 et 2000 ont maintenant des thermos en fin de vie. La buee entre les vitres, les taches blanchatres et la perte d'isolation indiquent souvent que l'unite scellee doit etre remplacee.",
-          "Nos techniciens sont a environ 15 minutes de Delson, ce qui permet une prise de mesures rapide dans le Centre de Delson, le secteur des Erables, le quartier residentiel Sud et pres de la gare.",
-          "Pour une recherche remplacement vitre thermos Delson, l'intention principale est la vitre scellee, pas le mecanisme d'une porte-fenetre. Nous remplacons le thermos sur mesure en conservant le cadre existant lorsque possible, sans vendre une fenetre complete inutilement.",
+          "À Delson, beaucoup de maisons unifamiliales et jumelées construites entre les années 1970 et 2000 ont maintenant des thermos en fin de vie. La buée entre les vitres, les taches blanchâtres et la perte d'isolation indiquent souvent que l'unité scellée doit être remplacée.",
+          "Nos techniciens sont à environ 15 minutes de Delson, ce qui permet une prise de mesures rapide dans le Centre de Delson, le secteur des Érables, le quartier résidentiel Sud et près de la gare.",
+          "Pour une recherche remplacement vitre thermos Delson, l'intention principale est la vitre scellée, pas le mécanisme d'une porte-fenêtre. Nous remplaçons le thermos sur mesure en conservant le cadre existant lorsque possible, sans vendre une fenêtre complète inutilement.",
         ],
       },
     ],
-    issuesHeading: "Problemes de vitre thermos frequents a Delson",
+    issuesHeading: "Problèmes de vitre thermos fréquents à Delson",
     issues: [
-      "Thermos embues dans les maisons unifamiliales et jumelees des annees 1970 a 2000",
-      "Unites scellees fissurees ou blanchatres dans le Centre de Delson et le secteur des Erables",
-      "Perte d'isolation et condensation entre les vitres pendant les cycles gel-degel",
+      "Thermos embués dans les maisons unifamiliales et jumelées des années 1970 à 2000",
+      "Unités scellées fissurées ou blanchâtres dans le Centre de Delson et le secteur des Érables",
+      "Perte d'isolation et condensation entre les vitres pendant les cycles gel-dégel",
     ],
     faq: [
       {
-        q: "Faites-vous le remplacement vitre thermos a Delson?",
-        a: "Oui. Nous faisons le remplacement vitre thermos a Delson pour les thermos embues, fissures ou en perte d'isolation. Le technicien prend les mesures sur place, commande l'unite scellee sur mesure et revient l'installer dans le cadre existant.",
+        q: "Faites-vous le remplacement vitre thermos à Delson?",
+        a: "Oui. Nous faisons le remplacement vitre thermos à Delson pour les thermos embués, fissurés ou en perte d'isolation. Le technicien prend les mesures sur place, commande l'unité scellée sur mesure et revient l'installer dans le cadre existant.",
       },
       {
-        q: "Quelle est la difference entre une porte-fenetre et une vitre thermos a Delson?",
-        a: "Une porte-fenetre concerne surtout le mecanisme, les charnieres, la poignee et l'ajustement. Une vitre thermos concerne l'unite scellee dans le cadre. Pour une vitre thermos embuee ou fissuree, le remplacement du thermos est le service le plus precis.",
+        q: "Quelle est la différence entre une porte-fenêtre et une vitre thermos à Delson?",
+        a: "Une porte-fenêtre concerne surtout le mécanisme, les charnières, la poignée et l'ajustement. Une vitre thermos concerne l'unité scellée dans le cadre. Pour une vitre thermos embuée ou fissurée, le remplacement du thermos est le service le plus précis.",
       },
       {
-        q: "Combien coute un remplacement thermos a Delson?",
-        a: "Un remplacement de thermos standard debute souvent autour de 150$ par unite installee, selon la dimension, le type de verre et l'acces. Delson etant tres proche de notre atelier, la soumission et la prise de mesures peuvent souvent se faire rapidement.",
+        q: "Combien coûte un remplacement thermos à Delson?",
+        a: "Un remplacement de thermos standard débute souvent autour de 150$ par unité installée, selon la dimension, le type de verre et l'accès. Delson étant très proche de notre atelier, la soumission et la prise de mesures peuvent souvent se faire rapidement.",
       },
     ],
   },
@@ -532,85 +531,85 @@ const LOCAL_INTENT_LINKS = {
   "reparation-porte-fenetre:delson": [
     {
       href: "/services/remplacement-vitre-thermos/delson",
-      title: "Thermos embue ou vitre scellee a remplacer?",
+      title: "Thermos embué ou vitre scellée à remplacer?",
       description:
-        "Si la demande concerne surtout une vitre thermos embuee, fissuree ou une unite scellee en fin de vie, la page specialisee est le meilleur choix pour Delson.",
+        "Si la demande concerne surtout une vitre thermos embuée, fissurée ou une unité scellée en fin de vie, la page spécialisée est le meilleur choix pour Delson.",
       label: "Remplacement vitre thermos Delson",
     },
   ],
   "reparation-porte-fenetre:chateauguay": [
     {
       href: "/reparation-portes-et-fenetres/chateauguay",
-      title: "Besoin de reparer plusieurs portes et fenetres?",
+      title: "Besoin de réparer plusieurs portes et fenêtres?",
       description:
-        "Si la demande touche plus qu'une porte-fenetre a battant, le service local couvre les thermos, portes patio, quincaillerie, calfeutrage, coupe-froid, moustiquaires et cadres a Chateauguay.",
-      label: "Reparation de portes et fenetres Chateauguay",
+        "Si la demande touche plus qu'une porte-fenêtre à battant, le service local couvre les thermos, portes patio, quincaillerie, calfeutrage, coupe-froid, moustiquaires et cadres à Châteauguay.",
+      label: "Réparation de portes et fenêtres Châteauguay",
     },
   ],
   "remplacement-vitre-thermos:montreal": [
     {
       href: "/services/desembuage/montreal",
-      title: "La vitre est seulement embuee?",
+      title: "La vitre est seulement embuée?",
       description:
-        "Si la buee est recente ou legere, le desembuage peut etre verifie avant de remplacer l'unite scellee.",
-      label: "Vitre thermos embuee Montreal",
+        "Si la buée est récente ou légère, le désembuage peut être vérifié avant de remplacer l'unité scellée.",
+      label: "Vitre thermos embuée Montréal",
     },
     {
       href: "/reparation-portes-et-fenetres/montreal",
-      title: "Plusieurs fenetres a reparer?",
+      title: "Plusieurs fenêtres à réparer?",
       description:
-        "Pour une demande plus large de reparation fenetres Montreal, la page principale regroupe thermos, quincaillerie, coupe-froid, calfeutrage et moustiquaires.",
-      label: "Reparation fenetres Montreal",
+        "Pour une demande plus large de réparation fenêtres Montréal, la page principale regroupe thermos, quincaillerie, coupe-froid, calfeutrage et moustiquaires.",
+      label: "Réparation fenêtres Montréal",
     },
   ],
   "desembuage:montreal": [
     {
       href: "/services/remplacement-vitre-thermos/montreal",
-      title: "Thermos trop endommage?",
+      title: "Thermos trop endommagé?",
       description:
-        "Si le verre est trop attaque, fissure ou rempli de depots permanents, le remplacement de vitre thermos est plus durable que le desembuage.",
-      label: "Remplacement vitre thermos Montreal",
+        "Si le verre est trop attaqué, fissuré ou rempli de dépôts permanents, le remplacement de vitre thermos est plus durable que le désembuage.",
+      label: "Remplacement vitre thermos Montréal",
     },
   ],
   "reparation-porte-patio:montreal": [
     {
       href: "/services/remplacement-quincaillerie/montreal",
-      title: "Piece ou mecanisme a remplacer?",
+      title: "Pièce ou mécanisme à remplacer?",
       description:
-        "Pour les roulettes, poignees, serrures et pieces difficiles a identifier, la page quincaillerie Montreal est plus precise.",
-      label: "Quincaillerie fenetre Montreal",
+        "Pour les roulettes, poignées, serrures et pièces difficiles à identifier, la page quincaillerie Montréal est plus précise.",
+      label: "Quincaillerie fenêtre Montréal",
     },
     {
       href: "/reparation-portes-et-fenetres/montreal",
-      title: "La demande touche aussi les fenetres?",
+      title: "La demande touche aussi les fenêtres?",
       description:
-        "Si plusieurs ouvertures ont besoin d'une verification, la page reparation fenetres Montreal couvre l'ensemble du diagnostic.",
-      label: "Reparation fenetres Montreal",
+        "Si plusieurs ouvertures ont besoin d'une vérification, la page réparation fenêtres Montréal couvre l'ensemble du diagnostic.",
+      label: "Réparation fenêtres Montréal",
     },
   ],
   "calfeutrage:montreal": [
     {
       href: "/services/coupe-froid/montreal",
-      title: "Courant d'air autour de la fenetre?",
+      title: "Courant d'air autour de la fenêtre?",
       description:
-        "Quand l'air passe par le joint mobile plutot que par le scellant exterieur, le coupe-froid est souvent la vraie correction.",
-      label: "Coupe-froid fenetre Montreal",
+        "Quand l'air passe par le joint mobile plutôt que par le scellant extérieur, le coupe-froid est souvent la vraie correction.",
+      label: "Coupe-froid fenêtre Montréal",
     },
     {
       href: "/reparation-portes-et-fenetres/montreal",
-      title: "Diagnostic complet de fenetre",
+      title: "Diagnostic complet de fenêtre",
       description:
-        "La page principale Montreal aide a regrouper calfeutrage, coupe-froid, thermos et quincaillerie dans une seule lecture.",
-      label: "Reparation fenetres Montreal",
+        "La page principale Montréal aide à regrouper calfeutrage, coupe-froid, thermos et quincaillerie dans une seule lecture.",
+      label: "Réparation fenêtres Montréal",
     },
   ],
   "coupe-froid:montreal": [
     {
       href: "/services/calfeutrage/montreal",
-      title: "Le scellant exterieur est fissure?",
+      title: "Le scellant extérieur est fissuré?",
       description:
-        "Si l'infiltration vient du contour exterieur de la fenetre ou de la porte, le calfeutrage Montreal est la page la plus precise.",
-      label: "Calfeutrage fenetre Montreal",
+        "Si l'infiltration vient du contour extérieur de la fenêtre ou de la porte, le calfeutrage Montréal est la page la plus précise.",
+      label: "Calfeutrage fenêtre Montréal",
     },
   ],
   "remplacement-quincaillerie:montreal": [
@@ -618,42 +617,42 @@ const LOCAL_INTENT_LINKS = {
       href: "/reparation-portes-et-fenetres/montreal",
       title: "Besoin d'un diagnostic plus large?",
       description:
-        "Si la quincaillerie n'est qu'une partie du probleme, la page reparation fenetres Montreal couvre aussi thermos, coupe-froid, calfeutrage et moustiquaires.",
-      label: "Reparation fenetres Montreal",
+        "Si la quincaillerie n'est qu'une partie du problème, la page réparation fenêtres Montréal couvre aussi thermos, coupe-froid, calfeutrage et moustiquaires.",
+      label: "Réparation fenêtres Montréal",
     },
   ],
   "reparation-porte-fenetre:montreal": [
     {
       href: "/reparation-portes-et-fenetres/montreal",
-      title: "Ce n'est pas seulement une porte-fenetre?",
+      title: "Ce n'est pas seulement une porte-fenêtre?",
       description:
-        "Pour les demandes qui touchent plusieurs fenetres ou portes, la page reparation fenetres Montreal est la meilleure page d'entree.",
-      label: "Reparation fenetres Montreal",
+        "Pour les demandes qui touchent plusieurs fenêtres ou portes, la page réparation fenêtres Montréal est la meilleure page d'entrée.",
+      label: "Réparation fenêtres Montréal",
     },
     {
       href: "/services/remplacement-vitre-thermos/montreal",
-      title: "Le probleme est surtout le thermos?",
+      title: "Le problème est surtout le thermos?",
       description:
-        "Si la porte-fenetre a une vitre thermos embuee ou fissuree, la page thermos Montreal cible mieux cette intention.",
-      label: "Remplacement vitre thermos Montreal",
+        "Si la porte-fenêtre a une vitre thermos embuée ou fissurée, la page thermos Montréal cible mieux cette intention.",
+      label: "Remplacement vitre thermos Montréal",
     },
   ],
   "moustiquaires-sur-mesure:montreal": [
     {
       href: "/reparation-portes-et-fenetres/montreal",
-      title: "Reparation complete de fenetre",
+      title: "Réparation complète de fenêtre",
       description:
-        "Si la moustiquaire accompagne une fenetre qui ferme mal, laisse passer l'air ou a un thermos defectueux, la page principale Montreal couvre l'ensemble.",
-      label: "Reparation fenetres Montreal",
+        "Si la moustiquaire accompagne une fenêtre qui ferme mal, laisse passer l'air ou a un thermos défectueux, la page principale Montréal couvre l'ensemble.",
+      label: "Réparation fenêtres Montréal",
     },
   ],
   "reparation-portes-bois:montreal": [
     {
       href: "/reparation-portes-et-fenetres/montreal",
-      title: "Fenetre bois avec plusieurs problemes?",
+      title: "Fenêtre bois avec plusieurs problèmes?",
       description:
-        "Pour une demande qui combine bois, thermos, calfeutrage, coupe-froid et quincaillerie, la page principale Montreal sert de diagnostic global.",
-      label: "Reparation fenetres Montreal",
+        "Pour une demande qui combine bois, thermos, calfeutrage, coupe-froid et quincaillerie, la page principale Montréal sert de diagnostic global.",
+      label: "Réparation fenêtres Montréal",
     },
   ],
 };
@@ -682,7 +681,6 @@ export async function generateMetadata({ params }) {
   const { title, description } = localPage
     ? { title: localPage.seoTitle, description: localPage.seoDescription }
     : getServiceSeo(slug, city, service.shortTitle);
-  const englishService = SERVICES_EN.find((item) => item.frSlug === service.slug);
   const url = `https://www.vosthermos.com/services/${service.slug}/${city.slug}`;
 
   return {
@@ -690,12 +688,10 @@ export async function generateMetadata({ params }) {
     description,
     alternates: {
       canonical: url,
-      languages: englishService
-        ? {
-            "fr-CA": url,
-            "en-CA": `https://www.vosthermos.com/en/services/${englishService.slug}/${city.slug}`,
-          }
-        : undefined,
+      // Les jumelles /en/services/[slug]/[ville] sont noindex (contenu FR non
+      // traduit qui sortait sur des requêtes françaises) — on ne déclare donc
+      // plus de hreflang en-CA vers elles.
+      languages: { "fr-CA": url, "x-default": url },
     },
     openGraph: {
       type: "website",
@@ -717,13 +713,25 @@ export default async function ServiceCityPage({ params }) {
   const localPage = getLocalServiceCityPage(slug, ville);
   const intentLinks = getLocalIntentLinks(slug, ville);
   const otherServices = SERVICES.filter((s) => s.slug !== service.slug).slice(0, 4);
-  const otherCities = CITIES.filter((c) => c.slug !== city.slug).slice(0, 8);
+  // Villes voisines par vraie distance (haversine) au lieu des 8 premières du tableau
+  const rad = Math.PI / 180;
+  const distKm = (a, b) => {
+    const dLat = (b.lat - a.lat) * rad;
+    const dLng = (b.lng - a.lng) * rad;
+    const s = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLng / 2) ** 2;
+    return 6371 * 2 * Math.asin(Math.sqrt(s));
+  };
+  const otherCities = city.coords
+    ? CITIES.filter((c) => c.slug !== city.slug && c.coords)
+        .sort((x, y) => distKm(city.coords, x.coords) - distKm(city.coords, y.coords))
+        .slice(0, 8)
+    : CITIES.filter((c) => c.slug !== city.slug).slice(0, 8);
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Service",
-    name: localPage?.schemaName || `${service.shortTitle} a ${city.name}`,
-    description: localPage?.schemaDescription || `Service professionnel de ${service.shortTitle.toLowerCase()} a ${city.name}. Vosthermos offre un service rapide et garanti.`,
+    name: localPage?.schemaName || `${service.shortTitle} à ${city.name}`,
+    description: localPage?.schemaDescription || `Service professionnel de ${service.shortTitle.toLowerCase()} à ${city.name}. Vosthermos offre un service rapide et garanti.`,
     serviceType: localPage?.serviceType || service.shortTitle,
     ...(localPage?.alternateName ? { alternateName: localPage.alternateName } : {}),
     url: `https://www.vosthermos.com/services/${service.slug}/${city.slug}`,
@@ -744,19 +752,30 @@ export default async function ServiceCityPage({ params }) {
     areaServed: { "@type": "City", name: city.name },
   };
 
+  // Les FAQ thermos locales de cities.js (ex.: « Combien coûte le remplacement
+  // d'une vitre thermos à Laval? ») appartiennent à CETTE page quand le service
+  // est le thermos — elles ont été retirées de la page ville générique.
+  const cityThermosFaq =
+    slug === "remplacement-vitre-thermos"
+      ? (city.faq || [])
+          .filter((f) => /thermos/i.test(f.question || ""))
+          .map((f) => ({ q: f.question, a: f.answer }))
+      : [];
+
   const faqItems = [
     ...(localPage?.faq || []),
+    ...cityThermosFaq,
     {
-      q: `Combien coute le service de ${service.shortTitle.toLowerCase()} a ${city.name}?`,
-      a: `Le prix varie selon l'ampleur des travaux. Contactez-nous au ${COMPANY_INFO.phone} pour une soumission gratuite a ${city.name}. Nous nous deplacons dans tous les quartiers${city.neighborhoods ? ` incluant ${city.neighborhoods.slice(0, 3).join(", ")}` : ""}.`,
+      q: `Combien coûte le service de ${service.shortTitle.toLowerCase()} à ${city.name}?`,
+      a: `Le prix varie selon l'ampleur des travaux. Contactez-nous au ${COMPANY_INFO.phone} pour une soumission gratuite à ${city.name}. Nous nous déplaçons dans tous les quartiers${city.neighborhoods ? ` incluant ${city.neighborhoods.slice(0, 3).join(", ")}` : ""}.`,
     },
     {
       q: `Desservez-vous ${city.name} pour ce service?`,
-      a: `Oui, ${city.name} fait partie de notre zone de service. Nous sommes a seulement ${city.distance} de notre atelier. Nous couvrons ${city.name} et toute la region de ${city.region}.`,
+      a: `Oui, ${city.name} fait partie de notre zone de service. Nous sommes à seulement ${city.distance} de notre atelier. Nous couvrons ${city.name} et toute la région de ${city.region}.`,
     },
     {
-      q: `Quel est le delai pour ${service.shortTitle.toLowerCase()} a ${city.name}?`,
-      a: `En general, nous pouvons effectuer la soumission dans les 48 heures et proceder aux travaux dans un delai de 1 a 2 semaines. Pour les cas urgents a ${city.name}, contactez-nous directement.`,
+      q: `Quel est le délai pour ${service.shortTitle.toLowerCase()} à ${city.name}?`,
+      a: `En général, nous pouvons effectuer la soumission dans les 48 heures et procéder aux travaux dans un délai de 1 à 2 semaines. Pour les cas urgents à ${city.name}, contactez-nous directement.`,
     },
   ];
 
@@ -795,13 +814,13 @@ export default async function ServiceCityPage({ params }) {
             {/* Left: content */}
             <div className="flex flex-col justify-center">
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-4">
-                {localPage?.h1 || `${service.shortTitle} a ${city.name}`}
+                {localPage?.h1 || `${service.shortTitle} à ${city.name}`}
               </h1>
               <p className="text-white/60 text-lg mb-6">
                 {localPage?.lead || (
                   <>
-                    Service professionnel de {service.shortTitle.toLowerCase()} a {city.name} et dans la region de {city.region}.
-                    Nos experts se deplacent a {city.name} ({city.distance} de notre atelier) pour des travaux rapides et garantis.
+                    Service professionnel de {service.shortTitle.toLowerCase()} à {city.name} et dans la région de {city.region}.
+                    Nos experts se déplacent à {city.name} ({city.distance} de notre atelier) pour des travaux rapides et garantis.
                   </>
                 )}
               </p>
@@ -839,7 +858,7 @@ export default async function ServiceCityPage({ params }) {
               </div>
               <h2 className="text-white font-bold text-xl mb-1">Soumission gratuite</h2>
               <p className="text-white/50 text-sm mb-5">
-                {service.shortTitle} a {city.name} — reponse rapide.
+                {service.shortTitle} à {city.name} — réponse rapide.
               </p>
               <QuoteForm compact />
             </div>
@@ -855,13 +874,13 @@ export default async function ServiceCityPage({ params }) {
             {/* City context */}
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                {localPage?.h1 || `${service.shortTitle} a ${city.name}`}
+                {localPage?.h1 || `${service.shortTitle} à ${city.name}`}
               </h2>
               <p className="text-gray-600 leading-relaxed mb-4">
                 {city.description}
               </p>
               <p className="text-gray-600 leading-relaxed">
-                Vosthermos offre un service complet de {service.shortTitle.toLowerCase()} aux residents de {city.name}.
+                Vosthermos offre un service complet de {service.shortTitle.toLowerCase()} aux résidents de {city.name}.
                 {city.neighborhoods && city.neighborhoods.length > 0 && (
                   <> Nous desservons tous les quartiers incluant {city.neighborhoods.join(", ")}.</>
                 )}
@@ -900,7 +919,7 @@ export default async function ServiceCityPage({ params }) {
             {localPage?.issues && (
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                  {localPage.issuesHeading || `Problemes de ${service.shortTitle.toLowerCase()} frequents a ${city.name}`}
+                  {localPage.issuesHeading || `Problèmes de ${service.shortTitle.toLowerCase()} fréquents à ${city.name}`}
                 </h2>
                 <div className="space-y-3">
                   {localPage.issues.map((issue) => (
@@ -919,7 +938,7 @@ export default async function ServiceCityPage({ params }) {
             {city.commonIssues && city.commonIssues.length > 0 && (
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                  Problemes courants a {city.name}
+                  Problèmes courants à {city.name}
                 </h2>
                 <div className="space-y-3">
                   {city.commonIssues.map((issue, i) => (
@@ -950,7 +969,7 @@ export default async function ServiceCityPage({ params }) {
             <div className="bg-gradient-to-r from-[var(--color-teal-dark)] to-[var(--color-teal)] rounded-2xl p-8 text-white">
               <h3 className="text-xl font-bold mb-3">
                 <i className="fas fa-star text-yellow-400 mr-2"></i>
-                Programme OPTI-FENETRE a {city.name}
+                Programme OPTI-FENÊTRE à {city.name}
               </h3>
               <p className="text-white/70 mb-4 text-sm">
                 Besoin de plusieurs reparations? Le programme OPTI-FENETRE regroupe tous nos
@@ -969,7 +988,7 @@ export default async function ServiceCityPage({ params }) {
             {/* FAQ */}
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                Questions frequentes — {city.name}
+                Questions fréquentes — {city.name}
               </h2>
               <div className="space-y-4">
                 {faqItems.map((item, i) => (
@@ -991,7 +1010,7 @@ export default async function ServiceCityPage({ params }) {
             <div className="bg-gray-50 rounded-2xl p-6 sticky top-[100px]">
               <h3 className="font-bold text-gray-900 mb-2">Besoin d&apos;aide immediate?</h3>
               <p className="text-gray-500 text-sm mb-4">
-                Appelez-nous pour {service.shortTitle.toLowerCase()} a {city.name}.
+                Appelez-nous pour {service.shortTitle.toLowerCase()} à {city.name}.
               </p>
               <a
                 href={`tel:${COMPANY_INFO.phoneTel}`}

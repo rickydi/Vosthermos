@@ -101,14 +101,6 @@ export default async function sitemap() {
     priority: 0.8,
   }));
 
-  // Calfeutrage + city pages
-  const calfeutrageCityPages = CITIES.filter((city) => city.slug !== "montreal").map((city) => ({
-    url: `${BASE}/calfeutrage/${city.slug}`,
-    lastModified: new Date(),
-    changeFrequency: "monthly",
-    priority: 0.8,
-  }));
-
   // Category pages (parents + subcategories)
   const categories = await prisma.category.findMany({
     select: { slug: true },
@@ -126,22 +118,11 @@ export default async function sitemap() {
     priority: 0.7,
   }));
 
-  // Product pages
-  const products = await prisma.product.findMany({
-    select: { slug: true, updatedAt: true },
-  });
-  const productPages = products.map((p) => ({
-    url: `${BASE}/produit/${p.slug}`,
-    lastModified: p.updatedAt,
-    changeFrequency: "monthly",
-    priority: 0.6,
-  }));
-  const enProductPages = products.map((p) => ({
-    url: `${BASE}/en/produit/${p.slug}`,
-    lastModified: p.updatedAt,
-    changeFrequency: "monthly",
-    priority: 0.55,
-  }));
+  // RÉGIME DU SITEMAP (audit 2026-06-12): les 1480 fiches /produit FR+EN
+  // (descriptions ~104 caractères, 419/740 à zéro visite) représentaient 47% du
+  // sitemap et monopolisaient 61% du crawl Googlebot pendant que les pages money
+  // n'étaient pas crawlées. Elles sont passées en noindex et SORTIES du sitemap.
+  // La boutique et ses catégories restent indexables.
 
   // Blog posts
   let blogPages = [];
@@ -194,17 +175,10 @@ export default async function sitemap() {
     changeFrequency: "monthly",
     priority: 0.8,
   }));
-  const enServiceCityPages = [];
-  for (const service of SERVICES_EN) {
-    for (const city of CITIES) {
-      enServiceCityPages.push({
-        url: `${BASE}/en/services/${service.slug}/${city.slug}`,
-        lastModified: new Date(),
-        changeFrequency: "monthly",
-        priority: 0.7,
-      });
-    }
-  }
+  // /en/services/[slug]/[ville] (496 pages): noindex + hors sitemap — elles
+  // sortaient sur des requêtes FRANÇAISES (contenu français non traduit) et
+  // cannibalisaient les pages FR. L'anglophone est servi par les 8 hubs
+  // /en/services/[slug] qui restent indexables.
 
   // Pricing detail pages
   const pricingPages = PRICING.map((p) => ({
@@ -230,18 +204,8 @@ export default async function sitemap() {
       priority: 0.6,
     })),
   ];
-  const enGlossaryPages = GLOSSARY.map((g) => ({
-    url: `${BASE}/en/glossaire/${g.slug}`,
-    lastModified: new Date(),
-    changeFrequency: "monthly",
-    priority: 0.55,
-  }));
-  const enProblemPages = PROBLEMS.map((p) => ({
-    url: `${BASE}/en/problemes/${p.slug}`,
-    lastModified: new Date(),
-    changeFrequency: "monthly",
-    priority: 0.6,
-  }));
+  // Longue traîne EN (glossaire 47 + problemes 51): zéro vue mesurée en 28 j —
+  // hors sitemap pour concentrer le crawl (pages toujours accessibles).
 
   return [
     ...staticPages,
@@ -249,20 +213,14 @@ export default async function sitemap() {
     ...servicePages,
     ...serviceCityPages,
     ...reparationCityPages,
-    ...calfeutrageCityPages,
     ...problemPages,
     ...pricingPages,
     ...glossaryPages,
     ...categoryPages,
-    ...productPages,
     ...blogPages,
     ...enPages,
     ...enServicePages,
-    ...enServiceCityPages,
     ...enPricingPages,
-    ...enGlossaryPages,
-    ...enProblemPages,
     ...enCategoryPages,
-    ...enProductPages,
   ];
 }
