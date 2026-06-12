@@ -363,11 +363,37 @@ export default function ClientDetail({ client }) {
                     </div>
                     <span className="text-[11px] font-bold px-2 py-1 rounded-full bg-white/10 admin-text whitespace-nowrap">{f.status}</span>
                   </div>
-                  <div className="flex flex-wrap gap-x-5 gap-y-1 mt-3 text-xs admin-text-muted">
-                    {f.estimateAmount != null && <span><i className="fas fa-dollar-sign mr-1"></i>{fmtMoney(f.estimateAmount)}</span>}
-                    {f.estimateSentAt && <span>Soumission envoyée · {fmtDate(f.estimateSentAt)}</span>}
-                    {f.acceptedAt && <span>Approuvé · {fmtDate(f.acceptedAt)}</span>}
-                    {f.jobCompletedAt && <span>Service fait · {fmtDate(f.jobCompletedAt)}</span>}
+                  {f.estimateAmount != null && (
+                    <div className="mt-2 text-xs admin-text"><i className="fas fa-dollar-sign mr-1 admin-text-muted"></i><span className="font-semibold">{fmtMoney(f.estimateAmount)}</span></div>
+                  )}
+                  {/* Étapes franchies, chacune avec sa date (horodatée à la sélection). */}
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {[
+                      ["contactedAt", "Contacté", "fa-phone"],
+                      ["visitDoneAt", "Visite faite", "fa-location-dot"],
+                      ["estimateSentAt", f.estimateType === "phone" ? "Soumission téléphone" : f.estimateType === "written" ? "Soumission écrite" : "Soumission", "fa-file-lines"],
+                      ["acceptedAt", "Approuvé", "fa-thumbs-up"],
+                      ["jobCompletedAt", "Service fait", "fa-screwdriver-wrench"],
+                      ["invoicedAt", "Facturé", "fa-file-invoice-dollar"],
+                    ].map(([key, label, icon]) => f[key] ? (
+                      <span key={key} className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-semibold bg-emerald-500/10 border border-emerald-400/30 text-emerald-300">
+                        <i className={`fas ${icon}`}></i>{label}
+                        <span className="opacity-70 font-normal">{fmtDate(f[key])}</span>
+                      </span>
+                    ) : null)}
+                    {f.visitStatus === "todo" && !f.visitDoneAt && (
+                      <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-semibold bg-amber-500/10 border border-amber-400/30 text-amber-300"><i className="fas fa-clock"></i>Visite à faire</span>
+                    )}
+                    {f.visitStatus === "none" && (
+                      <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-semibold admin-bg border admin-border admin-text-muted"><i className="fas fa-ban"></i>Sans visite</span>
+                    )}
+                    {(f.contactAttempts || 0) > 0 && !f.contactedAt && (
+                      <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-semibold bg-rose-500/10 border border-rose-400/30 text-rose-300">
+                        <i className="fas fa-phone-slash"></i>{f.contactAttempts} tentative{f.contactAttempts > 1 ? "s" : ""}{f.lastAttemptAt ? ` · ${fmtDate(f.lastAttemptAt)}` : ""}
+                      </span>
+                    )}
+                    {f.outcome === "won" && <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-bold bg-emerald-500/20 border border-emerald-400/40 text-emerald-300"><i className="fas fa-trophy"></i>Gagné</span>}
+                    {f.outcome === "lost" && <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-bold bg-slate-500/20 border border-slate-400/40 text-slate-300"><i className="fas fa-ban"></i>Perdu</span>}
                   </div>
                   {f.nextAction && (
                     <div className="mt-2 text-xs admin-text">

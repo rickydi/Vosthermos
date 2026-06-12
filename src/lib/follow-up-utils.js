@@ -243,6 +243,7 @@ export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client, fo
     if (workOrder.arrivalAt) {
       if (!followUp.contactedAt) ms.contactedAt = workOrder.arrivalAt;
       if (!followUp.visitDoneAt) ms.visitDoneAt = workOrder.arrivalAt;
+      if (followUp.visitStatus !== "done") ms.visitStatus = "done";
     }
     // "quote" inclus : dès qu'une soumission existe dans le système (même pas encore
     // envoyée), le jalon "Soumission" se coche tout seul. La soumission verbale, elle,

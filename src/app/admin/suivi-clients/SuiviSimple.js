@@ -15,15 +15,51 @@ const FILTERS = [
   { key: "all", label: "Tous" },
 ];
 
+// Seuils par défaut (heures) avant qu'une étape clignote en rouge. Réglables dans
+// Paramètres (clé site_settings "admin_follow_up_sla").
+export const DEFAULT_SLA = { to_contact: 5, visit: 24, soumission: 48, approval: 48 };
+
+// Étape courante d'un suivi ouvert + si elle a dépassé son délai (clignote alors).
+function computeSla(fu, sla, now) {
+  if (!sla || !now) return null;
+  if (fu.outcome === "won" || fu.outcome === "lost") return null;
+  const overdue = (stage, since) => {
+    const t = Number(sla[stage]);
+    if (!(t > 0) || !since) return false;
+    return (now - new Date(since).getTime()) / 3600000 > t;
+  };
+  if (!fu.contactedAt) return { stage: "to_contact", overdue: overdue("to_contact", fu.lastAttemptAt || fu.createdAt) };
+  if (fu.visitStatus === "todo" && !fu.visitDoneAt) return { stage: "visit", overdue: overdue("visit", fu.contactedAt) };
+  if (!fu.estimateSentAt) return { stage: "soumission", overdue: overdue("soumission", fu.visitDoneAt || fu.contactedAt) };
+  if (!fu.acceptedAt) return { stage: "approval", overdue: overdue("approval", fu.estimateSentAt) };
+  return null;
+}
+
 export default function SuiviSimple() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("open");
   const [search, setSearch] = useState("");
   const [creating, setCreating] = useState(false);
+  const [sla, setSla] = useState(null);
+  const [now, setNow] = useState(0); // 0 au SSR, posé au montage (évite tout mismatch d'hydratation)
   const searchRef = useRef("");
   searchRef.current = search;
   const seq = useRef(0);
+
+  // Seuils SLA (réglés dans Paramètres) + horloge qui avance chaque minute pour que
+  // les étapes en retard se mettent à clignoter sans recharger.
+  useEffect(() => {
+    fetch("/api/admin/settings?key=admin_follow_up_sla", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { try { setSla(d?.value ? JSON.parse(d.value) : DEFAULT_SLA); } catch { setSla(DEFAULT_SLA); } })
+      .catch(() => setSla(DEFAULT_SLA));
+  }, []);
+  useEffect(() => {
+    setNow(Date.now());
+    const t = setInterval(() => setNow(Date.now()), 60000);
+    return () => clearInterval(t);
+  }, []);
 
   const load = useCallback(async (q = searchRef.current) => {
     const my = ++seq.current;
@@ -117,6 +153,31 @@ export default function SuiviSimple() {
     }
   }
 
+  // État de la visite via le menu : faite / à faire / sans visite.
+  async function setVisite(fu, state) {
+    const stamp = new Date().toISOString();
+    const optimistic =
+      state === "done" ? { visitDoneAt: fu.visitDoneAt || stamp, visitStatus: "done" }
+      : state === "todo" ? { visitDoneAt: null, visitStatus: "todo" }
+      : { visitDoneAt: null, visitStatus: "none" };
+    patchLocal(fu.id, optimistic);
+    const body =
+      state === "done" ? { toggleMilestone: "visitDoneAt", on: true, visitStatus: "done" }
+      : state === "todo" ? { toggleMilestone: "visitDoneAt", on: false, visitStatus: "todo" }
+      : { toggleMilestone: "visitDoneAt", on: false, visitStatus: "none" };
+    try {
+      const res = await fetch(`/api/admin/follow-ups/${fu.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error();
+      patchLocal(fu.id, await res.json());
+    } catch {
+      load();
+    }
+  }
+
   // État de contact via le menu déroulant : rejoint / 1-2 tentatives sans réponse / réinit.
   // Un seul appel : pose contactedAt et/ou contactAttempts de façon cohérente.
   async function setContactState(fu, state) {
@@ -161,6 +222,10 @@ export default function SuiviSimple() {
 
   return (
     <div className="p-4 lg:p-8">
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes vtFlashRed { 0%,100% { box-shadow: 0 0 0 0 rgba(244,63,94,0); } 50% { box-shadow: 0 0 0 3px rgba(244,63,94,0.55); } }
+        .vt-flash-red { animation: vtFlashRed 1s ease-in-out infinite; border-color: rgba(244,63,94,0.9) !important; }
+      ` }} />
       <div className="flex items-center justify-between flex-wrap gap-3 mb-5">
         <div>
           <h1 className="admin-text text-2xl font-extrabold">Suivi clients</h1>
@@ -202,6 +267,9 @@ export default function SuiviSimple() {
             const reached = !!fu.contactedAt;
             // "À relancer" : 2 tentatives sans réponse, pas encore rejoint, dossier ouvert.
             const flagged = attempts >= 2 && !reached && !isWon && !isLost;
+            // Étape en retard selon les seuils SLA -> elle clignote en rouge.
+            const slaState = computeSla(fu, sla, now);
+            const overdueStage = slaState?.overdue ? slaState.stage : null;
             return (
               <div key={fu.id} className={`admin-card border rounded-xl p-3.5 transition-opacity ${isLost ? "opacity-55" : ""} ${flagged ? "ring-1 ring-rose-400/50 border-rose-400/40" : ""}`}>
                 <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -228,13 +296,16 @@ export default function SuiviSimple() {
                 </div>
 
                 <div className="flex items-center gap-1.5 mt-3 flex-wrap">
-                  <ContactMenu fu={fu} onPick={(state) => setContactState(fu, state)} />
+                  <ContactMenu fu={fu} onPick={(state) => setContactState(fu, state)} overdue={overdueStage === "to_contact"} />
                   {FOLLOW_UP_MILESTONES.filter((m) => m.key !== "contactedAt").map((m) => {
+                    if (m.key === "visitDoneAt") {
+                      return <VisiteMenu key={m.key} fu={fu} onPick={(state) => setVisite(fu, state)} overdue={overdueStage === "visit"} />;
+                    }
                     if (m.key === "estimateSentAt") {
-                      return <SoumissionMenu key={m.key} fu={fu} onPick={(k) => setSoumission(fu, k === "none" ? null : k)} />;
+                      return <SoumissionMenu key={m.key} fu={fu} onPick={(k) => setSoumission(fu, k === "none" ? null : k)} overdue={overdueStage === "soumission"} />;
                     }
                     if (m.key === "acceptedAt") {
-                      return <ApprovalMenu key={m.key} fu={fu} onPick={(state) => setApproval(fu, state)} />;
+                      return <ApprovalMenu key={m.key} fu={fu} onPick={(state) => setApproval(fu, state)} overdue={overdueStage === "approval"} />;
                     }
                     const on = !!fu[m.key];
                     return (
@@ -286,7 +357,7 @@ const CONTACT_OPTIONS = [
   { key: "none", label: "À contacter (réinitialiser)", icon: "fa-rotate-left", tone: "admin-text-muted" },
 ];
 
-function ContactMenu({ fu, onPick }) {
+function ContactMenu({ fu, onPick, overdue }) {
   const [open, setOpen] = useState(false);
   const attempts = fu.contactAttempts || 0;
   const reached = !!fu.contactedAt;
@@ -298,7 +369,7 @@ function ContactMenu({ fu, onPick }) {
       <button
         onClick={() => setOpen((o) => !o)}
         title={attempts > 0 && !reached ? `${attempts} tentative${attempts > 1 ? "s" : ""} sans réponse · dernière ${fmtDate(fu.lastAttemptAt)}` : "Statut de contact"}
-        className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${cur.cls}`}
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${cur.cls} ${overdue ? "vt-flash-red" : ""}`}
       >
         <i className={`fas ${cur.icon}`}></i>
         {cur.label}
@@ -339,7 +410,7 @@ const APPROVAL_OPTIONS = [
   { key: "open", label: "En attente (réinitialiser)", icon: "fa-rotate-left", tone: "admin-text-muted" },
 ];
 
-function ApprovalMenu({ fu, onPick }) {
+function ApprovalMenu({ fu, onPick, overdue }) {
   const [open, setOpen] = useState(false);
   const current = fu.outcome === "won" ? "won" : fu.outcome === "lost" ? "lost" : "open";
   const cur = APPROVAL_STATES[current];
@@ -349,7 +420,7 @@ function ApprovalMenu({ fu, onPick }) {
       <button
         onClick={() => setOpen((o) => !o)}
         title="Approbation de la soumission"
-        className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${cur.cls}`}
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${cur.cls} ${overdue ? "vt-flash-red" : ""}`}
       >
         <i className={`fas ${cur.icon}`}></i>
         {cur.label}
@@ -385,7 +456,7 @@ const SOUMISSION_OPTIONS = [
   { key: "none", label: "Pas de soumission (réinitialiser)", icon: "fa-rotate-left", tone: "admin-text-muted" },
 ];
 
-function SoumissionMenu({ fu, onPick }) {
+function SoumissionMenu({ fu, onPick, overdue }) {
   const [open, setOpen] = useState(false);
   const has = !!fu.estimateSentAt;
   const type = fu.estimateType;
@@ -401,7 +472,7 @@ function SoumissionMenu({ fu, onPick }) {
       <button
         onClick={() => setOpen((o) => !o)}
         title={has ? (type === "phone" ? "Soumission verbale (téléphone)" : "Soumission écrite") : "Soumission"}
-        className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${cur.cls}`}
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${cur.cls} ${overdue ? "vt-flash-red" : ""}`}
       >
         <i className={`fas ${cur.icon}`}></i>
         {cur.label}
@@ -412,6 +483,59 @@ function SoumissionMenu({ fu, onPick }) {
           <button aria-hidden tabIndex={-1} onClick={() => setOpen(false)} className="fixed inset-0 z-40 cursor-default"></button>
           <div className="absolute left-0 top-full mt-1 z-50 w-60 admin-bg border admin-border rounded-lg shadow-xl py-1">
             {SOUMISSION_OPTIONS.map((o) => (
+              <button
+                key={o.key}
+                onClick={() => { setOpen(false); onPick(o.key); }}
+                className={`w-full text-left px-3 py-2 text-xs font-medium hover:bg-white/5 flex items-center gap-2 transition-colors ${current === o.key ? "bg-white/5" : ""}`}
+              >
+                <i className={`fas ${o.icon} w-4 text-center ${o.tone}`}></i>
+                <span className="admin-text">{o.label}</span>
+                {current === o.key && <i className="fas fa-check ml-auto text-emerald-400 text-[10px]"></i>}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// Menu déroulant compact pour la visite : faite / à faire / sans visite.
+const VISITE_OPTIONS = [
+  { key: "done", label: "Visite faite", icon: "fa-circle-check", tone: "text-emerald-400" },
+  { key: "todo", label: "Visite à faire", icon: "fa-clock", tone: "text-amber-400" },
+  { key: "none", label: "Sans visite", icon: "fa-ban", tone: "admin-text-muted" },
+];
+
+function VisiteMenu({ fu, onPick, overdue }) {
+  const [open, setOpen] = useState(false);
+  const done = !!fu.visitDoneAt || fu.visitStatus === "done";
+  const status = fu.visitStatus;
+  const current = done ? "done" : status === "todo" ? "todo" : status === "none" ? "none" : null;
+  const cur = done
+    ? { label: "Visite faite", icon: "fa-location-dot", cls: "bg-emerald-500/15 border-emerald-400/40 text-emerald-300" }
+    : status === "todo"
+      ? { label: "Visite à faire", icon: "fa-clock", cls: "border-amber-400/50 text-amber-300 bg-amber-500/10" }
+      : status === "none"
+        ? { label: "Sans visite", icon: "fa-ban", cls: "admin-bg admin-border admin-text-muted" }
+        : { label: "Visite", icon: "fa-location-dot", cls: "admin-bg admin-border admin-text-muted" };
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        title={done && fu.visitDoneAt ? `Visite faite · ${fmtDate(fu.visitDoneAt)}` : "État de la visite"}
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${cur.cls} ${overdue ? "vt-flash-red" : ""}`}
+      >
+        <i className={`fas ${cur.icon}`}></i>
+        {cur.label}
+        <i className="fas fa-chevron-down text-[9px] opacity-60 ml-0.5"></i>
+      </button>
+      {open && (
+        <>
+          <button aria-hidden tabIndex={-1} onClick={() => setOpen(false)} className="fixed inset-0 z-40 cursor-default"></button>
+          <div className="absolute left-0 top-full mt-1 z-50 w-56 admin-bg border admin-border rounded-lg shadow-xl py-1">
+            {VISITE_OPTIONS.map((o) => (
               <button
                 key={o.key}
                 onClick={() => { setOpen(false); onPick(o.key); }}

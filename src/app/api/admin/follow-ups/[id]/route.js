@@ -76,6 +76,12 @@ export async function PUT(req, { params }) {
     data.estimateType = ["phone", "written"].includes(body.estimateType) ? body.estimateType : null;
   }
 
+  // État de la visite piloté par le menu Visite : "todo" (à faire) | "done" (faite) |
+  // "none" (sans visite) | null.
+  if (body.visitStatus !== undefined) {
+    data.visitStatus = ["todo", "done", "none"].includes(body.visitStatus) ? body.visitStatus : null;
+  }
+
   // Tentatives de contact sans réponse. { bumpAttempt: true } = +1 et horodate la
   // tentative ; { resetAttempts: true } = remet à zéro. On accepte aussi une valeur
   // directe contactAttempts (clampée >= 0).
