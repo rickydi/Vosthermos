@@ -389,6 +389,8 @@ model ClientFollowUp {
   service         String?
   estimateAmount  Decimal?  @db.Decimal(10, 2)
   estimateSentAt  DateTime?
+  // Type de soumission : "written" (document système, auto) | "phone" (verbale) | null.
+  estimateType    String?
   acceptedAt      DateTime?
   jobCompletedAt  DateTime?
   // Jalons horodatés (refonte suivi Phase 0). estimateSentAt/acceptedAt/jobCompletedAt

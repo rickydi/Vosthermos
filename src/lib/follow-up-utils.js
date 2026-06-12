@@ -248,6 +248,9 @@ export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client, fo
     // envoyée), le jalon "Soumission" se coche tout seul. La soumission verbale, elle,
     // reste cochée à la main depuis le suivi.
     if (["quote", "quote_sent", "quote_accepted", "scheduled", "in_progress", "completed", "invoiced", "sent", "paid"].includes(st) && !followUp.estimateSentAt) ms.estimateSentAt = new Date();
+    // Un vrai document de soumission (statut quote*) = soumission ÉCRITE -> type posé
+    // automatiquement (c'est le "tu sais pourquoi" : l'écrite vient du système).
+    if (["quote", "quote_sent", "quote_accepted"].includes(st) && followUp.estimateType !== "written") ms.estimateType = "written";
     if (["quote_accepted", "scheduled", "in_progress", "completed", "invoiced", "sent", "paid"].includes(st) && !followUp.acceptedAt) ms.acceptedAt = new Date();
     if (["completed", "invoiced", "sent", "paid"].includes(st) && !followUp.jobCompletedAt) ms.jobCompletedAt = workOrder.departureAt || new Date();
     if (["invoiced", "sent", "paid"].includes(st) && !followUp.invoicedAt) ms.invoicedAt = workOrder.invoiceSentAt || workOrder.invoiceIssuedAt || new Date();

@@ -67,18 +67,51 @@ export default function SuiviSimple() {
     }
   }
 
-  async function setOutcome(fu, outcome) {
-    const next = fu.outcome === outcome ? "open" : outcome;
-    patchLocal(fu.id, { outcome: next });
+  // Approbation via le menu déroulant (remplace Gagné/Perdu) : approuvé = gagné +
+  // jalon coché, refusé = perdu, en attente = ouvert. Un seul appel cohérent.
+  async function setApproval(fu, state) {
+    const now = new Date().toISOString();
+    const optimistic =
+      state === "won" ? { outcome: "won", acceptedAt: fu.acceptedAt || now }
+      : state === "lost" ? { outcome: "lost", acceptedAt: null }
+      : { outcome: "open", acceptedAt: null };
+    patchLocal(fu.id, optimistic);
+    const body =
+      state === "won" ? { outcome: "won", toggleMilestone: "acceptedAt", on: true }
+      : state === "lost" ? { outcome: "lost", toggleMilestone: "acceptedAt", on: false }
+      : { outcome: "open", toggleMilestone: "acceptedAt", on: false };
     try {
       const res = await fetch(`/api/admin/follow-ups/${fu.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ outcome: next }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) throw new Error();
-      const updated = await res.json();
-      patchLocal(fu.id, updated);
+      patchLocal(fu.id, await res.json());
+    } catch {
+      load();
+    }
+  }
+
+  // Type de soumission via le menu déroulant : écrite / téléphone / aucune.
+  // "written" peut aussi être posé tout seul par le système (bon de travail).
+  async function setSoumission(fu, type) {
+    const now = new Date().toISOString();
+    const optimistic = type
+      ? { estimateSentAt: fu.estimateSentAt || now, estimateType: type }
+      : { estimateSentAt: null, estimateType: null };
+    patchLocal(fu.id, optimistic);
+    const body = type
+      ? { toggleMilestone: "estimateSentAt", on: true, estimateType: type }
+      : { toggleMilestone: "estimateSentAt", on: false, estimateType: null };
+    try {
+      const res = await fetch(`/api/admin/follow-ups/${fu.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error();
+      patchLocal(fu.id, await res.json());
     } catch {
       load();
     }
@@ -192,21 +225,17 @@ export default function SuiviSimple() {
                       {fmtMoney(fu.estimateAmount) && <span className="admin-text font-semibold">{fmtMoney(fu.estimateAmount)}</span>}
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <button onClick={() => setOutcome(fu, "won")} title="Gagné"
-                      className={`px-2.5 py-1 rounded-full text-[11px] font-bold border ${isWon ? "bg-emerald-500 text-white border-emerald-500" : "admin-border admin-text-muted hover:text-emerald-400"}`}>
-                      <i className="fas fa-trophy mr-1"></i>Gagné
-                    </button>
-                    <button onClick={() => setOutcome(fu, "lost")} title="Perdu"
-                      className={`px-2.5 py-1 rounded-full text-[11px] font-bold border ${isLost ? "bg-slate-500 text-white border-slate-500" : "admin-border admin-text-muted hover:text-slate-300"}`}>
-                      <i className="fas fa-ban mr-1"></i>Perdu
-                    </button>
-                  </div>
                 </div>
 
                 <div className="flex items-center gap-1.5 mt-3 flex-wrap">
                   <ContactMenu fu={fu} onPick={(state) => setContactState(fu, state)} />
                   {FOLLOW_UP_MILESTONES.filter((m) => m.key !== "contactedAt").map((m) => {
+                    if (m.key === "estimateSentAt") {
+                      return <SoumissionMenu key={m.key} fu={fu} onPick={(k) => setSoumission(fu, k === "none" ? null : k)} />;
+                    }
+                    if (m.key === "acceptedAt") {
+                      return <ApprovalMenu key={m.key} fu={fu} onPick={(state) => setApproval(fu, state)} />;
+                    }
                     const on = !!fu[m.key];
                     return (
                       <button key={m.key} onClick={() => toggleMilestone(fu, m.key)} title={on ? `${m.label} · ${fmtDate(fu[m.key])}` : m.label}
@@ -221,7 +250,7 @@ export default function SuiviSimple() {
 
                 {flagged && (
                   <div className="mt-2 text-xs text-rose-300 font-semibold">
-                    <i className="fas fa-triangle-exclamation mr-1"></i>2 tentatives sans réponse — relancer ou marquer perdu
+                    <i className="fas fa-triangle-exclamation mr-1"></i>2 tentatives sans réponse — relancer ou marquer refusé
                   </div>
                 )}
 
@@ -280,6 +309,109 @@ function ContactMenu({ fu, onPick }) {
           <button aria-hidden tabIndex={-1} onClick={() => setOpen(false)} className="fixed inset-0 z-40 cursor-default"></button>
           <div className="absolute left-0 top-full mt-1 z-50 w-60 admin-bg border admin-border rounded-lg shadow-xl py-1">
             {CONTACT_OPTIONS.map((o) => (
+              <button
+                key={o.key}
+                onClick={() => { setOpen(false); onPick(o.key); }}
+                className={`w-full text-left px-3 py-2 text-xs font-medium hover:bg-white/5 flex items-center gap-2 transition-colors ${current === o.key ? "bg-white/5" : ""}`}
+              >
+                <i className={`fas ${o.icon} w-4 text-center ${o.tone}`}></i>
+                <span className="admin-text">{o.label}</span>
+                {current === o.key && <i className="fas fa-check ml-auto text-emerald-400 text-[10px]"></i>}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// Menu déroulant compact pour l'approbation (remplace les boutons Gagné/Perdu).
+// Approuvé = gagné, Refusé = perdu, En attente = ouvert.
+const APPROVAL_STATES = {
+  open: { label: "À approuver", icon: "fa-thumbs-up", cls: "admin-bg admin-border admin-text-muted" },
+  won: { label: "Approuvé", icon: "fa-thumbs-up", cls: "bg-emerald-500/15 border-emerald-400/40 text-emerald-300" },
+  lost: { label: "Refusé", icon: "fa-thumbs-down", cls: "bg-slate-500/15 border-slate-400/50 text-slate-300" },
+};
+const APPROVAL_OPTIONS = [
+  { key: "won", label: "Approuvé (gagné)", icon: "fa-thumbs-up", tone: "text-emerald-400" },
+  { key: "lost", label: "Refusé (perdu)", icon: "fa-thumbs-down", tone: "text-slate-400" },
+  { key: "open", label: "En attente (réinitialiser)", icon: "fa-rotate-left", tone: "admin-text-muted" },
+];
+
+function ApprovalMenu({ fu, onPick }) {
+  const [open, setOpen] = useState(false);
+  const current = fu.outcome === "won" ? "won" : fu.outcome === "lost" ? "lost" : "open";
+  const cur = APPROVAL_STATES[current];
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        title="Approbation de la soumission"
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${cur.cls}`}
+      >
+        <i className={`fas ${cur.icon}`}></i>
+        {cur.label}
+        <i className="fas fa-chevron-down text-[9px] opacity-60 ml-0.5"></i>
+      </button>
+      {open && (
+        <>
+          <button aria-hidden tabIndex={-1} onClick={() => setOpen(false)} className="fixed inset-0 z-40 cursor-default"></button>
+          <div className="absolute left-0 top-full mt-1 z-50 w-56 admin-bg border admin-border rounded-lg shadow-xl py-1">
+            {APPROVAL_OPTIONS.map((o) => (
+              <button
+                key={o.key}
+                onClick={() => { setOpen(false); onPick(o.key); }}
+                className={`w-full text-left px-3 py-2 text-xs font-medium hover:bg-white/5 flex items-center gap-2 transition-colors ${current === o.key ? "bg-white/5" : ""}`}
+              >
+                <i className={`fas ${o.icon} w-4 text-center ${o.tone}`}></i>
+                <span className="admin-text">{o.label}</span>
+                {current === o.key && <i className="fas fa-check ml-auto text-emerald-400 text-[10px]"></i>}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// Menu déroulant compact pour la soumission : écrite (auto via le système) ou par
+// téléphone (verbale, manuelle). "Tu sais pourquoi" : l'écrite = un vrai document.
+const SOUMISSION_OPTIONS = [
+  { key: "written", label: "Soumission écrite", icon: "fa-file-lines", tone: "text-emerald-400" },
+  { key: "phone", label: "Soumission par téléphone", icon: "fa-phone", tone: "text-sky-400" },
+  { key: "none", label: "Pas de soumission (réinitialiser)", icon: "fa-rotate-left", tone: "admin-text-muted" },
+];
+
+function SoumissionMenu({ fu, onPick }) {
+  const [open, setOpen] = useState(false);
+  const has = !!fu.estimateSentAt;
+  const type = fu.estimateType;
+  const current = !has ? "none" : type === "phone" ? "phone" : type === "written" ? "written" : null;
+  const cur = !has
+    ? { label: "Soumission", icon: "fa-file-lines", cls: "admin-bg admin-border admin-text-muted" }
+    : type === "phone"
+      ? { label: "Soum. téléphone", icon: "fa-phone", cls: "bg-emerald-500/15 border-emerald-400/40 text-emerald-300" }
+      : { label: "Soum. écrite", icon: "fa-file-lines", cls: "bg-emerald-500/15 border-emerald-400/40 text-emerald-300" };
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        title={has ? (type === "phone" ? "Soumission verbale (téléphone)" : "Soumission écrite") : "Soumission"}
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${cur.cls}`}
+      >
+        <i className={`fas ${cur.icon}`}></i>
+        {cur.label}
+        <i className="fas fa-chevron-down text-[9px] opacity-60 ml-0.5"></i>
+      </button>
+      {open && (
+        <>
+          <button aria-hidden tabIndex={-1} onClick={() => setOpen(false)} className="fixed inset-0 z-40 cursor-default"></button>
+          <div className="absolute left-0 top-full mt-1 z-50 w-60 admin-bg border admin-border rounded-lg shadow-xl py-1">
+            {SOUMISSION_OPTIONS.map((o) => (
               <button
                 key={o.key}
                 onClick={() => { setOpen(false); onPick(o.key); }}

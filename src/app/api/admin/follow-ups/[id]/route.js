@@ -69,6 +69,13 @@ export async function PUT(req, { params }) {
     data[body.toggleMilestone] = body.on ? (existing[body.toggleMilestone] || new Date()) : null;
   }
 
+  // Type de soumission piloté par le menu Soumission : "written" (écrite) | "phone"
+  // (verbale) | null (réinitialisée). L'écrite est aussi posée automatiquement côté
+  // bon de travail (voir follow-up-utils), ici c'est le réglage manuel.
+  if (body.estimateType !== undefined) {
+    data.estimateType = ["phone", "written"].includes(body.estimateType) ? body.estimateType : null;
+  }
+
   // Tentatives de contact sans réponse. { bumpAttempt: true } = +1 et horodate la
   // tentative ; { resetAttempts: true } = remet à zéro. On accepte aussi une valeur
   // directe contactAttempts (clampée >= 0).
