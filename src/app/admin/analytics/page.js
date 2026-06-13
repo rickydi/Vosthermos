@@ -10,6 +10,7 @@ import FormAbandonment from "@/components/admin/analytics/FormAbandonment";
 import FormTimeline from "@/components/admin/analytics/FormTimeline";
 import BreakdownCards from "@/components/admin/analytics/BreakdownCards";
 import OutsideCanadaVisitors from "@/components/admin/analytics/OutsideCanadaVisitors";
+import KeywordDemand from "@/components/admin/analytics/KeywordDemand";
 
 export default function AdminAnalyticsPage() {
   const [data, setData] = useState(null);
@@ -147,6 +148,11 @@ export default function AdminAnalyticsPage() {
           <DailyChart daily={data.daily} hourly={data.hourly} />
         </div>
         <TopPages topPages={data.topPages} totalPageViews={data.totalPageViews} formatDuration={formatDuration} />
+      </div>
+
+      {/* Demande par mots-clés (marché) — indépendant du trafic du site */}
+      <div className="mb-6">
+        <KeywordDemand />
       </div>
 
       {/* Flow diagram */}
