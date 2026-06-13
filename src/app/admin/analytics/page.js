@@ -141,19 +141,21 @@ export default function AdminAnalyticsPage() {
         formatDuration={formatDuration}
       />
 
-      {/* Charts row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <DailyChart daily={data.daily} />
+      {/* Charts row: grand graphique (2/3) + top pages (1/3) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+        <div className="lg:col-span-2">
+          <DailyChart daily={data.daily} hourly={data.hourly} />
+        </div>
         <TopPages topPages={data.topPages} totalPageViews={data.totalPageViews} formatDuration={formatDuration} />
       </div>
 
       {/* Flow diagram */}
-      <div className="mb-8">
+      <div className="mb-6">
         <FlowDiagram query={periodQuery} />
       </div>
 
       {/* Recent visitors */}
-      <div className="mb-8">
+      <div className="mb-6">
         <RecentVisitors
           initialVisitors={data.recentVisitors}
           query={periodQuery}
@@ -164,12 +166,12 @@ export default function AdminAnalyticsPage() {
       </div>
 
       {/* Form abandonment */}
-      <div className="mb-8">
+      <div className="mb-6">
         <FormAbandonment query={periodQuery} />
       </div>
 
       {/* Form timeline simulation */}
-      <div className="mb-8">
+      <div className="mb-6">
         <FormTimeline query={periodQuery} />
       </div>
 

@@ -104,6 +104,74 @@ export async function GET(request) {
       pageViews: dailyMap[key]?.pageViews || 0,
     }));
 
+    // Série HORAIRE quand la période couvre une seule journée (vue « Aujourd'hui »
+    // ou date précise) — avant, cette vue n'avait aucun graphique.
+    let hourly = null;
+    if (range.date || range.days === 0) {
+      const hourFmt = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Montreal",
+        hour12: false,
+        hour: "2-digit",
+      });
+      const hourlyMap = {};
+      for (const s of sessions) {
+        const h = parseInt(hourFmt.format(new Date(s.startedAt)), 10) % 24;
+        if (!hourlyMap[h]) hourlyMap[h] = { visitors: new Set(), pageViews: 0 };
+        hourlyMap[h].visitors.add(s.visitorId);
+        hourlyMap[h].pageViews += s.pageViews.length;
+      }
+      hourly = Array.from({ length: 24 }, (_, h) => ({
+        hour: h,
+        visitors: hourlyMap[h]?.visitors.size || 0,
+        pageViews: hourlyMap[h]?.pageViews || 0,
+      }));
+    }
+
+    // Période PRÉCÉDENTE de même longueur — pour afficher les deltas (↑ +12 %)
+    // sur les KPI. « Aujourd'hui » se compare à hier à la même heure.
+    let prev = null;
+    try {
+      let prevSince;
+      let prevUntil;
+      let prevLabel;
+      if (range.days === 0) {
+        prevSince = new Date(range.since.getTime() - 86400000);
+        prevUntil = new Date((range.until || new Date()).getTime() - 86400000);
+        prevLabel = "hier, même heure";
+      } else if (range.date) {
+        prevSince = new Date(range.since.getTime() - 86400000);
+        prevUntil = range.since;
+        prevLabel = "le jour précédent";
+      } else {
+        prevSince = new Date(range.since.getTime() - range.days * 86400000);
+        prevUntil = range.since;
+        prevLabel = `les ${range.days} j précédents`;
+      }
+      const prevSessions = await prisma.analyticsSession.findMany({
+        where: { startedAt: { gte: prevSince, lt: prevUntil } },
+        select: {
+          visitorId: true,
+          startedAt: true,
+          endedAt: true,
+          country: true,
+          _count: { select: { pageViews: true } },
+        },
+      });
+      const prevKept = prevSessions.filter((s) => !isOutsideCanadaSession(s));
+      const prevWithEnd = prevKept.filter((s) => s.endedAt);
+      prev = {
+        label: prevLabel,
+        uniqueVisitors: new Set(prevKept.map((s) => s.visitorId)).size,
+        totalPageViews: prevKept.reduce((sum, s) => sum + s._count.pageViews, 0),
+        totalSessions: prevKept.length,
+        avgDuration: prevWithEnd.length
+          ? Math.round(prevWithEnd.reduce((sum, s) => sum + (new Date(s.endedAt) - new Date(s.startedAt)) / 1000, 0) / prevWithEnd.length)
+          : 0,
+      };
+    } catch {
+      prev = null;
+    }
+
     // Device breakdown (unique visitors per device)
     const deviceVisitors = {};
     for (const s of sessions) {
@@ -173,6 +241,8 @@ export async function GET(request) {
       avgDuration,
       topPages,
       daily,
+      hourly,
+      prev,
       devices,
       browsers,
       topReferrers,

@@ -18,11 +18,11 @@ export default function OutsideCanadaVisitors({
   const hasOutsideTraffic = (data.uniqueVisitors || 0) > 0 || (data.totalPageViews || 0) > 0;
 
   return (
-    <div className="admin-card mb-8 rounded-xl border border-amber-500/25 p-5">
+    <div className="admin-card mb-6 rounded-xl border p-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="admin-text flex items-center gap-2 text-sm font-extrabold uppercase tracking-wider">
-            <i className="fas fa-earth-americas text-amber-500"></i>
+          <h2 className="admin-text-muted flex items-center gap-2 text-xs font-bold uppercase tracking-wider">
+            <i className="fas fa-earth-americas text-amber-400/80"></i>
             Trafic hors Canada mis de cote
           </h2>
           <p className="admin-text-muted mt-1 text-xs">
@@ -36,13 +36,13 @@ export default function OutsideCanadaVisitors({
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-right">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700">Visiteurs</p>
-            <p className="text-xl font-black text-amber-700">{data.uniqueVisitors || 0}</p>
+          <div className="rounded-lg bg-white/[0.04] px-3 py-1.5 text-right">
+            <p className="text-[10px] font-bold uppercase tracking-wider admin-text-muted">Visiteurs</p>
+            <p className="text-lg font-extrabold admin-text">{data.uniqueVisitors || 0}</p>
           </div>
-          <div className="rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-3 py-2 text-right">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-cyan-700">Pages / clics</p>
-            <p className="text-xl font-black text-cyan-700">{data.totalPageViews || 0}</p>
+          <div className="rounded-lg bg-white/[0.04] px-3 py-1.5 text-right">
+            <p className="text-[10px] font-bold uppercase tracking-wider admin-text-muted">Pages / clics</p>
+            <p className="text-lg font-extrabold admin-text">{data.totalPageViews || 0}</p>
           </div>
           <button
             type="button"
@@ -82,7 +82,7 @@ export default function OutsideCanadaVisitors({
                         {visitor.visitorId.substring(0, 10)}...
                       </Link>
                     </td>
-                    <td className="py-2.5 text-xs font-bold text-amber-700">{visitor.country || "Inconnu"}</td>
+                    <td className="py-2.5 text-xs font-bold text-amber-400/90">{visitor.country || "Inconnu"}</td>
                     <td className="py-2.5 admin-text-muted text-xs">
                       {visitor.city ? `${visitor.city}${visitor.region ? `, ${visitor.region}` : ""}` : "-"}
                     </td>

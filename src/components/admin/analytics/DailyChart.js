@@ -2,94 +2,149 @@
 
 import { useState } from "react";
 
-export default function DailyChart({ daily = [] }) {
-  const [tooltip, setTooltip] = useState(null);
-  const maxVisitors = Math.max(...daily.map((d) => d.visitors), 1);
-  const chartHeight = 160;
+// Graphique de trafic principal.
+// - Vue « Aujourd'hui » / date précise : courbe HEURE PAR HEURE (la vue d'avant
+//   n'affichait que 2 gros chiffres dans du vide).
+// - Vue 7/30/90 j : barres par jour + ligne des pages vues.
+// Barres = visiteurs (accent rouge brand), ligne blanche = pages vues.
 
-  // Single day — show compact summary instead of bar chart
-  if (daily.length <= 1) {
-    const today = daily[0] || { date: new Date().toISOString().split("T")[0], visitors: 0, pageViews: 0 };
-    return (
-      <div className="admin-card rounded-xl p-6 border">
-        <h2 className="admin-text-muted text-xs font-bold uppercase tracking-wider mb-6">
-          AUJOURD&apos;HUI
-        </h2>
-        <div className="flex items-center justify-center gap-12 py-8">
-          <div className="text-center">
-            <p className="text-4xl font-extrabold text-blue-400">{today.visitors}</p>
-            <p className="admin-text-muted text-xs mt-1 uppercase tracking-wider">Visiteur{today.visitors !== 1 ? "s" : ""}</p>
-          </div>
-          <div className="w-px h-12 bg-current opacity-10"></div>
-          <div className="text-center">
-            <p className="text-4xl font-extrabold text-green-400">{today.pageViews}</p>
-            <p className="admin-text-muted text-xs mt-1 uppercase tracking-wider">Page{today.pageViews !== 1 ? "s" : ""} vue{today.pageViews !== 1 ? "s" : ""}</p>
-          </div>
-        </div>
-        <p className="admin-text-muted text-xs text-center">
-          {new Date(today.date + "T12:00:00").toLocaleDateString("fr-CA", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-        </p>
-      </div>
-    );
-  }
+export default function DailyChart({ daily = [], hourly = null }) {
+  const [tip, setTip] = useState(null);
+
+  const isHourly = Array.isArray(hourly) && hourly.length > 0;
+  const points = isHourly
+    ? hourly.map((p) => ({
+        key: `h${p.hour}`,
+        label: `${p.hour}h`,
+        full: `${String(p.hour).padStart(2, "0")}:00 – ${String(p.hour).padStart(2, "0")}:59`,
+        visitors: p.visitors,
+        pageViews: p.pageViews,
+      }))
+    : daily.map((d) => ({
+        key: d.date,
+        label: new Date(d.date + "T12:00:00").toLocaleDateString("fr-CA", { day: "numeric", month: "short" }).replace(".", ""),
+        full: new Date(d.date + "T12:00:00").toLocaleDateString("fr-CA", { weekday: "long", day: "numeric", month: "long" }),
+        visitors: d.visitors,
+        pageViews: d.pageViews,
+      }));
+
+  const totalV = points.reduce((s, p) => s + p.visitors, 0);
+  const totalP = points.reduce((s, p) => s + p.pageViews, 0);
+  const maxV = Math.max(...points.map((p) => p.visitors), 1);
+  const maxP = Math.max(...points.map((p) => p.pageViews), 1);
+
+  const H = 170;
+  const colW = Math.max(20, Math.min(46, Math.floor(860 / Math.max(points.length, 1))));
+  const W = points.length * colW;
+  const labelEvery = Math.max(1, Math.ceil(points.length / 14));
+
+  const lineD = points
+    .map((p, i) => `${i === 0 ? "M" : "L"}${(i * colW + colW / 2).toFixed(1)},${(H - (p.pageViews / maxP) * (H - 14)).toFixed(1)}`)
+    .join(" ");
 
   return (
-    <div className="admin-card rounded-xl p-6 border">
-      <h2 className="admin-text-muted text-xs font-bold uppercase tracking-wider mb-6">
-        VISITEURS PAR JOUR
-      </h2>
-      <div className="relative">
-        <svg width="100%" viewBox={`0 0 ${daily.length * 40} ${chartHeight + 30}`} className="overflow-visible">
-          {daily.map((d, i) => {
-            const barHeight = Math.max((d.visitors / maxVisitors) * chartHeight, 2);
-            const x = i * 40 + 8;
-            const barWidth = 24;
-            const y = chartHeight - barHeight;
-
-            return (
-              <g
-                key={d.date}
-                onMouseEnter={() => setTooltip({ i, d })}
-                onMouseLeave={() => setTooltip(null)}
-                className="cursor-pointer"
-              >
-                <rect
-                  x={x}
-                  y={y}
-                  width={barWidth}
-                  height={barHeight}
-                  rx={3}
-                  className={tooltip?.i === i ? "fill-blue-400" : "fill-blue-500/70"}
-                />
-                <text
-                  x={x + barWidth / 2}
-                  y={chartHeight + 16}
-                  textAnchor="middle"
-                  className="fill-current admin-text-muted"
-                  style={{ fontSize: "9px" }}
-                >
-                  {new Date(d.date + "T12:00:00").toLocaleDateString("fr-CA", { day: "numeric", month: "short" }).replace(".", "")}
-                </text>
-              </g>
-            );
-          })}
-        </svg>
-
-        {tooltip && (
-          <div
-            className="absolute bg-black/90 text-white text-xs rounded-lg px-3 py-2 pointer-events-none z-10 whitespace-nowrap"
-            style={{
-              left: `${(tooltip.i / daily.length) * 100}%`,
-              top: "-8px",
-              transform: "translateX(-50%)",
-            }}
-          >
-            <div className="font-bold">{tooltip.d.date}</div>
-            <div>{tooltip.d.visitors} visiteur{tooltip.d.visitors > 1 ? "s" : ""}</div>
-            <div>{tooltip.d.pageViews} page{tooltip.d.pageViews > 1 ? "s" : ""} vue{tooltip.d.pageViews > 1 ? "s" : ""}</div>
-          </div>
-        )}
+    <div className="admin-card rounded-xl p-6 border h-full">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <h2 className="admin-text-muted text-xs font-bold uppercase tracking-wider">
+          {isHourly ? "Trafic heure par heure" : "Trafic par jour"}
+        </h2>
+        <div className="flex items-center gap-4 text-[11px] admin-text-muted">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="inline-block w-2.5 h-2.5 rounded-sm bg-[var(--color-red)]"></span>
+            <strong className="admin-text">{totalV}</strong> visiteur{totalV > 1 ? "s" : ""}
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="inline-block w-4 h-[2px] rounded bg-white/60"></span>
+            <strong className="admin-text">{totalP}</strong> page{totalP > 1 ? "s" : ""} vue{totalP > 1 ? "s" : ""}
+          </span>
+        </div>
       </div>
+
+      {totalV === 0 && totalP === 0 ? (
+        <p className="admin-text-muted text-sm text-center py-16">Aucun trafic pour cette période.</p>
+      ) : (
+        <div className="relative">
+          <svg width="100%" viewBox={`0 0 ${W} ${H + 26}`} className="overflow-visible">
+            {[0.25, 0.5, 0.75].map((g) => (
+              <line key={g} x1={0} x2={W} y1={H * g} y2={H * g} stroke="currentColor" strokeOpacity={0.07} />
+            ))}
+            {points.map((p, i) => {
+              const bh = p.visitors > 0 ? Math.max((p.visitors / maxV) * (H - 14), 3) : 0;
+              const x = i * colW + colW * 0.18;
+              const bw = colW * 0.64;
+              return (
+                <g
+                  key={p.key}
+                  onMouseEnter={() => setTip({ i, p })}
+                  onMouseLeave={() => setTip(null)}
+                  className="cursor-pointer"
+                >
+                  <rect x={i * colW} y={0} width={colW} height={H} fill="transparent" />
+                  {tip?.i === i && (
+                    <rect x={i * colW} y={0} width={colW} height={H} fill="currentColor" fillOpacity={0.05} rx={4} />
+                  )}
+                  {bh > 0 && (
+                    <rect
+                      x={x}
+                      y={H - bh}
+                      width={bw}
+                      height={bh}
+                      rx={3}
+                      fill="var(--color-red)"
+                      fillOpacity={tip?.i === i ? 1 : 0.78}
+                    />
+                  )}
+                  {i % labelEvery === 0 && (
+                    <text
+                      x={i * colW + colW / 2}
+                      y={H + 17}
+                      textAnchor="middle"
+                      className="fill-current admin-text-muted"
+                      style={{ fontSize: "9.5px" }}
+                    >
+                      {p.label}
+                    </text>
+                  )}
+                </g>
+              );
+            })}
+            <path d={lineD} fill="none" stroke="white" strokeOpacity={0.5} strokeWidth={1.6} strokeLinejoin="round" strokeLinecap="round" style={{ pointerEvents: "none" }} />
+            {points.map((p, i) =>
+              tip?.i === i ? (
+                <circle
+                  key={`dot-${p.key}`}
+                  cx={i * colW + colW / 2}
+                  cy={H - (p.pageViews / maxP) * (H - 14)}
+                  r={3}
+                  fill="white"
+                  style={{ pointerEvents: "none" }}
+                />
+              ) : null
+            )}
+          </svg>
+
+          {tip && (
+            <div
+              className="absolute bg-black/90 text-white text-xs rounded-lg px-3 py-2 pointer-events-none z-10 whitespace-nowrap shadow-xl"
+              style={{
+                left: `${((tip.i + 0.5) / points.length) * 100}%`,
+                top: "-10px",
+                transform: "translateX(-50%)",
+              }}
+            >
+              <div className="font-bold mb-0.5">{tip.p.full}</div>
+              <div>
+                <span className="inline-block w-2 h-2 rounded-sm bg-[var(--color-red)] mr-1.5"></span>
+                {tip.p.visitors} visiteur{tip.p.visitors > 1 ? "s" : ""}
+              </div>
+              <div>
+                <span className="inline-block w-2 h-[2px] rounded bg-white/70 mr-1.5 align-middle"></span>
+                {tip.p.pageViews} page{tip.p.pageViews > 1 ? "s" : ""} vue{tip.p.pageViews > 1 ? "s" : ""}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
