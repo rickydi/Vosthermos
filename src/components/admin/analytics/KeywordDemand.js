@@ -2,77 +2,31 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-// Graphique de la DEMANDE par mots-clés (pas le trafic du site).
-// Source : impressions Google Search Console sur les recherches du métier
-// (fenêtre, porte, thermos/vitre, calfeutrage, moustiquaire, coupe-froid),
-// hors marque. Agrégeable en jour / semaine / mois.
+// Demande par mots-clés = Google Trends (intérêt de recherche RÉEL au Québec,
+// indice 0-100, 100 = pic du mot-clé sur la période). C'est la demande du
+// marché, indépendante du trafic du site. Données tirées via le navigateur
+// puis stockées en base (Google bloque les serveurs). Une ligne par mot-clé,
+// agrégeable en jour / semaine / mois.
 
-const THEME_COLORS = {
-  fenetre: "#34d399",
-  porte: "#60a5fa",
-  thermos: "#fbbf24",
-  calfeutrage: "#a78bfa",
-  moustiquaire: "#f472b6",
-  "coupe-froid": "#22d3ee",
-};
-
+const PALETTE = ["#ef4444", "#34d399", "#60a5fa", "#fbbf24", "#a78bfa", "#f472b6", "#22d3ee"];
 const MONTHS_FR = ["janv", "févr", "mars", "avr", "mai", "juin", "juil", "août", "sept", "oct", "nov", "déc"];
 
-function parseDate(s) {
-  return new Date(s + "T12:00:00Z");
-}
+function parseDate(s) { return new Date(s + "T12:00:00Z"); }
 
-// Lundi de la semaine d'une date (en UTC, sur la base midi pour éviter les
-// décalages de fuseau).
-function weekStart(d) {
-  const x = new Date(d);
-  const dow = (x.getUTCDay() + 6) % 7; // lundi = 0
-  x.setUTCDate(x.getUTCDate() - dow);
-  return x;
-}
-
-function bucketize(total, themesDaily, gran) {
-  // Index date -> { total, themes:{key:val} }
-  const byDate = {};
-  for (const p of total) byDate[p.date] = { total: p.impressions, themes: {} };
-  for (const t of themesDaily) {
-    for (const p of t.daily) {
-      if (!byDate[p.date]) byDate[p.date] = { total: 0, themes: {} };
-      byDate[p.date].themes[t.key] = p.impressions;
-    }
+function monthlyFromWeekly(weekly) {
+  // Indice = moyenne des semaines du mois.
+  const groups = {};
+  for (const p of weekly) {
+    const d = parseDate(p.date);
+    const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+    (groups[key] ||= []).push(p.value);
   }
-
-  const buckets = {};
-  for (const date of Object.keys(byDate)) {
-    const d = parseDate(date);
-    let key;
-    let label;
-    let sortKey;
-    if (gran === "mois") {
-      key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
-      label = `${MONTHS_FR[d.getUTCMonth()]} ${String(d.getUTCFullYear()).slice(2)}`;
-      sortKey = key;
-    } else if (gran === "semaine") {
-      const ws = weekStart(d);
-      key = ws.toISOString().slice(0, 10);
-      label = `${ws.getUTCDate()} ${MONTHS_FR[ws.getUTCMonth()]}`;
-      sortKey = key;
-    } else {
-      key = date;
-      label = `${d.getUTCDate()} ${MONTHS_FR[d.getUTCMonth()]}`;
-      sortKey = date;
-    }
-    if (!buckets[key]) buckets[key] = { key, label, sortKey, total: 0, themes: {} };
-    buckets[key].total += byDate[date].total;
-    for (const [tk, v] of Object.entries(byDate[date].themes)) {
-      buckets[key].themes[tk] = (buckets[key].themes[tk] || 0) + v;
-    }
-  }
-
-  const limit = gran === "mois" ? 16 : gran === "semaine" ? 52 : 90;
-  return Object.values(buckets)
-    .sort((a, b) => (a.sortKey < b.sortKey ? -1 : 1))
-    .slice(-limit);
+  return Object.entries(groups)
+    .sort((a, b) => (a[0] < b[0] ? -1 : 1))
+    .map(([key, vals]) => {
+      const [y, m] = key.split("-");
+      return { date: `${key}-01`, label: `${MONTHS_FR[+m - 1]} ${y.slice(2)}`, value: Math.round(vals.reduce((s, v) => s + v, 0) / vals.length) };
+    });
 }
 
 export default function KeywordDemand() {
@@ -80,13 +34,12 @@ export default function KeywordDemand() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [gran, setGran] = useState("mois");
-  const [activeThemes, setActiveThemes] = useState([]); // overlays
+  const [hidden, setHidden] = useState([]); // mots-clés masqués
   const [tip, setTip] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    setError("");
     fetch("/api/admin/analytics/sector", { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => {
@@ -99,52 +52,44 @@ export default function KeywordDemand() {
     return () => { cancelled = true; };
   }, []);
 
-  const buckets = useMemo(
-    () => (data ? bucketize(data.total, data.themes, gran) : []),
-    [data, gran]
-  );
+  // Séries par mot-clé selon la granularité. Toutes alignées sur la même grille
+  // de dates (Trends renvoie les mêmes dates pour un même intervalle).
+  const { labels, series } = useMemo(() => {
+    if (!data?.keywords?.length) return { labels: [], series: [] };
+    const built = data.keywords.map((k, i) => {
+      let pts;
+      if (gran === "jour") pts = (k.daily || []).slice(-90);
+      else if (gran === "semaine") pts = (k.weekly || []).slice(-52);
+      else pts = monthlyFromWeekly(k.weekly || []).slice(-24);
+      return { key: k.key, label: k.label, color: PALETTE[i % PALETTE.length], pts };
+    });
+    const ref = built.reduce((a, b) => (b.pts.length > a.pts.length ? b : a), built[0]);
+    const labels = (ref?.pts || []).map((p) =>
+      p.label || `${parseDate(p.date).getUTCDate()} ${MONTHS_FR[parseDate(p.date).getUTCMonth()]}`
+    );
+    return { labels, series: built };
+  }, [data, gran]);
 
-  const themeTotals = useMemo(() => {
-    const map = {};
-    for (const b of buckets) for (const [k, v] of Object.entries(b.themes)) map[k] = (map[k] || 0) + v;
-    return map;
-  }, [buckets]);
+  const visible = series.filter((s) => !hidden.includes(s.key));
+  const n = labels.length;
+  const H = 200, W = 1000;
+  const labelEvery = Math.max(1, Math.ceil(n / (gran === "jour" ? 12 : 16)));
 
-  const maxTotal = Math.max(...buckets.map((b) => b.total), 1);
-  const grandTotal = buckets.reduce((s, b) => s + b.total, 0);
+  const linePath = (pts) =>
+    pts.map((p, i) => `${i === 0 ? "M" : "L"}${((i / Math.max(n - 1, 1)) * W).toFixed(1)},${(H - (p.value / 100) * (H - 8)).toFixed(1)}`).join(" ");
 
-  function toggleTheme(k) {
-    setActiveThemes((cur) => (cur.includes(k) ? cur.filter((x) => x !== k) : [...cur, k]));
+  function toggle(key) {
+    setHidden((cur) => (cur.includes(key) ? cur.filter((x) => x !== key) : [...cur, key]));
   }
-
-  // viewBox de largeur FIXE : le ratio reste constant peu importe le nombre de
-  // barres (sinon, avec peu de colonnes, le SVG s'étire en hauteur).
-  const H = 200;
-  const W = 1000;
-  const colW = buckets.length ? W / buckets.length : W;
-  const labelEvery = Math.max(1, Math.ceil(buckets.length / (gran === "jour" ? 12 : 16)));
-
-  const themeLine = (themeKey) => {
-    const max = Math.max(...buckets.map((b) => b.themes[themeKey] || 0), 1);
-    return buckets
-      .map((b, i) => {
-        const v = b.themes[themeKey] || 0;
-        const x = i * colW + colW / 2;
-        const y = H - (v / max) * (H - 12);
-        return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
-      })
-      .join(" ");
-  };
 
   return (
     <div className="admin-card rounded-xl p-6 border">
       <div className="flex flex-wrap items-start justify-between gap-3 mb-1">
         <div>
-          <h2 className="admin-text-muted text-xs font-bold uppercase tracking-wider">
-            Demande par mots-clés
-          </h2>
+          <h2 className="admin-text-muted text-xs font-bold uppercase tracking-wider">Demande par mots-clés</h2>
           <p className="admin-text-muted text-[11px] mt-1 max-w-xl">
-            Recherches Google du métier (hors « vosthermos »). Mesure la demande, pas ton trafic.
+            Intérêt de recherche Google au Québec (indice 0-100, 100 = pic). La demande du marché, pas ton trafic.
+            {data?.pulledAt && <span className="opacity-70"> · Mis à jour le {data.pulledAt}</span>}
           </p>
         </div>
         <div className="flex items-center gap-1 admin-card border rounded-lg p-1">
@@ -163,104 +108,74 @@ export default function KeywordDemand() {
       </div>
 
       {loading ? (
-        <p className="admin-text-muted text-sm text-center py-20">
-          <i className="fas fa-spinner fa-spin mr-2"></i>Chargement de la demande Google…
-        </p>
+        <p className="admin-text-muted text-sm text-center py-20"><i className="fas fa-spinner fa-spin mr-2"></i>Chargement…</p>
       ) : error ? (
         <p className="text-orange-400 text-sm text-center py-16 font-bold">{error}</p>
-      ) : buckets.length === 0 ? (
-        <p className="admin-text-muted text-sm text-center py-16">Aucune donnée de demande.</p>
+      ) : !data?.keywords?.length ? (
+        <div className="text-center py-16">
+          <p className="admin-text-muted text-sm">Aucune donnée de demande pour l&apos;instant.</p>
+          <p className="admin-text-muted text-xs mt-1">Les données Google Trends doivent être tirées (via le navigateur).</p>
+        </div>
       ) : (
         <>
-          <div className="flex items-baseline gap-2 mb-4">
-            <span className="text-2xl font-extrabold admin-text">{grandTotal.toLocaleString("fr-CA")}</span>
-            <span className="admin-text-muted text-xs">recherches affichées sur la période</span>
-          </div>
-
-          <div className="relative">
+          <div className="relative mt-4">
             <svg width="100%" viewBox={`0 0 ${W} ${H + 26}`} className="overflow-visible">
-              {[0.25, 0.5, 0.75].map((g) => (
-                <line key={g} x1={0} x2={W} y1={H * g} y2={H * g} stroke="currentColor" strokeOpacity={0.07} />
+              {[0, 25, 50, 75, 100].map((g) => (
+                <g key={g}>
+                  <line x1={0} x2={W} y1={H - (g / 100) * (H - 8)} y2={H - (g / 100) * (H - 8)} stroke="currentColor" strokeOpacity={0.07} />
+                  <text x={-6} y={H - (g / 100) * (H - 8) + 3} textAnchor="end" className="fill-current admin-text-muted" style={{ fontSize: "9px" }}>{g}</text>
+                </g>
               ))}
-              {buckets.map((b, i) => {
-                const bh = b.total > 0 ? Math.max((b.total / maxTotal) * (H - 12), 2) : 0;
-                const x = i * colW + colW * 0.18;
-                const bw = colW * 0.64;
-                return (
-                  <g
-                    key={b.key}
-                    onMouseEnter={() => setTip({ i, b })}
-                    onMouseLeave={() => setTip(null)}
-                    className="cursor-pointer"
-                  >
-                    <rect x={i * colW} y={0} width={colW} height={H} fill={tip?.i === i ? "currentColor" : "transparent"} fillOpacity={tip?.i === i ? 0.05 : 0} rx={4} />
-                    {bh > 0 && (
-                      <rect x={x} y={H - bh} width={bw} height={bh} rx={3} fill="var(--color-red)" fillOpacity={tip?.i === i ? 1 : 0.7} />
-                    )}
-                    {i % labelEvery === 0 && (
-                      <text x={i * colW + colW / 2} y={H + 17} textAnchor="middle" className="fill-current admin-text-muted" style={{ fontSize: "9.5px" }}>
-                        {b.label}
-                      </text>
-                    )}
-                  </g>
-                );
-              })}
-              {activeThemes.map((tk) => (
-                <path key={tk} d={themeLine(tk)} fill="none" stroke={THEME_COLORS[tk]} strokeWidth={1.8} strokeLinejoin="round" strokeLinecap="round" style={{ pointerEvents: "none" }} />
+              {labels.map((lab, i) =>
+                i % labelEvery === 0 ? (
+                  <text key={i} x={(i / Math.max(n - 1, 1)) * W} y={H + 17} textAnchor="middle" className="fill-current admin-text-muted" style={{ fontSize: "9.5px" }}>{lab}</text>
+                ) : null
+              )}
+              {visible.map((s) => (
+                <path key={s.key} d={linePath(s.pts)} fill="none" stroke={s.color} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+              ))}
+              {tip != null && (
+                <line x1={(tip / Math.max(n - 1, 1)) * W} x2={(tip / Math.max(n - 1, 1)) * W} y1={0} y2={H} stroke="currentColor" strokeOpacity={0.2} />
+              )}
+              {/* zones de survol */}
+              {labels.map((_, i) => (
+                <rect key={i} x={(i / Math.max(n - 1, 1)) * W - W / Math.max(n - 1, 1) / 2} y={0} width={W / Math.max(n - 1, 1)} height={H} fill="transparent"
+                  onMouseEnter={() => setTip(i)} onMouseLeave={() => setTip(null)} />
               ))}
             </svg>
 
-            {tip && (
-              <div
-                className="absolute bg-black/90 text-white text-xs rounded-lg px-3 py-2 pointer-events-none z-10 whitespace-nowrap shadow-xl"
-                style={{ left: `${((tip.i + 0.5) / buckets.length) * 100}%`, top: "-10px", transform: "translateX(-50%)" }}
-              >
-                <div className="font-bold mb-1">{tip.b.label}</div>
-                <div className="mb-1">
-                  <span className="inline-block w-2 h-2 rounded-sm bg-[var(--color-red)] mr-1.5"></span>
-                  {tip.b.total.toLocaleString("fr-CA")} recherches
-                </div>
-                {Object.entries(tip.b.themes)
-                  .filter(([, v]) => v > 0)
-                  .sort((a, b) => b[1] - a[1])
-                  .slice(0, 4)
-                  .map(([k, v]) => (
-                    <div key={k} className="opacity-80">
-                      <span className="inline-block w-2 h-2 rounded-sm mr-1.5" style={{ background: THEME_COLORS[k] }}></span>
-                      {(data.themes.find((t) => t.key === k)?.label) || k} : {v.toLocaleString("fr-CA")}
+            {tip != null && (
+              <div className="absolute bg-black/90 text-white text-xs rounded-lg px-3 py-2 pointer-events-none z-10 whitespace-nowrap shadow-xl"
+                style={{ left: `${(tip / Math.max(n - 1, 1)) * 100}%`, top: "-10px", transform: "translateX(-50%)" }}>
+                <div className="font-bold mb-1">{labels[tip]}</div>
+                {visible
+                  .map((s) => ({ label: s.label, color: s.color, v: s.pts[tip]?.value ?? 0 }))
+                  .sort((a, b) => b.v - a.v)
+                  .map((r) => (
+                    <div key={r.label}>
+                      <span className="inline-block w-2 h-2 rounded-sm mr-1.5" style={{ background: r.color }}></span>
+                      {r.label} : {r.v}
                     </div>
                   ))}
               </div>
             )}
           </div>
 
-          {/* Chips par thème — cliquer ajoute la ligne au graphique */}
+          {/* Légende cliquable */}
           <div className="flex flex-wrap gap-2 mt-5">
-            {data.themes
-              .slice()
-              .sort((a, b) => (themeTotals[b.key] || 0) - (themeTotals[a.key] || 0))
-              .map((t) => {
-                const on = activeThemes.includes(t.key);
-                return (
-                  <button
-                    key={t.key}
-                    onClick={() => toggleTheme(t.key)}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-bold transition-all ${
-                      on ? "border-transparent text-white" : "admin-card admin-text-muted hover:bg-white/5"
-                    }`}
-                    style={on ? { background: THEME_COLORS[t.key] } : {}}
-                  >
-                    <span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: on ? "rgba(255,255,255,0.9)" : THEME_COLORS[t.key] }}></span>
-                    {t.label}
-                    <span className={on ? "opacity-90" : "opacity-60"}>
-                      {(themeTotals[t.key] || 0).toLocaleString("fr-CA")}
-                    </span>
-                  </button>
-                );
-              })}
+            {series.map((s) => {
+              const off = hidden.includes(s.key);
+              return (
+                <button key={s.key} onClick={() => toggle(s.key)}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-bold transition-all ${off ? "admin-card admin-text-muted opacity-50" : "admin-card admin-text hover:bg-white/5"}`}>
+                  <span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: s.color, opacity: off ? 0.4 : 1 }}></span>
+                  {s.label}
+                </button>
+              );
+            })}
           </div>
           <p className="admin-text-muted text-[10px] mt-3">
-            Astuce : clique un mot-clé pour superposer sa courbe. Données Google Search Console (2-3 j de décalage).
+            Source : Google Trends (Québec). Chaque ligne = indice 0-100 propre au mot-clé (100 = son pic sur la période). Compare la SAISON, pas les volumes entre mots-clés.
           </p>
         </>
       )}
