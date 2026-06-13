@@ -79,7 +79,7 @@ function PageLink({ page, x, y, textAnchor, fontSize }) {
 export default function FlowDiagram({ query }) {
   const [flows, setFlows] = useState([]);
   const [entries, setEntries] = useState([]);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
 
   useEffect(() => {
     fetch(`/api/admin/analytics/flow?${query || "days=7"}`)
