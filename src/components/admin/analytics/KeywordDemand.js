@@ -117,9 +117,11 @@ export default function KeywordDemand() {
     setActiveThemes((cur) => (cur.includes(k) ? cur.filter((x) => x !== k) : [...cur, k]));
   }
 
+  // viewBox de largeur FIXE : le ratio reste constant peu importe le nombre de
+  // barres (sinon, avec peu de colonnes, le SVG s'étire en hauteur).
   const H = 200;
-  const colW = buckets.length ? Math.max(8, Math.min(48, Math.floor(980 / buckets.length))) : 40;
-  const W = buckets.length * colW;
+  const W = 1000;
+  const colW = buckets.length ? W / buckets.length : W;
   const labelEvery = Math.max(1, Math.ceil(buckets.length / (gran === "jour" ? 12 : 16)));
 
   const themeLine = (themeKey) => {

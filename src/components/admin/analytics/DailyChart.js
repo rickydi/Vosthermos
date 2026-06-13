@@ -33,9 +33,11 @@ export default function DailyChart({ daily = [], hourly = null }) {
   const maxV = Math.max(...points.map((p) => p.visitors), 1);
   const maxP = Math.max(...points.map((p) => p.pageViews), 1);
 
+  // viewBox de largeur FIXE : ratio constant peu importe le nombre de colonnes
+  // (sinon, avec peu de barres comme la vue 7 jours, le SVG s'étire en hauteur).
   const H = 170;
-  const colW = Math.max(20, Math.min(46, Math.floor(860 / Math.max(points.length, 1))));
-  const W = points.length * colW;
+  const W = 1000;
+  const colW = W / Math.max(points.length, 1);
   const labelEvery = Math.max(1, Math.ceil(points.length / 14));
 
   const lineD = points
