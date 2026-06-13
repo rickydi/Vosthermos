@@ -1,8 +1,10 @@
 import prisma from "@/lib/prisma";
 
 export async function GET() {
+  // publishedAt <= maintenant: des articles antidatés dans le futur cassent le
+  // tri/la validation chez certains lecteurs RSS et agrégateurs IA.
   const posts = await prisma.blogPost.findMany({
-    where: { status: "published" },
+    where: { status: "published", publishedAt: { lte: new Date() } },
     orderBy: { publishedAt: "desc" },
     take: 20,
   });
@@ -26,7 +28,10 @@ export async function GET() {
 </rss>`;
 
   return new Response(rss, {
-    headers: { "Content-Type": "application/rss+xml; charset=utf-8" },
+    headers: {
+      "Content-Type": "application/rss+xml; charset=utf-8",
+      "Cache-Control": "public, max-age=3600, s-maxage=3600",
+    },
   });
 }
 

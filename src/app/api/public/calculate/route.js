@@ -29,7 +29,14 @@ function jsonOk(data) {
 }
 
 function jsonErr(message, status = 400) {
-  return NextResponse.json({ error: message, brand: "Vosthermos" }, { status });
+  return NextResponse.json({ error: message, brand: "Vosthermos" }, {
+    status,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+    },
+  });
 }
 
 async function handle(req) {
@@ -54,12 +61,20 @@ async function handle(req) {
 
   try {
     switch (type) {
-      case "thermos":
+      case "thermos": {
+        // Validation: avant, width=abc&height=-5 retournait un devis 150$ pour
+        // une vitre de 0 pi² — qu'un agent IA citait tel quel à un client.
+        const w = Number(input.width || input.widthInches);
+        const h = Number(input.height || input.heightInches);
+        if (!Number.isFinite(w) || w <= 0 || !Number.isFinite(h) || h <= 0) {
+          return jsonErr("Parametres width et height requis (pouces, nombres positifs). Ex: ?type=thermos&width=24&height=36", 400);
+        }
         return jsonOk(calculateThermosReplacement({
-          widthInches: input.width || input.widthInches,
-          heightInches: input.height || input.heightInches,
+          widthInches: w,
+          heightInches: h,
           quantity: input.qty || input.quantity || 1,
         }));
+      }
       case "energy":
         return jsonOk(calculateEnergySavings({
           windowCount: input.windowCount || input.count,

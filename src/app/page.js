@@ -197,45 +197,18 @@ function QuoteCard() {
 export default async function Home() {
   const totalProducts = await prisma.product.count();
 
-  const howToJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "HowTo",
-    name: "Comment faire reparer vos portes et fenetres avec Vosthermos",
-    description: "Un processus simple en 3 etapes pour faire reparer vos portes et fenetres par des experts.",
-    step: [
-      { "@type": "HowToStep", name: "Contactez-nous", text: `Appelez-nous au ${COMPANY_INFO.phone} ou remplissez notre formulaire en ligne. Decrivez votre besoin et nous vous repondrons rapidement.`, url: "https://www.vosthermos.com/#soumission" },
-      { "@type": "HowToStep", name: "Estimation gratuite", text: "Nous evaluons vos besoins et vous fournissons une soumission claire et detaillee, sans surprise ni frais caches." },
-      { "@type": "HowToStep", name: "Intervention rapide", text: "Notre equipe intervient a votre domicile ou entreprise avec tout le materiel necessaire pour un travail de qualite." },
-    ],
-    totalTime: "PT2H",
-    estimatedCost: { "@type": "MonetaryAmount", currency: "CAD", value: "150" },
-  };
-
+  // FAQPage construit depuis les questions RÉELLEMENT visibles sur la page
+  // (le « schema fantôme » — questions présentes uniquement dans le JSON-LD —
+  // est le pattern que Google sanctionne). Le HowTo fantôme a été retiré
+  // (étapes invisibles + rich results HowTo abandonnés par Google).
   const faqJsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: [
-      {
-        "@type": "Question",
-        name: "Quelle est la garantie sur les vitres thermos?",
-        acceptedAnswer: { "@type": "Answer", text: "Tous nos remplacements de vitres thermos sont couverts par une service professionnel garanti." },
-      },
-      {
-        "@type": "Question",
-        name: "Quels secteurs desservez-vous?",
-        acceptedAnswer: { "@type": "Answer", text: "Nous desservons Montreal, Laval, Longueuil, Brossard, Saint-Hyacinthe, Granby, Terrebonne, Repentigny et toute la region dans un rayon de 100km autour de Delson." },
-      },
-      {
-        "@type": "Question",
-        name: "Offrez-vous des soumissions gratuites?",
-        acceptedAnswer: { "@type": "Answer", text: `Oui, toutes nos soumissions sont gratuites et sans engagement. Appelez-nous au ${COMPANY_INFO.phone} ou remplissez notre formulaire en ligne.` },
-      },
-      {
-        "@type": "Question",
-        name: "Peut-on joindre des photos a la demande?",
-        acceptedAnswer: { "@type": "Answer", text: "Oui, le formulaire accepte les photos et videos pour aider notre equipe a evaluer le probleme plus rapidement." },
-      },
-    ],
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
   };
 
   const proofItems = [
@@ -250,10 +223,6 @@ export default async function Home() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(howToJsonLd) }}
       />
 
       <main className="home-preview">

@@ -67,7 +67,7 @@ const pricingCards = [
   {
     icon: "fas fa-eye",
     title: "Defogging",
-    price: "Starting at $120/unit",
+    price: "Starting at $80/unit",
     description:
       "Defogging treatment for foggy sealed glass units. Cost-effective solution without full replacement.",
     slug: "defogging",
@@ -217,7 +217,7 @@ export default function PricingPageEn() {
               },
               priceSpecification: {
                 "@type": "UnitPriceSpecification",
-                price: "120",
+                price: "80",
                 priceCurrency: "CAD",
                 unitText: "unit",
               },

@@ -395,7 +395,7 @@ export default async function ReparationVillePage({ params }) {
     telephone: COMPANY_INFO.phoneTel,
     email: COMPANY_INFO.email,
     url: "https://www.vosthermos.com",
-    image: "https://www.vosthermos.com/logo.png",
+    image: "https://www.vosthermos.com/images/Vos-Thermos-Logo.png",
     priceRange: "$$",
     address: {
       "@type": "PostalAddress",
@@ -407,8 +407,8 @@ export default async function ReparationVillePage({ params }) {
     },
     geo: {
       "@type": "GeoCoordinates",
-      latitude: 45.5167,
-      longitude: -73.3833,
+      latitude: 45.3669,
+      longitude: -73.5492,
     },
     openingHoursSpecification: [
       {

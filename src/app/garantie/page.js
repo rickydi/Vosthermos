@@ -2,9 +2,9 @@ import Link from "next/link";
 import { COMPANY_INFO } from "@/lib/company-info";
 
 export const metadata = {
-  title: "service garanti | Vosthermos",
+  title: "Garantie 10 ans | Vosthermos",
   description:
-    "Vosthermos offre une service professionnel garanti sur le remplacement de vitres thermos, 5 ans sur la main-d'oeuvre et une garantie transferable au prochain proprietaire. Service de reclamation simple et rapide.",
+    "Vosthermos offre une garantie de 10 ans sur le remplacement de vitres thermos, 5 ans sur la main-d'oeuvre et une garantie transferable au prochain proprietaire. Service de reclamation simple et rapide.",
   alternates: {
     canonical: "https://www.vosthermos.com/garantie",
     languages: {
@@ -13,9 +13,9 @@ export const metadata = {
     },
   },
   openGraph: {
-    title: "service garanti | Vosthermos",
+    title: "Garantie 10 ans | Vosthermos",
     description:
-      "service garanti sur les vitres thermos, 5 ans main-d'oeuvre, transferable. Tranquillite d'esprit assuree.",
+      "Garantie de 10 ans sur les vitres thermos, 5 ans main-d'oeuvre, transferable. Tranquillite d'esprit assuree.",
     url: "https://www.vosthermos.com/garantie",
     type: "website",
     locale: "fr_CA",
@@ -28,7 +28,7 @@ const jsonLd = {
   "@type": "WarrantyPromise",
   name: "Garantie Vosthermos",
   description:
-    "service professionnel garanti sur le remplacement de vitres thermos, 5 ans sur la main-d'oeuvre, transferable au prochain proprietaire.",
+    "Garantie de 10 ans sur le remplacement de vitres thermos, 5 ans sur la main-d'oeuvre, transferable au prochain proprietaire.",
   url: "https://www.vosthermos.com/garantie",
   warrantyScope: {
     "@type": "WarrantyScope",
@@ -44,10 +44,10 @@ const jsonLd = {
 
 const guaranteeCards = [
   {
-    duration: "Incluse",
+    duration: "10 ans",
     label: "Garantie sur les vitres thermos",
     description:
-      "Nos vitres thermos sont garanties contre les bris de scellant, la buee entre les vitres et la perte d'efficacite energetique.",
+      "Nos vitres thermos sont garanties 10 ans contre les bris de scellant, la buee entre les vitres et la perte d'efficacite energetique.",
     icon: "fa-snowflake",
   },
   {
@@ -133,7 +133,7 @@ const faqItems = [
   {
     question: "Que couvre la garantie exactement?",
     answer:
-      "Notre garantie couvre les defauts de fabrication et d'installation sur les vitres thermos (incluse), la main-d'oeuvre (5 ans), la quincaillerie installee par nos soins, les moustiquaires sur mesure et les reparations de portes en bois. Elle ne couvre pas les dommages causes par une mauvaise utilisation, un accident ou une catastrophe naturelle.",
+      "Notre garantie couvre les defauts de fabrication et d'installation sur les vitres thermos (10 ans), la main-d'oeuvre (5 ans), la quincaillerie installee par nos soins, les moustiquaires sur mesure et les reparations de portes en bois. Elle ne couvre pas les dommages causes par une mauvaise utilisation, un accident ou une catastrophe naturelle.",
   },
   {
     question: "Comment faire une reclamation?",
@@ -328,11 +328,11 @@ export default function GarantiePage() {
                     </td>
                     <td className="px-6 py-4 text-center">
                       <span className="inline-block bg-green-50 text-green-700 font-bold text-sm px-3 py-1 rounded-full">
-                        Incluse
+                        10 ans
                       </span>
                     </td>
                     <td className="px-6 py-4 text-center text-[var(--color-muted)] text-sm">
-                      5-Incluse
+                      5-10 ans
                     </td>
                   </tr>
                   <tr className="border-t border-[var(--color-border)] bg-[var(--color-background)]/50">

@@ -34,7 +34,7 @@ const fr = {
     },
     thermos: {
       title: "Remplacement de vitre thermos",
-      desc: "Buee ou perte d'efficacite thermique? Remplacement professionnel avec service professionnel garanti sur tous nos travaux.",
+      desc: "Buee ou perte d'efficacite thermique? Remplacement professionnel avec garantie de 10 ans sur vos nouvelles vitres thermos.",
     },
     woodDoors: {
       title: "Reparation de portes en bois",

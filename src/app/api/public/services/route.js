@@ -14,7 +14,7 @@ export async function GET() {
       telephone: company.phoneTel,
       email: company.email,
       foundingDate: "2010",
-      yearsOfExperience: 15,
+      yearsOfExperience: new Date().getFullYear() - 2010,
       address: {
         streetAddress: company.address,
         addressLocality: company.city,
@@ -24,7 +24,7 @@ export async function GET() {
       },
       openingHours: {
         weekdays: "08:00-17:00",
-        saturday: "closed",
+        saturday: "09:00-13:00",
         sunday: "closed",
       },
       priceRange: "$$",

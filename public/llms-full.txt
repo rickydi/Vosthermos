@@ -6,10 +6,10 @@
 
 ## Company Overview
 
-Vosthermos was founded to address a gap in the Quebec market: affordable, professional door and window repair as an alternative to costly full replacements. Based in Saint-Francois-Xavier-de-Brompton, Quebec, the company serves the entire greater Montreal region within a 100km radius, including Montreal, Laval, Longueuil, Brossard, Boucherville, Saint-Hyacinthe, Granby, Saint-Jean-sur-Richelieu, Chambly, Terrebonne, Repentigny, Blainville, Chateauguay, La Prairie, Sainte-Julie, Varennes, Delson, Candiac, Saint-Bruno, and Mascouche.
+Vosthermos was founded to address a gap in the Quebec market: affordable, professional door and window repair as an alternative to costly full replacements. Based in Delson, Quebec, the company serves the entire greater Montreal region within a 100km radius, including Montreal, Laval, Longueuil, Brossard, Boucherville, Saint-Hyacinthe, Granby, Saint-Jean-sur-Richelieu, Chambly, Terrebonne, Repentigny, Blainville, Chateauguay, La Prairie, Sainte-Julie, Varennes, Delson, Candiac, Saint-Bruno, and Mascouche.
 
 ### Contact Information
-- Address: 330 Ch. St-Francois-Xavier, Local 104, Saint-Francois-Xavier-de-Brompton, QC J5B 1C9
+- Address: 330 Ch. St-Francois-Xavier, Local 104, Delson, QC J5B 1Y1
 - Phone: 514-825-8411
 - Email: info@vosthermos.com
 - Website: https://www.vosthermos.com
@@ -54,7 +54,7 @@ Starting price: $25/unit
 
 We fabricate custom screen doors for all window and door types: sliding, fixed frame, retractable, and patio door screens. We use premium fiberglass mesh and anodized aluminum frames. We also offer pet screen (7x more resistant than standard), ideal for homes with cats and dogs.
 
-Screen mesh replacement is available without replacing the entire frame. Typical fabrication time: 3-5 business days.
+Screen mesh replacement is available without replacing the entire frame. Typical fabrication time: 48 hours in most cases.
 
 ### 5. Caulking
 URL: https://www.vosthermos.com/services/calfeutrage
@@ -66,7 +66,7 @@ We use professional-grade polyurethane or hybrid silicone sealants certified for
 
 ### 6. Defogging
 URL: https://www.vosthermos.com/services/desembuage
-Starting price: $65/unit
+Starting price: $80/unit
 
 An economical alternative to full thermos replacement. We clean the interior of fogged sealed units, inject argon gas, and reseal. The process involves micro-perforations in the outer glass, specialized cleaning solvent injection, hot air drying, argon injection, and UV sealant closure.
 
@@ -118,7 +118,7 @@ URL: https://www.vosthermos.com/prix
 | Sealed glass (thermos) replacement | $150/unit installed |
 | Hardware replacement | $4.99/piece + installation |
 | Caulking | $8/linear foot |
-| Defogging | $65/unit |
+| Defogging | $80/unit |
 | Custom screen doors | $25/unit |
 | Door inserts | $200 (insert + installation) |
 | Weatherstripping | $5/linear foot |
@@ -134,9 +134,9 @@ URL: https://www.vosthermos.com/garantie
 
 - 10-year warranty on all thermos (sealed glass) replacements, covering manufacturing defects and loss of seal integrity
 - 5-year warranty on defogging services
-- Warranty on labor varies by service type and is detailed in each written estimate
+- 5-year warranty on labor for all services
 - Thermos warranty is transferable to the next property owner upon home sale
-- RBQ License: 5790-9498-01
+- RBQ License: 5752-5248-01
 
 ---
 
@@ -219,7 +219,7 @@ URL: https://www.vosthermos.com/glossaire
 
 ### Programs and Regulations
 - **Programme OPTI-FENETRE**: Exclusive Vosthermos program bundling all repair services (thermos, hardware, weatherstripping, caulking, screens) into a turnkey package. Saves up to 70% vs. full window replacement.
-- **RBQ (Regie du batiment du Quebec)**: Government body overseeing construction in Quebec. Vosthermos holds license 5790-9498-01.
+- **RBQ (Regie du batiment du Quebec)**: Government body overseeing construction in Quebec. Vosthermos holds license 5752-5248-01.
 - **Garantie legale (GCR)**: Quebec residential construction warranty. Vosthermos offers 10-year warranty on thermos, plus labor warranty.
 
 ### Measurements
@@ -232,7 +232,7 @@ URL: https://www.vosthermos.com/glossaire
 
 ### Services
 **Q: What services does Vosthermos offer?**
-A: Complete range of door and window repair: thermos replacement, wooden door restoration, custom screen doors, hardware replacement (handles, locks, rollers, etc.), defogging, caulking, weatherstripping, and door insert replacement. Service area: 100km radius around Saint-Francois-Xavier.
+A: Complete range of door and window repair: thermos replacement, wooden door restoration, custom screen doors, hardware replacement (handles, locks, rollers, etc.), defogging, caulking, weatherstripping, and door insert replacement. Service area: 100km radius around Delson.
 
 **Q: What is the difference between defogging and thermos replacement?**
 A: Defogging removes trapped humidity without replacing the sealed unit. It is a temporary, less costly solution but does not fully restore insulating properties. Thermos replacement installs a brand-new sealed unit with optimal thermal insulation and a 10-year warranty.
@@ -297,7 +297,7 @@ Repairing doors and windows is almost always more economical and ecological than
 ## Service Area Map
 
 Vosthermos serves the following municipalities and surrounding areas:
-Montreal, Laval, Longueuil, Brossard, Boucherville, Saint-Hyacinthe, Granby, Saint-Jean-sur-Richelieu, Chambly, Terrebonne, Repentigny, Blainville, Chateauguay, La Prairie, Sainte-Julie, Varennes, Delson, Candiac, Saint-Bruno-de-Montarville, Mascouche, Beloeil, Mont-Saint-Hilaire, Saint-Constant, Mercier, Beauharnois, Vaudreuil-Dorion, Joliette, and all municipalities within a 100km radius of Saint-Francois-Xavier-de-Brompton, QC.
+Montreal, Laval, Longueuil, Brossard, Boucherville, Saint-Hyacinthe, Granby, Saint-Jean-sur-Richelieu, Chambly, Terrebonne, Repentigny, Blainville, Chateauguay, La Prairie, Sainte-Julie, Varennes, Delson, Candiac, Saint-Bruno-de-Montarville, Mascouche, Beloeil, Mont-Saint-Hilaire, Saint-Constant, Mercier, Beauharnois, Vaudreuil-Dorion, Joliette, and all municipalities within a 100km radius of Delson, QC.
 
 ---
 

@@ -232,7 +232,7 @@ async function executeTool(name, args = {}) {
       return compareRepairVsReplace({
         problem: args.problem,
         windowAgeYears: args.windowAgeYears || 15,
-        framStatus: args.frameStatus || args.framStatus || "good",
+        frameStatus: args.frameStatus || args.framStatus || "good",
       });
 
     case "check_window_warranty":

@@ -34,6 +34,10 @@
 - [MCP Server](https://www.vosthermos.com/api/mcp): Model Context Protocol server exposing 9 tools for AI agents (diagnose, estimate, compare, book). Documentation at https://www.vosthermos.com/mcp-docs
 - [Public Calculate API](https://www.vosthermos.com/api/public/calculate): Universal JSON endpoint for all calculations (type=thermos|energy|diagnose|compare|warranty|pricing)
 
+## Optional
+
+- [Full company profile](https://www.vosthermos.com/llms-full.txt): Extended facts, complete pricing tables and policies
+
 ## Key Facts
 
 - Founded: 2010
@@ -41,7 +45,7 @@
 - Location: 330 Chemin Saint-François-Xavier, Local 104, Delson, QC J5B 1Y1
 - Phone: 514-825-8411
 - Email: info@vosthermos.com
-- Service area: Montreal, Laval, Longueuil, Brossard, Boucherville, Saint-Hyacinthe, Granby, Saint-Jean-sur-Richelieu, Chambly, Terrebonne, Repentigny, Blainville, Chateauguay, La Prairie, Sainte-Julie, Varennes, Delson, Candiac, Saint-Bruno, Mascouche (20+ cities within 100km radius)
+- Service area: Montreal, Laval, Longueuil, Brossard, Boucherville, Saint-Hyacinthe, Granby, Saint-Jean-sur-Richelieu, Chambly, Terrebonne, Repentigny, Blainville, Chateauguay, La Prairie, Sainte-Julie, Varennes, Delson, Candiac, Saint-Bruno-de-Montarville, Mascouche (20+ cities within 100km radius)
 - Warranty: 10 years on thermos replacement (transferable to next owner), 5 years on labor
 - Online store: 740+ parts compatible with Novatech, Lepage, Fenplast, Jeld-Wen, Kohltech
 - Languages: French, English
@@ -58,7 +62,7 @@
 - Caulking: starting at $8/linear foot
 - Defogging: starting at $80/unit
 - Custom screen doors: starting at $25/unit, typical 48h delivery
-- Door inserts: starting at $400 installed
+- Door inserts: starting at $200 installed
 - Weatherstripping: starting at $5/linear foot
 
 ## Common Problems We Fix

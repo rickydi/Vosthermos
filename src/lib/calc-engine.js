@@ -132,6 +132,7 @@ export function calculateEnergySavings({
 const DIAGNOSIS_RULES = [
   {
     id: "thermos-embuee",
+    keywords: ["buee","embue","condensation","vitre blanche","blanchatre","calcaire","entre les vitres","entre vitres","entre les deux vitres","thermos","brouillard dans la vitre"],
     name: "Vitre thermos embuee",
     symptoms: ["buee permanente", "condensation entre vitres", "vitre blanche", "depot calcaire"],
     service: "remplacement-vitre-thermos",
@@ -141,6 +142,7 @@ const DIAGNOSIS_RULES = [
   },
   {
     id: "porte-patio-glisse-mal",
+    keywords: ["porte patio","porte-patio","glisse","coulisse mal","sort du rail","bloque","coince","roulette","rail","lourde a ouvrir","difficile a glisser","difficile a ouvrir"],
     name: "Porte-patio qui glisse mal",
     symptoms: ["glisse difficilement", "sort du rail", "bloque", "roulette usee", "rail encrasse"],
     service: "reparation-porte-patio",
@@ -149,6 +151,7 @@ const DIAGNOSIS_RULES = [
   },
   {
     id: "porte-fenetre-verrou",
+    keywords: ["multipoint","verrouille","ne ferme plus","ferme mal","ne barre plus","poignee libre","serrure coince","porte-fenetre","porte fenetre"],
     name: "Porte-fenetre qui ne verrouille plus",
     symptoms: ["multipoint brise", "ne ferme plus", "poignee libre", "serrure coincee"],
     service: "reparation-porte-fenetre",
@@ -157,6 +160,7 @@ const DIAGNOSIS_RULES = [
   },
   {
     id: "courant-air",
+    keywords: ["courant d air","courants d air","air froid","coupe-froid","coupe froid","siffle","perte de chaleur","froid pres de la fenetre","infiltration d air"],
     name: "Courant d'air / perte de chaleur",
     symptoms: ["air froid", "coupe-froid use", "fenetre siffle", "infiltration"],
     service: "coupe-froid",
@@ -166,6 +170,7 @@ const DIAGNOSIS_RULES = [
   },
   {
     id: "infiltration-eau",
+    keywords: ["infiltration d eau","eau qui entre","eau autour","moisissure","fuite","joint fissure","calfeutrage decolle","coule"],
     name: "Infiltration d'eau",
     symptoms: ["eau autour fenetre", "moisissure", "joint fissure", "calfeutrage decolle"],
     service: "calfeutrage",
@@ -174,6 +179,7 @@ const DIAGNOSIS_RULES = [
   },
   {
     id: "moustiquaire",
+    keywords: ["moustiquaire","toile dechiree","toile brisee","insecte","mouches","dechire"],
     name: "Moustiquaire endommagee",
     symptoms: ["moustiquaire dechiree", "cadre tordu", "toile brisee", "insectes entrent"],
     service: "moustiquaires-sur-mesure",
@@ -182,6 +188,7 @@ const DIAGNOSIS_RULES = [
   },
   {
     id: "porte-bois",
+    keywords: ["bois pourri","porte en bois","peinture ecaille","porte gonfle","grince","cadre de bois","vernis"],
     name: "Porte en bois abimee",
     symptoms: ["bois pourri", "peinture ecaillee", "porte gonflee", "colle", "grince"],
     service: "reparation-portes-bois",
@@ -190,6 +197,7 @@ const DIAGNOSIS_RULES = [
   },
   {
     id: "quincaillerie",
+    keywords: ["poignee","manivelle","charniere","penture","loquet","serrure","casse","brise","tourne dans le vide"],
     name: "Quincaillerie brisee",
     symptoms: ["poignee cassee", "manivelle brisee", "charniere usee", "loquet"],
     service: "remplacement-quincaillerie",
@@ -198,12 +206,32 @@ const DIAGNOSIS_RULES = [
   },
 ];
 
+// Normalisation: minuscules + retrait des accents + apostrophes/tirets neutralises,
+// pour matcher le francais naturel d'un vrai client (ex. << buee entre les vitres >>,
+// << Ma porte patio glisse mal >>) et pas seulement les phrases exactes des regles.
+function normalizeSymptomText(value) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/['\u2019-]/g, " ")
+    .replace(/\s+/g, " ");
+}
+
 export function diagnoseProblem({ symptoms = [], description = "" }) {
-  const text = [description, ...symptoms].join(" ").toLowerCase();
+  const text = normalizeSymptomText([description, ...symptoms].join(" "));
   const matches = DIAGNOSIS_RULES.map((rule) => {
-    const score = rule.symptoms.reduce((sum, s) => {
-      return sum + (text.includes(s.toLowerCase()) ? 1 : 0);
-    }, 0);
+    let score = 0;
+    // mots-cles simples (1 pt) et expressions multi-mots (2 pts)
+    for (const k of rule.keywords || []) {
+      const nk = normalizeSymptomText(k);
+      if (nk && text.includes(nk)) score += nk.includes(" ") ? 2 : 1;
+    }
+    // anciens symptomes exacts conserves comme signal fort (2 pts)
+    for (const sym of rule.symptoms || []) {
+      const ns = normalizeSymptomText(sym);
+      if (ns && text.includes(ns)) score += 2;
+    }
     return { rule, score };
   })
     .filter((m) => m.score > 0)
@@ -252,7 +280,7 @@ export function diagnoseProblem({ symptoms = [], description = "" }) {
 }
 
 // ── 4. Repair vs Replace comparator ──
-export function compareRepairVsReplace({ problem, windowAgeYears = 15, framStatus = "good" }) {
+export function compareRepairVsReplace({ problem, windowAgeYears = 15, frameStatus = "good" }) {
   const diagnosis = diagnoseProblem({ symptoms: [], description: problem });
   const primary = diagnosis.primaryDiagnosis;
 
@@ -261,8 +289,8 @@ export function compareRepairVsReplace({ problem, windowAgeYears = 15, framStatu
   if (windowAgeYears > 25) replaceScore += 3;
   else if (windowAgeYears > 15) replaceScore += 1;
 
-  if (framStatus === "rotten") replaceScore += 3;
-  else if (framStatus === "warped") replaceScore += 2;
+  if (frameStatus === "rotten") replaceScore += 3;
+  else if (frameStatus === "warped") replaceScore += 2;
 
   if (primary && ["porte-bois", "quincaillerie", "moustiquaire", "courant-air"].includes(primary?.id)) {
     replaceScore -= 2; // easy to repair
@@ -275,11 +303,14 @@ export function compareRepairVsReplace({ problem, windowAgeYears = 15, framStatu
   const replaceCost = "2500-6000 $ par ouverture";
 
   return {
-    input: { problem, windowAgeYears, framStatus },
+    input: { problem, windowAgeYears, frameStatus },
     diagnosis: primary,
+    // Les deux scores sont sur la meme echelle (0-10) et la recommandation en
+    // decoule directement -- avant, repair pouvait etre > replace tout en
+    // recommandant REPLACE, ce qui faisait dire l'inverse aux agents IA.
     scores: {
-      repair: Math.max(0, 10 - replaceScore),
-      replace: Math.max(0, replaceScore * 2),
+      repair: Math.max(0, Math.min(10, 10 - replaceScore * 2)),
+      replace: Math.max(0, Math.min(10, replaceScore * 2)),
     },
     recommendation: repairRecommended ? "REPAIR" : "REPLACE",
     reasoning: repairRecommended
@@ -358,7 +389,7 @@ export function getServicePricing(serviceSlug) {
     "moustiquaires-sur-mesure": { min: 25, max: 150, unit: "per unit", note: "Fabrication 48h" },
     "calfeutrage": { min: 8, max: 15, unit: "per linear foot", note: "Min 100$ pour deplacement" },
     "desembuage": { min: 80, max: 200, unit: "per unit", note: "50% moins cher que remplacement" },
-    "insertion-porte": { min: 400, max: 1200, unit: "per door", note: "Installation 1 jour" },
+    "insertion-porte": { min: 200, max: 800, unit: "per door", note: "Installation 1 jour" },
     "coupe-froid": { min: 5, max: 15, unit: "per linear foot", note: "Varie selon type" },
   };
 

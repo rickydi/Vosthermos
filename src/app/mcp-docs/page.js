@@ -42,7 +42,7 @@ export default function McpDocsPage() {
           <li><strong>Transport</strong>: Streamable HTTP (spec MCP 2025-06-18)</li>
           <li><strong>Format</strong>: JSON-RPC 2.0</li>
           <li><strong>Authentification</strong>: Aucune (public)</li>
-          <li><strong>Rate limit</strong>: 100 req/min par IP</li>
+          <li><strong>Accès</strong>: public, sans clé API</li>
           <li><strong>CORS</strong>: Active</li>
         </ul>
 
@@ -81,8 +81,8 @@ export default function McpDocsPage() {
 {`{
   "mcpServers": {
     "vosthermos": {
-      "url": "https://www.vosthermos.com/api/mcp",
-      "transport": "streamable-http"
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://www.vosthermos.com/api/mcp"]
     }
   }
 }`}

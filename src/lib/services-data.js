@@ -110,7 +110,7 @@ export const SERVICES = [
         heading: "Notre processus de remplacement",
         paragraphs: [
           "Notre technicien se deplace chez vous pour prendre les mesures exactes de chaque thermos a remplacer. Les unites sont fabriquees sur mesure en usine selon vos specifications. Une fois pretes, nous procedons a l'installation sur place en moins d'une heure par fenetre.",
-          "Tous nos thermos de remplacement sont certifies Energy Star et couverts par notre service professionnel garanti. Nous utilisons exclusivement du verre Low-E avec gaz argon pour une performance energetique optimale.",
+          "Tous nos thermos de remplacement sont certifies Energy Star et couverts par notre garantie de 10 ans. Nous utilisons exclusivement du verre Low-E avec gaz argon pour une performance energetique optimale.",
         ],
       },
     ],
@@ -542,7 +542,7 @@ export const SERVICES = [
       "remplacement-vitre-thermos",
       "calfeutrage",
     ],
-    startingPrice: "A partir de 65$/unite",
+    startingPrice: "À partir de 80$/unité",
   },
   {
     slug: "insertion-porte",
@@ -712,7 +712,7 @@ export const SERVICES = [
       {
         question: "Puis-je remplacer mes coupe-froid moi-meme ou faut-il un professionnel?",
         answer:
-          "Certains coupe-froid simples (mousse adhesive, balais de porte) peuvent etre remplaces par un bricoleur. Cependant, les coupe-froid encastres dans un canal ou les joints de compression specifiques a certains modeles de portes requierent l'identification exacte du profil et des outils adequats. Un remplacement mal effectue peut endommager le cadre ou ne pas assurer une etancheite correcte. Notre service professionnel garantit le bon resultat.",
+          "Certains coupe-froid simples (mousse adhesive, balais de porte) peuvent etre remplaces par un bricoleur. Cependant, les coupe-froid encastres dans un canal ou les joints de compression specifiques a certains modeles de portes requierent l'identification exacte du profil et des outils adequats. Un remplacement mal effectue peut endommager le cadre ou ne pas assurer une etancheite correcte. Faire appel à notre équipe garantit le bon résultat.",
       },
     ],
     relatedServices: [

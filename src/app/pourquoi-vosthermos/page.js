@@ -73,9 +73,9 @@ const differenciateurs = [
   },
   {
     icon: "fa-shield-alt",
-    title: "service garanti sur thermos",
+    title: "Garantie 10 ans sur thermos",
     description:
-      "Tous nos remplacements de vitres thermos sont couverts par une service professionnel garanti, transferable au prochain proprietaire de votre residence.",
+      "Tous nos remplacements de vitres thermos sont couverts par une garantie de 10 ans, transferable au prochain proprietaire de votre residence.",
   },
   {
     icon: "fa-boxes",

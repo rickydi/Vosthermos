@@ -66,4 +66,4 @@ export const CITY_COORDS = {
 };
 
 // Coordonnees de l'atelier Vosthermos (pour reference/calculs)
-export const VOSTHERMOS_COORDS = { lat: 45.5167, lng: -73.3833 };
+export const VOSTHERMOS_COORDS = { lat: 45.3669, lng: -73.5492 }; // Delson (330 Chemin Saint-François-Xavier)

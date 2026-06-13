@@ -51,7 +51,7 @@ const pricingCards = [
   {
     icon: "fas fa-border-all",
     title: "Moustiquaires sur mesure",
-    price: "Sur estimation",
+    price: "À partir de 25$/unité",
     description:
       "Fabrication et reparation de moustiquaires sur mesure pour tous types de fenetres et portes-patio.",
     slug: "moustiquaires-sur-mesure",
@@ -67,7 +67,7 @@ const pricingCards = [
   {
     icon: "fas fa-eye",
     title: "Desembuage",
-    price: "A partir de 120$/unite",
+    price: "À partir de 80$/unité",
     description:
       "Traitement de desembuage pour vitres thermos embuees. Solution economique sans remplacement complet.",
     slug: "desembuage",
@@ -130,7 +130,7 @@ const faqItems = [
   {
     question: "La garantie est-elle incluse dans le prix?",
     answer:
-      "Oui, chaque remplacement de vitre thermos inclut une service professionnel garanti sans frais supplementaires. Cette garantie couvre les defauts de fabrication, la perte d'etancheite et la formation de buee entre les vitres.",
+      "Oui, chaque remplacement de vitre thermos inclut une garantie de 10 ans sans frais supplémentaires. Cette garantie couvre les defauts de fabrication, la perte d'etancheite et la formation de buee entre les vitres.",
   },
 ];
 
@@ -216,7 +216,7 @@ export default function PrixPage() {
               },
               priceSpecification: {
                 "@type": "UnitPriceSpecification",
-                price: "120",
+                price: "80",
                 priceCurrency: "CAD",
                 unitText: "unite",
               },

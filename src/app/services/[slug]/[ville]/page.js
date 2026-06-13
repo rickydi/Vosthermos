@@ -746,6 +746,7 @@ export default async function ServiceCityPage({ params }) {
         streetAddress: COMPANY_INFO.address,
         addressLocality: COMPANY_INFO.city,
         addressRegion: "QC",
+        postalCode: COMPANY_INFO.postalCode,
         addressCountry: "CA",
       },
     },
