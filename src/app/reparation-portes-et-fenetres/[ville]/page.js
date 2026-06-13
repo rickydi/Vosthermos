@@ -4,6 +4,7 @@ import { CITIES, getCity } from "@/lib/cities";
 import QuoteForm from "@/components/QuoteForm";
 import { CITY_PAGE_SEO } from "@/lib/seo-templates";
 import { COMPANY_INFO } from "@/lib/company-info";
+import { openingHoursSpecification, hoursDisplayFr } from "@/lib/company-hours";
 
 export async function generateStaticParams() {
   return CITIES.map((c) => ({ ville: c.slug }));
@@ -410,20 +411,7 @@ export default async function ReparationVillePage({ params }) {
       latitude: 45.3669,
       longitude: -73.5492,
     },
-    openingHoursSpecification: [
-      {
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-        opens: "08:00",
-        closes: "17:00",
-      },
-      {
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: "Saturday",
-        opens: "09:00",
-        closes: "13:00",
-      },
-    ],
+    openingHoursSpecification: openingHoursSpecification(),
   };
 
   const jsonLd = {
@@ -555,7 +543,7 @@ export default async function ReparationVillePage({ params }) {
               {/* Trust badge: hours */}
               <div className="flex items-center gap-2 text-white/70 text-sm mb-8 pb-6 border-b border-white/10">
                 <i className="fas fa-clock text-[var(--color-red-light)]"></i>
-                <span>Lun-Ven 8h-17h &bull; Sam 9h-13h</span>
+                <span>{hoursDisplayFr()}</span>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">

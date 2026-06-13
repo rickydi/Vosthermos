@@ -19,6 +19,9 @@ const KEY_MAP = {
   company_email: "email",
   company_web: "web",
   rbq_number: "rbqNumber",
+  company_hours_weekdays: "hoursWeekdays",
+  company_hours_saturday: "hoursSaturday",
+  company_hours_sunday: "hoursSunday",
 };
 
 function toTelFormat(phone) {
@@ -50,6 +53,10 @@ export const COMPANY_INFO = {
   web: "${esc(v.web || COMPANY_INFO.web)}",
   url: "https://www.${esc(v.web || COMPANY_INFO.web)}",
   rbqNumber: "${esc(v.rbqNumber || COMPANY_INFO.rbqNumber)}",
+  // Heures d ouverture ("HH:MM-HH:MM", vide = ferme) - editables via /admin/parametres.
+  hoursWeekdays: "${esc(v.hoursWeekdays ?? COMPANY_INFO.hoursWeekdays ?? "")}",
+  hoursSaturday: "${esc(v.hoursSaturday ?? COMPANY_INFO.hoursSaturday ?? "")}",
+  hoursSunday: "${esc(v.hoursSunday ?? COMPANY_INFO.hoursSunday ?? "")}",
   facebook: "https://www.facebook.com/profile.php?id=61562303553558",
   instagram: "https://instagram.com/vosthermos/",
   logo: "https://www.vosthermos.com/images/Vos-Thermos-Logo.png",
@@ -159,7 +166,7 @@ export async function POST() {
     try {
       const rebuild = spawn(
         "sh",
-        ["-c", "pm2 stop vosthermos && rm -rf .next && npm run build && pm2 start vosthermos"],
+        ["-c", "bash scripts/deploy-safe.sh"],
         { cwd: process.cwd(), detached: true, stdio: "ignore" },
       );
       rebuild.unref();

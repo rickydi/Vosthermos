@@ -5,6 +5,7 @@ import { CITIES, getCity } from "@/lib/cities";
 import { getServiceSeo } from "@/lib/seo-templates";
 import QuoteForm from "@/components/QuoteForm";
 import { COMPANY_INFO } from "@/lib/company-info";
+import { hoursDisplayFr } from "@/lib/company-hours";
 
 const LOCAL_SERVICE_CITY_PAGES = {
   "reparation-porte-patio:beloeil": {
@@ -828,7 +829,7 @@ export default async function ServiceCityPage({ params }) {
               {/* Trust badge: hours */}
               <div className="flex items-center gap-2 text-white/70 text-sm mb-6">
                 <i className="fas fa-clock text-[var(--color-red-light)]"></i>
-                <span>Lun-Ven 8h-17h &bull; Sam 9h-13h</span>
+                <span>{hoursDisplayFr()}</span>
               </div>
               <div className="flex flex-wrap gap-4">
                 <a

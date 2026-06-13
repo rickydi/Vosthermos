@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { hoursDisplayFr } from "@/lib/company-hours";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { COMPANY_INFO } from "@/lib/company-info";
@@ -117,7 +118,7 @@ export default function Footer({ company }) {
         thermosCalculator: "Calculateur prix thermos",
         shop: "Boutique en ligne",
         booking: "Prendre rendez-vous",
-        hours: "Lun-Ven : 8h - 17h",
+        hours: hoursDisplayFr(),
         radius: "Rayon de service : 100km",
         rights: "Tous droits reserves.",
         privacy: "Politique de confidentialite",

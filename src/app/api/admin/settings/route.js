@@ -22,6 +22,9 @@ const COMPANY_KEYS = [
   "tps_number",
   "tvq_number",
   "rbq_number",
+  "company_hours_weekdays",
+  "company_hours_saturday",
+  "company_hours_sunday",
 ];
 
 const COMPANY_DEFAULTS = {
@@ -37,6 +40,9 @@ const COMPANY_DEFAULTS = {
   tps_number: "",
   tvq_number: "",
   rbq_number: COMPANY_INFO.rbqNumber,
+  company_hours_weekdays: COMPANY_INFO.hoursWeekdays || "",
+  company_hours_saturday: COMPANY_INFO.hoursSaturday || "",
+  company_hours_sunday: COMPANY_INFO.hoursSunday || "",
 };
 
 const WORK_ORDER_DEFAULTS = {

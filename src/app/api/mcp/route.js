@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { hoursDisplayFr } from "@/lib/company-hours";
 import { headers } from "next/headers";
 import {
   calculateThermosReplacement,
@@ -279,7 +280,7 @@ async function executeTool(name, args = {}) {
         bookingUrl: "https://www.vosthermos.com/rendez-vous",
         phone: COMPANY_INFO.phone,
         email: COMPANY_INFO.email,
-        hours: "Lundi au vendredi 08:00 - 17:00 (HNE)",
+        hours: hoursDisplayFr() + " (HNE)",
         serviceType: args.serviceType || "Tous services",
         preferredDate: args.preferredDate || "Flexible",
         cta: "Reservation en ligne disponible 24/7 ou appelez pendant les heures d'ouverture",
@@ -346,7 +347,7 @@ async function readResource(uri) {
             phone: COMPANY_INFO.phone,
             email: COMPANY_INFO.email,
             address: `${COMPANY_INFO.address}, ${COMPANY_INFO.city}, ${COMPANY_INFO.province} ${COMPANY_INFO.postalCode}`,
-            hours: "Lundi-Vendredi 08:00-17:00",
+            hours: hoursDisplayFr(),
             yearsExperience: 15,
             warranty: { thermos: "10 ans transferable", labor: "5 ans" },
             brands: ["Novatech", "Lepage Millwork", "Fenplast", "Jeld-Wen", "Kohltech"],

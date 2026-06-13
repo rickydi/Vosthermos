@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { hoursForApi } from "@/lib/company-hours";
 import { SERVICES } from "@/lib/services-data";
 import { CITIES } from "@/lib/cities";
 import { getCompany } from "@/lib/company";
@@ -22,11 +23,7 @@ export async function GET() {
         postalCode: company.postalCode,
         addressCountry: "CA",
       },
-      openingHours: {
-        weekdays: "08:00-17:00",
-        saturday: "09:00-13:00",
-        sunday: "closed",
-      },
+      openingHours: hoursForApi(),
       priceRange: "$$",
       currenciesAccepted: "CAD",
       warranty: {

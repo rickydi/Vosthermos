@@ -7,6 +7,7 @@ import ChatBubble from "@/components/ChatBubble";
 import { CartProvider } from "@/components/CartContext";
 import Script from "next/script";
 import { getCompany } from "@/lib/company";
+import { openingHoursSpecification } from "@/lib/company-hours";
 
 export async function generateMetadata() {
   const co = await getCompany();
@@ -83,12 +84,7 @@ function buildLocalBusinessJsonLd(co) {
     { "@type": "City", name: "Mascouche" },
     { "@type": "GeoCircle", geoMidpoint: { "@type": "GeoCoordinates", latitude: 45.3669, longitude: -73.5492 }, geoRadius: "100000" },
   ],
-  openingHoursSpecification: {
-    "@type": "OpeningHoursSpecification",
-    dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-    opens: "08:00",
-    closes: "17:00",
-  },
+  openingHoursSpecification: openingHoursSpecification(co),
   priceRange: "$$",
   currenciesAccepted: "CAD",
   paymentAccepted: "Cash, Credit Card, Debit Card",

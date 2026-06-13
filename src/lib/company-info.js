@@ -16,7 +16,11 @@ export const COMPANY_INFO = {
   email: "info@vosthermos.com",
   web: "vosthermos.com",
   url: "https://www.vosthermos.com",
-  rbqNumber: "5820-0684-01",
+  rbqNumber: "5752-5248-01",
+  // Heures d ouverture ("HH:MM-HH:MM", vide = ferme) - editables via /admin/parametres.
+  hoursWeekdays: "08:00-17:00",
+  hoursSaturday: "09:00-13:00",
+  hoursSunday: "",
   facebook: "https://www.facebook.com/profile.php?id=61562303553558",
   instagram: "https://instagram.com/vosthermos/",
   logo: "https://www.vosthermos.com/images/Vos-Thermos-Logo.png",

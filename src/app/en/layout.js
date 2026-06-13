@@ -1,4 +1,5 @@
 import { COMPANY_INFO } from "@/lib/company-info";
+import { openingHoursSpecification } from "@/lib/company-hours";
 export const metadata = {
   robots: "index, follow",
   other: {
@@ -50,12 +51,7 @@ const jsonLd = {
       geoRadius: "100000",
     },
   ],
-  openingHoursSpecification: {
-    "@type": "OpeningHoursSpecification",
-    dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-    opens: "08:00",
-    closes: "17:00",
-  },
+  openingHoursSpecification: openingHoursSpecification(),
   priceRange: "$$",
   currenciesAccepted: "CAD",
   paymentAccepted: "Cash, Credit Card, Debit Card",

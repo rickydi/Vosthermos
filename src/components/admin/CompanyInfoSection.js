@@ -15,7 +15,10 @@ const FIELDS = [
   { key: "company_web", label: "Site web", placeholder: "vosthermos.com" },
   { key: "tps_number", label: "Numero TPS", placeholder: "123456789 RT0001" },
   { key: "tvq_number", label: "Numero TVQ", placeholder: "1234567890 TQ0001" },
-  { key: "rbq_number", label: "Licence RBQ", placeholder: "5820-0684-01" },
+  { key: "rbq_number", label: "Licence RBQ", placeholder: "5752-5248-01" },
+  { key: "company_hours_weekdays", label: "Heures semaine (lun-ven, vide = ferme)", placeholder: "08:00-17:00" },
+  { key: "company_hours_saturday", label: "Heures samedi (vide = ferme)", placeholder: "09:00-13:00" },
+  { key: "company_hours_sunday", label: "Heures dimanche (vide = ferme)", placeholder: "" },
 ];
 
 export default function CompanyInfoSection() {
