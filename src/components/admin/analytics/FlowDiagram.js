@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 
-// Flow de navigation — version dégraissée :
-// - replié par défaut (le top parcours est résumé dans l'en-tête)
-// - seuls les chemins empruntés par 2+ visiteurs sont tracés (fini les 30
-//   lignes à 1 visiteur qui noyaient le diagramme)
-// - étiquettes plus grandes, hauteur compacte
+// Flow de navigation.
+// IMPORTANT : ce composant affiche TOUTES les données reçues de l'API (mêmes
+// entrées, mêmes flux, mêmes totaux qu'avant la refonte visuelle). La refonte
+// ne change QUE la présentation : replié par défaut + résumé du parcours nº 1
+// dans l'en-tête, étiquettes plus lisibles, animation allégée. On ne filtre
+// AUCUN parcours et on ne plafonne AUCUN total — sinon les chiffres baissent.
 
 const PAGE_COLORS = {
   "/": "#9ca3af",
@@ -57,7 +58,7 @@ function getPageHref(page) {
   return page.startsWith("/") ? page : `/${page}`;
 }
 
-function PageLink({ page, x, y, textAnchor }) {
+function PageLink({ page, x, y, textAnchor, fontSize }) {
   return (
     <a href={getPageHref(page)} target="_blank" rel="noopener noreferrer">
       <title>{`Ouvrir ${page}`}</title>
@@ -66,7 +67,7 @@ function PageLink({ page, x, y, textAnchor }) {
         y={y}
         textAnchor={textAnchor}
         fill="#cbd5e1"
-        fontSize={6.5}
+        fontSize={fontSize}
         style={{ cursor: "pointer" }}
       >
         {getLabel(page)}
@@ -99,27 +100,24 @@ export default function FlowDiagram({ query }) {
     );
   }
 
-  // Filtrage du bruit : chemins à 2+ visiteurs si on en a, sinon les 12 premiers.
-  const strongFlows = flows.filter((f) => f.count >= 2);
-  const shownFlows = (strongFlows.length >= 3 ? strongFlows : flows).slice(0, 20);
-  const usedFrom = new Set(shownFlows.map((f) => f.from));
-  const shownEntries = entries
-    .filter((e) => e.count >= 2 || usedFrom.has(e.page))
-    .slice(0, 14);
-  const hiddenFlows = flows.length - shownFlows.length;
+  // TOUTES les données — aucun filtrage, aucun plafond.
+  const maxCount = Math.max(entries[0]?.count || 1, flows[0]?.count || 1);
+  const fromPages = entries.map((e) => e.page);
+  const toPages = [...new Set(flows.map((f) => f.to))];
 
-  const maxCount = Math.max(shownEntries[0]?.count || 1, shownFlows[0]?.count || 1);
-  const fromPages = shownEntries.map((e) => e.page);
-  const toPages = [...new Set(shownFlows.map((f) => f.to))].slice(0, 14);
-
+  // Totaux calculés sur l'ensemble complet des données (comme avant la refonte).
   const fromTotals = new Map();
-  for (const e of shownEntries) fromTotals.set(e.page, e.count);
+  for (const e of entries) fromTotals.set(e.page, e.count);
   const toTotals = new Map();
-  for (const f of shownFlows) toTotals.set(f.to, (toTotals.get(f.to) || 0) + f.count);
+  for (const f of flows) toTotals.set(f.to, (toTotals.get(f.to) || 0) + f.count);
 
-  const topFlow = shownFlows[0] || flows[0];
+  const topFlow = flows[0];
   const nodeCount = Math.max(fromPages.length, toPages.length, 1);
-  const rowH = 18;
+
+  // Hauteur de ligne adaptative : compacte quand il y a beaucoup de nœuds,
+  // aérée quand il y en a peu — de façon à toujours TOUT afficher lisiblement.
+  const rowH = nodeCount > 18 ? 13 : nodeCount > 10 ? 16 : 20;
+  const fontSize = nodeCount > 18 ? 5 : 6.5;
   const pad = 18;
   const h = (nodeCount - 1) * rowH + pad * 2;
   const w = 700;
@@ -139,6 +137,9 @@ export default function FlowDiagram({ query }) {
               <span className="ml-1.5">({topFlow.count} visiteur{topFlow.count > 1 ? "s" : ""})</span>
             </p>
           )}
+          <p className="admin-text-muted text-[11px] mt-0.5">
+            {fromPages.length} page{fromPages.length > 1 ? "s" : ""} d&apos;entrée · {flows.length} parcours
+          </p>
         </div>
         <button
           type="button"
@@ -154,7 +155,7 @@ export default function FlowDiagram({ query }) {
         <div className="overflow-x-auto pb-1 mt-4 border-t admin-border pt-4">
           <svg viewBox={`0 0 ${w} ${h}`} className="w-full min-w-[640px]" style={{ display: "block" }}>
             <defs>
-              {shownFlows.map((f, i) => (
+              {flows.map((f, i) => (
                 <marker key={`a${i}`} id={`fa${i}`} viewBox="0 0 10 6" refX={10} refY={3} markerWidth={8} markerHeight={6} orient="auto">
                   <path d="M0 0L10 3L0 6Z" fill={getColor(f.from)} fillOpacity={0.8} />
                 </marker>
@@ -165,9 +166,9 @@ export default function FlowDiagram({ query }) {
               const y = pad + i * rowH;
               return (
                 <g key={`f-${page}`}>
-                  <circle cx={lx} cy={y} r={6} fill={getColor(page)} fillOpacity={0.18} stroke={getColor(page)} strokeWidth={1.2} />
-                  <text x={lx} y={y + 2.2} textAnchor="middle" fill="#fff" fontSize={5.5} fontWeight="bold">{fromTotals.get(page) || 0}</text>
-                  <PageLink page={page} x={lx - 10} y={y + 2.2} textAnchor="end" />
+                  <circle cx={lx} cy={y} r={5.5} fill={getColor(page)} fillOpacity={0.18} stroke={getColor(page)} strokeWidth={1.2} />
+                  <text x={lx} y={y + 2} textAnchor="middle" fill="#fff" fontSize={5} fontWeight="bold">{fromTotals.get(page) || 0}</text>
+                  <PageLink page={page} x={lx - 9} y={y + 2} textAnchor="end" fontSize={fontSize} />
                 </g>
               );
             })}
@@ -176,29 +177,29 @@ export default function FlowDiagram({ query }) {
               const y = pad + i * rowH;
               return (
                 <g key={`t-${page}`}>
-                  <circle cx={rx} cy={y} r={6} fill={getColor(page)} fillOpacity={0.18} stroke={getColor(page)} strokeWidth={1.2} />
-                  <text x={rx} y={y + 2.2} textAnchor="middle" fill="#fff" fontSize={5.5} fontWeight="bold">{toTotals.get(page) || 0}</text>
-                  <PageLink page={page} x={rx + 10} y={y + 2.2} textAnchor="start" />
+                  <circle cx={rx} cy={y} r={5.5} fill={getColor(page)} fillOpacity={0.18} stroke={getColor(page)} strokeWidth={1.2} />
+                  <text x={rx} y={y + 2} textAnchor="middle" fill="#fff" fontSize={5} fontWeight="bold">{toTotals.get(page) || 0}</text>
+                  <PageLink page={page} x={rx + 9} y={y + 2} textAnchor="start" fontSize={fontSize} />
                 </g>
               );
             })}
 
-            {shownFlows.map((f, i) => {
+            {flows.map((f, i) => {
               const fi = fromPages.indexOf(f.from);
               const ti = toPages.indexOf(f.to);
               if (fi === -1 || ti === -1) return null;
               const y1 = pad + fi * rowH;
               const y2 = pad + ti * rowH;
-              const t = Math.max(1.4, (f.count / maxCount) * 7);
+              const t = Math.max(1.2, (f.count / maxCount) * 6);
               const mx = (lx + rx) / 2;
-              const d = `M${lx + 8} ${y1}C${mx} ${y1},${mx} ${y2},${rx - 8} ${y2}`;
+              const d = `M${lx + 7} ${y1}C${mx} ${y1},${mx} ${y2},${rx - 7} ${y2}`;
               const color = getColor(f.from);
 
               return (
                 <g key={i}>
-                  <path d={d} fill="none" stroke={color} strokeWidth={t} strokeOpacity={0.3} />
+                  <path d={d} fill="none" stroke={color} strokeWidth={t} strokeOpacity={0.28} />
                   <path d={d} fill="none" stroke="transparent" strokeWidth={1} markerEnd={`url(#fa${i})`} />
-                  <circle r={t * 0.45 + 0.8} fill={color} fillOpacity={0.9}>
+                  <circle r={t * 0.45 + 0.7} fill={color} fillOpacity={0.9}>
                     <animateMotion dur="3s" repeatCount="indefinite" path={d} />
                   </circle>
                   <a href={getPageHref(f.to)} target="_blank" rel="noopener noreferrer">
@@ -209,11 +210,6 @@ export default function FlowDiagram({ query }) {
               );
             })}
           </svg>
-          {hiddenFlows > 0 && (
-            <p className="admin-text-muted text-[11px] text-center mt-2">
-              {hiddenFlows} parcours à 1 visiteur masqué{hiddenFlows > 1 ? "s" : ""} pour la lisibilité.
-            </p>
-          )}
         </div>
       )}
     </div>
