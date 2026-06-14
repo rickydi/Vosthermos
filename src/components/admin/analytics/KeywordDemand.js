@@ -288,7 +288,7 @@ export default function KeywordDemand() {
           </div>
           <p className="admin-text-muted text-[10px] mt-3">
             {useVol ? (
-              <>Estimation : volume mensuel réel (Google Keyword Planner{data?.volumesAt ? `, màj ${data.volumesAt}` : ""}) réparti selon la saison Google Trends. « Toi » = tes impressions Search Console réelles. Compare ta présence à la demande.</>
+              <>Volume mensuel estimé au Québec (palier Keyword Planner 1k–10k pondéré par la comparaison Google Trends{data?.volumesAt ? `, màj ${data.volumesAt}` : ""}), réparti selon la saison. « Toi » = tes impressions Search Console réelles. Ordre de grandeur — la précision s&apos;affinera avec la dépense de la campagne.</>
             ) : (
               <>Source : Google Trends (Québec) + Search Console pour « Toi ». Chaque ligne = indice 0-100 propre (100 = son pic). Compare la SAISON et si ta visibilité suit la demande.</>
             )}
