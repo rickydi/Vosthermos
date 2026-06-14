@@ -72,10 +72,26 @@ function granPoints(series, gran) {
   const idxMean = mean(src.map((p) => p.value));
   const per = gran === "jour" ? DAYS_PER_MONTH : WEEKS_PER_MONTH;
   const scale = v && idxMean ? v / idxMean / per : 0; // → recherches/jour ou /sem.
-  return src.map((p) => ({
+  const pts = src.map((p) => ({
     dateKey: p.date, label: fmtDay(p.date), value: p.value,
     real: series.self ? (typeof p.raw === "number" ? p.raw : null) : v ? p.value * scale : null,
   }));
+  // Jour : les petits mots-clés ont des données Trends quotidiennes très éparses
+  // (journées vides + pics aléatoires). Moyenne mobile 7 j pour lisser ce bruit.
+  return gran === "jour" ? smoothDaily(pts) : pts;
+}
+
+function smoothDaily(pts, win = 7) {
+  if (pts.length < win) return pts;
+  const h = Math.floor(win / 2);
+  return pts.map((p, i) => {
+    let sv = 0, nv = 0, sr = 0, nr = 0;
+    for (let j = Math.max(0, i - h); j <= Math.min(pts.length - 1, i + h); j++) {
+      if (pts[j].value != null) { sv += pts[j].value; nv++; }
+      if (pts[j].real != null) { sr += pts[j].real; nr++; }
+    }
+    return { ...p, value: nv ? Math.round((sv / nv) * 10) / 10 : p.value, real: nr ? sr / nr : p.real };
+  });
 }
 
 export default function KeywordDemand() {
@@ -135,12 +151,12 @@ export default function KeywordDemand() {
   const X = (i) => (i / Math.max(n - 1, 1)) * W;
 
   const isSelf = (key) => key === "_self";
+  const selfVisible = visible.some((s) => s.self);
 
-  // Échelle Y. En volume, l'axe est piloté par la DEMANDE : on EXCLUT « Toi »
-  // (tes impressions, toutes requêtes confondues, dépassent le volume des têtes
-  // de mots-clés et écraseraient les courbes). « Toi » devient alors une courbe
-  // de FORME, mise à l'échelle de l'axe (valeurs réelles en infobulle), pour
-  // voir si ta visibilité suit la saison de la demande.
+  // Échelle Y. En volume : axe GAUCHE = la DEMANDE (recherches). « Toi » (tes
+  // impressions, toutes requêtes confondues) n'est pas la même unité et les
+  // dépasse → on lui donne son PROPRE axe DROITE, pour comparer la forme sans
+  // écraser la demande. En indice, tout partage l'échelle 0-100.
   let vMax = 100;
   let selfMaxReal = 0;
   if (useVol) {
@@ -152,27 +168,24 @@ export default function KeywordDemand() {
     }
     vMax = niceCeil(m) || 100;
   }
-  const selfScaleVol = useVol && selfMaxReal > 0 ? (vMax * 0.9) / selfMaxReal : 1;
+  const selfAxisMax = niceCeil(selfMaxReal) || 1;
   const Y = (v) => H - (v / vMax) * (H - 8);
+  const Yself = useVol ? (v) => H - (v / selfAxisMax) * (H - 8) : Y;
   const ticks = useVol ? [0, 0.25, 0.5, 0.75, 1].map((f) => Math.round(vMax * f)) : [0, 25, 50, 75, 100];
+  const selfTicks = [0, 0.25, 0.5, 0.75, 1].map((f) => Math.round(selfAxisMax * f));
   const perLabel = gran === "jour" ? "jour" : gran === "semaine" ? "sem." : "mois";
 
-  // Valeur RÉELLE (infobulle/légende) vs valeur TRACÉE (position Y) — « Toi » est
-  // remis à l'échelle de l'axe de la demande en volume.
+  // Valeur RÉELLE (infobulle/légende). « Toi » est tracé sur son axe de droite.
   const displayVal = (key, oi) => (useVol ? realOf(key, oi) : valueOf(key, oi));
-  const plotVal = (key, oi) => {
-    const v = displayVal(key, oi);
-    if (v == null) return null;
-    return useVol && isSelf(key) ? v * selfScaleVol : v;
-  };
 
   const linePath = (key) => {
+    const yf = useVol && isSelf(key) ? Yself : Y;
     let started = false;
     return grid.map((g, i) => {
-      const v = plotVal(key, g.oi);
+      const v = displayVal(key, g.oi);
       if (v == null) { started = false; return ""; }
       const cmd = started ? "L" : "M"; started = true;
-      return `${cmd}${X(i).toFixed(1)},${Y(v).toFixed(1)}`;
+      return `${cmd}${X(i).toFixed(1)},${yf(v).toFixed(1)}`;
     }).join(" ");
   };
 
@@ -257,6 +270,10 @@ export default function KeywordDemand() {
                     <text x={-6} y={Y(g) + 3} textAnchor="end" className="fill-current admin-text-muted" style={{ fontSize: "9px" }}>{useVol ? fmtNum(g) : g}</text>
                   </g>
                 ))}
+                {/* Axe de droite = « Toi » (impressions), en blanc */}
+                {useVol && selfVisible && selfTicks.map((g, idx) => (
+                  <text key={`self-${idx}`} x={W + 7} y={Yself(g) + 3} textAnchor="start" style={{ fontSize: "9px", fill: SELF_COLOR, fillOpacity: 0.5 }}>{fmtNum(g)}</text>
+                ))}
                 {grid.map((g, i) => i % labelEvery === 0 ? (
                   <text key={i} x={X(i)} y={H + 17} textAnchor="middle" className="fill-current admin-text-muted" style={{ fontSize: "9.5px" }}>{g.label}</text>
                 ) : null)}
@@ -307,7 +324,7 @@ export default function KeywordDemand() {
           </div>
           <p className="admin-text-muted text-[10px] mt-3">
             {useVol ? (
-              <>Volume mensuel estimé au Québec (palier Keyword Planner 1k–10k pondéré par la comparaison Google Trends{data?.volumesAt ? `, màj ${data.volumesAt}` : ""}), réparti selon la saison. La ligne « Toi » (tes impressions Search Console, valeur réelle en infobulle) est mise à l&apos;échelle de la demande pour comparer la forme. Ordre de grandeur — précision accrue avec la dépense de la campagne.</>
+              <>Volume mensuel estimé au Québec (palier Keyword Planner 1k–10k pondéré par la comparaison Google Trends{data?.volumesAt ? `, màj ${data.volumesAt}` : ""}), réparti selon la saison. La ligne blanche « Toi » = tes impressions Search Console, sur l&apos;axe de DROITE (compare la forme sans écraser la demande). Vue Jour lissée (moyenne 7 j). Ordre de grandeur — précision accrue avec la dépense de la campagne.</>
             ) : (
               <>Source : Google Trends (Québec) + Search Console pour « Toi ». Chaque ligne = indice 0-100 propre (100 = son pic). Compare la SAISON et si ta visibilité suit la demande.</>
             )}
