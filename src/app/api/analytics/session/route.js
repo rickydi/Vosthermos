@@ -16,13 +16,20 @@ async function getGeoFromIP(ip) {
 
 export async function POST(request) {
   try {
-    const { visitorId, device, browser, referrer } = await request.json();
+    const { visitorId, device, browser, referrer, gclid, utmSource, utmMedium, utmCampaign } = await request.json();
     const hdrs = await headers();
     const ip = hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() || hdrs.get("x-real-ip") || null;
     const geo = await getGeoFromIP(ip);
 
     const session = await prisma.analyticsSession.create({
-      data: { visitorId, device, browser, referrer, ...geo },
+      data: {
+        visitorId, device, browser, referrer,
+        gclid: gclid || null,
+        utmSource: utmSource || null,
+        utmMedium: utmMedium || null,
+        utmCampaign: utmCampaign || null,
+        ...geo,
+      },
     });
     return NextResponse.json({ sessionId: session.id });
   } catch {

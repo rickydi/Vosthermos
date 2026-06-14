@@ -28,6 +28,23 @@ function getBrowser() {
   return "Autre";
 }
 
+// Provenance payante / campagnes, lue sur l'URL d'ARRIVÉE (le gclid de Google Ads
+// n'existe que sur la 1re page : auto-tagging). Lu au démarrage de session.
+function getEntryParams() {
+  try {
+    const p = new URLSearchParams(window.location.search);
+    const gclid = p.get("gclid") || p.get("gbraid") || p.get("wbraid") || null;
+    return {
+      gclid: gclid ? gclid.slice(0, 200) : null,
+      utmSource: p.get("utm_source")?.slice(0, 100) || null,
+      utmMedium: p.get("utm_medium")?.slice(0, 100) || null,
+      utmCampaign: p.get("utm_campaign")?.slice(0, 150) || null,
+    };
+  } catch {
+    return { gclid: null, utmSource: null, utmMedium: null, utmCampaign: null };
+  }
+}
+
 export default function AnalyticsTracker() {
   const pathname = usePathname();
   const sessionIdRef = useRef(null);
@@ -50,6 +67,7 @@ export default function AnalyticsTracker() {
             device: getDevice(),
             browser: getBrowser(),
             referrer: document.referrer || null,
+            ...getEntryParams(),
           }),
         });
         const data = await res.json();

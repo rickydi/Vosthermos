@@ -18,6 +18,11 @@ export const dynamic = "force-dynamic";
 // (seul Trends est bloqué, pas l'API Search Console). Alignée EXACTEMENT sur la
 // grille de dates des mots-clés pour comparer la saison.
 const STORE_KEY = "keyword_demand_trends";
+// Volumes de recherche RÉELS (moyenne mensuelle, Google Keyword Planner, région
+// Montréal/QC) par clé de mot-clé : { "fenetre": 5000, "porte": 8000, ... }.
+// Tirés via le navigateur (compte Google Ads) et stockés séparément des données
+// Trends pour ne pas être écrasés à chaque rafraîchissement de la saisonnalité.
+const VOLUME_KEY = "keyword_planner_volumes";
 const SITE_URL = "https://www.vosthermos.com/";
 const GSC_LAG_DAYS = 3;
 const SERVICE_REGEX = "(?i)(fen.tre|porte|thermos|vitre|calfeut|moustiquaire|coupe.?froid)";
@@ -101,6 +106,27 @@ export async function GET() {
   } catch (err) {
     console.error("Keyword demand read error:", err.message);
     return NextResponse.json({ error: err.message || "Erreur lecture demande" }, { status: 500 });
+  }
+
+  // Volumes réels (Keyword Planner) — attachés à chaque mot-clé si disponibles.
+  // Permet au graphique d'afficher des « recherches/jour » réelles plutôt qu'un
+  // simple indice 0-100. Best-effort : si absent, le graphique reste en indice.
+  try {
+    const vrows = await prisma.$queryRawUnsafe(`SELECT value FROM site_settings WHERE key = $1`, VOLUME_KEY);
+    if (vrows[0]?.value) {
+      const volumes = JSON.parse(vrows[0].value);
+      const map = volumes && typeof volumes === "object" && volumes.volumes ? volumes.volumes : volumes;
+      if (map && typeof map === "object") {
+        data.keywords = (data.keywords || []).map((k) => ({
+          ...k,
+          volume: typeof map[k.key] === "number" ? map[k.key] : null,
+        }));
+        data.hasVolumes = data.keywords.some((k) => typeof k.volume === "number");
+        if (volumes.updatedAt) data.volumesAt = volumes.updatedAt;
+      }
+    }
+  } catch (err) {
+    console.error("Keyword volumes read skipped:", err.message);
   }
 
   // « Ta ligne » (best-effort, en cache 1h) — alignée sur la grille des mots-clés.

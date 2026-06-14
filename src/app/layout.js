@@ -247,7 +247,7 @@ export default async function RootLayout({ children }) {
           strategy="afterInteractive"
         />
         <Script id="ga" strategy="afterInteractive">
-          {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-8NHVJ5P419');`}
+          {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-8NHVJ5P419');gtag('config','AW-18237535998');`}
         </Script>
       </body>
     </html>

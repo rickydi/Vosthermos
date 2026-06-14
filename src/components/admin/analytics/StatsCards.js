@@ -25,7 +25,7 @@ function Delta({ now, before }) {
   );
 }
 
-function Sparkline({ points = [] }) {
+function Sparkline({ points = [], color = "var(--color-red)" }) {
   if (!points || points.length < 2 || !points.some((v) => v > 0)) return null;
   const max = Math.max(...points, 1);
   const w = 92;
@@ -36,8 +36,8 @@ function Sparkline({ points = [] }) {
   const area = `${line} L${w},${h} L0,${h} Z`;
   return (
     <svg width={w} height={h} className="flex-shrink-0">
-      <path d={area} fill="var(--color-red)" fillOpacity={0.12} />
-      <path d={line} fill="none" stroke="var(--color-red)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d={area} fill={color} fillOpacity={0.12} />
+      <path d={line} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -82,32 +82,53 @@ export default function StatsCards({ data = {}, formatDuration }) {
       prev: prev?.totalSessions,
       prevText: prev ? String(prev.totalSessions) : null,
     },
+    {
+      // Visiteurs venus d'un clic Google Ads (gclid détecté). Accent bleu Google
+      // pour distinguer le canal PAYANT du trafic organique (rouge brand).
+      label: "Google Ads",
+      icon: "fa-bullhorn",
+      accent: "#1a73e8",
+      value: data.paidVisitors || 0,
+      raw: data.paidVisitors || 0,
+      prev: prev?.paidVisitors,
+      prevText: prev ? String(prev.paidVisitors) : null,
+      spark: series.map((p) => p.paid || 0),
+      caption: "clics payants",
+    },
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      {stats.map((s) => (
-        <div key={s.label} className="admin-card rounded-xl p-5 border">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="w-7 h-7 rounded-lg bg-[var(--color-red)]/10 text-[var(--color-red)] inline-flex items-center justify-center flex-shrink-0">
-              <i className={`fas ${s.icon} text-xs`}></i>
-            </span>
-            <p className="admin-text-muted text-[11px] font-bold uppercase tracking-wider">{s.label}</p>
-          </div>
-          <div className="flex items-end justify-between gap-2 min-h-[34px]">
-            <p className="text-3xl font-extrabold admin-text leading-none whitespace-nowrap">{s.value}</p>
-            {s.spark ? <Sparkline points={s.spark} /> : null}
-          </div>
-          <div className="mt-3 flex items-baseline gap-2 flex-wrap">
-            <Delta now={s.raw} before={s.prev} />
-            {prev && s.prevText !== null && (
-              <span className="admin-text-muted text-[11px] truncate">
-                vs {prev.label} ({s.prevText})
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+      {stats.map((s) => {
+        const accent = s.accent || "var(--color-red)";
+        return (
+          <div key={s.label} className="admin-card rounded-xl p-5 border">
+            <div className="flex items-center gap-2 mb-3">
+              <span
+                className="w-7 h-7 rounded-lg inline-flex items-center justify-center flex-shrink-0"
+                style={{ background: `color-mix(in srgb, ${accent} 12%, transparent)`, color: accent }}
+              >
+                <i className={`fas ${s.icon} text-xs`}></i>
               </span>
-            )}
+              <p className="admin-text-muted text-[11px] font-bold uppercase tracking-wider">{s.label}</p>
+            </div>
+            <div className="flex items-end justify-between gap-2 min-h-[34px]">
+              <p className="text-3xl font-extrabold admin-text leading-none whitespace-nowrap">{s.value}</p>
+              {s.spark ? <Sparkline points={s.spark} color={accent} /> : null}
+            </div>
+            <div className="mt-3 flex items-baseline gap-2 flex-wrap">
+              <Delta now={s.raw} before={s.prev} />
+              {prev && s.prevText !== null ? (
+                <span className="admin-text-muted text-[11px] truncate">
+                  vs {prev.label} ({s.prevText})
+                </span>
+              ) : s.caption ? (
+                <span className="admin-text-muted text-[11px] truncate">{s.caption}</span>
+              ) : null}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

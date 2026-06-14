@@ -125,17 +125,22 @@ model AdminActivityLog {
 }
 
 model AnalyticsSession {
-  id         Int                @id @default(autoincrement())
-  visitorId  String
-  device     String?
-  browser    String?
-  referrer   String?
-  city       String?
-  region     String?
-  country    String?
-  startedAt  DateTime           @default(now())
-  endedAt    DateTime?
-  pageViews  AnalyticsPageView[]
+  id          Int                @id @default(autoincrement())
+  visitorId   String
+  device      String?
+  browser     String?
+  referrer    String?
+  city        String?
+  region      String?
+  country     String?
+  // Provenance payante / campagnes. gclid présent = clic Google Ads (auto-tagging).
+  gclid       String?
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  startedAt   DateTime           @default(now())
+  endedAt     DateTime?
+  pageViews   AnalyticsPageView[]
 
   @@index([visitorId])
   @@index([startedAt])

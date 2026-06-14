@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
+import { reportLeadConversion } from "@/lib/ads-conversion";
 
 const SERVICES = [
   {
@@ -144,6 +145,7 @@ export default function BookingCalendar() {
         throw new Error(data.error || "Erreur lors de la reservation");
       }
 
+      reportLeadConversion(); // conversion Google Ads (RDV = lead)
       setSuccess(true);
     } catch (err) {
       setError(err.message);

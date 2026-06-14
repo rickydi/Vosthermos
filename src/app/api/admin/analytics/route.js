@@ -8,6 +8,14 @@ function isOutsideCanadaSession(session) {
   return Boolean(country && country !== "canada");
 }
 
+// Clic Google Ads = gclid présent (auto-tagging) ou utm cpc/ppc sur google.
+function isPaidGoogle(session) {
+  if (session.gclid) return true;
+  const med = String(session.utmMedium || "").toLowerCase();
+  const src = String(session.utmSource || "").toLowerCase();
+  return (med === "cpc" || med === "ppc" || med === "paid" || med === "paidsearch") && src.includes("google");
+}
+
 function buildVisitorList(sessions) {
   const visitorMap = {};
   for (const s of sessions) {
@@ -66,6 +74,10 @@ export async function GET(request) {
     const uniqueVisitors = new Set(sessions.map(s => s.visitorId)).size;
     const totalPageViews = sessions.reduce((sum, s) => sum + s.pageViews.length, 0);
 
+    // Visiteurs Google Ads (payant) — uniques + sessions
+    const paidSessions = sessions.filter(isPaidGoogle);
+    const paidVisitors = new Set(paidSessions.map((s) => s.visitorId)).size;
+
     // Avg session duration
     const sessionsWithEnd = sessions.filter(s => s.endedAt);
     const avgDuration = sessionsWithEnd.length > 0
@@ -94,14 +106,16 @@ export async function GET(request) {
     const dailyMap = {};
     for (const s of sessions) {
       const day = toMontrealDate(s.startedAt);
-      if (!dailyMap[day]) dailyMap[day] = { visitors: new Set(), pageViews: 0 };
+      if (!dailyMap[day]) dailyMap[day] = { visitors: new Set(), pageViews: 0, paid: new Set() };
       dailyMap[day].visitors.add(s.visitorId);
       dailyMap[day].pageViews += s.pageViews.length;
+      if (isPaidGoogle(s)) dailyMap[day].paid.add(s.visitorId);
     }
     const daily = analyticsDailyKeys(range).map((key) => ({
       date: key,
       visitors: dailyMap[key]?.visitors.size || 0,
       pageViews: dailyMap[key]?.pageViews || 0,
+      paid: dailyMap[key]?.paid.size || 0,
     }));
 
     // Série HORAIRE quand la période couvre une seule journée (vue « Aujourd'hui »
@@ -116,14 +130,16 @@ export async function GET(request) {
       const hourlyMap = {};
       for (const s of sessions) {
         const h = parseInt(hourFmt.format(new Date(s.startedAt)), 10) % 24;
-        if (!hourlyMap[h]) hourlyMap[h] = { visitors: new Set(), pageViews: 0 };
+        if (!hourlyMap[h]) hourlyMap[h] = { visitors: new Set(), pageViews: 0, paid: new Set() };
         hourlyMap[h].visitors.add(s.visitorId);
         hourlyMap[h].pageViews += s.pageViews.length;
+        if (isPaidGoogle(s)) hourlyMap[h].paid.add(s.visitorId);
       }
       hourly = Array.from({ length: 24 }, (_, h) => ({
         hour: h,
         visitors: hourlyMap[h]?.visitors.size || 0,
         pageViews: hourlyMap[h]?.pageViews || 0,
+        paid: hourlyMap[h]?.paid.size || 0,
       }));
     }
 
@@ -154,6 +170,9 @@ export async function GET(request) {
           startedAt: true,
           endedAt: true,
           country: true,
+          gclid: true,
+          utmSource: true,
+          utmMedium: true,
           _count: { select: { pageViews: true } },
         },
       });
@@ -164,6 +183,7 @@ export async function GET(request) {
         uniqueVisitors: new Set(prevKept.map((s) => s.visitorId)).size,
         totalPageViews: prevKept.reduce((sum, s) => sum + s._count.pageViews, 0),
         totalSessions: prevKept.length,
+        paidVisitors: new Set(prevKept.filter(isPaidGoogle).map((s) => s.visitorId)).size,
         avgDuration: prevWithEnd.length
           ? Math.round(prevWithEnd.reduce((sum, s) => sum + (new Date(s.endedAt) - new Date(s.startedAt)) / 1000, 0) / prevWithEnd.length)
           : 0,
@@ -239,6 +259,8 @@ export async function GET(request) {
       uniqueVisitors,
       totalPageViews,
       avgDuration,
+      paidVisitors,
+      paidSessions: paidSessions.length,
       topPages,
       daily,
       hourly,

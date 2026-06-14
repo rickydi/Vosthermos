@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import useFormTracking from "@/lib/useFormTracking";
 import { formatPhoneInput } from "@/lib/phone";
 import { COMPANY_INFO } from "@/lib/company-info";
+import { reportLeadConversion } from "@/lib/ads-conversion";
 
 const inputWrap = "relative";
 const inputClass = "w-full bg-white border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:border-[var(--color-red)] transition-colors pr-10";
@@ -210,6 +211,7 @@ export default function QuoteForm({ compact = false, theme = "dark", lang = "fr"
       }
 
       trackSubmit();
+      reportLeadConversion(); // conversion Google Ads (lead)
       setStatus("success");
       setName(""); setPhone(""); setEmail(""); setService(""); setMessage(""); setFiles([]);
       if (textareaRef.current) textareaRef.current.style.height = "auto";
