@@ -134,23 +134,42 @@ export default function KeywordDemand() {
   const labelEvery = Math.max(1, Math.ceil(n / (gran === "jour" ? 12 : 16)));
   const X = (i) => (i / Math.max(n - 1, 1)) * W;
 
-  const V = (key, oi) => (useVol ? realOf(key, oi) : valueOf(key, oi));
+  const isSelf = (key) => key === "_self";
 
-  // Échelle Y : 0-100 en indice, sinon max réel arrondi.
+  // Échelle Y. En volume, l'axe est piloté par la DEMANDE : on EXCLUT « Toi »
+  // (tes impressions, toutes requêtes confondues, dépassent le volume des têtes
+  // de mots-clés et écraseraient les courbes). « Toi » devient alors une courbe
+  // de FORME, mise à l'échelle de l'axe (valeurs réelles en infobulle), pour
+  // voir si ta visibilité suit la saison de la demande.
   let vMax = 100;
+  let selfMaxReal = 0;
   if (useVol) {
     let m = 0;
-    for (const s of visible) for (const g of grid) { const r = realOf(s.key, g.oi); if (r != null && r > m) m = r; }
+    for (const s of visible) for (const g of grid) {
+      const r = realOf(s.key, g.oi); if (r == null) continue;
+      if (isSelf(s.key)) { if (r > selfMaxReal) selfMaxReal = r; }
+      else if (r > m) m = r;
+    }
     vMax = niceCeil(m) || 100;
   }
+  const selfScaleVol = useVol && selfMaxReal > 0 ? (vMax * 0.9) / selfMaxReal : 1;
   const Y = (v) => H - (v / vMax) * (H - 8);
   const ticks = useVol ? [0, 0.25, 0.5, 0.75, 1].map((f) => Math.round(vMax * f)) : [0, 25, 50, 75, 100];
   const perLabel = gran === "jour" ? "jour" : gran === "semaine" ? "sem." : "mois";
 
+  // Valeur RÉELLE (infobulle/légende) vs valeur TRACÉE (position Y) — « Toi » est
+  // remis à l'échelle de l'axe de la demande en volume.
+  const displayVal = (key, oi) => (useVol ? realOf(key, oi) : valueOf(key, oi));
+  const plotVal = (key, oi) => {
+    const v = displayVal(key, oi);
+    if (v == null) return null;
+    return useVol && isSelf(key) ? v * selfScaleVol : v;
+  };
+
   const linePath = (key) => {
     let started = false;
     return grid.map((g, i) => {
-      const v = V(key, g.oi);
+      const v = plotVal(key, g.oi);
       if (v == null) { started = false; return ""; }
       const cmd = started ? "L" : "M"; started = true;
       return `${cmd}${X(i).toFixed(1)},${Y(v).toFixed(1)}`;
@@ -258,7 +277,7 @@ export default function KeywordDemand() {
                 <div className="absolute bg-black/90 text-white text-xs rounded-lg px-3 py-2 pointer-events-none z-10 whitespace-nowrap shadow-xl"
                   style={{ left: `${(tip / Math.max(n - 1, 1)) * 100}%`, top: "-10px", transform: "translateX(-50%)" }}>
                   <div className="font-bold mb-1">{grid[tip].label}{useVol && <span className="opacity-60 font-normal"> · /{perLabel}</span>}</div>
-                  {visible.map((s) => ({ label: s.label, color: s.color, self: s.self, v: V(s.key, grid[tip].oi) }))
+                  {visible.map((s) => ({ label: s.label, color: s.color, self: s.self, v: displayVal(s.key, grid[tip].oi) }))
                     .filter((r) => r.v != null)
                     .sort((a, b) => b.v - a.v)
                     .map((r) => (
@@ -288,7 +307,7 @@ export default function KeywordDemand() {
           </div>
           <p className="admin-text-muted text-[10px] mt-3">
             {useVol ? (
-              <>Volume mensuel estimé au Québec (palier Keyword Planner 1k–10k pondéré par la comparaison Google Trends{data?.volumesAt ? `, màj ${data.volumesAt}` : ""}), réparti selon la saison. « Toi » = tes impressions Search Console réelles. Ordre de grandeur — la précision s&apos;affinera avec la dépense de la campagne.</>
+              <>Volume mensuel estimé au Québec (palier Keyword Planner 1k–10k pondéré par la comparaison Google Trends{data?.volumesAt ? `, màj ${data.volumesAt}` : ""}), réparti selon la saison. La ligne « Toi » (tes impressions Search Console, valeur réelle en infobulle) est mise à l&apos;échelle de la demande pour comparer la forme. Ordre de grandeur — précision accrue avec la dépense de la campagne.</>
             ) : (
               <>Source : Google Trends (Québec) + Search Console pour « Toi ». Chaque ligne = indice 0-100 propre (100 = son pic). Compare la SAISON et si ta visibilité suit la demande.</>
             )}
