@@ -150,42 +150,32 @@ export default function KeywordDemand() {
   const labelEvery = Math.max(1, Math.ceil(n / (gran === "jour" ? 12 : 16)));
   const X = (i) => (i / Math.max(n - 1, 1)) * W;
 
-  const isSelf = (key) => key === "_self";
-  const selfVisible = visible.some((s) => s.self);
-
-  // Échelle Y. En volume : axe GAUCHE = la DEMANDE (recherches). « Toi » (tes
-  // impressions, toutes requêtes confondues) n'est pas la même unité et les
-  // dépasse → on lui donne son PROPRE axe DROITE, pour comparer la forme sans
-  // écraser la demande. En indice, tout partage l'échelle 0-100.
+  // Échelle Y. En volume, l'axe est piloté par la demande, et « Toi » (tes clics)
+  // partage le MÊME axe : les clics étant une fraction des recherches, la ligne
+  // se place naturellement SOUS la demande = la part que tu captes. En indice,
+  // tout partage l'échelle 0-100.
   let vMax = 100;
-  let selfMaxReal = 0;
   if (useVol) {
     let m = 0;
     for (const s of visible) for (const g of grid) {
-      const r = realOf(s.key, g.oi); if (r == null) continue;
-      if (isSelf(s.key)) { if (r > selfMaxReal) selfMaxReal = r; }
-      else if (r > m) m = r;
+      const r = realOf(s.key, g.oi);
+      if (r != null && r > m) m = r;
     }
     vMax = niceCeil(m) || 100;
   }
-  const selfAxisMax = niceCeil(selfMaxReal) || 1;
   const Y = (v) => H - (v / vMax) * (H - 8);
-  const Yself = useVol ? (v) => H - (v / selfAxisMax) * (H - 8) : Y;
   const ticks = useVol ? [0, 0.25, 0.5, 0.75, 1].map((f) => Math.round(vMax * f)) : [0, 25, 50, 75, 100];
-  const selfTicks = [0, 0.25, 0.5, 0.75, 1].map((f) => Math.round(selfAxisMax * f));
   const perLabel = gran === "jour" ? "jour" : gran === "semaine" ? "sem." : "mois";
 
-  // Valeur RÉELLE (infobulle/légende). « Toi » est tracé sur son axe de droite.
   const displayVal = (key, oi) => (useVol ? realOf(key, oi) : valueOf(key, oi));
 
   const linePath = (key) => {
-    const yf = useVol && isSelf(key) ? Yself : Y;
     let started = false;
     return grid.map((g, i) => {
       const v = displayVal(key, g.oi);
       if (v == null) { started = false; return ""; }
       const cmd = started ? "L" : "M"; started = true;
-      return `${cmd}${X(i).toFixed(1)},${yf(v).toFixed(1)}`;
+      return `${cmd}${X(i).toFixed(1)},${Y(v).toFixed(1)}`;
     }).join(" ");
   };
 
@@ -206,9 +196,9 @@ export default function KeywordDemand() {
           <h2 className="admin-text-muted text-xs font-bold uppercase tracking-wider">Demande par mots-clés</h2>
           <p className="admin-text-muted text-[11px] mt-1 max-w-2xl">
             {useVol ? (
-              <>Recherches estimées par {perLabel} dans la région (Keyword Planner × saison Trends) vs <span style={{ color: SELF_COLOR }}>tes impressions</span>. Vois si tu captes la demande.</>
+              <>Recherches estimées par {perLabel} dans la région (Keyword Planner × saison Trends) vs <span style={{ color: SELF_COLOR }}>tes clics depuis Google</span>. Vois quelle part tu captes.</>
             ) : (
-              <>Intérêt de recherche Google au Québec (indice 0-100, 100 = pic) vs <span style={{ color: SELF_COLOR }}>ta visibilité</span>.</>
+              <>Intérêt de recherche Google au Québec (indice 0-100, 100 = pic) vs <span style={{ color: SELF_COLOR }}>tes clics</span>.</>
             )}
             {data?.pulledAt && <span className="opacity-70"> · Trends màj {data.pulledAt}</span>}
           </p>
@@ -270,10 +260,6 @@ export default function KeywordDemand() {
                     <text x={-6} y={Y(g) + 3} textAnchor="end" className="fill-current admin-text-muted" style={{ fontSize: "9px" }}>{useVol ? fmtNum(g) : g}</text>
                   </g>
                 ))}
-                {/* Axe de droite = « Toi » (impressions), en blanc */}
-                {useVol && selfVisible && selfTicks.map((g, idx) => (
-                  <text key={`self-${idx}`} x={W + 7} y={Yself(g) + 3} textAnchor="start" style={{ fontSize: "9px", fill: SELF_COLOR, fillOpacity: 0.5 }}>{fmtNum(g)}</text>
-                ))}
                 {grid.map((g, i) => i % labelEvery === 0 ? (
                   <text key={i} x={X(i)} y={H + 17} textAnchor="middle" className="fill-current admin-text-muted" style={{ fontSize: "9.5px" }}>{g.label}</text>
                 ) : null)}
@@ -324,9 +310,9 @@ export default function KeywordDemand() {
           </div>
           <p className="admin-text-muted text-[10px] mt-3">
             {useVol ? (
-              <>Volume mensuel estimé au Québec (palier Keyword Planner 1k–10k pondéré par la comparaison Google Trends{data?.volumesAt ? `, màj ${data.volumesAt}` : ""}), réparti selon la saison. La ligne blanche « Toi » = tes impressions Search Console, sur l&apos;axe de DROITE (compare la forme sans écraser la demande). Vue Jour lissée (moyenne 7 j). Ordre de grandeur — précision accrue avec la dépense de la campagne.</>
+              <>Volume mensuel estimé au Québec (palier Keyword Planner 1k–10k pondéré par la comparaison Google Trends{data?.volumesAt ? `, màj ${data.volumesAt}` : ""}), réparti selon la saison. La ligne blanche « Toi » = tes <b>clics</b> réels depuis Google (Search Console), sur le MÊME axe que la demande → tu es donc sous la demande = la part que tu captes ; l&apos;écart = ta marge de progression. Vue Jour lissée (7 j). Ordre de grandeur — précision accrue avec la dépense de la campagne.</>
             ) : (
-              <>Source : Google Trends (Québec) + Search Console pour « Toi ». Chaque ligne = indice 0-100 propre (100 = son pic). Compare la SAISON et si ta visibilité suit la demande.</>
+              <>Source : Google Trends (Québec) + Search Console pour « Toi ». Chaque ligne = indice 0-100 propre (100 = son pic). Compare la SAISON et si tes clics suivent la demande.</>
             )}
           </p>
         </>

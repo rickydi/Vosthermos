@@ -45,7 +45,12 @@ async function gscClient() {
   return google.searchconsole({ version: "v1", auth });
 }
 
-// Impressions GSC quotidiennes (hors marque) sur les requêtes du métier, ~16 mois.
+// CLICS GSC quotidiens (hors marque) sur les requêtes du métier, ~16 mois.
+// On utilise les CLICS (vraies visites depuis Google) et PAS les impressions :
+// les impressions = apparitions dans les résultats (même sans clic, sur des
+// milliers de longue traîne) et dépassaient le volume des têtes de mots-clés,
+// donnant l'illusion d'« être au-dessus de la demande ». Les clics, eux, sont
+// la part réellement captée → toujours sous la demande, comme attendu.
 async function fetchSelfDaily() {
   const sc = await gscClient();
   const end = new Date(); end.setDate(end.getDate() - GSC_LAG_DAYS);
@@ -63,8 +68,8 @@ async function fetchSelfDaily() {
     },
   });
   const map = {};
-  for (const r of res.data.rows || []) map[r.keys[0]] = Math.round(r.impressions || 0);
-  return map; // { "YYYY-MM-DD": impressions }
+  for (const r of res.data.rows || []) map[r.keys[0]] = Math.round(r.clicks || 0);
+  return map; // { "YYYY-MM-DD": clics }
 }
 
 // Construit « ta ligne » alignée sur la grille de dates des mots-clés Trends.
@@ -87,7 +92,7 @@ function buildSelfSeries(refWeekly, refDaily, selfMap) {
   const maxD = Math.max(...dailyRaw.map((x) => x.raw), 1);
   return {
     key: "_self",
-    label: "Toi (ta visibilité)",
+    label: "Toi (clics Google)",
     self: true,
     weekly: weeklyRaw.map((x) => ({ date: x.date, value: Math.round((x.raw / maxW) * 100), raw: x.raw })),
     daily: dailyRaw.map((x) => ({ date: x.date, value: Math.round((x.raw / maxD) * 100), raw: x.raw })),
@@ -133,7 +138,7 @@ export async function GET() {
   try {
     const ref = data.keywords?.[0];
     if (ref?.weekly?.length) {
-      const { data: selfMap } = await withCache("self-visibility", { v: 1 }, fetchSelfDaily);
+      const { data: selfMap } = await withCache("self-visibility", { v: 2, metric: "clicks" }, fetchSelfDaily);
       data.self = buildSelfSeries(ref.weekly, ref.daily || [], selfMap);
     }
   } catch (err) {
