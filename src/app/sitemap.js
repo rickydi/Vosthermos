@@ -8,6 +8,13 @@ import { SERVICES_EN } from "@/lib/services-data-en";
 
 const BASE = "https://www.vosthermos.com";
 
+// <lastmod> doit refléter la dernière fois que le CONTENU a vraiment changé, pas
+// l'instant de génération. Avant, `new Date()` partout disait à Google « tout a
+// changé maintenant » à chaque crawl → il finit par ignorer le lastmod. On met
+// une date STABLE (la grosse refonte SEO du 12 juin) à BUMPER manuellement lors
+// d'une vraie mise à jour de contenu. Le blogue, lui, garde sa vraie `updatedAt`.
+const CONTENT_LASTMOD = new Date("2026-06-12");
+
 const SERVICE_SLUGS = [
   "remplacement-quincaillerie",
   "remplacement-vitre-thermos",
@@ -24,50 +31,50 @@ const SERVICE_SLUGS = [
 export default async function sitemap() {
   // Static pages
   const staticPages = [
-    { url: BASE, lastModified: new Date(), changeFrequency: "weekly", priority: 1.0 },
-    { url: `${BASE}/services`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.95 },
-    { url: `${BASE}/contact`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
-    { url: `${BASE}/services/restauration-fenetres-bois-patrimoine`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.9 },
-    { url: `${BASE}/portail-gestionnaire`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.9 },
-    { url: `${BASE}/boutique`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
-    { url: `${BASE}/blogue`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-    { url: `${BASE}/faq`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
-    { url: `${BASE}/garantie`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
-    { url: `${BASE}/rendez-vous`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
-    { url: `${BASE}/pourquoi-vosthermos`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
-    { url: `${BASE}/realisations`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-    { url: `${BASE}/carrieres`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
-    { url: `${BASE}/prix`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.9 },
-    { url: `${BASE}/opti-fenetre`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.9 },
-    { url: `${BASE}/diagnostic`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.9 },
-    { url: `${BASE}/calculateur`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.9 },
-    { url: `${BASE}/calculateur-economies`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.9 },
-    { url: `${BASE}/guides`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
-    { url: `${BASE}/outils`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
-    { url: `${BASE}/outils/quiz-diagnostic`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.85 },
-    { url: `${BASE}/outils/cout-thermos`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.85 },
-    { url: `${BASE}/outils/reparer-vs-remplacer`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.85 },
-    { url: `${BASE}/mcp-docs`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.6 },
+    { url: BASE, lastModified: CONTENT_LASTMOD, changeFrequency: "weekly", priority: 1.0 },
+    { url: `${BASE}/services`, lastModified: CONTENT_LASTMOD, changeFrequency: "weekly", priority: 0.95 },
+    { url: `${BASE}/contact`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE}/services/restauration-fenetres-bois-patrimoine`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${BASE}/portail-gestionnaire`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${BASE}/boutique`, lastModified: CONTENT_LASTMOD, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE}/blogue`, lastModified: CONTENT_LASTMOD, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${BASE}/faq`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${BASE}/garantie`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${BASE}/rendez-vous`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${BASE}/pourquoi-vosthermos`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${BASE}/realisations`, lastModified: CONTENT_LASTMOD, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${BASE}/carrieres`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${BASE}/prix`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${BASE}/opti-fenetre`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${BASE}/diagnostic`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${BASE}/calculateur`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${BASE}/calculateur-economies`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${BASE}/guides`, lastModified: CONTENT_LASTMOD, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE}/outils`, lastModified: CONTENT_LASTMOD, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE}/outils/quiz-diagnostic`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE}/outils/cout-thermos`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE}/outils/reparer-vs-remplacer`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE}/mcp-docs`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.6 },
 
     // B2B pages - Copropriétés
-    { url: `${BASE}/copropriete`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.9 },
-    { url: `${BASE}/copropriete/plan-pluriannuel-fenetres`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.85 },
-    { url: `${BASE}/copropriete/remplacement-massif-thermos-condos`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.85 },
-    { url: `${BASE}/copropriete/conformite-loi-25`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE}/copropriete`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${BASE}/copropriete/plan-pluriannuel-fenetres`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE}/copropriete/remplacement-massif-thermos-condos`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE}/copropriete/conformite-loi-25`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.8 },
 
     // B2B pages - Commercial
-    { url: `${BASE}/commercial`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.9 },
-    { url: `${BASE}/commercial/remplacement-thermos-bureau`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.85 },
-    { url: `${BASE}/commercial/infiltration-eau-batiment`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE}/commercial`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${BASE}/commercial/remplacement-thermos-bureau`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE}/commercial/infiltration-eau-batiment`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.85 },
 
     // Case studies
-    { url: `${BASE}/realisations/marronnier-laval`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.75 },
+    { url: `${BASE}/realisations/marronnier-laval`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.75 },
   ];
 
   // HowTo guides (structured data for LLMs + Google rich results)
   const howtoPages = HOWTOS.map((h) => ({
     url: `${BASE}/guides/${h.slug}`,
-    lastModified: new Date(),
+    lastModified: CONTENT_LASTMOD,
     changeFrequency: "monthly",
     priority: 0.8,
   }));
@@ -75,7 +82,7 @@ export default async function sitemap() {
   // Service pages
   const servicePages = SERVICE_SLUGS.map((slug) => ({
     url: `${BASE}/services/${slug}`,
-    lastModified: new Date(),
+    lastModified: CONTENT_LASTMOD,
     changeFrequency: "monthly",
     priority: 0.9,
   }));
@@ -86,7 +93,7 @@ export default async function sitemap() {
     for (const city of CITIES) {
       serviceCityPages.push({
         url: `${BASE}/services/${slug}/${city.slug}`,
-        lastModified: new Date(),
+        lastModified: CONTENT_LASTMOD,
         changeFrequency: "monthly",
         priority: 0.8,
       });
@@ -96,7 +103,7 @@ export default async function sitemap() {
   // Reparation portes et fenetres + city pages
   const reparationCityPages = CITIES.map((city) => ({
     url: `${BASE}/reparation-portes-et-fenetres/${city.slug}`,
-    lastModified: new Date(),
+    lastModified: CONTENT_LASTMOD,
     changeFrequency: "monthly",
     priority: 0.8,
   }));
@@ -107,13 +114,13 @@ export default async function sitemap() {
   });
   const categoryPages = categories.map((cat) => ({
     url: `${BASE}/boutique/${cat.slug}`,
-    lastModified: new Date(),
+    lastModified: CONTENT_LASTMOD,
     changeFrequency: "weekly",
     priority: 0.8,
   }));
   const enCategoryPages = categories.map((cat) => ({
     url: `${BASE}/en/boutique/${cat.slug}`,
-    lastModified: new Date(),
+    lastModified: CONTENT_LASTMOD,
     changeFrequency: "weekly",
     priority: 0.7,
   }));
@@ -143,10 +150,10 @@ export default async function sitemap() {
 
   // Problem pages
   const problemPages = [
-    { url: `${BASE}/problemes`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
+    { url: `${BASE}/problemes`, lastModified: CONTENT_LASTMOD, changeFrequency: "weekly", priority: 0.8 },
     ...PROBLEMS.map((p) => ({
       url: `${BASE}/problemes/${p.slug}`,
-      lastModified: new Date(),
+      lastModified: CONTENT_LASTMOD,
       changeFrequency: "monthly",
       priority: 0.7,
     })),
@@ -154,24 +161,24 @@ export default async function sitemap() {
 
   // English pages
   const enPages = [
-    { url: `${BASE}/en`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
-    { url: `${BASE}/en/services`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.85 },
-    { url: `${BASE}/en/contact`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.75 },
-    { url: `${BASE}/en/portail-gestionnaire`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
-    { url: `${BASE}/en/opti-fenetre`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.85 },
-    { url: `${BASE}/en/diagnostic`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
-    { url: `${BASE}/en/calculateur`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
-    { url: `${BASE}/en/prix`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
-    { url: `${BASE}/en/glossaire`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
-    { url: `${BASE}/en/problemes`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
-    { url: `${BASE}/en/boutique`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-    { url: `${BASE}/en/blogue`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
-    { url: `${BASE}/en/faq`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
-    { url: `${BASE}/en/garantie`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
+    { url: `${BASE}/en`, lastModified: CONTENT_LASTMOD, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE}/en/services`, lastModified: CONTENT_LASTMOD, changeFrequency: "weekly", priority: 0.85 },
+    { url: `${BASE}/en/contact`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.75 },
+    { url: `${BASE}/en/portail-gestionnaire`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE}/en/opti-fenetre`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE}/en/diagnostic`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE}/en/calculateur`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE}/en/prix`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE}/en/glossaire`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${BASE}/en/problemes`, lastModified: CONTENT_LASTMOD, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${BASE}/en/boutique`, lastModified: CONTENT_LASTMOD, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${BASE}/en/blogue`, lastModified: CONTENT_LASTMOD, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${BASE}/en/faq`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${BASE}/en/garantie`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.7 },
   ];
   const enServicePages = SERVICES_EN.map((service) => ({
     url: `${BASE}/en/services/${service.slug}`,
-    lastModified: new Date(),
+    lastModified: CONTENT_LASTMOD,
     changeFrequency: "monthly",
     priority: 0.8,
   }));
@@ -183,23 +190,23 @@ export default async function sitemap() {
   // Pricing detail pages
   const pricingPages = PRICING.map((p) => ({
     url: `${BASE}/prix/${p.slug}`,
-    lastModified: new Date(),
+    lastModified: CONTENT_LASTMOD,
     changeFrequency: "monthly",
     priority: 0.8,
   }));
   const enPricingPages = PRICING.map((p) => ({
     url: `${BASE}/en/prix/${p.slug}`,
-    lastModified: new Date(),
+    lastModified: CONTENT_LASTMOD,
     changeFrequency: "monthly",
     priority: 0.7,
   }));
 
   // Glossary pages
   const glossaryPages = [
-    { url: `${BASE}/glossaire`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE}/glossaire`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.8 },
     ...GLOSSARY.map((g) => ({
       url: `${BASE}/glossaire/${g.slug}`,
-      lastModified: new Date(),
+      lastModified: CONTENT_LASTMOD,
       changeFrequency: "monthly",
       priority: 0.6,
     })),
