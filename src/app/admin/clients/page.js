@@ -29,10 +29,14 @@ const SORT_OPTIONS = [
   { value: "city_asc", label: "Ville (A-Z)" },
 ];
 
+const PAGE_SIZE = 50;
+
 export default function ClientsPage() {
   const [clients, setClients] = useState([]);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("updated_desc");
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({ total: 0, pages: 1 });
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -42,22 +46,50 @@ export default function ClientsPage() {
   const [error, setError] = useState("");
   const timer = useRef(null);
 
-  const load = useCallback((q = "", sortValue = "updated_desc") => {
+  const load = useCallback((q = "", sortValue = "updated_desc", pageValue = 1) => {
     setLoading(true);
-    fetch(`/api/admin/clients?q=${encodeURIComponent(q)}&sort=${sortValue}`)
+    const params = new URLSearchParams({
+      q,
+      sort: sortValue,
+      page: String(pageValue),
+      limit: String(PAGE_SIZE),
+    });
+    fetch(`/api/admin/clients?${params}`)
       .then((r) => r.json())
       .then((data) => {
+        const nextPages = Math.max(1, Number(data.pages || 1));
+        if (pageValue > nextPages) {
+          setPage(nextPages);
+          return;
+        }
         setClients(data.clients || []);
+        setPagination({
+          total: Number(data.total || 0),
+          pages: nextPages,
+        });
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        setPagination({ total: 0, pages: 1 });
+        setLoading(false);
+      });
   }, []);
 
   useEffect(() => {
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => load(search, sort), 300);
+    timer.current = setTimeout(() => load(search, sort, page), 300);
     return () => clearTimeout(timer.current);
-  }, [load, search, sort]);
+  }, [load, search, sort, page]);
+
+  function handleSearchChange(value) {
+    setPage(1);
+    setSearch(value);
+  }
+
+  function handleSortChange(value) {
+    setPage(1);
+    setSort(value);
+  }
 
   function resetForm() {
     setForm(EMPTY_FORM);
@@ -122,7 +154,7 @@ export default function ClientsPage() {
       if (res.status === 409) {
         const data = await res.json().catch(() => ({}));
         setError(data.message || "Ce client a ete modifie par un collegue. Ferme et rouvre la fiche pour repartir de la derniere version.");
-        load(search, sort); // rafraichit la liste en arriere-plan
+        load(search, sort, page); // rafraichit la liste en arriere-plan
         return;
       }
       if (!res.ok) {
@@ -131,7 +163,7 @@ export default function ClientsPage() {
       }
       resetForm();
       setShowForm(false);
-      load(search, sort);
+      load(search, sort, page);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -147,7 +179,7 @@ export default function ClientsPage() {
       alert(data.error || "Erreur lors de la suppression (peut-etre des bons de travail lies?)");
       return;
     }
-    load(search, sort);
+    load(search, sort, page);
   }
 
   return (
@@ -332,15 +364,41 @@ export default function ClientsPage() {
           type="text"
           placeholder="Rechercher par nom, contact, telephone, email, ville..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => handleSearchChange(e.target.value)}
           className="admin-input border rounded-xl px-4 py-3 text-sm flex-1"
         />
-        <select value={sort} onChange={(e) => setSort(e.target.value)} className="admin-input border rounded-xl px-4 py-3 text-sm md:w-64">
+        <select value={sort} onChange={(e) => handleSortChange(e.target.value)} className="admin-input border rounded-xl px-4 py-3 text-sm md:w-64">
           {SORT_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>{option.label}</option>
           ))}
         </select>
       </div>
+
+      {!loading && pagination.total > 0 && (
+        <div className="mb-3 flex flex-col gap-2 text-xs admin-text-muted sm:flex-row sm:items-center sm:justify-between">
+          <span>
+            {pagination.total} client{pagination.total > 1 ? "s" : ""} - page {page} / {pagination.pages}
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1}
+              className="admin-card border admin-border rounded-lg px-3 py-1.5 admin-text disabled:opacity-40"
+            >
+              <i className="fas fa-chevron-left mr-2"></i>Precedent
+            </button>
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
+              disabled={page >= pagination.pages}
+              className="admin-card border admin-border rounded-lg px-3 py-1.5 admin-text disabled:opacity-40"
+            >
+              Suivant<i className="fas fa-chevron-right ml-2"></i>
+            </button>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="text-center py-12 admin-text-muted"><i className="fas fa-spinner fa-spin text-2xl"></i></div>
