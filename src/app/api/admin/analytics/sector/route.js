@@ -25,7 +25,6 @@ const STORE_KEY = "keyword_demand_trends";
 const VOLUME_KEY = "keyword_planner_volumes";
 const SITE_URL = "https://www.vosthermos.com/";
 const GSC_LAG_DAYS = 3;
-const SERVICE_REGEX = "(?i)(fen.tre|porte|thermos|vitre|calfeut|moustiquaire|coupe.?froid)";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -45,12 +44,11 @@ async function gscClient() {
   return google.searchconsole({ version: "v1", auth });
 }
 
-// CLICS GSC quotidiens (hors marque) sur les requêtes du métier, ~16 mois.
-// On utilise les CLICS (vraies visites depuis Google) et PAS les impressions :
-// les impressions = apparitions dans les résultats (même sans clic, sur des
-// milliers de longue traîne) et dépassaient le volume des têtes de mots-clés,
-// donnant l'illusion d'« être au-dessus de la demande ». Les clics, eux, sont
-// la part réellement captée → toujours sous la demande, comme attendu.
+// CLICS Google quotidiens — TOUS (marque incluse, toutes pages), ~16 mois.
+// = tout ton trafic depuis la recherche Google. On compare ainsi une demande
+// 100 % Google (Trends + Keyword Planner) à des clics 100 % Google → même
+// écosystème, comparaison cohérente. (On utilise les CLICS = vraies visites,
+// pas les impressions qui = simples apparitions dans les résultats.)
 async function fetchSelfDaily() {
   const sc = await gscClient();
   const end = new Date(); end.setDate(end.getDate() - GSC_LAG_DAYS);
@@ -60,16 +58,12 @@ async function fetchSelfDaily() {
     requestBody: {
       startDate: isoDate(start), endDate: isoDate(end),
       dimensions: ["date"],
-      dimensionFilterGroups: [
-        { filters: [{ dimension: "query", operator: "includingRegex", expression: SERVICE_REGEX }] },
-        { filters: [{ dimension: "query", operator: "notContains", expression: "vosthermos" }] },
-      ],
       rowLimit: 600, type: "web",
     },
   });
   const map = {};
   for (const r of res.data.rows || []) map[r.keys[0]] = Math.round(r.clicks || 0);
-  return map; // { "YYYY-MM-DD": clics }
+  return map; // { "YYYY-MM-DD": clics Google (tous) }
 }
 
 // Construit « ta ligne » alignée sur la grille de dates des mots-clés Trends.
@@ -92,7 +86,7 @@ function buildSelfSeries(refWeekly, refDaily, selfMap) {
   const maxD = Math.max(...dailyRaw.map((x) => x.raw), 1);
   return {
     key: "_self",
-    label: "Toi (clics Google)",
+    label: "Toi (tes clics Google)",
     self: true,
     weekly: weeklyRaw.map((x) => ({ date: x.date, value: Math.round((x.raw / maxW) * 100), raw: x.raw })),
     daily: dailyRaw.map((x) => ({ date: x.date, value: Math.round((x.raw / maxD) * 100), raw: x.raw })),
@@ -138,7 +132,7 @@ export async function GET() {
   try {
     const ref = data.keywords?.[0];
     if (ref?.weekly?.length) {
-      const { data: selfMap } = await withCache("self-visibility", { v: 2, metric: "clicks" }, fetchSelfDaily);
+      const { data: selfMap } = await withCache("self-visibility", { v: 3, metric: "clicks-all" }, fetchSelfDaily);
       data.self = buildSelfSeries(ref.weekly, ref.daily || [], selfMap);
     }
   } catch (err) {

@@ -310,7 +310,7 @@ export default function KeywordDemand() {
           </div>
           <p className="admin-text-muted text-[10px] mt-3">
             {useVol ? (
-              <>Volume mensuel estimé au Québec (palier Keyword Planner 1k–10k pondéré par la comparaison Google Trends{data?.volumesAt ? `, màj ${data.volumesAt}` : ""}), réparti selon la saison. La ligne blanche « Toi » = tes <b>clics</b> réels depuis Google (Search Console), sur le MÊME axe que la demande → tu es donc sous la demande = la part que tu captes ; l&apos;écart = ta marge de progression. Vue Jour lissée (7 j). Ordre de grandeur — précision accrue avec la dépense de la campagne.</>
+              <>Volume mensuel estimé au Québec (palier Keyword Planner 1k–10k pondéré par la comparaison Google Trends{data?.volumesAt ? `, màj ${data.volumesAt}` : ""}), réparti selon la saison. La ligne blanche « Toi » = <b>tous tes clics</b> depuis Google (Search Console, marque incluse), sur le MÊME axe que la demande → tu es donc sous la demande = la part que tu captes ; l&apos;écart = ta marge de progression. Vue Jour lissée (7 j). Ordre de grandeur — précision accrue avec la dépense de la campagne.</>
             ) : (
               <>Source : Google Trends (Québec) + Search Console pour « Toi ». Chaque ligne = indice 0-100 propre (100 = son pic). Compare la SAISON et si tes clics suivent la demande.</>
             )}
