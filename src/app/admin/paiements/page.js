@@ -11,6 +11,11 @@ const FILTERS = [
   { key: "all", label: "Tous" },
 ];
 
+const SORT_OPTIONS = [
+  { key: "due", label: "Echeance", icon: "fa-calendar-day" },
+  { key: "recent", label: "Plus recentes", icon: "fa-clock-rotate-left" },
+];
+
 const METHOD_OPTIONS = ["Interac", "Cheque", "Carte", "Comptant", "Virement", "Autre"];
 
 function money(value) {
@@ -281,15 +286,16 @@ export default function AdminPaymentsPage() {
   const [payments, setPayments] = useState([]);
   const [summary, setSummary] = useState(null);
   const [filter, setFilter] = useState("open");
+  const [sort, setSort] = useState("due");
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState(null);
 
   const queryString = useMemo(() => {
-    const params = new URLSearchParams({ status: filter });
+    const params = new URLSearchParams({ status: filter, sort, limit: "500" });
     if (query.trim()) params.set("q", query.trim());
     return params.toString();
-  }, [filter, query]);
+  }, [filter, query, sort]);
 
   async function load(showSpinner = true) {
     if (showSpinner) setLoading(true);
@@ -351,6 +357,21 @@ export default function AdminPaymentsPage() {
             placeholder="Client, telephone, facture"
             className="admin-input w-64 rounded-lg border px-3 py-2 text-sm"
           />
+          <div className="flex rounded-lg border admin-border p-1">
+            {SORT_OPTIONS.map((option) => (
+              <button
+                key={option.key}
+                type="button"
+                onClick={() => setSort(option.key)}
+                className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-bold transition-colors ${
+                  sort === option.key ? "bg-[var(--color-red)] text-white" : "admin-text-muted admin-hover"
+                }`}
+              >
+                <i className={`fas ${option.icon}`}></i>
+                {option.label}
+              </button>
+            ))}
+          </div>
           <button onClick={() => load()} className="rounded-lg bg-cyan-700 px-4 py-2 text-sm font-bold text-white hover:bg-cyan-600">
             <i className="fas fa-rotate mr-2"></i>Rafraichir
           </button>

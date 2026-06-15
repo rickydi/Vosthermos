@@ -72,11 +72,33 @@ function filterPayments(payments, status) {
   return payments.filter((payment) => isOpenPaymentStatus(payment.statut));
 }
 
-function sortPayments(a, b) {
-  if (a.paymentState === "paid" || b.paymentState === "paid") {
-    return new Date(b.paidAt || b.updatedAt || 0) - new Date(a.paidAt || a.updatedAt || 0);
+function timeValue(value) {
+  return validDate(value)?.getTime() || 0;
+}
+
+function firstTime(...values) {
+  for (const value of values) {
+    const time = timeValue(value);
+    if (time) return time;
   }
-  return new Date(a.paymentDueAt || a.date || 0) - new Date(b.paymentDueAt || b.date || 0);
+  return 0;
+}
+
+function recentTime(payment) {
+  if (payment.paymentState === "paid") {
+    return firstTime(payment.paidAt, payment.invoiceIssuedAt, payment.date, payment.createdAt, payment.updatedAt);
+  }
+  return firstTime(payment.invoiceIssuedAt, payment.date, payment.createdAt, payment.updatedAt);
+}
+
+function sortPayments(a, b, sort = "due") {
+  if (sort === "recent") {
+    return recentTime(b) - recentTime(a);
+  }
+  if (a.paymentState === "paid" || b.paymentState === "paid") {
+    return timeValue(b.paidAt || b.updatedAt) - timeValue(a.paidAt || a.updatedAt);
+  }
+  return timeValue(a.paymentDueAt || a.date) - timeValue(b.paymentDueAt || b.date);
 }
 
 export async function GET(req) {
@@ -84,6 +106,7 @@ export async function GET(req) {
 
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status") || "open";
+  const sort = searchParams.get("sort") === "recent" ? "recent" : "due";
   const q = (searchParams.get("q") || "").trim();
   const limit = Math.min(500, Math.max(25, Number(searchParams.get("limit") || 250)));
   const now = new Date();
@@ -111,16 +134,19 @@ export async function GET(req) {
       followUp: { select: { id: true, title: true, status: true } },
       payments: { orderBy: [{ paidAt: "asc" }, { id: "asc" }] },
     },
-    orderBy: [{ paymentDueAt: "asc" }, { invoiceIssuedAt: "desc" }, { date: "desc" }],
+    orderBy: sort === "recent"
+      ? [{ invoiceIssuedAt: "desc" }, { date: "desc" }, { createdAt: "desc" }]
+      : [{ paymentDueAt: "asc" }, { invoiceIssuedAt: "desc" }, { date: "desc" }],
     take: limit,
   });
 
   const allPayments = workOrders.map((workOrder) => serializePaymentWorkOrder(workOrder, now));
-  const filtered = filterPayments(allPayments, status).sort(sortPayments);
+  const filtered = filterPayments(allPayments, status).sort((a, b) => sortPayments(a, b, sort));
 
   return NextResponse.json({
     payments: filtered,
     summary: buildSummary(allPayments, now),
     status,
+    sort,
   });
 }
