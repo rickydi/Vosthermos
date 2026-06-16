@@ -58,6 +58,9 @@ export async function GET(req) {
     where.OR = [
       { number: { contains: q, mode: "insensitive" } },
       { client: { name: { contains: q, mode: "insensitive" } } },
+      { client: { company: { contains: q, mode: "insensitive" } } },
+      { client: { contactName: { contains: q, mode: "insensitive" } } },
+      { client: { email: { contains: q, mode: "insensitive" } } },
       { client: { phone: { contains: q } } },
       { client: { secondaryPhone: { contains: q } } },
     ];

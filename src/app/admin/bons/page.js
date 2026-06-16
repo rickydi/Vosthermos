@@ -87,10 +87,11 @@ const DOCUMENT_VIEW_CONFIG = {
   },
 };
 
-function buildWorkOrdersQuery(documentView, filter) {
+function buildWorkOrdersQuery(documentView, filter, query = "") {
   const config = DOCUMENT_VIEW_CONFIG[documentView] || DOCUMENT_VIEW_CONFIG.all;
   const params = new URLSearchParams({ limit: "200" });
   if (config.documentType) params.set("documentType", config.documentType);
+  if (query.trim()) params.set("q", query.trim());
 
   if (filter && filter !== "all") {
     if (documentView === "invoices" && ["open", "overdue", "receivable", "partial", "paid"].includes(filter)) {
@@ -136,9 +137,10 @@ export default function BonsPage({ documentView = "all" } = {}) {
   const [workOrders, setWorkOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState(config.defaultFilter || "all");
+  const [query, setQuery] = useState("");
 
   function loadWorkOrders(showSpinner = true) {
-    const params = buildWorkOrdersQuery(documentView, filter);
+    const params = buildWorkOrdersQuery(documentView, filter, query);
     if (showSpinner) setLoading(true);
     fetch(`/api/admin/work-orders${params}`, { cache: "no-store", headers: { "Cache-Control": "no-cache" } })
       .then((r) => r.json())
@@ -150,18 +152,19 @@ export default function BonsPage({ documentView = "all" } = {}) {
   }
 
   useEffect(() => {
-    loadWorkOrders();
+    const timeout = setTimeout(() => loadWorkOrders(), query.trim() ? 200 : 0);
     const interval = setInterval(() => loadWorkOrders(false), 5000);
     const onFocus = () => loadWorkOrders(false);
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onFocus);
     return () => {
+      clearTimeout(timeout);
       clearInterval(interval);
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onFocus);
     };
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [documentView, filter]);
+  }, [documentView, filter, query]);
 
   async function handleDelete(wo, e) {
     e.stopPropagation();
@@ -184,6 +187,7 @@ export default function BonsPage({ documentView = "all" } = {}) {
     .reduce((sum, wo) => sum + Number(wo.balanceDue ?? wo.total ?? 0), 0);
   const documentActionClass = "px-4 py-2 bg-cyan-700 hover:bg-cyan-600 text-white rounded-lg text-sm font-medium";
   const documentSecondaryActionClass = "px-4 py-2 border admin-border admin-text hover:bg-white/5 rounded-lg text-sm font-medium";
+  const showSearch = documentView === "invoices";
   const subtitle = documentView === "quotes"
     ? `${workOrders.length} soumission${workOrders.length > 1 ? "s" : ""}`
     : documentView === "invoices"
@@ -197,16 +201,39 @@ export default function BonsPage({ documentView = "all" } = {}) {
           <h1 className="admin-text text-2xl font-bold">{config.title}</h1>
           <p className="admin-text-muted text-sm">{subtitle}</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {config.actions.map((action) => (
-            <Link
-              key={action.href}
-              href={action.href}
-              className={action.secondary ? documentSecondaryActionClass : documentActionClass}
-            >
-              <i className={`fas ${action.icon} mr-2`}></i>{action.label}
-            </Link>
-          ))}
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          {showSearch ? (
+            <div className="relative w-full sm:w-80">
+              <i className="fas fa-search admin-text-muted pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs"></i>
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Rechercher facture, client, telephone"
+                className="admin-input w-full rounded-lg border py-2 pl-9 pr-9 text-sm"
+              />
+              {query ? (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  className="admin-text-muted admin-hover absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md"
+                  title="Effacer la recherche"
+                >
+                  <i className="fas fa-times"></i>
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+          <div className="flex flex-wrap gap-2">
+            {config.actions.map((action) => (
+              <Link
+                key={action.href}
+                href={action.href}
+                className={action.secondary ? documentSecondaryActionClass : documentActionClass}
+              >
+                <i className={`fas ${action.icon} mr-2`}></i>{action.label}
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
 
