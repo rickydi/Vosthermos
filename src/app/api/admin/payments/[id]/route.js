@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { changedFields, logAdminActivity } from "@/lib/admin-activity";
 import { createOrTouchFollowUpFromWorkOrder } from "@/lib/follow-up-utils";
-import { sendPaidInvoiceEmail } from "@/lib/paid-invoice-email";
+import { sendInvoicePaymentUpdateEmail, sendPaidInvoiceEmail } from "@/lib/paid-invoice-email";
 import { documentPaymentSummary } from "@/lib/vosthermos-document";
 import {
   buildPaymentTrackingData,
@@ -311,7 +311,14 @@ export async function PATCH(req, { params }) {
 
   let emailResult = null;
   let emailError = null;
-  if ((body.action === "mark-paid" && body.sendEmail !== false) || body.action === "resend-paid-email") {
+  if (body.action === "add-payment" && body.sendEmail === true) {
+    try {
+      const fullWorkOrder = await fetchFullWorkOrder(workOrderId);
+      emailResult = await sendInvoicePaymentUpdateEmail(fullWorkOrder, { to: cleanText(body.to) });
+    } catch (err) {
+      emailError = err.message || "Erreur d'envoi du courriel de facture mise a jour";
+    }
+  } else if ((body.action === "mark-paid" && body.sendEmail !== false) || body.action === "resend-paid-email") {
     try {
       const fullWorkOrder = await fetchFullWorkOrder(workOrderId);
       emailResult = await sendPaidInvoiceEmail(fullWorkOrder, { to: cleanText(body.to) });

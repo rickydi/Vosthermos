@@ -72,10 +72,12 @@ function PaymentRow({ payment, saving, onPatch }) {
   const [paymentDate, setPaymentDate] = useState(dateInput(new Date().toISOString()));
   const [depositAmount, setDepositAmount] = useState("");
   const [paymentNote, setPaymentNote] = useState("");
+  const [showDepositEmailModal, setShowDepositEmailModal] = useState(false);
   const meta = stateMeta(payment);
   const dirty = dueDate !== dateInput(payment.paymentDueAt);
   const balance = Number(payment.balanceDue ?? payment.total ?? 0);
   const payments = payment.payments || [];
+  const clientEmail = payment.client?.email || "";
 
   async function saveDetails() {
     await onPatch(payment.id, {
@@ -83,16 +85,33 @@ function PaymentRow({ payment, saving, onPatch }) {
     });
   }
 
-  async function addDeposit() {
-    await onPatch(payment.id, {
+  function depositPayload(sendEmail) {
+    return {
       action: "add-payment",
       amount: depositAmount,
       paidAt: paymentDate || null,
       paymentMethod: method || "Interac",
       paymentNotes: paymentNote || null,
-    });
+      sendEmail,
+      to: sendEmail ? clientEmail : undefined,
+    };
+  }
+
+  async function saveDeposit(sendEmail) {
+    const data = await onPatch(payment.id, depositPayload(sendEmail));
+    if (!data) return;
     setDepositAmount("");
     setPaymentNote("");
+    setShowDepositEmailModal(false);
+  }
+
+  async function addDeposit() {
+    if (!clientEmail) {
+      if (!confirm("Aucun email client. Inscrire le depot sans envoyer de facture?")) return;
+      await saveDeposit(false);
+      return;
+    }
+    setShowDepositEmailModal(true);
   }
 
   async function markPaid() {
@@ -236,6 +255,63 @@ function PaymentRow({ payment, saving, onPatch }) {
             <i className="fas fa-plus mr-1"></i>Depot
           </button>
         </div>
+        {showDepositEmailModal ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4">
+            <div className="admin-card w-full max-w-md rounded-xl border p-5 shadow-2xl">
+              <div className="mb-4 flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-cyan-500/15 text-cyan-300">
+                  <i className="fas fa-file-invoice-dollar"></i>
+                </div>
+                <div>
+                  <h2 className="admin-text text-base font-extrabold">Envoyer la facture mise a jour?</h2>
+                  <p className="admin-text-muted mt-1 text-sm">
+                    Le depot sera inscrit, puis le PDF de facture avec le paiement recu sera genere.
+                  </p>
+                </div>
+              </div>
+              <div className="mb-4 rounded-lg border admin-border p-3 text-sm">
+                <div className="flex justify-between gap-3">
+                  <span className="admin-text-muted">Facture</span>
+                  <span className="admin-text font-mono font-bold">{payment.number}</span>
+                </div>
+                <div className="mt-2 flex justify-between gap-3">
+                  <span className="admin-text-muted">Depot</span>
+                  <span className="admin-text font-bold">{money(String(depositAmount).replace(",", "."))}</span>
+                </div>
+                <div className="mt-2 flex justify-between gap-3">
+                  <span className="admin-text-muted">Email</span>
+                  <span className="admin-text max-w-[240px] truncate font-bold" title={clientEmail}>{clientEmail}</span>
+                </div>
+              </div>
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={() => setShowDepositEmailModal(false)}
+                  className="rounded-lg px-4 py-2 text-sm font-bold admin-text-muted admin-hover disabled:opacity-50"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={() => saveDeposit(false)}
+                  className="rounded-lg border admin-border px-4 py-2 text-sm font-bold admin-text transition-colors hover:bg-white/5 disabled:opacity-50"
+                >
+                  Non, inscrire seulement
+                </button>
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={() => saveDeposit(true)}
+                  className="rounded-lg bg-cyan-700 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50"
+                >
+                  <i className="fas fa-paper-plane mr-2"></i>Oui, envoyer le PDF
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </td>
       <td className="px-4 py-4 text-right">
         <div className="flex flex-col items-end gap-2">
@@ -331,6 +407,8 @@ export default function AdminPaymentsPage() {
       await load(false);
       if (data.emailError) {
         alert(`Paiement enregistre, mais le courriel n'a pas ete envoye: ${data.emailError}`);
+      } else if (payload.action === "add-payment" && data.emailSent) {
+        alert(`Facture mise a jour envoyee a ${data.emailTo}`);
       } else if ((payload.action === "mark-paid" || payload.action === "resend-paid-email") && data.emailSent) {
         alert(`Facture payee envoyee a ${data.emailTo}`);
       }
