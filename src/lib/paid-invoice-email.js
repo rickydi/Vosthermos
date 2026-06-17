@@ -131,11 +131,11 @@ function renderPaidEmailHtml(wo, documentNumber, filename) {
                       </tr>
                       <tr>
                         <td style="padding:6px 0;color:#667085;font-size:13px;">Paiements recus</td>
-                        <td align="right" style="padding:6px 0;color:#0f7a53;font-size:13px;font-weight:900;">${escapeHtml(formatMoneyCad(summary.paidTotal))}</td>
+                        <td align="right" style="padding:6px 0;color:#172033;font-size:13px;font-weight:900;">${escapeHtml(formatMoneyCad(summary.paidTotal))}</td>
                       </tr>
                       <tr>
                         <td style="padding:12px 0 0;border-top:2px solid #172033;color:#172033;font-size:15px;font-weight:900;">Solde</td>
-                        <td align="right" style="padding:12px 0 0;border-top:2px solid #172033;color:#0f7a53;font-size:19px;font-weight:900;">${escapeHtml(formatMoneyCad(summary.balanceDue))}</td>
+                        <td align="right" style="padding:12px 0 0;border-top:2px solid #172033;color:#172033;font-size:19px;font-weight:900;">${escapeHtml(formatMoneyCad(summary.balanceDue))}</td>
                       </tr>
                     </table>
                     ${summary.payments.length ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #e2e8f0;margin-top:14px;padding-top:8px;">${paymentRowsHtml(summary.payments)}</table>` : ""}
@@ -248,11 +248,11 @@ function renderPaymentUpdateEmailHtml(wo, documentNumber, filename) {
                       </tr>
                       <tr>
                         <td style="padding:6px 0;color:#667085;font-size:13px;">Paiements recus</td>
-                        <td align="right" style="padding:6px 0;color:#0f7a53;font-size:13px;font-weight:900;">${escapeHtml(formatMoneyCad(summary.paidTotal))}</td>
+                        <td align="right" style="padding:6px 0;color:#172033;font-size:13px;font-weight:900;">${escapeHtml(formatMoneyCad(summary.paidTotal))}</td>
                       </tr>
                       <tr>
                         <td style="padding:12px 0 0;border-top:2px solid #172033;color:#172033;font-size:15px;font-weight:900;">Solde a payer</td>
-                        <td align="right" style="padding:12px 0 0;border-top:2px solid #172033;color:#b91c1c;font-size:19px;font-weight:900;">${escapeHtml(formatMoneyCad(summary.balanceDue))}</td>
+                        <td align="right" style="padding:12px 0 0;border-top:2px solid #172033;color:#172033;font-size:19px;font-weight:900;">${escapeHtml(formatMoneyCad(summary.balanceDue))}</td>
                       </tr>
                     </table>
                     ${summary.payments.length ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #e2e8f0;margin-top:14px;padding-top:8px;">${paymentRowsHtml(summary.payments)}</table>` : ""}
