@@ -134,6 +134,19 @@ function PaymentRow({ payment, saving, onPatch }) {
     });
   }
 
+  async function sendPaymentEmail(paymentEntry) {
+    if (!clientEmail) {
+      alert("Email client manquant.");
+      return;
+    }
+    if (!confirm(`Envoyer la facture avec ce paiement de ${money(paymentEntry.amount)} a ${clientEmail}?`)) return;
+    await onPatch(payment.id, {
+      action: "send-payment-email",
+      paymentId: paymentEntry.id,
+      to: clientEmail,
+    });
+  }
+
   async function markOpen() {
     if (!confirm(`Remettre ${payment.number} a recevoir et retirer les paiements inscrits?`)) return;
     await onPatch(payment.id, { action: "mark-open", statut: payment.invoiceSentAt ? "sent" : "invoiced" });
@@ -216,6 +229,16 @@ function PaymentRow({ payment, saving, onPatch }) {
                     <i className="fas fa-file-pdf"></i>
                     <span>PDF</span>
                   </a>
+                  <button
+                    type="button"
+                    disabled={saving || !clientEmail}
+                    onClick={() => sendPaymentEmail(entry)}
+                    className="rounded-md px-2 py-1 text-emerald-300 admin-hover disabled:opacity-50"
+                    title={clientEmail ? `Envoyer a ${clientEmail}` : "Email client manquant"}
+                    aria-label="Envoyer la facture de ce paiement"
+                  >
+                    <i className="fas fa-paper-plane"></i>
+                  </button>
                   {payment.paymentState !== "paid" ? (
                     <button
                       type="button"
@@ -418,9 +441,12 @@ export default function AdminPaymentsPage() {
       if (!res.ok) throw new Error(data.error || "Erreur sauvegarde paiement");
       await load(false);
       if (data.emailError) {
-        alert(`Paiement enregistre, mais le courriel n'a pas ete envoye: ${data.emailError}`);
+        const prefix = payload.action === "send-payment-email" ? "Le courriel n'a pas ete envoye" : "Paiement enregistre, mais le courriel n'a pas ete envoye";
+        alert(`${prefix}: ${data.emailError}`);
       } else if (payload.action === "add-payment" && data.emailSent) {
         alert(`Facture mise a jour envoyee a ${data.emailTo}`);
+      } else if (payload.action === "send-payment-email" && data.emailSent) {
+        alert(`Facture du paiement envoyee a ${data.emailTo}`);
       } else if ((payload.action === "mark-paid" || payload.action === "resend-paid-email") && data.emailSent) {
         alert(`Facture payee envoyee a ${data.emailTo}`);
       }

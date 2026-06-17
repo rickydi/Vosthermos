@@ -5,6 +5,7 @@ import { changedFields, logAdminActivity } from "@/lib/admin-activity";
 import { createOrTouchFollowUpFromWorkOrder } from "@/lib/follow-up-utils";
 import { sendInvoicePaymentUpdateEmail, sendPaidInvoiceEmail } from "@/lib/paid-invoice-email";
 import { documentPaymentSummary } from "@/lib/vosthermos-document";
+import { scopeWorkOrderThroughPayment } from "@/lib/payment-snapshot";
 import {
   buildPaymentTrackingData,
   isOpenPaymentStatus,
@@ -258,6 +259,10 @@ export async function PATCH(req, { params }) {
         return NextResponse.json({ error: "La facture n'est pas payee" }, { status: 400 });
       }
       activityLabel = `Facture payee renvoyee: ${existing.number}`;
+    } else if (body.action === "send-payment-email") {
+      const { payment } = scopeWorkOrderThroughPayment(existing, body.paymentId);
+      if (!payment) throw new Error("Paiement introuvable");
+      activityLabel = `Facture paiement renvoyee: ${existing.number}`;
     } else if (body.action === "mark-open") {
       const statut = openStatusFromBody(body, existing);
       await prisma.$transaction(async (tx) => {
@@ -307,7 +312,9 @@ export async function PATCH(req, { params }) {
   }
 
   updated = await fetchPaymentWorkOrder(workOrderId);
-  await syncFollowUp(updated);
+  if (body.action !== "send-payment-email") {
+    await syncFollowUp(updated);
+  }
 
   let emailResult = null;
   let emailError = null;
@@ -324,6 +331,15 @@ export async function PATCH(req, { params }) {
       emailResult = await sendPaidInvoiceEmail(fullWorkOrder, { to: cleanText(body.to) });
     } catch (err) {
       emailError = err.message || "Erreur d'envoi du courriel paye";
+    }
+  } else if (body.action === "send-payment-email") {
+    try {
+      const fullWorkOrder = await fetchFullWorkOrder(workOrderId);
+      const { workOrder: scopedWorkOrder, payment } = scopeWorkOrderThroughPayment(fullWorkOrder, body.paymentId);
+      if (!payment) throw new Error("Paiement introuvable");
+      emailResult = await sendInvoicePaymentUpdateEmail(scopedWorkOrder, { to: cleanText(body.to) });
+    } catch (err) {
+      emailError = err.message || "Erreur d'envoi du courriel de paiement";
     }
   }
 

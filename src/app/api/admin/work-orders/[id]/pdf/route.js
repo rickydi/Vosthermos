@@ -6,6 +6,7 @@ import { generateInvoicePdf } from "@/lib/invoice-pdf";
 import { getCompany } from "@/lib/company";
 import { getWorkOrderDocumentMeta } from "@/lib/work-order-document";
 import { documentFilename } from "@/lib/vosthermos-document";
+import { scopeWorkOrderThroughPayment } from "@/lib/payment-snapshot";
 
 export const dynamic = "force-dynamic";
 
@@ -38,13 +39,6 @@ function serializeWorkOrder(wo) {
       items: (section.items || []).map(serItem),
     })),
   };
-}
-
-function paymentsThroughId(payments = [], paymentId) {
-  const targetId = Number(paymentId);
-  if (!Number.isInteger(targetId) || targetId <= 0) return payments;
-  const index = payments.findIndex((payment) => Number(payment.id) === targetId);
-  return index >= 0 ? payments.slice(0, index + 1) : payments;
 }
 
 export async function GET(req, { params }) {
@@ -87,10 +81,7 @@ export async function GET(req, { params }) {
     getCompany(),
   ]);
 
-  const scopedWo = {
-    ...wo,
-    payments: paymentsThroughId(wo.payments || [], searchParams.get("paymentId")),
-  };
+  const { workOrder: scopedWo } = scopeWorkOrderThroughPayment(wo, searchParams.get("paymentId"));
   const serializedWo = serializeWorkOrder(scopedWo);
   let pdfBuffer;
   try {
