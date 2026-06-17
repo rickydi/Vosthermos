@@ -81,6 +81,7 @@ body {
 [data-admin-theme="dark"] .admin-bg { background: #0f1729; }
 [data-admin-theme="dark"] .admin-sidebar { background: #0a1628; }
 [data-admin-theme="dark"] .admin-card { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.05); }
+[data-admin-theme="dark"] .admin-modal-card { background: #111827; border-color: rgba(255,255,255,0.14); box-shadow: 0 24px 80px rgba(0,0,0,0.55); }
 [data-admin-theme="dark"] .admin-text { color: #ffffff; }
 [data-admin-theme="dark"] .admin-text-muted { color: rgba(255,255,255,0.4); }
 [data-admin-theme="dark"] .admin-border { border-color: rgba(255,255,255,0.05); }
@@ -94,6 +95,7 @@ body {
 [data-admin-theme="light"] .admin-bg { background: #f1f5f9; }
 [data-admin-theme="light"] .admin-sidebar { background: #ffffff; border-right: 1px solid #e2e8f0; }
 [data-admin-theme="light"] .admin-card { background: #ffffff; border-color: #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+[data-admin-theme="light"] .admin-modal-card { background: #ffffff; border-color: #cbd5e1; box-shadow: 0 24px 80px rgba(15,23,42,0.20); }
 [data-admin-theme="light"] .admin-text { color: #1e293b; }
 [data-admin-theme="light"] .admin-text-muted { color: #64748b; }
 [data-admin-theme="light"] .admin-border { border-color: #e2e8f0; }

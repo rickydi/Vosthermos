@@ -40,6 +40,13 @@ function serializeWorkOrder(wo) {
   };
 }
 
+function paymentsThroughId(payments = [], paymentId) {
+  const targetId = Number(paymentId);
+  if (!Number.isInteger(targetId) || targetId <= 0) return payments;
+  const index = payments.findIndex((payment) => Number(payment.id) === targetId);
+  return index >= 0 ? payments.slice(0, index + 1) : payments;
+}
+
 export async function GET(req, { params }) {
   try {
     await requireAdmin();
@@ -80,7 +87,11 @@ export async function GET(req, { params }) {
     getCompany(),
   ]);
 
-  const serializedWo = serializeWorkOrder(wo);
+  const scopedWo = {
+    ...wo,
+    payments: paymentsThroughId(wo.payments || [], searchParams.get("paymentId")),
+  };
+  const serializedWo = serializeWorkOrder(scopedWo);
   let pdfBuffer;
   try {
     pdfBuffer = await generateInvoicePdf(serializedWo, { ...settings, company, documentType: documentMeta.type });

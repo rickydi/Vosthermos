@@ -205,17 +205,29 @@ function PaymentRow({ payment, saving, onPatch }) {
                   <p className="admin-text font-bold">{money(entry.amount)} <span className="admin-text-muted font-normal">{entry.method || ""}</span></p>
                   <p className="admin-text-muted truncate">{dateLabel(entry.paidAt)}{entry.note ? ` - ${entry.note}` : ""}</p>
                 </div>
-                {payment.paymentState !== "paid" ? (
-                  <button
-                    type="button"
-                    disabled={saving}
-                    onClick={() => deletePayment(entry)}
-                    className="rounded-md px-2 py-1 text-red-300 admin-hover disabled:opacity-50"
-                    title="Retirer le paiement"
+                <div className="flex shrink-0 items-center gap-1">
+                  <a
+                    href={`/api/admin/work-orders/${payment.id}/pdf?documentType=invoice&paymentId=${entry.id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-cyan-300 admin-hover"
+                    title="PDF de la facture avec ce depot"
                   >
-                    <i className="fas fa-trash"></i>
-                  </button>
-                ) : null}
+                    <i className="fas fa-file-pdf"></i>
+                    <span>PDF</span>
+                  </a>
+                  {payment.paymentState !== "paid" ? (
+                    <button
+                      type="button"
+                      disabled={saving}
+                      onClick={() => deletePayment(entry)}
+                      className="rounded-md px-2 py-1 text-red-300 admin-hover disabled:opacity-50"
+                      title="Retirer le paiement"
+                    >
+                      <i className="fas fa-trash"></i>
+                    </button>
+                  ) : null}
+                </div>
               </div>
             ))}
           </div>
@@ -257,7 +269,7 @@ function PaymentRow({ payment, saving, onPatch }) {
         </div>
         {showDepositEmailModal ? (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4">
-            <div className="admin-card w-full max-w-md rounded-xl border p-5 shadow-2xl">
+            <div className="admin-modal-card w-full max-w-md rounded-xl border p-5">
               <div className="mb-4 flex items-start gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-cyan-500/15 text-cyan-300">
                   <i className="fas fa-file-invoice-dollar"></i>
