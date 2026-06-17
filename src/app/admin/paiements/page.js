@@ -203,7 +203,7 @@ function PaymentRow({ payment, saving, onPatch }) {
               <div key={entry.id} className="flex items-center justify-between gap-2 rounded-lg border admin-border px-2 py-1.5 text-[11px]">
                 <div className="min-w-0">
                   <p className="admin-text font-bold">{money(entry.amount)} <span className="admin-text-muted font-normal">{entry.method || ""}</span></p>
-                  <p className="admin-text-muted truncate">{dateLabel(entry.paidAt)}{entry.note ? ` - ${entry.note}` : ""}</p>
+                  <p className="admin-text-muted truncate">Paiement recu - {dateLabel(entry.paidAt)}{entry.note ? ` - ${entry.note}` : ""}</p>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
                   <a

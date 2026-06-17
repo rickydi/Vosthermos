@@ -341,7 +341,7 @@ function TotalsFooter({ wo, meta }) {
             <p style={{ margin: "0 0 3px", fontSize: 9, lineHeight: "12px", fontWeight: 800, color: ACCENT }}>PAIEMENTS RECUS</p>
             {visiblePayments.map((payment) => (
               <div key={payment.id || `${payment.paidAt}-${payment.amount}`} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 9, lineHeight: "13px", padding: "1px 0" }}>
-                <span>{formatDateFr(payment.paidAt)}{payment.method ? ` - ${payment.method}` : ""}</span>
+                <span>Paiement recu - {formatDateFr(payment.paidAt) || "date inconnue"}</span>
                 <span style={{ fontWeight: 800 }}>{formatMoneyCad(payment.amount)}</span>
               </div>
             ))}

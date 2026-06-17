@@ -71,7 +71,7 @@ function totalsFooterHeight(wo, meta) {
   if (!summary.hasPayments) return MIN_TOTALS_FOOTER_H;
   const visibleRows = displayedPaymentRows(wo, meta).length;
   const overflowRow = summary.payments.length > visibleRows ? 1 : 0;
-  return Math.max(MIN_TOTALS_FOOTER_H, 118 + (visibleRows + overflowRow) * 16);
+  return Math.max(MIN_TOTALS_FOOTER_H, 146 + (visibleRows + overflowRow) * 16);
 }
 
 function contentBottom(wo, meta) {
@@ -354,8 +354,7 @@ function drawTotalsFooter(doc, wo, meta, y) {
     const paymentRows = displayedPaymentRows(wo, meta);
     const hiddenCount = summary.payments.length - paymentRows.length;
     for (const payment of paymentRows) {
-      const method = payment.method ? ` - ${payment.method}` : "";
-      const label = `${formatDateFr(payment.paidAt)}${method}`;
+      const label = `Paiement recu - ${formatDateFr(payment.paidAt) || "date inconnue"}`;
       doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(9)
         .text(label, x + 12, rowY, { width: width - 120 });
       doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(9)
