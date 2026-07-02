@@ -3,15 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import BlogPostFormFields, { makeBlogFormChangeHandler, blogFormToBody } from "../BlogPostFormFields";
+import BlogPreviewModal from "../BlogPreviewModal";
+import BlogGenerateModal from "../BlogGenerateModal";
 
 export default function AdminBlogNewPage() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [showGenModal, setShowGenModal] = useState(false);
-  const [genTopic, setGenTopic] = useState("");
-  const [genCategory, setGenCategory] = useState("conseils");
-  const [generating, setGenerating] = useState(false);
   const [form, setForm] = useState({
     title: "",
     slug: "",
@@ -23,21 +23,7 @@ export default function AdminBlogNewPage() {
     authorName: "Vosthermos",
   });
 
-  function handleChange(e) {
-    const { name, value } = e.target;
-    setForm((prev) => {
-      const updated = { ...prev, [name]: value };
-      if (name === "title") {
-        updated.slug = value
-          .toLowerCase()
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/^-+|-+$/g, "");
-      }
-      return updated;
-    });
-  }
+  const handleChange = makeBlogFormChangeHandler(setForm);
 
   async function handleSave(status) {
     if (!form.title || !form.slug || !form.excerpt || !form.content) {
@@ -47,27 +33,10 @@ export default function AdminBlogNewPage() {
 
     setSaving(true);
     try {
-      const tagsArray = form.tags
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean);
-
-      const body = {
-        title: form.title,
-        slug: form.slug,
-        excerpt: form.excerpt,
-        content: form.content,
-        coverImage: form.coverImage || null,
-        category: form.category,
-        tags: tagsArray,
-        status: status || "draft",
-        authorName: form.authorName,
-      };
-
       const res = await fetch("/api/admin/blog", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify(blogFormToBody(form, status || "draft")),
       });
 
       if (res.ok) {
@@ -82,32 +51,6 @@ export default function AdminBlogNewPage() {
       alert("Erreur de creation");
     }
     setSaving(false);
-  }
-
-  async function handleGenerate() {
-    if (!genTopic.trim()) return;
-    setGenerating(true);
-    try {
-      const res = await fetch("/api/admin/blog/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic: genTopic, category: genCategory }),
-      });
-      if (res.ok) {
-        const post = await res.json();
-        setShowGenModal(false);
-        setGenTopic("");
-        // Redirect to edit the generated post
-        router.push(`/admin/blogue/${post.id}`);
-      } else {
-        const err = await res.json();
-        alert(err.error || "Erreur de generation");
-      }
-    } catch (err) {
-      console.error("Generate error:", err);
-      alert("Erreur de generation");
-    }
-    setGenerating(false);
   }
 
   return (
@@ -142,133 +85,7 @@ export default function AdminBlogNewPage() {
 
       {/* Form */}
       <div className="space-y-6">
-        <div className="admin-card rounded-2xl p-6 space-y-5">
-          <div>
-            <label className="block text-sm font-medium admin-text mb-1.5">
-              Titre
-            </label>
-            <input
-              type="text"
-              name="title"
-              value={form.title}
-              onChange={handleChange}
-              className="w-full px-4 py-3 rounded-xl admin-input text-sm"
-              placeholder="Titre de l'article"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium admin-text mb-1.5">
-              Slug (URL)
-            </label>
-            <div className="flex items-center gap-2">
-              <span className="admin-text-muted text-sm">/blogue/</span>
-              <input
-                type="text"
-                name="slug"
-                value={form.slug}
-                onChange={handleChange}
-                className="flex-1 px-4 py-3 rounded-xl admin-input text-sm"
-                placeholder="slug-de-larticle"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium admin-text mb-1.5">
-              Extrait
-            </label>
-            <textarea
-              name="excerpt"
-              value={form.excerpt}
-              onChange={handleChange}
-              rows={2}
-              className="w-full px-4 py-3 rounded-xl admin-input text-sm resize-none"
-              placeholder="Court resume de l'article (2 phrases max)"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium admin-text mb-1.5">
-              Contenu (HTML)
-            </label>
-            <textarea
-              name="content"
-              value={form.content}
-              onChange={handleChange}
-              rows={20}
-              className="w-full px-4 py-3 rounded-xl admin-input text-sm font-mono resize-y"
-              placeholder="<h2>Section</h2><p>Contenu...</p>"
-            />
-          </div>
-        </div>
-
-        {/* Metadata */}
-        <div className="admin-card rounded-2xl p-6 space-y-5">
-          <h3 className="text-sm font-bold admin-text uppercase tracking-wider">
-            Parametres
-          </h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div>
-              <label className="block text-sm font-medium admin-text mb-1.5">
-                Categorie
-              </label>
-              <select
-                name="category"
-                value={form.category}
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-xl admin-input text-sm"
-              >
-                <option value="conseils">Conseils</option>
-                <option value="entretien">Entretien</option>
-                <option value="guides">Guides</option>
-                <option value="nouvelles">Nouvelles</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium admin-text mb-1.5">
-                Tags (separes par des virgules)
-              </label>
-              <input
-                type="text"
-                name="tags"
-                value={form.tags}
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-xl admin-input text-sm"
-                placeholder="thermos, fenetres, reparation"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium admin-text mb-1.5">
-                Image de couverture (URL)
-              </label>
-              <input
-                type="text"
-                name="coverImage"
-                value={form.coverImage}
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-xl admin-input text-sm"
-                placeholder="https://..."
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium admin-text mb-1.5">
-                Auteur
-              </label>
-              <input
-                type="text"
-                name="authorName"
-                value={form.authorName}
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-xl admin-input text-sm"
-              />
-            </div>
-          </div>
-        </div>
+        <BlogPostFormFields form={form} onChange={handleChange} />
 
         {/* Actions */}
         <div className="flex gap-3">
@@ -296,111 +113,8 @@ export default function AdminBlogNewPage() {
         </div>
       </div>
 
-      {/* Preview Modal */}
-      {showPreview && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[80vh] overflow-y-auto shadow-2xl">
-            <div className="sticky top-0 bg-white border-b p-4 flex items-center justify-between rounded-t-2xl">
-              <h3 className="font-bold text-gray-900">Apercu de l&apos;article</h3>
-              <button
-                onClick={() => setShowPreview(false)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-500"
-              >
-                <i className="fas fa-times"></i>
-              </button>
-            </div>
-            <div className="p-8">
-              <h1 className="text-3xl font-extrabold text-gray-900 mb-4">
-                {form.title || "Titre de l'article"}
-              </h1>
-              <p className="text-gray-500 italic mb-8">
-                {form.excerpt || "Extrait..."}
-              </p>
-              <iframe
-                title="Apercu securise"
-                sandbox=""
-                className="h-[420px] w-full rounded-xl border border-gray-200 bg-white"
-                srcDoc={`<!doctype html><html><head><meta charset="utf-8"><style>body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#374151;line-height:1.7;padding:20px;margin:0}h2{font-size:24px;margin:28px 0 12px;color:#111827}h3{font-size:20px;margin:22px 0 10px;color:#111827}p{margin:0 0 16px}ul,ol{padding-left:22px}strong{color:#111827}a{color:#0d9488}</style></head><body>${form.content || "<p>Aucun contenu...</p>"}</body></html>`}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Generate Modal */}
-      {showGenModal && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="admin-card rounded-2xl p-6 w-full max-w-md shadow-2xl">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-bold admin-text flex items-center gap-2">
-                <i className="fas fa-robot text-purple-500"></i>
-                Generer un article avec IA
-              </h2>
-              <button
-                onClick={() => setShowGenModal(false)}
-                className="admin-text-muted hover:admin-text transition-colors"
-              >
-                <i className="fas fa-times"></i>
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium admin-text mb-1.5">
-                  Sujet de l&apos;article
-                </label>
-                <input
-                  type="text"
-                  value={genTopic}
-                  onChange={(e) => setGenTopic(e.target.value)}
-                  placeholder="Ex: Comment choisir ses vitres thermos"
-                  className="w-full px-4 py-3 rounded-xl admin-input text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium admin-text mb-1.5">
-                  Categorie
-                </label>
-                <select
-                  value={genCategory}
-                  onChange={(e) => setGenCategory(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl admin-input text-sm"
-                >
-                  <option value="conseils">Conseils</option>
-                  <option value="entretien">Entretien</option>
-                  <option value="guides">Guides</option>
-                  <option value="nouvelles">Nouvelles</option>
-                </select>
-              </div>
-
-              <button
-                onClick={handleGenerate}
-                disabled={generating || !genTopic.trim()}
-                className="w-full py-3 bg-purple-600 text-white rounded-xl font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {generating ? (
-                  <>
-                    <i className="fas fa-spinner fa-spin"></i>
-                    Generation en cours...
-                  </>
-                ) : (
-                  <>
-                    <i className="fas fa-magic"></i>
-                    Generer l&apos;article
-                  </>
-                )}
-              </button>
-
-              {generating && (
-                <p className="text-xs admin-text-muted text-center">
-                  Cela peut prendre 30 a 60 secondes...
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {showPreview && <BlogPreviewModal form={form} onClose={() => setShowPreview(false)} />}
+      {showGenModal && <BlogGenerateModal onClose={() => setShowGenModal(false)} />}
     </div>
   );
 }
