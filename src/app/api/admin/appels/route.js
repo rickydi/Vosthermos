@@ -9,10 +9,11 @@ function normalizePhone(phone) {
   return digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
 }
 
-function buildCallSummary({ service, city, note }) {
+function buildCallSummary({ service, address, city, note }) {
   const parts = ["📞 Appel reçu"];
   if (service) parts.push(service);
-  if (city) parts.push(city);
+  if (address) parts.push(address);
+  else if (city) parts.push(city);
   let summary = parts.join(" — ");
   if (note) summary += `\n${note}`;
   return summary;
@@ -30,9 +31,12 @@ export async function POST(req) {
 
     const clientName = String(body.name || "").trim() || "Client (appel)";
     const service = String(body.service || "").trim();
+    const address = String(body.address || "").trim();
     const city = String(body.city || "").trim();
+    const postalCode = String(body.postalCode || "").trim();
+    const province = String(body.province || "").trim();
     const note = String(body.note || "").trim();
-    const content = buildCallSummary({ service, city, note });
+    const content = buildCallSummary({ service, address, city, note });
 
     const existing = await prisma.chatConversation.findUnique({ where: { clientPhone } });
 
@@ -68,7 +72,10 @@ export async function POST(req) {
     await upsertClientFromLead({
       name: conversation.clientName,
       phone: clientPhone,
+      address: address || undefined,
       city: city || undefined,
+      province: province || undefined,
+      postalCode: postalCode || undefined,
       notes: note || undefined,
       source: "appel",
     });

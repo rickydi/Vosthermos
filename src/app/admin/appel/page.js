@@ -2,6 +2,17 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { formatPhone } from "@/lib/phone";
+import AddressAutocomplete from "@/components/AddressAutocomplete";
+
+// Formate le numéro pendant la frappe : 5145551234 -> 514-555-1234.
+function formatPhoneInput(raw) {
+  let digits = String(raw || "").replace(/\D/g, "");
+  if (digits.length === 11 && digits.startsWith("1")) digits = digits.slice(1);
+  digits = digits.slice(0, 10);
+  if (digits.length > 6) return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+  if (digits.length > 3) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  return digits;
+}
 
 // Bloc-notes partagé : une grande zone de texte qui s'enregistre toute seule,
 // comme un calepin papier à côté du téléphone.
@@ -100,7 +111,8 @@ export default function AppelPage() {
   const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
   const [service, setService] = useState("");
-  const [city, setCity] = useState("");
+  const [address, setAddress] = useState("");
+  const [addressParts, setAddressParts] = useState(null);
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -127,7 +139,16 @@ export default function AppelPage() {
       const res = await fetch("/api/admin/appels", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, name, service, city, note }),
+        body: JSON.stringify({
+          phone,
+          name,
+          service,
+          address,
+          city: addressParts?.city || "",
+          province: addressParts?.province || "",
+          postalCode: addressParts?.postalCode || "",
+          note,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erreur");
@@ -141,7 +162,7 @@ export default function AppelPage() {
   }
 
   function resetForm() {
-    setPhone(""); setName(""); setService(""); setCity(""); setNote("");
+    setPhone(""); setName(""); setService(""); setAddress(""); setAddressParts(null); setNote("");
     setError(""); setSaved(null);
   }
 
@@ -225,7 +246,7 @@ export default function AppelPage() {
           inputMode="tel"
           autoFocus
           value={phone}
-          onChange={(e) => setPhone(e.target.value)}
+          onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
           placeholder="514-555-1234"
           className={`mt-1.5 w-full h-16 px-4 rounded-2xl admin-card border text-2xl font-semibold tracking-wide admin-text focus:outline-none ${phone && !phoneOk ? "border-red-500" : "focus:border-sky-400"}`}
         />
@@ -264,16 +285,20 @@ export default function AppelPage() {
         </div>
       </div>
 
-      <label className="block mb-5">
-        <span className="admin-text-muted text-xs font-bold uppercase tracking-wider">Ville</span>
-        <input
-          type="text"
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-          placeholder="Ex. Brossard"
-          className="mt-1.5 w-full h-12 px-4 rounded-2xl admin-card border text-lg admin-text focus:outline-none focus:border-sky-400"
+      <div className="mb-5">
+        <span className="admin-text-muted text-xs font-bold uppercase tracking-wider">Adresse</span>
+        <AddressAutocomplete
+          value={address}
+          onChange={(v) => { setAddress(v); setAddressParts(null); }}
+          onSelect={(a) => {
+            setAddress(a.formattedAddress || a.address || "");
+            setAddressParts(a);
+          }}
+          placeholder="Commencez à taper l'adresse…"
+          className="mt-1.5"
+          inputClassName="w-full h-12 px-4 rounded-2xl admin-card border text-lg admin-text focus:outline-none focus:border-sky-400"
         />
-      </label>
+      </div>
 
       <label className="block mb-6">
         <span className="admin-text-muted text-xs font-bold uppercase tracking-wider">Note</span>
