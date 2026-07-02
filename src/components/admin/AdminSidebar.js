@@ -216,10 +216,7 @@ export default function AdminSidebar() {
       try {
         const noCache = { cache: "no-store", headers: { "Cache-Control": "no-cache" } };
         const responses = await Promise.all([
-          fetch("/api/admin/chat", noCache),
-          fetch("/api/admin/appointments?status=pending", noCache),
-          fetch("/api/admin/work-orders/pending-count", noCache),
-          fetch("/api/admin/follow-ups/due-count", noCache),
+          fetch("/api/admin/badges", noCache),
           fetch("/api/admin/internal-notify", {
             ...noCache,
             method: "POST",
@@ -237,27 +234,12 @@ export default function AdminSidebar() {
 
         if (responses.some((res) => !res.ok)) return;
 
-        const [chatRes, rdvRes, reqRes, followUpRes] = responses;
-        const chatData = await chatRes.json();
+        const badges = await responses[0].json();
         if (cancelled) return;
-        if (Array.isArray(chatData)) {
-          setUnreadChat(chatData.filter((c) => Number(c.unreadCount || 0) > 0).length);
-        }
-        const rdvData = await rdvRes.json();
-        if (cancelled) return;
-        if (Array.isArray(rdvData)) {
-          setPendingRdv(rdvData.length);
-        }
-        const reqData = await reqRes.json();
-        if (cancelled) return;
-        if (typeof reqData?.count === "number") {
-          setPendingRequests(reqData.count);
-        }
-        const followUpData = await followUpRes.json();
-        if (cancelled) return;
-        if (typeof followUpData?.count === "number") {
-          setDueFollowUps(followUpData.count);
-        }
+        if (typeof badges?.unreadChat === "number") setUnreadChat(badges.unreadChat);
+        if (typeof badges?.pendingRdv === "number") setPendingRdv(badges.pendingRdv);
+        if (typeof badges?.pendingRequests === "number") setPendingRequests(badges.pendingRequests);
+        if (typeof badges?.dueFollowUps === "number") setDueFollowUps(badges.dueFollowUps);
       } catch {}
     }
     fetchBadges();
