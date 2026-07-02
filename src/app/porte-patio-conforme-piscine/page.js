@@ -89,8 +89,7 @@ export default function PortePatioConformePiscine() {
             <span className="text-white">Porte-patio conforme piscine</span>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-10 items-center">
-            <div>
+          <div className="max-w-3xl">
               <span className="inline-block bg-white/10 text-[var(--color-red-light)] text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full mb-6">
                 <i className="fas fa-shield-halved mr-1"></i> Loi sur la sécurité des piscines
               </span>
@@ -135,18 +134,6 @@ export default function PortePatioConformePiscine() {
                   Soumission gratuite
                 </Link>
               </div>
-            </div>
-
-            <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10">
-              <Image
-                src="/images/realisations/porte-patio-quincaillerie-remplacement.jpg"
-                alt="Technicien Vosthermos ajustant la quincaillerie d'une porte-patio coulissante"
-                fill
-                sizes="(max-width: 1024px) 100vw, 560px"
-                className="object-cover"
-                priority
-              />
-            </div>
           </div>
         </div>
       </section>
