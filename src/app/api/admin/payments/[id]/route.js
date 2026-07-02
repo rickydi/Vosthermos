@@ -234,6 +234,9 @@ export async function PATCH(req, { params }) {
   let session;
   try { session = await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
 
+  // try/catch global: toute erreur non geree doit sortir en JSON (une page
+  // HTML 500 fait planter le parse cote client, surtout iOS Safari).
+  try {
   const { id } = await params;
   const workOrderId = Number(id);
   const body = await req.json().catch(() => ({}));
@@ -375,4 +378,8 @@ export async function PATCH(req, { params }) {
     emailFilename: emailResult?.filename || null,
     emailError,
   });
+  } catch (err) {
+    console.error("PATCH /api/admin/payments/[id]:", err);
+    return NextResponse.json({ error: "Erreur serveur pendant la sauvegarde du paiement" }, { status: 500 });
+  }
 }

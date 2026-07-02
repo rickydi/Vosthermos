@@ -23,6 +23,19 @@ function money(value) {
   return `${Number(value || 0).toFixed(2)}$`;
 }
 
+// Parse defensif: sur iOS Safari, res.json() sur une reponse non-JSON (HTML
+// d'erreur, corps vide) leve "The string did not match the expected pattern."
+// qui finissait affiche tel quel a l'utilisateur.
+async function readJson(res) {
+  const text = await res.text();
+  if (!text) return {};
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`Reponse invalide du serveur (${res.status})`);
+  }
+}
+
 function dateInput(value) {
   if (!value) return "";
   const match = String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);
@@ -401,6 +414,7 @@ export default function AdminPaymentsPage() {
   const [sort, setSort] = useState("due");
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [savingId, setSavingId] = useState(null);
 
   const queryString = useMemo(() => {
@@ -413,12 +427,18 @@ export default function AdminPaymentsPage() {
     if (showSpinner) setLoading(true);
     try {
       const res = await fetch(`/api/admin/payments?${queryString}`, { cache: "no-store" });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erreur paiements");
+      if (res.status === 401) {
+        window.location.href = `/admin/login?callbackUrl=${encodeURIComponent("/admin/paiements")}`;
+        return;
+      }
+      const data = await readJson(res);
+      if (!res.ok) throw new Error(data.error || `Erreur paiements (${res.status})`);
       setPayments(data.payments || []);
       setSummary(data.summary || null);
+      setLoadError("");
     } catch (err) {
-      alert(err.message);
+      console.error("Chargement paiements:", err);
+      setLoadError("Impossible de charger les paiements. Verifie ta connexion puis reessaie.");
     } finally {
       setLoading(false);
     }
@@ -438,8 +458,12 @@ export default function AdminPaymentsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erreur sauvegarde paiement");
+      if (res.status === 401) {
+        window.location.href = `/admin/login?callbackUrl=${encodeURIComponent("/admin/paiements")}`;
+        return null;
+      }
+      const data = await readJson(res);
+      if (!res.ok) throw new Error(data.error || `Erreur sauvegarde paiement (${res.status})`);
       await load(false);
       if (data.emailError) {
         const prefix = payload.action === "send-payment-email" ? "Le courriel n'a pas ete envoye" : "Paiement enregistre, mais le courriel n'a pas ete envoye";
@@ -453,7 +477,10 @@ export default function AdminPaymentsPage() {
       }
       return data;
     } catch (err) {
-      alert(err.message);
+      console.error("Sauvegarde paiement:", err);
+      alert(err instanceof SyntaxError || err.name === "TypeError"
+        ? "La sauvegarde n'a pas pu etre confirmee. Verifie ta connexion puis reessaie."
+        : err.message);
       return null;
     } finally {
       setSavingId(null);
@@ -494,6 +521,15 @@ export default function AdminPaymentsPage() {
           </button>
         </div>
       </div>
+
+      {loadError ? (
+        <div className="mb-6 flex items-center justify-between gap-3 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          <span><i className="fas fa-triangle-exclamation mr-2"></i>{loadError}</span>
+          <button onClick={() => load()} className="whitespace-nowrap rounded-lg bg-red-500/20 px-3 py-1.5 text-xs font-bold text-red-200 hover:bg-red-500/30">
+            Reessayer
+          </button>
+        </div>
+      ) : null}
 
       <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
         <SummaryTile icon="fa-file-invoice-dollar" label="A recevoir" value={money(summary?.openTotal)} detail={`${summary?.openCount || 0} facture(s)`} />

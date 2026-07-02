@@ -104,6 +104,9 @@ function sortPayments(a, b, sort = "due") {
 export async function GET(req) {
   try { await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
 
+  // try/catch global: une erreur non geree renverrait une page HTML 500 que le
+  // client ne peut pas parser (iOS Safari affichait alors un message cryptique).
+  try {
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status") || "open";
   const sort = searchParams.get("sort") === "recent" ? "recent" : "due";
@@ -149,4 +152,8 @@ export async function GET(req) {
     status,
     sort,
   });
+  } catch (err) {
+    console.error("GET /api/admin/payments:", err);
+    return NextResponse.json({ error: "Erreur serveur pendant le chargement des paiements" }, { status: 500 });
+  }
 }
