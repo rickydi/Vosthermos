@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { COMPANY_INFO } from "@/lib/company-info";
 
 export const metadata = {
@@ -82,55 +83,70 @@ export default function PortePatioConformePiscine() {
       {/* Hero */}
       <section className="bg-[var(--color-teal-dark)] pt-[80px]">
         <div className="max-w-[1200px] mx-auto px-6 py-16 lg:py-20">
-          <div className="flex items-center gap-2 text-sm text-white/50 mb-4">
+          <div className="flex items-center gap-2 text-sm text-white/50 mb-8">
             <Link href="/" className="hover:text-white transition-colors">Accueil</Link>
             <span>/</span>
             <span className="text-white">Porte-patio conforme piscine</span>
           </div>
 
-          <span className="inline-block bg-white/10 text-[var(--color-red-light)] text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full mb-6">
-            <i className="fas fa-shield-halved mr-1"></i> Loi sur la sécurité des piscines
-          </span>
-
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-6">
-            Piscine + porte-patio :{" "}
-            <span className="text-[var(--color-red)]">conforme à la loi, sans clôture.</span>
-          </h1>
-
-          <p className="text-white/70 text-lg max-w-2xl leading-relaxed mb-8">
-            Votre piscine est accessible par une porte-patio? La loi du Québec exige un
-            verrou qui se ferme et se verrouille automatiquement, à 1,5 m du sol. On rend
-            votre porte-patio conforme en une visite — pour une fraction du prix d&apos;une clôture.
-          </p>
-
-          <div className="flex flex-wrap gap-6 mb-8">
+          <div className="grid lg:grid-cols-2 gap-10 items-center">
             <div>
-              <strong className="block text-2xl font-extrabold text-[var(--color-red-light)]">1,5 m</strong>
-              <span className="text-[10px] text-white/50 uppercase tracking-wider">verrou en hauteur exigé</span>
-            </div>
-            <div>
-              <strong className="block text-2xl font-extrabold text-[var(--color-red-light)]">500-1000$</strong>
-              <span className="text-[10px] text-white/50 uppercase tracking-wider">amende par jour</span>
-            </div>
-            <div>
-              <strong className="block text-2xl font-extrabold text-[var(--color-red-light)]">30 sept. 2027</strong>
-              <span className="text-[10px] text-white/50 uppercase tracking-wider">date limite</span>
-            </div>
-          </div>
+              <span className="inline-block bg-white/10 text-[var(--color-red-light)] text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full mb-6">
+                <i className="fas fa-shield-halved mr-1"></i> Loi sur la sécurité des piscines
+              </span>
 
-          <div className="flex flex-col sm:flex-row gap-4">
-            <a
-              href={`tel:${COMPANY_INFO.phoneTel}`}
-              className="inline-flex items-center justify-center gap-2 bg-[var(--color-red)] text-white px-8 py-4 rounded-full font-bold hover:bg-[var(--color-red-dark)] transition-all shadow-lg"
-            >
-              <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
-            </a>
-            <Link
-              href="/#soumission"
-              className="inline-flex items-center justify-center gap-2 bg-transparent text-white border-2 border-white/30 px-8 py-4 rounded-full font-bold hover:border-white hover:bg-white/10 transition-all"
-            >
-              Soumission gratuite
-            </Link>
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-6">
+                Piscine + porte-patio :{" "}
+                <span className="text-[var(--color-red)]">conforme à la loi, sans clôture.</span>
+              </h1>
+
+              <p className="text-white/70 text-lg leading-relaxed mb-8">
+                Votre piscine est accessible par une porte-patio? La loi du Québec exige un
+                verrou qui se ferme et se verrouille automatiquement, à 1,5 m du sol. On rend
+                votre porte-patio conforme en une visite — pour une fraction du prix d&apos;une clôture.
+              </p>
+
+              <div className="flex flex-wrap gap-6 mb-8">
+                <div>
+                  <strong className="block text-2xl font-extrabold text-[var(--color-red-light)]">1,5 m</strong>
+                  <span className="text-[10px] text-white/50 uppercase tracking-wider">verrou en hauteur exigé</span>
+                </div>
+                <div>
+                  <strong className="block text-2xl font-extrabold text-[var(--color-red-light)]">500-1000$</strong>
+                  <span className="text-[10px] text-white/50 uppercase tracking-wider">amende par jour</span>
+                </div>
+                <div>
+                  <strong className="block text-2xl font-extrabold text-[var(--color-red-light)]">30 sept. 2027</strong>
+                  <span className="text-[10px] text-white/50 uppercase tracking-wider">date limite</span>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4">
+                <a
+                  href={`tel:${COMPANY_INFO.phoneTel}`}
+                  className="inline-flex items-center justify-center gap-2 bg-[var(--color-red)] text-white px-8 py-4 rounded-full font-bold hover:bg-[var(--color-red-dark)] transition-all shadow-lg"
+                >
+                  <i className="fas fa-phone"></i> {COMPANY_INFO.phone}
+                </a>
+                <Link
+                  href="/#soumission"
+                  className="inline-flex items-center justify-center gap-2 bg-transparent text-white border-2 border-white/30 px-8 py-4 rounded-full font-bold hover:border-white hover:bg-white/10 transition-all"
+                >
+                  Soumission gratuite
+                </Link>
+              </div>
+            </div>
+
+            <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10">
+              <Image
+                src="/images/realisations/porte-patio-quincaillerie-remplacement.jpg"
+                alt="Technicien Vosthermos ajustant la quincaillerie d'une porte-patio coulissante"
+                fill
+                sizes="(max-width: 1024px) 100vw, 560px"
+                className="object-cover"
+                priority
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -172,6 +188,40 @@ export default function PortePatioConformePiscine() {
             Référence : Règlement sur la sécurité des piscines résidentielles (Québec).
             Les exigences peuvent varier selon votre municipalité — on valide votre cas lors de la visite.
           </p>
+        </div>
+      </section>
+
+      {/* Bande visuelle — le dispositif */}
+      <section className="bg-white">
+        <div className="max-w-[1200px] mx-auto px-6 pb-14">
+          <div className="grid md:grid-cols-2 items-stretch rounded-2xl border border-[var(--color-border)] overflow-hidden">
+            <div className="relative min-h-[260px] aspect-[4/3] md:aspect-auto">
+              <Image
+                src="/images/quincaillerie/detail-roulette-porte-patio.jpg"
+                alt="Mécanisme et quincaillerie d'une porte-patio coulissante"
+                fill
+                sizes="(max-width: 768px) 100vw, 560px"
+                className="object-cover"
+              />
+            </div>
+            <div className="p-6 md:p-10 flex flex-col justify-center">
+              <h2 className="text-2xl font-extrabold mb-3">
+                Le dispositif s&apos;installe sur votre porte existante
+              </h2>
+              <p className="text-[var(--color-muted)] leading-relaxed mb-4">
+                Pas besoin de remplacer la porte-patio. On pose un verrou à fermeture et
+                verrouillage automatique en hauteur, conçu autant pour les portes
+                coulissantes que battantes. Le même passage nous permet d&apos;ajuster
+                les roulettes, le rail et la serrure au besoin.
+              </p>
+              <Link
+                href="/#soumission"
+                className="inline-flex items-center gap-2 text-[var(--color-red)] font-bold hover:underline"
+              >
+                Demander une évaluation <i className="fas fa-arrow-right text-xs"></i>
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
