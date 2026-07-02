@@ -5,8 +5,11 @@ import { requireAdmin } from "@/lib/admin-auth";
 export async function GET() {
   try {
     await requireAdmin();
+    // Borne la liste aux 300 conversations les plus recentes pour que la
+    // page chat reste rapide quand le volume grossit.
     const conversations = await prisma.chatConversation.findMany({
       orderBy: { lastMessageAt: "desc" },
+      take: 300,
       include: {
         messages: {
           take: 1,

@@ -32,6 +32,9 @@ export async function GET(request) {
       where,
       include: { workOrder: { select: { id: true, number: true, statut: true } } },
       orderBy: [{ date: "asc" }, { timeSlot: "asc" }],
+      // Garde-fou: la page calendrier passe toujours from/to; borne le cas
+      // sans filtre pour ne jamais charger toute la table.
+      take: 1000,
     });
 
     const serialized = appointments.map(serializeAppointment);

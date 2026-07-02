@@ -194,6 +194,8 @@ model ChatConversation {
   messages       ChatMessage[]
 
   @@index([clientId])
+  @@index([lastMessageAt])
+  @@index([unreadCount])
   @@map("chat_conversations")
 }
 
