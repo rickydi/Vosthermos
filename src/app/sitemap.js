@@ -45,6 +45,7 @@ export default async function sitemap() {
     { url: `${BASE}/realisations`, lastModified: CONTENT_LASTMOD, changeFrequency: "weekly", priority: 0.8 },
     { url: `${BASE}/carrieres`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.5 },
     { url: `${BASE}/prix`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${BASE}/desembuage-ou-remplacement`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.85 },
     { url: `${BASE}/opti-fenetre`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.9 },
     { url: `${BASE}/diagnostic`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.9 },
     { url: `${BASE}/calculateur`, lastModified: CONTENT_LASTMOD, changeFrequency: "monthly", priority: 0.9 },
