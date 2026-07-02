@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { COMPANY_INFO } from "@/lib/company-info";
 
 export const metadata = {
@@ -178,36 +177,25 @@ export default function PortePatioConformePiscine() {
         </div>
       </section>
 
-      {/* Bande visuelle — le dispositif */}
+      {/* Le dispositif */}
       <section className="bg-white">
         <div className="max-w-[1200px] mx-auto px-6 pb-14">
-          <div className="grid md:grid-cols-2 items-stretch rounded-2xl border border-[var(--color-border)] overflow-hidden">
-            <div className="relative min-h-[260px] aspect-[4/3] md:aspect-auto">
-              <Image
-                src="/images/quincaillerie/detail-roulette-porte-patio.jpg"
-                alt="Mécanisme et quincaillerie d'une porte-patio coulissante"
-                fill
-                sizes="(max-width: 768px) 100vw, 560px"
-                className="object-cover"
-              />
-            </div>
-            <div className="p-6 md:p-10 flex flex-col justify-center">
-              <h2 className="text-2xl font-extrabold mb-3">
-                Le dispositif s&apos;installe sur votre porte existante
-              </h2>
-              <p className="text-[var(--color-muted)] leading-relaxed mb-4">
-                Pas besoin de remplacer la porte-patio. On pose un verrou à fermeture et
-                verrouillage automatique en hauteur, conçu autant pour les portes
-                coulissantes que battantes. Le même passage nous permet d&apos;ajuster
-                les roulettes, le rail et la serrure au besoin.
-              </p>
-              <Link
-                href="/#soumission"
-                className="inline-flex items-center gap-2 text-[var(--color-red)] font-bold hover:underline"
-              >
-                Demander une évaluation <i className="fas fa-arrow-right text-xs"></i>
-              </Link>
-            </div>
+          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-background)] p-6 md:p-10">
+            <h2 className="text-2xl font-extrabold mb-3">
+              Le dispositif s&apos;installe sur votre porte existante
+            </h2>
+            <p className="text-[var(--color-muted)] leading-relaxed mb-4 max-w-3xl">
+              Pas besoin de remplacer la porte-patio. On pose un verrou à fermeture et
+              verrouillage automatique en hauteur, conçu autant pour les portes
+              coulissantes que battantes. Le même passage nous permet d&apos;ajuster
+              les roulettes, le rail et la serrure au besoin.
+            </p>
+            <Link
+              href="/#soumission"
+              className="inline-flex items-center gap-2 text-[var(--color-red)] font-bold hover:underline"
+            >
+              Demander une évaluation <i className="fas fa-arrow-right text-xs"></i>
+            </Link>
           </div>
         </div>
       </section>
