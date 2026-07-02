@@ -363,6 +363,11 @@ export default function ChatPanel({ initialConversationId }) {
                     <span className="inline-flex rounded-full h-2 w-2 bg-gray-500 shrink-0"></span>
                   )}
                   {c.clientName}
+                  {c.source === "appel" && (
+                    <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300">
+                      <i className="fas fa-phone mr-0.5"></i>Appel
+                    </span>
+                  )}
                 </span>
                 <div className="flex items-center gap-2 shrink-0">
                   <span className="text-[10px] admin-text-muted">{timeAgo(c.lastMessageAt)}</span>
@@ -396,6 +401,11 @@ export default function ChatPanel({ initialConversationId }) {
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <h2 className="admin-text text-lg md:text-base font-bold md:font-semibold">{selected.clientName}</h2>
+                    {selected.source === "appel" && (
+                      <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300">
+                        <i className="fas fa-phone mr-0.5"></i>Appel
+                      </span>
+                    )}
                     <button onClick={() => navigator.clipboard.writeText(formatPhone(selected.clientPhone))}
                       className="text-sm md:text-xs text-blue-400 hover:text-blue-300 transition-colors font-medium" title="Copier">
                       {formatPhone(selected.clientPhone)}

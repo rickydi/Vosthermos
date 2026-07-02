@@ -183,6 +183,7 @@ model ChatConversation {
   clientName     String
   clientPhone    String        @unique
   clientEmail    String?
+  source         String        @default("chat")
   lastMessageAt  DateTime      @default(now())
   lastNotifiedAt DateTime?
   lastSeenAt     DateTime?
