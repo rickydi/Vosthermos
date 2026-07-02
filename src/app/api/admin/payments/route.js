@@ -133,7 +133,6 @@ export async function GET(req) {
         },
       },
       technician: { select: { id: true, name: true } },
-      route: { select: { id: true, name: true, date: true, area: true } },
       followUp: { select: { id: true, title: true, status: true } },
       payments: { orderBy: [{ paidAt: "asc" }, { id: "asc" }] },
     },
