@@ -74,41 +74,6 @@ const problems = [
   "Cadre de bois abîmé",
 ];
 
-const pricing = [
-  {
-    icon: "fas fa-snowflake",
-    title: "Remplacement vitre thermos",
-    price: "150$",
-    unit: "/ unité installée",
-    note: "Vitre scellée neuve, garantie 10 ans transférable.",
-    href: "/services/remplacement-vitre-thermos",
-  },
-  {
-    icon: "fas fa-eye",
-    title: "Désembuage",
-    price: "80$",
-    unit: "/ unité",
-    note: "Redonne la clarté sans changer la vitre, quand elle est récupérable.",
-    href: "/services/desembuage",
-  },
-  {
-    icon: "fas fa-border-all",
-    title: "Moustiquaire sur mesure",
-    price: "25$",
-    unit: "/ unité",
-    note: "Fabrication et réparation pour fenêtres et portes-patio.",
-    href: "/services/moustiquaires-sur-mesure",
-  },
-  {
-    icon: "fas fa-screwdriver-wrench",
-    title: "Quincaillerie",
-    price: "4,99$",
-    unit: "/ pièce",
-    note: "Poignées, roulettes et serrures — installation disponible.",
-    href: "/services/remplacement-quincaillerie",
-  },
-];
-
 const gallery = [
   {
     before: "/images/realisations/thermos-remplacement-before.jpg",
@@ -372,57 +337,6 @@ export default async function Home() {
                   {problem}
                 </div>
               ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="hp-section hp-pricing" id="prix">
-          <div className="hp-shell">
-            <SectionHeader
-              kicker="Prix transparents"
-              title="Des prix affichés, pas de surprise."
-              text="Personne n'aime appeler juste pour connaître un prix. Voici nos points de départ — la soumission exacte est gratuite et prend moins de 24 h ouvrables."
-            />
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {pricing.map((item) => (
-                <Link
-                  key={item.title}
-                  href={item.href}
-                  className="rounded-2xl border border-[var(--color-border)] bg-white p-6 flex flex-col transition-all hover:shadow-lg hover:-translate-y-0.5"
-                >
-                  <i className={`${item.icon} text-[var(--color-red)] text-xl mb-4`}></i>
-                  <h3 className="font-extrabold text-[15px] mb-2">{item.title}</h3>
-                  <p className="mb-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-muted)]">à partir de </span>
-                    <strong className="text-2xl font-extrabold">{item.price}</strong>
-                    <span className="text-sm text-[var(--color-muted)]"> {item.unit}</span>
-                  </p>
-                  <p className="text-sm text-[var(--color-muted)] leading-relaxed">{item.note}</p>
-                </Link>
-              ))}
-            </div>
-            <div className="mt-8 rounded-2xl border border-[var(--color-border)] bg-white p-6 md:flex md:items-center md:justify-between md:gap-8">
-              <div>
-                <h3 className="text-lg font-extrabold mb-1">Vitre embuée : désembuage ou remplacement?</h3>
-                <p className="text-[var(--color-muted)] max-w-3xl">
-                  On offre les deux services, alors on vous recommande honnêtement la moins
-                  chère des deux options qui règle vraiment votre problème.
-                </p>
-              </div>
-              <div className="mt-4 md:mt-0 flex flex-wrap gap-x-6 gap-y-2 flex-shrink-0">
-                <Link
-                  href="/desembuage-ou-remplacement"
-                  className="inline-flex items-center gap-2 text-[var(--color-red)] font-bold hover:underline"
-                >
-                  Voir le comparatif <i className="fas fa-arrow-right text-xs"></i>
-                </Link>
-                <Link
-                  href="/prix"
-                  className="inline-flex items-center gap-2 text-[var(--color-teal)] font-bold hover:underline"
-                >
-                  Grille de prix complète
-                </Link>
-              </div>
             </div>
           </div>
         </section>
