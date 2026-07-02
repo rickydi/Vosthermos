@@ -290,6 +290,7 @@ export async function PUT(req, { params }) {
     entityId: wo.id,
     clientId: wo.clientId,
     actor: session.id,
+    origin: req.headers.get("x-admin-tab") || undefined,
   });
 
   const ser = (i) => ({

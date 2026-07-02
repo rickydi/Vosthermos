@@ -157,6 +157,7 @@ export async function PUT(req, { params }) {
     entityId: followUp.id,
     clientId: followUp.clientId,
     actor: session.id,
+    origin: req.headers.get("x-admin-tab") || undefined,
   });
 
   return NextResponse.json(serializeFollowUp(followUp));
@@ -183,6 +184,7 @@ export async function DELETE(req, { params }) {
     entityId: Number(id),
     clientId: existing?.clientId,
     actor: session.id,
+    origin: req.headers.get("x-admin-tab") || undefined,
   });
   return NextResponse.json({ ok: true });
 }

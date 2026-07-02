@@ -2,8 +2,13 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useAdminStream } from "@/components/admin/adminStream";
+import { useAdminStream, ADMIN_TAB_ID } from "@/components/admin/adminStream";
 import { FOLLOW_UP_MILESTONES } from "@/lib/follow-up-columns";
+
+// Header envoye avec chaque mutation: le serveur le rejoue dans l'evenement SSE
+// (origin), ce qui permet d'ignorer l'echo de nos propres clics (deja appliques
+// en optimiste) au lieu de recharger 344 Ko de liste a chaque coche.
+const MUTATION_HEADERS = { "Content-Type": "application/json", "X-Admin-Tab": ADMIN_TAB_ID };
 
 const fmtMoney = (n) => (n === null || n === undefined ? null : new Intl.NumberFormat("fr-CA", { style: "currency", currency: "CAD", maximumFractionDigits: 0 }).format(n));
 const fmtDate = (v) => (v ? new Date(v).toLocaleDateString("fr-CA", { day: "2-digit", month: "short" }) : "");
@@ -78,10 +83,17 @@ export default function SuiviSimple() {
     return () => clearTimeout(t);
   }, [search, load]);
 
-  // temps réel : un collègue (ou le terrain) coche un jalon -> on rafraîchit
+  // temps réel : un collègue (ou le terrain) coche un jalon -> on rafraîchit.
+  // On ignore l'écho de nos propres mutations (origin = cet onglet, l'optimiste a
+  // déjà appliqué la réponse serveur) et on coalesce les rafales en un seul reload.
+  const streamReloadTimer = useRef(null);
   useAdminStream((e) => {
-    if (["connected", "follow_up.changed", "work_order.changed", "appointment.changed"].includes(e?.type)) load();
+    if (!["connected", "follow_up.changed", "work_order.changed", "appointment.changed"].includes(e?.type)) return;
+    if (e?.origin && e.origin === ADMIN_TAB_ID) return;
+    clearTimeout(streamReloadTimer.current);
+    streamReloadTimer.current = setTimeout(() => load(), 600);
   });
+  useEffect(() => () => clearTimeout(streamReloadTimer.current), []);
 
   // mise à jour optimiste locale
   const patchLocal = (id, patch) => setItems((list) => list.map((it) => (it.id === id ? { ...it, ...patch } : it)));
@@ -92,7 +104,7 @@ export default function SuiviSimple() {
     try {
       const res = await fetch(`/api/admin/follow-ups/${fu.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: MUTATION_HEADERS,
         body: JSON.stringify({ toggleMilestone: key, on }),
       });
       if (!res.ok) throw new Error();
@@ -119,7 +131,7 @@ export default function SuiviSimple() {
     try {
       const res = await fetch(`/api/admin/follow-ups/${fu.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: MUTATION_HEADERS,
         body: JSON.stringify(body),
       });
       if (!res.ok) throw new Error();
@@ -143,7 +155,7 @@ export default function SuiviSimple() {
     try {
       const res = await fetch(`/api/admin/follow-ups/${fu.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: MUTATION_HEADERS,
         body: JSON.stringify(body),
       });
       if (!res.ok) throw new Error();
@@ -168,7 +180,7 @@ export default function SuiviSimple() {
     try {
       const res = await fetch(`/api/admin/follow-ups/${fu.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: MUTATION_HEADERS,
         body: JSON.stringify(body),
       });
       if (!res.ok) throw new Error();
@@ -196,7 +208,7 @@ export default function SuiviSimple() {
     try {
       const res = await fetch(`/api/admin/follow-ups/${fu.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: MUTATION_HEADERS,
         body: JSON.stringify(body),
       });
       if (!res.ok) throw new Error();
@@ -565,7 +577,7 @@ function CreateModal({ onClose, onCreated }) {
     try {
       const res = await fetch("/api/admin/follow-ups", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: MUTATION_HEADERS,
         body: JSON.stringify({ title: form.contactName, contactName: form.contactName, phone: form.phone, email: form.email, service: form.service }),
       });
       if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || "Erreur"); }

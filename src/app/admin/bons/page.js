@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useAdminStream } from "@/components/admin/adminStream";
 import { formatDateOnly } from "@/lib/date-only";
 import { adminDocumentEditHref, adminDocumentNewHref } from "@/lib/admin-document-routes";
 import { workOrderStatusClass, workOrderStatusLabel } from "@/lib/work-order-status";
@@ -153,7 +154,9 @@ export default function BonsPage({ documentView = "all" } = {}) {
 
   useEffect(() => {
     const timeout = setTimeout(() => loadWorkOrders(), query.trim() ? 200 : 0);
-    const interval = setInterval(() => loadWorkOrders(false), 5000);
+    // Filet de securite seulement: les changements arrivent en <1s par le flux
+    // temps reel ci-dessous, plus besoin de recharger la liste toutes les 5s.
+    const interval = setInterval(() => loadWorkOrders(false), 30000);
     const onFocus = () => loadWorkOrders(false);
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onFocus);
@@ -165,6 +168,15 @@ export default function BonsPage({ documentView = "all" } = {}) {
     };
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [documentView, filter, query]);
+
+  // Temps réel: un collègue/le terrain modifie un bon -> reload discret, coalescé.
+  const streamReloadTimer = useRef(null);
+  useAdminStream((e) => {
+    if (!["work_order.changed", "follow_up.changed"].includes(e?.type)) return;
+    clearTimeout(streamReloadTimer.current);
+    streamReloadTimer.current = setTimeout(() => loadWorkOrders(false), 600);
+  });
+  useEffect(() => () => clearTimeout(streamReloadTimer.current), []);
 
   async function handleDelete(wo, e) {
     e.stopPropagation();

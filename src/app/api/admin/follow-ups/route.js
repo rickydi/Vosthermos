@@ -558,6 +558,7 @@ export async function POST(req) {
     entityId: followUp.id,
     clientId: followUp.clientId,
     actor: session.id,
+    origin: req.headers.get("x-admin-tab") || undefined,
   });
 
   return NextResponse.json(serializeFollowUp(followUp));

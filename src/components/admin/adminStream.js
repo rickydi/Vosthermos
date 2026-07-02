@@ -7,6 +7,15 @@ import { useEffect, useRef } from "react";
 let source = null;
 const listeners = new Set();
 
+// Identifiant stable de CET onglet. Envoye avec les mutations (header
+// X-Admin-Tab) puis rejoue dans les evenements SSE (champ origin): permet a
+// une page d'ignorer l'echo de ses propres actions (deja appliquees en
+// optimiste) au lieu de recharger toute sa liste a chaque clic.
+export const ADMIN_TAB_ID =
+  typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `tab-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
 function ensureSource() {
   if (source || typeof window === "undefined") return;
   source = new EventSource("/api/admin/stream");
