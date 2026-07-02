@@ -4,23 +4,19 @@ export const ADMIN_MENU_ITEMS = {
   suiviClients: { href: "/admin/suivi-clients", label: "Suivi clients", icon: "fa-tasks" },
   soumissions: { href: "/admin/soumissions", label: "Soumissions", icon: "fa-file-signature" },
   factures: { href: "/admin/factures", label: "Factures", icon: "fa-file-invoice-dollar" },
-  rapportsFactures: { href: "/admin/rapports-factures", label: "Rapports factures", icon: "fa-chart-pie" },
   bons: { href: "/admin/bons", label: "Bons de travail", icon: "fa-clipboard-list" },
   paiements: { href: "/admin/paiements", label: "Paiements", icon: "fa-money-check-alt" },
-  routes: { href: "/admin/routes", label: "Routes", icon: "fa-route" },
   calculateurThermos: { href: "/admin/calculateur-thermos", label: "Calculateur thermos", icon: "fa-calculator" },
   rendezVous: { href: "/admin/rendez-vous", label: "Rendez-vous", icon: "fa-calendar-check" },
   chat: { href: "/admin/chat", label: "Chat clients", icon: "fa-comments" },
   techniciens: { href: "/admin/techniciens", label: "Techniciens", icon: "fa-hard-hat" },
 
   clients: { href: "/admin/clients", label: "Clients", icon: "fa-address-book" },
-  vendeur: { href: "/admin/vendeur", label: "Vendeur", icon: "fa-handshake" },
   gestionnaires: { href: "/admin/gestionnaires", label: "Acces gestionnaires", icon: "fa-door-open" },
 
   commandes: { href: "/admin/commandes", label: "Commandes", icon: "fa-shopping-bag" },
   produits: { href: "/admin/produits", label: "Produits", icon: "fa-boxes" },
   categories: { href: "/admin/categories", label: "Categories", icon: "fa-folder-open" },
-  promotions: { href: "/admin/promotions", label: "Promotions", icon: "fa-tag" },
 
   analytics: { href: "/admin/analytics", label: "Analytics", icon: "fa-chart-line" },
   seo: { href: "/admin/seo", label: "SEO", icon: "fa-search" },
@@ -29,8 +25,6 @@ export const ADMIN_MENU_ITEMS = {
 
   activite: { href: "/admin/activite", label: "Activite admin", icon: "fa-history" },
   parametres: { href: "/admin/parametres", label: "Parametres", icon: "fa-cog" },
-  utilisateurs: { href: "/admin/utilisateurs", label: "Utilisateurs", icon: "fa-users" },
-  menu: { href: "/admin/menu", label: "Menu admin", icon: "fa-bars" },
 };
 
 export const ADMIN_MENU_SECTIONS = [
@@ -69,13 +63,13 @@ export const ADMIN_MENU_SECTIONS = [
 ];
 
 export const DEFAULT_ADMIN_MENU_LAYOUT = {
-  production: ["suiviClients", "chat", "bons", "factures", "rapportsFactures", "soumissions", "clients", "paiements", "routes", "calculateurThermos", "rendezVous", "techniciens"],
-  boutique: ["commandes", "produits", "categories", "promotions"],
-  site: ["analytics", "seo", "blogue", "services", "vendeur"],
-  systeme: ["gestionnaires", "activite", "parametres", "utilisateurs", "menu"],
+  production: ["suiviClients", "chat", "bons", "factures", "soumissions", "clients", "paiements", "calculateurThermos", "rendezVous", "techniciens"],
+  boutique: ["commandes", "produits", "categories"],
+  site: ["analytics", "seo", "blogue", "services"],
+  systeme: ["gestionnaires", "activite", "parametres"],
 };
 
-const PINNED_PRODUCTION_ITEMS = ["suiviClients", "chat", "bons", "factures", "rapportsFactures", "soumissions", "clients"];
+const PINNED_PRODUCTION_ITEMS = ["suiviClients", "chat", "bons", "factures", "soumissions", "clients"];
 
 export const DEFAULT_ADMIN_MENU_LABELS = Object.fromEntries(
   ADMIN_MENU_SECTIONS.map((section) => [section.key, section.label])

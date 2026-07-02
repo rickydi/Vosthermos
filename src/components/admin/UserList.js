@@ -1,13 +1,32 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
-export default function UserList({ users: initialUsers }) {
-  const router = useRouter();
+export default function UserList() {
+  const [users, setUsers] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ email: "" });
   const [error, setError] = useState("");
+
+  function loadUsers() {
+    return fetch("/api/admin/users", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) setUsers(data);
+      })
+      .catch(() => {});
+  }
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/admin/users", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((data) => {
+        if (!cancelled && Array.isArray(data)) setUsers(data);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   async function handleAdd(e) {
     e.preventDefault();
@@ -20,7 +39,7 @@ export default function UserList({ users: initialUsers }) {
     if (res.ok) {
       setForm({ email: "" });
       setShowForm(false);
-      router.refresh();
+      loadUsers();
     } else {
       const data = await res.json();
       setError(data.error || "Erreur");
@@ -30,13 +49,13 @@ export default function UserList({ users: initialUsers }) {
   async function handleDelete(id) {
     if (!confirm("Supprimer cet administrateur?")) return;
     await fetch(`/api/admin/users/${id}`, { method: "DELETE" });
-    router.refresh();
+    loadUsers();
   }
 
   return (
     <>
       <div className="flex items-center justify-between mb-6">
-        <p className="text-white/50 text-sm">{initialUsers.length} administrateur(s)</p>
+        <p className="text-white/50 text-sm">{users.length} administrateur(s)</p>
         <button
           onClick={() => setShowForm(!showForm)}
           className="bg-[var(--color-red)] text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-[var(--color-red-dark)] transition-all"
@@ -68,7 +87,7 @@ export default function UserList({ users: initialUsers }) {
       )}
 
       <div className="bg-white/5 rounded-xl border border-white/5 overflow-hidden">
-        {initialUsers.map((user) => (
+        {users.map((user) => (
           <div key={user.id} className="flex items-center justify-between p-5 border-b border-white/5 last:border-0">
             <div className="flex items-center gap-4">
               <div className="w-11 h-11 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg">

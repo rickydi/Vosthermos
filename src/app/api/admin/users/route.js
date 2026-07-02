@@ -4,6 +4,20 @@ import bcrypt from "bcryptjs";
 import { requireAdmin } from "@/lib/admin-auth";
 import { logAdminActivity } from "@/lib/admin-activity";
 
+export async function GET() {
+  try {
+    await requireAdmin();
+    const users = await prisma.adminUser.findMany({
+      select: { id: true, email: true },
+      orderBy: { id: "asc" },
+    });
+    return NextResponse.json(users);
+  } catch (err) {
+    if (err.message === "Unauthorized") return NextResponse.json({ error: "Non autorise" }, { status: 401 });
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+  }
+}
+
 export async function POST(request) {
   try {
     const session = await requireAdmin();

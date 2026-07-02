@@ -3,23 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 
-export default function ProductCard({ product, promo, locale, showImage = true }) {
+export default function ProductCard({ product, locale, showImage = true }) {
   const isEn = locale === "en";
   const productPath = isEn ? `/en/produit/${product.slug}` : `/produit/${product.slug}`;
   const imgSrc = product.images?.[0]?.url || "/placeholder.jpg";
   const displayName = isEn ? (product.nameEn || product.name) : product.name;
   const price = Number(product.price);
-  const hasDiscount = promo && promo.type !== "message";
-  let discountedPrice = null;
-
-  if (hasDiscount) {
-    const v = Number(promo.value);
-    if (promo.type === "percent") {
-      discountedPrice = Math.round(price * (1 - v / 100) * 100) / 100;
-    } else if (promo.type === "fixed") {
-      discountedPrice = Math.max(0, Math.round((price - v) * 100) / 100);
-    }
-  }
 
   const formatPrice = (v) => isEn ? `$${v.toFixed(2)}` : `${v.toFixed(2)} $`;
 
@@ -28,11 +17,6 @@ export default function ProductCard({ product, promo, locale, showImage = true }
       href={productPath}
       className="group bg-white rounded-xl shadow-sm hover:shadow-md transition-all border border-[var(--color-border)] overflow-hidden relative"
     >
-      {hasDiscount && (
-        <div className="absolute top-0 left-0 z-10 bg-gradient-to-r from-[var(--color-red)] to-[var(--color-red-dark)] text-white text-[11px] font-bold px-3 py-1 rounded-br-xl rounded-tl-xl shadow-sm">
-          {promo.type === "percent" ? `-${promo.value}%` : `-${promo.value}$`}
-        </div>
-      )}
       {showImage && (
         <div className="aspect-square relative bg-gray-50 overflow-hidden">
           <Image
@@ -49,20 +33,9 @@ export default function ProductCard({ product, promo, locale, showImage = true }
         <h3 className="text-sm font-medium line-clamp-2 mb-2 group-hover:text-[var(--color-teal)] transition-colors">
           {displayName}
         </h3>
-        {hasDiscount ? (
-          <div className="flex items-center gap-2">
-            <p className="text-lg font-bold text-[var(--color-red)]">
-              {formatPrice(discountedPrice)}
-            </p>
-            <p className="text-sm text-[var(--color-muted)] line-through">
-              {formatPrice(price)}
-            </p>
-          </div>
-        ) : (
-          <p className="text-lg font-bold text-[var(--color-teal)]">
-            {formatPrice(price)}
-          </p>
-        )}
+        <p className="text-lg font-bold text-[var(--color-teal)]">
+          {formatPrice(price)}
+        </p>
       </div>
     </Link>
   );

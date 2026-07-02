@@ -1,9 +1,6 @@
-import { requireAdmin } from "@/lib/admin-auth";
-import MenuAdminClient from "./MenuAdminClient";
+import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-
-export default async function MenuAdminPage() {
-  await requireAdmin();
-  return <MenuAdminClient />;
+// Fusionne dans Parametres (section Menu admin).
+export default function MenuAdminPage() {
+  redirect("/admin/parametres#menu-admin");
 }

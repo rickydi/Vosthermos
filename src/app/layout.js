@@ -1,7 +1,6 @@
 import "./globals.css";
 import Header from "@/components/Header";
 import ConditionalFooter from "@/components/ConditionalFooter";
-import PromoBanner from "@/components/PromoBanner";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
 import ChatBubble from "@/components/ChatBubble";
 import { CartProvider } from "@/components/CartContext";
@@ -235,7 +234,6 @@ export default async function RootLayout({ children }) {
       </head>
       <body className="min-h-full flex flex-col">
         <CartProvider>
-          <PromoBanner />
           <Header company={co} />
           <main className="flex-1">{children}</main>
           <ConditionalFooter company={co} />

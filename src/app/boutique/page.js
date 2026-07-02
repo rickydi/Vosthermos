@@ -1,7 +1,6 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { getCategoryIcon } from "@/lib/category-icons";
-import { getActivePromotions } from "@/lib/promotions";
 import ProductSearchBar from "@/components/ProductSearchBar";
 import { COMPANY_INFO } from "@/lib/company-info";
 
@@ -39,22 +38,10 @@ export default async function BoutiquePage() {
     orderBy: { order: "asc" },
   });
 
-  const activePromos = await getActivePromotions();
-
-  // Find promo for a category (direct match or global)
-  function getPromoForCategory(catId) {
-    for (const p of activePromos) {
-      if (!p.categoryId) return p; // global
-      if (p.categoryId === catId) return p; // direct
-    }
-    return null;
-  }
-
   const catsWithCount = categories.map((cat) => {
     const directProducts = cat._count.products;
     const subProducts = cat.children.reduce((sum, c) => sum + c._count.products, 0);
-    const promo = getPromoForCategory(cat.id);
-    return { ...cat, totalProducts: directProducts + subProducts, promo };
+    return { ...cat, totalProducts: directProducts + subProducts };
   }).filter((cat) => cat.totalProducts > 0);
 
   const totalProducts = catsWithCount.reduce((sum, c) => sum + c.totalProducts, 0);
@@ -124,11 +111,6 @@ export default async function BoutiquePage() {
               href={`/boutique/${cat.slug}`}
               className="bg-white rounded-xl p-8 shadow-sm hover:shadow-lg transition-all border border-[var(--color-border)] text-center group relative"
             >
-              {cat.promo && (
-                <div className="absolute top-0 right-0 bg-gradient-to-r from-[var(--color-red)] to-[var(--color-red-dark)] text-white text-[11px] font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl shadow-sm">
-                  {cat.promo.type === "percent" ? `-${Number(cat.promo.value)}%` : cat.promo.type === "fixed" ? `-${Number(cat.promo.value)}$` : "PROMO"}
-                </div>
-              )}
               <div className="w-16 h-16 bg-[var(--color-teal)]/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-[var(--color-red)] transition-colors">
                 <i className={`${getCategoryIcon(cat.slug)} text-2xl text-[var(--color-teal)] group-hover:text-white transition-colors`}></i>
               </div>

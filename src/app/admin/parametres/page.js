@@ -8,6 +8,8 @@ import CompanyInfoSection from "@/components/admin/CompanyInfoSection";
 import ThermosPricingSettings from "@/components/admin/ThermosPricingSettings";
 import AccountantEmailSection from "@/components/admin/AccountantEmailSection";
 import FollowUpSlaSettings from "@/components/admin/FollowUpSlaSettings";
+import UserList from "@/components/admin/UserList";
+import MenuAdminSection from "@/components/admin/MenuAdminSection";
 
 export default function AdminSettingsPage() {
   const [laborRate, setLaborRate] = useState("85.00");
@@ -109,6 +111,17 @@ export default function AdminSettingsPage() {
 
       <div className="mt-8">
         <ApiKeysSection />
+      </div>
+
+      <div id="administrateurs" className="mt-8 admin-card rounded-xl p-6 border admin-border">
+        <h2 className="admin-text font-bold text-lg mb-4">
+          <i className="fas fa-users mr-2"></i>Administrateurs
+        </h2>
+        <UserList />
+      </div>
+
+      <div id="menu-admin" className="mt-8 admin-card rounded-xl p-6 border admin-border">
+        <MenuAdminSection />
       </div>
     </div>
   );

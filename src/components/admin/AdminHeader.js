@@ -5,24 +5,19 @@ import ThemeToggle from "./ThemeToggle";
 
 const pageTitles = {
   "/admin": "Dashboard",
-  "/admin/vendeur": "Vendeur",
   "/admin/commandes": "Commandes",
   "/admin/produits": "Produits",
   "/admin/categories": "Categories",
   "/admin/suivi-clients": "Suivi clients",
   "/admin/soumissions": "Soumissions",
   "/admin/factures": "Factures",
-  "/admin/rapports-factures": "Rapports factures",
   "/admin/clients": "Clients",
   "/admin/paiements": "Paiements",
   "/admin/calculateur-thermos": "Calculateur thermos",
   "/admin/analytics": "Analytics",
-  "/admin/promotions": "Promotions",
   "/admin/parametres": "Parametres",
   "/admin/activite": "Activite admin",
-  "/admin/utilisateurs": "Utilisateurs",
   "/admin/gestionnaires": "Acces gestionnaires",
-  "/admin/menu": "Menu admin",
 };
 
 export default function AdminHeader() {

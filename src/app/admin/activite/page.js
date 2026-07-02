@@ -56,7 +56,7 @@ function activityHref(activity) {
   if (activity.entityType === "chat") return `/admin/chat/${activity.entityId}`;
   if (activity.entityType === "follow_up") return "/admin/suivi-clients";
   if (activity.entityType === "appointment") return "/admin/rendez-vous";
-  if (activity.entityType === "admin_user") return "/admin/utilisateurs";
+  if (activity.entityType === "admin_user") return "/admin/parametres#administrateurs";
   return null;
 }
 
@@ -110,8 +110,8 @@ export default async function AdminActivityPage({ searchParams }) {
             Journal des connexions et des changements faits par les utilisateurs admin.
           </p>
         </div>
-        <Link href="/admin/utilisateurs" className="admin-card admin-hover border rounded-lg px-4 py-2 text-sm admin-text font-semibold">
-          <i className="fas fa-users mr-2"></i>Utilisateurs
+        <Link href="/admin/parametres#administrateurs" className="admin-card admin-hover border rounded-lg px-4 py-2 text-sm admin-text font-semibold">
+          <i className="fas fa-users mr-2"></i>Administrateurs
         </Link>
       </div>
 

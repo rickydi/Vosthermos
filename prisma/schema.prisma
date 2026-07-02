@@ -17,7 +17,6 @@ model Category {
   parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
   children   Category[]  @relation("CategoryTree")
   products   Product[]
-  promotions Promotion[]
 
   @@map("categories")
 }
@@ -239,23 +238,6 @@ model BlogNotifyMember {
   @@map("blog_notify_members")
 }
 
-model Promotion {
-  id          Int       @id @default(autoincrement())
-  title       String
-  description String?
-  type        String    @default("percent")
-  value       Decimal   @db.Decimal(10, 2)
-  categoryId  Int?
-  category    Category? @relation(fields: [categoryId], references: [id])
-  startDate   DateTime
-  endDate     DateTime
-  isActive    Boolean   @default(true)
-  bgColor     String    @default("#e30718")
-  createdAt   DateTime  @default(now())
-
-  @@map("promotions")
-}
-
 model BlogPost {
   id          Int       @id @default(autoincrement())
   title       String
@@ -331,7 +313,6 @@ model Technician {
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
   workOrders WorkOrder[]
-  routePlans RoutePlan[]
 
   @@map("technicians")
 }
@@ -562,9 +543,6 @@ model WorkOrder {
   technician             Technician?     @relation(fields: [technicianId], references: [id])
   followUpId             Int?
   followUp               ClientFollowUp? @relation(fields: [followUpId], references: [id], onDelete: SetNull)
-  routeId                Int?
-  route                  RoutePlan?      @relation(fields: [routeId], references: [id], onDelete: SetNull)
-  routePosition          Int?
   appointmentId          Int?            @unique
   appointment            Appointment?    @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
   date                   DateTime        @db.Date
@@ -607,7 +585,6 @@ model WorkOrder {
   @@index([clientId])
   @@index([technicianId])
   @@index([followUpId])
-  @@index([routeId])
   @@index([statut])
   @@index([date])
   @@index([paymentDueAt])
@@ -629,27 +606,6 @@ model WorkOrderPayment {
   @@index([workOrderId])
   @@index([paidAt])
   @@map("work_order_payments")
-}
-
-model RoutePlan {
-  id            Int          @id @default(autoincrement())
-  name          String
-  date          DateTime     @db.Date
-  technicianId  Int?
-  technician    Technician?  @relation(fields: [technicianId], references: [id], onDelete: SetNull)
-  area          String?
-  startCity     String?
-  status        String       @default("planned")
-  targetRevenue Decimal?     @db.Decimal(10, 2)
-  notes         String?      @db.Text
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  workOrders    WorkOrder[]
-
-  @@index([date])
-  @@index([technicianId])
-  @@index([status])
-  @@map("route_plans")
 }
 
 model WorkOrderSection {

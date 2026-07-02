@@ -72,7 +72,6 @@ export async function GET(req) {
       include: {
         client: { select: { id: true, name: true, phone: true, secondaryPhone: true, address: true, city: true, paymentTermsDays: true } },
         technician: { select: { id: true, name: true } },
-        route: { select: { id: true, name: true, date: true, area: true } },
         payments: { orderBy: [{ paidAt: "asc" }, { id: "asc" }] },
         _count: { select: { items: true } },
       },

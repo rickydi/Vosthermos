@@ -9,7 +9,7 @@ import {
   normalizeAdminMenuLayout,
 } from "@/lib/admin-menu";
 
-export default function MenuAdminClient() {
+export default function MenuAdminSection() {
   const [layout, setLayout] = useState(() => normalizeAdminMenuLayout(null));
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -148,19 +148,17 @@ export default function MenuAdminClient() {
 
   if (loading) {
     return (
-      <div className="p-6">
-        <div className="admin-card border rounded-xl p-8 text-center admin-text-muted">
-          <i className="fas fa-spinner fa-spin text-2xl"></i>
-        </div>
+      <div className="admin-card border rounded-xl p-8 text-center admin-text-muted">
+        <i className="fas fa-spinner fa-spin text-2xl"></i>
       </div>
     );
   }
 
   return (
-    <div className="p-4 md:p-6 max-w-[1600px] mx-auto">
+    <div>
       <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-6">
         <div>
-          <h1 className="admin-text text-2xl font-extrabold">Menu admin</h1>
+          <h2 className="admin-text font-bold text-lg">Menu admin</h2>
           <p className="admin-text-muted text-sm mt-1">
             Glisse les onglets entre les sections. Clique un nom pour le renommer.
           </p>

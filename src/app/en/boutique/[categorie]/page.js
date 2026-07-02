@@ -4,7 +4,6 @@ import ProductCard from "@/components/ProductCard";
 import Link from "next/link";
 import { serializeProducts } from "@/lib/serialize";
 import { getCategoryIcon } from "@/lib/category-icons";
-import { getActivePromotions, getPromoForProduct } from "@/lib/promotions";
 
 export async function generateMetadata({ params, searchParams }) {
   const { categorie } = await params;
@@ -69,7 +68,6 @@ export default async function CategoryPageEn({ params, searchParams }) {
   }
 
   const breadcrumbParent = category.parent;
-  const activePromos = await getActivePromotions();
 
   // Check if images should be shown (admin setting)
   let showImages = true;
@@ -123,18 +121,12 @@ export default async function CategoryPageEn({ params, searchParams }) {
         {hasSubcats ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {subcatsWithProducts.map((sub) => {
-              const subPromo = activePromos.find(p => !p.categoryId || p.categoryId === sub.id || p.categoryId === category.id);
               return (
                 <Link
                   key={sub.id}
                   href={`/en/boutique/${sub.slug}`}
                   className="bg-white rounded-xl p-8 shadow-sm hover:shadow-lg transition-all border border-[var(--color-border)] text-center group relative"
                 >
-                  {subPromo && (
-                    <div className="absolute top-0 right-0 bg-gradient-to-r from-[var(--color-red)] to-[var(--color-red-dark)] text-white text-[11px] font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl shadow-sm">
-                      {subPromo.type === "percent" ? `-${Number(subPromo.value)}%` : subPromo.type === "fixed" ? `-${Number(subPromo.value)}$` : "SALE"}
-                    </div>
-                  )}
                   <div className="w-16 h-16 bg-[var(--color-teal)]/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-[var(--color-red)] transition-colors">
                     <i className={`${getCategoryIcon(sub.slug)} text-2xl text-[var(--color-teal)] group-hover:text-white transition-colors`}></i>
                   </div>
@@ -151,11 +143,9 @@ export default async function CategoryPageEn({ params, searchParams }) {
         ) : (
           <>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {products.map((product) => {
-                const promo = getPromoForProduct({ ...product, categoryId: category.id, category }, activePromos);
-                const serializedPromo = promo ? { type: promo.type, value: Number(promo.value) } : null;
-                return <ProductCard key={product.id} product={product} promo={serializedPromo} showImage={showImages} locale="en" />;
-              })}
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} showImage={showImages} locale="en" />
+              ))}
             </div>
 
             {totalPages > 1 && (

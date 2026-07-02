@@ -1,6 +1,7 @@
 import { requireAdmin } from "@/lib/admin-auth";
 import prisma from "@/lib/prisma";
 import GestionnairesList from "./GestionnairesList";
+import SalesToolsSection from "@/components/admin/SalesToolsSection";
 
 export const dynamic = "force-dynamic";
 
@@ -38,5 +39,12 @@ export default async function AdminGestionnairesPage() {
     })),
   }));
 
-  return <GestionnairesList initialManagers={serialized} clients={clients} />;
+  return (
+    <>
+      <GestionnairesList initialManagers={serialized} clients={clients} />
+      <div className="px-6 lg:px-8 pb-8">
+        <SalesToolsSection />
+      </div>
+    </>
+  );
 }

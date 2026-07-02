@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useAdminStream } from "@/components/admin/adminStream";
+import MonthlyInvoiceReportSection from "@/components/admin/MonthlyInvoiceReportSection";
 import { formatDateOnly } from "@/lib/date-only";
 import { adminDocumentEditHref, adminDocumentNewHref } from "@/lib/admin-document-routes";
 import { workOrderStatusClass, workOrderStatusLabel } from "@/lib/work-order-status";
@@ -139,6 +140,10 @@ export default function BonsPage({ documentView = "all" } = {}) {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState(config.defaultFilter || "all");
   const [query, setQuery] = useState("");
+  // Vue "Rapport mensuel" integree a la page Factures (ancienne page
+  // /admin/rapports-factures fusionnee ici).
+  const [showReport, setShowReport] = useState(false);
+  const reportAvailable = documentView === "invoices";
 
   function loadWorkOrders(showSpinner = true) {
     const params = buildWorkOrdersQuery(documentView, filter, query);
@@ -253,17 +258,29 @@ export default function BonsPage({ documentView = "all" } = {}) {
         {config.filters.map((tab) => (
           <button
             key={tab.key}
-            onClick={() => setFilter(tab.key)}
+            onClick={() => { setShowReport(false); setFilter(tab.key); }}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
-              filter === tab.key ? "bg-cyan-700 text-white" : "admin-text-muted admin-hover"
+              !showReport && filter === tab.key ? "bg-cyan-700 text-white" : "admin-text-muted admin-hover"
             }`}
           >
             {tab.label}
           </button>
         ))}
+        {reportAvailable && (
+          <button
+            onClick={() => setShowReport(true)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+              showReport ? "bg-cyan-700 text-white" : "admin-text-muted admin-hover"
+            }`}
+          >
+            <i className="fas fa-chart-pie mr-2"></i>Rapport mensuel
+          </button>
+        )}
       </div>
 
-      {loading ? (
+      {reportAvailable && showReport ? (
+        <MonthlyInvoiceReportSection compact />
+      ) : loading ? (
         <div className="text-center py-12 admin-text-muted"><i className="fas fa-spinner fa-spin text-2xl"></i></div>
       ) : workOrders.length === 0 ? (
         <div className="text-center py-12 admin-text-muted">
@@ -279,7 +296,6 @@ export default function BonsPage({ documentView = "all" } = {}) {
                 <th className="px-4 py-3">Client</th>
                 <th className="px-4 py-3">Technicien</th>
                 <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3">Route</th>
                 <th className="px-4 py-3">Demande le</th>
                 <th className="px-4 py-3">Total</th>
                 <th className="px-4 py-3">Statut</th>
@@ -311,13 +327,6 @@ export default function BonsPage({ documentView = "all" } = {}) {
                     </td>
                     <td className="px-4 py-3 admin-text-muted">{wo.technician?.name || "-"}</td>
                     <td className="px-4 py-3 admin-text-muted">{formatDateOnly(wo.date)}</td>
-                    <td className="px-4 py-3 admin-text-muted">
-                      {wo.route ? (
-                        <Link href="/admin/routes" className="text-cyan-300 hover:underline">
-                          {wo.route.area || wo.route.name}
-                        </Link>
-                      ) : "-"}
-                    </td>
                     <td className="px-4 py-3 admin-text-muted text-xs">
                       {wo.createdAt ? (
                         <>

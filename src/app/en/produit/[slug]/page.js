@@ -4,7 +4,6 @@ import Link from "next/link";
 import AddToCartButton from "@/components/AddToCartButton";
 import ProductGallery from "@/components/ProductGallery";
 import { serializeProduct } from "@/lib/serialize";
-import { getActivePromotions, getPromoForProduct, getDiscountedPrice } from "@/lib/promotions";
 
 const BASE = "https://www.vosthermos.com";
 
@@ -64,10 +63,6 @@ export default async function ProductPageEn({ params }) {
     if (imgSetting[0]?.value === "false") showImages = false;
   } catch {}
 
-  const activePromos = await getActivePromotions();
-  const promo = getPromoForProduct(rawProduct, activePromos);
-  const discountedPrice = promo ? getDiscountedPrice(product.price, promo) : null;
-
   const productForCart = {
     id: product.id,
     sku: product.sku,
@@ -119,27 +114,9 @@ export default async function ProductPageEn({ params }) {
             <p className="text-sm font-mono text-[var(--color-muted)] mb-2">{product.sku}</p>
             <h1 className="text-2xl font-extrabold mb-4">{product.nameEn || product.name}</h1>
 
-            {discountedPrice !== null ? (
-              <div className="mb-6">
-                <div className="flex items-center gap-3 mb-1">
-                  <p className="text-3xl font-extrabold text-[var(--color-red)]">
-                    ${discountedPrice.toFixed(2)}
-                  </p>
-                  <p className="text-xl text-[var(--color-muted)] line-through">
-                    ${Number(product.price).toFixed(2)}
-                  </p>
-                </div>
-                <span className="inline-flex items-center gap-2 bg-gradient-to-r from-[var(--color-red)] to-[var(--color-red-dark)] text-white text-xs font-bold px-4 py-1.5 rounded-lg shadow-sm">
-                  <i className="fas fa-tag"></i>
-                  {promo.type === "percent" ? `${Number(promo.value)}% off` : `$${Number(promo.value)} off`}
-                  {promo.title && <span className="font-normal opacity-80">— {promo.title}</span>}
-                </span>
-              </div>
-            ) : (
-              <p className="text-3xl font-extrabold text-[var(--color-red)] mb-6">
-                ${Number(product.price).toFixed(2)}
-              </p>
-            )}
+            <p className="text-3xl font-extrabold text-[var(--color-red)] mb-6">
+              ${Number(product.price).toFixed(2)}
+            </p>
 
             <div className="mb-6">
               <span className={`inline-block px-4 py-1.5 rounded-full text-sm font-semibold ${
