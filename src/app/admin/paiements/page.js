@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { todayDateInput } from "@/lib/date-only";
 
 const FILTERS = [
   { key: "open", label: "A recevoir" },
@@ -69,7 +70,7 @@ function SummaryTile({ icon, label, value, detail, tone }) {
 function PaymentRow({ payment, saving, onPatch }) {
   const [dueDate, setDueDate] = useState(dateInput(payment.paymentDueAt));
   const [method, setMethod] = useState(payment.paymentMethod || "Interac");
-  const [paymentDate, setPaymentDate] = useState(dateInput(new Date().toISOString()));
+  const [paymentDate, setPaymentDate] = useState(todayDateInput());
   const [depositAmount, setDepositAmount] = useState("");
   const [paymentNote, setPaymentNote] = useState("");
   const [showDepositEmailModal, setShowDepositEmailModal] = useState(false);

@@ -160,16 +160,6 @@ model AnalyticsPageView {
   @@map("analytics_page_views")
 }
 
-model AnalyticsDailyStat {
-  id                 Int      @id @default(autoincrement())
-  date               DateTime @unique @db.Date
-  visitors           Int      @default(0)
-  pageViews          Int      @default(0)
-  avgSessionDuration Int      @default(0)
-
-  @@map("analytics_daily_stats")
-}
-
 model AnalyticsFormEvent {
   id              Int      @id @default(autoincrement())
   sessionId       Int?
@@ -658,13 +648,6 @@ model RoutePlan {
   @@index([technicianId])
   @@index([status])
   @@map("route_plans")
-}
-
-model Counter {
-  key   String @id
-  value Int    @default(0)
-
-  @@map("counters")
 }
 
 model WorkOrderSection {

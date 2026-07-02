@@ -15,7 +15,7 @@ export async function PUT(request, { params }) {
     if (data.type !== undefined) updateData.type = data.type;
     if (data.value !== undefined) updateData.value = parseFloat(data.value) || 0;
     if (data.categoryId !== undefined) updateData.categoryId = data.categoryId ? parseInt(data.categoryId) : null;
-    if (data.startDate !== undefined) updateData.startDate = new Date(data.startDate);
+    if (data.startDate !== undefined) updateData.startDate = new Date(data.startDate + "T00:00:00");
     if (data.endDate !== undefined) updateData.endDate = new Date(data.endDate + "T23:59:59");
     if (data.bgColor !== undefined) updateData.bgColor = data.bgColor;
 

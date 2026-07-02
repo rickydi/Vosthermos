@@ -1418,7 +1418,7 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
       itemType: "discount",
       discountMode: mode, // "percent" or "amount"
       discountPercent: mode === "percent" ? 10 : 0,
-      discountAmount: mode === "amount" ? 0 : 0,
+      discountAmount: 0,
     }]);
   }
 
@@ -1788,11 +1788,11 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
     setAiClientSuggestions([]);
     setAiClientLookupComplete(false);
     clearAiDraftProgressTimers();
-    setAiDraftProgressStep(8, "Preparation de l'analyse");
     try {
       const documentType = effectiveQuoteMode ? "quote" : "invoice";
-      setAiDraftProgressStep(hasAiPdf ? 24 : 28, hasAiPdf ? "Lecture du PDF" : "Preparation du contenu");
-      setAiDraftProgressStep(42, "Envoi a l'IA");
+      // Un seul step avant le fetch : les steps intermediaires synchrones
+      // etaient ecrases par le batching React avant d'etre visibles.
+      setAiDraftProgressStep(10, hasAiPdf ? "Lecture du PDF et envoi a l'IA" : "Envoi a l'IA");
       startAiDraftProgressTicker();
       const res = await fetch("/api/admin/work-orders/ai-draft", {
         method: "POST",
@@ -2060,7 +2060,6 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
   const discountCount = items.filter((it) => it.itemType === "discount").length;
   const pieceCount = flatPieceCount + sectionPieceCount;
   const isDirectInvoiceMode = invoiceMode && !editId;
-  const isDirectQuoteMode = quoteMode && !editId;
   const documentFollowUpStatut = currentStatut || (effectiveInvoiceMode ? "invoiced" : effectiveQuoteMode ? "quote" : "draft");
   const documentFollowUpStatus = followUpStatusFromWorkOrderStatut(documentFollowUpStatut, followUpColumns);
   const documentFollowUpStatusLabel = visibleFollowUpColumns.find((column) => column.key === documentFollowUpStatus)?.label || documentFollowUpStatus;
@@ -2075,7 +2074,7 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
   const pageTitle = effectiveInvoiceMode
     ? (isDirectInvoiceMode ? "Nouvelle facture" : isExistingInvoiceDocument ? "Modifier la facture" : "Facturer le bon de travail")
     : effectiveQuoteMode
-      ? (editId || isExistingQuoteDocument ? "Modifier" : "Nouvelle")
+      ? (editId || isExistingQuoteDocument ? "Modifier la soumission" : "Nouvelle soumission")
       : (editId ? "Modifier le bon de travail" : "Nouveau bon de travail");
   const dateLabel = effectiveInvoiceMode ? "Date de facture" : effectiveQuoteMode ? "Date de soumission" : "Date prevue";
   const descriptionLabel = effectiveInvoiceMode
@@ -2956,7 +2955,7 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="font-bold text-cyan-600">{secSubtotal.toFixed(2)}$</span>
-                      <button type="button" onClick={() => removeSection(sIdx)} className="text-amber-500 text-sm hover:text-amber-400">
+                      <button type="button" onClick={() => removeSection(sIdx)} aria-label="Retirer l'unite" className="text-amber-500 text-sm hover:text-amber-400">
                         <i className="fas fa-trash"></i>
                       </button>
                     </div>
@@ -2989,7 +2988,7 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
                             onChange={(e) => updateSectionItem(sIdx, iIdx, "description", e.target.value)}
                             placeholder="Description..."
                             className="admin-input border rounded px-2 py-1 text-sm flex-1" />
-                          <button type="button" onClick={() => removeSectionItem(sIdx, iIdx)} className="text-amber-500 text-sm hover:text-amber-400">
+                          <button type="button" onClick={() => removeSectionItem(sIdx, iIdx)} aria-label="Retirer l'item" className="text-amber-500 text-sm hover:text-amber-400">
                             <i className="fas fa-trash"></i>
                           </button>
                         </div>
@@ -3068,7 +3067,7 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
                       placeholder="Description de l'escompte..."
                       className="admin-input border rounded px-2 py-1.5 text-sm flex-1"
                     />
-                    <button type="button" onClick={() => removeItem(i)} className="text-amber-500 text-sm hover:text-amber-400">
+                    <button type="button" onClick={() => removeItem(i)} aria-label="Retirer l'escompte" className="text-amber-500 text-sm hover:text-amber-400">
                       <i className="fas fa-trash"></i>
                     </button>
                   </div>
@@ -3118,7 +3117,7 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
                     placeholder="Description..."
                     className="admin-input border rounded px-2 py-1.5 text-sm flex-1"
                   />
-                  <button type="button" onClick={() => removeItem(i)} className="text-amber-500 text-sm hover:text-amber-400">
+                  <button type="button" onClick={() => removeItem(i)} aria-label="Retirer la piece" className="text-amber-500 text-sm hover:text-amber-400">
                     <i className="fas fa-trash"></i>
                   </button>
                 </div>

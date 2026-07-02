@@ -2,7 +2,12 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { formatPhone } from "@/lib/phone";
-import { buildWhatsAppUrl, openWhatsAppWindow } from "@/lib/whatsapp";
+import {
+  buildWhatsAppUrl,
+  openWhatsAppWindow,
+  WHATSAPP_RECIPIENTS,
+  WHATSAPP_RECIPIENT_LABELS as RECIPIENT_LABELS,
+} from "@/lib/whatsapp";
 
 function timeAgo(dateStr) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -22,16 +27,6 @@ function clientPresence(conversation) {
   if (diff < 5 * 60 * 1000) return { online: true, label: "En ligne" };
   return { online: false, label: `Vu ${timeAgo(conversation.lastSeenAt)}` };
 }
-
-const WHATSAPP_RECIPIENTS = {
-  jason: "15148258411",
-  caren: "14502750200",
-};
-
-const RECIPIENT_LABELS = {
-  jason: "Jason",
-  caren: "Caren",
-};
 
 function adminUrl(path) {
   if (typeof window === "undefined") return `https://www.vosthermos.com${path}`;

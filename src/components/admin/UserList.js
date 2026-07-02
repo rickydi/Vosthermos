@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 export default function UserList({ users: initialUsers }) {
   const router = useRouter();
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({ email: "" });
   const [error, setError] = useState("");
 
   async function handleAdd(e) {
@@ -18,7 +18,7 @@ export default function UserList({ users: initialUsers }) {
       body: JSON.stringify(form),
     });
     if (res.ok) {
-      setForm({ email: "", password: "" });
+      setForm({ email: "" });
       setShowForm(false);
       router.refresh();
     } else {
@@ -53,11 +53,7 @@ export default function UserList({ users: initialUsers }) {
               <label className="block text-white/50 text-sm mb-1">Courriel</label>
               <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[var(--color-red)]" />
-            </div>
-            <div>
-              <label className="block text-white/50 text-sm mb-1">Mot de passe</label>
-              <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required minLength={6}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[var(--color-red)]" />
+              <p className="text-white/30 text-xs mt-1">La connexion se fait par code envoye par courriel, aucun mot de passe.</p>
             </div>
           </div>
           <div className="flex gap-3">

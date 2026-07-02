@@ -156,6 +156,11 @@ export default function ServicesPage() {
 
       {loading ? (
         <div className="admin-text-muted"><i className="fas fa-spinner fa-spin"></i></div>
+      ) : grouped.length === 0 ? (
+        <div className="admin-card border rounded-xl p-12 text-center admin-text-muted">
+          <i className="fas fa-tools text-3xl opacity-30 mb-3 block"></i>
+          Aucun service. Cliquez sur « Nouveau service » pour en creer un.
+        </div>
       ) : (
         <div className="space-y-6">
           {grouped.map((g) => (

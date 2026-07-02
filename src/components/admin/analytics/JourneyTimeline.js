@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDuration } from "@/lib/format-duration";
+
 const PAGE_COLORS = {
   "/": "#e30718",
   "/boutique": "#3b82f6",
@@ -15,14 +17,6 @@ function getPageColor(page) {
     if (page === prefix || page.startsWith(prefix + "/")) return color;
   }
   return "#64748b";
-}
-
-function formatDuration(seconds) {
-  if (!seconds || seconds <= 0) return "0s";
-  if (seconds < 60) return `${seconds}s`;
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m}m${s.toString().padStart(2, "0")}s`;
 }
 
 function getPageHref(page) {

@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
-import { workOrderStatusClass } from "@/lib/work-order-status";
+import { workOrderStatusClass, workOrderStatusLabel } from "@/lib/work-order-status";
+import { DEFAULT_FOLLOW_UP_COLUMNS } from "@/lib/follow-up-columns";
 
 const OPENING_TYPES = [
   { value: "fenetre", label: "Fenêtre" },
@@ -21,6 +22,21 @@ const fmtMoney = (n) => (n === null || n === undefined ? "—" : new Intl.Number
 
 const SOUMISSION_STATUTS = new Set(["quote", "quote_sent", "quote_accepted"]);
 const FACTURE_STATUTS = new Set(["invoiced", "sent", "paid"]);
+
+const FOLLOW_UP_STATUS_LABELS = Object.fromEntries(
+  DEFAULT_FOLLOW_UP_COLUMNS.map((col) => [col.key, col.label])
+);
+const followUpStatusLabel = (status) =>
+  FOLLOW_UP_STATUS_LABELS[status] || workOrderStatusLabel(status);
+
+const RDV_STATUS_LABELS = {
+  pending: "En attente",
+  waiting_client: "Attend retour client",
+  confirmed: "Confirmé",
+  completed: "Complété",
+  cancelled: "Annulé",
+};
+const rdvStatusLabel = (status) => RDV_STATUS_LABELS[status] || status || "—";
 const dossierFilterFn = (f) => (wo) =>
   f === "all" ? true : f === "soumissions" ? SOUMISSION_STATUTS.has(wo.statut) : FACTURE_STATUTS.has(wo.statut);
 
@@ -361,7 +377,7 @@ export default function ClientDetail({ client }) {
                       <div className="admin-text font-bold">{f.title}</div>
                       {f.service && <div className="admin-text-muted text-xs mt-0.5">{f.service}</div>}
                     </div>
-                    <span className="text-[11px] font-bold px-2 py-1 rounded-full bg-white/10 admin-text whitespace-nowrap">{f.status}</span>
+                    <span className="text-[11px] font-bold px-2 py-1 rounded-full bg-white/10 admin-text whitespace-nowrap">{followUpStatusLabel(f.status)}</span>
                   </div>
                   {f.estimateAmount != null && (
                     <div className="mt-2 text-xs admin-text"><i className="fas fa-dollar-sign mr-1 admin-text-muted"></i><span className="font-semibold">{fmtMoney(f.estimateAmount)}</span></div>
@@ -507,7 +523,7 @@ export default function ClientDetail({ client }) {
                 <div key={a.id} className="admin-card border rounded-xl p-4">
                   <div className="flex items-center justify-between gap-3">
                     <div className="admin-text font-bold">{a.serviceType || "Rendez-vous"}</div>
-                    <span className="text-[11px] font-bold px-2 py-1 rounded-full bg-white/10 admin-text whitespace-nowrap">{a.status}</span>
+                    <span className="text-[11px] font-bold px-2 py-1 rounded-full bg-white/10 admin-text whitespace-nowrap">{rdvStatusLabel(a.status)}</span>
                   </div>
                   <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs admin-text-muted">
                     <span><i className="fas fa-calendar mr-1"></i>{fmtDate(a.date)}{a.timeSlot && ` · ${a.timeSlot}`}</span>
@@ -539,7 +555,7 @@ export default function ClientDetail({ client }) {
                   </div>
                   {c.messages?.[0] && (
                     <div className="mt-2 admin-text-muted text-xs line-clamp-2">
-                      <span className="font-semibold">{c.messages[0].senderType === "admin" ? "Nous : " : ""}</span>
+                      <span className="font-semibold">{c.messages[0].senderType === "ADMIN" ? "Nous : " : ""}</span>
                       {c.messages[0].imageUrl && <i className="fas fa-image mr-1"></i>}
                       {c.messages[0].content}
                     </div>

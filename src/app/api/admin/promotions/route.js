@@ -18,7 +18,7 @@ export async function POST(request) {
         type: data.type || "percent",
         value: parseFloat(data.value) || 0,
         categoryId: data.categoryId ? parseInt(data.categoryId) : null,
-        startDate: new Date(data.startDate),
+        startDate: new Date(data.startDate + "T00:00:00"),
         endDate: new Date(data.endDate + "T23:59:59"),
         bgColor: data.bgColor || "#e30718",
       },

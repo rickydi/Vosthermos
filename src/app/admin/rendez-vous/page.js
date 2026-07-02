@@ -2,7 +2,12 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { buildWhatsAppUrl, openWhatsAppWindow } from "@/lib/whatsapp";
+import {
+  buildWhatsAppUrl,
+  openWhatsAppWindow,
+  WHATSAPP_RECIPIENTS,
+  WHATSAPP_RECIPIENT_LABELS as RECIPIENT_LABELS,
+} from "@/lib/whatsapp";
 
 const MONTHS_FR = [
   "Janvier", "Fevrier", "Mars", "Avril", "Mai", "Juin",
@@ -27,15 +32,6 @@ const SERVICE_LABELS = {
   moustiquaires: "Moustiquaires",
 };
 
-const WHATSAPP_RECIPIENTS = {
-  jason: "15148258411",
-  caren: "14502750200",
-};
-
-const RECIPIENT_LABELS = {
-  jason: "Jason",
-  caren: "Caren",
-};
 
 function formatDate(date) {
   const y = date.getFullYear();
@@ -549,8 +545,7 @@ export default function AdminAppointmentsPage() {
           />
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div
-              className="rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl border border-white/10 dark-modal"
-              style={{ background: "#1e2538" }}
+              className="admin-modal-card rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto border"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Modal header */}

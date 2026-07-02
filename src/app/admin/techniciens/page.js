@@ -11,6 +11,7 @@ export default function TechniciensPage() {
   const [editId, setEditId] = useState(null);
   const [editPhotoUrl, setEditPhotoUrl] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState("");
   const fileInputRef = useRef(null);
 
   async function load() {
@@ -27,6 +28,7 @@ export default function TechniciensPage() {
     setPhotoPreview(null);
     setEditPhotoUrl(null);
     setEditId(null);
+    setFormError("");
     setShowForm(false);
   }
 
@@ -40,6 +42,7 @@ export default function TechniciensPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     setSaving(true);
+    setFormError("");
     try {
       const url = editId ? `/api/admin/technicians/${editId}` : "/api/admin/technicians";
       const method = editId ? "PUT" : "POST";
@@ -47,14 +50,20 @@ export default function TechniciensPage() {
       if (editId && !body.pin) delete body.pin;
 
       const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-      const tech = await res.json();
+      const tech = await res.json().catch(() => null);
+      if (!res.ok) {
+        setFormError(tech?.error || "Erreur lors de l'enregistrement");
+        return;
+      }
       if (tech?.id && photoFile) {
         await uploadPhoto(tech.id);
       }
-    } finally {
-      setSaving(false);
       resetForm();
       load();
+    } catch {
+      setFormError("Erreur reseau, reessayez");
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -166,6 +175,11 @@ export default function TechniciensPage() {
               required={!editId} maxLength={4} pattern="\d{4}" inputMode="numeric"
               className="admin-input border rounded-lg px-4 py-2.5 text-sm font-mono tracking-widest" />
           </div>
+          {formError && (
+            <p className="text-red-400 text-sm">
+              <i className="fas fa-exclamation-circle mr-2"></i>{formError}
+            </p>
+          )}
           <div className="flex gap-3">
             <button type="submit" disabled={saving} className="px-6 py-2.5 bg-[var(--color-red)] text-white rounded-lg text-sm font-medium disabled:opacity-50">
               {saving ? "..." : editId ? "Modifier" : "Creer"}
@@ -190,6 +204,13 @@ export default function TechniciensPage() {
             </tr>
           </thead>
           <tbody>
+            {techs.length === 0 && (
+              <tr>
+                <td colSpan={6} className="px-4 py-10 text-center admin-text-muted">
+                  <i className="fas fa-hard-hat mr-2"></i>Aucun technicien. Cliquez sur « Ajouter » pour en creer un.
+                </td>
+              </tr>
+            )}
             {techs.map((tech) => (
               <tr key={tech.id} className="border-b admin-border">
                 <td className="px-4 py-3">

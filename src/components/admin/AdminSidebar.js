@@ -261,7 +261,7 @@ export default function AdminSidebar() {
       } catch {}
     }
     fetchBadges();
-    const interval = setInterval(fetchBadges, 5000);
+    const interval = setInterval(fetchBadges, 30000);
     const onFocus = () => fetchBadges();
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onFocus);

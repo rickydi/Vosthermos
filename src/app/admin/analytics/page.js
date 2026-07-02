@@ -11,6 +11,7 @@ import FormTimeline from "@/components/admin/analytics/FormTimeline";
 import BreakdownCards from "@/components/admin/analytics/BreakdownCards";
 import OutsideCanadaVisitors from "@/components/admin/analytics/OutsideCanadaVisitors";
 import KeywordDemand from "@/components/admin/analytics/KeywordDemand";
+import { formatDuration } from "@/lib/format-duration";
 
 export default function AdminAnalyticsPage() {
   const [data, setData] = useState(null);
@@ -54,14 +55,6 @@ export default function AdminAnalyticsPage() {
       cancelled = true;
     };
   }, [periodQuery]);
-
-  function formatDuration(seconds) {
-    if (!seconds || seconds <= 0) return "0s";
-    if (seconds < 60) return `${seconds}s`;
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}m${s.toString().padStart(2, "0")}s`;
-  }
 
   if (loading) {
     return (

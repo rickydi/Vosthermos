@@ -7,10 +7,10 @@ import { logAdminActivity } from "@/lib/admin-activity";
 export async function POST(request) {
   try {
     const session = await requireAdmin();
-    const { email, password } = await request.json();
+    const { email } = await request.json();
 
-    if (!email || !password || password.length < 6) {
-      return NextResponse.json({ error: "Email et mot de passe (6+ caracteres) requis" }, { status: 400 });
+    if (!email) {
+      return NextResponse.json({ error: "Email requis" }, { status: 400 });
     }
 
     const existing = await prisma.adminUser.findUnique({ where: { email } });
@@ -18,7 +18,9 @@ export async function POST(request) {
       return NextResponse.json({ error: "Cet email existe deja" }, { status: 400 });
     }
 
-    const passwordHash = await bcrypt.hash(password, 12);
+    // Connexion par code courriel uniquement — la colonne passwordHash (non nullable)
+    // recoit une valeur aleatoire inutilisable.
+    const passwordHash = await bcrypt.hash(crypto.randomUUID(), 12);
     const user = await prisma.adminUser.create({
       data: { email, passwordHash },
     });

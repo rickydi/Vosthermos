@@ -4,28 +4,25 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import JourneyTimeline from "@/components/admin/analytics/JourneyTimeline";
-
-function formatDuration(seconds) {
-  if (!seconds || seconds <= 0) return "0s";
-  if (seconds < 60) return `${seconds}s`;
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m}m${s.toString().padStart(2, "0")}s`;
-}
+import { formatDuration } from "@/lib/format-duration";
 
 export default function VisitorDetailPage() {
   const { id } = useParams();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     async function load() {
       setLoading(true);
+      setLoadError("");
       try {
         const res = await fetch(`/api/admin/analytics/visitor/${id}`);
         const d = await res.json();
         setData(d);
-      } catch {}
+      } catch {
+        setLoadError("Erreur reseau, impossible de charger le visiteur.");
+      }
       setLoading(false);
     }
     load();
@@ -44,7 +41,7 @@ export default function VisitorDetailPage() {
   if (!data || data.error) {
     return (
       <div className="p-6 lg:p-8">
-        <p className="admin-text-muted text-center py-20">Visiteur non trouve</p>
+        <p className="admin-text-muted text-center py-20">{loadError || "Visiteur non trouve"}</p>
       </div>
     );
   }

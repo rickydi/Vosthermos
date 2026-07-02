@@ -40,7 +40,7 @@ export default function TranslateProductsPage() {
   }
 
   async function startBatch() {
-    if (!confirm(`Traduire ${stats?.missing || 0} produits manquants?\n\nCecoutera environ $${((stats?.missing || 0) * 0.003).toFixed(2)} USD en API Claude.\nDuree estimee: ~${Math.ceil((stats?.missing || 0) / BATCH_SIZE)} batchs x 15s = ${Math.ceil((stats?.missing || 0) / BATCH_SIZE * 15 / 60)} min.`)) return;
+    if (!confirm(`Traduire ${stats?.missing || 0} produits manquants?\n\nCa coutera environ $${((stats?.missing || 0) * 0.003).toFixed(2)} USD en API Claude.\nDuree estimee: ~${Math.ceil((stats?.missing || 0) / BATCH_SIZE)} batchs x 15s = ${Math.ceil((stats?.missing || 0) / BATCH_SIZE * 15 / 60)} min.`)) return;
 
     setRunning(true);
     setError("");

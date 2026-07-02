@@ -11,7 +11,6 @@ async function fetchMaskedKeys() {
     const data = await res.json();
     return {
       anthropic: data.anthropic || "",
-      serper: data.serper || "",
       googlePlaces: data.googlePlaces || "",
       aiModel: data.aiModel || DEFAULT_AI_MODEL,
     };
@@ -21,9 +20,9 @@ async function fetchMaskedKeys() {
 }
 
 export default function ApiKeysSection() {
-  const [keys, setKeys] = useState({ anthropic: "", serper: "", googlePlaces: "" });
-  const [masked, setMasked] = useState({ anthropic: "", serper: "", googlePlaces: "", aiModel: DEFAULT_AI_MODEL });
-  const [editing, setEditing] = useState({ anthropic: false, serper: false, googlePlaces: false });
+  const [keys, setKeys] = useState({ anthropic: "", googlePlaces: "" });
+  const [masked, setMasked] = useState({ anthropic: "", googlePlaces: "", aiModel: DEFAULT_AI_MODEL });
+  const [editing, setEditing] = useState({ anthropic: false, googlePlaces: false });
   const [aiModel, setAiModel] = useState(DEFAULT_AI_MODEL);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -56,7 +55,6 @@ export default function ApiKeysSection() {
     try {
       const payload = { section: "api-keys" };
       if (keys.anthropic) payload.anthropic = keys.anthropic;
-      if (keys.serper) payload.serper = keys.serper;
       if (keys.googlePlaces) payload.googlePlaces = keys.googlePlaces;
       if (aiModel.trim()) payload.aiModel = aiModel.trim();
 
@@ -68,8 +66,8 @@ export default function ApiKeysSection() {
 
       if (res.ok) {
         setSaved(true);
-        setEditing({ anthropic: false, serper: false, googlePlaces: false });
-        setKeys({ anthropic: "", serper: "", googlePlaces: "" });
+        setEditing({ anthropic: false, googlePlaces: false });
+        setKeys({ anthropic: "", googlePlaces: "" });
         const data = await fetchMaskedKeys();
         if (data) {
           setMasked(data);
@@ -83,10 +81,9 @@ export default function ApiKeysSection() {
 
   const fields = [
     { key: "anthropic", label: "Cle API Anthropic (Claude)" },
-    { key: "serper", label: "Cle API Serper (SEO)" },
     { key: "googlePlaces", label: "Cle API Google Places (adresses)" },
   ];
-  const hasPendingChanges = editing.anthropic || editing.serper || editing.googlePlaces || aiModel !== masked.aiModel;
+  const hasPendingChanges = editing.anthropic || editing.googlePlaces || aiModel !== masked.aiModel;
 
   return (
     <div className="bg-white/5 border border-white/5 rounded-xl p-6">
@@ -144,7 +141,7 @@ export default function ApiKeysSection() {
             <button
               type="button"
               onClick={handleSave}
-              disabled={saving || (!keys.anthropic && !keys.serper && !keys.googlePlaces && aiModel === masked.aiModel)}
+              disabled={saving || (!keys.anthropic && !keys.googlePlaces && aiModel === masked.aiModel)}
               className="bg-[var(--color-red)] text-white px-6 py-2.5 rounded-xl font-bold hover:bg-[var(--color-red-dark)] transition-all disabled:opacity-50 flex items-center gap-2"
             >
               {saved ? (

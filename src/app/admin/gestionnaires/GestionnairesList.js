@@ -131,7 +131,7 @@ export default function GestionnairesList({ initialManagers, clients }) {
             Gestionnaires
           </h1>
           <p className="admin-text-muted text-sm mt-1">
-            Comptes pour le portail `/gestionnaire`. Auth par magic link email.
+            Comptes pour le portail /gestionnaire. Auth par magic link email.
           </p>
         </div>
         <button
@@ -195,7 +195,7 @@ export default function GestionnairesList({ initialManagers, clients }) {
               <div className="grid md:grid-cols-2 gap-2 max-h-60 overflow-y-auto p-2 admin-bg border admin-border rounded-lg">
                 {clients.length === 0 && (
                   <p className="admin-text-muted text-sm italic p-3">
-                    Aucun client gestionnaire dans la base. Creez le client dans `/admin/clients`.
+                    Aucun client gestionnaire dans la base. Creez le client dans /admin/clients.
                   </p>
                 )}
                 {clients.map((c) => (

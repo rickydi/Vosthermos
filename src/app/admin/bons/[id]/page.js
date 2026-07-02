@@ -372,11 +372,8 @@ export default function BonDetailPage({ forcedDocumentType = null } = {}) {
       {/* Top bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6 print-hide">
         <div className="flex items-center gap-3 flex-wrap">
-          <Link href={editHref} className="admin-text-muted text-sm hover:admin-text">
-            <i className="fas fa-arrow-left mr-2"></i>Retour a la modification
-          </Link>
           <Link href={listHref} className="admin-text-muted text-sm hover:admin-text">
-            {listLabel}
+            <i className="fas fa-arrow-left mr-2"></i>{listLabel}
           </Link>
           <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${workOrderStatusClass(wo.statut)}`}>
             {workOrderStatusLabel(wo.statut)}

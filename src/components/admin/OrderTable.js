@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 const statuses = [
   { value: "pending", label: "En attente", color: "bg-yellow-500/20 text-yellow-400" },
+  { value: "paid", label: "Payee", color: "bg-emerald-500/20 text-emerald-400" },
   { value: "confirmed", label: "Confirmee", color: "bg-blue-500/20 text-blue-400" },
   { value: "shipped", label: "Expediee", color: "bg-purple-500/20 text-purple-400" },
   { value: "delivered", label: "Livree", color: "bg-green-500/20 text-green-400" },
