@@ -388,8 +388,8 @@ export default function ChatPanel({ initialConversationId }) {
         {selected ? (
           <>
             {/* Header */}
-            <div className="px-4 md:px-6 py-4 border-b admin-border flex items-center justify-between">
-              <div className="flex items-center gap-3">
+            <div className="px-4 md:px-6 py-4 border-b admin-border flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
                 <button onClick={() => { setSelected(null); selectedIdRef.current = null; }} className="md:hidden admin-text-muted hover:admin-text transition-colors">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
                 </button>
@@ -431,7 +431,7 @@ export default function ChatPanel({ initialConversationId }) {
                   })()}
                 </div>
               </div>
-              <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+              <div className="flex items-center gap-2 shrink-0 flex-wrap justify-start md:justify-end">
                 {forwardStatus && <span className="text-xs text-emerald-300 font-semibold">{forwardStatus}</span>}
                 <button onClick={() => openWhatsappWithFallback("jason")} disabled={!!forwardingTo} className="px-4 py-2 bg-green-500/20 text-green-400 hover:bg-green-500/30 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50" title="Ouvrir WhatsApp Jason avec SMS secours">
                   <i className={`fas ${forwardingTo === "jason" ? "fa-spinner fa-spin" : "fab fa-whatsapp"} mr-1`}></i>Jason
