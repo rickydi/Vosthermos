@@ -55,6 +55,7 @@ export default function SuiviSimple() {
   const [search, setSearch] = useState("");
   const [creating, setCreating] = useState(false);
   const [rdvFor, setRdvFor] = useState(null); // suivi pour lequel on planifie une visite avec RDV
+  const [deleting, setDeleting] = useState(null); // suivi à supprimer (modal de confirmation)
   const [sla, setSla] = useState(null);
   const [now, setNow] = useState(0); // 0 au SSR, posé au montage (évite tout mismatch d'hydratation)
   const searchRef = useRef("");
@@ -317,6 +318,13 @@ export default function SuiviSimple() {
                       {fmtMoney(fu.estimateAmount) && <span className="admin-text font-semibold">{fmtMoney(fu.estimateAmount)}</span>}
                     </div>
                   </div>
+                  <button
+                    onClick={() => setDeleting(fu)}
+                    title="Supprimer ce suivi"
+                    className="shrink-0 w-8 h-8 rounded-lg admin-text-muted hover:text-rose-400 hover:bg-rose-500/10 transition-colors inline-flex items-center justify-center"
+                  >
+                    <i className="fas fa-trash-can text-sm"></i>
+                  </button>
                 </div>
 
                 <div className="flex items-center gap-1.5 mt-3 flex-wrap">
@@ -367,6 +375,13 @@ export default function SuiviSimple() {
           fu={rdvFor}
           onClose={() => setRdvFor(null)}
           onSaved={(updated) => { patchLocal(rdvFor.id, updated); setRdvFor(null); }}
+        />
+      )}
+      {deleting && (
+        <DeleteModal
+          fu={deleting}
+          onClose={() => setDeleting(null)}
+          onDeleted={() => { setItems((list) => list.filter((it) => it.id !== deleting.id)); setDeleting(null); }}
         />
       )}
     </div>
@@ -762,6 +777,74 @@ function RdvModal({ fu, onClose, onSaved }) {
             <button type="button" onClick={submit} disabled={!date || !slot || saving}
               className="px-5 py-2 bg-violet-600 hover:bg-violet-500 text-white rounded-lg text-sm font-bold disabled:opacity-40">
               {saving ? <><i className="fas fa-spinner fa-spin mr-2"></i>Planification…</> : <><i className="fas fa-check mr-2"></i>Confirmer le RDV</>}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Confirmation de suppression d'une carte du suivi. Par défaut on ne supprime
+// que le suivi ; une case permet de supprimer AUSSI la fiche client (l'API
+// refuse si des bons de travail y sont liés — on affiche alors l'erreur).
+function DeleteModal({ fu, onClose, onDeleted }) {
+  const [alsoClient, setAlsoClient] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const name = fu.client?.name || fu.contactName || fu.title || "Sans nom";
+
+  async function confirm() {
+    if (busy) return;
+    setBusy(true);
+    setErr("");
+    try {
+      if (alsoClient && fu.clientId) {
+        const resC = await fetch(`/api/admin/clients/${fu.clientId}`, { method: "DELETE" });
+        if (!resC.ok) {
+          const d = await resC.json().catch(() => ({}));
+          throw new Error(d.error || "Impossible de supprimer la fiche client");
+        }
+      }
+      const res = await fetch(`/api/admin/follow-ups/${fu.id}`, { method: "DELETE", headers: MUTATION_HEADERS });
+      if (!res.ok) throw new Error("Erreur — réessayez");
+      onDeleted();
+    } catch (e) {
+      setErr(e.message);
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-center p-4 overflow-y-auto"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="admin-bg border admin-border rounded-xl w-full max-w-md shadow-2xl my-8">
+        <div className="flex items-center justify-between p-5 border-b admin-border">
+          <h2 className="admin-text font-bold text-lg"><i className="fas fa-trash-can mr-2 text-rose-400"></i>Supprimer ce suivi?</h2>
+          <button onClick={onClose} className="w-8 h-8 rounded admin-card border admin-border hover:bg-white/5 inline-flex items-center justify-center"><i className="fas fa-times admin-text-muted"></i></button>
+        </div>
+        <div className="p-5 space-y-4">
+          <p className="admin-text text-sm">
+            <span className="font-bold">{name}</span> — la carte disparaît du suivi. Cette action est définitive.
+          </p>
+          {fu.clientId && (
+            <label className="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" checked={alsoClient} onChange={(e) => { setAlsoClient(e.target.checked); setErr(""); }}
+                className="mt-0.5 w-4 h-4 accent-rose-500" />
+              <span className="text-sm">
+                <span className="admin-text font-semibold block">Supprimer aussi la fiche client</span>
+                <span className="admin-text-muted text-xs">Dossier, notes et photos du client. Refusé si des bons de travail y sont liés.</span>
+              </span>
+            </label>
+          )}
+          {err && (
+            <p className="px-4 py-3 rounded-xl bg-red-500/15 border border-red-500/40 text-red-300 text-sm font-semibold">{err}</p>
+          )}
+          <div className="flex justify-end gap-2">
+            <button onClick={onClose} className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm">Annuler</button>
+            <button onClick={confirm} disabled={busy}
+              className="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-sm font-bold disabled:opacity-50">
+              {busy ? <><i className="fas fa-spinner fa-spin mr-2"></i>Suppression…</> : "Supprimer"}
             </button>
           </div>
         </div>
