@@ -400,14 +400,14 @@ export default function ClientDetail({ client }) {
         </div>
       </div>
 
-      {/* overflow-x-auto + shrink-0 : sur mobile les 7 onglets débordent — la barre
-          se fait défiler du doigt au lieu de couper Photos/Notes/RDV/Chats. */}
-      <div className="flex gap-1 sm:gap-2 mb-6 border-b admin-border overflow-x-auto">
+      {/* flex-wrap : sur mobile les 7 onglets passent sur 2 lignes — tout est
+          visible d'un coup, sans défilement ni onglet coupé. */}
+      <div className="flex flex-wrap gap-x-1 sm:gap-x-2 mb-6 border-b admin-border">
         {tabs.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`shrink-0 whitespace-nowrap px-3 sm:px-5 py-3 text-sm font-bold transition-colors ${tab === t.id ? "admin-text border-b-2 border-[var(--color-red)]" : "admin-text-muted hover:admin-text"}`}
+            className={`whitespace-nowrap px-2.5 sm:px-5 py-2.5 sm:py-3 text-[13px] sm:text-sm font-bold transition-colors ${tab === t.id ? "admin-text border-b-2 border-[var(--color-red)]" : "admin-text-muted hover:admin-text"}`}
           >
             <i className={`fas ${t.icon} mr-1.5 sm:mr-2`}></i>{t.label}
           </button>
