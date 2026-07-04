@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
@@ -52,6 +52,149 @@ function TabEmpty({ icon, text }) {
   );
 }
 
+// Barre d'actions de l'onglet Photos : ajouter nos propres photos (upload
+// direct) ou texter au client un lien sécurisé pour qu'il envoie les siennes.
+// Les photos du chat et du terrain continuent d'arriver automatiquement.
+function PhotosActions({ client, onUploaded }) {
+  const inputRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+  const [confirmSms, setConfirmSms] = useState(false);
+  const [smsSending, setSmsSending] = useState(false);
+  const [smsResult, setSmsResult] = useState(null); // { sent, link, phone, error }
+  const [msg, setMsg] = useState(null); // { ok, text }
+
+  async function upload(fileList) {
+    const files = Array.from(fileList || []).filter((f) => f.type.startsWith("image/"));
+    if (!files.length || uploading) return;
+    setUploading(true);
+    setMsg(null);
+    try {
+      const fd = new FormData();
+      files.slice(0, 10).forEach((f) => fd.append("photos", f));
+      const res = await fetch(`/api/admin/clients/${client.id}/photos`, { method: "POST", body: fd });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Erreur d'envoi");
+      const n = data.photos?.length || files.length;
+      setMsg({ ok: true, text: `${n} photo${n > 1 ? "s" : ""} ajoutée${n > 1 ? "s" : ""} ✓` });
+      onUploaded();
+    } catch (err) {
+      setMsg({ ok: false, text: err.message });
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  }
+
+  async function sendSmsRequest() {
+    if (smsSending) return;
+    setSmsSending(true);
+    try {
+      const res = await fetch(`/api/admin/clients/${client.id}/photo-request`, { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Erreur");
+      setSmsResult(data);
+    } catch (err) {
+      setSmsResult({ sent: false, error: err.message });
+    } finally {
+      setSmsSending(false);
+    }
+  }
+
+  function closeSmsModal() {
+    setConfirmSms(false);
+    setSmsResult(null);
+  }
+
+  return (
+    <div className="mb-4">
+      <input ref={inputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => upload(e.target.files)} />
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
+          className="px-4 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-bold disabled:opacity-50"
+        >
+          {uploading ? <><i className="fas fa-spinner fa-spin mr-2"></i>Envoi…</> : <><i className="fas fa-plus mr-2"></i>Ajouter des photos</>}
+        </button>
+        <button
+          onClick={() => setConfirmSms(true)}
+          className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-bold hover:border-[var(--color-red)] transition-colors"
+        >
+          <i className="fas fa-comment-sms mr-2"></i>Demander par texto
+        </button>
+        {msg && <span className={`text-sm font-semibold ${msg.ok ? "text-green-500" : "text-red-500"}`}>{msg.text}</span>}
+      </div>
+
+      {confirmSms && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-center p-4 overflow-y-auto"
+          onClick={(e) => { if (e.target === e.currentTarget) closeSmsModal(); }}>
+          <div className="admin-bg border admin-border rounded-xl w-full max-w-md shadow-2xl my-8">
+            <div className="flex items-center justify-between p-5 border-b admin-border">
+              <h2 className="admin-text font-bold text-lg"><i className="fas fa-comment-sms mr-2 text-sky-400"></i>Demander des photos</h2>
+              <button onClick={closeSmsModal} className="w-8 h-8 rounded admin-card border admin-border hover:bg-white/5 inline-flex items-center justify-center"><i className="fas fa-times admin-text-muted"></i></button>
+            </div>
+            <div className="p-5 space-y-4">
+              {!smsResult ? (
+                <>
+                  <p className="admin-text text-sm">
+                    {client.phone || client.secondaryPhone ? (
+                      <>Un texto sera envoyé à <span className="font-bold">{client.phone || client.secondaryPhone}</span> avec
+                      un lien sécurisé (valide 7 jours). Le client clique, prend ses photos, et elles
+                      arrivent directement ici.</>
+                    ) : (
+                      <>Ce client n&apos;a pas de numéro de téléphone au dossier — le lien sera généré
+                      pour que vous puissiez l&apos;envoyer vous-même (courriel, etc.).</>
+                    )}
+                  </p>
+                  <div className="flex justify-end gap-2">
+                    <button onClick={closeSmsModal} className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm">Annuler</button>
+                    <button onClick={sendSmsRequest} disabled={smsSending}
+                      className="px-5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-sm font-bold disabled:opacity-50">
+                      {smsSending ? <><i className="fas fa-spinner fa-spin mr-2"></i>Envoi…</> : (client.phone || client.secondaryPhone) ? "Envoyer le texto" : "Générer le lien"}
+                    </button>
+                  </div>
+                </>
+              ) : smsResult.sent ? (
+                <>
+                  <p className="text-green-400 font-semibold"><i className="fas fa-circle-check mr-2"></i>Texto envoyé à {smsResult.phone}.</p>
+                  <p className="admin-text-muted text-xs">Les photos du client apparaîtront dans cet onglet dès qu&apos;il les envoie.</p>
+                  <div className="flex justify-end">
+                    <button onClick={closeSmsModal} className="px-5 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-bold">Fermer</button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-amber-300 font-semibold text-sm">
+                    <i className="fas fa-triangle-exclamation mr-2"></i>
+                    {smsResult.error ? smsResult.error : "Le texto n'est pas parti (SMS non configuré)."}
+                  </p>
+                  {smsResult.link && (
+                    <>
+                      <p className="admin-text-muted text-xs">Copiez le lien et envoyez-le au client vous-même :</p>
+                      <div className="flex items-center gap-2">
+                        <input readOnly value={smsResult.link} onFocus={(e) => e.target.select()}
+                          className="admin-input border rounded-lg px-3 py-2 text-xs w-full" />
+                        <button
+                          onClick={() => { navigator.clipboard?.writeText(smsResult.link); setMsg({ ok: true, text: "Lien copié ✓" }); }}
+                          className="shrink-0 px-3 py-2 admin-card border admin-border admin-text rounded-lg text-xs font-bold">
+                          <i className="fas fa-copy mr-1"></i>Copier
+                        </button>
+                      </div>
+                    </>
+                  )}
+                  <div className="flex justify-end">
+                    <button onClick={closeSmsModal} className="px-5 py-2 admin-card border admin-border admin-text rounded-lg text-sm">Fermer</button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ClientDetail({ client }) {
   const router = useRouter();
   const [tab, setTab] = useState("infos");
@@ -76,15 +219,15 @@ export default function ClientDetail({ client }) {
   const [overview, setOverview] = useState(null);
   const [loadingOverview, setLoadingOverview] = useState(true);
   const [dossierFilter, setDossierFilter] = useState("all");
-  useEffect(() => {
-    let alive = true;
-    setLoadingOverview(true);
-    fetch(`/api/admin/clients/${client.id}/overview`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => { if (alive) { setOverview(d); setLoadingOverview(false); } })
-      .catch(() => { if (alive) setLoadingOverview(false); });
-    return () => { alive = false; };
+  const loadOverview = useCallback(async (silent = false) => {
+    if (!silent) setLoadingOverview(true);
+    try {
+      const res = await fetch(`/api/admin/clients/${client.id}/overview`);
+      if (res.ok) setOverview(await res.json());
+    } catch {}
+    setLoadingOverview(false);
   }, [client.id]);
+  useEffect(() => { loadOverview(); }, [loadOverview]);
 
   // Notes client (onglet Notes)
   const [notesDraft, setNotesDraft] = useState(client.notes || "");
@@ -257,14 +400,16 @@ export default function ClientDetail({ client }) {
         </div>
       </div>
 
-      <div className="flex gap-2 mb-6 border-b admin-border">
+      {/* overflow-x-auto + shrink-0 : sur mobile les 7 onglets débordent — la barre
+          se fait défiler du doigt au lieu de couper Photos/Notes/RDV/Chats. */}
+      <div className="flex gap-1 sm:gap-2 mb-6 border-b admin-border overflow-x-auto">
         {tabs.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`px-5 py-3 text-sm font-bold transition-colors ${tab === t.id ? "admin-text border-b-2 border-[var(--color-red)]" : "admin-text-muted hover:admin-text"}`}
+            className={`shrink-0 whitespace-nowrap px-3 sm:px-5 py-3 text-sm font-bold transition-colors ${tab === t.id ? "admin-text border-b-2 border-[var(--color-red)]" : "admin-text-muted hover:admin-text"}`}
           >
-            <i className={`fas ${t.icon} mr-2`}></i>{t.label}
+            <i className={`fas ${t.icon} mr-1.5 sm:mr-2`}></i>{t.label}
           </button>
         ))}
       </div>
@@ -400,6 +545,14 @@ export default function ClientDetail({ client }) {
                     {f.visitStatus === "todo" && !f.visitDoneAt && (
                       <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-semibold bg-amber-500/10 border border-amber-400/30 text-amber-300"><i className="fas fa-clock"></i>Visite à faire</span>
                     )}
+                    {f.visitStatus === "rdv" && !f.visitDoneAt && (
+                      <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-semibold bg-violet-500/10 border border-violet-400/30 text-violet-300">
+                        <i className="fas fa-calendar-check"></i>Visite avec RDV{f.visitScheduledAt ? ` · ${fmtDate(f.visitScheduledAt)}${f.visitTimeSlot ? ` ${f.visitTimeSlot}` : ""}` : ""}
+                      </span>
+                    )}
+                    {f.visitStatus === "anytime" && !f.visitDoneAt && (
+                      <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-semibold bg-sky-500/10 border border-sky-400/30 text-sky-300"><i className="fas fa-door-open"></i>Passage libre</span>
+                    )}
                     {f.visitStatus === "none" && (
                       <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-semibold admin-bg border admin-border admin-text-muted"><i className="fas fa-ban"></i>Sans visite</span>
                     )}
@@ -471,8 +624,9 @@ export default function ClientDetail({ client }) {
       {/* ─── Onglet Photos ────────────────────────────────────── */}
       {tab === "photos" && (
         <div>
+          <PhotosActions client={client} onUploaded={() => loadOverview(true)} />
           {loadingOverview ? <TabLoading /> : !overview?.photos?.length ? (
-            <TabEmpty icon="fa-images" text="Aucune photo pour ce client." />
+            <TabEmpty icon="fa-images" text="Aucune photo pour ce client. Ajoutez-en ou demandez-en au client par texto." />
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
               {overview.photos.map((p) => (

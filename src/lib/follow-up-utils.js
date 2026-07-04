@@ -27,6 +27,7 @@ export function serializeFollowUp(followUp) {
     jobCompletedAt: followUp.jobCompletedAt?.toISOString() || null,
     contactedAt: followUp.contactedAt?.toISOString() || null,
     visitDoneAt: followUp.visitDoneAt?.toISOString() || null,
+    visitScheduledAt: followUp.visitScheduledAt?.toISOString() || null,
     invoicedAt: followUp.invoicedAt?.toISOString() || null,
     lastAttemptAt: followUp.lastAttemptAt?.toISOString() || null,
     nextActionDate: dateOnlyIso(followUp.nextActionDate),

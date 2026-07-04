@@ -377,8 +377,15 @@ model ClientFollowUp {
   contactedAt     DateTime?
   visitDoneAt     DateTime?
   invoicedAt      DateTime?
-  // État de la visite : "todo" (à faire) | "done" (faite) | "none" (sans visite) | null.
+  // État de la visite : "todo" (à faire) | "done" (faite) | "rdv" (planifiée avec
+  // rendez-vous) | "anytime" (passage libre — client toujours sur place) | "none"
+  // (sans visite) | null.
   visitStatus     String?
+  // Rendez-vous de visite (visitStatus="rdv") : date (à 12h UTC, comme nextActionDate)
+  // + créneau ("9h".."16h", même liste que le calendrier public). Un Appointment
+  // correspondant est créé/annulé par l'API follow-ups.
+  visitScheduledAt DateTime?
+  visitTimeSlot   String?
   // Tentatives de contact restées sans réponse (suivi des relances).
   contactAttempts Int       @default(0)
   lastAttemptAt   DateTime?

@@ -1,4 +1,7 @@
 @import "tailwindcss";
+/* Styles d'article (classes `prose` du blogue, outils, réalisations) — sans ce
+   plugin, tous les titres/paragraphes du blogue s'affichent en texte plat. */
+@plugin "@tailwindcss/typography";
 
 /* Product image toggle */
 html[data-show-images="false"] .product-image-container {

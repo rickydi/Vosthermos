@@ -34,6 +34,14 @@ function computeSla(fu, sla, now) {
     return (now - new Date(since).getTime()) / 3600000 > t;
   };
   if (!fu.contactedAt) return { stage: "to_contact", overdue: overdue("to_contact", fu.lastAttemptAt || fu.createdAt) };
+  // Visite planifiée (RDV) : en retard seulement si le jour du RDV est passé sans
+  // que la visite soit marquée faite. Passage libre : le client est toujours sur
+  // place, aucun délai ne presse.
+  if (fu.visitStatus === "rdv" && !fu.visitDoneAt) {
+    const missed = fu.visitScheduledAt && now > new Date(fu.visitScheduledAt).getTime() + 24 * 3600000;
+    return { stage: "visit", overdue: !!missed };
+  }
+  if (fu.visitStatus === "anytime" && !fu.visitDoneAt) return { stage: "visit", overdue: false };
   if (fu.visitStatus === "todo" && !fu.visitDoneAt) return { stage: "visit", overdue: overdue("visit", fu.contactedAt) };
   if (!fu.estimateSentAt) return { stage: "soumission", overdue: overdue("soumission", fu.visitDoneAt || fu.contactedAt) };
   if (!fu.acceptedAt) return { stage: "approval", overdue: overdue("approval", fu.estimateSentAt) };
@@ -46,6 +54,7 @@ export default function SuiviSimple() {
   const [filter, setFilter] = useState("open");
   const [search, setSearch] = useState("");
   const [creating, setCreating] = useState(false);
+  const [rdvFor, setRdvFor] = useState(null); // suivi pour lequel on planifie une visite avec RDV
   const [sla, setSla] = useState(null);
   const [now, setNow] = useState(0); // 0 au SSR, posé au montage (évite tout mismatch d'hydratation)
   const searchRef = useRef("");
@@ -165,17 +174,20 @@ export default function SuiviSimple() {
     }
   }
 
-  // État de la visite via le menu : faite / à faire / sans visite.
+  // État de la visite via le menu : faite / à faire / passage libre / sans visite.
+  // (le choix "Visite avec RDV" passe par le modal RdvModal, pas par ici)
   async function setVisite(fu, state) {
     const stamp = new Date().toISOString();
     const optimistic =
       state === "done" ? { visitDoneAt: fu.visitDoneAt || stamp, visitStatus: "done" }
-      : state === "todo" ? { visitDoneAt: null, visitStatus: "todo" }
-      : { visitDoneAt: null, visitStatus: "none" };
+      : state === "todo" ? { visitDoneAt: null, visitStatus: "todo", visitScheduledAt: null, visitTimeSlot: null }
+      : state === "anytime" ? { visitDoneAt: null, visitStatus: "anytime", visitScheduledAt: null, visitTimeSlot: null }
+      : { visitDoneAt: null, visitStatus: "none", visitScheduledAt: null, visitTimeSlot: null };
     patchLocal(fu.id, optimistic);
     const body =
       state === "done" ? { toggleMilestone: "visitDoneAt", on: true, visitStatus: "done" }
       : state === "todo" ? { toggleMilestone: "visitDoneAt", on: false, visitStatus: "todo" }
+      : state === "anytime" ? { toggleMilestone: "visitDoneAt", on: false, visitStatus: "anytime" }
       : { toggleMilestone: "visitDoneAt", on: false, visitStatus: "none" };
     try {
       const res = await fetch(`/api/admin/follow-ups/${fu.id}`, {
@@ -311,7 +323,7 @@ export default function SuiviSimple() {
                   <ContactMenu fu={fu} onPick={(state) => setContactState(fu, state)} overdue={overdueStage === "to_contact"} />
                   {FOLLOW_UP_MILESTONES.filter((m) => m.key !== "contactedAt").map((m) => {
                     if (m.key === "visitDoneAt") {
-                      return <VisiteMenu key={m.key} fu={fu} onPick={(state) => setVisite(fu, state)} overdue={overdueStage === "visit"} />;
+                      return <VisiteMenu key={m.key} fu={fu} onPick={(state) => (state === "rdv" ? setRdvFor(fu) : setVisite(fu, state))} overdue={overdueStage === "visit"} />;
                     }
                     if (m.key === "estimateSentAt") {
                       return <SoumissionMenu key={m.key} fu={fu} onPick={(k) => setSoumission(fu, k === "none" ? null : k)} overdue={overdueStage === "soumission"} />;
@@ -350,6 +362,13 @@ export default function SuiviSimple() {
       )}
 
       {creating && <CreateModal onClose={() => setCreating(false)} onCreated={() => { setCreating(false); load(); }} />}
+      {rdvFor && (
+        <RdvModal
+          fu={rdvFor}
+          onClose={() => setRdvFor(null)}
+          onSaved={(updated) => { patchLocal(rdvFor.id, updated); setRdvFor(null); }}
+        />
+      )}
     </div>
   );
 }
@@ -512,10 +531,13 @@ function SoumissionMenu({ fu, onPick, overdue }) {
   );
 }
 
-// Menu déroulant compact pour la visite : faite / à faire / sans visite.
+// Menu déroulant compact pour la visite : faite / à faire / avec RDV / passage
+// libre / sans visite. "rdv" ouvre le modal de planification (RdvModal).
 const VISITE_OPTIONS = [
   { key: "done", label: "Visite faite", icon: "fa-circle-check", tone: "text-emerald-400" },
   { key: "todo", label: "Visite à faire", icon: "fa-clock", tone: "text-amber-400" },
+  { key: "rdv", label: "Visite avec RDV — choisir la date…", icon: "fa-calendar-check", tone: "text-violet-400" },
+  { key: "anytime", label: "Passage libre — client toujours sur place", icon: "fa-door-open", tone: "text-sky-400" },
   { key: "none", label: "Sans visite", icon: "fa-ban", tone: "admin-text-muted" },
 ];
 
@@ -523,14 +545,22 @@ function VisiteMenu({ fu, onPick, overdue }) {
   const [open, setOpen] = useState(false);
   const done = !!fu.visitDoneAt || fu.visitStatus === "done";
   const status = fu.visitStatus;
-  const current = done ? "done" : status === "todo" ? "todo" : status === "none" ? "none" : null;
+  const current = done ? "done" : ["todo", "rdv", "anytime", "none"].includes(status) ? status : null;
   const cur = done
     ? { label: "Visite faite", icon: "fa-location-dot", cls: "bg-emerald-500/15 border-emerald-400/40 text-emerald-300" }
     : status === "todo"
       ? { label: "Visite à faire", icon: "fa-clock", cls: "border-amber-400/50 text-amber-300 bg-amber-500/10" }
-      : status === "none"
-        ? { label: "Sans visite", icon: "fa-ban", cls: "admin-bg admin-border admin-text-muted" }
-        : { label: "Visite", icon: "fa-location-dot", cls: "admin-bg admin-border admin-text-muted" };
+      : status === "rdv"
+        ? {
+            label: fu.visitScheduledAt ? `RDV ${fmtDate(fu.visitScheduledAt)}${fu.visitTimeSlot ? ` · ${fu.visitTimeSlot}` : ""}` : "Visite avec RDV",
+            icon: "fa-calendar-check",
+            cls: "border-violet-400/50 text-violet-300 bg-violet-500/10",
+          }
+        : status === "anytime"
+          ? { label: "Passage libre", icon: "fa-door-open", cls: "border-sky-400/50 text-sky-300 bg-sky-500/10" }
+          : status === "none"
+            ? { label: "Sans visite", icon: "fa-ban", cls: "admin-bg admin-border admin-text-muted" }
+            : { label: "Visite", icon: "fa-location-dot", cls: "admin-bg admin-border admin-text-muted" };
 
   return (
     <div className="relative">
@@ -561,6 +591,108 @@ function VisiteMenu({ fu, onPick, overdue }) {
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+// Modal « Visite avec RDV » : date + créneau (mêmes plages que le calendrier
+// public, un RDV par créneau). Crée le rendez-vous côté serveur via le PUT
+// follow-ups { visitRdv } — il apparaît aussi dans l'onglet RDV du client.
+const RDV_SLOTS = ["9h", "10h", "11h", "13h", "14h", "15h", "16h"];
+
+function RdvModal({ fu, onClose, onSaved }) {
+  const currentDay = fu.visitScheduledAt ? String(fu.visitScheduledAt).slice(0, 10) : "";
+  const [date, setDate] = useState(currentDay || new Date().toLocaleDateString("fr-CA"));
+  const [slot, setSlot] = useState(fu.visitTimeSlot || "");
+  const [booked, setBooked] = useState([]);
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState("");
+  const name = fu.client?.name || fu.contactName || fu.title || "Sans nom";
+
+  // Créneaux déjà réservés ce jour-là (route publique du calendrier de RDV).
+  useEffect(() => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { setBooked([]); return; }
+    let alive = true;
+    fetch(`/api/appointments?date=${date}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (alive) setBooked(Array.isArray(d?.bookedSlots) ? d.bookedSlots : []); })
+      .catch(() => { if (alive) setBooked([]); });
+    return () => { alive = false; };
+  }, [date]);
+
+  async function submit() {
+    if (!date || !slot || saving) return;
+    setSaving(true);
+    setErr("");
+    try {
+      const res = await fetch(`/api/admin/follow-ups/${fu.id}`, {
+        method: "PUT",
+        headers: MUTATION_HEADERS,
+        body: JSON.stringify({ visitRdv: { date, timeSlot: slot } }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Erreur — réessayez");
+      onSaved(data);
+    } catch (e) {
+      setErr(e.message);
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-center p-4 overflow-y-auto"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="admin-bg border admin-border rounded-xl w-full max-w-md shadow-2xl my-8">
+        <div className="flex items-center justify-between p-5 border-b admin-border">
+          <h2 className="admin-text font-bold text-lg">
+            <i className="fas fa-calendar-check mr-2 text-violet-400"></i>Visite avec RDV
+          </h2>
+          <button onClick={onClose} className="w-8 h-8 rounded admin-card border admin-border hover:bg-white/5 inline-flex items-center justify-center"><i className="fas fa-times admin-text-muted"></i></button>
+        </div>
+        <div className="p-5 space-y-4">
+          <p className="admin-text text-sm font-semibold">{name}</p>
+          <div>
+            <label className="admin-text-muted text-xs mb-1 block font-medium">Date du rendez-vous</label>
+            <input type="date" value={date} min={new Date().toLocaleDateString("fr-CA")}
+              onChange={(e) => { setDate(e.target.value); setSlot(""); setErr(""); }}
+              className="admin-input border rounded-lg px-3 py-2.5 text-base w-full" />
+          </div>
+          <div>
+            <label className="admin-text-muted text-xs mb-1 block font-medium">Heure</label>
+            <div className="grid grid-cols-4 gap-2">
+              {RDV_SLOTS.map((s) => {
+                // Le créneau déjà occupé par CE suivi reste sélectionnable (on modifie son propre RDV).
+                const isMine = date === currentDay && s === fu.visitTimeSlot;
+                const taken = booked.includes(s) && !isMine;
+                return (
+                  <button key={s} type="button" disabled={taken}
+                    onClick={() => { setSlot(s); setErr(""); }}
+                    className={`h-11 rounded-lg border text-sm font-bold transition-colors ${
+                      slot === s
+                        ? "bg-violet-500/25 border-violet-400 text-violet-200"
+                        : taken
+                          ? "admin-bg admin-border admin-text-muted opacity-35 cursor-not-allowed line-through"
+                          : "admin-card admin-border admin-text hover:border-violet-400/60"
+                    }`}>
+                    {s}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="admin-text-muted text-[11px] mt-1.5">Les heures barrées sont déjà réservées ce jour-là.</p>
+          </div>
+          {err && (
+            <p className="px-4 py-3 rounded-xl bg-red-500/15 border border-red-500/40 text-red-300 text-sm font-semibold">{err}</p>
+          )}
+          <div className="flex justify-end gap-2 pt-1">
+            <button type="button" onClick={onClose} className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm">Annuler</button>
+            <button type="button" onClick={submit} disabled={!date || !slot || saving}
+              className="px-5 py-2 bg-violet-600 hover:bg-violet-500 text-white rounded-lg text-sm font-bold disabled:opacity-40">
+              {saving ? <><i className="fas fa-spinner fa-spin mr-2"></i>Planification…</> : <><i className="fas fa-check mr-2"></i>Confirmer le RDV</>}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

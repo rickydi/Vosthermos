@@ -120,7 +120,7 @@ export async function GET(req, { params }) {
       title: p.title,
       source: p.source,
       date: iso(p.createdAt),
-      from: p.source === "terrain" ? "Terrain" : p.source === "chat" ? "Chat" : "Admin",
+      from: p.source === "terrain" ? "Terrain" : p.source === "chat" ? "Chat" : p.source === "client" ? "Client (texto)" : "Admin",
     })),
     ...workOrders.flatMap((wo) =>
       (Array.isArray(wo.photos) ? wo.photos : []).map((url, i) => ({
