@@ -601,6 +601,74 @@ function VisiteMenu({ fu, onPick, overdue }) {
 // l'onglet RDV du client.
 const RDV_SLOTS = ["6h", "7h", "8h", "9h", "10h", "11h", "12h", "13h", "14h", "15h", "16h", "17h", "18h", "19h", "20h"];
 
+// Date locale -> "YYYY-MM-DD" sans passer par l'UTC (évite le décalage de fuseau).
+const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+const MONTH_LABELS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
+
+// Mini-calendrier intégré au modal (remplace le sélecteur de date natif du
+// téléphone, trop lourd sur Android) : un tap sur le jour = choisi.
+function MiniCalendar({ value, onPick }) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const initial = value ? new Date(`${value}T12:00:00`) : today;
+  const [month, setMonth] = useState(new Date(initial.getFullYear(), initial.getMonth(), 1));
+
+  const firstDay = month.getDay(); // 0 = dimanche
+  const daysInMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
+  const cells = [...Array(firstDay).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
+  const canGoBack = month > new Date(today.getFullYear(), today.getMonth(), 1);
+
+  return (
+    <div className="admin-card border admin-border rounded-xl p-3">
+      <div className="flex items-center justify-between mb-2">
+        <button type="button" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}
+          disabled={!canGoBack}
+          className="w-9 h-9 rounded-lg admin-bg border admin-border admin-text disabled:opacity-25">
+          <i className="fas fa-chevron-left text-xs"></i>
+        </button>
+        <span className="admin-text text-sm font-bold capitalize">{MONTH_LABELS[month.getMonth()]} {month.getFullYear()}</span>
+        <button type="button" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}
+          className="w-9 h-9 rounded-lg admin-bg border admin-border admin-text">
+          <i className="fas fa-chevron-right text-xs"></i>
+        </button>
+      </div>
+      <div className="grid grid-cols-7 gap-1 text-center">
+        {["D", "L", "M", "M", "J", "V", "S"].map((d, i) => (
+          <span key={`${d}${i}`} className="admin-text-muted text-[11px] font-bold py-1">{d}</span>
+        ))}
+        {cells.map((day, i) => {
+          if (!day) return <span key={`e${i}`} />;
+          const date = new Date(month.getFullYear(), month.getMonth(), day);
+          const iso = ymd(date);
+          const past = date < today;
+          const selected = value === iso;
+          const isToday = ymd(today) === iso;
+          return (
+            <button
+              key={iso}
+              type="button"
+              disabled={past}
+              onClick={() => onPick(iso)}
+              className={`h-9 rounded-lg text-sm font-semibold transition-colors ${
+                selected
+                  ? "bg-violet-600 text-white"
+                  : past
+                    ? "admin-text-muted opacity-30 cursor-not-allowed"
+                    : isToday
+                      ? "border border-violet-400/60 admin-text"
+                      : "admin-text hover:bg-white/10"
+              }`}
+            >
+              {day}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function RdvModal({ fu, onClose, onSaved }) {
   const currentDay = fu.visitScheduledAt ? String(fu.visitScheduledAt).slice(0, 10) : "";
   const [date, setDate] = useState(currentDay || new Date().toLocaleDateString("fr-CA"));
@@ -654,9 +722,13 @@ function RdvModal({ fu, onClose, onSaved }) {
           <p className="admin-text text-sm font-semibold">{name}</p>
           <div>
             <label className="admin-text-muted text-xs mb-1 block font-medium">Date du rendez-vous</label>
-            <input type="date" value={date} min={new Date().toLocaleDateString("fr-CA")}
-              onChange={(e) => { setDate(e.target.value); setSlot(""); setErr(""); }}
-              className="admin-input border rounded-lg px-3 py-2.5 text-base w-full" />
+            <MiniCalendar value={date} onPick={(iso) => { setDate(iso); setSlot(""); setErr(""); }} />
+            {date && (
+              <p className="admin-text text-xs font-semibold mt-1.5">
+                <i className="fas fa-calendar mr-1 text-violet-400"></i>
+                {new Date(`${date}T12:00:00`).toLocaleDateString("fr-CA", { weekday: "long", day: "numeric", month: "long" })}
+              </p>
+            )}
           </div>
           <div>
             <label className="admin-text-muted text-xs mb-1 block font-medium">Heure</label>
