@@ -18,7 +18,7 @@ async function resolveClient(token) {
   if (!decoded || decoded.purpose !== "client_photo_upload" || !decoded.clientId) return null;
   return prisma.client.findUnique({
     where: { id: Number(decoded.clientId) },
-    select: { id: true, name: true },
+    select: { id: true, name: true, contactName: true },
   });
 }
 
@@ -28,7 +28,8 @@ export async function GET(req, { params }) {
   if (!client) {
     return NextResponse.json({ error: "Lien invalide ou expiré" }, { status: 404 });
   }
-  return NextResponse.json({ clientName: client.name });
+  // Même logique que le texto/courriel : nom de contact en priorité.
+  return NextResponse.json({ clientName: (client.contactName || client.name || "").trim() });
 }
 
 export async function POST(req, { params }) {
