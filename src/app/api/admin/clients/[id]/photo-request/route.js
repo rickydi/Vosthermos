@@ -1,19 +1,9 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { requireAdmin, signToken } from "@/lib/admin-auth";
-import { sendSms } from "@/lib/twilio";
+import { requireAdmin } from "@/lib/admin-auth";
 import { sendClientPhotoRequestEmail } from "@/lib/mail";
+import { buildPhotoUploadLink, sendPhotoRequestSms, toE164 } from "@/lib/photo-request";
 import { logAdminActivity } from "@/lib/admin-activity";
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.vosthermos.com";
-
-// Formatte un numéro local en E.164 pour Twilio (514-825-8411 -> +15148258411).
-function toE164(phone) {
-  const digits = String(phone || "").replace(/\D/g, "");
-  if (digits.length === 10) return `+1${digits}`;
-  if (digits.length === 11 && digits.startsWith("1")) return `+${digits}`;
-  return null;
-}
 
 // « Demander des photos » par texto OU courriel ({ channel: "sms" | "email" }) :
 // génère un lien public signé (token JWT à purpose dédié, 7 jours — getAdminSession
@@ -35,8 +25,7 @@ export async function POST(req, { params }) {
   const body = await req.json().catch(() => ({}));
   const channel = ["email", "link"].includes(body.channel) ? body.channel : "sms";
 
-  const token = signToken({ purpose: "client_photo_upload", clientId });
-  const link = `${SITE_URL}/envoyer-photos/${token}`;
+  const link = buildPhotoUploadLink(clientId);
   const displayName = (client.contactName || client.name || "").trim();
 
   let sent = false;
@@ -59,13 +48,10 @@ export async function POST(req, { params }) {
       error = "Le courriel n'est pas parti — réessayez ou copiez le lien";
     }
   } else {
-    const to = toE164(client.phone || client.secondaryPhone);
-    if (!to) {
+    if (!toE164(client.phone || client.secondaryPhone)) {
       return NextResponse.json({ sent: false, link, error: "Le client n'a pas de numéro de téléphone valide" });
     }
-    const message = `${displayName ? `Bonjour ${displayName}! ` : ""}Vosthermos : envoyez-nous vos photos (fenêtre, porte, thermos…) en cliquant ici : ${link} — lien valide 7 jours. Merci!`;
-    const sid = await sendSms(to, message);
-    sent = !!sid;
+    sent = await sendPhotoRequestSms(client, { link });
     if (!sent) error = "Le texto n'est pas parti (SMS non configuré)";
   }
 

@@ -8,6 +8,7 @@ import CompanyInfoSection from "@/components/admin/CompanyInfoSection";
 import ThermosPricingSettings from "@/components/admin/ThermosPricingSettings";
 import AccountantEmailSection from "@/components/admin/AccountantEmailSection";
 import FollowUpSlaSettings from "@/components/admin/FollowUpSlaSettings";
+import AppelSettingsSection from "@/components/admin/AppelSettingsSection";
 import UserList from "@/components/admin/UserList";
 import MenuAdminSection from "@/components/admin/MenuAdminSection";
 
@@ -88,6 +89,10 @@ export default function AdminSettingsPage() {
           </button>
         </div>
       </form>
+
+      <div className="mb-8">
+        <AppelSettingsSection />
+      </div>
 
       <div className="mb-8">
         <FollowUpSlaSettings />

@@ -152,7 +152,7 @@ export default function AppelPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erreur");
-      setSaved({ name: name.trim() || "Client (appel)", phone, existing: data.existing });
+      setSaved({ name: name.trim() || "Client (appel)", phone, existing: data.existing, photoSms: data.photoSms });
       loadToday();
     } catch (e) {
       setError(e.message || "Erreur — réessayez");
@@ -212,6 +212,12 @@ export default function AppelPage() {
         <p className="text-blue-400 text-xl font-semibold mb-2">{formatPhone(saved.phone)}</p>
         {saved.existing && (
           <p className="text-amber-300 text-sm mb-2">Ce client existait déjà — l&apos;appel a été ajouté à son dossier.</p>
+        )}
+        {saved.photoSms === "sent" && (
+          <p className="text-sky-300 text-sm mb-2"><i className="fas fa-comment-sms mr-1"></i>Texto « envoyez-nous vos photos » parti au client.</p>
+        )}
+        {saved.photoSms === "failed" && (
+          <p className="text-amber-300 text-sm mb-2"><i className="fas fa-triangle-exclamation mr-1"></i>Le texto photos n&apos;est pas parti.</p>
         )}
         <p className="admin-text-muted text-sm mb-8">Il apparaît maintenant dans le chat et le suivi.</p>
         <button

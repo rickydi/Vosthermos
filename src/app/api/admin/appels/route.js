@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { upsertClientFromLead } from "@/lib/upsert-client";
+import { APPEL_AUTO_PHOTO_SMS_KEY, sendPhotoRequestSms } from "@/lib/photo-request";
 
 function normalizePhone(phone) {
   const digits = String(phone || "").replace(/\D/g, "");
@@ -70,7 +71,7 @@ export async function POST(req) {
       },
     });
 
-    await upsertClientFromLead({
+    const client = await upsertClientFromLead({
       name: conversation.clientName,
       phone: clientPhone,
       address: address || undefined,
@@ -81,7 +82,23 @@ export async function POST(req) {
       source: "appel",
     });
 
-    return NextResponse.json({ ok: true, id: conversation.id, existing: Boolean(existing) });
+    // Option (Paramètres > Appels) : texter automatiquement au client le lien
+    // pour envoyer ses photos dès que l'appel est enregistré.
+    let photoSms = null;
+    try {
+      const setting = await prisma.siteSetting.findUnique({
+        where: { key: APPEL_AUTO_PHOTO_SMS_KEY },
+        select: { value: true },
+      });
+      if (setting?.value === "1" && client) {
+        photoSms = (await sendPhotoRequestSms(client)) ? "sent" : "failed";
+      }
+    } catch (err) {
+      console.error("[appels] auto photo sms error:", err?.message || err);
+      photoSms = "failed";
+    }
+
+    return NextResponse.json({ ok: true, id: conversation.id, existing: Boolean(existing), photoSms });
   } catch (error) {
     if (error?.message === "Unauthorized") {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
