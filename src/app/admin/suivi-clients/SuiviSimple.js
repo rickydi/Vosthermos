@@ -321,7 +321,7 @@ export default function SuiviSimple() {
                   <button
                     onClick={() => setDeleting(fu)}
                     title="Supprimer ce suivi"
-                    className="shrink-0 w-8 h-8 rounded-lg admin-text-muted hover:text-rose-400 hover:bg-rose-500/10 transition-colors inline-flex items-center justify-center"
+                    className="shrink-0 w-8 h-8 rounded-lg text-rose-400 hover:bg-rose-500/15 transition-colors inline-flex items-center justify-center"
                   >
                     <i className="fas fa-trash-can text-sm"></i>
                   </button>
