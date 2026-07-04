@@ -10,12 +10,12 @@ const MAX_FILES = 10;
 function Shell({ children }) {
   return (
     <div className="min-h-screen flex flex-col bg-[var(--color-background)]">
-      <header className="bg-[var(--color-teal-dark)] px-4 py-4 flex items-center justify-between">
+      <header className="bg-[var(--color-teal-dark)] px-4 py-3 flex items-center justify-between">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/images/Vos-Thermos-Logo_Blanc.png" alt="Vosthermos" className="h-9 w-auto" />
+        <img src="/images/Vos-Thermos-Logo_Blanc.png" alt="Vosthermos" className="h-14 w-auto" />
         <a href="tel:5148258411" className="inline-flex items-center gap-2 text-white text-sm font-bold">
-          <span className="w-8 h-8 rounded-full bg-[var(--color-red)] flex items-center justify-center">
-            <i className="fas fa-phone text-xs"></i>
+          <span className="w-10 h-10 rounded-full bg-[var(--color-red)] flex items-center justify-center">
+            <i className="fas fa-phone text-sm"></i>
           </span>
           <span className="hidden sm:inline">514-825-8411</span>
         </a>
