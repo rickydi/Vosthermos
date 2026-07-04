@@ -595,10 +595,11 @@ function VisiteMenu({ fu, onPick, overdue }) {
   );
 }
 
-// Modal « Visite avec RDV » : date + créneau (mêmes plages que le calendrier
-// public, un RDV par créneau). Crée le rendez-vous côté serveur via le PUT
-// follow-ups { visitRdv } — il apparaît aussi dans l'onglet RDV du client.
-const RDV_SLOTS = ["9h", "10h", "11h", "13h", "14h", "15h", "16h"];
+// Modal « Visite avec RDV » : date + créneau (un RDV par créneau). Plages
+// admin plus larges que le calendrier public : 6h à 20h. Crée le rendez-vous
+// côté serveur via le PUT follow-ups { visitRdv } — il apparaît aussi dans
+// l'onglet RDV du client.
+const RDV_SLOTS = ["6h", "7h", "8h", "9h", "10h", "11h", "12h", "13h", "14h", "15h", "16h", "17h", "18h", "19h", "20h"];
 
 function RdvModal({ fu, onClose, onSaved }) {
   const currentDay = fu.visitScheduledAt ? String(fu.visitScheduledAt).slice(0, 10) : "";
@@ -659,7 +660,7 @@ function RdvModal({ fu, onClose, onSaved }) {
           </div>
           <div>
             <label className="admin-text-muted text-xs mb-1 block font-medium">Heure</label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-5 gap-2">
               {RDV_SLOTS.map((s) => {
                 // Le créneau déjà occupé par CE suivi reste sélectionnable (on modifie son propre RDV).
                 const isMine = date === currentDay && s === fu.visitTimeSlot;

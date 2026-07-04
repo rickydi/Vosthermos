@@ -6,9 +6,9 @@ import { deriveFollowUpStatus, FOLLOW_UP_MILESTONE_KEYS } from "@/lib/follow-up-
 import { changedFields, logAdminActivity } from "@/lib/admin-activity";
 import { publishAdminEvent } from "@/lib/event-bus";
 
-// Mêmes créneaux que le calendrier public (BookingCalendar) : un RDV par créneau
-// (contrainte unique date+timeSlot en base).
-const VISIT_TIME_SLOTS = ["9h", "10h", "11h", "13h", "14h", "15h", "16h"];
+// Créneaux admin (plus larges que le calendrier public) : 6h à 20h, un RDV par
+// créneau (contrainte unique date+timeSlot en base).
+const VISIT_TIME_SLOTS = ["6h", "7h", "8h", "9h", "10h", "11h", "12h", "13h", "14h", "15h", "16h", "17h", "18h", "19h", "20h"];
 
 // Annule (best effort) l'Appointment créé pour le RDV de visite de ce suivi.
 // On le retrouve par date + créneau + la note posée à la création — jamais par
