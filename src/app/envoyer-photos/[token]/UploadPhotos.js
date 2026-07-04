@@ -132,9 +132,12 @@ export default function UploadPhotos({ token }) {
         <div className="w-16 h-16 mx-auto rounded-2xl bg-[var(--color-teal)] flex items-center justify-center mb-4 shadow-lg">
           <i className="fas fa-camera text-2xl text-white"></i>
         </div>
+        {clientName && (
+          <p className="text-xl font-extrabold text-[var(--color-red)] mb-1.5">Bonjour {clientName} 👋</p>
+        )}
         <h1 className="text-[26px] leading-tight font-extrabold text-[var(--color-teal)]">Envoyez-nous vos photos</h1>
         <p className="text-gray-600 mt-2 text-[15px] leading-relaxed">
-          Bonjour {clientName}! Prenez en photo votre fenêtre, porte ou thermos —
+          Prenez en photo votre fenêtre, porte ou thermos —
           vos photos arrivent directement dans votre dossier.
         </p>
       </div>
