@@ -2,6 +2,7 @@ import UploadPhotos from "./UploadPhotos";
 
 export const metadata = {
   title: "Envoyer vos photos | Vosthermos",
+  description: "Prenez vos photos avec votre téléphone — elles arrivent directement dans votre dossier Vosthermos.",
   robots: "noindex, nofollow",
 };
 

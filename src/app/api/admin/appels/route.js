@@ -40,13 +40,14 @@ export async function POST(req) {
 
     const existing = await prisma.chatConversation.findUnique({ where: { clientPhone } });
 
+    // PAS d'unreadCount ici : c'est NOUS qui saisissons l'appel, pas une demande
+    // entrante à traiter — le badge rouge du chat ne doit pas clignoter.
     let conversation;
     if (existing) {
       conversation = await prisma.chatConversation.update({
         where: { id: existing.id },
         data: {
           lastMessageAt: new Date(),
-          unreadCount: { increment: 1 },
           isArchived: false,
           // On garde le nom existant s'il est plus complet que la saisie rapide.
           ...(existing.clientName === "Client (appel)" && clientName !== "Client (appel)"
@@ -56,7 +57,7 @@ export async function POST(req) {
       });
     } else {
       conversation = await prisma.chatConversation.create({
-        data: { clientName, clientPhone, source: "appel", unreadCount: 1 },
+        data: { clientName, clientPhone, source: "appel", unreadCount: 0 },
       });
     }
 
