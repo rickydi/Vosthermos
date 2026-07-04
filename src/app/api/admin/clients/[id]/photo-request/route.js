@@ -33,21 +33,24 @@ export async function POST(req, { params }) {
   if (!client) return NextResponse.json({ error: "Client introuvable" }, { status: 404 });
 
   const body = await req.json().catch(() => ({}));
-  const channel = body.channel === "email" ? "email" : "sms";
+  const channel = ["email", "link"].includes(body.channel) ? body.channel : "sms";
 
   const token = signToken({ purpose: "client_photo_upload", clientId });
   const link = `${SITE_URL}/envoyer-photos/${token}`;
+  const displayName = (client.contactName || client.name || "").trim();
 
   let sent = false;
   let error = null;
 
-  if (channel === "email") {
+  if (channel === "link") {
+    // Génération seule : l'admin copie le lien et l'envoie par le moyen qu'il veut.
+  } else if (channel === "email") {
     if (!client.email) {
       return NextResponse.json({ sent: false, link, error: "Le client n'a pas de courriel au dossier" });
     }
     try {
       sent = await sendClientPhotoRequestEmail(client.email, {
-        clientName: client.contactName || client.name,
+        clientName: displayName,
         link,
       });
       if (!sent) error = "Courriel non configuré sur le serveur";
@@ -60,7 +63,7 @@ export async function POST(req, { params }) {
     if (!to) {
       return NextResponse.json({ sent: false, link, error: "Le client n'a pas de numéro de téléphone valide" });
     }
-    const message = `Vosthermos : envoyez-nous vos photos (fenêtre, porte, thermos…) en cliquant ici : ${link} — lien valide 7 jours. Merci!`;
+    const message = `${displayName ? `Bonjour ${displayName}! ` : ""}Vosthermos : envoyez-nous vos photos (fenêtre, porte, thermos…) en cliquant ici : ${link} — lien valide 7 jours. Merci!`;
     const sid = await sendSms(to, message);
     sent = !!sid;
     if (!sent) error = "Le texto n'est pas parti (SMS non configuré)";
@@ -70,7 +73,9 @@ export async function POST(req, { params }) {
     action: "create",
     entityType: "client_photo_request",
     entityId: clientId,
-    label: `Lien photos ${sent ? "envoyé" : "généré (envoi raté)"} par ${channel === "email" ? "courriel" : "texto"} pour ${client.name}`,
+    label: channel === "link"
+      ? `Lien photos généré (copie manuelle) pour ${client.name}`
+      : `Lien photos ${sent ? "envoyé" : "généré (envoi raté)"} par ${channel === "email" ? "courriel" : "texto"} pour ${client.name}`,
     metadata: { clientId, channel, sent },
   });
 

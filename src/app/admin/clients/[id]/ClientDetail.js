@@ -58,9 +58,9 @@ function TabEmpty({ icon, text }) {
 function PhotosActions({ client, onUploaded }) {
   const inputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
-  const [askChannel, setAskChannel] = useState(null); // "sms" | "email" | null
-  const [smsSending, setSmsSending] = useState(false);
-  const [smsResult, setSmsResult] = useState(null); // { sent, link, phone, email, error }
+  const [asking, setAsking] = useState(false); // modal « Demander des photos » ouvert
+  const [sendingChannel, setSendingChannel] = useState(null); // "sms" | "email" | "link" pendant l'envoi
+  const [smsResult, setSmsResult] = useState(null); // { sent, channel, link, phone, email, error }
   const [msg, setMsg] = useState(null); // { ok, text }
 
   async function upload(fileList) {
@@ -85,29 +85,31 @@ function PhotosActions({ client, onUploaded }) {
     }
   }
 
-  async function sendRequest() {
-    if (smsSending) return;
-    setSmsSending(true);
+  async function sendRequest(channel) {
+    if (sendingChannel) return;
+    setSendingChannel(channel);
     try {
       const res = await fetch(`/api/admin/clients/${client.id}/photo-request`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ channel: askChannel }),
+        body: JSON.stringify({ channel }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Erreur");
       setSmsResult(data);
     } catch (err) {
-      setSmsResult({ sent: false, error: err.message });
+      setSmsResult({ sent: false, channel, error: err.message });
     } finally {
-      setSmsSending(false);
+      setSendingChannel(null);
     }
   }
 
   function closeSmsModal() {
-    setAskChannel(null);
+    setAsking(false);
     setSmsResult(null);
   }
+
+  const phone = client.phone || client.secondaryPhone;
 
   return (
     <div className="mb-4">
@@ -116,67 +118,87 @@ function PhotosActions({ client, onUploaded }) {
         <button
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
-          className="px-4 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-bold disabled:opacity-50"
+          className="px-3 py-1.5 bg-[var(--color-red)] text-white rounded-full text-xs font-bold disabled:opacity-50"
         >
-          {uploading ? <><i className="fas fa-spinner fa-spin mr-2"></i>Envoi…</> : <><i className="fas fa-plus mr-2"></i>Ajouter des photos</>}
+          {uploading ? <><i className="fas fa-spinner fa-spin mr-1.5"></i>Envoi…</> : <><i className="fas fa-plus mr-1.5"></i>Ajouter</>}
         </button>
         <button
-          onClick={() => setAskChannel("sms")}
-          className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-bold hover:border-[var(--color-red)] transition-colors"
+          onClick={() => setAsking(true)}
+          className="px-3 py-1.5 admin-card border admin-border admin-text rounded-full text-xs font-bold hover:border-[var(--color-red)] transition-colors"
         >
-          <i className="fas fa-comment-sms mr-2"></i>Demander par texto
+          <i className="fas fa-paper-plane mr-1.5"></i>Demander des photos
         </button>
-        <button
-          onClick={() => setAskChannel("email")}
-          className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-bold hover:border-[var(--color-red)] transition-colors"
-        >
-          <i className="fas fa-envelope mr-2"></i>Demander par courriel
-        </button>
-        {msg && <span className={`text-sm font-semibold ${msg.ok ? "text-green-500" : "text-red-500"}`}>{msg.text}</span>}
+        {msg && <span className={`text-xs font-semibold ${msg.ok ? "text-green-500" : "text-red-500"}`}>{msg.text}</span>}
       </div>
 
-      {askChannel && (
+      {asking && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-center p-4 overflow-y-auto"
           onClick={(e) => { if (e.target === e.currentTarget) closeSmsModal(); }}>
           <div className="admin-bg border admin-border rounded-xl w-full max-w-md shadow-2xl my-8">
             <div className="flex items-center justify-between p-5 border-b admin-border">
               <h2 className="admin-text font-bold text-lg">
-                <i className={`fas ${askChannel === "email" ? "fa-envelope" : "fa-comment-sms"} mr-2 text-sky-400`}></i>Demander des photos
+                <i className="fas fa-paper-plane mr-2 text-sky-400"></i>Demander des photos
               </h2>
               <button onClick={closeSmsModal} className="w-8 h-8 rounded admin-card border admin-border hover:bg-white/5 inline-flex items-center justify-center"><i className="fas fa-times admin-text-muted"></i></button>
             </div>
             <div className="p-5 space-y-4">
               {!smsResult ? (
                 <>
-                  <p className="admin-text text-sm">
-                    {askChannel === "email" ? (
-                      client.email ? (
-                        <>Un courriel sera envoyé à <span className="font-bold">{client.email}</span> avec
-                        un bouton et un lien sécurisé (valide 7 jours). Le client clique, prend ses photos,
-                        et elles arrivent directement ici.</>
-                      ) : (
-                        <>Ce client n&apos;a pas de courriel au dossier — le lien sera généré
-                        pour que vous puissiez l&apos;envoyer vous-même.</>
-                      )
-                    ) : (client.phone || client.secondaryPhone) ? (
-                      <>Un texto sera envoyé à <span className="font-bold">{client.phone || client.secondaryPhone}</span> avec
-                      un lien sécurisé (valide 7 jours). Le client clique, prend ses photos, et elles
-                      arrivent directement ici.</>
-                    ) : (
-                      <>Ce client n&apos;a pas de numéro de téléphone au dossier — le lien sera généré
-                      pour que vous puissiez l&apos;envoyer vous-même (courriel, etc.).</>
-                    )}
+                  <p className="admin-text-muted text-sm">
+                    Le client reçoit un lien sécurisé (valide 7 jours), clique, prend ses photos —
+                    elles arrivent directement ici.
                   </p>
-                  <div className="flex justify-end gap-2">
-                    <button onClick={closeSmsModal} className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm">Annuler</button>
-                    <button onClick={sendRequest} disabled={smsSending}
-                      className="px-5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-sm font-bold disabled:opacity-50">
-                      {smsSending
-                        ? <><i className="fas fa-spinner fa-spin mr-2"></i>Envoi…</>
-                        : askChannel === "email"
-                          ? (client.email ? "Envoyer le courriel" : "Générer le lien")
-                          : (client.phone || client.secondaryPhone) ? "Envoyer le texto" : "Générer le lien"}
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => sendRequest("sms")}
+                      disabled={!phone || !!sendingChannel}
+                      className="w-full text-left px-4 py-3 rounded-xl border admin-border admin-card hover:border-sky-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-3"
+                    >
+                      <span className="w-9 h-9 rounded-lg bg-sky-500/15 text-sky-400 flex items-center justify-center shrink-0">
+                        {sendingChannel === "sms" ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-comment-sms"></i>}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="admin-text text-sm font-bold block">Par texto</span>
+                        <span className="admin-text-muted text-xs block truncate">{phone || "Aucun numéro au dossier"}</span>
+                      </span>
                     </button>
+                    <button
+                      onClick={() => sendRequest("email")}
+                      disabled={!client.email || !!sendingChannel}
+                      className="w-full text-left px-4 py-3 rounded-xl border admin-border admin-card hover:border-sky-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-3"
+                    >
+                      <span className="w-9 h-9 rounded-lg bg-amber-500/15 text-amber-400 flex items-center justify-center shrink-0">
+                        {sendingChannel === "email" ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-envelope"></i>}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="admin-text text-sm font-bold block">Par courriel</span>
+                        <span className="admin-text-muted text-xs block truncate">{client.email || "Aucun courriel au dossier"}</span>
+                      </span>
+                    </button>
+                    <button
+                      onClick={() => sendRequest("link")}
+                      disabled={!!sendingChannel}
+                      className="w-full text-left px-4 py-2.5 rounded-xl admin-text-muted hover:admin-text text-xs font-semibold transition-colors flex items-center gap-2"
+                    >
+                      {sendingChannel === "link" ? <i className="fas fa-spinner fa-spin w-4 text-center"></i> : <i className="fas fa-link w-4 text-center"></i>}
+                      Juste créer le lien — je l&apos;envoie moi-même
+                    </button>
+                  </div>
+                </>
+              ) : smsResult.channel === "link" ? (
+                <>
+                  <p className="admin-text text-sm font-semibold"><i className="fas fa-link mr-2 text-sky-400"></i>Lien créé (valide 7 jours) :</p>
+                  <div className="flex items-center gap-2">
+                    <input readOnly value={smsResult.link} onFocus={(e) => e.target.select()}
+                      className="admin-input border rounded-lg px-3 py-2 text-xs w-full" />
+                    <button
+                      onClick={() => { navigator.clipboard?.writeText(smsResult.link); setMsg({ ok: true, text: "Lien copié ✓" }); }}
+                      className="shrink-0 px-3 py-2 admin-card border admin-border admin-text rounded-lg text-xs font-bold">
+                      <i className="fas fa-copy mr-1"></i>Copier
+                    </button>
+                  </div>
+                  <div className="flex justify-end">
+                    <button onClick={closeSmsModal} className="px-5 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-bold">Fermer</button>
                   </div>
                 </>
               ) : smsResult.sent ? (
