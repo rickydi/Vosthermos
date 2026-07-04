@@ -133,7 +133,7 @@ export default function UploadPhotos({ token }) {
           <i className="fas fa-camera text-2xl text-white"></i>
         </div>
         {clientName && (
-          <p className="text-xl font-extrabold text-[var(--color-red)] mb-1.5">Bonjour {clientName} 👋</p>
+          <p className="text-xl font-extrabold text-[var(--color-red)] mb-1.5">Bonjour {clientName}!</p>
         )}
         <h1 className="text-[26px] leading-tight font-extrabold text-[var(--color-teal)]">Envoyez-nous vos photos</h1>
         <p className="text-gray-600 mt-2 text-[15px] leading-relaxed">
