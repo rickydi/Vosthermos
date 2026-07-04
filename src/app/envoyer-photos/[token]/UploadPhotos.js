@@ -168,7 +168,7 @@ export default function UploadPhotos({ token }) {
           <i className="fas fa-camera text-2xl"></i>
         </span>
         <span className="font-extrabold text-lg">Prendre ou choisir des photos</span>
-        <span className="text-[13px] text-gray-500">Jusqu&apos;à {MAX_FILES} photos · 8 MB max chacune</span>
+        <span className="text-[13px] text-gray-500">Jusqu&apos;à {MAX_FILES} photos · 25 MB max chacune</span>
       </button>
 
       {previews.length > 0 && (

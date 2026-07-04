@@ -8,7 +8,7 @@ import { boundImageBuffer } from "@/lib/upload-photo";
 import { logAdminActivity } from "@/lib/admin-activity";
 
 const ALLOWED_MIMES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-const MAX_BYTES = 8 * 1024 * 1024; // 8 MB par photo
+const MAX_BYTES = 25 * 1024 * 1024; // 25 MB par photo (les cellulaires récents dépassent 8 MB)
 const MAX_FILES = 10; // par envoi
 
 // Upload direct de photos par l'équipe dans la fiche client (onglet Photos).
@@ -43,7 +43,7 @@ export async function POST(req, { params }) {
       return NextResponse.json({ error: `Format non supporté (${file.name || "photo"}) — JPEG, PNG, WebP ou GIF` }, { status: 400 });
     }
     if (file.size > MAX_BYTES) {
-      return NextResponse.json({ error: `Photo trop lourde (${file.name || "photo"}) — max 8 MB` }, { status: 400 });
+      return NextResponse.json({ error: `Photo trop lourde (${file.name || "photo"}) — max 25 MB` }, { status: 400 });
     }
     const original = Buffer.from(await file.arrayBuffer());
     const fallbackExt = file.type.split("/")[1].replace("jpeg", "jpg");
