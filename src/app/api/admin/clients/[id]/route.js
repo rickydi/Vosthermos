@@ -144,8 +144,32 @@ export async function DELETE(req, { params }) {
   try {
     const client = await prisma.client.findUnique({
       where: { id: clientId },
-      select: { id: true, name: true, email: true, phone: true },
+      select: { id: true, name: true, email: true, phone: true, secondaryPhone: true },
     });
+
+    // Efface aussi les conversations de chat du client (messages en cascade,
+    // dont les entrées « 📞 Appel reçu » de la page Appel). Les conversations
+    // créées par un appel n'ont pas de clientId : on les retrouve par numéro,
+    // vérifié sur les 10 chiffres pour ne jamais toucher un autre client.
+    const phoneDigits = [client?.phone, client?.secondaryPhone]
+      .map((p) => String(p || "").replace(/\D/g, "").slice(-10))
+      .filter((p) => p.length === 10);
+    const candidates = await prisma.chatConversation.findMany({
+      where: {
+        OR: [
+          { clientId },
+          ...phoneDigits.map((p) => ({ clientPhone: { contains: p.slice(-7) } })),
+        ],
+      },
+      select: { id: true, clientId: true, clientPhone: true },
+    });
+    const convIds = candidates
+      .filter((c) => c.clientId === clientId || phoneDigits.includes(String(c.clientPhone || "").replace(/\D/g, "").slice(-10)))
+      .map((c) => c.id);
+    if (convIds.length) {
+      await prisma.chatConversation.deleteMany({ where: { id: { in: convIds } } });
+    }
+
     await prisma.client.delete({ where: { id: clientId } });
     await logAdminActivity(req, session, {
       action: "delete",

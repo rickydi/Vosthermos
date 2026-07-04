@@ -833,7 +833,7 @@ function DeleteModal({ fu, onClose, onDeleted }) {
                 className="mt-0.5 w-4 h-4 accent-rose-500" />
               <span className="text-sm">
                 <span className="admin-text font-semibold block">Supprimer aussi la fiche client</span>
-                <span className="admin-text-muted text-xs">Dossier, notes et photos du client. Refusé si des bons de travail y sont liés.</span>
+                <span className="admin-text-muted text-xs">Dossier, notes, photos, chat et appels du client. Refusé si des bons de travail y sont liés.</span>
               </span>
             </label>
           )}
