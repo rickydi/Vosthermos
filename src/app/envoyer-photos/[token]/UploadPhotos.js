@@ -4,8 +4,29 @@ import { useEffect, useRef, useState } from "react";
 
 const MAX_FILES = 10;
 
-// Dépôt de photos par le client (lien reçu par texto). Pensé « gros doigts sur
-// téléphone » : une grosse zone, la caméra ou la galerie, envoyer, merci.
+// Coquille plein écran de la page : bandeau Vosthermos + contenu. Le header,
+// le footer et la bulle de chat du site sont masqués sur /envoyer-photos —
+// le client arrive par texto/courriel, il ne doit voir que l'envoi de photos.
+function Shell({ children }) {
+  return (
+    <div className="min-h-screen flex flex-col bg-[var(--color-background)]">
+      <header className="bg-[var(--color-teal-dark)] px-4 py-4 flex items-center justify-between">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/images/Vos-Thermos-Logo_Blanc.png" alt="Vosthermos" className="h-9 w-auto" />
+        <a href="tel:5148258411" className="inline-flex items-center gap-2 text-white text-sm font-bold">
+          <span className="w-8 h-8 rounded-full bg-[var(--color-red)] flex items-center justify-center">
+            <i className="fas fa-phone text-xs"></i>
+          </span>
+          <span className="hidden sm:inline">514-825-8411</span>
+        </a>
+      </header>
+      <main className="flex-1 w-full max-w-md mx-auto px-4 py-8 pb-14">{children}</main>
+    </div>
+  );
+}
+
+// Dépôt de photos par le client (lien reçu par texto ou courriel). Pensé « gros
+// doigts sur téléphone » : une grosse zone, la caméra ou la galerie, envoyer, merci.
 export default function UploadPhotos({ token }) {
   const [status, setStatus] = useState("loading"); // loading | ready | invalid
   const [clientName, setClientName] = useState("");
@@ -67,6 +88,7 @@ export default function UploadPhotos({ token }) {
       setFiles([]);
       setPreviews((old) => { old.forEach((u) => URL.revokeObjectURL(u)); return []; });
       if (inputRef.current) inputRef.current.value = "";
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (e) {
       setError(e.message);
     } finally {
@@ -76,45 +98,49 @@ export default function UploadPhotos({ token }) {
 
   if (status === "loading") {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center text-gray-500">
-        <i className="fas fa-spinner fa-spin mr-2"></i>Chargement…
-      </div>
+      <Shell>
+        <div className="min-h-[50vh] flex items-center justify-center text-gray-500">
+          <i className="fas fa-spinner fa-spin mr-2"></i>Chargement…
+        </div>
+      </Shell>
     );
   }
 
   if (status === "invalid") {
     return (
-      <div className="max-w-md mx-auto px-4 py-20 text-center">
-        <div className="w-20 h-20 mx-auto rounded-full bg-red-100 flex items-center justify-center mb-6">
-          <i className="fas fa-link-slash text-3xl text-[var(--color-red)]"></i>
+      <Shell>
+        <div className="text-center pt-10">
+          <div className="w-20 h-20 mx-auto rounded-full bg-red-100 flex items-center justify-center mb-6">
+            <i className="fas fa-link-slash text-3xl text-[var(--color-red)]"></i>
+          </div>
+          <h1 className="text-2xl font-extrabold text-[var(--color-teal)] mb-3">Lien invalide ou expiré</h1>
+          <p className="text-gray-600 mb-8">
+            Ce lien de dépôt de photos n&apos;est plus valide (il expire après 7 jours).
+            Contactez-nous pour en recevoir un nouveau.
+          </p>
+          <a href="tel:5148258411" className="inline-flex items-center gap-2 px-6 py-4 rounded-2xl bg-[var(--color-red)] text-white text-lg font-bold">
+            <i className="fas fa-phone"></i>514-825-8411
+          </a>
         </div>
-        <h1 className="text-2xl font-extrabold text-[var(--color-teal)] mb-3">Lien invalide ou expiré</h1>
-        <p className="text-gray-600 mb-8">
-          Ce lien de dépôt de photos n&apos;est plus valide (il expire après 7 jours).
-          Contactez-nous pour en recevoir un nouveau.
-        </p>
-        <a href="tel:5148258411" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[var(--color-red)] text-white font-bold">
-          <i className="fas fa-phone"></i>514-825-8411
-        </a>
-      </div>
+      </Shell>
     );
   }
 
   return (
-    <div className="max-w-md mx-auto px-4 py-10 pb-20">
-      <div className="text-center mb-8">
-        <div className="w-16 h-16 mx-auto rounded-2xl bg-[var(--color-teal)] flex items-center justify-center mb-4">
+    <Shell>
+      <div className="text-center mb-6">
+        <div className="w-16 h-16 mx-auto rounded-2xl bg-[var(--color-teal)] flex items-center justify-center mb-4 shadow-lg">
           <i className="fas fa-camera text-2xl text-white"></i>
         </div>
-        <h1 className="text-2xl font-extrabold text-[var(--color-teal)]">Envoyez-nous vos photos</h1>
-        <p className="text-gray-600 mt-2">
+        <h1 className="text-[26px] leading-tight font-extrabold text-[var(--color-teal)]">Envoyez-nous vos photos</h1>
+        <p className="text-gray-600 mt-2 text-[15px] leading-relaxed">
           Bonjour {clientName}! Prenez en photo votre fenêtre, porte ou thermos —
-          vos photos arrivent directement dans votre dossier chez Vosthermos.
+          vos photos arrivent directement dans votre dossier.
         </p>
       </div>
 
       {sentCount > 0 && (
-        <div className="mb-6 px-4 py-4 rounded-2xl bg-green-50 border border-green-300 text-green-800 text-center font-semibold">
+        <div className="mb-5 px-4 py-4 rounded-2xl bg-green-50 border-2 border-green-300 text-green-800 text-center font-semibold shadow-sm">
           <i className="fas fa-circle-check mr-2"></i>
           {sentCount} photo{sentCount > 1 ? "s" : ""} envoyée{sentCount > 1 ? "s" : ""} — merci!
           <div className="text-sm font-normal mt-1">Vous pouvez en envoyer d&apos;autres ci-dessous.</div>
@@ -133,24 +159,26 @@ export default function UploadPhotos({ token }) {
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        className="w-full min-h-32 rounded-2xl border-2 border-dashed border-[var(--color-teal)]/40 bg-white hover:border-[var(--color-teal)] transition-colors flex flex-col items-center justify-center gap-2 py-6 text-[var(--color-teal)]"
+        className="w-full rounded-3xl border-2 border-dashed border-[var(--color-teal)]/35 bg-white active:scale-[0.99] transition-transform flex flex-col items-center justify-center gap-2.5 py-10 px-4 text-[var(--color-teal)] shadow-sm"
       >
-        <i className="fas fa-camera text-3xl"></i>
-        <span className="font-bold text-lg">Prendre ou choisir des photos</span>
-        <span className="text-sm text-gray-500">Jusqu&apos;à {MAX_FILES} photos (8 MB max chacune)</span>
+        <span className="w-14 h-14 rounded-full bg-[var(--color-teal)]/10 flex items-center justify-center">
+          <i className="fas fa-camera text-2xl"></i>
+        </span>
+        <span className="font-extrabold text-lg">Prendre ou choisir des photos</span>
+        <span className="text-[13px] text-gray-500">Jusqu&apos;à {MAX_FILES} photos · 8 MB max chacune</span>
       </button>
 
       {previews.length > 0 && (
         <div className="grid grid-cols-3 gap-2 mt-4">
           {previews.map((url, i) => (
-            <div key={url} className="relative aspect-square rounded-xl overflow-hidden border border-gray-200 bg-gray-100">
+            <div key={url} className="relative aspect-square rounded-2xl overflow-hidden border border-gray-200 bg-gray-100 shadow-sm">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={url} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
               <button
                 type="button"
                 onClick={() => removeAt(i)}
                 aria-label="Retirer cette photo"
-                className="absolute top-1 right-1 w-7 h-7 rounded-full bg-black/60 text-white text-xs flex items-center justify-center"
+                className="absolute top-1.5 right-1.5 w-8 h-8 rounded-full bg-black/65 text-white text-sm flex items-center justify-center"
               >
                 <i className="fas fa-times"></i>
               </button>
@@ -160,14 +188,14 @@ export default function UploadPhotos({ token }) {
       )}
 
       {error && (
-        <p className="mt-4 px-4 py-3 rounded-xl bg-red-50 border border-red-300 text-red-700 font-semibold text-sm">{error}</p>
+        <p className="mt-4 px-4 py-3 rounded-2xl bg-red-50 border-2 border-red-300 text-red-700 font-semibold text-sm">{error}</p>
       )}
 
       <button
         type="button"
         onClick={send}
         disabled={!files.length || sending}
-        className="mt-6 w-full h-16 rounded-2xl bg-[var(--color-red)] text-white text-xl font-bold disabled:opacity-40 transition-opacity"
+        className="mt-5 w-full h-16 rounded-2xl bg-[var(--color-red)] text-white text-xl font-extrabold disabled:opacity-35 shadow-lg shadow-red-500/20 active:scale-[0.99] transition-transform"
       >
         {sending ? (
           <><i className="fas fa-spinner fa-spin mr-2"></i>Envoi en cours…</>
@@ -176,9 +204,9 @@ export default function UploadPhotos({ token }) {
         )}
       </button>
 
-      <p className="text-center text-xs text-gray-400 mt-4">
-        Lien sécurisé valide 7 jours · Vosthermos · 514-825-8411
+      <p className="text-center text-xs text-gray-400 mt-5">
+        Lien sécurisé valide 7 jours · Vosthermos · <a href="tel:5148258411" className="underline">514-825-8411</a>
       </p>
-    </div>
+    </Shell>
   );
 }

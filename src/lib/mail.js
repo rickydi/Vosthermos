@@ -243,6 +243,122 @@ ${SITE_URL}`;
   return true;
 }
 
+// Demande de photos au client : courriel avec un gros bouton vers la page
+// publique /envoyer-photos/<token> (même lien que la version texto, valide 7
+// jours). Même recette que les autres courriels transactionnels (logo cid,
+// envelope aligné) pour une bonne livraison.
+export async function sendClientPhotoRequestEmail(toEmail, { clientName, link }) {
+  if (!isMailDeliveryConfigured()) {
+    console.log("Mail not configured, skipping client photo request email");
+    return false;
+  }
+
+  const replyToEmail = getReplyToEmail();
+  const safeName = String(clientName || "").trim();
+
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Envoyez-nous vos photos - Vosthermos</title>
+</head>
+<body style="margin:0;padding:0;background-color:#eef1f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#172033;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#eef1f5;padding:34px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="640" cellpadding="0" cellspacing="0" border="0" style="max-width:640px;background-color:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 12px 34px rgba(23,32,51,0.12);">
+          <tr>
+            <td style="background-color:#002530;padding:34px 40px 30px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td valign="middle">
+                    <img src="cid:${LOGO_CID}" alt="Vosthermos" height="104" style="display:block;border:0;outline:none;text-decoration:none;height:104px;width:auto;" />
+                  </td>
+                  <td align="right" valign="middle" style="color:#ffffff;">
+                    <div style="font-size:11px;letter-spacing:2px;opacity:.78;font-weight:700;text-transform:uppercase;">Votre dossier</div>
+                    <div style="font-size:25px;font-weight:800;margin-top:7px;line-height:1.1;">Photos</div>
+                    <div style="font-size:12px;opacity:.82;margin-top:8px;">Portes et fenetres</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:40px 40px 16px;">
+              <h1 style="margin:0 0 12px;font-size:20px;font-weight:700;color:#111;">${safeName ? `Bonjour ${safeName},` : "Bonjour,"}</h1>
+              <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#374151;">
+                Pour bien préparer votre service, envoyez-nous quelques photos de votre fenêtre,
+                porte ou thermos. Cliquez sur le bouton ci-dessous : vous pourrez prendre les photos
+                avec votre téléphone ou les choisir dans votre galerie — elles arrivent directement
+                dans votre dossier chez <strong>Vosthermos</strong>.
+              </p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px;">
+                <tr>
+                  <td align="center">
+                    <a href="${link}" style="display:inline-block;background-color:#e30718;color:#ffffff;font-size:17px;font-weight:800;text-decoration:none;padding:16px 38px;border-radius:12px;">
+                      &#128247;&nbsp; Envoyer mes photos
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:0 0 8px;font-size:13px;color:#6b7280;line-height:1.6;">
+                Le bouton ne fonctionne pas ? Copiez ce lien dans votre navigateur :<br>
+                <a href="${link}" style="color:#b91c1c;word-break:break-all;">${link}</a>
+              </p>
+              <p style="margin:12px 0 0;font-size:13px;color:#6b7280;">Ce lien sécurisé est valide 7 jours.</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color:#f9fafb;padding:24px 40px;border-top:1px solid #e5e7eb;text-align:center;">
+              <div style="font-size:12px;color:#7b8794;line-height:1.6;">
+                <strong style="color:#172033;">Vosthermos</strong> - Portes et fenetres · 514-825-8411<br>
+                <a href="${SITE_URL}" style="color:#b91c1c;text-decoration:none;">vosthermos.com</a>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+  const text = `${safeName ? `Bonjour ${safeName},` : "Bonjour,"}
+
+Pour bien préparer votre service, envoyez-nous quelques photos de votre fenêtre, porte ou thermos.
+
+Ouvrez ce lien avec votre téléphone pour prendre ou choisir vos photos :
+${link}
+
+Ce lien sécurisé est valide 7 jours.
+
+---
+Vosthermos - Portes et fenetres · 514-825-8411
+${SITE_URL}`;
+
+  const transporter = getTransporter();
+  await transporter.sendMail({
+    from: getMailFromHeader("Vosthermos"),
+    to: toEmail,
+    replyTo: replyToEmail,
+    envelope: { from: getMailEnvelopeFrom(), to: toEmail },
+    subject: "Envoyez-nous vos photos - Vosthermos",
+    text,
+    html,
+    headers: { "X-Entity-Ref-ID": `vosthermos-photos-${Date.now()}` },
+    attachments: [
+      {
+        filename: "vosthermos-logo.png",
+        path: LOGO_PATH,
+        cid: LOGO_CID,
+        contentDisposition: "inline",
+      },
+    ],
+  });
+  return true;
+}
+
 export async function sendBlogApprovalEmail(post, prisma) {
   if (!isMailDeliveryConfigured()) {
     console.log("Mail not configured, skipping approval email");

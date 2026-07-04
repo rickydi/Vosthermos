@@ -34,8 +34,9 @@ export default function Header({ company }) {
   const isAdmin = pathname.startsWith("/admin");
   const isTerrain = pathname.startsWith("/terrain");
   const isGestionnaire = pathname.startsWith("/gestionnaire");
+  const isEnvoyerPhotos = pathname.startsWith("/envoyer-photos");
 
-  if (isAdmin || isTerrain || isGestionnaire) return null;
+  if (isAdmin || isTerrain || isGestionnaire || isEnvoyerPhotos) return null;
 
   // FR slug → EN slug pour les services (miroir inverse des redirects dans next.config.mjs)
   const SERVICE_SLUG_FR_EN = {

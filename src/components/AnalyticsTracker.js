@@ -51,8 +51,9 @@ export default function AnalyticsTracker() {
   const pageEnteredRef = useRef(null);
 
   // Detect tracked page (public only). Computed AFTER hooks so we don't
-  // violate hook rules with a conditional return.
-  const isTracked = !pathname.startsWith("/admin") && !pathname.startsWith("/terrain");
+  // violate hook rules with a conditional return. /envoyer-photos exclu : page
+  // atteinte par lien tokenisé (le token n'a pas d'affaire dans les analytics).
+  const isTracked = !pathname.startsWith("/admin") && !pathname.startsWith("/terrain") && !pathname.startsWith("/envoyer-photos");
 
   useEffect(() => {
     if (!isTracked) return;

@@ -58,9 +58,9 @@ function TabEmpty({ icon, text }) {
 function PhotosActions({ client, onUploaded }) {
   const inputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
-  const [confirmSms, setConfirmSms] = useState(false);
+  const [askChannel, setAskChannel] = useState(null); // "sms" | "email" | null
   const [smsSending, setSmsSending] = useState(false);
-  const [smsResult, setSmsResult] = useState(null); // { sent, link, phone, error }
+  const [smsResult, setSmsResult] = useState(null); // { sent, link, phone, email, error }
   const [msg, setMsg] = useState(null); // { ok, text }
 
   async function upload(fileList) {
@@ -85,11 +85,15 @@ function PhotosActions({ client, onUploaded }) {
     }
   }
 
-  async function sendSmsRequest() {
+  async function sendRequest() {
     if (smsSending) return;
     setSmsSending(true);
     try {
-      const res = await fetch(`/api/admin/clients/${client.id}/photo-request`, { method: "POST" });
+      const res = await fetch(`/api/admin/clients/${client.id}/photo-request`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ channel: askChannel }),
+      });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Erreur");
       setSmsResult(data);
@@ -101,7 +105,7 @@ function PhotosActions({ client, onUploaded }) {
   }
 
   function closeSmsModal() {
-    setConfirmSms(false);
+    setAskChannel(null);
     setSmsResult(null);
   }
 
@@ -117,27 +121,44 @@ function PhotosActions({ client, onUploaded }) {
           {uploading ? <><i className="fas fa-spinner fa-spin mr-2"></i>Envoi…</> : <><i className="fas fa-plus mr-2"></i>Ajouter des photos</>}
         </button>
         <button
-          onClick={() => setConfirmSms(true)}
+          onClick={() => setAskChannel("sms")}
           className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-bold hover:border-[var(--color-red)] transition-colors"
         >
           <i className="fas fa-comment-sms mr-2"></i>Demander par texto
         </button>
+        <button
+          onClick={() => setAskChannel("email")}
+          className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm font-bold hover:border-[var(--color-red)] transition-colors"
+        >
+          <i className="fas fa-envelope mr-2"></i>Demander par courriel
+        </button>
         {msg && <span className={`text-sm font-semibold ${msg.ok ? "text-green-500" : "text-red-500"}`}>{msg.text}</span>}
       </div>
 
-      {confirmSms && (
+      {askChannel && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-center p-4 overflow-y-auto"
           onClick={(e) => { if (e.target === e.currentTarget) closeSmsModal(); }}>
           <div className="admin-bg border admin-border rounded-xl w-full max-w-md shadow-2xl my-8">
             <div className="flex items-center justify-between p-5 border-b admin-border">
-              <h2 className="admin-text font-bold text-lg"><i className="fas fa-comment-sms mr-2 text-sky-400"></i>Demander des photos</h2>
+              <h2 className="admin-text font-bold text-lg">
+                <i className={`fas ${askChannel === "email" ? "fa-envelope" : "fa-comment-sms"} mr-2 text-sky-400`}></i>Demander des photos
+              </h2>
               <button onClick={closeSmsModal} className="w-8 h-8 rounded admin-card border admin-border hover:bg-white/5 inline-flex items-center justify-center"><i className="fas fa-times admin-text-muted"></i></button>
             </div>
             <div className="p-5 space-y-4">
               {!smsResult ? (
                 <>
                   <p className="admin-text text-sm">
-                    {client.phone || client.secondaryPhone ? (
+                    {askChannel === "email" ? (
+                      client.email ? (
+                        <>Un courriel sera envoyé à <span className="font-bold">{client.email}</span> avec
+                        un bouton et un lien sécurisé (valide 7 jours). Le client clique, prend ses photos,
+                        et elles arrivent directement ici.</>
+                      ) : (
+                        <>Ce client n&apos;a pas de courriel au dossier — le lien sera généré
+                        pour que vous puissiez l&apos;envoyer vous-même.</>
+                      )
+                    ) : (client.phone || client.secondaryPhone) ? (
                       <>Un texto sera envoyé à <span className="font-bold">{client.phone || client.secondaryPhone}</span> avec
                       un lien sécurisé (valide 7 jours). Le client clique, prend ses photos, et elles
                       arrivent directement ici.</>
@@ -148,15 +169,22 @@ function PhotosActions({ client, onUploaded }) {
                   </p>
                   <div className="flex justify-end gap-2">
                     <button onClick={closeSmsModal} className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm">Annuler</button>
-                    <button onClick={sendSmsRequest} disabled={smsSending}
+                    <button onClick={sendRequest} disabled={smsSending}
                       className="px-5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-sm font-bold disabled:opacity-50">
-                      {smsSending ? <><i className="fas fa-spinner fa-spin mr-2"></i>Envoi…</> : (client.phone || client.secondaryPhone) ? "Envoyer le texto" : "Générer le lien"}
+                      {smsSending
+                        ? <><i className="fas fa-spinner fa-spin mr-2"></i>Envoi…</>
+                        : askChannel === "email"
+                          ? (client.email ? "Envoyer le courriel" : "Générer le lien")
+                          : (client.phone || client.secondaryPhone) ? "Envoyer le texto" : "Générer le lien"}
                     </button>
                   </div>
                 </>
               ) : smsResult.sent ? (
                 <>
-                  <p className="text-green-400 font-semibold"><i className="fas fa-circle-check mr-2"></i>Texto envoyé à {smsResult.phone}.</p>
+                  <p className="text-green-400 font-semibold">
+                    <i className="fas fa-circle-check mr-2"></i>
+                    {smsResult.channel === "email" ? <>Courriel envoyé à {smsResult.email}.</> : <>Texto envoyé à {smsResult.phone}.</>}
+                  </p>
                   <p className="admin-text-muted text-xs">Les photos du client apparaîtront dans cet onglet dès qu&apos;il les envoie.</p>
                   <div className="flex justify-end">
                     <button onClick={closeSmsModal} className="px-5 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-bold">Fermer</button>
@@ -166,7 +194,7 @@ function PhotosActions({ client, onUploaded }) {
                 <>
                   <p className="text-amber-300 font-semibold text-sm">
                     <i className="fas fa-triangle-exclamation mr-2"></i>
-                    {smsResult.error ? smsResult.error : "Le texto n'est pas parti (SMS non configuré)."}
+                    {smsResult.error ? smsResult.error : "L'envoi n'est pas parti."}
                   </p>
                   {smsResult.link && (
                     <>
