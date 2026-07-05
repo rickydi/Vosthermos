@@ -382,14 +382,9 @@ export default function SuiviSimple() {
                   </div>
                 )}
 
-                {/* « Appeler le client » est un rappel auto posé à la création du
-                    suivi : plus pertinent une fois le contact fait -> on le masque. */}
-                {fu.nextAction && !(fu.nextAction === "Appeler le client" && reached) && (
-                  <div className="mt-2 text-xs admin-text">
-                    <i className="fas fa-arrow-right mr-1 text-[var(--color-red)]"></i>{fu.nextAction}
-                    {fu.nextActionDate && <span className="admin-text-muted"> · {fmtDate(fu.nextActionDate)}</span>}
-                  </div>
-                )}
+                {/* Pas de ligne « prochaine étape » sur les cartes (choix d'Erik
+                    2026-07-05) : les états des boutons suffisent. Le champ
+                    nextAction reste visible dans la fiche client. */}
               </div>
             );
           })}
