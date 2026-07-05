@@ -450,7 +450,49 @@ export async function GET(req) {
   });
 
   if (!includeActivity) {
-    return NextResponse.json(followUps.map(serializeFollowUp));
+    // Notifications de carte (coin supérieur droit du suivi) : photos envoyées
+    // par le client (source "client") + messages de chat non lus. Deux requêtes
+    // légères, matchées par clientId puis par numéro (10 chiffres vérifiés).
+    const clientIds = [...new Set(followUps.map((f) => f.clientId).filter(Boolean))];
+    const [photoGroups, unreadConvs] = await Promise.all([
+      clientIds.length
+        ? prisma.clientPhoto.groupBy({
+            by: ["clientId"],
+            where: { clientId: { in: clientIds }, source: "client" },
+            _count: { _all: true },
+            _max: { createdAt: true },
+          })
+        : [],
+      prisma.chatConversation.findMany({
+        where: { unreadCount: { gt: 0 } },
+        select: { id: true, clientId: true, clientPhone: true, unreadCount: true },
+      }),
+    ]);
+    const photosByClient = new Map(photoGroups.map((g) => [g.clientId, { count: g._count._all, lastAt: g._max.createdAt?.toISOString() || null }]));
+    const tenDigits = (p) => {
+      const d = String(p || "").replace(/\D/g, "").slice(-10);
+      return d.length === 10 ? d : null;
+    };
+    const convByClient = new Map();
+    const convByPhone = new Map();
+    for (const c of unreadConvs) {
+      if (c.clientId) convByClient.set(c.clientId, c);
+      const d = tenDigits(c.clientPhone);
+      if (d) convByPhone.set(d, c);
+    }
+    return NextResponse.json(followUps.map((fu) => {
+      const conv =
+        (fu.clientId && convByClient.get(fu.clientId)) ||
+        convByPhone.get(tenDigits(fu.phone)) ||
+        convByPhone.get(tenDigits(fu.client?.phone)) ||
+        convByPhone.get(tenDigits(fu.client?.secondaryPhone)) ||
+        null;
+      return {
+        ...serializeFollowUp(fu),
+        clientPhotos: (fu.clientId && photosByClient.get(fu.clientId)) || null,
+        unreadChat: conv ? { conversationId: conv.id, count: conv.unreadCount } : null,
+      };
+    }));
   }
 
   const enriched = await attachCentralActivity(followUps);

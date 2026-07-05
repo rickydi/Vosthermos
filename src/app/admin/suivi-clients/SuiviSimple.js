@@ -98,7 +98,7 @@ export default function SuiviSimple() {
   // déjà appliqué la réponse serveur) et on coalesce les rafales en un seul reload.
   const streamReloadTimer = useRef(null);
   useAdminStream((e) => {
-    if (!["connected", "follow_up.changed", "work_order.changed", "appointment.changed"].includes(e?.type)) return;
+    if (!["connected", "follow_up.changed", "work_order.changed", "appointment.changed", "client_photo.added"].includes(e?.type)) return;
     if (e?.origin && e.origin === ADMIN_TAB_ID) return;
     clearTimeout(streamReloadTimer.current);
     streamReloadTimer.current = setTimeout(() => load(), 600);
@@ -318,13 +318,38 @@ export default function SuiviSimple() {
                       {fmtMoney(fu.estimateAmount) && <span className="admin-text font-semibold">{fmtMoney(fu.estimateAmount)}</span>}
                     </div>
                   </div>
-                  <button
-                    onClick={() => setDeleting(fu)}
-                    title="Supprimer ce suivi"
-                    className="shrink-0 w-8 h-8 rounded-lg text-rose-400 hover:bg-rose-500/15 transition-colors inline-flex items-center justify-center"
-                  >
-                    <i className="fas fa-trash-can text-sm"></i>
-                  </button>
+                  {/* Coin notifications : icônes seulement quand il y a quelque chose. */}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {fu.clientPhotos?.count > 0 && fu.clientId && (
+                      <Link
+                        href={`/admin/clients/${fu.clientId}?tab=photos`}
+                        title={`${fu.clientPhotos.count} photo${fu.clientPhotos.count > 1 ? "s" : ""} envoyée${fu.clientPhotos.count > 1 ? "s" : ""} par le client`}
+                        className={`h-8 px-2 rounded-lg inline-flex items-center gap-1.5 text-xs font-bold transition-colors ${
+                          now && fu.clientPhotos.lastAt && now - new Date(fu.clientPhotos.lastAt).getTime() < 48 * 3600000
+                            ? "bg-emerald-500/20 text-emerald-300 border border-emerald-400/40"
+                            : "bg-white/5 admin-text-muted hover:admin-text border border-transparent"
+                        }`}
+                      >
+                        <i className="fas fa-camera text-[11px]"></i>{fu.clientPhotos.count}
+                      </Link>
+                    )}
+                    {fu.unreadChat?.count > 0 && (
+                      <Link
+                        href={`/admin/chat/${fu.unreadChat.conversationId}`}
+                        title={`${fu.unreadChat.count} message${fu.unreadChat.count > 1 ? "s" : ""} non lu${fu.unreadChat.count > 1 ? "s" : ""}`}
+                        className="h-8 px-2 rounded-lg inline-flex items-center gap-1.5 text-xs font-bold bg-rose-500/20 text-rose-300 border border-rose-400/40"
+                      >
+                        <i className="fas fa-comment text-[11px]"></i>{fu.unreadChat.count}
+                      </Link>
+                    )}
+                    <button
+                      onClick={() => setDeleting(fu)}
+                      title="Supprimer ce suivi"
+                      className="w-8 h-8 rounded-lg text-rose-400 hover:bg-rose-500/15 transition-colors inline-flex items-center justify-center"
+                    >
+                      <i className="fas fa-trash-can text-sm"></i>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-1.5 mt-3 flex-wrap">

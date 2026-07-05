@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import { workOrderStatusClass, workOrderStatusLabel } from "@/lib/work-order-status";
 import { DEFAULT_FOLLOW_UP_COLUMNS } from "@/lib/follow-up-columns";
@@ -247,7 +247,12 @@ function PhotosActions({ client, onUploaded }) {
 
 export default function ClientDetail({ client }) {
   const router = useRouter();
-  const [tab, setTab] = useState("infos");
+  // ?tab=photos (etc.) : la pastille 📷 du suivi ouvre la fiche directement sur le bon onglet.
+  const searchParams = useSearchParams();
+  const requestedTab = searchParams.get("tab");
+  const [tab, setTab] = useState(
+    ["infos", "suivi", "dossiers", "photos", "notes", "rdv", "chats", "batiments", "unites"].includes(requestedTab) ? requestedTab : "infos"
+  );
   const isB2B = client.type === "gestionnaire";
   const tabs = [
     { id: "infos", label: "Infos", icon: "fa-id-card" },

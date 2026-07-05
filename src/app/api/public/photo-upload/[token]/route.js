@@ -5,6 +5,7 @@ import crypto from "crypto";
 import prisma from "@/lib/prisma";
 import { verifyToken } from "@/lib/admin-auth";
 import { boundImageBuffer } from "@/lib/upload-photo";
+import { publishAdminEvent } from "@/lib/event-bus";
 
 const ALLOWED_MIMES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const MAX_BYTES = 25 * 1024 * 1024; // 25 MB par photo (les cellulaires récents dépassent 8 MB)
@@ -73,6 +74,11 @@ export async function POST(req, { params }) {
       data: { clientId: client.id, url: `/uploads/clients/${filename}`, source: "client" },
     });
     saved += 1;
+  }
+
+  // La pastille 📷 des cartes du suivi se met à jour en direct.
+  if (saved > 0) {
+    publishAdminEvent({ type: "client_photo.added", entityType: "client_photo", clientId: client.id });
   }
 
   return NextResponse.json({ saved }, { status: 201 });
