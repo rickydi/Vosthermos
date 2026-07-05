@@ -251,17 +251,12 @@ export default function SuiviSimple() {
         @keyframes vtFlashRed { 0%,100% { box-shadow: 0 0 0 0 rgba(244,63,94,0); } 50% { box-shadow: 0 0 0 3px rgba(244,63,94,0.55); } }
         .vt-flash-red { animation: vtFlashRed 1s ease-in-out infinite; border-color: rgba(244,63,94,0.9) !important; }
       ` }} />
-      <div className="flex items-center justify-between flex-wrap gap-3 mb-5">
-        <div>
-          <h1 className="admin-text text-2xl font-extrabold">Suivi clients</h1>
-          <p className="admin-text-muted text-sm mt-1">Coche les étapes au fur et à mesure · clique un nom pour la fiche complète</p>
-        </div>
-        <button onClick={() => setCreating(true)} className="px-4 py-2 bg-[var(--color-red)] text-white rounded-lg text-sm font-bold">
-          <i className="fas fa-plus mr-2"></i>Nouveau suivi
-        </button>
-      </div>
-
+      {/* Pas de titre répété (déjà dans la barre admin) : une seule rangée
+          compacte bouton + filtres + recherche pour garder l'espace aux cartes. */}
       <div className="flex items-center gap-2 flex-wrap mb-4">
+        <button onClick={() => setCreating(true)} className="px-3 py-1.5 bg-[var(--color-red)] text-white rounded-full text-xs font-bold">
+          <i className="fas fa-plus mr-1.5"></i>Nouveau suivi
+        </button>
         {FILTERS.map((f) => (
           <button key={f.key} onClick={() => setFilter(f.key)}
             className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${filter === f.key ? "bg-[var(--color-red)] text-white" : "admin-card border admin-border admin-text-muted hover:admin-text"}`}>
