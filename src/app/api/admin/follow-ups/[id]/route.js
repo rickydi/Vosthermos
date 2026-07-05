@@ -93,6 +93,22 @@ export async function PUT(req, { params }) {
     data.outcome = ["won", "lost"].includes(body.outcome) ? body.outcome : "open";
   }
 
+  // « Facturé » ne se coche pas à la main sans facture réelle : il faut au
+  // moins un bon passé facture (invoiced/sent/paid) lié à ce suivi. Le jalon
+  // se pose sinon tout seul quand le bon est facturé (sync automatique).
+  if (body.toggleMilestone === "invoicedAt" && body.on && !existing.invoicedAt) {
+    const invoicedWorkOrder = await prisma.workOrder.findFirst({
+      where: { followUpId, statut: { in: ["invoiced", "sent", "paid"] } },
+      select: { id: true },
+    });
+    if (!invoicedWorkOrder) {
+      return NextResponse.json(
+        { error: "Impossible: zero facture dans le systeme pour ce dossier. Facture d'abord le bon de travail." },
+        { status: 400 }
+      );
+    }
+  }
+
   // Toggle d'un jalon depuis la liste à cases : { toggleMilestone: "visitDoneAt", on: true|false }.
   // Cocher horodate (now) ; décocher remet à null. Idempotent si déjà dans cet état.
   if (body.toggleMilestone && FOLLOW_UP_MILESTONE_KEYS.includes(body.toggleMilestone)) {

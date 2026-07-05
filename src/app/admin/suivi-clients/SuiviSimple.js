@@ -119,10 +119,15 @@ export default function SuiviSimple() {
         headers: MUTATION_HEADERS,
         body: JSON.stringify({ toggleMilestone: key, on }),
       });
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        // Ex.: « Facturé » refusé quand aucune facture n'existe pour ce dossier.
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "");
+      }
       const updated = await res.json();
       patchLocal(fu.id, updated);
-    } catch {
+    } catch (e) {
+      if (e.message) alert(e.message);
       load(); // revert via reload
     }
   }
@@ -589,9 +594,9 @@ function SoumissionMenu({ fu, onPick, overdue }) {
 // libre / sans visite. "rdv" ouvre le modal de planification (RdvModal).
 const VISITE_OPTIONS = [
   { key: "done", label: "Visite faite", icon: "fa-circle-check", tone: "text-emerald-400" },
-  { key: "todo", label: "Visite à faire", icon: "fa-clock", tone: "text-rose-400" },
-  { key: "rdv", label: "Visite avec RDV — choisir la date…", icon: "fa-calendar-check", tone: "text-rose-400" },
-  { key: "anytime", label: "Passage libre — client toujours sur place", icon: "fa-door-open", tone: "text-rose-400" },
+  { key: "todo", label: "Visite à faire", icon: "fa-clock", tone: "text-emerald-400" },
+  { key: "rdv", label: "Visite avec RDV — choisir la date…", icon: "fa-calendar-check", tone: "text-emerald-400" },
+  { key: "anytime", label: "Passage libre — client toujours sur place", icon: "fa-door-open", tone: "text-emerald-400" },
   { key: "none", label: "Sans visite", icon: "fa-ban", tone: "admin-text-muted" },
 ];
 
@@ -600,20 +605,22 @@ function VisiteMenu({ fu, onPick, overdue }) {
   const done = !!fu.visitDoneAt || fu.visitStatus === "done";
   const status = fu.visitStatus;
   const current = done ? "done" : ["todo", "rdv", "anytime", "none"].includes(status) ? status : null;
-  // Deux couleurs seulement : vert = visite faite, rouge = visite pas faite
-  // (a faire, RDV planifie, passage libre). Gris = sans visite / aucun etat.
+  // Deux couleurs seulement (regle d'Erik) : un etat de visite CHOISI = vert
+  // (a faire, RDV, passage libre, faite). Gris = sans visite / aucun etat.
+  // Le rouge est reserve au negatif (sans reponse, refuse, retard SLA).
+  const greenCls = "bg-emerald-500/15 border-emerald-400/40 text-emerald-300";
   const cur = done
-    ? { label: "Visite faite", icon: "fa-location-dot", cls: "bg-emerald-500/15 border-emerald-400/40 text-emerald-300" }
+    ? { label: "Visite faite", icon: "fa-location-dot", cls: greenCls }
     : status === "todo"
-      ? { label: "Visite à faire", icon: "fa-clock", cls: "border-rose-400/50 text-rose-300 bg-rose-500/10" }
+      ? { label: "Visite à faire", icon: "fa-clock", cls: greenCls }
       : status === "rdv"
         ? {
             label: fu.visitScheduledAt ? `RDV ${fmtDate(fu.visitScheduledAt)}${fu.visitTimeSlot ? ` · ${fu.visitTimeSlot}` : ""}` : "Visite avec RDV",
             icon: "fa-calendar-check",
-            cls: "border-rose-400/50 text-rose-300 bg-rose-500/10",
+            cls: greenCls,
           }
         : status === "anytime"
-          ? { label: "Passage libre", icon: "fa-door-open", cls: "border-rose-400/50 text-rose-300 bg-rose-500/10" }
+          ? { label: "Passage libre", icon: "fa-door-open", cls: greenCls }
           : status === "none"
             ? { label: "Sans visite", icon: "fa-ban", cls: "admin-bg admin-border admin-text-muted" }
             : { label: "Visite", icon: "fa-location-dot", cls: "admin-bg admin-border admin-text-muted" };
