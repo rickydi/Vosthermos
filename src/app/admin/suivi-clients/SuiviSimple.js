@@ -342,13 +342,6 @@ export default function SuiviSimple() {
                         <i className="fas fa-comment text-[11px]"></i>{fu.unreadChat.count}
                       </Link>
                     )}
-                    <button
-                      onClick={() => setDeleting(fu)}
-                      title="Supprimer ce suivi"
-                      className="w-8 h-8 rounded-lg text-rose-400 hover:bg-rose-500/15 transition-colors inline-flex items-center justify-center"
-                    >
-                      <i className="fas fa-trash-can text-sm"></i>
-                    </button>
                   </div>
                 </div>
 
@@ -374,6 +367,14 @@ export default function SuiviSimple() {
                       </button>
                     );
                   })}
+                  {/* Poubelle en bas à droite de la carte (choix d'Erik). */}
+                  <button
+                    onClick={() => setDeleting(fu)}
+                    title="Supprimer ce suivi"
+                    className="ml-auto w-8 h-8 rounded-lg text-rose-400 hover:bg-rose-500/15 transition-colors inline-flex items-center justify-center shrink-0"
+                  >
+                    <i className="fas fa-trash-can text-sm"></i>
+                  </button>
                 </div>
 
                 {flagged && (
