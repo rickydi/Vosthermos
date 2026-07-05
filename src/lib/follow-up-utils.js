@@ -105,10 +105,15 @@ export async function createOrTouchFollowUpFromLead({ client, source, notes, ser
     cleanText(notes),
   ].filter(Boolean).join("\n");
 
+  // On ne réutilise que les suivis encore OUVERTS (outcome "open"). Un client
+  // qui rappelle alors que son ancien dossier est gagné/perdu = un nouveau
+  // projet -> nouvelle carte dans « En cours », pas une note cachée dans un
+  // vieux dossier de l'onglet Gagnés.
   const existing = await prisma.clientFollowUp.findFirst({
     where: {
       clientId: client.id,
       status: { notIn: FOLLOW_UP_TERMINAL_STATUSES },
+      outcome: "open",
     },
     orderBy: { updatedAt: "desc" },
   });
