@@ -306,6 +306,13 @@ export default function SuiviSimple() {
                       ) : (
                         <span className="admin-text font-bold">{name}</span>
                       )}
+                      {/* Client récurrent : « #3 » = son 3e dossier chez nous (rien au 1er). */}
+                      {fu.followUpRank > 1 && (
+                        <span title={`${fu.followUpRank}e dossier de ce client`}
+                          className="px-1.5 py-0.5 rounded-md text-[11px] font-bold bg-amber-500/15 text-amber-300 border border-amber-400/30">
+                          #{fu.followUpRank}
+                        </span>
+                      )}
                       {fu.clientId && (
                         <Link href={`/admin/clients/${fu.clientId}`}
                           className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[var(--color-red)] text-white shadow-sm hover:opacity-90 transition-opacity">

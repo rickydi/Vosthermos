@@ -454,7 +454,7 @@ export async function GET(req) {
     // par le client (source "client") + messages de chat non lus. Deux requêtes
     // légères, matchées par clientId puis par numéro (10 chiffres vérifiés).
     const clientIds = [...new Set(followUps.map((f) => f.clientId).filter(Boolean))];
-    const [photoGroups, unreadConvs] = await Promise.all([
+    const [photoGroups, unreadConvs, allClientFollowUps] = await Promise.all([
       clientIds.length
         ? prisma.clientPhoto.groupBy({
             by: ["clientId"],
@@ -467,7 +467,22 @@ export async function GET(req) {
         where: { unreadCount: { gt: 0 } },
         select: { id: true, clientId: true, clientPhone: true, unreadCount: true },
       }),
+      // Rang chronologique du dossier par client (« Alex #3 » = 3e dossier).
+      clientIds.length
+        ? prisma.clientFollowUp.findMany({
+            where: { clientId: { in: clientIds } },
+            select: { id: true, clientId: true, createdAt: true },
+            orderBy: { createdAt: "asc" },
+          })
+        : [],
     ]);
+    const rankById = new Map();
+    const rankCounters = new Map();
+    for (const f of allClientFollowUps) {
+      const n = (rankCounters.get(f.clientId) || 0) + 1;
+      rankCounters.set(f.clientId, n);
+      rankById.set(f.id, n);
+    }
     const photosByClient = new Map(photoGroups.map((g) => [g.clientId, { count: g._count._all, lastAt: g._max.createdAt?.toISOString() || null }]));
     const tenDigits = (p) => {
       const d = String(p || "").replace(/\D/g, "").slice(-10);
@@ -491,6 +506,7 @@ export async function GET(req) {
         ...serializeFollowUp(fu),
         clientPhotos: (fu.clientId && photosByClient.get(fu.clientId)) || null,
         unreadChat: conv ? { conversationId: conv.id, count: conv.unreadCount } : null,
+        followUpRank: rankById.get(fu.id) || null,
       };
     }));
   }
