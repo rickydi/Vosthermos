@@ -463,7 +463,7 @@ function DeleteResolutionModal({ target, onClose, onConfirm }) {
               className="admin-input w-full rounded-lg border px-3 py-2 text-sm"
             >
               {["Carte", "Interac", "Cheque", "Comptant", "Virement", "Autre"].map((option) => (
-                <option key={option} value={option}>{option}</option>
+                <option key={option} value={option}>{option === "Carte" ? "Carte (Moneris)" : option}</option>
               ))}
             </select>
             <input

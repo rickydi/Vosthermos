@@ -20,6 +20,12 @@ const SORT_OPTIONS = [
 ];
 
 const METHOD_OPTIONS = ["Interac", "Cheque", "Carte", "Comptant", "Virement", "Autre"];
+// Libelle affiche seulement : la valeur stockee reste "Carte" pour ne pas
+// fragmenter les rapports par mode avec les paiements deja inscrits.
+const METHOD_LABELS = { Carte: "Carte (Moneris)" };
+function methodLabel(option) {
+  return METHOD_LABELS[option] || option;
+}
 
 function money(value) {
   return `${Number(value || 0).toFixed(2)}$`;
@@ -341,7 +347,7 @@ function PaymentRow({ payment, saving, onPatch }) {
           onChange={(event) => setMethod(event.target.value)}
           className="admin-input w-36 rounded-lg border px-3 py-2 text-xs"
         >
-          {METHOD_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}
+          {METHOD_OPTIONS.map((option) => <option key={option} value={option}>{methodLabel(option)}</option>)}
         </select>
         <input
           type="date"
@@ -568,7 +574,7 @@ function RefundModal({ payment, saving, onClose, onSubmit }) {
                   onChange={(event) => setRefundMethod(event.target.value)}
                   className="admin-input w-full rounded-lg border px-3 py-2 text-sm"
                 >
-                  {METHOD_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}
+                  {METHOD_OPTIONS.map((option) => <option key={option} value={option}>{methodLabel(option)}</option>)}
                 </select>
               </div>
               <div>
