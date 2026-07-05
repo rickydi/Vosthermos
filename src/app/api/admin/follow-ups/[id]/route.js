@@ -97,6 +97,10 @@ export async function PUT(req, { params }) {
   // Cocher horodate (now) ; décocher remet à null. Idempotent si déjà dans cet état.
   if (body.toggleMilestone && FOLLOW_UP_MILESTONE_KEYS.includes(body.toggleMilestone)) {
     data[body.toggleMilestone] = body.on ? (existing[body.toggleMilestone] || new Date()) : null;
+    // Le rappel auto « Appeler le client » n'a plus de raison d'être une fois le contact fait.
+    if (body.toggleMilestone === "contactedAt" && body.on && existing.nextAction === "Appeler le client" && data.nextAction === undefined) {
+      data.nextAction = null;
+    }
   }
 
   // Type de soumission piloté par le menu Soumission : "written" (écrite) | "phone"

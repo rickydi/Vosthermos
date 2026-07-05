@@ -382,7 +382,9 @@ export default function SuiviSimple() {
                   </div>
                 )}
 
-                {fu.nextAction && (
+                {/* « Appeler le client » est un rappel auto posé à la création du
+                    suivi : plus pertinent une fois le contact fait -> on le masque. */}
+                {fu.nextAction && !(fu.nextAction === "Appeler le client" && reached) && (
                   <div className="mt-2 text-xs admin-text">
                     <i className="fas fa-arrow-right mr-1 text-[var(--color-red)]"></i>{fu.nextAction}
                     {fu.nextActionDate && <span className="admin-text-muted"> · {fmtDate(fu.nextActionDate)}</span>}
