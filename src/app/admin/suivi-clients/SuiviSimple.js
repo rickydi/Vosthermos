@@ -311,7 +311,7 @@ export default function SuiviSimple() {
                       {/* Client récurrent : « #3 » = son 3e dossier chez nous (rien au 1er). */}
                       {fu.followUpRank > 1 && (
                         <span title={`${fu.followUpRank}e dossier de ce client`}
-                          className="px-1.5 py-0.5 rounded-md text-[11px] font-bold bg-amber-500/15 text-amber-300 border border-amber-400/30">
+                          className="px-1.5 py-0.5 rounded-md text-[11px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-400/30">
                           #{fu.followUpRank}
                         </span>
                       )}
@@ -427,15 +427,17 @@ export default function SuiviSimple() {
 
 // Menu déroulant compact pour l'état de contact (remplace les 2 boutons "Contacté"
 // + "Sans réponse"). 4 choix : rejoint / 1-2 tentatives sans réponse / à contacter.
+// Code couleur voulu par Erik : DEUX couleurs seulement — vert = fait,
+// rouge = à faire / pas réussi. Gris = aucun état choisi.
 const CONTACT_STATES = {
   none: { label: "À contacter", icon: "fa-circle", cls: "admin-bg admin-border admin-text-muted" },
-  a1: { label: "1 tentative", icon: "fa-phone-slash", cls: "border-amber-400/50 text-amber-300 bg-amber-500/10" },
+  a1: { label: "1 tentative", icon: "fa-phone-slash", cls: "border-rose-400/50 text-rose-300 bg-rose-500/10" },
   a2: { label: "2 tentatives", icon: "fa-phone-slash", cls: "border-rose-400/50 text-rose-300 bg-rose-500/10" },
   reached: { label: "Contacté", icon: "fa-circle-check", cls: "bg-emerald-500/15 border-emerald-400/40 text-emerald-300" },
 };
 const CONTACT_OPTIONS = [
   { key: "reached", label: "Contacté (rejoint)", icon: "fa-circle-check", tone: "text-emerald-400" },
-  { key: "a1", label: "1 tentative — sans réponse", icon: "fa-phone-slash", tone: "text-amber-400" },
+  { key: "a1", label: "1 tentative — sans réponse", icon: "fa-phone-slash", tone: "text-rose-400" },
   { key: "a2", label: "2 tentatives — sans réponse", icon: "fa-phone-slash", tone: "text-rose-400" },
   { key: "none", label: "À contacter (réinitialiser)", icon: "fa-rotate-left", tone: "admin-text-muted" },
 ];
@@ -485,11 +487,11 @@ function ContactMenu({ fu, onPick, overdue }) {
 const APPROVAL_STATES = {
   open: { label: "À approuver", icon: "fa-thumbs-up", cls: "admin-bg admin-border admin-text-muted" },
   won: { label: "Approuvé", icon: "fa-thumbs-up", cls: "bg-emerald-500/15 border-emerald-400/40 text-emerald-300" },
-  lost: { label: "Refusé", icon: "fa-thumbs-down", cls: "bg-slate-500/15 border-slate-400/50 text-slate-300" },
+  lost: { label: "Refusé", icon: "fa-thumbs-down", cls: "bg-rose-500/10 border-rose-400/50 text-rose-300" },
 };
 const APPROVAL_OPTIONS = [
   { key: "won", label: "Approuvé (gagné)", icon: "fa-thumbs-up", tone: "text-emerald-400" },
-  { key: "lost", label: "Refusé (perdu)", icon: "fa-thumbs-down", tone: "text-slate-400" },
+  { key: "lost", label: "Refusé (perdu)", icon: "fa-thumbs-down", tone: "text-rose-400" },
   { key: "open", label: "En attente (réinitialiser)", icon: "fa-rotate-left", tone: "admin-text-muted" },
 ];
 
@@ -535,7 +537,7 @@ function ApprovalMenu({ fu, onPick, overdue }) {
 // téléphone (verbale, manuelle). "Tu sais pourquoi" : l'écrite = un vrai document.
 const SOUMISSION_OPTIONS = [
   { key: "written", label: "Soumission écrite", icon: "fa-file-lines", tone: "text-emerald-400" },
-  { key: "phone", label: "Soumission par téléphone", icon: "fa-phone", tone: "text-sky-400" },
+  { key: "phone", label: "Soumission par téléphone", icon: "fa-phone", tone: "text-emerald-400" },
   { key: "none", label: "Pas de soumission (réinitialiser)", icon: "fa-rotate-left", tone: "admin-text-muted" },
 ];
 
@@ -587,9 +589,9 @@ function SoumissionMenu({ fu, onPick, overdue }) {
 // libre / sans visite. "rdv" ouvre le modal de planification (RdvModal).
 const VISITE_OPTIONS = [
   { key: "done", label: "Visite faite", icon: "fa-circle-check", tone: "text-emerald-400" },
-  { key: "todo", label: "Visite à faire", icon: "fa-clock", tone: "text-amber-400" },
-  { key: "rdv", label: "Visite avec RDV — choisir la date…", icon: "fa-calendar-check", tone: "text-violet-400" },
-  { key: "anytime", label: "Passage libre — client toujours sur place", icon: "fa-door-open", tone: "text-sky-400" },
+  { key: "todo", label: "Visite à faire", icon: "fa-clock", tone: "text-rose-400" },
+  { key: "rdv", label: "Visite avec RDV — choisir la date…", icon: "fa-calendar-check", tone: "text-rose-400" },
+  { key: "anytime", label: "Passage libre — client toujours sur place", icon: "fa-door-open", tone: "text-rose-400" },
   { key: "none", label: "Sans visite", icon: "fa-ban", tone: "admin-text-muted" },
 ];
 
@@ -598,18 +600,20 @@ function VisiteMenu({ fu, onPick, overdue }) {
   const done = !!fu.visitDoneAt || fu.visitStatus === "done";
   const status = fu.visitStatus;
   const current = done ? "done" : ["todo", "rdv", "anytime", "none"].includes(status) ? status : null;
+  // Deux couleurs seulement : vert = visite faite, rouge = visite pas faite
+  // (a faire, RDV planifie, passage libre). Gris = sans visite / aucun etat.
   const cur = done
     ? { label: "Visite faite", icon: "fa-location-dot", cls: "bg-emerald-500/15 border-emerald-400/40 text-emerald-300" }
     : status === "todo"
-      ? { label: "Visite à faire", icon: "fa-clock", cls: "border-amber-400/50 text-amber-300 bg-amber-500/10" }
+      ? { label: "Visite à faire", icon: "fa-clock", cls: "border-rose-400/50 text-rose-300 bg-rose-500/10" }
       : status === "rdv"
         ? {
             label: fu.visitScheduledAt ? `RDV ${fmtDate(fu.visitScheduledAt)}${fu.visitTimeSlot ? ` · ${fu.visitTimeSlot}` : ""}` : "Visite avec RDV",
             icon: "fa-calendar-check",
-            cls: "border-violet-400/50 text-violet-300 bg-violet-500/10",
+            cls: "border-rose-400/50 text-rose-300 bg-rose-500/10",
           }
         : status === "anytime"
-          ? { label: "Passage libre", icon: "fa-door-open", cls: "border-sky-400/50 text-sky-300 bg-sky-500/10" }
+          ? { label: "Passage libre", icon: "fa-door-open", cls: "border-rose-400/50 text-rose-300 bg-rose-500/10" }
           : status === "none"
             ? { label: "Sans visite", icon: "fa-ban", cls: "admin-bg admin-border admin-text-muted" }
             : { label: "Visite", icon: "fa-location-dot", cls: "admin-bg admin-border admin-text-muted" };
@@ -704,11 +708,11 @@ function MiniCalendar({ value, onPick }) {
               onClick={() => onPick(iso)}
               className={`h-9 rounded-lg text-sm font-semibold transition-colors ${
                 selected
-                  ? "bg-violet-600 text-white"
+                  ? "bg-emerald-600 text-white"
                   : past
                     ? "admin-text-muted opacity-30 cursor-not-allowed"
                     : isToday
-                      ? "border border-violet-400/60 admin-text"
+                      ? "border border-emerald-400/60 admin-text"
                       : "admin-text hover:bg-white/10"
               }`}
             >
@@ -766,7 +770,7 @@ function RdvModal({ fu, onClose, onSaved }) {
       <div className="admin-bg border admin-border rounded-xl w-full max-w-md shadow-2xl my-8">
         <div className="flex items-center justify-between p-5 border-b admin-border">
           <h2 className="admin-text font-bold text-lg">
-            <i className="fas fa-calendar-check mr-2 text-violet-400"></i>Visite avec RDV
+            <i className="fas fa-calendar-check mr-2 text-emerald-400"></i>Visite avec RDV
           </h2>
           <button onClick={onClose} className="w-8 h-8 rounded admin-card border admin-border hover:bg-white/5 inline-flex items-center justify-center"><i className="fas fa-times admin-text-muted"></i></button>
         </div>
@@ -777,7 +781,7 @@ function RdvModal({ fu, onClose, onSaved }) {
             <MiniCalendar value={date} onPick={(iso) => { setDate(iso); setSlot(""); setErr(""); }} />
             {date && (
               <p className="admin-text text-xs font-semibold mt-1.5">
-                <i className="fas fa-calendar mr-1 text-violet-400"></i>
+                <i className="fas fa-calendar mr-1 text-emerald-400"></i>
                 {new Date(`${date}T12:00:00`).toLocaleDateString("fr-CA", { weekday: "long", day: "numeric", month: "long" })}
               </p>
             )}
@@ -794,10 +798,10 @@ function RdvModal({ fu, onClose, onSaved }) {
                     onClick={() => { setSlot(s); setErr(""); }}
                     className={`h-11 rounded-lg border text-sm font-bold transition-colors ${
                       slot === s
-                        ? "bg-violet-500/25 border-violet-400 text-violet-200"
+                        ? "bg-emerald-500/25 border-emerald-400 text-emerald-200"
                         : taken
                           ? "admin-bg admin-border admin-text-muted opacity-35 cursor-not-allowed line-through"
-                          : "admin-card admin-border admin-text hover:border-violet-400/60"
+                          : "admin-card admin-border admin-text hover:border-emerald-400/60"
                     }`}>
                     {s}
                   </button>
@@ -812,7 +816,7 @@ function RdvModal({ fu, onClose, onSaved }) {
           <div className="flex justify-end gap-2 pt-1">
             <button type="button" onClick={onClose} className="px-4 py-2 admin-card border admin-border admin-text rounded-lg text-sm">Annuler</button>
             <button type="button" onClick={submit} disabled={!date || !slot || saving}
-              className="px-5 py-2 bg-violet-600 hover:bg-violet-500 text-white rounded-lg text-sm font-bold disabled:opacity-40">
+              className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-bold disabled:opacity-40">
               {saving ? <><i className="fas fa-spinner fa-spin mr-2"></i>Planification…</> : <><i className="fas fa-check mr-2"></i>Confirmer le RDV</>}
             </button>
           </div>
