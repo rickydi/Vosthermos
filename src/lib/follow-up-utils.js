@@ -205,6 +205,11 @@ export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client, fo
 
   const note = `[auto: ${sourceText} ${workOrder.number || `#${workOrder.id}`}${dueDate ? ` echeance ${dateOnlyIso(dueDate)}` : ""} ${new Date().toISOString().slice(0, 10)}]`;
 
+  // Le montant du suivi suit la soumission/facture des qu'elle est chiffree.
+  // Avant: fige a la creation (souvent 0 pendant le brouillon) et jamais mis a
+  // jour ensuite -> cartes de suivi affichant 0 $ malgre une soumission reelle.
+  const documentAmount = documentMeta.type !== "work_order" ? Number(workOrder.total || 0) : 0;
+
   let followUp;
   if (existing) {
     followUp = await prisma.clientFollowUp.update({
@@ -216,7 +221,7 @@ export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client, fo
         contactName: existing.contactName || primaryContactName(client),
         phone: existing.phone || primaryContactPhone(client),
         email: existing.email || client.email || null,
-        estimateAmount: existing.estimateAmount ?? (documentMeta.type !== "work_order" ? workOrder.total : null),
+        estimateAmount: documentAmount > 0 ? workOrder.total : existing.estimateAmount ?? null,
         nextAction: invoiceOpen || invoicePaid ? defaultNextAction : existing.nextAction || (status === "scheduled" ? "Suivre le bon planifie" : defaultNextAction),
         nextActionDate: invoiceOpen ? dueDate : invoicePaid ? null : existing.nextActionDate,
         notes: appendNote(existing.notes, note),
@@ -233,7 +238,7 @@ export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client, fo
         contactName: primaryContactName(client),
         phone: primaryContactPhone(client),
         email: client.email || null,
-        estimateAmount: documentMeta.type !== "work_order" ? workOrder.total : null,
+        estimateAmount: documentAmount > 0 ? workOrder.total : null,
         nextAction: status === "scheduled" && !invoiceOpen ? "Suivre le bon planifie" : defaultNextAction,
         nextActionDate: invoiceOpen ? dueDate : null,
         notes: note,

@@ -10,7 +10,9 @@ import { FOLLOW_UP_MILESTONES } from "@/lib/follow-up-columns";
 // en optimiste) au lieu de recharger 344 Ko de liste a chaque coche.
 const MUTATION_HEADERS = { "Content-Type": "application/json", "X-Admin-Tab": ADMIN_TAB_ID };
 
-const fmtMoney = (n) => (n === null || n === undefined ? null : new Intl.NumberFormat("fr-CA", { style: "currency", currency: "CAD", maximumFractionDigits: 0 }).format(n));
+// null aussi pour 0 : un montant vide n'apporte rien sur la carte (le 0 $
+// venait des soumissions creees en brouillon avant d'etre chiffrees).
+const fmtMoney = (n) => (n === null || n === undefined || !(Number(n) > 0) ? null : new Intl.NumberFormat("fr-CA", { style: "currency", currency: "CAD", maximumFractionDigits: 0 }).format(n));
 const fmtDate = (v) => (v ? new Date(v).toLocaleDateString("fr-CA", { day: "2-digit", month: "short" }) : "");
 
 const FILTERS = [
@@ -300,7 +302,7 @@ export default function SuiviSimple() {
               <div key={fu.id} className={`admin-card border rounded-xl p-3.5 transition-opacity ${isLost ? "opacity-55" : ""} ${flagged ? "ring-1 ring-rose-400/50 border-rose-400/40" : ""}`}>
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center gap-x-2 gap-y-1.5 flex-wrap">
                       {fu.clientId ? (
                         <Link href={`/admin/clients/${fu.clientId}`} className="admin-text font-bold hover:text-[var(--color-red)] transition-colors">{name}</Link>
                       ) : (
@@ -320,10 +322,14 @@ export default function SuiviSimple() {
                         </Link>
                       )}
                     </div>
-                    <div className="admin-text-muted text-xs mt-0.5 flex flex-wrap gap-x-3">
+                    <div className="admin-text-muted text-xs mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
                       {fu.service && <span>{fu.service}</span>}
-                      {fu.phone && <span><i className="fas fa-phone mr-1 opacity-60"></i>{fu.phone}</span>}
-                      {fmtMoney(fu.estimateAmount) && <span className="admin-text font-semibold">{fmtMoney(fu.estimateAmount)}</span>}
+                      {fu.phone && <span className="whitespace-nowrap"><i className="fas fa-phone mr-1 opacity-60"></i>{fu.phone}</span>}
+                      {fmtMoney(fu.estimateAmount) && (
+                        <span className="whitespace-nowrap rounded-md border border-emerald-400/30 bg-emerald-500/10 px-2 py-0.5 font-bold text-emerald-300">
+                          {fmtMoney(fu.estimateAmount)}
+                        </span>
+                      )}
                     </div>
                   </div>
                   {/* Coin notifications : icônes seulement quand il y a quelque chose. */}

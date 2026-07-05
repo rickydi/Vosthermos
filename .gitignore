@@ -14,7 +14,13 @@
 /coverage
 
 # next.js
+# .next.new = build de deploiement (deploy-safe.sh), .next.test = dist du
+# serveur de test local. A ignorer aussi sinon Tailwind 4 (qui scanne tout ce
+# qui n'est pas gitignore) extrait des classes corrompues des bundles.
 /.next/
+/.next.new/
+/.next.test/
+/.next.old/
 /out/
 
 # production
