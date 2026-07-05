@@ -209,6 +209,21 @@ export async function PUT(req, { params }) {
     }
   }
 
+  // Cascade logique : poser un jalon plus avancé implique que le contact a eu
+  // lieu (on ne planifie pas une visite ni n'envoie une soumission sans avoir
+  // parlé au client) -> « Contacté » se coche tout seul au lieu de bloquer.
+  const impliesContact =
+    ["todo", "done", "rdv", "anytime"].includes(data.visitStatus) ||
+    ["visitDoneAt", "estimateSentAt", "acceptedAt", "jobCompletedAt", "invoicedAt"].some((k) => Boolean(data[k])) ||
+    data.outcome === "won";
+  if (impliesContact && !existing.contactedAt && data.contactedAt === undefined) {
+    data.contactedAt = new Date();
+    // Le rappel auto n'a plus de raison d'être une fois le contact implicite.
+    if (existing.nextAction === "Appeler le client" && data.nextAction === undefined) {
+      data.nextAction = null;
+    }
+  }
+
   // Auto-horodatage legacy si un status est poussé directement.
   if (body.status === "estimate_sent" && !existing.estimateSentAt && data.estimateSentAt === undefined) data.estimateSentAt = new Date();
   if (body.status === "won" && !existing.acceptedAt && data.acceptedAt === undefined) data.acceptedAt = new Date();
