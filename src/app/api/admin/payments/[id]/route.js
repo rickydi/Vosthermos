@@ -47,6 +47,7 @@ function includePaymentRelations() {
     technician: { select: { id: true, name: true } },
     followUp: { select: { id: true, title: true, status: true } },
     payments: { orderBy: [{ paidAt: "asc" }, { id: "asc" }] },
+    creditNotes: { orderBy: [{ issuedAt: "asc" }, { id: "asc" }] },
   };
 }
 
@@ -85,6 +86,15 @@ function paymentNoteFromBody(body, fallback = undefined) {
   return note === undefined ? fallback : note;
 }
 
+function paymentReferenceFromBody(body) {
+  return cleanText(body.reference ?? body.monerisRef) ?? null;
+}
+
+function paymentClientKeyFromBody(body) {
+  const key = cleanText(body.clientKey);
+  return key ? key.slice(0, 64) : null;
+}
+
 async function fetchPaymentWorkOrder(workOrderId) {
   return prisma.workOrder.findUnique({
     where: { id: workOrderId },
@@ -117,13 +127,36 @@ async function addPaymentAndRecompute(tx, existing, body) {
   const paidAt = parsePaymentDateInput(body.paidAt, new Date()) || new Date();
   const method = paymentMethodFromBody(body, existing);
   const note = paymentNoteFromBody(body, null);
+  const reference = paymentReferenceFromBody(body);
+  const clientKey = paymentClientKeyFromBody(body);
+
+  // Idempotence: un double-clic renvoie le meme clientKey -> le depot n'est
+  // inscrit qu'une fois (la contrainte unique en DB reste le filet de secours).
+  if (clientKey) {
+    const duplicate = await tx.workOrderPayment.findUnique({
+      where: { clientKey },
+      select: { id: true },
+    });
+    if (duplicate) return;
+  }
+
+  const before = await tx.workOrder.findUnique({
+    where: { id: existing.id },
+    include: { client: true, payments: true },
+  });
+  const balanceBefore = remainingBalance(before);
+  if (amount > balanceBefore + 0.005) {
+    throw new Error(`Le montant depasse le solde restant (${balanceBefore.toFixed(2)}$)`);
+  }
 
   await tx.workOrderPayment.create({
     data: {
       workOrderId: existing.id,
       amount,
       method,
+      reference,
       note,
+      clientKey,
       paidAt,
     },
   });
@@ -138,7 +171,7 @@ async function addPaymentAndRecompute(tx, existing, body) {
     paymentNotes: note ?? current.paymentNotes,
   };
 
-  if (balance <= 0.005) {
+  if (balance <= 0.005 && isOpenPaymentStatus(current.statut)) {
     Object.assign(data, {
       ...buildPaymentTrackingData({
         statut: "paid",
@@ -159,6 +192,7 @@ async function markPaidWithFinalPayment(tx, existing, body) {
   const paidAt = parsePaymentDateInput(body.paidAt, new Date()) || new Date();
   const method = paymentMethodFromBody(body, existing);
   const note = paymentNoteFromBody(body, existing.paymentNotes) ?? "Paiement final";
+  const reference = paymentReferenceFromBody(body);
   const current = await tx.workOrder.findUnique({
     where: { id: existing.id },
     include: { client: true, payments: true },
@@ -171,7 +205,9 @@ async function markPaidWithFinalPayment(tx, existing, body) {
         workOrderId: existing.id,
         amount: balance,
         method,
+        reference,
         note,
+        clientKey: paymentClientKeyFromBody(body),
         paidAt,
       },
     });
@@ -211,21 +247,27 @@ async function deletePaymentAndRecompute(tx, existing, body) {
     include: { client: true, payments: true },
   });
   const balance = remainingBalance(current);
-  if (balance > 0.005) {
+  const data = {};
+  if ((current.payments || []).length === 0) {
+    data.paymentMethod = null;
+  }
+  // Ne repasser en "a payer" que les documents factures : retirer le depot
+  // d'une soumission acceptee ne doit pas la transformer en facture.
+  if (balance > 0.005 && (isOpenPaymentStatus(current.statut) || current.statut === "paid")) {
     const statut = openStatusFromBody(body, current);
-    await tx.workOrder.update({
-      where: { id: existing.id },
-      data: {
-        ...buildPaymentTrackingData({
-          statut,
-          existing: current,
-          client: current.client,
-          invoiceDate: current.invoiceIssuedAt || current.date,
-        }),
+    Object.assign(data, {
+      ...buildPaymentTrackingData({
         statut,
-        paidAt: null,
-      },
+        existing: current,
+        client: current.client,
+        invoiceDate: current.invoiceIssuedAt || current.date,
+      }),
+      statut,
+      paidAt: null,
     });
+  }
+  if (Object.keys(data).length > 0) {
+    await tx.workOrder.update({ where: { id: existing.id }, data });
   }
 }
 
@@ -265,6 +307,31 @@ export async function PATCH(req, { params }) {
       const { payment } = scopeWorkOrderThroughPayment(existing, body.paymentId);
       if (!payment) throw new Error("Paiement introuvable");
       activityLabel = `Facture paiement renvoyee: ${existing.number}`;
+    } else if (body.action === "create-credit-note") {
+      const { createCreditNoteFromWorkOrder, workOrderPaidTotal } = await import("@/lib/credit-note");
+      const creditType = body.creditType === "refund" ? "refund" : "credit";
+      const paidTotal = workOrderPaidTotal(existing);
+      if (paidTotal <= 0.005) {
+        return NextResponse.json({ error: "Aucun montant encaisse sur cette facture" }, { status: 400 });
+      }
+      const amount = body.amount === undefined || body.amount === null || body.amount === ""
+        ? paidTotal
+        : roundMoney(Number(String(body.amount).replace(",", ".")));
+      if (!Number.isFinite(amount) || amount <= 0) {
+        return NextResponse.json({ error: "Montant invalide" }, { status: 400 });
+      }
+      if (amount > paidTotal + 0.005) {
+        return NextResponse.json({ error: `Le montant depasse ce qui a ete encaisse (${paidTotal.toFixed(2)}$)` }, { status: 400 });
+      }
+      const creditNote = await prisma.$transaction((tx) => createCreditNoteFromWorkOrder(tx, existing, {
+        amount,
+        reason: cleanText(body.reason) || (creditType === "refund"
+          ? `Remboursement sur la facture ${existing.number}`
+          : `Avoir sur la facture ${existing.number}`),
+        refundMethod: creditType === "refund" ? (cleanText(body.refundMethod) || "Autre") : null,
+        refundRef: creditType === "refund" ? cleanText(body.refundRef) : null,
+      }));
+      activityLabel = `${creditType === "refund" ? "Remboursement" : "Note de credit"} ${creditNote.number}: ${existing.number}`;
     } else if (body.action === "mark-open") {
       const statut = openStatusFromBody(body, existing);
       await prisma.$transaction(async (tx) => {
@@ -298,7 +365,13 @@ export async function PATCH(req, { params }) {
       }
       if (body.paidAt !== undefined) {
         data.paidAt = parsePaymentDateInput(body.paidAt, existing.paidAt);
-        if (data.paidAt) data.statut = "paid";
+        if (data.paidAt) {
+          data.statut = "paid";
+        } else if (existing.statut === "paid") {
+          // Retirer la date de paiement rouvre la facture (sinon elle restait
+          // "payee" sans date de paiement).
+          data.statut = existing.invoiceSentAt ? "sent" : "invoiced";
+        }
       }
       if (body.paymentMethod !== undefined) data.paymentMethod = cleanText(body.paymentMethod);
       if (body.paymentNotes !== undefined) data.paymentNotes = cleanText(body.paymentNotes);

@@ -2,12 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { todayDateInput } from "@/lib/date-only";
+import { formatDateOnly, todayDateInput } from "@/lib/date-only";
+import { workOrderStatusLabel } from "@/lib/work-order-status";
 
 const FILTERS = [
   { key: "open", label: "A recevoir" },
   { key: "overdue", label: "En retard" },
   { key: "receivable", label: "Non echu" },
+  { key: "deposit", label: "Depots" },
   { key: "paid", label: "Payes" },
   { key: "all", label: "Tous" },
 ];
@@ -44,14 +46,21 @@ function dateInput(value) {
 
 function dateLabel(value) {
   if (!value) return "-";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "-";
-  return date.toLocaleDateString("fr-CA", { day: "2-digit", month: "short", year: "numeric" });
+  // Ancre a midi (lib/date-only) : un champ @db.Date minuit UTC ne recule
+  // plus d'un jour en heure de Montreal.
+  return formatDateOnly(value, { day: "2-digit", month: "short", year: "numeric" }) || "-";
 }
 
 function stateMeta(payment) {
   if (payment.paymentState === "paid") {
     return { label: "Paye", className: "bg-emerald-500/15 text-emerald-300", icon: "fa-check-circle" };
+  }
+  if (payment.paymentState === "deposit") {
+    if ((payment.paymentsTotal || 0) > 0) {
+      return { label: "Depot recu (avant facture)", className: "bg-cyan-500/15 text-cyan-300", icon: "fa-coins" };
+    }
+    const pct = payment.quoteDepositPercent ? ` ${payment.quoteDepositPercent}%` : "";
+    return { label: `Depot${pct} a recevoir`, className: "bg-amber-500/15 text-amber-300", icon: "fa-coins" };
   }
   if (payment.hasPartialPayments) {
     return { label: "Depot recu", className: "bg-cyan-500/15 text-cyan-300", icon: "fa-coins" };
@@ -80,18 +89,33 @@ function SummaryTile({ icon, label, value, detail, tone }) {
   );
 }
 
+function newClientKey() {
+  try {
+    return crypto.randomUUID();
+  } catch {
+    return `pk-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  }
+}
+
 function PaymentRow({ payment, saving, onPatch }) {
   const [dueDate, setDueDate] = useState(dateInput(payment.paymentDueAt));
   const [method, setMethod] = useState(payment.paymentMethod || "Interac");
   const [paymentDate, setPaymentDate] = useState(todayDateInput());
   const [depositAmount, setDepositAmount] = useState("");
   const [paymentNote, setPaymentNote] = useState("");
+  const [reference, setReference] = useState("");
+  // Cle d'idempotence : identique pour tous les clics d'une meme saisie, le
+  // serveur n'inscrit le paiement qu'une fois. Regeneree apres chaque succes.
+  const [clientKey, setClientKey] = useState(newClientKey);
   const [showDepositEmailModal, setShowDepositEmailModal] = useState(false);
+  const [showRefundModal, setShowRefundModal] = useState(false);
   const meta = stateMeta(payment);
   const dirty = dueDate !== dateInput(payment.paymentDueAt);
   const balance = Number(payment.balanceDue ?? payment.total ?? 0);
   const payments = payment.payments || [];
+  const creditNotes = payment.creditNotes || [];
   const clientEmail = payment.client?.email || "";
+  const isDeposit = payment.paymentState === "deposit";
 
   async function saveDetails() {
     await onPatch(payment.id, {
@@ -105,7 +129,9 @@ function PaymentRow({ payment, saving, onPatch }) {
       amount: depositAmount,
       paidAt: paymentDate || null,
       paymentMethod: method || "Interac",
+      reference: reference.trim() || null,
       paymentNotes: paymentNote || null,
+      clientKey,
       sendEmail,
       to: sendEmail ? clientEmail : undefined,
     };
@@ -116,6 +142,8 @@ function PaymentRow({ payment, saving, onPatch }) {
     if (!data) return;
     setDepositAmount("");
     setPaymentNote("");
+    setReference("");
+    setClientKey(newClientKey());
     setShowDepositEmailModal(false);
   }
 
@@ -129,14 +157,19 @@ function PaymentRow({ payment, saving, onPatch }) {
   }
 
   async function markPaid() {
-    await onPatch(payment.id, {
+    const data = await onPatch(payment.id, {
       action: "mark-paid",
       paidAt: paymentDate || null,
       paymentMethod: method || "Interac",
+      reference: reference.trim() || null,
       paymentNotes: paymentNote || null,
+      clientKey,
       sendEmail: true,
     });
+    if (!data) return;
     setPaymentNote("");
+    setReference("");
+    setClientKey(newClientKey());
   }
 
   async function resendPaidEmail() {
@@ -177,9 +210,13 @@ function PaymentRow({ payment, saving, onPatch }) {
         <Link href={`/admin/bons/nouveau?edit=${payment.id}`} className="admin-text font-mono text-xs font-bold hover:underline">
           {payment.number}
         </Link>
-        <p className="admin-text-muted mt-1 text-[11px]">Facture: {dateLabel(payment.invoiceIssuedAt || payment.date)}</p>
+        {isDeposit ? (
+          <p className="admin-text-muted mt-1 text-[11px]">{workOrderStatusLabel(payment.statut)} - {dateLabel(payment.date)}</p>
+        ) : (
+          <p className="admin-text-muted mt-1 text-[11px]">Facture: {dateLabel(payment.invoiceIssuedAt || payment.date)}</p>
+        )}
         <a
-          href={`/api/admin/work-orders/${payment.id}/pdf?documentType=invoice`}
+          href={`/api/admin/work-orders/${payment.id}/pdf${isDeposit ? "" : "?documentType=invoice"}`}
           target="_blank"
           rel="noreferrer"
           className="admin-text-muted mt-2 inline-flex items-center gap-1 text-[11px] hover:underline"
@@ -193,18 +230,22 @@ function PaymentRow({ payment, saving, onPatch }) {
         {payment.client?.company ? <p className="admin-text-muted text-[11px]">{payment.client.company}</p> : null}
       </td>
       <td className="px-4 py-4">
-        <input
-          type="date"
-          value={dueDate}
-          onChange={(event) => setDueDate(event.target.value)}
-          className="admin-input w-36 rounded-lg border px-3 py-2 text-xs"
-        />
-        <p className="admin-text-muted mt-1 text-[11px]">Net {payment.paymentTermsDays || 30} j.</p>
+        {isDeposit ? null : (
+          <>
+            <input
+              type="date"
+              value={dueDate}
+              onChange={(event) => setDueDate(event.target.value)}
+              className="admin-input w-36 rounded-lg border px-3 py-2 text-xs"
+            />
+            <p className="admin-text-muted mt-1 text-[11px]">Net {payment.paymentTermsDays || 30} j.</p>
+          </>
+        )}
         <span className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ${meta.className}`}>
           <i className={`fas ${meta.icon}`}></i>{meta.label}
         </span>
         {payment.invoiceSentAt ? <p className="admin-text-muted mt-1 text-[11px]">Envoyee {dateLabel(payment.invoiceSentAt)}</p> : null}
-        {dirty ? (
+        {!isDeposit && dirty ? (
           <button
             type="button"
             disabled={saving}
@@ -229,7 +270,9 @@ function PaymentRow({ payment, saving, onPatch }) {
             {payments.map((entry) => (
               <div key={entry.id} className="flex items-center justify-between gap-2 rounded-lg border admin-border px-2 py-1.5 text-[11px]">
                 <div className="min-w-0">
-                  <p className="admin-text font-bold">{money(entry.amount)} <span className="admin-text-muted font-normal">{entry.method || ""}</span></p>
+                  <p className="admin-text font-bold">
+                    {money(entry.amount)} <span className="admin-text-muted font-normal">{entry.method || ""}{entry.reference ? ` #${entry.reference}` : ""}</span>
+                  </p>
                   <p className="admin-text-muted truncate">Paiement recu - {dateLabel(entry.paidAt)}{entry.note ? ` - ${entry.note}` : ""}</p>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
@@ -269,6 +312,30 @@ function PaymentRow({ payment, saving, onPatch }) {
             ))}
           </div>
         ) : null}
+        {creditNotes.length > 0 ? (
+          <div className="mb-3 space-y-1">
+            {creditNotes.map((note) => (
+              <div key={note.id} className={`flex items-center justify-between gap-2 rounded-lg border px-2 py-1.5 text-[11px] ${note.isRefund ? "border-amber-500/40 bg-amber-500/5" : "border-teal-500/40 bg-teal-500/5"}`}>
+                <div className="min-w-0">
+                  <p className={`font-bold ${note.isRefund ? "text-amber-300" : "text-teal-300"}`}>
+                    -{money(note.total)} <span className="font-normal">{note.isRefund ? `Rembourse (${note.refundMethod}${note.refundRef ? ` #${note.refundRef}` : ""})` : "Note de credit"}</span>
+                  </p>
+                  <p className="admin-text-muted truncate">{note.number} - {dateLabel(note.issuedAt)}</p>
+                </div>
+                <a
+                  href={`/api/admin/credit-notes/${note.id}/pdf`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-cyan-300 admin-hover"
+                  title="PDF de la note de credit"
+                >
+                  <i className="fas fa-file-pdf"></i>
+                  <span>PDF</span>
+                </a>
+              </div>
+            ))}
+          </div>
+        ) : null}
         <select
           value={method}
           onChange={(event) => setMethod(event.target.value)}
@@ -282,6 +349,14 @@ function PaymentRow({ payment, saving, onPatch }) {
           onChange={(event) => setPaymentDate(event.target.value)}
           className="admin-input ml-2 w-36 rounded-lg border px-3 py-2 text-xs"
         />
+        <div className="mt-2">
+          <input
+            value={reference}
+            onChange={(event) => setReference(event.target.value)}
+            placeholder={method === "Carte" ? "N° confirmation Moneris" : "N° confirmation Moneris (optionnel)"}
+            className="admin-input w-[296px] rounded-lg border px-3 py-2 text-xs"
+          />
+        </div>
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <input
             value={depositAmount}
@@ -386,6 +461,10 @@ function PaymentRow({ payment, saving, onPatch }) {
                 Reouvrir
               </button>
             </>
+          ) : isDeposit ? (
+            <span className="rounded-lg bg-cyan-500/10 px-3 py-2 text-[11px] font-bold text-cyan-300">
+              <i className="fas fa-coins mr-1"></i>Avant facturation
+            </span>
           ) : (
             <button
               type="button"
@@ -396,14 +475,160 @@ function PaymentRow({ payment, saving, onPatch }) {
               <i className="fas fa-paper-plane mr-1"></i>Paye + envoyer
             </button>
           )}
+          {(payment.paymentsTotal || 0) > 0 ? (
+            <button
+              type="button"
+              disabled={saving}
+              onClick={() => setShowRefundModal(true)}
+              className="rounded-lg border border-amber-500/40 px-3 py-2 text-xs font-bold text-amber-300 transition-colors hover:bg-amber-500/10 disabled:opacity-50"
+            >
+              <i className="fas fa-rotate-left mr-1"></i>Rembourser / Avoir
+            </button>
+          ) : null}
           {payment.client?.email ? (
             <p className="admin-text-muted max-w-[150px] truncate text-[11px]" title={payment.client.email}>{payment.client.email}</p>
           ) : (
             <p className="text-red-300 text-[11px]">Email manquant</p>
           )}
         </div>
+        {showRefundModal ? (
+          <RefundModal
+            payment={payment}
+            saving={saving}
+            onClose={() => setShowRefundModal(false)}
+            onSubmit={async (payload) => {
+              const data = await onPatch(payment.id, payload);
+              if (data) setShowRefundModal(false);
+            }}
+          />
+        ) : null}
       </td>
     </tr>
+  );
+}
+
+function RefundModal({ payment, saving, onClose, onSubmit }) {
+  const [creditType, setCreditType] = useState("refund");
+  const [amount, setAmount] = useState(String(payment.paymentsTotal || ""));
+  const [refundMethod, setRefundMethod] = useState(payment.paymentMethod || "Carte");
+  const [refundRef, setRefundRef] = useState("");
+  const [reason, setReason] = useState("");
+  const isRefund = creditType === "refund";
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 text-left">
+      <div className="admin-modal-card w-full max-w-md rounded-xl border p-5">
+        <div className="mb-4 flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/15 text-amber-300">
+            <i className="fas fa-rotate-left"></i>
+          </div>
+          <div>
+            <h2 className="admin-text text-base font-extrabold">Rembourser ou crediter {payment.number}</h2>
+            <p className="admin-text-muted mt-1 text-sm">
+              Encaisse sur cette facture : <span className="admin-text font-bold">{money(payment.paymentsTotal)}</span>
+            </p>
+          </div>
+        </div>
+
+        <div className="mb-3 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => setCreditType("refund")}
+            className={`rounded-lg border px-3 py-2.5 text-xs font-bold transition-colors ${isRefund ? "border-amber-400 bg-amber-500/15 text-amber-200" : "admin-border admin-text-muted admin-hover"}`}
+          >
+            Remboursement
+            <span className="block text-[10px] font-normal opacity-70">argent rendu au client</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setCreditType("credit")}
+            className={`rounded-lg border px-3 py-2.5 text-xs font-bold transition-colors ${!isRefund ? "border-teal-400 bg-teal-500/15 text-teal-200" : "admin-border admin-text-muted admin-hover"}`}
+          >
+            Note de credit
+            <span className="block text-[10px] font-normal opacity-70">argent garde en credit</span>
+          </button>
+        </div>
+
+        <div className="space-y-2">
+          <div>
+            <label className="admin-text-muted mb-1 block text-[11px] font-bold uppercase">Montant</label>
+            <input
+              value={amount}
+              onChange={(event) => setAmount(event.target.value)}
+              className="admin-input w-full rounded-lg border px-3 py-2 text-sm"
+              placeholder="Montant"
+            />
+          </div>
+          {isRefund ? (
+            <>
+              <div>
+                <label className="admin-text-muted mb-1 block text-[11px] font-bold uppercase">Rembourse par</label>
+                <select
+                  value={refundMethod}
+                  onChange={(event) => setRefundMethod(event.target.value)}
+                  className="admin-input w-full rounded-lg border px-3 py-2 text-sm"
+                >
+                  {METHOD_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="admin-text-muted mb-1 block text-[11px] font-bold uppercase">
+                  N° confirmation Moneris {refundMethod === "Carte" ? "" : "(optionnel)"}
+                </label>
+                <input
+                  value={refundRef}
+                  onChange={(event) => setRefundRef(event.target.value)}
+                  className="admin-input w-full rounded-lg border px-3 py-2 text-sm"
+                  placeholder="ex. 660123456789"
+                />
+              </div>
+            </>
+          ) : null}
+          <div>
+            <label className="admin-text-muted mb-1 block text-[11px] font-bold uppercase">Raison (optionnel)</label>
+            <input
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+              className="admin-input w-full rounded-lg border px-3 py-2 text-sm"
+              placeholder="ex. Piece non installee"
+            />
+          </div>
+        </div>
+
+        <p className="admin-text-muted mt-3 text-[11px] leading-snug">
+          {isRefund
+            ? "Un recu de remboursement (PDF) sera cree; l'argent est considere sorti du compte."
+            : "Une note de credit (PDF) sera creee; aucun argent rendu."}
+          {" "}La facture d'origine reste intacte pour la comptable.
+        </p>
+
+        <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            disabled={saving}
+            onClick={onClose}
+            className="rounded-lg px-4 py-2 text-sm font-bold admin-text-muted admin-hover disabled:opacity-50"
+          >
+            Annuler
+          </button>
+          <button
+            type="button"
+            disabled={saving || !amount}
+            onClick={() => onSubmit({
+              action: "create-credit-note",
+              creditType,
+              amount,
+              refundMethod: isRefund ? refundMethod : null,
+              refundRef: isRefund ? refundRef.trim() || null : null,
+              reason: reason.trim() || null,
+            })}
+            className={`rounded-lg px-4 py-2 text-sm font-bold text-white transition-colors disabled:opacity-50 ${isRefund ? "bg-amber-700 hover:bg-amber-600" : "bg-teal-700 hover:bg-teal-600"}`}
+          >
+            {isRefund ? "Confirmer le remboursement" : "Creer la note de credit"}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -531,10 +756,13 @@ export default function AdminPaymentsPage() {
         </div>
       ) : null}
 
-      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
+      <div className={`mb-6 grid grid-cols-1 gap-4 ${summary?.depositCount ? "md:grid-cols-3 xl:grid-cols-5" : "md:grid-cols-4"}`}>
         <SummaryTile icon="fa-file-invoice-dollar" label="A recevoir" value={money(summary?.openTotal)} detail={`${summary?.openCount || 0} facture(s)`} />
         <SummaryTile icon="fa-exclamation-triangle" label="En retard" value={money(summary?.overdueTotal)} detail={`${summary?.overdueCount || 0} facture(s)`} tone="red" />
         <SummaryTile icon="fa-clock" label="Non echu" value={money(summary?.receivableTotal)} detail={`${summary?.receivableCount || 0} facture(s)`} />
+        {summary?.depositCount ? (
+          <SummaryTile icon="fa-coins" label="Depots recus" value={money(summary?.depositTotal)} detail={`${summary?.depositCount || 0} dossier(s) avant facture`} />
+        ) : null}
         <SummaryTile icon="fa-check-circle" label="Paye 30 jours" value={money(summary?.paid30Total)} detail={`${summary?.paid30Count || 0} facture(s)`} tone="green" />
       </div>
 

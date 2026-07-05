@@ -3,6 +3,9 @@ import { documentPaymentSummary } from "@/lib/vosthermos-document";
 
 export const PAYMENT_TRACKED_STATUSES = new Set(["invoiced", "sent", "paid"]);
 export const PAYMENT_OPEN_STATUSES = new Set(["invoiced", "sent"]);
+// Statuts AVANT facturation ou un acompte peut etre encaisse (soumission
+// acceptee avec depot demande, job planifie/en cours/fait pas encore facture).
+export const DEPOSIT_ELIGIBLE_STATUSES = new Set(["quote_accepted", "scheduled", "in_progress", "completed"]);
 
 export function isPaymentTrackedStatus(statut) {
   return PAYMENT_TRACKED_STATUSES.has(String(statut || ""));
@@ -56,7 +59,17 @@ export function paymentDateOnlyTime(value) {
 export function getPaymentState(workOrder, now = new Date()) {
   const paymentSummary = documentPaymentSummary(workOrder);
   if (paymentSummary.isPaid) return "paid";
-  if (!isOpenPaymentStatus(workOrder?.statut)) return "not_invoice";
+  if (!isOpenPaymentStatus(workOrder?.statut)) {
+    // Acompte avant facturation : depot demande sur la soumission ou depot
+    // deja inscrit sur un document pas encore facture.
+    if (
+      DEPOSIT_ELIGIBLE_STATUSES.has(String(workOrder?.statut || "")) &&
+      (paymentSummary.hasPayments || workOrder?.quoteDepositPercent != null)
+    ) {
+      return "deposit";
+    }
+    return "not_invoice";
+  }
   const due = paymentDateOnlyTime(getPaymentDueDate(workOrder));
   const today = paymentDateOnlyTime(now);
   if (due !== null && today !== null && due < today) return "overdue";
@@ -109,10 +122,24 @@ export function serializePaymentRecord(payment) {
     id: payment.id,
     amount: roundMoney(payment.amount),
     method: payment.method || null,
+    reference: payment.reference || null,
     note: payment.note || null,
     paidAt: validDate(payment.paidAt)?.toISOString() || null,
     createdAt: validDate(payment.createdAt)?.toISOString() || null,
     updatedAt: validDate(payment.updatedAt)?.toISOString() || null,
+  };
+}
+
+function serializeCreditNoteSummary(creditNote) {
+  return {
+    id: creditNote.id,
+    number: creditNote.number,
+    total: roundMoney(creditNote.total),
+    refundMethod: creditNote.refundMethod || null,
+    refundRef: creditNote.refundRef || null,
+    isRefund: Boolean(creditNote.refundMethod),
+    reason: creditNote.reason || null,
+    issuedAt: validDate(creditNote.issuedAt)?.toISOString() || null,
   };
 }
 
@@ -124,9 +151,13 @@ export function serializePaymentWorkOrder(workOrder, now = new Date()) {
   const state = getPaymentState({ ...workOrder, paymentDueAt }, now);
   const daysDelta = paymentDueAt ? daysBetweenDateOnly(now, paymentDueAt) : null;
   const payments = paymentSummary.payments.map(serializePaymentRecord);
+  const creditNotes = Array.isArray(workOrder.creditNotes)
+    ? workOrder.creditNotes.map(serializeCreditNoteSummary)
+    : [];
 
   return {
     ...workOrder,
+    creditNotes,
     totalPieces: Number(workOrder.totalPieces || 0),
     totalLabor: Number(workOrder.totalLabor || 0),
     laborRate: Number(workOrder.laborRate || 0),
@@ -134,6 +165,9 @@ export function serializePaymentWorkOrder(workOrder, now = new Date()) {
     tps: Number(workOrder.tps || 0),
     tvq: Number(workOrder.tvq || 0),
     total: Number(workOrder.total || 0),
+    quoteDepositPercent: workOrder.quoteDepositPercent === null || workOrder.quoteDepositPercent === undefined
+      ? null
+      : Number(workOrder.quoteDepositPercent),
     invoiceIssuedAt: invoiceIssuedAt?.toISOString() || null,
     invoiceSentAt: validDate(workOrder.invoiceSentAt)?.toISOString() || null,
     paymentDueAt: paymentDueAt?.toISOString() || null,

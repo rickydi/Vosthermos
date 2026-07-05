@@ -194,6 +194,7 @@ export function documentPayments(wo = {}) {
         id: payment.id,
         amount: Number(payment.amount || 0),
         method: payment.method || null,
+        reference: payment.reference || null,
         note: payment.note || null,
         paidAt: validDocumentDate(payment.paidAt) || validDocumentDate(payment.createdAt) || null,
         createdAt: validDocumentDate(payment.createdAt) || null,

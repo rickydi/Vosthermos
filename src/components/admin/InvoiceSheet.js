@@ -339,12 +339,15 @@ function TotalsFooter({ wo, meta }) {
         {hasPayments && (
           <div style={{ borderTop: `1px solid ${MID_GRAY}`, margin: "4px 10px 0", paddingTop: 5 }}>
             <p style={{ margin: "0 0 3px", fontSize: 9, lineHeight: "12px", fontWeight: 800, color: ACCENT }}>PAIEMENTS RECUS</p>
-            {visiblePayments.map((payment) => (
-              <div key={payment.id || `${payment.paidAt}-${payment.amount}`} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 9, lineHeight: "13px", padding: "1px 0" }}>
-                <span>Paiement recu - {formatDateFr(payment.paidAt) || "date inconnue"}</span>
-                <span style={{ fontWeight: 800 }}>{formatMoneyCad(payment.amount)}</span>
-              </div>
-            ))}
+            {visiblePayments.map((payment) => {
+              const methodRef = [payment.method, payment.reference ? `#${payment.reference}` : null].filter(Boolean).join(" ");
+              return (
+                <div key={payment.id || `${payment.paidAt}-${payment.amount}`} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 9, lineHeight: "13px", padding: "1px 0" }}>
+                  <span>Paiement recu - {formatDateFr(payment.paidAt) || "date inconnue"}{methodRef ? ` (${methodRef})` : ""}</span>
+                  <span style={{ fontWeight: 800 }}>{formatMoneyCad(payment.amount)}</span>
+                </div>
+              );
+            })}
             {hiddenCount > 0 && <p style={{ margin: "2px 0 0", fontSize: 8.5, lineHeight: "12px", color: TEXT_MED }}>+ {hiddenCount} paiement(s) precedent(s)</p>}
           </div>
         )}

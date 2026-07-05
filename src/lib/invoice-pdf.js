@@ -354,7 +354,8 @@ function drawTotalsFooter(doc, wo, meta, y) {
     const paymentRows = displayedPaymentRows(wo, meta);
     const hiddenCount = summary.payments.length - paymentRows.length;
     for (const payment of paymentRows) {
-      const label = `Paiement recu - ${formatDateFr(payment.paidAt) || "date inconnue"}`;
+      const methodRef = [payment.method, payment.reference ? `#${payment.reference}` : null].filter(Boolean).join(" ");
+      const label = `Paiement recu - ${formatDateFr(payment.paidAt) || "date inconnue"}${methodRef ? ` (${methodRef})` : ""}`;
       doc.fillColor(TEXT_DARK).font("Helvetica").fontSize(9)
         .text(label, x + 12, rowY, { width: width - 120 });
       doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(9)

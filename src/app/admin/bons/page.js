@@ -183,19 +183,54 @@ export default function BonsPage({ documentView = "all" } = {}) {
   });
   useEffect(() => () => clearTimeout(streamReloadTimer.current), []);
 
+  // Suppression d'un bon avec argent encaisse : le serveur repond 409 et on
+  // force le choix note de credit / remboursement (trace comptable conservee).
+  const [deleteResolution, setDeleteResolution] = useState(null);
+
   async function handleDelete(wo, e) {
     e.stopPropagation();
     if (!confirm(`Supprimer le bon ${wo.number}? Cette action est irreversible.`)) return;
     try {
       const res = await fetch(`/api/admin/work-orders/${wo.id}`, { method: "DELETE" });
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 409 && data.requiresResolution) {
+        setDeleteResolution({ wo, paidTotal: Number(data.paidTotal || 0), saving: false });
+        return;
+      }
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
         alert(data.error || "Erreur de suppression");
         return;
       }
       loadWorkOrders();
     } catch (err) {
       alert(err.message);
+    }
+  }
+
+  async function confirmDeleteWithResolution(resolution) {
+    const target = deleteResolution;
+    if (!target) return;
+    setDeleteResolution({ ...target, saving: true });
+    try {
+      const res = await fetch(`/api/admin/work-orders/${target.wo.id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resolution }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(data.error || "Erreur de suppression");
+        setDeleteResolution({ ...target, saving: false });
+        return;
+      }
+      setDeleteResolution(null);
+      if (data.creditNote?.id) {
+        window.open(`/api/admin/credit-notes/${data.creditNote.id}/pdf`, "_blank", "noopener");
+      }
+      loadWorkOrders();
+    } catch (err) {
+      alert(err.message);
+      setDeleteResolution({ ...target, saving: false });
     }
   }
 
@@ -364,6 +399,108 @@ export default function BonsPage({ documentView = "all" } = {}) {
           </table>
         </div>
       )}
+      {deleteResolution ? (
+        <DeleteResolutionModal
+          target={deleteResolution}
+          onClose={() => setDeleteResolution(null)}
+          onConfirm={confirmDeleteWithResolution}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+// Choix impose avant de supprimer une facture avec argent encaisse :
+// note de credit (argent garde) ou remboursement (argent rendu). Une note
+// de credit snapshot est creee pour la comptable dans les deux cas.
+function DeleteResolutionModal({ target, onClose, onConfirm }) {
+  const [type, setType] = useState("credit");
+  const [method, setMethod] = useState("Carte");
+  const [ref, setRef] = useState("");
+  const isRefund = type === "refund";
+  const paid = Number(target.paidTotal || 0).toFixed(2);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4">
+      <div className="admin-modal-card w-full max-w-md rounded-xl border p-5">
+        <div className="mb-4 flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-500/15 text-red-300">
+            <i className="fas fa-triangle-exclamation"></i>
+          </div>
+          <div>
+            <h2 className="admin-text text-base font-extrabold">Supprimer {target.wo.number}?</h2>
+            <p className="admin-text-muted mt-1 text-sm">
+              <span className="admin-text font-bold">{paid}$</span> ont ete encaisses sur cette facture.
+              Choisis quoi faire avec cet argent avant la suppression.
+            </p>
+          </div>
+        </div>
+
+        <div className="mb-3 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => setType("credit")}
+            className={`rounded-lg border px-3 py-2.5 text-xs font-bold transition-colors ${!isRefund ? "border-teal-400 bg-teal-500/15 text-teal-200" : "admin-border admin-text-muted admin-hover"}`}
+          >
+            Note de credit
+            <span className="block text-[10px] font-normal opacity-70">argent garde</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setType("refund")}
+            className={`rounded-lg border px-3 py-2.5 text-xs font-bold transition-colors ${isRefund ? "border-amber-400 bg-amber-500/15 text-amber-200" : "admin-border admin-text-muted admin-hover"}`}
+          >
+            Remboursement
+            <span className="block text-[10px] font-normal opacity-70">argent rendu</span>
+          </button>
+        </div>
+
+        {isRefund ? (
+          <div className="space-y-2">
+            <select
+              value={method}
+              onChange={(event) => setMethod(event.target.value)}
+              className="admin-input w-full rounded-lg border px-3 py-2 text-sm"
+            >
+              {["Carte", "Interac", "Cheque", "Comptant", "Virement", "Autre"].map((option) => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+            <input
+              value={ref}
+              onChange={(event) => setRef(event.target.value)}
+              placeholder={method === "Carte" ? "N° confirmation Moneris" : "N° confirmation / reference (optionnel)"}
+              className="admin-input w-full rounded-lg border px-3 py-2 text-sm"
+            />
+          </div>
+        ) : null}
+
+        <p className="admin-text-muted mt-3 text-[11px] leading-snug">
+          {isRefund
+            ? "Un recu de remboursement (PDF) sera cree; l'argent est considere sorti du compte."
+            : "Une note de credit (PDF) sera creee; l'argent reste en credit au dossier du client."}
+          {" "}Le document apparait dans le rapport mensuel de la comptable.
+        </p>
+
+        <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            disabled={target.saving}
+            onClick={onClose}
+            className="rounded-lg px-4 py-2 text-sm font-bold admin-text-muted admin-hover disabled:opacity-50"
+          >
+            Annuler
+          </button>
+          <button
+            type="button"
+            disabled={target.saving}
+            onClick={() => onConfirm({ type, method: isRefund ? method : null, ref: isRefund ? ref.trim() || null : null })}
+            className="rounded-lg bg-red-700 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-red-600 disabled:opacity-50"
+          >
+            {target.saving ? "Suppression..." : "Supprimer + creer le document"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -175,6 +175,98 @@ export async function getMonthlyInvoiceWorkOrders(yearMonth) {
   return rows.filter((workOrder) => torontoYearMonth(invoiceReportDate(workOrder)) === month);
 }
 
+function serializeCreditNoteRow(creditNote) {
+  return {
+    ...creditNote,
+    subtotal: Number(creditNote.subtotal || 0),
+    tps: Number(creditNote.tps || 0),
+    tvq: Number(creditNote.tvq || 0),
+    total: Number(creditNote.total || 0),
+    isRefund: Boolean(creditNote.refundMethod),
+  };
+}
+
+// Notes de credit / remboursements emis pendant le mois (heure de Toronto).
+export async function getMonthlyCreditNotes(yearMonth) {
+  const month = yearMonth || currentYearMonth();
+  const [yearStr, monthStr] = month.split("-");
+  const year = Number(yearStr);
+  const monthIndex = Number(monthStr) - 1;
+  // Bornes larges (+/- 2 jours autour du mois civil) puis filtre exact en
+  // fuseau Toronto : evite les pieges UTC/DST sans matcher tout l'historique.
+  const from = new Date(Date.UTC(year, monthIndex, 1) - 2 * 86400000);
+  const to = new Date(Date.UTC(year, monthIndex + 1, 1) + 2 * 86400000);
+  const rows = await prisma.creditNote.findMany({
+    where: { issuedAt: { gte: from, lt: to } },
+    orderBy: [{ issuedAt: "asc" }, { id: "asc" }],
+  });
+  return rows
+    .map(serializeCreditNoteRow)
+    .filter((row) => torontoYearMonth(row.issuedAt) === month);
+}
+
+// Encaissements du mois par DATE DE PAIEMENT (peu importe le mois de la
+// facture) : la vue qu'il faut pour concilier avec Moneris / le compte de
+// banque. Remboursements du mois soustraits pour donner le net encaisse.
+export async function getMonthlyCollections(yearMonth, creditNotes = null) {
+  const month = yearMonth || currentYearMonth();
+  const [yearStr, monthStr] = month.split("-");
+  const year = Number(yearStr);
+  const monthIndex = Number(monthStr) - 1;
+  const from = new Date(Date.UTC(year, monthIndex, 1) - 2 * 86400000);
+  const to = new Date(Date.UTC(year, monthIndex + 1, 1) + 2 * 86400000);
+
+  const rows = await prisma.workOrderPayment.findMany({
+    where: { paidAt: { gte: from, lt: to } },
+    include: { workOrder: { select: { number: true } } },
+    orderBy: [{ paidAt: "asc" }, { id: "asc" }],
+  });
+  const payments = rows
+    .map((row) => ({
+      amount: Number(row.amount || 0),
+      method: row.method || "Paiement",
+      reference: row.reference || null,
+      paidAt: row.paidAt,
+      workOrderNumber: row.workOrder?.number || "",
+    }))
+    .filter((row) => torontoYearMonth(row.paidAt) === month);
+
+  const notes = creditNotes || await getMonthlyCreditNotes(month);
+  const refunds = notes.filter((note) => note.isRefund);
+
+  const byMethod = {};
+  let total = 0;
+  for (const payment of payments) {
+    total += payment.amount;
+    byMethod[payment.method] = roundMoney((byMethod[payment.method] || 0) + payment.amount);
+  }
+
+  const refundByMethod = {};
+  let refundTotal = 0;
+  for (const refund of refunds) {
+    refundTotal += refund.total;
+    const method = refund.refundMethod || "Autre";
+    refundByMethod[method] = roundMoney((refundByMethod[method] || 0) + refund.total);
+  }
+
+  return {
+    count: payments.length,
+    total: roundMoney(total),
+    byMethod,
+    refundCount: refunds.length,
+    refundTotal: roundMoney(refundTotal),
+    refundByMethod,
+    netTotal: roundMoney(total - refundTotal),
+  };
+}
+
+// Charge en un appel tout ce que le rapport mensuel ajoute aux factures.
+export async function getMonthlyReportExtras(yearMonth) {
+  const creditNotes = await getMonthlyCreditNotes(yearMonth);
+  const collections = await getMonthlyCollections(yearMonth, creditNotes);
+  return { creditNotes, collections };
+}
+
 export async function listInvoiceReportMonths() {
   const rows = await prisma.workOrder.findMany({
     where: { statut: { in: [...INVOICE_STATUSES] } },
@@ -184,7 +276,7 @@ export async function listInvoiceReportMonths() {
   return [...months].sort().reverse();
 }
 
-export function computeMonthlyInvoiceTotals(workOrders) {
+export function computeMonthlyInvoiceTotals(workOrders, creditNotes = []) {
   const totals = {
     count: 0,
     paidCount: 0,
@@ -197,6 +289,13 @@ export function computeMonthlyInvoiceTotals(workOrders) {
     paidTotal: 0,
     balanceDue: 0,
     byMethod: {},
+    // Avoirs purs (argent garde) vs remboursements (argent sorti du compte).
+    creditCount: 0,
+    creditTotal: 0,
+    refundCount: 0,
+    refundTotal: 0,
+    refundByMethod: {},
+    netTotal: 0,
   };
   const now = new Date();
 
@@ -222,6 +321,19 @@ export function computeMonthlyInvoiceTotals(workOrders) {
     }
   }
 
+  for (const note of creditNotes || []) {
+    const amount = Number(note.total || 0);
+    if (note.isRefund || note.refundMethod) {
+      totals.refundCount += 1;
+      totals.refundTotal += amount;
+      const method = note.refundMethod || "Autre";
+      totals.refundByMethod[method] = roundMoney((totals.refundByMethod[method] || 0) + amount);
+    } else {
+      totals.creditCount += 1;
+      totals.creditTotal += amount;
+    }
+  }
+
   return {
     ...totals,
     subtotal: roundMoney(totals.subtotal),
@@ -230,11 +342,15 @@ export function computeMonthlyInvoiceTotals(workOrders) {
     total: roundMoney(totals.total),
     paidTotal: roundMoney(totals.paidTotal),
     balanceDue: roundMoney(totals.balanceDue),
+    creditTotal: roundMoney(totals.creditTotal),
+    refundTotal: roundMoney(totals.refundTotal),
+    netTotal: roundMoney(totals.total - totals.creditTotal - totals.refundTotal),
   };
 }
 
-export function buildMonthlyInvoiceCsv(workOrders) {
+export function buildMonthlyInvoiceCsv(workOrders, creditNotes = []) {
   const headers = [
+    "Type",
     "Date facture",
     "Numero",
     "Statut",
@@ -250,6 +366,7 @@ export function buildMonthlyInvoiceCsv(workOrders) {
     "Echeance",
     "Date paiement",
     "Mode paiement",
+    "No transaction",
     "Details paiements",
   ];
 
@@ -258,10 +375,11 @@ export function buildMonthlyInvoiceCsv(workOrders) {
     const payments = summary.payments || [];
     const lastPayment = payments[payments.length - 1] || null;
     const paymentDetails = payments
-      .map((payment) => `${dateLabel(payment.paidAt)} ${payment.method || "Paiement"} ${Number(payment.amount || 0).toFixed(2)}`.trim())
+      .map((payment) => `${dateLabel(payment.paidAt)} ${payment.method || "Paiement"}${payment.reference ? ` #${payment.reference}` : ""} ${Number(payment.amount || 0).toFixed(2)}`.trim())
       .join(" | ");
 
     return [
+      "Facture",
       dateLabel(getDocumentDate(workOrder, "invoice")),
       resolveDocumentNumber(workOrder),
       statusLabel(workOrder.statut, summary),
@@ -277,11 +395,35 @@ export function buildMonthlyInvoiceCsv(workOrders) {
       dateLabel(getDocumentTargetDate(workOrder, "invoice")),
       lastPayment ? dateLabel(lastPayment.paidAt) : "",
       lastPayment?.method || workOrder.paymentMethod || "",
+      lastPayment?.reference || "",
       paymentDetails,
     ];
   });
 
-  return "\uFEFF" + [headers, ...rows].map((row) => row.map(csvSafe).join(";")).join("\r\n");
+  // Notes de credit et remboursements du mois : montants NEGATIFS pour que la
+  // somme de la colonne Total donne le net du mois directement dans Excel.
+  const creditRows = (creditNotes || []).map((note) => [
+    note.isRefund || note.refundMethod ? "Remboursement" : "Note de credit",
+    dateLabel(note.issuedAt),
+    note.number,
+    "",
+    note.clientName || "",
+    note.clientEmail || "",
+    "",
+    (-Number(note.subtotal || 0)).toFixed(2),
+    (-Number(note.tps || 0)).toFixed(2),
+    (-Number(note.tvq || 0)).toFixed(2),
+    (-Number(note.total || 0)).toFixed(2),
+    "",
+    "",
+    "",
+    dateLabel(note.issuedAt),
+    note.refundMethod || "",
+    note.refundRef || "",
+    [`Facture d'origine: ${note.invoiceNumber || "-"}`, note.reason || ""].filter(Boolean).join(" | "),
+  ]);
+
+  return "\uFEFF" + [headers, ...rows, ...creditRows].map((row) => row.map(csvSafe).join(";")).join("\r\n");
 }
 
 function drawLogo(doc, x, y, height = 50) {
@@ -336,16 +478,25 @@ function addFooter(doc, company) {
   }
 }
 
-export async function renderMonthlyInvoiceReportPdf(yearMonth, workOrders) {
-  const totals = computeMonthlyInvoiceTotals(workOrders);
+export async function renderMonthlyInvoiceReportPdf(yearMonth, workOrders, extras = null) {
+  const { creditNotes, collections } = extras || await getMonthlyReportExtras(yearMonth);
+  const totals = computeMonthlyInvoiceTotals(workOrders, creditNotes);
   const company = await getCompany();
   const label = monthLabelFr(yearMonth);
+  const hasCredits = totals.creditCount > 0 || totals.refundCount > 0;
 
   return createPdfBuffer((doc) => {
     const left = 46;
     const right = 566;
     const width = right - left;
     let y = 42;
+
+    const ensureSpace = (needed) => {
+      if (y + needed > 748) {
+        doc.addPage({ size: "LETTER", margin: 0 });
+        y = 46;
+      }
+    };
 
     doc.rect(0, 0, 612, 94).fill(REPORT_DARK);
     doc.rect(0, 90, 612, 4).fill(REPORT_ACCENT);
@@ -359,15 +510,29 @@ export async function renderMonthlyInvoiceReportPdf(yearMonth, workOrders) {
     doc.fillColor(REPORT_ACCENT).font("Helvetica-Bold").fontSize(11)
       .text("RESUME COMPTABLE", left, y);
     y += 20;
-    const cardY = y;
-    const cardH = 114;
-    doc.roundedRect(left, cardY, width, cardH, 8).fillAndStroke(REPORT_LIGHT, REPORT_LINE);
 
-    drawMoneyLine(doc, `Factures (${totals.count})`, totals.total, left + 18, y + 18, width - 36, true);
-    drawMoneyLine(doc, "Sous-total", totals.subtotal, left + 18, y + 38, width - 36);
-    drawMoneyLine(doc, "TPS", totals.tps, left + 18, y + 56, width - 36);
-    drawMoneyLine(doc, "TVQ", totals.tvq, left + 18, y + 74, width - 36);
-    drawMoneyLine(doc, "Solde a recevoir", totals.balanceDue, left + 18, y + 92, width - 36, true);
+    const summaryLines = [
+      [`Factures (${totals.count})`, totals.total, { bold: true }],
+      ["Sous-total", totals.subtotal, {}],
+      ["TPS", totals.tps, {}],
+      ["TVQ", totals.tvq, {}],
+    ];
+    if (totals.creditCount > 0) {
+      summaryLines.push([`Notes de credit - avoirs (${totals.creditCount})`, -totals.creditTotal, {}]);
+    }
+    if (totals.refundCount > 0) {
+      summaryLines.push([`Remboursements (${totals.refundCount})`, -totals.refundTotal, {}]);
+    }
+    if (hasCredits) {
+      summaryLines.push(["NET (factures - avoirs - remboursements)", totals.netTotal, { bold: true }]);
+    }
+    summaryLines.push(["Solde a recevoir", totals.balanceDue, { bold: true }]);
+
+    const cardH = 18 + summaryLines.length * 18 + 6;
+    doc.roundedRect(left, y, width, cardH, 8).fillAndStroke(REPORT_LIGHT, REPORT_LINE);
+    summaryLines.forEach(([lineLabel, value, opts], index) => {
+      drawMoneyLine(doc, lineLabel, value, left + 18, y + 16 + index * 18, width - 36, Boolean(opts.bold));
+    });
     y += cardH + 28;
 
     doc.fillColor(REPORT_ACCENT).font("Helvetica-Bold").fontSize(11)
@@ -392,8 +557,9 @@ export async function renderMonthlyInvoiceReportPdf(yearMonth, workOrders) {
 
     const methods = Object.keys(totals.byMethod);
     if (methods.length) {
+      ensureSpace(30 + methods.length * 16);
       doc.fillColor(REPORT_ACCENT).font("Helvetica-Bold").fontSize(11)
-        .text("PAR MODE DE PAIEMENT", left, y);
+        .text("PAR MODE (paiements des factures du mois)", left, y);
       y += 18;
       methods.forEach((method) => {
         drawMoneyLine(doc, method, totals.byMethod[method], left + 4, y, width - 8);
@@ -402,6 +568,36 @@ export async function renderMonthlyInvoiceReportPdf(yearMonth, workOrders) {
       y += 12;
     }
 
+    // Conciliation banque/Moneris : tout ce qui est ENTRE dans le mois (par
+    // date de paiement, peu importe le mois de facturation) moins ce qui est
+    // SORTI en remboursements.
+    if (collections && (collections.count > 0 || collections.refundCount > 0)) {
+      const collectionMethods = Object.keys(collections.byMethod);
+      const refundMethods = Object.keys(collections.refundByMethod);
+      ensureSpace(48 + (collectionMethods.length + refundMethods.length + 3) * 16);
+      doc.fillColor(REPORT_ACCENT).font("Helvetica-Bold").fontSize(11)
+        .text("ENCAISSEMENTS DU MOIS (par date de paiement)", left, y);
+      y += 18;
+      drawMoneyLine(doc, `Encaisse (${collections.count} paiement${collections.count > 1 ? "s" : ""})`, collections.total, left + 4, y, width - 8, true);
+      y += 16;
+      collectionMethods.forEach((method) => {
+        drawMoneyLine(doc, `   ${method}`, collections.byMethod[method], left + 4, y, width - 8);
+        y += 16;
+      });
+      if (collections.refundCount > 0) {
+        drawMoneyLine(doc, `Rembourse (${collections.refundCount})`, -collections.refundTotal, left + 4, y, width - 8, true);
+        y += 16;
+        refundMethods.forEach((method) => {
+          drawMoneyLine(doc, `   ${method}`, -collections.refundByMethod[method], left + 4, y, width - 8);
+          y += 16;
+        });
+        drawMoneyLine(doc, "Net encaisse", collections.netTotal, left + 4, y, width - 8, true);
+        y += 16;
+      }
+      y += 12;
+    }
+
+    ensureSpace(60);
     doc.fillColor(REPORT_ACCENT).font("Helvetica-Bold").fontSize(11)
       .text("DETAIL DES FACTURES", left, y);
     y += 18;
@@ -439,20 +635,44 @@ export async function renderMonthlyInvoiceReportPdf(yearMonth, workOrders) {
       doc.moveTo(left, y - 6).lineTo(right, y - 6).strokeColor(REPORT_LINE).lineWidth(0.4).stroke();
     }
 
+    // Notes de credit et remboursements du mois a la suite du detail.
+    for (const note of creditNotes || []) {
+      if (y > 724) {
+        doc.addPage({ size: "LETTER", margin: 0 });
+        y = 46;
+        drawHeader();
+      }
+      const isRefund = note.isRefund || Boolean(note.refundMethod);
+      doc.fillColor(REPORT_MUTED).font("Helvetica").fontSize(8.5)
+        .text(dateLabel(note.issuedAt), left + 6, y, { width: 52 });
+      doc.fillColor(REPORT_DARK).font("Helvetica").fontSize(8.5)
+        .text(note.number, left + 64, y, { width: 102 });
+      doc.fillColor(REPORT_DARK).font("Helvetica").fontSize(8.5)
+        .text(fitText(note.clientName, 32), left + 174, y, { width: 190 });
+      doc.fillColor("#b45309").font("Helvetica-Bold").fontSize(8)
+        .text(isRefund ? "Rembourse" : "Avoir", left + 368, y, { width: 70 });
+      doc.fillColor("#b45309").font("Helvetica-Bold").fontSize(8.5)
+        .text(`- ${formatMoneyCad(note.total)}`, left + 438, y, { width: width - 444, align: "right" });
+      y += 18;
+      doc.moveTo(left, y - 6).lineTo(right, y - 6).strokeColor(REPORT_LINE).lineWidth(0.4).stroke();
+    }
+
     addFooter(doc, company);
   });
 }
 
 export async function getMonthlyInvoiceReportSummary(yearMonth) {
   const month = yearMonth || currentYearMonth();
-  const [workOrders, months] = await Promise.all([
+  const [workOrders, months, extras] = await Promise.all([
     getMonthlyInvoiceWorkOrders(month),
     listInvoiceReportMonths(),
+    getMonthlyReportExtras(month),
   ]);
   return {
     month,
     monthLabel: monthLabelFr(month),
     months,
-    totals: computeMonthlyInvoiceTotals(workOrders),
+    totals: computeMonthlyInvoiceTotals(workOrders, extras.creditNotes),
+    collections: extras.collections,
   };
 }

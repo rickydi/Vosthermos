@@ -59,11 +59,15 @@ export async function GET(req) {
     const {
       buildMonthlyInvoiceCsv,
       getMonthlyInvoiceWorkOrders,
+      getMonthlyReportExtras,
       renderMonthlyInvoiceReportPdf,
     } = await import("@/lib/monthly-invoice-report");
-    const workOrders = await getMonthlyInvoiceWorkOrders(month);
+    const [workOrders, extras] = await Promise.all([
+      getMonthlyInvoiceWorkOrders(month),
+      getMonthlyReportExtras(month),
+    ]);
     if (format === "csv") {
-      const csv = buildMonthlyInvoiceCsv(workOrders);
+      const csv = buildMonthlyInvoiceCsv(workOrders, extras.creditNotes);
       return new Response(csv, {
         headers: {
           "Content-Type": "text/csv; charset=utf-8",
@@ -73,7 +77,7 @@ export async function GET(req) {
       });
     }
 
-    const pdf = await renderMonthlyInvoiceReportPdf(month, workOrders);
+    const pdf = await renderMonthlyInvoiceReportPdf(month, workOrders, extras);
     return new Response(pdf, {
       headers: {
         "Content-Type": "application/pdf",

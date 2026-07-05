@@ -198,6 +198,23 @@ export default function MonthlyInvoiceReportSection({ compact = false } = {}) {
           <div className="text-amber-300 text-lg font-black">{money(totals.balanceDue)}</div>
         </div>
       </div>
+
+      {(Number(totals.creditCount || 0) > 0 || Number(totals.refundCount || 0) > 0) && (
+        <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-3">
+          <div className="rounded-lg border border-teal-500/30 bg-teal-500/5 px-3 py-2">
+            <div className="admin-text-muted text-[10px] uppercase font-bold">Notes de credit ({totals.creditCount || 0})</div>
+            <div className="text-teal-300 text-lg font-black">- {money(totals.creditTotal)}</div>
+          </div>
+          <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2">
+            <div className="admin-text-muted text-[10px] uppercase font-bold">Remboursements ({totals.refundCount || 0})</div>
+            <div className="text-amber-300 text-lg font-black">- {money(totals.refundTotal)}</div>
+          </div>
+          <div className="rounded-lg border admin-border bg-white/[0.02] px-3 py-2">
+            <div className="admin-text-muted text-[10px] uppercase font-bold">Net du mois</div>
+            <div className="admin-text text-lg font-black">{money(totals.netTotal)}</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

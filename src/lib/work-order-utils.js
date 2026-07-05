@@ -211,43 +211,39 @@ export async function attachSectionsAndItems(tx, workOrderId, clientId, flatItem
   }
 }
 
+// Chaque niveau est la somme EXACTE des montants arrondis affiches sur la
+// facture : taxes calculees sur le sous-total arrondi, total = sous-total +
+// TPS + TVQ arrondis. Evite l'ecart d'un cent entre le total et les lignes.
 export function calcTotals(items, laborHours, laborRate, tpsRate, tvqRate) {
-  const totalPieces = items
+  const totalPieces = Math.round(items
     .filter((i) => i.itemType !== "labor")
-    .reduce((sum, i) => sum + Number(i.quantity) * Number(i.unitPrice), 0);
+    .reduce((sum, i) => sum + Number(i.quantity) * Number(i.unitPrice), 0) * 100) / 100;
 
-  const totalLabor = Number(laborHours) * Number(laborRate);
+  const totalLabor = Math.round(Number(laborHours) * Number(laborRate) * 100) / 100;
 
-  const subtotal = totalPieces + totalLabor;
-  const tps = subtotal * Number(tpsRate);
-  const tvq = subtotal * Number(tvqRate);
-  const total = subtotal + tps + tvq;
+  const subtotal = Math.round((totalPieces + totalLabor) * 100) / 100;
+  const tps = Math.round(subtotal * Number(tpsRate) * 100) / 100;
+  const tvq = Math.round(subtotal * Number(tvqRate) * 100) / 100;
+  const total = Math.round((subtotal + tps + tvq) * 100) / 100;
 
-  return {
-    totalPieces: Math.round(totalPieces * 100) / 100,
-    totalLabor: Math.round(totalLabor * 100) / 100,
-    subtotal: Math.round(subtotal * 100) / 100,
-    tps: Math.round(tps * 100) / 100,
-    tvq: Math.round(tvq * 100) / 100,
-    total: Math.round(total * 100) / 100,
-  };
+  return { totalPieces, totalLabor, subtotal, tps, tvq, total };
 }
 
 export function calcTotalsFromPieces(totalPieces, laborHours, laborRate, tpsRate, tvqRate) {
   const roundedPieces = Math.round(Number(totalPieces || 0) * 100) / 100;
   const totalLabor = Math.round(Number(laborHours || 0) * Number(laborRate || 0) * 100) / 100;
-  const subtotal = roundedPieces + totalLabor;
-  const tps = subtotal * Number(tpsRate);
-  const tvq = subtotal * Number(tvqRate);
-  const total = subtotal + tps + tvq;
+  const subtotal = Math.round((roundedPieces + totalLabor) * 100) / 100;
+  const tps = Math.round(subtotal * Number(tpsRate) * 100) / 100;
+  const tvq = Math.round(subtotal * Number(tvqRate) * 100) / 100;
+  const total = Math.round((subtotal + tps + tvq) * 100) / 100;
 
   return {
     totalPieces: roundedPieces,
     totalLabor,
-    subtotal: Math.round(subtotal * 100) / 100,
-    tps: Math.round(tps * 100) / 100,
-    tvq: Math.round(tvq * 100) / 100,
-    total: Math.round(total * 100) / 100,
+    subtotal,
+    tps,
+    tvq,
+    total,
   };
 }
 

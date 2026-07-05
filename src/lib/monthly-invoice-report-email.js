@@ -11,6 +11,7 @@ import {
   buildMonthlyInvoiceCsv,
   computeMonthlyInvoiceTotals,
   getMonthlyInvoiceWorkOrders,
+  getMonthlyReportExtras,
   monthLabelFr,
   renderMonthlyInvoiceReportPdf,
 } from "@/lib/monthly-invoice-report";
@@ -66,6 +67,9 @@ function renderReportEmailHtml({ company, monthLabel, totals }) {
                     ${row("Sous-total", formatMoneyCad(totals.subtotal))}
                     ${row("TPS", formatMoneyCad(totals.tps))}
                     ${row("TVQ", formatMoneyCad(totals.tvq))}
+                    ${totals.creditCount ? row(`Notes de credit (${totals.creditCount})`, `- ${formatMoneyCad(totals.creditTotal)}`) : ""}
+                    ${totals.refundCount ? row(`Remboursements (${totals.refundCount})`, `- ${formatMoneyCad(totals.refundTotal)}`) : ""}
+                    ${totals.creditCount || totals.refundCount ? row("NET du mois", formatMoneyCad(totals.netTotal), true) : ""}
                     ${row("Encaisse", formatMoneyCad(totals.paidTotal))}
                     ${row("Solde a recevoir", formatMoneyCad(totals.balanceDue), true)}
                   </table>
@@ -92,7 +96,10 @@ Factures: ${totals.count}
 Total facture: ${formatMoneyCad(totals.total)}
 Sous-total: ${formatMoneyCad(totals.subtotal)}
 TPS: ${formatMoneyCad(totals.tps)}
-TVQ: ${formatMoneyCad(totals.tvq)}
+TVQ: ${formatMoneyCad(totals.tvq)}${totals.creditCount ? `
+Notes de credit (${totals.creditCount}): - ${formatMoneyCad(totals.creditTotal)}` : ""}${totals.refundCount ? `
+Remboursements (${totals.refundCount}): - ${formatMoneyCad(totals.refundTotal)}` : ""}${totals.creditCount || totals.refundCount ? `
+NET du mois: ${formatMoneyCad(totals.netTotal)}` : ""}
 Encaisse: ${formatMoneyCad(totals.paidTotal)}
 Solde a recevoir: ${formatMoneyCad(totals.balanceDue)}
 
@@ -114,15 +121,19 @@ export async function sendMonthlyInvoiceReportEmail(yearMonth, opts = {}) {
     if (marker?.value) return { sent: false, skipped: "already_sent" };
   }
 
-  const workOrders = await getMonthlyInvoiceWorkOrders(yearMonth);
-  if (workOrders.length === 0) return { sent: false, skipped: "empty" };
+  const [workOrders, extras] = await Promise.all([
+    getMonthlyInvoiceWorkOrders(yearMonth),
+    getMonthlyReportExtras(yearMonth),
+  ]);
+  // Un mois sans facture mais avec une note de credit doit quand meme sortir.
+  if (workOrders.length === 0 && extras.creditNotes.length === 0) return { sent: false, skipped: "empty" };
 
   const [company, pdfBuffer] = await Promise.all([
     getCompany(),
-    renderMonthlyInvoiceReportPdf(yearMonth, workOrders),
+    renderMonthlyInvoiceReportPdf(yearMonth, workOrders, extras),
   ]);
-  const totals = computeMonthlyInvoiceTotals(workOrders);
-  const csv = buildMonthlyInvoiceCsv(workOrders);
+  const totals = computeMonthlyInvoiceTotals(workOrders, extras.creditNotes);
+  const csv = buildMonthlyInvoiceCsv(workOrders, extras.creditNotes);
   const monthLabel = monthLabelFr(yearMonth);
   const transporter = getTransporter();
   const stamp = new Date().toISOString();

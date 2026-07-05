@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import {
+  DEPOSIT_ELIGIBLE_STATUSES,
   isOpenPaymentStatus,
   PAYMENT_TRACKED_STATUSES,
   serializePaymentWorkOrder,
@@ -16,6 +17,7 @@ function includesSearch(q) {
     { client: { phone: { contains: q } } },
     { client: { secondaryPhone: { contains: q } } },
     { client: { email: { contains: q, mode: "insensitive" } } },
+    { payments: { some: { reference: { contains: q, mode: "insensitive" } } } },
   ];
 }
 
@@ -48,6 +50,9 @@ function buildSummary(payments, now) {
         summary.paid30Count += 1;
         summary.paid30Total += total;
       }
+    } else if (payment.paymentState === "deposit") {
+      summary.depositCount += 1;
+      summary.depositTotal += Number(payment.paymentsTotal || 0);
     }
     return summary;
   }, {
@@ -61,6 +66,8 @@ function buildSummary(payments, now) {
     paidTotal: 0,
     paid30Count: 0,
     paid30Total: 0,
+    depositCount: 0,
+    depositTotal: 0,
   });
 }
 
@@ -69,6 +76,7 @@ function filterPayments(payments, status) {
   if (status === "paid") return payments.filter((payment) => payment.paymentState === "paid");
   if (status === "overdue") return payments.filter((payment) => payment.paymentState === "overdue");
   if (status === "receivable") return payments.filter((payment) => payment.paymentState === "receivable");
+  if (status === "deposit") return payments.filter((payment) => payment.paymentState === "deposit");
   return payments.filter((payment) => isOpenPaymentStatus(payment.statut));
 }
 
@@ -114,11 +122,22 @@ export async function GET(req) {
   const limit = Math.min(500, Math.max(25, Number(searchParams.get("limit") || 250)));
   const now = new Date();
 
+  // Factures suivies + documents pre-facturation avec acompte (depot demande
+  // sur la soumission ou paiement deja inscrit).
+  const statusWhere = {
+    OR: [
+      { statut: { in: Array.from(PAYMENT_TRACKED_STATUSES) } },
+      {
+        AND: [
+          { statut: { in: Array.from(DEPOSIT_ELIGIBLE_STATUSES) } },
+          { OR: [{ payments: { some: {} } }, { quoteDepositPercent: { not: null } }] },
+        ],
+      },
+    ],
+  };
+  const searchWhere = includesSearch(q);
   const workOrders = await prisma.workOrder.findMany({
-    where: {
-      statut: { in: Array.from(PAYMENT_TRACKED_STATUSES) },
-      OR: includesSearch(q),
-    },
+    where: searchWhere ? { AND: [statusWhere, { OR: searchWhere }] } : statusWhere,
     include: {
       client: {
         select: {
@@ -135,6 +154,7 @@ export async function GET(req) {
       technician: { select: { id: true, name: true } },
       followUp: { select: { id: true, title: true, status: true } },
       payments: { orderBy: [{ paidAt: "asc" }, { id: "asc" }] },
+      creditNotes: { orderBy: [{ issuedAt: "asc" }, { id: "asc" }] },
     },
     orderBy: sort === "recent"
       ? [{ invoiceIssuedAt: "desc" }, { date: "desc" }, { createdAt: "desc" }]

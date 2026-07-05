@@ -347,6 +347,7 @@ model Client {
   photos         ClientPhoto[]
   appointments   Appointment[]
   chatConversations ChatConversation[]
+  creditNotes    CreditNote[]
 
   @@index([phone])
   @@index([secondaryPhone])
@@ -589,6 +590,7 @@ model WorkOrder {
   items                  WorkOrderItem[]
   sections               WorkOrderSection[]
   payments               WorkOrderPayment[]
+  creditNotes            CreditNote[]
 
   @@index([clientId])
   @@index([technicianId])
@@ -606,7 +608,12 @@ model WorkOrderPayment {
   workOrder   WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
   amount      Decimal   @db.Decimal(10, 2)
   method      String?
+  // N° de confirmation Moneris (paiement carte), n° de cheque ou reference de virement.
+  reference   String?
   note        String?   @db.Text
+  // Cle d'idempotence generee par le client : un double-clic sur "Depot" ne cree
+  // pas deux paiements (contrainte unique, le doublon est ignore).
+  clientKey   String?   @unique
   paidAt      DateTime  @default(now())
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -614,6 +621,36 @@ model WorkOrderPayment {
   @@index([workOrderId])
   @@index([paidAt])
   @@map("work_order_payments")
+}
+
+// Note de credit / recu de remboursement. Snapshot comptable FIGE : la facture
+// d'origine (WorkOrder) peut etre supprimee, la note garde tout ce qu'il faut
+// pour la comptable. refundMethod null = avoir pur (argent garde) ;
+// refundMethod renseigne = remboursement reel (argent sorti du compte).
+model CreditNote {
+  id            Int        @id @default(autoincrement())
+  number        String     @unique
+  workOrderId   Int?
+  workOrder     WorkOrder? @relation(fields: [workOrderId], references: [id], onDelete: SetNull)
+  invoiceNumber String
+  clientId      Int?
+  client        Client?    @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  clientName    String
+  clientEmail   String?
+  reason        String?    @db.Text
+  refundMethod  String?
+  refundRef     String?
+  subtotal      Decimal    @db.Decimal(10, 2)
+  tps           Decimal    @db.Decimal(10, 2)
+  tvq           Decimal    @db.Decimal(10, 2)
+  total         Decimal    @db.Decimal(10, 2)
+  issuedAt      DateTime   @default(now())
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([workOrderId])
+  @@index([issuedAt])
+  @@map("credit_notes")
 }
 
 model WorkOrderSection {

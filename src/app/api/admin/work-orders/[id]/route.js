@@ -325,20 +325,78 @@ export async function DELETE(req, { params }) {
   const { id } = await params;
   const existing = await prisma.workOrder.findUnique({
     where: { id: parseInt(id) },
-    select: { id: true, number: true, clientId: true, total: true, statut: true },
+    include: {
+      client: { select: { id: true, name: true, email: true } },
+      payments: true,
+    },
   });
-  await prisma.workOrder.delete({ where: { id: parseInt(id) } });
+  if (!existing) return NextResponse.json({ error: "Bon introuvable" }, { status: 404 });
+
+  // Garde-fou comptable : impossible d'effacer une facture avec de l'argent
+  // encaisse sans laisser de trace. L'admin doit choisir : note de credit
+  // (argent garde) ou remboursement (argent rendu). La note snapshot tout ce
+  // qu'il faut pour la comptable avant la suppression.
+  const { workOrderPaidTotal, createCreditNoteFromWorkOrder, serializeCreditNote } = await import("@/lib/credit-note");
+  const paidTotal = workOrderPaidTotal({
+    ...existing,
+    total: Number(existing.total || 0),
+    payments: (existing.payments || []).map((payment) => ({ ...payment, amount: Number(payment.amount || 0) })),
+  });
+  const body = await req.json().catch(() => ({}));
+  const resolution = body?.resolution && typeof body.resolution === "object" ? body.resolution : null;
+
+  let creditNote = null;
+  if (paidTotal > 0.005) {
+    if (!resolution || !["credit", "refund"].includes(resolution.type)) {
+      return NextResponse.json({
+        requiresResolution: true,
+        number: existing.number,
+        clientName: existing.client?.name || "Client",
+        paidTotal,
+        error: "Cette facture a des paiements inscrits: choisir note de credit ou remboursement.",
+      }, { status: 409 });
+    }
+
+    const isRefund = resolution.type === "refund";
+    creditNote = await prisma.$transaction(async (tx) => {
+      const note = await createCreditNoteFromWorkOrder(tx, {
+        ...existing,
+        total: Number(existing.total || 0),
+        subtotal: Number(existing.subtotal || 0),
+        tps: Number(existing.tps || 0),
+        tvq: Number(existing.tvq || 0),
+      }, {
+        // On credite/rembourse ce qui a ete ENCAISSE (la facture disparait des
+        // rapports avec le bon ; la note trace l'argent recu puis annule).
+        amount: paidTotal,
+        reason: isRefund
+          ? `Remboursement - facture ${existing.number} supprimee`
+          : `Facture ${existing.number} supprimee - montant garde en credit`,
+        refundMethod: isRefund ? (String(resolution.method || "").trim() || "Autre") : null,
+        refundRef: isRefund ? resolution.ref : null,
+        keepLink: false,
+      });
+      await tx.workOrder.delete({ where: { id: existing.id } });
+      return note;
+    });
+  } else {
+    await prisma.workOrder.delete({ where: { id: existing.id } });
+  }
+
   await logAdminActivity(req, session, {
     action: "delete",
     entityType: "work_order",
     entityId: id,
-    label: `Bon supprime: ${existing?.number || id}`,
+    label: `Bon supprime: ${existing.number || id}`,
     metadata: {
-      number: existing?.number,
-      clientId: existing?.clientId,
-      status: existing?.statut,
-      total: existing?.total === undefined || existing?.total === null ? null : Number(existing.total),
+      number: existing.number,
+      clientId: existing.clientId,
+      status: existing.statut,
+      total: existing.total === undefined || existing.total === null ? null : Number(existing.total),
+      paidTotal,
+      creditNote: creditNote?.number || null,
+      creditNoteType: creditNote ? (creditNote.refundMethod ? "refund" : "credit") : null,
     },
   });
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, creditNote: creditNote ? serializeCreditNote(creditNote) : null });
 }
