@@ -251,9 +251,20 @@ export default function SuiviSimple() {
         @keyframes vtFlashRed { 0%,100% { box-shadow: 0 0 0 0 rgba(244,63,94,0); } 50% { box-shadow: 0 0 0 3px rgba(244,63,94,0.55); } }
         .vt-flash-red { animation: vtFlashRed 1s ease-in-out infinite; border-color: rgba(244,63,94,0.9) !important; }
       ` }} />
-      {/* Pas de titre répété (déjà dans la barre admin) : une seule rangée
-          compacte bouton + filtres + recherche pour garder l'espace aux cartes. */}
-      <div className="flex items-center gap-2 flex-wrap mb-4">
+      {/* Pas de titre répété (déjà dans la barre admin). Recherche centrée et
+          mise en valeur en haut, puis la rangée compacte bouton + filtres. */}
+      <div className="relative max-w-xl mx-auto mb-3">
+        <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 admin-text-muted"></i>
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher nom, tél, service…"
+          className="admin-input border rounded-2xl pl-11 pr-4 py-3 text-base w-full focus:outline-none focus:border-[var(--color-red)] shadow-sm" />
+        {search && (
+          <button onClick={() => setSearch("")} aria-label="Effacer la recherche"
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full admin-text-muted hover:admin-text inline-flex items-center justify-center">
+            <i className="fas fa-times text-sm"></i>
+          </button>
+        )}
+      </div>
+      <div className="flex items-center justify-center gap-2 flex-wrap mb-4">
         <button onClick={() => setCreating(true)} className="px-3 py-1.5 bg-[var(--color-red)] text-white rounded-full text-xs font-bold">
           <i className="fas fa-plus mr-1.5"></i>Nouveau suivi
         </button>
@@ -263,11 +274,6 @@ export default function SuiviSimple() {
             {f.label} <span className="opacity-70">{counts[f.key]}</span>
           </button>
         ))}
-        <div className="relative ml-auto">
-          <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 admin-text-muted text-xs"></i>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher nom, tél, service…"
-            className="admin-input border rounded-lg pl-8 pr-3 py-2 text-sm w-64 max-w-full" />
-        </div>
       </div>
 
       {loading ? (
