@@ -27,6 +27,7 @@ export function serializeFollowUp(followUp) {
     jobCompletedAt: followUp.jobCompletedAt?.toISOString() || null,
     contactedAt: followUp.contactedAt?.toISOString() || null,
     visitDoneAt: followUp.visitDoneAt?.toISOString() || null,
+    visitStatusAt: followUp.visitStatusAt?.toISOString() || null,
     visitScheduledAt: followUp.visitScheduledAt?.toISOString() || null,
     invoicedAt: followUp.invoicedAt?.toISOString() || null,
     lastAttemptAt: followUp.lastAttemptAt?.toISOString() || null,
@@ -254,7 +255,10 @@ export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client, fo
     if (workOrder.arrivalAt) {
       if (!followUp.contactedAt) ms.contactedAt = workOrder.arrivalAt;
       if (!followUp.visitDoneAt) ms.visitDoneAt = workOrder.arrivalAt;
-      if (followUp.visitStatus !== "done") ms.visitStatus = "done";
+      if (followUp.visitStatus !== "done") {
+        ms.visitStatus = "done";
+        ms.visitStatusAt = workOrder.arrivalAt;
+      }
     }
     // "quote" inclus : dès qu'une soumission existe dans le système (même pas encore
     // envoyée), le jalon "Soumission" se coche tout seul. La soumission verbale, elle,

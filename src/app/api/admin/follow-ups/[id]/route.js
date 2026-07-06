@@ -192,6 +192,13 @@ export async function PUT(req, { params }) {
     data.visitTimeSlot = null;
   }
 
+  // Horodate la coche de l'état de visite : les chronos SLA repartent de ce
+  // moment (et non du contactedAt possiblement vieux). Posé pour tout
+  // changement d'état, y compris le "rdv" du bloc visitRdv ci-dessus.
+  if (data.visitStatus !== undefined && data.visitStatus !== existing.visitStatus) {
+    data.visitStatusAt = new Date();
+  }
+
   // Tentatives de contact sans réponse. { bumpAttempt: true } = +1 et horodate la
   // tentative ; { resetAttempts: true } = remet à zéro. On accepte aussi une valeur
   // directe contactAttempts (clampée >= 0).

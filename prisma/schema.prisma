@@ -382,6 +382,10 @@ model ClientFollowUp {
   // rendez-vous) | "anytime" (passage libre — client toujours sur place) | "none"
   // (sans visite) | null.
   visitStatus     String?
+  // Moment où l'état de visite a été coché : les chronos SLA repartent de la
+  // coche (et non du vieux contactedAt), sinon « Visite à faire » clignote des
+  // qu'on le pose sur un dossier contacté il y a longtemps.
+  visitStatusAt   DateTime?
   // Rendez-vous de visite (visitStatus="rdv") : date (à 12h UTC, comme nextActionDate)
   // + créneau ("9h".."16h", même liste que le calendrier public). Un Appointment
   // correspondant est créé/annulé par l'API follow-ups.

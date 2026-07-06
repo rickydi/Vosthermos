@@ -44,8 +44,11 @@ function computeSla(fu, sla, now) {
     return { stage: "visit", overdue: !!missed };
   }
   if (fu.visitStatus === "anytime" && !fu.visitDoneAt) return { stage: "visit", overdue: false };
-  if (fu.visitStatus === "todo" && !fu.visitDoneAt) return { stage: "visit", overdue: overdue("visit", fu.contactedAt) };
-  if (!fu.estimateSentAt) return { stage: "soumission", overdue: overdue("soumission", fu.visitDoneAt || fu.contactedAt) };
+  // Le chrono repart de la COCHE de l'étape (règle d'Erik), pas du vieux
+  // contactedAt : cocher « Visite à faire » sur un dossier contacté il y a
+  // 3 jours ne doit pas clignoter tout de suite.
+  if (fu.visitStatus === "todo" && !fu.visitDoneAt) return { stage: "visit", overdue: overdue("visit", fu.visitStatusAt || fu.contactedAt) };
+  if (!fu.estimateSentAt) return { stage: "soumission", overdue: overdue("soumission", fu.visitDoneAt || fu.visitStatusAt || fu.contactedAt) };
   if (!fu.acceptedAt) return { stage: "approval", overdue: overdue("approval", fu.estimateSentAt) };
   return null;
 }
