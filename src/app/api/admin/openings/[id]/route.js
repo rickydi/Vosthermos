@@ -46,11 +46,15 @@ export async function PUT(req, { params }) {
   const current = await prisma.unitOpening.findUnique({ where: { id: Number(id) } });
   if (!current) return NextResponse.json({ error: "Non trouvé" }, { status: 404 });
 
+  // On decide du nouvel etat de photoUrl AVANT d'ecrire, mais on ne supprime le
+  // fichier physique de l'ancienne photo qu'APRES un update DB reussi : sinon un
+  // echec DB laissait la ligne pointer vers un fichier deja disparu.
+  let oldPhotoToDelete = null;
   if (newPhotoUrl) {
-    if (current.photoUrl) await deletePhotoFile(current.photoUrl);
+    if (current.photoUrl) oldPhotoToDelete = current.photoUrl;
     update.photoUrl = newPhotoUrl;
   } else if (body.removePhoto && current.photoUrl) {
-    await deletePhotoFile(current.photoUrl);
+    oldPhotoToDelete = current.photoUrl;
     update.photoUrl = null;
   }
 
@@ -58,6 +62,9 @@ export async function PUT(req, { params }) {
     where: { id: Number(id) },
     data: update,
   });
+
+  if (oldPhotoToDelete) await deletePhotoFile(oldPhotoToDelete);
+
   return NextResponse.json({ ok: true, opening });
 }
 

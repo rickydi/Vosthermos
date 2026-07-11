@@ -114,6 +114,13 @@ function remainingBalance(workOrder) {
   return roundMoney(Number(workOrder.total || 0) - Number(summary.paidTotal || 0));
 }
 
+// Verrou pessimiste sur la ligne de la facture pour toute la transaction : deux
+// requetes concurrentes (double appareil, double onglet) qui ajoutent un paiement
+// se serialisent au lieu de lire le meme solde et de surpayer.
+async function lockWorkOrderRow(tx, workOrderId) {
+  await tx.$executeRaw`SELECT id FROM work_orders WHERE id = ${workOrderId} FOR UPDATE`;
+}
+
 async function syncFollowUp(workOrder) {
   try {
     await createOrTouchFollowUpFromWorkOrder({ workOrder, client: workOrder.client });
@@ -123,6 +130,7 @@ async function syncFollowUp(workOrder) {
 }
 
 async function addPaymentAndRecompute(tx, existing, body) {
+  await lockWorkOrderRow(tx, existing.id);
   const amount = parseMoneyInput(body.amount);
   const paidAt = parsePaymentDateInput(body.paidAt, new Date()) || new Date();
   const method = paymentMethodFromBody(body, existing);
@@ -189,6 +197,7 @@ async function addPaymentAndRecompute(tx, existing, body) {
 }
 
 async function markPaidWithFinalPayment(tx, existing, body) {
+  await lockWorkOrderRow(tx, existing.id);
   const paidAt = parsePaymentDateInput(body.paidAt, new Date()) || new Date();
   const method = paymentMethodFromBody(body, existing);
   const note = paymentNoteFromBody(body, existing.paymentNotes) ?? "Paiement final";
@@ -232,6 +241,7 @@ async function markPaidWithFinalPayment(tx, existing, body) {
 }
 
 async function deletePaymentAndRecompute(tx, existing, body) {
+  await lockWorkOrderRow(tx, existing.id);
   const paymentId = Number(body.paymentId);
   if (!Number.isInteger(paymentId) || paymentId <= 0) throw new Error("Paiement introuvable");
 
@@ -314,23 +324,47 @@ export async function PATCH(req, { params }) {
       if (paidTotal <= 0.005) {
         return NextResponse.json({ error: "Aucun montant encaisse sur cette facture" }, { status: 400 });
       }
+      // Les notes deja emises (avoir OU remboursement) reduisent le montant encore
+      // creditable : sans cette soustraction, plusieurs notes pouvaient totaliser
+      // plus que ce qui a ete encaisse.
+      const alreadyCredited = roundMoney(
+        (existing.creditNotes || []).reduce((sum, cn) => sum + Number(cn.total || 0), 0),
+      );
+      const creditable = roundMoney(paidTotal - alreadyCredited);
+      if (creditable <= 0.005) {
+        return NextResponse.json({ error: `Rien a crediter: ${paidTotal.toFixed(2)}$ encaisse, ${alreadyCredited.toFixed(2)}$ deja credite` }, { status: 400 });
+      }
       const amount = body.amount === undefined || body.amount === null || body.amount === ""
-        ? paidTotal
+        ? creditable
         : roundMoney(Number(String(body.amount).replace(",", ".")));
       if (!Number.isFinite(amount) || amount <= 0) {
         return NextResponse.json({ error: "Montant invalide" }, { status: 400 });
       }
-      if (amount > paidTotal + 0.005) {
-        return NextResponse.json({ error: `Le montant depasse ce qui a ete encaisse (${paidTotal.toFixed(2)}$)` }, { status: 400 });
+      if (amount > creditable + 0.005) {
+        return NextResponse.json({ error: `Le montant depasse ce qui reste a crediter (${creditable.toFixed(2)}$)` }, { status: 400 });
       }
-      const creditNote = await prisma.$transaction((tx) => createCreditNoteFromWorkOrder(tx, existing, {
-        amount,
-        reason: cleanText(body.reason) || (creditType === "refund"
-          ? `Remboursement sur la facture ${existing.number}`
-          : `Avoir sur la facture ${existing.number}`),
-        refundMethod: creditType === "refund" ? (cleanText(body.refundMethod) || "Autre") : null,
-        refundRef: creditType === "refund" ? cleanText(body.refundRef) : null,
-      }));
+      const creditNote = await prisma.$transaction(async (tx) => {
+        await lockWorkOrderRow(tx, existing.id);
+        // Recompute sous verrou : bloque deux creations concurrentes qui liraient
+        // le meme "deja credite" et depasseraient ensemble le montant paye.
+        const priorNotes = await tx.creditNote.findMany({
+          where: { workOrderId: existing.id },
+          select: { total: true },
+        });
+        const freshCredited = roundMoney(priorNotes.reduce((sum, cn) => sum + Number(cn.total || 0), 0));
+        const freshCreditable = roundMoney(paidTotal - freshCredited);
+        if (amount > freshCreditable + 0.005) {
+          throw new Error(`Le montant depasse ce qui reste a crediter (${freshCreditable.toFixed(2)}$)`);
+        }
+        return createCreditNoteFromWorkOrder(tx, existing, {
+          amount,
+          reason: cleanText(body.reason) || (creditType === "refund"
+            ? `Remboursement sur la facture ${existing.number}`
+            : `Avoir sur la facture ${existing.number}`),
+          refundMethod: creditType === "refund" ? (cleanText(body.refundMethod) || "Autre") : null,
+          refundRef: creditType === "refund" ? cleanText(body.refundRef) : null,
+        });
+      });
       activityLabel = `${creditType === "refund" ? "Remboursement" : "Note de credit"} ${creditNote.number}: ${existing.number}`;
     } else if (body.action === "mark-open") {
       const statut = openStatusFromBody(body, existing);

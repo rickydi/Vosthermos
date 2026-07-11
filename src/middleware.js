@@ -61,7 +61,9 @@ export async function middleware(request) {
   if (pathname.startsWith("/admin") && !pathname.startsWith("/admin/login")) {
     const token = request.cookies.get("vosthermos-admin-token")?.value;
     const session = token ? await verifyJwtAtEdge(token) : null;
-    if (!session) {
+    // On exige role:"admin" : un jeton technicien (meme secret, aucun role) ou un
+    // jeton specialise ne doit jamais ouvrir une page admin.
+    if (!session || session.role !== "admin") {
       const loginUrl = new URL("/admin/login", request.url);
       loginUrl.searchParams.set("callbackUrl", `${pathname}${request.nextUrl.search || ""}`);
       const response = NextResponse.redirect(loginUrl);

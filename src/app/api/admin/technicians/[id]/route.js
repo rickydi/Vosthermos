@@ -19,7 +19,7 @@ export async function PUT(req, { params }) {
     data.pin = await bcrypt.hash(body.pin, 10);
   }
 
-  const tech = await prisma.technician.update({ where: { id: parseInt(id) }, data });
+  const tech = await prisma.technician.update({ where: { id: parseInt(id) }, data, omit: { pin: true } });
   return NextResponse.json(tech);
 }
 

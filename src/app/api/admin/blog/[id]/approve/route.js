@@ -78,7 +78,7 @@ export async function POST(request, { params }) {
   }
 
   await prisma.blogPost.update({
-    where: { id: postId },
+    where: { id: post.id },
     data: {
       status: "published",
       publishedAt: post.publishedAt || new Date(),

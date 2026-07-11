@@ -17,6 +17,18 @@ export async function POST(req) {
   });
   if (existing) return NextResponse.json({ error: "Une unité avec ce code existe déjà" }, { status: 400 });
 
+  // Le bâtiment doit appartenir au même client, sinon on rattache une unité au
+  // bâtiment d'une autre copropriété.
+  if (buildingId) {
+    const building = await prisma.building.findUnique({
+      where: { id: Number(buildingId) },
+      select: { clientId: true },
+    });
+    if (!building || building.clientId !== Number(clientId)) {
+      return NextResponse.json({ error: "Ce bâtiment n'appartient pas à ce client" }, { status: 400 });
+    }
+  }
+
   const unit = await prisma.clientUnit.create({
     data: {
       clientId: Number(clientId),

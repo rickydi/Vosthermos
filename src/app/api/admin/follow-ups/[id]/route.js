@@ -314,6 +314,9 @@ export async function DELETE(req, { params }) {
 
   const { id } = await params;
   const existing = await prisma.clientFollowUp.findUnique({ where: { id: Number(id) } });
+  // Le RDV de visite associe (Appointment) doit etre annule, sinon il reste actif
+  // dans le calendrier alors que le dossier n'existe plus.
+  if (existing) await cancelVisitAppointment(existing);
   await prisma.clientFollowUp.delete({ where: { id: Number(id) } });
   await logAdminActivity(req, session, {
     action: "delete",

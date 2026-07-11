@@ -184,15 +184,34 @@ async function processDue(req, session) {
 }
 
 export async function POST(req) {
+  const body = await req.json().catch(() => ({}));
+  const action = body.action || "send-now";
+
+  // process-due (envoi des SMS de secours arrives a echeance) doit pouvoir tourner
+  // SANS onglet admin ouvert : on l'autorise donc via un secret cron serveur, en
+  // plus de la session admin (bouton/intervalle du panneau). Sinon la file ne se
+  // vide que si quelqu'un a l'admin ouvert.
+  if (action === "process-due") {
+    const secret = new URL(req.url).searchParams.get("secret") || req.headers.get("x-cron-secret");
+    const cronOk = Boolean(process.env.INTERNAL_NOTIFY_CRON_SECRET) && secret === process.env.INTERNAL_NOTIFY_CRON_SECRET;
+    let session;
+    if (cronOk) {
+      session = { email: "cron@systeme" };
+    } else {
+      try { session = await requireAdmin(); }
+      catch { return NextResponse.json({ error: "Unauthorized" }, { status: 401 }); }
+    }
+    const result = await processDue(req, session);
+    return NextResponse.json(result, { status: result.status || 200 });
+  }
+
+  // Toutes les autres actions exigent une session admin.
   let session;
   try {
     session = await requireAdmin();
   } catch {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  const body = await req.json();
-  const action = body.action || "send-now";
 
   if (action === "schedule-fallback") {
     const result = await scheduleFallback(body);
@@ -201,11 +220,6 @@ export async function POST(req) {
 
   if (action === "cancel-fallback") {
     const result = await cancelFallback(req, session, body);
-    return NextResponse.json(result, { status: result.status || 200 });
-  }
-
-  if (action === "process-due") {
-    const result = await processDue(req, session);
     return NextResponse.json(result, { status: result.status || 200 });
   }
 

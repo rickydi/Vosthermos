@@ -19,7 +19,7 @@ import { buildPaymentTrackingData } from "@/lib/payment-tracking";
 import { staleUpdateResponse } from "@/lib/optimistic-lock";
 import { publishAdminEvent } from "@/lib/event-bus";
 import { isInvoiceStatus, isQuoteStatus } from "@/lib/work-order-document";
-import { normalizeQuoteDepositPercent, normalizeQuotePaymentSchedule } from "@/lib/vosthermos-document";
+import { documentPaymentSummary, normalizeQuoteDepositPercent, normalizeQuotePaymentSchedule } from "@/lib/vosthermos-document";
 
 async function validateFollowUpForClient(followUpId, clientId) {
   if (!followUpId) return null;
@@ -115,7 +115,10 @@ export async function PUT(req, { params }) {
 
   const { id } = await params;
   const woId = parseInt(id);
-  const existing = await prisma.workOrder.findUnique({ where: { id: woId } });
+  const existing = await prisma.workOrder.findUnique({
+    where: { id: woId },
+    include: { payments: true },
+  });
   if (!existing) return NextResponse.json({ error: "Non trouve" }, { status: 404 });
 
   const body = await req.json();
@@ -182,6 +185,18 @@ export async function PUT(req, { params }) {
         tvq: Number(existing.tvq),
         total: Number(existing.total),
       };
+
+  // Plancher comptable: on refuse de descendre le total d'une facture sous le
+  // montant deja encaisse. Sinon le surplus (paye - total) etait simplement ecrase
+  // a 0 dans le solde affiche au lieu de devenir une note de credit/remboursement.
+  if (shouldRecalcTotals) {
+    const paidTotal = documentPaymentSummary(existing).paidTotal;
+    if (paidTotal > 0.005 && Number(totals.total) < paidTotal - 0.005) {
+      return NextResponse.json({
+        error: `Le total (${Number(totals.total).toFixed(2)}$) ne peut pas etre inferieur au montant deja encaisse (${paidTotal.toFixed(2)}$). Cree une note de credit pour l'ecart avant de reduire la facture.`,
+      }, { status: 400 });
+    }
+  }
 
   const newDate = body.date ? parseDateOnly(body.date, existing.date) : existing.date;
   const arrivalAt = body.heureArrivee !== undefined

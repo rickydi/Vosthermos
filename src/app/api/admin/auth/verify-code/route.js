@@ -31,7 +31,7 @@ export async function POST(request) {
       return NextResponse.json({ error: "Compte introuvable." }, { status: 401 });
     }
 
-    const token = signToken({ id: user.id, email: user.email });
+    const token = signToken({ id: user.id, email: user.email, role: "admin" });
     await logAdminActivity(request, { id: user.id, email: user.email }, {
       action: "login",
       entityType: "auth",

@@ -48,24 +48,29 @@ export async function PUT(req, { params }) {
   if (phone !== undefined) update.phone = phone || null;
   if (isActive !== undefined) update.isActive = Boolean(isActive);
 
-  const manager = await prisma.managerUser.update({
-    where: { id: Number(id) },
-    data: update,
-  });
+  // Tout dans une seule transaction : si le recreate echoue, le wipe est annule
+  // (rollback) et le gestionnaire conserve ses clients au lieu de tout perdre.
+  const manager = await prisma.$transaction(async (tx) => {
+    const updated = await tx.managerUser.update({
+      where: { id: Number(id) },
+      data: update,
+    });
 
-  if (Array.isArray(clients)) {
-    // Wipe + recreate manager_clients
-    await prisma.managerClient.deleteMany({ where: { managerId: Number(id) } });
-    if (clients.length > 0) {
-      await prisma.managerClient.createMany({
-        data: clients.map((c) => ({
-          managerId: Number(id),
-          clientId: Number(c.clientId),
-          permissions: c.permissions || [...DEFAULT_MANAGER_PERMISSIONS],
-        })),
-      });
+    if (Array.isArray(clients)) {
+      await tx.managerClient.deleteMany({ where: { managerId: Number(id) } });
+      if (clients.length > 0) {
+        await tx.managerClient.createMany({
+          data: clients.map((c) => ({
+            managerId: Number(id),
+            clientId: Number(c.clientId),
+            permissions: c.permissions || [...DEFAULT_MANAGER_PERMISSIONS],
+          })),
+        });
+      }
     }
-  }
+
+    return updated;
+  });
 
   return NextResponse.json({ ok: true, manager });
 }

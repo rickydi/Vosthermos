@@ -1,7 +1,11 @@
 import sitemap from "@/app/sitemap";
+import { requireAdmin } from "@/lib/admin-auth";
 
 const KEY = "vosthermos-indexnow-key-2026";
 const HOST = "www.vosthermos.com";
+// Garde-fou: IndexNow accepte jusqu'a 10 000 URLs/requete. On refuse au-dela pour
+// eviter qu'un appel admin ne soumette une charge non bornee.
+const MAX_URLS = 10000;
 
 function normalizeUrl(u) {
   if (!u) return null;
@@ -31,6 +35,12 @@ async function submitBatch(urlList) {
 }
 
 export async function POST(req) {
+  // Endpoint reserve a l'admin : la soumission IndexNow engage la reputation du
+  // domaine (cle publique dans le payload) et ne doit pas etre declenchable par
+  // n'importe qui sur Internet.
+  try { await requireAdmin(); }
+  catch { return Response.json({ error: "Non autorise" }, { status: 401 }); }
+
   const body = await req.json().catch(() => ({}));
   const mode = body.mode || "custom";
 
@@ -48,6 +58,10 @@ export async function POST(req) {
 
   if (total === 0) {
     return Response.json({ error: "Aucune URL fournie" }, { status: 400 });
+  }
+
+  if (total > MAX_URLS) {
+    return Response.json({ error: `Trop d'URLs (${total}); maximum ${MAX_URLS}.` }, { status: 400 });
   }
 
   // IndexNow accepte max 10 000 URLs par requete mais Bing limite pratique ~100

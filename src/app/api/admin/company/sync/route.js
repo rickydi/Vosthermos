@@ -8,6 +8,10 @@ import { COMPANY_INFO } from "@/lib/company-info";
 
 export const dynamic = "force-dynamic";
 
+// Verrou en memoire (1 instance PM2 cluster): empeche deux syncs simultanees de
+// se marcher dessus sur git add/commit/push + deploy.
+let syncInProgress = false;
+
 const KEY_MAP = {
   company_legal_name: "legalName",
   company_neq: "neq",
@@ -127,6 +131,11 @@ export async function POST() {
   try { await requireAdmin(); }
   catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
 
+  if (syncInProgress) {
+    return NextResponse.json({ error: "Une synchronisation est deja en cours. Reessaie dans un instant." }, { status: 409 });
+  }
+  syncInProgress = true;
+
   try {
     // 1. Read settings from DB
     const rows = await prisma.$queryRawUnsafe(
@@ -187,5 +196,7 @@ export async function POST() {
     });
   } catch (err) {
     return NextResponse.json({ error: err.message || "Erreur sync" }, { status: 500 });
+  } finally {
+    syncInProgress = false;
   }
 }

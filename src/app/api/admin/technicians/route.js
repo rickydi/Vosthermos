@@ -6,7 +6,9 @@ import bcrypt from "bcryptjs";
 export async function GET() {
   try { await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
 
-  const techs = await prisma.technician.findMany({ orderBy: { name: "asc" } });
+  // omit pin: le hash bcrypt d'un PIN 4 chiffres se casse hors-ligne en secondes,
+  // il ne doit jamais quitter le serveur.
+  const techs = await prisma.technician.findMany({ orderBy: { name: "asc" }, omit: { pin: true } });
   return NextResponse.json(techs);
 }
 
@@ -26,6 +28,7 @@ export async function POST(req) {
       phone: body.phone || null,
       pin: hashedPin,
     },
+    omit: { pin: true },
   });
 
   return NextResponse.json(tech);

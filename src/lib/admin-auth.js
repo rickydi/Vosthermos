@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
+import prisma from "@/lib/prisma";
 
 const COOKIE_NAME = "vosthermos-admin-token";
 const INSECURE_DEFAULT = "change-this-to-a-random-secret";
@@ -52,10 +53,18 @@ export async function getAdminSession() {
   const token = cookieStore.get(COOKIE_NAME)?.value;
   if (!token) return null;
   const decoded = verifyToken(token);
-  // Securite: un vrai token de session ne porte pas de "purpose". On refuse donc
-  // les tokens specialises (2FA en attente, approbation blogue, etc.) meme s'ils
-  // sont signes avec la meme cle et glisses dans le cookie de session.
-  if (!decoded || decoded.purpose) return null;
+  // Securite: un vrai token de session admin porte role:"admin" et AUCUN
+  // "purpose". On exige le role positivement (defense en profondeur) pour rejeter
+  // tout autre token signe avec la meme cle : 2FA en attente, upload photo client,
+  // et surtout le JETON TECHNICIEN (meme secret, aucun role) glisse dans ce cookie.
+  if (!decoded || decoded.purpose || decoded.role !== "admin") return null;
+  // Revocation immediate: le JWT vit 7 jours, mais un admin supprime ne doit plus
+  // passer. On confirme donc que le compte existe encore a chaque requete.
+  const account = await prisma.adminUser.findUnique({
+    where: { id: decoded.id },
+    select: { id: true },
+  });
+  if (!account) return null;
   return decoded;
 }
 

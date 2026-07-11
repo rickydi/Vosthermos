@@ -84,6 +84,7 @@ export default function ChatPanel({ initialConversationId }) {
   const [forwardingTo, setForwardingTo] = useState("");
   const [forwardStatus, setForwardStatus] = useState("");
   const [fallbacks, setFallbacks] = useState({});
+  const [sendError, setSendError] = useState("");
   const messagesEnd = useRef(null);
   const messagesContainerRef = useRef(null);
   const selectedIdRef = useRef(null);
@@ -154,15 +155,21 @@ export default function ChatPanel({ initialConversationId }) {
     if (!newMsg.trim() && !imageUrl) return;
     if (!selected) return;
     setSending(true);
+    setSendError("");
     try {
-      await fetch(`/api/admin/chat/${selected.id}/messages`, {
+      const res = await fetch(`/api/admin/chat/${selected.id}/messages`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: newMsg, imageUrl: imageUrl || undefined }),
       });
+      // fetch ne rejette pas sur 4xx/5xx : on verifie explicitement, sinon on
+      // effacerait le texte alors que le message n'est pas parti.
+      if (!res.ok) throw new Error("send-failed");
       setNewMsg("");
       await openConversation(selected.id);
       await fetchConversations();
-    } catch {}
+    } catch {
+      setSendError("Message non envoyé — vérifie ta connexion et réessaie.");
+    }
     setSending(false);
   }
 
@@ -510,6 +517,7 @@ export default function ChatPanel({ initialConversationId }) {
                   {correcting ? "Correction..." : "Corriger texte"}
                 </button>
               </div>
+              {sendError && <p className="text-red-400 text-xs mb-1 px-1">{sendError}</p>}
               <div className="flex gap-2 items-end">
                 <label className="shrink-0 cursor-pointer admin-text-muted hover:admin-text transition-colors p-2">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
