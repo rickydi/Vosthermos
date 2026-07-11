@@ -30,18 +30,50 @@ function getBrowser() {
 
 // Provenance payante / campagnes, lue sur l'URL d'ARRIVÉE (le gclid de Google Ads
 // n'existe que sur la 1re page : auto-tagging). Lu au démarrage de session.
+const EMPTY_ENTRY_PARAMS = {
+  gclid: null,
+  utmSource: null,
+  utmMedium: null,
+  utmCampaign: null,
+  utmTerm: null,
+  utmContent: null,
+  googleAdsCampaignId: null,
+  googleAdsAdGroupId: null,
+  googleAdsKeyword: null,
+  googleAdsMatchType: null,
+  googleAdsCreativeId: null,
+  googleAdsNetwork: null,
+  googleAdsDevice: null,
+};
+
 function getEntryParams() {
   try {
     const p = new URLSearchParams(window.location.search);
-    const gclid = p.get("gclid") || p.get("gbraid") || p.get("wbraid") || null;
+    const read = (names, max = 150) => {
+      for (const name of names) {
+        const value = p.get(name)?.trim();
+        if (value) return value.slice(0, max);
+      }
+      return null;
+    };
+
     return {
-      gclid: gclid ? gclid.slice(0, 200) : null,
-      utmSource: p.get("utm_source")?.slice(0, 100) || null,
-      utmMedium: p.get("utm_medium")?.slice(0, 100) || null,
-      utmCampaign: p.get("utm_campaign")?.slice(0, 150) || null,
+      gclid: read(["gclid", "gbraid", "wbraid"], 200),
+      utmSource: read(["utm_source"], 100),
+      utmMedium: read(["utm_medium"], 100),
+      utmCampaign: read(["utm_campaign"], 150),
+      utmTerm: read(["utm_term"], 200),
+      utmContent: read(["utm_content"], 150),
+      googleAdsCampaignId: read(["campaignid", "campaign_id", "utm_id"], 40),
+      googleAdsAdGroupId: read(["adgroupid", "ad_group_id", "utm_content"], 40),
+      googleAdsKeyword: read(["keyword", "utm_term"], 200),
+      googleAdsMatchType: read(["matchtype"], 20),
+      googleAdsCreativeId: read(["creative", "creativeid"], 40),
+      googleAdsNetwork: read(["network"], 20),
+      googleAdsDevice: read(["device"], 20),
     };
   } catch {
-    return { gclid: null, utmSource: null, utmMedium: null, utmCampaign: null };
+    return EMPTY_ENTRY_PARAMS;
   }
 }
 

@@ -16,18 +16,50 @@ async function getGeoFromIP(ip) {
 
 export async function POST(request) {
   try {
-    const { visitorId, device, browser, referrer, gclid, utmSource, utmMedium, utmCampaign } = await request.json();
+    const {
+      visitorId,
+      device,
+      browser,
+      referrer,
+      gclid,
+      utmSource,
+      utmMedium,
+      utmCampaign,
+      utmTerm,
+      utmContent,
+      googleAdsCampaignId,
+      googleAdsAdGroupId,
+      googleAdsKeyword,
+      googleAdsMatchType,
+      googleAdsCreativeId,
+      googleAdsNetwork,
+      googleAdsDevice,
+    } = await request.json();
     const hdrs = await headers();
     const ip = hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() || hdrs.get("x-real-ip") || null;
     const geo = await getGeoFromIP(ip);
+    const clean = (value, max = 200) => {
+      if (typeof value !== "string") return null;
+      const normalized = value.trim();
+      return normalized ? normalized.slice(0, max) : null;
+    };
 
     const session = await prisma.analyticsSession.create({
       data: {
         visitorId, device, browser, referrer,
-        gclid: gclid || null,
-        utmSource: utmSource || null,
-        utmMedium: utmMedium || null,
-        utmCampaign: utmCampaign || null,
+        gclid: clean(gclid),
+        utmSource: clean(utmSource, 100),
+        utmMedium: clean(utmMedium, 100),
+        utmCampaign: clean(utmCampaign, 150),
+        utmTerm: clean(utmTerm),
+        utmContent: clean(utmContent, 150),
+        googleAdsCampaignId: clean(googleAdsCampaignId, 40),
+        googleAdsAdGroupId: clean(googleAdsAdGroupId, 40),
+        googleAdsKeyword: clean(googleAdsKeyword),
+        googleAdsMatchType: clean(googleAdsMatchType, 20),
+        googleAdsCreativeId: clean(googleAdsCreativeId, 40),
+        googleAdsNetwork: clean(googleAdsNetwork, 20),
+        googleAdsDevice: clean(googleAdsDevice, 20),
         ...geo,
       },
     });

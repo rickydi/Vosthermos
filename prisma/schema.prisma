@@ -133,16 +133,26 @@ model AnalyticsSession {
   region      String?
   country     String?
   // Provenance payante / campagnes. gclid présent = clic Google Ads (auto-tagging).
-  gclid       String?
-  utmSource   String?
-  utmMedium   String?
-  utmCampaign String?
-  startedAt   DateTime           @default(now())
+  gclid               String?
+  utmSource           String?
+  utmMedium           String?
+  utmCampaign         String?
+  utmTerm             String?
+  utmContent          String?
+  googleAdsCampaignId String?
+  googleAdsAdGroupId  String?
+  googleAdsKeyword    String?
+  googleAdsMatchType  String?
+  googleAdsCreativeId String?
+  googleAdsNetwork    String?
+  googleAdsDevice     String?
+  startedAt           DateTime           @default(now())
   endedAt     DateTime?
   pageViews   AnalyticsPageView[]
 
   @@index([visitorId])
   @@index([startedAt])
+  @@index([googleAdsCampaignId])
   @@map("analytics_sessions")
 }
 

@@ -11,6 +11,7 @@ import FormTimeline from "@/components/admin/analytics/FormTimeline";
 import BreakdownCards from "@/components/admin/analytics/BreakdownCards";
 import OutsideCanadaVisitors from "@/components/admin/analytics/OutsideCanadaVisitors";
 import KeywordDemand from "@/components/admin/analytics/KeywordDemand";
+import GoogleAdsAttribution from "@/components/admin/analytics/GoogleAdsAttribution";
 import { formatDuration } from "@/lib/format-duration";
 
 export default function AdminAnalyticsPage() {
@@ -128,6 +129,8 @@ export default function AdminAnalyticsPage() {
 
       {/* Stats cards */}
       <StatsCards data={data} formatDuration={formatDuration} />
+
+      <GoogleAdsAttribution data={data.googleAds} formatDuration={formatDuration} />
 
       <OutsideCanadaVisitors
         data={data.outsideCanada}

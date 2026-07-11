@@ -16,6 +16,167 @@ function isPaidGoogle(session) {
   return (med === "cpc" || med === "ppc" || med === "paid" || med === "paidsearch") && src.includes("google");
 }
 
+function campaignDisplayName(value, campaignId) {
+  const raw = String(value || "").trim();
+  if (!raw) return campaignId ? `Campagne ${campaignId}` : "Campagne non identifiée";
+  const knownNames = {
+    "reparation-montreal": "Réparation - Montréal",
+    "marque-vosthermos": "Marque - VosThermos",
+    "moustiquaires-local": "Moustiquaires - Local",
+    "porte-patio-piscine": "Porte-patio conforme piscine",
+  };
+  if (knownNames[raw.toLowerCase()]) return knownNames[raw.toLowerCase()];
+  if (/^[a-z0-9_-]+$/i.test(raw)) {
+    return raw
+      .replace(/[-_]+/g, " ")
+      .replace(/\b\w/g, (letter) => letter.toUpperCase());
+  }
+  return raw;
+}
+
+function buildGoogleAdsAttribution(paidSessions, formSubmits) {
+  const campaignMap = new Map();
+  const sessionCampaignKeys = new Map();
+  const paidByVisitor = new Map();
+  const leadSessionIds = new Set();
+  const attributedLeadVisitors = new Set();
+
+  for (const session of paidSessions) {
+    const campaignId = session.googleAdsCampaignId || null;
+    const rawCampaign = session.utmCampaign || null;
+    const key = campaignId
+      ? `id:${campaignId}`
+      : rawCampaign
+        ? `name:${rawCampaign}`
+        : "unknown";
+    const duration = session.endedAt
+      ? Math.max(0, Math.round((new Date(session.endedAt) - new Date(session.startedAt)) / 1000))
+      : 0;
+    const keyword = session.googleAdsKeyword || session.utmTerm || null;
+
+    if (!campaignMap.has(key)) {
+      campaignMap.set(key, {
+        key,
+        name: campaignDisplayName(rawCampaign, campaignId),
+        campaignId,
+        visitors: new Set(),
+        sessions: 0,
+        pageViews: 0,
+        durationTotal: 0,
+        durationCount: 0,
+        leadVisitors: new Set(),
+        submissions: 0,
+        keywords: new Map(),
+        adGroupIds: new Set(),
+        lastSeenAt: session.startedAt,
+      });
+    }
+
+    const campaign = campaignMap.get(key);
+    campaign.visitors.add(session.visitorId);
+    campaign.sessions += 1;
+    campaign.pageViews += session.pageViews.length;
+    if (duration > 0) {
+      campaign.durationTotal += duration;
+      campaign.durationCount += 1;
+    }
+    if (keyword) campaign.keywords.set(keyword, (campaign.keywords.get(keyword) || 0) + 1);
+    if (session.googleAdsAdGroupId) campaign.adGroupIds.add(session.googleAdsAdGroupId);
+    if (new Date(session.startedAt) > new Date(campaign.lastSeenAt)) campaign.lastSeenAt = session.startedAt;
+
+    sessionCampaignKeys.set(session.id, key);
+    if (!paidByVisitor.has(session.visitorId)) paidByVisitor.set(session.visitorId, []);
+    paidByVisitor.get(session.visitorId).push(session);
+  }
+
+  for (const sessions of paidByVisitor.values()) {
+    sessions.sort((a, b) => new Date(b.startedAt) - new Date(a.startedAt));
+  }
+
+  for (const submit of formSubmits) {
+    if (!submit.visitorId) continue;
+    const touches = paidByVisitor.get(submit.visitorId) || [];
+    const submittedAt = new Date(submit.createdAt);
+    const touch = touches.find((session) => new Date(session.startedAt) <= submittedAt);
+    if (!touch) continue;
+
+    const key = sessionCampaignKeys.get(touch.id);
+    const campaign = campaignMap.get(key);
+    if (!campaign) continue;
+    campaign.leadVisitors.add(submit.visitorId);
+    campaign.submissions += 1;
+    attributedLeadVisitors.add(submit.visitorId);
+    leadSessionIds.add(touch.id);
+  }
+
+  const campaigns = Array.from(campaignMap.values())
+    .map((campaign) => {
+      const visitors = campaign.visitors.size;
+      const leads = campaign.leadVisitors.size;
+      const topKeyword = Array.from(campaign.keywords.entries())
+        .sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+      return {
+        key: campaign.key,
+        name: campaign.name,
+        campaignId: campaign.campaignId,
+        visitors,
+        sessions: campaign.sessions,
+        pageViews: campaign.pageViews,
+        leads,
+        submissions: campaign.submissions,
+        conversionRate: visitors ? Math.round((leads / visitors) * 1000) / 10 : 0,
+        avgDuration: campaign.durationCount
+          ? Math.round(campaign.durationTotal / campaign.durationCount)
+          : 0,
+        topKeyword,
+        adGroups: campaign.adGroupIds.size,
+        lastSeenAt: campaign.lastSeenAt,
+      };
+    })
+    .sort((a, b) => b.leads - a.leads || b.visitors - a.visitors || b.sessions - a.sessions);
+
+  const detailedSessions = paidSessions.filter((session) => (
+    session.googleAdsCampaignId || session.utmCampaign
+  )).length;
+  const recentClicks = [...paidSessions]
+    .sort((a, b) => new Date(b.startedAt) - new Date(a.startedAt))
+    .slice(0, 12)
+    .map((session) => ({
+      visitorId: session.visitorId,
+      startedAt: session.startedAt,
+      campaignName: campaignDisplayName(session.utmCampaign, session.googleAdsCampaignId),
+      campaignId: session.googleAdsCampaignId || null,
+      adGroupId: session.googleAdsAdGroupId || null,
+      keyword: session.googleAdsKeyword || session.utmTerm || null,
+      matchType: session.googleAdsMatchType || null,
+      adsDevice: session.googleAdsDevice || null,
+      network: session.googleAdsNetwork || null,
+      city: session.city || null,
+      region: session.region || null,
+      pages: session.pageViews.length,
+      duration: session.endedAt
+        ? Math.max(0, Math.round((new Date(session.endedAt) - new Date(session.startedAt)) / 1000))
+        : 0,
+      landingPage: session.pageViews[0]?.page || null,
+      lead: leadSessionIds.has(session.id),
+      clickIdCaptured: Boolean(session.gclid),
+    }));
+
+  const uniquePaidVisitors = new Set(paidSessions.map((session) => session.visitorId)).size;
+  return {
+    visitors: uniquePaidVisitors,
+    sessions: paidSessions.length,
+    leads: attributedLeadVisitors.size,
+    conversionRate: uniquePaidVisitors
+      ? Math.round((attributedLeadVisitors.size / uniquePaidVisitors) * 1000) / 10
+      : 0,
+    detailedSessions,
+    coverage: paidSessions.length ? Math.round((detailedSessions / paidSessions.length) * 100) : 0,
+    campaigns,
+    recentClicks,
+  };
+}
+
 function buildVisitorList(sessions) {
   const visitorMap = {};
   for (const s of sessions) {
@@ -64,10 +225,18 @@ export async function GET(request) {
     if (range.until) startedAt.lt = range.until;
 
     // Total visitors (unique visitorIds)
-    const allSessions = await prisma.analyticsSession.findMany({
-      where: { startedAt },
-      include: { pageViews: true },
-    });
+    const formCreatedAt = { gte: range.since };
+    if (range.until) formCreatedAt.lt = range.until;
+    const [allSessions, formSubmits] = await Promise.all([
+      prisma.analyticsSession.findMany({
+        where: { startedAt },
+        include: { pageViews: { orderBy: { enteredAt: "asc" } } },
+      }),
+      prisma.analyticsFormEvent.findMany({
+        where: { createdAt: formCreatedAt, action: "submit" },
+        select: { visitorId: true, createdAt: true, formType: true, page: true },
+      }),
+    ]);
     const outsideCanadaSessions = allSessions.filter(isOutsideCanadaSession);
     const sessions = allSessions.filter((s) => !isOutsideCanadaSession(s));
 
@@ -77,6 +246,7 @@ export async function GET(request) {
     // Visiteurs Google Ads (payant) — uniques + sessions
     const paidSessions = sessions.filter(isPaidGoogle);
     const paidVisitors = new Set(paidSessions.map((s) => s.visitorId)).size;
+    const googleAds = buildGoogleAdsAttribution(paidSessions, formSubmits);
 
     // Avg session duration
     const sessionsWithEnd = sessions.filter(s => s.endedAt);
@@ -261,6 +431,7 @@ export async function GET(request) {
       avgDuration,
       paidVisitors,
       paidSessions: paidSessions.length,
+      googleAds,
       topPages,
       daily,
       hourly,
