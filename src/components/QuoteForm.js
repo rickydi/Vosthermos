@@ -10,7 +10,16 @@ const inputWrap = "relative";
 const inputClass = "w-full bg-white border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:border-[var(--color-red)] transition-colors pr-10";
 const checkClass = "absolute right-3 top-1/2 -translate-y-1/2 text-green-500 text-sm pointer-events-none";
 
-export default function QuoteForm({ compact = false, theme = "dark", lang = "fr" }) {
+export default function QuoteForm({
+  compact = false,
+  theme = "dark",
+  lang = "fr",
+  initialService = "",
+  initialMessage = "",
+  sourceContext = "",
+  submitLabel = "",
+  trackingName = "soumission",
+}) {
   const lightTheme = theme === "light";
   const isEn = lang === "en";
   const labels = isEn
@@ -28,6 +37,7 @@ export default function QuoteForm({ compact = false, theme = "dark", lang = "fr"
         successReset: "Send another request",
         callPrefix: "or call us ",
         fileTooLarge: "Some files are over 25 MB and were ignored.",
+        validationError: "Please enter a valid name, phone number, email and service.",
         quoteTitle: "Free quote",
         messagePrefix: "[Quote]",
         services: {
@@ -57,6 +67,7 @@ export default function QuoteForm({ compact = false, theme = "dark", lang = "fr"
         successReset: "Envoyer une autre demande",
         callPrefix: "ou appelez-nous ",
         fileTooLarge: "Certains fichiers depassent 25 MB et ont ete ignores.",
+        validationError: "Veuillez entrer un nom, un telephone, un courriel et un service valides.",
         quoteTitle: "Soumission gratuite",
         messagePrefix: "[Soumission]",
         services: {
@@ -89,12 +100,12 @@ export default function QuoteForm({ compact = false, theme = "dark", lang = "fr"
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [service, setService] = useState("");
-  const [message, setMessage] = useState("");
+  const [service, setService] = useState(initialService);
+  const [message, setMessage] = useState(initialMessage);
   const [files, setFiles] = useState([]);
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
-  const { trackFieldFocus, trackFieldValue, trackHover, trackSubmit } = useFormTracking("soumission");
+  const { trackFieldFocus, trackFieldValue, trackHover, trackSubmit } = useFormTracking(trackingName);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const uploadButtonClass = lightTheme
@@ -118,6 +129,13 @@ export default function QuoteForm({ compact = false, theme = "dark", lang = "fr"
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el || !initialMessage || status !== "") return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [initialMessage, status]);
 
   const nameValid = name.trim().length >= 2;
   const phoneValid = phone.replace(/\D/g, "").length >= 10;
@@ -158,8 +176,14 @@ export default function QuoteForm({ compact = false, theme = "dark", lang = "fr"
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setSending(true);
     setStatus("");
+
+    if (!nameValid || !phoneValid || !emailValid || !serviceValid) {
+      setStatus("validation");
+      return;
+    }
+
+    setSending(true);
 
     try {
       // Upload files first
@@ -191,6 +215,7 @@ export default function QuoteForm({ compact = false, theme = "dark", lang = "fr"
 
       // Build message content
       let content = `${labels.messagePrefix} Service: ${labels.services[service] || service}`;
+      if (sourceContext.trim()) content = `[${sourceContext.trim()}]\n${content}`;
       if (message.trim()) content += `\n\n${message.trim()}`;
 
       // Send message (text)
@@ -213,7 +238,7 @@ export default function QuoteForm({ compact = false, theme = "dark", lang = "fr"
       trackSubmit();
       reportLeadConversion(); // conversion Google Ads (lead)
       setStatus("success");
-      setName(""); setPhone(""); setEmail(""); setService(""); setMessage(""); setFiles([]);
+      setName(""); setPhone(""); setEmail(""); setService(initialService); setMessage(initialMessage); setFiles([]);
       if (textareaRef.current) textareaRef.current.style.height = "auto";
     } catch {
       setStatus("error");
@@ -351,8 +376,11 @@ export default function QuoteForm({ compact = false, theme = "dark", lang = "fr"
 
       <button type="submit" disabled={sending}
         className="w-full bg-[var(--color-red)] text-white py-2.5 rounded-full font-bold text-sm hover:bg-[var(--color-red-dark)] transition-all disabled:opacity-50 shadow-lg">
-        {sending ? labels.sending : labels.submit}
+        {sending ? labels.sending : submitLabel || labels.submit}
       </button>
+      {status === "validation" && (
+        <p className="text-red-500 text-xs text-center">{labels.validationError}</p>
+      )}
       {status === "error" && (
         <p className="text-red-400 text-xs text-center">{labels.error} {COMPANY_INFO.phone}.</p>
       )}

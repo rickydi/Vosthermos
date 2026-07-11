@@ -793,6 +793,10 @@ a.contact-list-value {
   line-height: 1.5;
 }
 
+.contact-form-card > .contact-disclaimer {
+  margin-top: 12px;
+}
+
 /* SENT */
 .contact-sent {
   text-align: center;

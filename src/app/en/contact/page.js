@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { formatPhoneInput } from "@/lib/phone";
-import useFormTracking from "@/lib/useFormTracking";
+import QuoteForm from "@/components/QuoteForm";
 import { useCompany } from "@/lib/useCompany";
 import "../../contact/contact.css";
 
@@ -19,6 +18,7 @@ const hours = [
 
 const SUBJECT_CONTEXT = {
   "portal-demo": {
+    service: "autre",
     aliases: ["portail-demo"],
     eyebrow: "Manager portal demo",
     title: "See the manager portal in action",
@@ -58,12 +58,14 @@ const SUBJECT_CONTEXT = {
     ],
   },
   "heritage-restoration": {
+    service: "portes-bois",
     aliases: ["restauration-patrimoine"],
     title: "Heritage restoration",
     lede: "Request an on-site evaluation for heritage wood windows and doors.",
     defaultMessage: "Hello, I would like an evaluation for a heritage restoration project.",
   },
   "opti-fenetre": {
+    service: "opti-fenetre",
     title: "OPTI-FENETRE evaluation",
     lede:
       "Request an analysis of your windows to see whether restoration is more cost-effective than full replacement.",
@@ -74,6 +76,7 @@ const SUBJECT_CONTEXT = {
     submitLabel: "Send my request",
   },
   condos: {
+    service: "autre",
     aliases: ["copropriete"],
     title: "Condos and property managers",
     lede:
@@ -82,6 +85,7 @@ const SUBJECT_CONTEXT = {
       "Hello, I am a property manager and would like to discuss a project.",
   },
   commercial: {
+    service: "autre",
     title: "Commercial door and window service",
     lede:
       "Tell us about your building, storefront, rental property or commercial maintenance needs.",
@@ -89,6 +93,7 @@ const SUBJECT_CONTEXT = {
       "Hello, I would like information about commercial door and window repair services.",
   },
   careers: {
+    service: "autre",
     title: "Careers at Vosthermos",
     lede:
       "Send us your details if you would like to join the Vosthermos team.",
@@ -102,6 +107,7 @@ const DEFAULT_CONTEXT = {
   lede:
     "Free quote within 24 hours. RBQ-certified technicians across Greater Montreal and surrounding areas.",
   defaultMessage: "",
+  service: "",
   formTitle: "Write to us",
   formSub: "We usually respond within one business day.",
   submitLabel: "Send message",
@@ -178,70 +184,6 @@ function ContactEnContent() {
   const context = getContext(subject);
   const isPortalDemo = ["portal-demo", "portail-demo"].includes(subject);
   const company = useCompany();
-
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [message, setMessage] = useState(context.defaultMessage);
-  const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
-  const [error, setError] = useState("");
-  const { trackFieldFocus, trackFieldValue, trackSubmit } = useFormTracking("contact_en");
-
-  useEffect(() => {
-    if (context.defaultMessage && !message) setMessage(context.defaultMessage);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [context.defaultMessage]);
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    if (sending) return;
-
-    const cleanPhone = phone.replace(/\D/g, "");
-    if (cleanPhone.length < 10) {
-      setError("Please enter a valid 10-digit phone number.");
-      return;
-    }
-
-    setSending(true);
-    setError("");
-
-    try {
-      const chatRes = await fetch("/api/public/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          clientName: name.trim(),
-          clientPhone: cleanPhone,
-          clientEmail: email.trim().toLowerCase(),
-        }),
-      });
-
-      if (!chatRes.ok) {
-        const err = await chatRes.json();
-        throw new Error(err.error || "Could not create the conversation");
-      }
-
-      const { id } = await chatRes.json();
-      const subjectTag = subject ? `[${subject}] ` : "";
-      const msgRes = await fetch(`/api/public/chat/${id}/messages`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          content: `${subjectTag}[English contact form]\n\n${message.trim()}`,
-        }),
-      });
-
-      if (!msgRes.ok) throw new Error("Could not send the message");
-
-      trackSubmit();
-      setSent(true);
-    } catch (err) {
-      setError(err.message || "Something went wrong. Please try again.");
-    } finally {
-      setSending(false);
-    }
-  }
 
   return (
     <div className={`contact-page${isPortalDemo ? " contact-page-demo" : ""}`}>
@@ -363,87 +305,21 @@ function ContactEnContent() {
               <h2 className="contact-card-title">{context.formTitle}</h2>
               <p className="contact-card-sub">{context.formSub}</p>
 
-              {sent ? (
-                <div className="contact-sent">
-                  <div className="contact-sent-icon">
-                    <i className="fas fa-check"></i>
-                  </div>
-                  <h3>Message sent</h3>
-                  <p>
-                    Thank you {name.split(" ")[0] || ""}. We will get back to you shortly.
-                  </p>
-                </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="contact-form">
-                  <div className="contact-row">
-                    <div className="contact-field">
-                      <label htmlFor="name">Full name</label>
-                      <input
-                        type="text"
-                        id="name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        onFocus={() => trackFieldFocus("name")}
-                        onBlur={() => trackFieldValue("name", name)}
-                        required
-                        autoComplete="name"
-                      />
-                    </div>
-                    <div className="contact-field">
-                      <label htmlFor="phone">Phone</label>
-                      <input
-                        type="tel"
-                        id="phone"
-                        value={phone}
-                        onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
-                        onFocus={() => trackFieldFocus("phone")}
-                        onBlur={() => trackFieldValue("phone", phone)}
-                        required
-                        placeholder="514-555-1234"
-                        autoComplete="tel"
-                      />
-                    </div>
-                  </div>
+              <QuoteForm
+                key={subject || "contact-en"}
+                compact
+                theme="light"
+                lang="en"
+                initialService={context.service}
+                initialMessage={context.defaultMessage}
+                sourceContext={subject ? `English contact form: ${subject}` : "English contact form"}
+                submitLabel={context.submitLabel}
+                trackingName="contact_en"
+              />
 
-                  <div className="contact-field">
-                    <label htmlFor="email">Email</label>
-                    <input
-                      type="email"
-                      id="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      onFocus={() => trackFieldFocus("email")}
-                      onBlur={() => trackFieldValue("email", email)}
-                      required
-                      autoComplete="email"
-                    />
-                  </div>
-
-                  <div className="contact-field">
-                    <label htmlFor="message">Message</label>
-                    <textarea
-                      id="message"
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      onFocus={() => trackFieldFocus("message")}
-                      onBlur={() => trackFieldValue("message", message)}
-                      rows={5}
-                      required
-                      placeholder="Describe your project in a few words..."
-                    />
-                  </div>
-
-                  {error && <p className="contact-error">{error}</p>}
-
-                  <button type="submit" disabled={sending} className="contact-btn contact-btn-primary contact-btn-full">
-                    {sending ? "Sending..." : context.submitLabel}
-                  </button>
-
-                  <p className="contact-disclaimer">
-                    By submitting this form, you agree to be contacted by Vosthermos about your request.
-                  </p>
-                </form>
-              )}
+              <p className="contact-disclaimer">
+                By submitting this form, you agree to be contacted by Vosthermos about your request.
+              </p>
             </div>
           </div>
         </div>

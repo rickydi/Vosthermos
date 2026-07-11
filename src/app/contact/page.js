@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { formatPhoneInput } from "@/lib/phone";
-import useFormTracking from "@/lib/useFormTracking";
+import QuoteForm from "@/components/QuoteForm";
 import { useCompany } from "@/lib/useCompany";
 import "./contact.css";
 
@@ -20,6 +19,7 @@ const hours = [
 // Contexte basé sur query string ?sujet=xxx
 const SUBJECT_CONTEXT = {
   "portail-demo": {
+    service: "autre",
     eyebrow: "Démo portail gestionnaire",
     title: "Voyez le portail gestionnaire en action",
     lede:
@@ -59,11 +59,13 @@ const SUBJECT_CONTEXT = {
     ],
   },
   "restauration-patrimoine": {
+    service: "portes-bois",
     title: "Restauration patrimoniale",
     lede: "Demandez une évaluation sur place pour vos fenêtres en bois patrimoniales.",
     defaultMessage: "Bonjour, j'aimerais une évaluation pour un projet de restauration patrimoniale.",
   },
   "opti-fenetre": {
+    service: "opti-fenetre",
     title: "Évaluation OPTI-FENÊTRE",
     lede:
       "Demandez une analyse de vos fenêtres pour savoir si une remise à neuf est plus rentable qu'un remplacement complet.",
@@ -74,6 +76,7 @@ const SUBJECT_CONTEXT = {
     submitLabel: "Envoyer ma demande",
   },
   copropriete: {
+    service: "autre",
     title: "Copropriétés et gestionnaires",
     lede: "Parlons de votre parc de fenêtres : plan pluriannuel, portail B2B, contrat d'entretien.",
     defaultMessage: "Bonjour, je suis gestionnaire de copropriété et j'aimerais discuter d'un projet.",
@@ -84,6 +87,7 @@ const DEFAULT_CONTEXT = {
   title: "Parlons de votre projet",
   lede: "Soumission gratuite sous 24h. Techniciens certifiés RBQ partout au Grand Montréal et environs.",
   defaultMessage: "",
+  service: "",
   formTitle: "Écrivez-nous",
   formSub: "Réponse sous 24 h ouvrables.",
   submitLabel: "Envoyer le message",
@@ -152,71 +156,6 @@ function ContactContent() {
   const context = { ...DEFAULT_CONTEXT, ...((sujet && SUBJECT_CONTEXT[sujet]) || {}) };
   const isPortalDemo = sujet === "portail-demo";
   const COMPANY_INFO = useCompany();
-
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [message, setMessage] = useState(context.defaultMessage);
-  const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
-  const [error, setError] = useState("");
-  const { trackFieldFocus, trackFieldValue, trackSubmit } = useFormTracking("contact");
-
-  useEffect(() => {
-    if (context.defaultMessage && !message) setMessage(context.defaultMessage);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [context.defaultMessage]);
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    if (sending) return;
-
-    const cleanPhone = phone.replace(/\D/g, "");
-    if (cleanPhone.length < 10) {
-      setError("Veuillez entrer un numéro de téléphone valide (10 chiffres).");
-      return;
-    }
-
-    setSending(true);
-    setError("");
-
-    try {
-      const chatRes = await fetch("/api/public/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          clientName: name.trim(),
-          clientPhone: cleanPhone,
-          clientEmail: email.trim().toLowerCase(),
-        }),
-      });
-
-      if (!chatRes.ok) {
-        const err = await chatRes.json();
-        throw new Error(err.error || "Erreur lors de la création de la conversation");
-      }
-
-      const { id } = await chatRes.json();
-      const subjectTag = sujet ? `[${sujet}] ` : "";
-
-      const msgRes = await fetch(`/api/public/chat/${id}/messages`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          content: `${subjectTag}[Formulaire contact]\n\n${message.trim()}`,
-        }),
-      });
-
-      if (!msgRes.ok) throw new Error("Erreur lors de l'envoi du message");
-
-      trackSubmit();
-      setSent(true);
-    } catch (err) {
-      setError(err.message || "Une erreur est survenue. Veuillez réessayer.");
-    } finally {
-      setSending(false);
-    }
-  }
 
   return (
     <div className={`contact-page${isPortalDemo ? " contact-page-demo" : ""}`}>
@@ -346,89 +285,21 @@ function ContactContent() {
                 </div>
               )}
 
-              {sent ? (
-                <div className="contact-sent">
-                  <div className="contact-sent-icon">
-                    <i className="fas fa-check"></i>
-                  </div>
-                  <h3>Message envoyé</h3>
-                  <p>
-                    Merci {name.split(" ")[0] || ""}&thinsp;! Nous vous répondons dans les plus
-                    brefs délais.
-                  </p>
-                </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="contact-form">
-                  <div className="contact-row">
-                    <div className="contact-field">
-                      <label htmlFor="name">Nom complet</label>
-                      <input
-                        type="text"
-                        id="name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        onFocus={() => trackFieldFocus("name")}
-                        onBlur={() => trackFieldValue("name", name)}
-                        required
-                        autoComplete="name"
-                      />
-                    </div>
-                    <div className="contact-field">
-                      <label htmlFor="phone">Téléphone</label>
-                      <input
-                        type="tel"
-                        id="phone"
-                        value={phone}
-                        onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
-                        onFocus={() => trackFieldFocus("phone")}
-                        onBlur={() => trackFieldValue("phone", phone)}
-                        required
-                        placeholder="514-555-1234"
-                        autoComplete="tel"
-                      />
-                    </div>
-                  </div>
+              <QuoteForm
+                key={sujet || "contact"}
+                compact
+                theme="light"
+                initialService={context.service}
+                initialMessage={context.defaultMessage}
+                sourceContext={sujet ? `Formulaire contact: ${sujet}` : "Formulaire contact"}
+                submitLabel={context.submitLabel}
+                trackingName="contact"
+              />
 
-                  <div className="contact-field">
-                    <label htmlFor="email">Courriel</label>
-                    <input
-                      type="email"
-                      id="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      onFocus={() => trackFieldFocus("email")}
-                      onBlur={() => trackFieldValue("email", email)}
-                      required
-                      autoComplete="email"
-                    />
-                  </div>
-
-                  <div className="contact-field">
-                    <label htmlFor="message">Message</label>
-                    <textarea
-                      id="message"
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      onFocus={() => trackFieldFocus("message")}
-                      onBlur={() => trackFieldValue("message", message)}
-                      rows={5}
-                      required
-                      placeholder="Décrivez votre projet en quelques mots..."
-                    />
-                  </div>
-
-                  {error && <p className="contact-error">{error}</p>}
-
-                  <button type="submit" disabled={sending} className="contact-btn contact-btn-primary contact-btn-full">
-                    {sending ? "Envoi en cours..." : context.submitLabel}
-                  </button>
-
-                  <p className="contact-disclaimer">
-                    En soumettant, vous acceptez d&apos;être contacté par Vosthermos au sujet de
-                    votre demande.
-                  </p>
-                </form>
-              )}
+              <p className="contact-disclaimer">
+                En soumettant, vous acceptez d&apos;être contacté par Vosthermos au sujet de
+                votre demande.
+              </p>
             </div>
           </div>
         </div>
