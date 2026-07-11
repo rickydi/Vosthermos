@@ -104,9 +104,14 @@ INDEXNOW_URLS='[
   "/faq",
   "/diagnostic"
 ]'
-curl -s -X POST "http://localhost:3002/api/indexnow" \
+# Appel DIRECT a api.indexnow.org : la route /api/indexnow exige desormais une
+# session admin (requireAdmin) et refuserait ce ping non authentifie.
+INDEXNOW_KEY="vosthermos-indexnow-key-2026"
+INDEXNOW_FULL_URLS=$(echo "$INDEXNOW_URLS" | sed 's|"/|"https://www.vosthermos.com/|g')
+curl -s -X POST "https://api.indexnow.org/indexnow" \
   -H "Content-Type: application/json" \
-  -d "{\"urls\": $INDEXNOW_URLS}" \
+  -d "{\"host\": \"www.vosthermos.com\", \"key\": \"$INDEXNOW_KEY\", \"keyLocation\": \"https://www.vosthermos.com/$INDEXNOW_KEY.txt\", \"urlList\": $INDEXNOW_FULL_URLS}" \
+  -o /dev/null -w "[deploy] IndexNow HTTP %{http_code} (200/202 = ok)" \
   --max-time 30 || echo "[deploy] IndexNow ping failed (non-critical)"
 echo ""
 
