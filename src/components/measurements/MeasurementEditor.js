@@ -1,7 +1,7 @@
 "use client";
 
 import { forwardRef, useImperativeHandle, useMemo, useRef, useState } from "react";
-import { getStructuralDividers, moveStructuralDivider, resetWindowDivisions } from "@/lib/thermos-layout";
+import { getStructuralDividers, moveStructuralDivider, resetWindowDivisions, splitPaneEvenly } from "@/lib/thermos-layout";
 
 const FRACTIONS = [
   [0, "0"], [1, "1/16"], [2, "1/8"], [3, "3/16"], [4, "1/4"], [5, "5/16"],
@@ -16,7 +16,7 @@ function emptyPane(number = 1, geometry = {}) {
     id: uid("t"), number,
     x: geometry.x ?? 0, y: geometry.y ?? 0,
     width: geometry.width ?? 10000, height: geometry.height ?? 10000,
-    widthSixteenths: 0, heightSixteenths: 0, thicknessSixteenths: 0,
+    widthSixteenths: null, heightSixteenths: null, thicknessSixteenths: null,
     options: {
       glassType: "double", lowE: false, argon: false, tempered: false,
       laminated: false, spacerColor: "noir", spacerType: "standard", shape: "rectangle", access: "easy", notes: "",
@@ -28,7 +28,7 @@ function emptyPane(number = 1, geometry = {}) {
 function emptyWindow(number = 1) {
   return {
     id: uid("f"), number, label: `Fenêtre ${number}`, location: "", photoUrl: "", viewSide: "interior",
-    frame: { widthSixteenths: 0, heightSixteenths: 0 }, panes: [emptyPane(1)],
+    frame: { widthSixteenths: null, heightSixteenths: null }, panes: [emptyPane(1)],
   };
 }
 
@@ -59,47 +59,51 @@ function formatSixteenths(raw) {
   return `${whole}${rem ? ` ${label}` : ""} po`;
 }
 
-function DimensionInput({ label, value, onChange, required = false, maxSixteenths = 240 * 16 }) {
-  const safe = Math.max(0, Math.round(Number(value) || 0));
-  const whole = Math.floor(safe / 16);
-  const fraction = safe % 16;
-  const setPart = (nextWhole, nextFraction) => onChange(Math.min(maxSixteenths, Math.max(0, Number(nextWhole) || 0) * 16 + Number(nextFraction || 0)));
+function DimensionInput({ label, value, onChange, required = false, minSixteenths = 1, maxSixteenths = 240 * 16 }) {
+  const numericValue = Number(value);
+  const hasValue = value !== null && value !== undefined && value !== "" && Number.isFinite(numericValue) && numericValue > 0;
+  const safe = hasValue ? Math.min(maxSixteenths, Math.max(minSixteenths, Math.round(numericValue))) : null;
+  const whole = safe === null ? "" : Math.floor(safe / 16);
+  const fraction = safe === null ? 0 : safe % 16;
+  const clamp = (nextValue) => Math.min(maxSixteenths, Math.max(minSixteenths, Math.round(nextValue)));
+
+  function setWhole(raw) {
+    if (raw === "") { onChange(null); return; }
+    const nextValue = (Number(raw) || 0) * 16 + fraction;
+    onChange(nextValue > 0 ? clamp(nextValue) : null);
+  }
+
+  function setFraction(raw) {
+    const nextFraction = Number(raw) || 0;
+    if (whole === "") {
+      onChange(nextFraction > 0 ? clamp(nextFraction) : null);
+      return;
+    }
+    onChange(clamp(Number(whole) * 16 + nextFraction));
+  }
+
   return (
     <label className="block">
-      <span className="block text-[11px] font-bold uppercase tracking-wide admin-text-muted mb-1">{label}{required ? " *" : ""}</span>
-      <span className="flex rounded-lg border admin-border overflow-hidden admin-bg">
+      <span className="block text-[11px] font-bold uppercase tracking-wide admin-text-muted mb-2">{label}{required ? " *" : ""}</span>
+      <span className="grid grid-cols-[minmax(5.5rem,1fr)_7.5rem_auto] rounded-xl border admin-border overflow-hidden admin-bg focus-within:border-cyan-400/60 focus-within:ring-2 focus-within:ring-cyan-400/10">
         <input
           type="number" min="0" max={Math.floor(maxSixteenths / 16)} inputMode="numeric" value={whole}
-          onChange={(e) => setPart(e.target.value, fraction)}
-          className="w-16 px-2 py-2.5 bg-transparent admin-text outline-none text-center font-semibold"
+          onChange={(e) => setWhole(e.target.value)} placeholder="Ex. 32"
+          className="min-w-0 w-full px-3 py-3 bg-transparent admin-text outline-none text-center text-lg font-bold [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
           aria-label={`${label}, pouces entiers`}
         />
         <select
-          value={fraction} onChange={(e) => setPart(whole, e.target.value)}
-          className="min-w-20 px-2 py-2.5 border-l admin-border bg-transparent admin-text outline-none"
+          value={hasValue ? fraction : ""} onChange={(e) => setFraction(e.target.value)}
+          className="w-full px-3 py-3 border-l admin-border bg-transparent admin-text outline-none"
           aria-label={`${label}, fraction de pouce`}
         >
-          {FRACTIONS.map(([n, text]) => <option key={n} value={n}>{text}</option>)}
+          <option value="" disabled>Fraction</option>
+          {FRACTIONS.map(([n, text]) => <option key={n} value={n} disabled={(whole === "" || whole === 0) && n > 0 && n < minSixteenths}>{text}</option>)}
         </select>
-        <span className="px-2 py-2.5 border-l admin-border admin-text-muted text-sm">po</span>
+        <span className="shrink-0 px-3 py-3 border-l admin-border admin-text-muted text-sm">po</span>
       </span>
     </label>
   );
-}
-
-function splitPane(pane, direction) {
-  if (direction === "vertical") {
-    const firstWidth = Math.round(pane.width / 2);
-    return [
-      { ...pane, id: uid("t"), width: firstWidth, widthSixteenths: 0, heightSixteenths: 0 },
-      { ...pane, id: uid("t"), x: pane.x + firstWidth, width: pane.width - firstWidth, widthSixteenths: 0, heightSixteenths: 0 },
-    ];
-  }
-  const firstHeight = Math.round(pane.height / 2);
-  return [
-    { ...pane, id: uid("t"), height: firstHeight, widthSixteenths: 0, heightSixteenths: 0 },
-    { ...pane, id: uid("t"), y: pane.y + firstHeight, height: pane.height - firstHeight, widthSixteenths: 0, heightSixteenths: 0 },
-  ];
 }
 
 function reNumberWindows(data) {
@@ -258,6 +262,7 @@ const MeasurementEditor = forwardRef(function MeasurementEditor({
   const [analyzing, setAnalyzing] = useState(false);
   const [message, setMessage] = useState("");
   const [dirty, setDirty] = useState(false);
+  const [equalSectionCount, setEqualSectionCount] = useState(2);
   const fileRef = useRef(null);
 
   const activeIndex = Math.max(0, data.windows.findIndex((win) => win.id === activeWindowId));
@@ -306,9 +311,21 @@ const MeasurementEditor = forwardRef(function MeasurementEditor({
   }
 
   function structuralSplit(direction) {
-    const pieces = splitPane(selectedPane, direction);
-    updateWindow((win) => ({ panes: win.panes.flatMap((pane) => pane.id === selectedPane.id ? pieces : [pane]) }));
-    setSelectedPaneId(pieces[0].id);
+    const clearsMeasurements = selectedPane.widthSixteenths > 0 || selectedPane.heightSixteenths > 0;
+    const clearsGrille = selectedPane.grille?.enabled || selectedPane.grille?.vertical?.length || selectedPane.grille?.horizontal?.length;
+    if ((clearsMeasurements || clearsGrille) && !confirm(`Créer ${equalSectionCount} sections dans T${selectedPane.number}?\n\nLa largeur, la hauteur et le carrelage décoratif actuels de ce thermos seront effacés. L’épaisseur et les autres options seront conservées.`)) return;
+    const paneIndex = activeWindow.panes.findIndex((pane) => pane.id === selectedPane.id);
+    const expectedPaneCount = activeWindow.panes.length - 1 + equalSectionCount;
+    const next = reNumberWindows(splitPaneEvenly(data, activeWindow.id, selectedPane.id, direction, equalSectionCount));
+    const nextWindow = next.windows.find((win) => win.id === activeWindow.id);
+    if (!nextWindow || nextWindow.panes.length !== expectedPaneCount) {
+      setMessage("Impossible de créer ces sections: le thermos sélectionné est trop petit ou la limite de thermos est atteinte.");
+      return;
+    }
+    setData(next);
+    setDirty(true);
+    setSelectedPaneId(nextWindow.panes[Math.max(0, paneIndex)]?.id);
+    setMessage(`${equalSectionCount} sections égales créées. Vous pouvez maintenant déplacer les poignées cyan.`);
   }
 
   function moveDivider(divider, nextPosition) {
@@ -334,13 +351,6 @@ const MeasurementEditor = forwardRef(function MeasurementEditor({
     setMessage("Le dessin de la fenêtre a été réinitialisé. Ajoutez les divisions nécessaires.");
   }
 
-  function removePane() {
-    if (activeWindow.panes.length <= 1) return;
-    const panes = activeWindow.panes.filter((pane) => pane.id !== selectedPane.id);
-    updateWindow({ panes });
-    setSelectedPaneId(panes[0].id);
-  }
-
   function changeGrille(direction, delta) {
     updatePane((pane) => {
       const grille = { ...pane.grille, enabled: true };
@@ -357,7 +367,7 @@ const MeasurementEditor = forwardRef(function MeasurementEditor({
     for (const win of data.windows) {
       for (const pane of win.panes) {
         if (!(pane.widthSixteenths > 0) || !(pane.heightSixteenths > 0)) return `${win.label}, thermos ${pane.number}: largeur et hauteur requises.`;
-        if (technicianMode && !(pane.thicknessSixteenths > 0)) return `${win.label}, thermos ${pane.number}: épaisseur requise pour une mesure finale.`;
+        if (technicianMode && !(pane.thicknessSixteenths >= 4 && pane.thicknessSixteenths <= 32)) return `${win.label}, thermos ${pane.number}: épaisseur requise entre 1/4 et 2 po pour une mesure finale.`;
       }
     }
     return "";
@@ -484,11 +494,19 @@ const MeasurementEditor = forwardRef(function MeasurementEditor({
           <div className="grid sm:grid-cols-2 gap-3">
             <div className="rounded-xl border admin-border p-3">
               <p className="admin-text font-bold text-sm">Divisions structurales</p>
-              <p className="admin-text-muted text-xs mt-1 mb-3">Chaque division crée un thermos physique séparé.</p>
+              <p className="admin-text-muted text-xs mt-1 mb-3">Choisissez le nombre de thermos égaux à créer dans le thermos sélectionné.</p>
+              <label className="block mb-3">
+                <span className="block text-[10px] font-bold uppercase tracking-wide admin-text-muted mb-1.5">Nombre de sections égales</span>
+                <select value={equalSectionCount} onChange={(event) => setEqualSectionCount(Number(event.target.value))} className="w-full admin-input border admin-border rounded-lg px-3 py-2.5 font-bold">
+                  {Array.from({ length: 11 }, (_, index) => index + 2).map((count) => <option key={count} value={count}>{count} thermos égaux</option>)}
+                </select>
+                <span className="block admin-text-muted text-[10px] mt-1.5">Exemple: 3 sections créent 3 thermos et 2 lignes de séparation.</span>
+              </label>
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2 gap-2 mb-2">
+                <button type="button" onClick={() => structuralSplit("vertical")} className="rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-2.5 text-xs font-bold"><i className="fas fa-arrows-left-right-to-line mr-2" />Créer verticalement</button>
+                <button type="button" onClick={() => structuralSplit("horizontal")} className="rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-2.5 text-xs font-bold"><i className="fas fa-arrows-up-down-to-line mr-2" />Créer horizontalement</button>
+              </div>
               <div className="flex gap-2 flex-wrap">
-                <button type="button" onClick={() => structuralSplit("vertical")} className="rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-2 text-xs font-bold"><i className="fas fa-arrows-left-right-to-line mr-2" />Séparer verticalement</button>
-                <button type="button" onClick={() => structuralSplit("horizontal")} className="rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-2 text-xs font-bold"><i className="fas fa-arrows-up-down-to-line mr-2" />Séparer horizontalement</button>
-                {activeWindow.panes.length > 1 && <button type="button" onClick={removePane} className="rounded-lg border border-red-400/30 text-red-300 px-3 py-2 text-xs font-bold">Retirer T{selectedPane.number}</button>}
                 <button
                   type="button"
                   onClick={resetDivisions}
@@ -524,10 +542,10 @@ const MeasurementEditor = forwardRef(function MeasurementEditor({
             <span className="font-mono text-xs admin-text-muted">F{String(activeIndex + 1).padStart(2, "0")}-T{String(selectedPane.number).padStart(2, "0")}</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-1 2xl:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-1 gap-4">
             <DimensionInput label="Largeur" value={selectedPane.widthSixteenths} onChange={(v) => updatePane({ widthSixteenths: v })} required />
             <DimensionInput label="Hauteur" value={selectedPane.heightSixteenths} onChange={(v) => updatePane({ heightSixteenths: v })} required />
-            <DimensionInput label="Épaisseur" value={selectedPane.thicknessSixteenths} onChange={(v) => updatePane({ thicknessSixteenths: v })} required={technicianMode} maxSixteenths={32} />
+            <DimensionInput label="Épaisseur" value={selectedPane.thicknessSixteenths} onChange={(v) => updatePane({ thicknessSixteenths: v })} required={technicianMode} minSixteenths={4} maxSixteenths={32} />
           </div>
 
           <div>

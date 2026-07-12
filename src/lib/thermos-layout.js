@@ -463,6 +463,45 @@ export function splitPane(value, windowId, paneId, direction = "vertical", ratio
   });
 }
 
+export function splitPaneEvenly(value, windowId, paneId, direction = "vertical", sectionCount = 2) {
+  const data = normalizeMeasurementData(value);
+  const count = integerInRange(sectionCount, 2, 12, 2);
+  return normalizeMeasurementData({
+    ...data,
+    windows: data.windows.map((windowValue) => {
+      if (windowValue.id !== windowId) return windowValue;
+      const paneIndex = windowValue.panes.findIndex((pane) => pane.id === paneId);
+      if (paneIndex < 0 || windowValue.panes.length - 1 + count > MAX_PANES_PER_WINDOW) return windowValue;
+      const pane = windowValue.panes[paneIndex];
+      const axis = direction === "horizontal" ? "horizontal" : "vertical";
+      const span = axis === "horizontal" ? pane.height : pane.width;
+      if (span < count * MIN_DIVIDER_PANE_SIZE) return windowValue;
+
+      const baseSize = Math.floor(span / count);
+      const remainder = span % count;
+      let cursor = axis === "horizontal" ? pane.y : pane.x;
+      const pieces = Array.from({ length: count }, (_, index) => {
+        const size = baseSize + (index < remainder ? 1 : 0);
+        const piece = {
+          ...pane,
+          id: makeId("thermos"),
+          widthSixteenths: null,
+          heightSixteenths: null,
+          grille: normalizeGrille({}),
+          ...(axis === "horizontal"
+            ? { y: cursor, height: size }
+            : { x: cursor, width: size }),
+        };
+        cursor += size;
+        return piece;
+      });
+      const panes = [...windowValue.panes];
+      panes.splice(paneIndex, 1, ...pieces);
+      return { ...windowValue, panes };
+    }),
+  });
+}
+
 export function removePane(value, windowId, paneId) {
   const data = normalizeMeasurementData(value);
   return normalizeMeasurementData({

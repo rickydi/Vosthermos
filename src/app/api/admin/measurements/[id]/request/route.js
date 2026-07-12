@@ -4,12 +4,15 @@ import { logAdminActivity } from "@/lib/admin-activity";
 import { publishAdminEvent } from "@/lib/event-bus";
 import { getMailEnvelopeFrom, getMailFromHeader, getReplyToEmail, getTransporter, isMailDeliveryConfigured } from "@/lib/mail";
 import { toE164 } from "@/lib/photo-request";
-import { sendSms } from "@/lib/twilio";
+import { sendSmsDetailed } from "@/lib/twilio";
 import {
   getMeasurementById,
+  hashPublicMeasurementToken,
   issuePublicMeasurementLink,
   measurementErrorResponse,
   PUBLIC_MEASUREMENT_LINK_DAYS,
+  publicMeasurementUrl,
+  resolveMeasurementClientName,
   serializeMeasurementBundle,
 } from "@/lib/thermos-measurements";
 
@@ -21,6 +24,46 @@ function escapeHtml(value) {
     "\"": "&quot;",
     "'": "&#039;",
   })[character]);
+}
+
+function normalizePhoneKey(value) {
+  const digits = String(value || "").replace(/\D/g, "");
+  if (digits.length === 11 && digits.startsWith("1")) return digits.slice(1);
+  return digits;
+}
+
+function chooseAllowedValue(requested, candidates, normalize, label) {
+  const available = candidates.filter(Boolean);
+  if (!requested) return available[0] || "";
+  const requestedKey = normalize(requested);
+  const match = available.find((candidate) => normalize(candidate) === requestedKey);
+  if (!match) throw Object.assign(new Error(`${label} ne correspond pas aux coordonnées de ce dossier`), { status: 400 });
+  return match;
+}
+
+function reusableMeasurementLink(existing, value) {
+  if (!value || !existing?.publicTokenHash || !existing?.publicTokenExpiresAt) return null;
+  try {
+    const parsed = new URL(String(value), process.env.NEXT_PUBLIC_SITE_URL || "https://www.vosthermos.com");
+    const match = parsed.pathname.match(/^\/prendre-mesures\/([^/]+)\/?$/);
+    const token = match?.[1] ? decodeURIComponent(match[1]) : "";
+    if (!token || hashPublicMeasurementToken(token) !== existing.publicTokenHash) return null;
+    const expiresAt = new Date(existing.publicTokenExpiresAt);
+    if (Number.isNaN(expiresAt.getTime()) || expiresAt <= new Date()) return null;
+    return { measurement: existing, token, url: publicMeasurementUrl(token), expiresAt };
+  } catch {
+    return null;
+  }
+}
+
+function smsFailureMessage(result) {
+  if (Number(result?.errorCode) === 21408) {
+    return "Destination bloquée par les permissions géographiques Twilio. Vérifiez le numéro ou activez cette région dans Twilio.";
+  }
+  if (result?.errorCode === "not_configured") return "Le service texto Twilio n’est pas configuré.";
+  return result?.errorCode
+    ? `Le texto a été refusé par Twilio (code ${result.errorCode}).`
+    : "Le texto n’a pas pu être envoyé.";
 }
 
 async function sendMeasurementEmail(client, url) {
@@ -58,41 +101,65 @@ export async function POST(req, { params }) {
     const body = await req.json().catch(() => ({}));
     const requestedChannels = Array.isArray(body.channels) ? body.channels : ["sms", "email"];
     const channels = Array.from(new Set(requestedChannels.filter((channel) => ["sms", "email"].includes(channel))));
-    const issued = await issuePublicMeasurementLink(existing.id);
-    const client = issued.measurement.client;
-    const followUp = issued.measurement.followUp;
+    if (!channels.length) throw Object.assign(new Error("Choisissez au moins un canal d’envoi"), { status: 400 });
+    const client = existing.client;
+    const followUp = existing.followUp;
+    const selectedPhone = chooseAllowedValue(
+      body.phone,
+      [client?.phone, client?.secondaryPhone, followUp?.phone],
+      normalizePhoneKey,
+      "Le numéro choisi",
+    );
+    const selectedEmail = chooseAllowedValue(
+      body.email,
+      [client?.email, followUp?.email],
+      (value) => String(value || "").trim().toLowerCase(),
+      "Le courriel choisi",
+    );
+    const displayName = resolveMeasurementClientName(client, followUp);
+    let issued;
+    if (body.reuseUrl) {
+      issued = reusableMeasurementLink(existing, body.reuseUrl);
+      if (!issued) throw Object.assign(new Error("Le lien précédent est expiré ou n’est plus valide. Fermez cette fenêtre puis recommencez la demande."), { status: 409 });
+    } else {
+      issued = await issuePublicMeasurementLink(existing.id);
+    }
     const deliveryClient = {
       ...client,
-      contactName: followUp?.contactName || client.contactName,
-      phone: followUp?.phone || client.phone,
-      email: followUp?.email || client.email,
+      contactName: displayName,
+      phone: selectedPhone,
+      email: selectedEmail,
     };
-    const displayName = String(deliveryClient.contactName || deliveryClient.name || "").trim();
-    const delivery = { sms: "not_requested", email: "not_requested" };
+    const delivery = {
+      sms: { status: "not_requested", errorCode: null, message: "" },
+      email: { status: "not_requested", message: "" },
+    };
 
     if (channels.includes("sms")) {
-      const phone = toE164(deliveryClient.phone || deliveryClient.secondaryPhone);
+      const phone = toE164(deliveryClient.phone);
       if (!phone) {
-        delivery.sms = "unavailable";
-      } else if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN || !process.env.TWILIO_PHONE_NUMBER) {
-        // N'appelle pas le fallback de développement de sendSms: il journalise
-        // le corps complet, qui contient ici un lien d'accès confidentiel.
-        delivery.sms = "unavailable";
+        delivery.sms = { status: "unavailable", errorCode: "invalid_phone", message: "Le numéro choisi n’est pas un numéro Canada/États-Unis valide." };
       } else {
         const message = `${displayName ? `Bonjour ${displayName}! ` : ""}Vosthermos : prenez une photo de face de chaque fenêtre et entrez vos mesures ici : ${issued.url} — lien valide ${PUBLIC_MEASUREMENT_LINK_DAYS} jours. Ces mesures servent à la présoumission.`;
-        delivery.sms = await sendSms(phone, message) ? "sent" : "failed";
+        const result = await sendSmsDetailed(phone, message);
+        delivery.sms = result.status === "accepted"
+          ? { status: "accepted", errorCode: null, providerStatus: result.providerStatus, message: "Texto accepté par Twilio; la livraison finale dépend du réseau du destinataire." }
+          : { status: result.status, errorCode: result.errorCode, providerStatus: result.providerStatus, message: smsFailureMessage(result) };
       }
     }
 
     if (channels.includes("email")) {
       if (!deliveryClient.email) {
-        delivery.email = "unavailable";
+        delivery.email = { status: "unavailable", message: "Aucun courriel valide n’est disponible." };
       } else {
         try {
-          delivery.email = await sendMeasurementEmail(deliveryClient, issued.url) ? "sent" : "failed";
+          const emailSent = await sendMeasurementEmail(deliveryClient, issued.url);
+          delivery.email = emailSent
+            ? { status: "sent", message: "Courriel envoyé." }
+            : { status: "unavailable", message: "Le service de courriel n’est pas configuré." };
         } catch (error) {
           console.error("[measurements request] email error:", error?.message || error);
-          delivery.email = "failed";
+          delivery.email = { status: "failed", message: "Le courriel n’a pas pu être envoyé." };
         }
       }
     }

@@ -827,17 +827,58 @@ function ThermosOrderStrip({ order, now }) {
   );
 }
 
+function uniqueDeliveryOptions(entries, normalize) {
+  const seen = new Set();
+  return entries.filter((entry) => {
+    if (!entry?.value) return false;
+    const key = normalize(entry.value);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function deliveryStatus(result) {
+  return typeof result === "string" ? result : result?.status || "not_requested";
+}
+
+function deliverySucceeded(result) {
+  return ["sent", "accepted", "delivered"].includes(deliveryStatus(result));
+}
+
 function MeasurementModal({ fu, source, onClose, onCreated }) {
+  const phoneOptions = uniqueDeliveryOptions([
+    { value: fu.client?.phone, label: "Client actuel" },
+    { value: fu.client?.secondaryPhone, label: "Client · numéro secondaire" },
+    { value: fu.phone, label: "Numéro conservé dans ce suivi" },
+  ], (value) => String(value).replace(/\D/g, "").slice(-10));
+  const emailOptions = uniqueDeliveryOptions([
+    { value: fu.client?.email, label: "Client actuel" },
+    { value: fu.email, label: "Courriel conservé dans ce suivi" },
+  ], (value) => String(value).trim().toLowerCase());
   const [technicians, setTechnicians] = useState([]);
   const [technicianId, setTechnicianId] = useState("");
-  const [channels, setChannels] = useState({ sms: !!(fu.phone || fu.client?.phone), email: !!(fu.email || fu.client?.email) });
+  const [channels, setChannels] = useState({ sms: phoneOptions.length > 0, email: emailOptions.length > 0 });
+  const [selectedPhone, setSelectedPhone] = useState(phoneOptions[0]?.value || "");
+  const [selectedEmail, setSelectedEmail] = useState(emailOptions[0]?.value || "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [createdMeasurement, setCreatedMeasurement] = useState(null);
+  const [reuseUrl, setReuseUrl] = useState("");
+  const [delivery, setDelivery] = useState(null);
+  const creationKeyRef = useRef("");
+  const creationStorageKey = `thermos-measurement-create:${fu.id}:${source}`;
   const sourceMeta = {
     technician: { title: "Mesures technicien", icon: "fa-ruler-combined", text: "Crée une fiche de mesures finales avec épaisseur et options. Elle pourra ensuite générer la commande fournisseur." },
     client: { title: "Demander les mesures au client", icon: "fa-mobile-screen-button", text: "Un lien privé permet au client de photographier ses fenêtres, corriger les divisions et entrer ses mesures pour la pré-soumission." },
     phone: { title: "Mesures reçues par téléphone", icon: "fa-headset", text: "Crée une fiche rapide et approximative pour préparer la pré-soumission. Un technicien devra confirmer avant la commande." },
   }[source];
+
+  function closeModal() {
+    if (busy) return;
+    if (createdMeasurement) onCreated();
+    else onClose();
+  }
 
   useEffect(() => {
     if (source !== "technician") return;
@@ -852,35 +893,58 @@ function MeasurementModal({ fu, source, onClose, onCreated }) {
     if (source === "client" && !channels.sms && !channels.email) { setError("Choisissez au moins le texto ou le courriel."); return; }
     setBusy(true); setError("");
     try {
-      const res = await fetch("/api/admin/measurements", {
-        method: "POST", headers: MUTATION_HEADERS,
-        body: JSON.stringify({
-          clientId: fu.clientId,
-          followUpId: fu.id,
-          source,
-          technicianId: technicianId ? Number(technicianId) : null,
-          parentId: source === "technician" ? fu.latestMeasurement?.id || null : null,
-        }),
-      });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(body.error || "Impossible de créer la fiche de mesures.");
-      const measurement = body.measurement || body;
+      let measurement = createdMeasurement;
+      if (!measurement) {
+        if (!creationKeyRef.current) {
+          try { creationKeyRef.current = globalThis.sessionStorage?.getItem(creationStorageKey) || ""; } catch {}
+          if (!creationKeyRef.current) creationKeyRef.current = globalThis.crypto?.randomUUID?.() || `measurement-${fu.id}-${source}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+          try { globalThis.sessionStorage?.setItem(creationStorageKey, creationKeyRef.current); } catch {}
+        }
+        const res = await fetch("/api/admin/measurements", {
+          method: "POST", headers: MUTATION_HEADERS,
+          body: JSON.stringify({
+            clientId: fu.clientId,
+            followUpId: fu.id,
+            source,
+            idempotencyKey: creationKeyRef.current,
+            technicianId: technicianId ? Number(technicianId) : null,
+            parentId: source === "technician" ? fu.latestMeasurement?.id || null : null,
+          }),
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body.error || "Impossible de créer la fiche de mesures.");
+        measurement = body.measurement || body;
+        setCreatedMeasurement(measurement);
+      }
       if (source === "client") {
+        const requestedChannels = Object.entries(channels).filter(([, on]) => on).map(([key]) => key);
         const requestRes = await fetch(`/api/admin/measurements/${measurement.id}/request`, {
           method: "POST", headers: MUTATION_HEADERS,
-          body: JSON.stringify({ channels: Object.entries(channels).filter(([, on]) => on).map(([key]) => key) }),
+          body: JSON.stringify({
+            channels: requestedChannels,
+            phone: channels.sms ? selectedPhone : undefined,
+            email: channels.email ? selectedEmail : undefined,
+            reuseUrl: reuseUrl || undefined,
+          }),
         });
         const requestBody = await requestRes.json().catch(() => ({}));
         if (!requestRes.ok) throw new Error(requestBody.error || "La fiche existe, mais le lien n'a pas pu être envoyé.");
-        const delivery = requestBody.delivery || {};
-        const sent = Object.values(delivery).some((value) => value === "sent");
-        if (!sent && requestBody.url) {
-          await navigator.clipboard?.writeText(requestBody.url).catch(() => {});
-          alert(`Le lien a été créé, mais aucun envoi n'a réussi. Il a été copié si votre navigateur le permet:\n\n${requestBody.url}`);
+        const nextDelivery = requestBody.delivery || {};
+        setDelivery(nextDelivery);
+        if (requestBody.url) setReuseUrl(requestBody.url);
+        const failedChannels = requestedChannels.filter((channel) => !deliverySucceeded(nextDelivery[channel]));
+        if (!failedChannels.length) {
+          try { globalThis.sessionStorage?.removeItem(creationStorageKey); } catch {}
+          onCreated();
+          return;
         }
-        onCreated();
+        setChannels({ sms: failedChannels.includes("sms"), email: failedChannels.includes("email") });
+        if (requestBody.url && requestedChannels.every((channel) => !deliverySucceeded(nextDelivery[channel]))) {
+          await navigator.clipboard?.writeText(requestBody.url).catch(() => {});
+        }
         return;
       }
+      try { globalThis.sessionStorage?.removeItem(creationStorageKey); } catch {}
       onCreated();
       window.location.href = `/admin/mesures/${measurement.id}`;
     } catch (err) { setError(err.message); }
@@ -888,21 +952,50 @@ function MeasurementModal({ fu, source, onClose, onCreated }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/65 backdrop-blur-sm flex items-center justify-center p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="fixed inset-0 z-[100] bg-black/65 backdrop-blur-sm flex items-center justify-center p-4" onMouseDown={(e) => e.target === e.currentTarget && closeModal()}>
       <div className="admin-card border admin-border rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
-        <div className="p-5 border-b admin-border flex gap-4 items-start"><div className="w-11 h-11 rounded-xl bg-cyan-400/10 text-cyan-300 flex items-center justify-center text-lg"><i className={`fas ${sourceMeta.icon}`} /></div><div className="min-w-0 flex-1"><h2 className="admin-text text-lg font-bold">{sourceMeta.title}</h2><p className="admin-text-muted text-sm mt-1">{fu.client?.name || fu.contactName}</p></div><button onClick={onClose} className="admin-text-muted p-2"><i className="fas fa-xmark" /></button></div>
+        <div className="p-5 border-b admin-border flex gap-4 items-start"><div className="w-11 h-11 rounded-xl bg-cyan-400/10 text-cyan-300 flex items-center justify-center text-lg"><i className={`fas ${sourceMeta.icon}`} /></div><div className="min-w-0 flex-1"><h2 className="admin-text text-lg font-bold">{sourceMeta.title}</h2><p className="admin-text-muted text-sm mt-1">{fu.client?.name || fu.contactName}</p></div><button onClick={closeModal} disabled={busy} className="admin-text-muted p-2 disabled:opacity-40"><i className="fas fa-xmark" /></button></div>
         <div className="p-5 space-y-4">
           <p className="admin-text-muted text-sm leading-relaxed">{sourceMeta.text}</p>
           {source === "technician" && (
             <label className="block"><span className="block admin-text text-sm font-bold mb-1.5">Assigner au technicien</span><select value={technicianId} onChange={(e) => setTechnicianId(e.target.value)} className="w-full admin-input border admin-border rounded-xl px-3 py-3"><option value="">Non assignée — consultation admin</option>{technicians.map((tech) => <option key={tech.id} value={tech.id}>{tech.name}</option>)}</select><span className="block admin-text-muted text-xs mt-1.5">Une fiche assignée apparaît automatiquement dans son écran Terrain.</span></label>
           )}
           {source === "client" && (
-            <div><p className="admin-text text-sm font-bold mb-2">Envoyer le lien par</p><div className="grid grid-cols-2 gap-3"><label className={`rounded-xl border p-3 flex gap-2 items-center cursor-pointer ${channels.sms ? "border-cyan-400/40 bg-cyan-400/10 text-cyan-200" : "admin-border admin-text-muted"}`}><input type="checkbox" checked={channels.sms} disabled={!(fu.phone || fu.client?.phone)} onChange={(e) => setChannels((c) => ({ ...c, sms: e.target.checked }))} /><i className="fas fa-comment-sms" /><span className="text-sm font-bold">Texto</span></label><label className={`rounded-xl border p-3 flex gap-2 items-center cursor-pointer ${channels.email ? "border-cyan-400/40 bg-cyan-400/10 text-cyan-200" : "admin-border admin-text-muted"}`}><input type="checkbox" checked={channels.email} disabled={!(fu.email || fu.client?.email)} onChange={(e) => setChannels((c) => ({ ...c, email: e.target.checked }))} /><i className="fas fa-envelope" /><span className="text-sm font-bold">Courriel</span></label></div></div>
+            <div className="space-y-3">
+              <div>
+                <p className="admin-text text-sm font-bold mb-2">Envoyer le lien par</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <label className={`rounded-xl border p-3 flex gap-2 items-center cursor-pointer ${channels.sms ? "border-cyan-400/40 bg-cyan-400/10 text-cyan-200" : "admin-border admin-text-muted"}`}><input type="checkbox" checked={channels.sms} disabled={!phoneOptions.length} onChange={(e) => setChannels((current) => ({ ...current, sms: e.target.checked }))} /><i className="fas fa-comment-sms" /><span className="text-sm font-bold">Texto</span></label>
+                  <label className={`rounded-xl border p-3 flex gap-2 items-center cursor-pointer ${channels.email ? "border-cyan-400/40 bg-cyan-400/10 text-cyan-200" : "admin-border admin-text-muted"}`}><input type="checkbox" checked={channels.email} disabled={!emailOptions.length} onChange={(e) => setChannels((current) => ({ ...current, email: e.target.checked }))} /><i className="fas fa-envelope" /><span className="text-sm font-bold">Courriel</span></label>
+                </div>
+              </div>
+              {channels.sms && (
+                <label className="block"><span className="block admin-text text-sm font-bold mb-1.5">Numéro qui recevra le texto</span><select value={selectedPhone} onChange={(event) => setSelectedPhone(event.target.value)} className="w-full admin-input border admin-border rounded-xl px-3 py-3">{phoneOptions.map((option) => <option key={option.value} value={option.value}>{option.label} · {option.value}</option>)}</select></label>
+              )}
+              {channels.email && (
+                <label className="block"><span className="block admin-text text-sm font-bold mb-1.5">Courriel destinataire</span><select value={selectedEmail} onChange={(event) => setSelectedEmail(event.target.value)} className="w-full admin-input border admin-border rounded-xl px-3 py-3">{emailOptions.map((option) => <option key={option.value} value={option.value}>{option.label} · {option.value}</option>)}</select></label>
+              )}
+            </div>
+          )}
+          {delivery && (
+            <div className="rounded-xl border admin-border p-3 space-y-2">
+              {[['sms', 'Texto', 'fa-comment-sms'], ['email', 'Courriel', 'fa-envelope']].map(([key, label, icon]) => {
+                const result = delivery[key];
+                const status = deliveryStatus(result);
+                if (status === "not_requested") return null;
+                const succeeded = deliverySucceeded(result);
+                const successLabel = status === "accepted" ? "accepté par Twilio" : "envoyé";
+                return <div key={key} className={`flex items-start gap-2 text-sm ${succeeded ? "text-emerald-300" : "text-rose-300"}`}><i className={`fas ${succeeded ? "fa-circle-check" : "fa-circle-xmark"} mt-0.5`} /><div><span className="font-bold"><i className={`fas ${icon} mr-1.5 opacity-70`} />{label}: {succeeded ? successLabel : "échec"}</span>{result?.message && <p className="text-xs mt-0.5 opacity-90">{result.message}</p>}</div></div>;
+              })}
+              {reuseUrl && Object.values(delivery).some((result) => !deliverySucceeded(result) && deliveryStatus(result) !== "not_requested") && (
+                <button type="button" onClick={async () => { await navigator.clipboard?.writeText(reuseUrl).catch(() => {}); }} className="rounded-lg border admin-border px-3 py-2 text-xs font-bold admin-text"><i className="fas fa-copy mr-2" />Copier le lien manuellement</button>
+              )}
+            </div>
           )}
           <div className="rounded-lg border border-amber-400/25 bg-amber-400/8 text-amber-100 p-3 text-xs"><i className="fas fa-circle-info mr-2" />Cette action ne marque pas la soumission comme envoyée.</div>
           {error && <p className="rounded-lg border border-red-400/30 bg-red-400/10 text-red-200 p-3 text-sm">{error}</p>}
         </div>
-        <div className="p-4 border-t admin-border flex justify-end gap-2"><button onClick={onClose} className="rounded-xl border admin-border px-4 py-2.5 admin-text">Annuler</button><button onClick={create} disabled={busy} className="rounded-xl bg-[var(--color-red)] text-white px-5 py-2.5 font-bold disabled:opacity-50"><i className={`fas ${busy ? "fa-spinner fa-spin" : source === "client" ? "fa-paper-plane" : "fa-arrow-right"} mr-2`} />{busy ? "Préparation…" : source === "client" ? "Créer et envoyer" : "Créer la fiche"}</button></div>
+        <div className="p-4 border-t admin-border flex justify-end gap-2"><button onClick={closeModal} disabled={busy} className="rounded-xl border admin-border px-4 py-2.5 admin-text disabled:opacity-40">{createdMeasurement ? "Fermer" : "Annuler"}</button><button onClick={create} disabled={busy} className="rounded-xl bg-[var(--color-red)] text-white px-5 py-2.5 font-bold disabled:opacity-50"><i className={`fas ${busy ? "fa-spinner fa-spin" : source === "client" ? "fa-paper-plane" : "fa-arrow-right"} mr-2`} />{busy ? "Préparation…" : source === "client" ? (createdMeasurement ? "Réessayer l’envoi" : "Créer et envoyer") : "Créer la fiche"}</button></div>
       </div>
     </div>
   );

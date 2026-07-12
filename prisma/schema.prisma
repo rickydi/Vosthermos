@@ -751,10 +751,12 @@ model ThermosMeasurement {
   status               String                  @default("draft")
   accuracy             String                  @default("approximate")
   revision             Int                     @default(1)
+  idempotencyKey       String?                 @unique
   data                 Json
   windowCount          Int                     @default(0)
   paneCount            Int                     @default(0)
   publicTokenHash      String?                 @unique
+  publicTokenVersion   Int                     @default(0)
   publicTokenExpiresAt DateTime?
   requestedAt          DateTime?
   startedAt            DateTime?

@@ -83,6 +83,14 @@ function cleanText(value, max = 500) {
   return String(value ?? "").trim().slice(0, max);
 }
 
+export function resolveMeasurementClientName(client, followUp = null) {
+  const isManager = client?.type === "gestionnaire";
+  const currentName = isManager
+    ? client?.contactName || client?.name
+    : client?.name || client?.contactName;
+  return cleanText(currentName || followUp?.contactName || followUp?.title, 160);
+}
+
 function safeSource(value) {
   return MEASUREMENT_SOURCES.includes(value) ? value : null;
 }
@@ -101,8 +109,13 @@ export function defaultAccuracyForSource(source) {
   return "approximate";
 }
 
-export function generatePublicMeasurementToken() {
-  return crypto.randomBytes(32).toString("base64url");
+export function generatePublicMeasurementToken(measurementId, version = 1) {
+  const id = integerId(measurementId);
+  if (!id) return crypto.randomBytes(32).toString("base64url");
+  const secret = process.env.JWT_SECRET || (process.env.NODE_ENV === "production" ? "" : "vosthermos-dev-measurement-secret");
+  if (!secret) throw new Error("JWT_SECRET requis pour générer un lien de mesures");
+  const safeVersion = Math.max(1, Number.parseInt(version, 10) || 1);
+  return crypto.createHmac("sha256", `${secret}:thermos-measurement:v1`).update(`${id}:${safeVersion}`).digest("base64url");
 }
 
 export function hashPublicMeasurementToken(token) {
@@ -122,6 +135,8 @@ export function serializeMeasurementBundle(record, { publicView = false } = {}) 
   if (!record) return null;
   const {
     publicTokenHash: _publicTokenHash,
+    publicTokenVersion: _publicTokenVersion,
+    idempotencyKey: _idempotencyKey,
     client,
     followUp,
     technician,
@@ -145,7 +160,7 @@ export function serializeMeasurementBundle(record, { publicView = false } = {}) 
       aiAnalysisCount: _aiAnalysisCount,
       ...publicMeasurement
     } = normalizedMeasurement;
-    const displayName = cleanText(client?.contactName || client?.name, 160);
+    const displayName = resolveMeasurementClientName(client, followUp);
     return {
       measurement: { ...publicMeasurement, clientName: displayName },
       client: { displayName },
@@ -156,7 +171,7 @@ export function serializeMeasurementBundle(record, { publicView = false } = {}) 
     measurement: {
       ...normalizedMeasurement,
       client: client || null,
-      clientName: cleanText(client?.contactName || client?.name, 160),
+      clientName: resolveMeasurementClientName(client, followUp),
     },
     client: client || null,
     followUp: followUp || null,
@@ -235,6 +250,10 @@ export async function createMeasurement(input, { technicianIdOverride = null } =
   if (!clientId) throw Object.assign(new Error("Client requis"), { status: 400 });
   const source = safeSource(input?.source);
   if (!source) throw Object.assign(new Error("Type de mesure invalide"), { status: 400 });
+  const idempotencyKey = cleanText(input?.idempotencyKey, 100) || null;
+  if (idempotencyKey && !/^[A-Za-z0-9_-]{16,100}$/.test(idempotencyKey)) {
+    throw Object.assign(new Error("Clé de création invalide"), { status: 400 });
+  }
   const parentId = integerId(input?.parentId);
   if (parentId && source !== "technician") {
     throw Object.assign(new Error("Seule une fiche technicien peut reprendre une mesure précédente"), { status: 400 });
@@ -249,29 +268,58 @@ export async function createMeasurement(input, { technicianIdOverride = null } =
   const followUpId = integerId(input?.followUpId) || parent?.followUpId || null;
   const workOrderId = integerId(input?.workOrderId) || parent?.workOrderId || null;
   const technicianId = integerId(technicianIdOverride || input?.technicianId);
+  if (idempotencyKey) {
+    const previous = await prisma.thermosMeasurement.findUnique({ where: { idempotencyKey }, include: measurementInclude });
+    if (previous) {
+      const sameRequest = previous.clientId === clientId
+        && previous.source === source
+        && previous.followUpId === followUpId
+        && previous.parentId === (parent?.id || null)
+        && previous.workOrderId === workOrderId
+        && previous.technicianId === technicianId;
+      if (!sameRequest) throw Object.assign(new Error("Cette clé de création appartient à une autre demande"), { status: 409 });
+      return previous;
+    }
+  }
   await validateRelations({ clientId, followUpId, workOrderId, technicianId });
 
   const data = normalizeMeasurementData(input?.data || parent?.data || createEmptyMeasurementData());
   const { windowCount, paneCount } = countMeasurementData(data);
   const accuracy = safeAccuracy(input?.accuracy) || defaultAccuracyForSource(source);
-  const measurement = await prisma.thermosMeasurement.create({
-    data: {
-      clientId,
-      followUpId,
-      workOrderId,
-      technicianId,
-      parentId: parent?.id || null,
-      source,
-      status: "draft",
-      accuracy,
-      revision: parent ? Math.max(1, Number(parent.revision) || 1) + 1 : 1,
-      data,
-      windowCount,
-      paneCount,
-    },
-    include: measurementInclude,
-  });
-  return measurement;
+  try {
+    return await prisma.thermosMeasurement.create({
+      data: {
+        clientId,
+        followUpId,
+        workOrderId,
+        technicianId,
+        parentId: parent?.id || null,
+        source,
+        status: "draft",
+        accuracy,
+        revision: parent ? Math.max(1, Number(parent.revision) || 1) + 1 : 1,
+        idempotencyKey,
+        data,
+        windowCount,
+        paneCount,
+      },
+      include: measurementInclude,
+    });
+  } catch (error) {
+    if (idempotencyKey && error?.code === "P2002") {
+      const previous = await prisma.thermosMeasurement.findUnique({ where: { idempotencyKey }, include: measurementInclude });
+      const sameRequest = previous
+        && previous.clientId === clientId
+        && previous.source === source
+        && previous.followUpId === followUpId
+        && previous.parentId === (parent?.id || null)
+        && previous.workOrderId === workOrderId
+        && previous.technicianId === technicianId;
+      if (sameRequest) return previous;
+      if (previous) throw Object.assign(new Error("Cette clé de création appartient à une autre demande"), { status: 409 });
+    }
+    throw error;
+  }
 }
 
 export async function updateMeasurementRecord(existing, input, { actor = "admin" } = {}) {
@@ -363,15 +411,33 @@ export async function updateMeasurementRecord(existing, input, { actor = "admin"
 export async function issuePublicMeasurementLink(measurementId) {
   const id = integerId(measurementId);
   if (!id) throw Object.assign(new Error("ID invalide"), { status: 400 });
-  const token = generatePublicMeasurementToken();
-  const expiresAt = publicMeasurementExpiry();
+  const current = await prisma.thermosMeasurement.findUnique({
+    where: { id },
+    select: { id: true, status: true, requestedAt: true, publicTokenHash: true, publicTokenVersion: true, publicTokenExpiresAt: true },
+  });
+  if (!current) throw Object.assign(new Error("Mesure introuvable"), { status: 404 });
+  const now = new Date();
+  let version = Math.max(0, Number(current.publicTokenVersion) || 0);
+  let token = version > 0 ? generatePublicMeasurementToken(id, version) : "";
+  const currentTokenIsReusable = Boolean(
+    token
+    && current.publicTokenHash === hashPublicMeasurementToken(token)
+    && current.publicTokenExpiresAt
+    && new Date(current.publicTokenExpiresAt) > now,
+  );
+  if (!currentTokenIsReusable) {
+    version += 1;
+    token = generatePublicMeasurementToken(id, version);
+  }
+  const expiresAt = currentTokenIsReusable ? new Date(current.publicTokenExpiresAt) : publicMeasurementExpiry(now);
   const measurement = await prisma.thermosMeasurement.update({
     where: { id },
     data: {
       publicTokenHash: hashPublicMeasurementToken(token),
+      publicTokenVersion: version,
       publicTokenExpiresAt: expiresAt,
-      requestedAt: new Date(),
-      status: "requested",
+      requestedAt: current.requestedAt || now,
+      status: ["draft", "requested"].includes(current.status) ? "requested" : current.status,
     },
     include: measurementInclude,
   });

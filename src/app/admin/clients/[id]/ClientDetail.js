@@ -333,7 +333,7 @@ export default function ClientDetail({ client }) {
       const res = await fetch(`/api/admin/clients/${client.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(infoForm),
+        body: JSON.stringify({ ...infoForm, contactName: isB2B ? infoForm.contactName : null }),
       });
       if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Erreur"); }
       setInfoMsg("Enregistré ✓");
