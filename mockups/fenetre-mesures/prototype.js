@@ -112,17 +112,20 @@
   function positionDividerHandles() {
     if (!draggableDividers) return;
     const canvasRect = canvas.getBoundingClientRect();
+    const canvasOriginLeft = canvasRect.left + canvas.clientLeft;
+    const canvasOriginTop = canvasRect.top + canvas.clientTop;
     const panes = [...canvas.querySelectorAll('.pane')];
     canvas.querySelectorAll('[data-divider-index]').forEach((handle) => {
       const index = Number(handle.dataset.dividerIndex);
       const paneRect = panes[index]?.getBoundingClientRect();
-      if (!paneRect) return;
+      const nextPaneRect = panes[index + 1]?.getBoundingClientRect();
+      if (!paneRect || !nextPaneRect) return;
       if (state.orientation === 'vertical') {
-        handle.style.left = `${paneRect.right - canvasRect.left}px`;
-        handle.style.top = '50%';
+        handle.style.left = `${((paneRect.right + nextPaneRect.left) / 2) - canvasOriginLeft}px`;
+        handle.style.top = `${((paneRect.top + paneRect.bottom) / 2) - canvasOriginTop}px`;
       } else {
-        handle.style.left = '50%';
-        handle.style.top = `${paneRect.bottom - canvasRect.top}px`;
+        handle.style.left = `${((paneRect.left + paneRect.right) / 2) - canvasOriginLeft}px`;
+        handle.style.top = `${((paneRect.bottom + nextPaneRect.top) / 2) - canvasOriginTop}px`;
       }
       const spacing = minimumPanePercent();
       const previous = index === 0 ? 0 : state.dividerPositions[index - 1];
