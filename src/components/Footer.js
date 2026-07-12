@@ -32,6 +32,7 @@ const FALLBACK_COMPANY = {
 export default function Footer({ company }) {
   const co = { ...FALLBACK_COMPANY, ...(company || {}) };
   const pathname = usePathname();
+  if (pathname.startsWith("/prendre-mesures") || pathname.startsWith("/confirmation-thermos")) return null;
   const isEn = pathname === "/en" || pathname.startsWith("/en/");
   const p = isEn ? "/en" : "";
 

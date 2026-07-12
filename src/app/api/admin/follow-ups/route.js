@@ -74,6 +74,35 @@ function unreadConversationCount(value) {
   return Number(value || 0) > 0 ? 1 : 0;
 }
 
+function serializeFollowUpOperations(followUp) {
+  const latestMeasurement = followUp?.thermosMeasurements?.[0] || null;
+  const latestThermosOrder = followUp?.thermosOrders?.[0] || null;
+  const base = serializeFollowUp(followUp);
+  delete base.thermosMeasurements;
+  delete base.thermosOrders;
+  return {
+    ...base,
+    latestMeasurement: latestMeasurement ? {
+      ...latestMeasurement,
+      requestedAt: iso(latestMeasurement.requestedAt),
+      receivedAt: iso(latestMeasurement.receivedAt),
+      validatedAt: iso(latestMeasurement.validatedAt),
+      createdAt: iso(latestMeasurement.createdAt),
+      updatedAt: iso(latestMeasurement.updatedAt),
+    } : null,
+    latestThermosOrder: latestThermosOrder ? {
+      ...latestThermosOrder,
+      sentAt: iso(latestThermosOrder.sentAt),
+      expectedReadyAt: iso(latestThermosOrder.expectedReadyAt),
+      lastReminderAt: iso(latestThermosOrder.lastReminderAt),
+      readyAt: iso(latestThermosOrder.readyAt),
+      receivedAt: iso(latestThermosOrder.receivedAt),
+      createdAt: iso(latestThermosOrder.createdAt),
+      updatedAt: iso(latestThermosOrder.updatedAt),
+    } : null,
+  };
+}
+
 function activityItem(item) {
   return {
     ...item,
@@ -444,6 +473,44 @@ export async function GET(req) {
           _count: { select: { workOrders: true } },
         },
       },
+      thermosMeasurements: {
+        where: { status: { not: "cancelled" } },
+        orderBy: { updatedAt: "desc" },
+        take: 1,
+        select: {
+          id: true,
+          source: true,
+          status: true,
+          accuracy: true,
+          windowCount: true,
+          paneCount: true,
+          requestedAt: true,
+          receivedAt: true,
+          validatedAt: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      },
+      thermosOrders: {
+        where: { status: { not: "cancelled" } },
+        orderBy: { updatedAt: "desc" },
+        take: 1,
+        select: {
+          id: true,
+          number: true,
+          status: true,
+          supplierNameSnapshot: true,
+          sentAt: true,
+          expectedReadyAt: true,
+          lastReminderAt: true,
+          reminderCount: true,
+          readyAt: true,
+          receivedAt: true,
+          createdAt: true,
+          updatedAt: true,
+          _count: { select: { items: true } },
+        },
+      },
     },
     orderBy: { createdAt: "desc" }, // plus récents en haut, anciens en bas
     take: limit,
@@ -503,7 +570,7 @@ export async function GET(req) {
         convByPhone.get(tenDigits(fu.client?.secondaryPhone)) ||
         null;
       return {
-        ...serializeFollowUp(fu),
+        ...serializeFollowUpOperations(fu),
         clientPhotos: (fu.clientId && photosByClient.get(fu.clientId)) || null,
         unreadChat: conv ? { conversationId: conv.id, count: conv.unreadCount } : null,
         followUpRank: rankById.get(fu.id) || null,
@@ -512,7 +579,7 @@ export async function GET(req) {
   }
 
   const enriched = await attachCentralActivity(followUps);
-  return NextResponse.json(enriched.map(serializeFollowUp));
+  return NextResponse.json(enriched.map(serializeFollowUpOperations));
 }
 
 export async function POST(req) {

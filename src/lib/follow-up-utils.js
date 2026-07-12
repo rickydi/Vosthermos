@@ -260,13 +260,10 @@ export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client, fo
         ms.visitStatusAt = workOrder.arrivalAt;
       }
     }
-    // "quote" inclus : dès qu'une soumission existe dans le système (même pas encore
-    // envoyée), le jalon "Soumission" se coche tout seul. La soumission verbale, elle,
-    // reste cochée à la main depuis le suivi.
-    if (["quote", "quote_sent", "quote_accepted", "scheduled", "in_progress", "completed", "invoiced", "sent", "paid"].includes(st) && !followUp.estimateSentAt) ms.estimateSentAt = new Date();
-    // Un vrai document de soumission (statut quote*) = soumission ÉCRITE -> type posé
-    // automatiquement (c'est le "tu sais pourquoi" : l'écrite vient du système).
-    if (["quote", "quote_sent", "quote_accepted"].includes(st) && followUp.estimateType !== "written") ms.estimateType = "written";
+    // Un brouillon "quote" ne signifie pas que le client a reçu sa soumission.
+    // Le jalon se coche uniquement à l'envoi réel (ou à une étape ultérieure).
+    if (["quote_sent", "quote_accepted", "scheduled", "in_progress", "completed", "invoiced", "sent", "paid"].includes(st) && !followUp.estimateSentAt) ms.estimateSentAt = new Date();
+    if (["quote_sent", "quote_accepted"].includes(st) && followUp.estimateType !== "written") ms.estimateType = "written";
     if (["quote_accepted", "scheduled", "in_progress", "completed", "invoiced", "sent", "paid"].includes(st) && !followUp.acceptedAt) ms.acceptedAt = new Date();
     if (["completed", "invoiced", "sent", "paid"].includes(st) && !followUp.jobCompletedAt) ms.jobCompletedAt = workOrder.departureAt || new Date();
     if (["invoiced", "sent", "paid"].includes(st) && !followUp.invoicedAt) ms.invoicedAt = workOrder.invoiceSentAt || workOrder.invoiceIssuedAt || new Date();

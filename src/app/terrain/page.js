@@ -24,6 +24,7 @@ function getPosition() {
 
 export default function TerrainDashboard() {
   const [workOrders, setWorkOrders] = useState([]);
+  const [measurements, setMeasurements] = useState([]);
   const [busyId, setBusyId] = useState(null);
   const router = useRouter();
 
@@ -31,6 +32,13 @@ export default function TerrainDashboard() {
     fetch("/api/technician/work-orders?date=today")
       .then((r) => r.json())
       .then((data) => { if (Array.isArray(data)) setWorkOrders(data); })
+      .catch(() => {});
+    fetch("/api/technician/measurements")
+      .then((r) => r.json())
+      .then((data) => {
+        const list = Array.isArray(data) ? data : data?.measurements || [];
+        setMeasurements(list.map((entry) => entry?.measurement ? { ...entry.measurement, client: entry.client, followUp: entry.followUp } : entry));
+      })
       .catch(() => {});
   }, []);
 
@@ -82,6 +90,20 @@ export default function TerrainDashboard() {
       </div>
 
       <div className="px-4 pb-10">
+        <h2 className="text-cyan-300/70 text-xs font-bold uppercase tracking-wider mb-3">Mesures de thermos ({measurements.filter((m) => m.status !== "validated").length})</h2>
+        {measurements.filter((m) => m.status !== "validated").length > 0 ? (
+          <div className="space-y-3 mb-8">
+            {measurements.filter((m) => m.status !== "validated").map((measurement) => (
+              <Link key={measurement.id} href={`/terrain/mesures/${measurement.id}`} className="block rounded-xl border border-cyan-400/25 bg-cyan-400/10 p-4 active:bg-cyan-400/15">
+                <div className="flex justify-between items-start gap-3"><div><p className="text-cyan-300 text-[10px] uppercase tracking-wider font-bold">Mesures finales</p><p className="font-bold mt-1">{measurement.client?.name || measurement.clientName || "Client"}</p><p className="text-white/45 text-sm mt-0.5">{measurement.client?.address}{measurement.client?.city ? `, ${measurement.client.city}` : ""}</p></div><i className="fas fa-ruler-combined text-cyan-300 text-xl" /></div>
+                <div className="flex items-center justify-between mt-3 text-xs"><span className="text-white/45">{measurement.windowCount || 0} fenêtre{measurement.windowCount > 1 ? "s" : ""} · {measurement.paneCount || 0} thermos</span><span className="text-cyan-300 font-bold">Ouvrir <i className="fas fa-arrow-right ml-1" /></span></div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-xl border border-white/8 bg-white/[.03] p-4 text-white/35 text-sm mb-8"><i className="fas fa-circle-check mr-2 text-emerald-400/70" />Aucune prise de mesure assignée.</div>
+        )}
+
         <h2 className="text-white/50 text-xs font-bold uppercase tracking-wider mb-3">Bons du jour ({workOrders.length})</h2>
 
         {workOrders.length === 0 ? (

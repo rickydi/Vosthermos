@@ -6,6 +6,7 @@ import ThemeToggle from "./ThemeToggle";
 const pageTitles = {
   "/admin": "Dashboard",
   "/admin/commandes": "Commandes",
+  "/admin/commandes-thermos": "Commandes de thermos",
   "/admin/produits": "Produits",
   "/admin/categories": "Categories",
   "/admin/suivi-clients": "Suivi clients",
@@ -30,6 +31,7 @@ export default function AdminHeader() {
     if (pathname.startsWith("/admin/produits/")) title = "Editer un produit";
     else if (pathname.startsWith("/admin/factures/")) title = "Factures";
     else if (pathname.startsWith("/admin/soumissions/")) title = "Soumissions";
+    else if (pathname.startsWith("/admin/mesures/")) title = "Fiche de mesures";
     else if (pathname.startsWith("/admin/bons/")) title = "Bons de travail";
     else if (pathname.startsWith("/admin/clients/")) title = "Client";
     else if (pathname.startsWith("/admin/gestionnaires/")) title = "Gestionnaire";

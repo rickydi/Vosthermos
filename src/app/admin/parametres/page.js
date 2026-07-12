@@ -6,6 +6,7 @@ import BlogNotifyMembersSection from "@/components/admin/BlogNotifyMembersSectio
 import ApiKeysSection from "@/components/admin/ApiKeysSection";
 import CompanyInfoSection from "@/components/admin/CompanyInfoSection";
 import ThermosPricingSettings from "@/components/admin/ThermosPricingSettings";
+import ThermosSupplierSettings from "@/components/admin/ThermosSupplierSettings";
 import AccountantEmailSection from "@/components/admin/AccountantEmailSection";
 import FollowUpSlaSettings from "@/components/admin/FollowUpSlaSettings";
 import AppelSettingsSection from "@/components/admin/AppelSettingsSection";
@@ -100,6 +101,10 @@ export default function AdminSettingsPage() {
 
       <div className="mb-8">
         <ThermosPricingSettings />
+      </div>
+
+      <div className="mb-8">
+        <ThermosSupplierSettings />
       </div>
 
       <div className="mb-8">

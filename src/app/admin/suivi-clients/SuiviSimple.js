@@ -48,7 +48,16 @@ function computeSla(fu, sla, now) {
   // contactedAt : cocher « Visite à faire » sur un dossier contacté il y a
   // 3 jours ne doit pas clignoter tout de suite.
   if (fu.visitStatus === "todo" && !fu.visitDoneAt) return { stage: "visit", overdue: overdue("visit", fu.visitStatusAt || fu.contactedAt) };
-  if (!fu.estimateSentAt) return { stage: "soumission", overdue: overdue("soumission", fu.visitDoneAt || fu.visitStatusAt || fu.contactedAt) };
+  if (!fu.estimateSentAt) {
+    const measurement = fu.latestMeasurement;
+    // Pendant que le client complète ses mesures, la soumission n'est pas en
+    // retard. Le chrono repart seulement quand les mesures reviennent.
+    if (measurement?.source === "client" && ["requested", "in_progress"].includes(measurement.status)) {
+      return { stage: "soumission", overdue: false };
+    }
+    const measurementReadyAt = measurement?.receivedAt || measurement?.validatedAt;
+    return { stage: "soumission", overdue: overdue("soumission", measurementReadyAt || fu.visitDoneAt || fu.visitStatusAt || fu.contactedAt) };
+  }
   if (!fu.acceptedAt) return { stage: "approval", overdue: overdue("approval", fu.estimateSentAt) };
   return null;
 }
@@ -61,6 +70,7 @@ export default function SuiviSimple() {
   const [creating, setCreating] = useState(false);
   const [rdvFor, setRdvFor] = useState(null); // suivi pour lequel on planifie une visite avec RDV
   const [deleting, setDeleting] = useState(null); // suivi à supprimer (modal de confirmation)
+  const [measureFor, setMeasureFor] = useState(null); // { fu, source }
   const [sla, setSla] = useState(null);
   const [now, setNow] = useState(0); // 0 au SSR, posé au montage (évite tout mismatch d'hydratation)
   const searchRef = useRef("");
@@ -103,7 +113,7 @@ export default function SuiviSimple() {
   // déjà appliqué la réponse serveur) et on coalesce les rafales en un seul reload.
   const streamReloadTimer = useRef(null);
   useAdminStream((e) => {
-    if (!["connected", "follow_up.changed", "work_order.changed", "appointment.changed", "client_photo.added"].includes(e?.type)) return;
+    if (!["connected", "follow_up.changed", "work_order.changed", "appointment.changed", "client_photo.added", "thermos_measurement.changed", "thermos_order.changed"].includes(e?.type)) return;
     if (e?.origin && e.origin === ADMIN_TAB_ID) return;
     clearTimeout(streamReloadTimer.current);
     streamReloadTimer.current = setTimeout(() => load(), 600);
@@ -374,7 +384,13 @@ export default function SuiviSimple() {
                       return <VisiteMenu key={m.key} fu={fu} onPick={(state) => (state === "rdv" ? setRdvFor(fu) : setVisite(fu, state))} overdue={overdueStage === "visit"} />;
                     }
                     if (m.key === "estimateSentAt") {
-                      return <SoumissionMenu key={m.key} fu={fu} onPick={(k) => setSoumission(fu, k === "none" ? null : k)} overdue={overdueStage === "soumission"} />;
+                      return <SoumissionMenu key={m.key} fu={fu} onPick={(k) => setSoumission(fu, k === "none" ? null : k)} onMeasure={(source) => {
+                        if (fu.latestMeasurement?.source === source && fu.latestMeasurement?.id) {
+                          window.location.href = `/admin/mesures/${fu.latestMeasurement.id}`;
+                        } else {
+                          setMeasureFor({ fu, source });
+                        }
+                      }} overdue={overdueStage === "soumission"} />;
                     }
                     if (m.key === "acceptedAt") {
                       return <ApprovalMenu key={m.key} fu={fu} onPick={(state) => setApproval(fu, state)} overdue={overdueStage === "approval"} />;
@@ -405,6 +421,8 @@ export default function SuiviSimple() {
                   </div>
                 )}
 
+                {fu.latestThermosOrder && <ThermosOrderStrip order={fu.latestThermosOrder} now={now} />}
+
                 {/* Pas de ligne « prochaine étape » sur les cartes (choix d'Erik
                     2026-07-05) : les états des boutons suffisent. Le champ
                     nextAction reste visible dans la fiche client. */}
@@ -427,6 +445,14 @@ export default function SuiviSimple() {
           fu={deleting}
           onClose={() => setDeleting(null)}
           onDeleted={() => { setItems((list) => list.filter((it) => it.id !== deleting.id)); setDeleting(null); }}
+        />
+      )}
+      {measureFor && (
+        <MeasurementModal
+          fu={measureFor.fu}
+          source={measureFor.source}
+          onClose={() => setMeasureFor(null)}
+          onCreated={() => { setMeasureFor(null); load(); }}
         />
       )}
     </div>
@@ -544,18 +570,27 @@ function ApprovalMenu({ fu, onPick, overdue }) {
 // Menu déroulant compact pour la soumission : écrite (auto via le système) ou par
 // téléphone (verbale, manuelle). "Tu sais pourquoi" : l'écrite = un vrai document.
 const SOUMISSION_OPTIONS = [
-  { key: "written", label: "Soumission écrite", icon: "fa-file-lines", tone: "text-emerald-400" },
-  { key: "phone", label: "Soumission par téléphone", icon: "fa-phone", tone: "text-emerald-400" },
+  { key: "written", label: "Soumission écrite envoyée", icon: "fa-file-lines", tone: "text-emerald-400" },
+  { key: "phone", label: "Soumission donnée par téléphone", icon: "fa-phone", tone: "text-emerald-400" },
   { key: "none", label: "Pas de soumission (réinitialiser)", icon: "fa-rotate-left", tone: "admin-text-muted" },
 ];
 
-function SoumissionMenu({ fu, onPick, overdue }) {
+const MEASUREMENT_OPTIONS = [
+  { key: "technician", label: "Mesures technicien", detail: "Mesures finales avec épaisseur", icon: "fa-ruler-combined" },
+  { key: "client", label: "Mesures client", detail: "Envoyer un lien par texto ou courriel", icon: "fa-mobile-screen-button" },
+  { key: "phone", label: "Mesures reçues par téléphone", detail: "Mesures approximatives pour pré-soumission", icon: "fa-headset" },
+];
+
+function SoumissionMenu({ fu, onPick, onMeasure, overdue }) {
   const [open, setOpen] = useState(false);
   const has = !!fu.estimateSentAt;
   const type = fu.estimateType;
+  const measurement = fu.latestMeasurement;
   const current = !has ? "none" : type === "phone" ? "phone" : type === "written" ? "written" : null;
   const cur = !has
-    ? { label: "Soumission", icon: "fa-file-lines", cls: "admin-bg admin-border admin-text-muted" }
+    ? measurement
+      ? { label: measurementLabel(measurement), icon: "fa-ruler-combined", cls: "border-cyan-400/40 bg-cyan-400/10 text-cyan-300" }
+      : { label: "Soumission", icon: "fa-file-lines", cls: "admin-bg admin-border admin-text-muted" }
     : type === "phone"
       ? { label: "Soum. téléphone", icon: "fa-phone", cls: "bg-emerald-500/15 border-emerald-400/40 text-emerald-300" }
       : { label: "Soum. écrite", icon: "fa-file-lines", cls: "bg-emerald-500/15 border-emerald-400/40 text-emerald-300" };
@@ -574,7 +609,29 @@ function SoumissionMenu({ fu, onPick, overdue }) {
       {open && (
         <>
           <button aria-hidden tabIndex={-1} onClick={() => setOpen(false)} className="fixed inset-0 z-40 cursor-default"></button>
-          <div className="absolute left-0 top-full mt-1 z-50 w-60 admin-bg border admin-border rounded-lg shadow-xl py-1">
+          <div className="absolute left-0 top-full mt-1 z-50 w-72 admin-bg border admin-border rounded-lg shadow-xl py-1 overflow-hidden">
+            {measurement?.id && (
+              <>
+                <Link href={`/admin/mesures/${measurement.id}`} onClick={() => setOpen(false)} className="mx-2 mb-1 flex items-center gap-2 rounded-lg border border-cyan-400/30 bg-cyan-400/10 px-3 py-2.5 text-xs font-bold text-cyan-300">
+                  <i className="fas fa-folder-open" />Ouvrir la fiche actuelle
+                  <i className="fas fa-arrow-right ml-auto text-[9px]" />
+                </Link>
+                <div className="border-t admin-border my-1" />
+              </>
+            )}
+            <p className="px-3 pt-2 pb-1 text-[10px] uppercase tracking-wider font-bold admin-text-muted">Demander ou saisir les mesures</p>
+            {MEASUREMENT_OPTIONS.map((o) => (
+              <button
+                key={`measure-${o.key}`}
+                onClick={() => { setOpen(false); onMeasure(o.key); }}
+                className="w-full text-left px-3 py-2.5 text-xs hover:bg-cyan-400/5 flex items-start gap-2 transition-colors"
+              >
+                <i className={`fas ${o.icon} w-4 mt-0.5 text-center text-cyan-400`}></i>
+                <span><span className="admin-text font-semibold block">{o.label}</span><span className="admin-text-muted text-[10px] block mt-0.5">{o.detail}</span></span>
+              </button>
+            ))}
+            <div className="border-t admin-border my-1" />
+            <p className="px-3 pt-1 pb-1 text-[10px] uppercase tracking-wider font-bold admin-text-muted">Soumission réellement transmise</p>
             {SOUMISSION_OPTIONS.map((o) => (
               <button
                 key={o.key}
@@ -586,11 +643,19 @@ function SoumissionMenu({ fu, onPick, overdue }) {
                 {current === o.key && <i className="fas fa-check ml-auto text-emerald-400 text-[10px]"></i>}
               </button>
             ))}
+            <p className="px-3 py-2 text-[10px] admin-text-muted bg-black/5">Une option de mesure ne coche jamais « Soumission envoyée ».</p>
           </div>
         </>
       )}
     </div>
   );
+}
+
+function measurementLabel(measurement) {
+  const source = measurement.source === "technician" ? "Mesures technicien" : measurement.source === "client" ? "Mesures client" : "Mesures téléphone";
+  if (["received", "validated", "final", "completed"].includes(measurement.status)) return `${source} reçues`;
+  if (measurement.status === "requested") return `${source} demandées`;
+  return source;
 }
 
 // Menu déroulant compact pour la visite : faite / à faire / avec RDV / passage
@@ -730,6 +795,114 @@ function MiniCalendar({ value, onPick }) {
             </button>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+function ThermosOrderStrip({ order, now }) {
+  const statuses = {
+    draft: ["Commande thermos à préparer", "fa-pen-ruler", "border-slate-400/25 bg-slate-400/5 admin-text-muted"],
+    sent: ["Thermos commandés", "fa-paper-plane", "border-cyan-400/30 bg-cyan-400/8 text-cyan-300"],
+    awaiting_confirmation: ["Réponse fournisseur attendue", "fa-hourglass-half", "border-amber-400/30 bg-amber-400/10 text-amber-200"],
+    delayed: ["Commande thermos retardée", "fa-triangle-exclamation", "border-orange-400/30 bg-orange-400/10 text-orange-300"],
+    ready: ["Thermos prêts chez le fournisseur", "fa-circle-check", "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"],
+    received: ["Thermos reçus chez VosThermos", "fa-box-open", "border-teal-400/30 bg-teal-400/10 text-teal-300"],
+    send_failed: ["Échec d'envoi au fournisseur", "fa-circle-exclamation", "border-rose-400/30 bg-rose-400/10 text-rose-300"],
+  };
+  const [label, icon, cls] = statuses[order.status] || [order.status, "fa-box", "admin-border admin-text-muted"];
+  let remaining = "";
+  if (order.expectedReadyAt && !["ready", "received"].includes(order.status)) {
+    const days = Math.ceil((new Date(order.expectedReadyAt).getTime() - now) / 86400000);
+    remaining = days > 0 ? `${days} jour${days > 1 ? "s" : ""} restant${days > 1 ? "s" : ""}` : days === 0 ? "prévue aujourd'hui" : `${Math.abs(days)} jour${Math.abs(days) > 1 ? "s" : ""} de retard`;
+  }
+  return (
+    <Link href={`/admin/commandes-thermos?order=${order.id}`} className={`mt-3 flex flex-wrap items-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold ${cls}`}>
+      <i className={`fas ${icon}`} />
+      <span>{label}</span>
+      {remaining && <span className="opacity-65">· {remaining}</span>}
+      <span className="ml-auto font-mono opacity-60">{order.number}</span>
+      <i className="fas fa-arrow-right text-[9px] opacity-50" />
+    </Link>
+  );
+}
+
+function MeasurementModal({ fu, source, onClose, onCreated }) {
+  const [technicians, setTechnicians] = useState([]);
+  const [technicianId, setTechnicianId] = useState("");
+  const [channels, setChannels] = useState({ sms: !!(fu.phone || fu.client?.phone), email: !!(fu.email || fu.client?.email) });
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const sourceMeta = {
+    technician: { title: "Mesures technicien", icon: "fa-ruler-combined", text: "Crée une fiche de mesures finales avec épaisseur et options. Elle pourra ensuite générer la commande fournisseur." },
+    client: { title: "Demander les mesures au client", icon: "fa-mobile-screen-button", text: "Un lien privé permet au client de photographier ses fenêtres, corriger les divisions et entrer ses mesures pour la pré-soumission." },
+    phone: { title: "Mesures reçues par téléphone", icon: "fa-headset", text: "Crée une fiche rapide et approximative pour préparer la pré-soumission. Un technicien devra confirmer avant la commande." },
+  }[source];
+
+  useEffect(() => {
+    if (source !== "technician") return;
+    fetch("/api/admin/technicians", { cache: "no-store" }).then((r) => r.json()).then((data) => {
+      const list = Array.isArray(data) ? data.filter((tech) => tech.isActive !== false) : [];
+      setTechnicians(list);
+      if (list.length === 1) setTechnicianId(String(list[0].id));
+    }).catch(() => {});
+  }, [source]);
+
+  async function create() {
+    if (source === "client" && !channels.sms && !channels.email) { setError("Choisissez au moins le texto ou le courriel."); return; }
+    setBusy(true); setError("");
+    try {
+      const res = await fetch("/api/admin/measurements", {
+        method: "POST", headers: MUTATION_HEADERS,
+        body: JSON.stringify({
+          clientId: fu.clientId,
+          followUpId: fu.id,
+          source,
+          technicianId: technicianId ? Number(technicianId) : null,
+          parentId: source === "technician" ? fu.latestMeasurement?.id || null : null,
+        }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || "Impossible de créer la fiche de mesures.");
+      const measurement = body.measurement || body;
+      if (source === "client") {
+        const requestRes = await fetch(`/api/admin/measurements/${measurement.id}/request`, {
+          method: "POST", headers: MUTATION_HEADERS,
+          body: JSON.stringify({ channels: Object.entries(channels).filter(([, on]) => on).map(([key]) => key) }),
+        });
+        const requestBody = await requestRes.json().catch(() => ({}));
+        if (!requestRes.ok) throw new Error(requestBody.error || "La fiche existe, mais le lien n'a pas pu être envoyé.");
+        const delivery = requestBody.delivery || {};
+        const sent = Object.values(delivery).some((value) => value === "sent");
+        if (!sent && requestBody.url) {
+          await navigator.clipboard?.writeText(requestBody.url).catch(() => {});
+          alert(`Le lien a été créé, mais aucun envoi n'a réussi. Il a été copié si votre navigateur le permet:\n\n${requestBody.url}`);
+        }
+        onCreated();
+        return;
+      }
+      onCreated();
+      window.location.href = `/admin/mesures/${measurement.id}`;
+    } catch (err) { setError(err.message); }
+    finally { setBusy(false); }
+  }
+
+  return (
+    <div className="fixed inset-0 z-[100] bg-black/65 backdrop-blur-sm flex items-center justify-center p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="admin-card border admin-border rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+        <div className="p-5 border-b admin-border flex gap-4 items-start"><div className="w-11 h-11 rounded-xl bg-cyan-400/10 text-cyan-300 flex items-center justify-center text-lg"><i className={`fas ${sourceMeta.icon}`} /></div><div className="min-w-0 flex-1"><h2 className="admin-text text-lg font-bold">{sourceMeta.title}</h2><p className="admin-text-muted text-sm mt-1">{fu.client?.name || fu.contactName}</p></div><button onClick={onClose} className="admin-text-muted p-2"><i className="fas fa-xmark" /></button></div>
+        <div className="p-5 space-y-4">
+          <p className="admin-text-muted text-sm leading-relaxed">{sourceMeta.text}</p>
+          {source === "technician" && (
+            <label className="block"><span className="block admin-text text-sm font-bold mb-1.5">Assigner au technicien</span><select value={technicianId} onChange={(e) => setTechnicianId(e.target.value)} className="w-full admin-input border admin-border rounded-xl px-3 py-3"><option value="">Non assignée — consultation admin</option>{technicians.map((tech) => <option key={tech.id} value={tech.id}>{tech.name}</option>)}</select><span className="block admin-text-muted text-xs mt-1.5">Une fiche assignée apparaît automatiquement dans son écran Terrain.</span></label>
+          )}
+          {source === "client" && (
+            <div><p className="admin-text text-sm font-bold mb-2">Envoyer le lien par</p><div className="grid grid-cols-2 gap-3"><label className={`rounded-xl border p-3 flex gap-2 items-center cursor-pointer ${channels.sms ? "border-cyan-400/40 bg-cyan-400/10 text-cyan-200" : "admin-border admin-text-muted"}`}><input type="checkbox" checked={channels.sms} disabled={!(fu.phone || fu.client?.phone)} onChange={(e) => setChannels((c) => ({ ...c, sms: e.target.checked }))} /><i className="fas fa-comment-sms" /><span className="text-sm font-bold">Texto</span></label><label className={`rounded-xl border p-3 flex gap-2 items-center cursor-pointer ${channels.email ? "border-cyan-400/40 bg-cyan-400/10 text-cyan-200" : "admin-border admin-text-muted"}`}><input type="checkbox" checked={channels.email} disabled={!(fu.email || fu.client?.email)} onChange={(e) => setChannels((c) => ({ ...c, email: e.target.checked }))} /><i className="fas fa-envelope" /><span className="text-sm font-bold">Courriel</span></label></div></div>
+          )}
+          <div className="rounded-lg border border-amber-400/25 bg-amber-400/8 text-amber-100 p-3 text-xs"><i className="fas fa-circle-info mr-2" />Cette action ne marque pas la soumission comme envoyée.</div>
+          {error && <p className="rounded-lg border border-red-400/30 bg-red-400/10 text-red-200 p-3 text-sm">{error}</p>}
+        </div>
+        <div className="p-4 border-t admin-border flex justify-end gap-2"><button onClick={onClose} className="rounded-xl border admin-border px-4 py-2.5 admin-text">Annuler</button><button onClick={create} disabled={busy} className="rounded-xl bg-[var(--color-red)] text-white px-5 py-2.5 font-bold disabled:opacity-50"><i className={`fas ${busy ? "fa-spinner fa-spin" : source === "client" ? "fa-paper-plane" : "fa-arrow-right"} mr-2`} />{busy ? "Préparation…" : source === "client" ? "Créer et envoyer" : "Créer la fiche"}</button></div>
       </div>
     </div>
   );

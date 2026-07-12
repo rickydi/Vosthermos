@@ -5,7 +5,12 @@ export const THERMOS_PRICING_KEYS = [
   "thermos_low_e_per_sqft",
   "thermos_argon_per_sqft",
   "thermos_tempered_percent",
+  "thermos_triple_percent",
+  "thermos_simple_discount_percent",
+  "thermos_laminated_percent",
   "thermos_grill_per_unit",
+  "thermos_spacer_option_per_unit",
+  "thermos_nonstandard_thickness_per_unit",
   "thermos_access_medium_per_unit",
   "thermos_access_hard_per_unit",
   "thermos_trip_fee",
@@ -22,7 +27,12 @@ export const THERMOS_PRICING_DEFAULTS = {
   thermos_low_e_per_sqft: "6.00",
   thermos_argon_per_sqft: "3.00",
   thermos_tempered_percent: "35.00",
+  thermos_triple_percent: "0.00",
+  thermos_simple_discount_percent: "0.00",
+  thermos_laminated_percent: "0.00",
   thermos_grill_per_unit: "75.00",
+  thermos_spacer_option_per_unit: "0.00",
+  thermos_nonstandard_thickness_per_unit: "0.00",
   thermos_access_medium_per_unit: "45.00",
   thermos_access_hard_per_unit: "90.00",
   thermos_trip_fee: "0.00",
@@ -46,6 +56,10 @@ export function emptyThermosLine() {
     lowE: true,
     argon: true,
     tempered: false,
+    laminated: false,
+    glassType: "double",
+    spacerColor: "noir",
+    thicknessSixteenths: 13,
     grill: false,
     access: "easy",
     note: "",
@@ -88,7 +102,12 @@ export function calculateThermosQuote(linesInput = [], settingsInput = {}) {
   const lowEPerSqft = numberSetting(settings, "thermos_low_e_per_sqft");
   const argonPerSqft = numberSetting(settings, "thermos_argon_per_sqft");
   const temperedPercent = numberSetting(settings, "thermos_tempered_percent");
+  const triplePercent = numberSetting(settings, "thermos_triple_percent");
+  const simpleDiscountPercent = numberSetting(settings, "thermos_simple_discount_percent");
+  const laminatedPercent = numberSetting(settings, "thermos_laminated_percent");
   const grillPerUnit = numberSetting(settings, "thermos_grill_per_unit");
+  const spacerOptionPerUnit = numberSetting(settings, "thermos_spacer_option_per_unit");
+  const nonstandardThicknessPerUnit = numberSetting(settings, "thermos_nonstandard_thickness_per_unit");
   const tripFee = numberSetting(settings, "thermos_trip_fee");
   const marginPercent = numberSetting(settings, "thermos_margin_percent");
   const bufferPercent = numberSetting(settings, "thermos_quote_buffer_percent");
@@ -100,12 +119,18 @@ export function calculateThermosQuote(linesInput = [], settingsInput = {}) {
     const baseGlassUnit = money(Math.max(minimumUnit, sqftPerUnit * pricePerSqft));
     const lowEUnit = line.lowE ? money(sqftPerUnit * lowEPerSqft) : 0;
     const argonUnit = line.argon ? money(sqftPerUnit * argonPerSqft) : 0;
-    const temperedBase = baseGlassUnit + lowEUnit + argonUnit;
+    const tripleUnit = line.glassType === "triple" ? money(baseGlassUnit * (triplePercent / 100)) : 0;
+    const simpleDiscountUnit = line.glassType === "simple" ? money(baseGlassUnit * (simpleDiscountPercent / 100)) : 0;
+    const laminatedUnit = line.laminated ? money(baseGlassUnit * (laminatedPercent / 100)) : 0;
+    const spacerUnit = line.spacerColor && line.spacerColor !== "noir" ? spacerOptionPerUnit : 0;
+    const thicknessUnit = line.thicknessSixteenths && Number(line.thicknessSixteenths) !== 13 ? nonstandardThicknessPerUnit : 0;
+    const adjustedGlassBase = Math.max(0, baseGlassUnit - simpleDiscountUnit + tripleUnit + laminatedUnit);
+    const temperedBase = adjustedGlassBase + lowEUnit + argonUnit;
     const temperedUnit = line.tempered ? money(temperedBase * (temperedPercent / 100)) : 0;
     const grillUnit = line.grill ? grillPerUnit : 0;
     const accessOption = ACCESS_OPTIONS.find((option) => option.value === line.access) || ACCESS_OPTIONS[0];
     const accessUnit = accessOption.settingKey ? numberSetting(settings, accessOption.settingKey) : 0;
-    const unitSubtotal = money(baseGlassUnit + lowEUnit + argonUnit + temperedUnit + grillUnit + installPerUnit + accessUnit);
+    const unitSubtotal = money(Math.max(0, adjustedGlassBase + lowEUnit + argonUnit + temperedUnit + grillUnit + spacerUnit + thicknessUnit + installPerUnit + accessUnit));
     const lineSubtotal = money(unitSubtotal * line.quantity);
 
     return {
@@ -115,8 +140,13 @@ export function calculateThermosQuote(linesInput = [], settingsInput = {}) {
       baseGlassUnit,
       lowEUnit,
       argonUnit,
+      tripleUnit,
+      simpleDiscountUnit,
+      laminatedUnit,
       temperedUnit,
       grillUnit,
+      spacerUnit,
+      thicknessUnit,
       installUnit: installPerUnit,
       accessUnit,
       unitSubtotal,

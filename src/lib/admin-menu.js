@@ -7,6 +7,7 @@ export const ADMIN_MENU_ITEMS = {
   bons: { href: "/admin/bons", label: "Bons de travail", icon: "fa-clipboard-list" },
   paiements: { href: "/admin/paiements", label: "Paiements", icon: "fa-money-check-alt" },
   calculateurThermos: { href: "/admin/calculateur-thermos", label: "Calculateur thermos", icon: "fa-calculator" },
+  commandesThermos: { href: "/admin/commandes-thermos", label: "Commandes thermos", icon: "fa-boxes-stacked" },
   rendezVous: { href: "/admin/rendez-vous", label: "Rendez-vous", icon: "fa-calendar-check" },
   chat: { href: "/admin/chat", label: "Chat clients", icon: "fa-comments" },
   appels: { href: "/admin/appel", label: "Appels recus", icon: "fa-phone" },
@@ -64,7 +65,7 @@ export const ADMIN_MENU_SECTIONS = [
 ];
 
 export const DEFAULT_ADMIN_MENU_LAYOUT = {
-  production: ["suiviClients", "chat", "appels", "bons", "factures", "soumissions", "clients", "paiements", "calculateurThermos", "rendezVous", "techniciens"],
+  production: ["suiviClients", "chat", "appels", "bons", "factures", "soumissions", "commandesThermos", "clients", "paiements", "calculateurThermos", "rendezVous", "techniciens"],
   boutique: ["commandes", "produits", "categories"],
   site: ["analytics", "seo", "blogue", "services"],
   systeme: ["gestionnaires", "activite", "parametres"],

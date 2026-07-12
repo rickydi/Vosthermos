@@ -12,7 +12,9 @@ export default function ChatBubble() {
     pathname.startsWith("/c/") ||
     pathname.startsWith("/terrain") ||
     pathname.startsWith("/gestionnaire") ||
-    pathname.startsWith("/envoyer-photos")
+    pathname.startsWith("/envoyer-photos") ||
+    pathname.startsWith("/prendre-mesures") ||
+    pathname.startsWith("/confirmation-thermos")
   ) return null;
   return <ChatBubbleInner />;
 }

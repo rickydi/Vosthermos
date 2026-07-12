@@ -324,6 +324,7 @@ model Technician {
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
   workOrders WorkOrder[]
+  thermosMeasurements ThermosMeasurement[]
 
   @@map("technicians")
 }
@@ -358,6 +359,8 @@ model Client {
   appointments   Appointment[]
   chatConversations ChatConversation[]
   creditNotes    CreditNote[]
+  thermosMeasurements ThermosMeasurement[]
+  thermosOrders       ThermosOrder[]
 
   @@index([phone])
   @@index([secondaryPhone])
@@ -413,6 +416,8 @@ model ClientFollowUp {
   updatedAt       DateTime  @updatedAt
   photos          ClientPhoto[]
   workOrders      WorkOrder[]
+  thermosMeasurements ThermosMeasurement[]
+  thermosOrders       ThermosOrder[]
 
   @@index([clientId])
   @@index([status])
@@ -605,6 +610,8 @@ model WorkOrder {
   sections               WorkOrderSection[]
   payments               WorkOrderPayment[]
   creditNotes            CreditNote[]
+  thermosMeasurements    ThermosMeasurement[]
+  thermosOrders          ThermosOrder[]
 
   @@index([clientId])
   @@index([technicianId])
@@ -720,4 +727,168 @@ model Service {
   @@index([category])
   @@index([isActive])
   @@map("services")
+}
+
+// --- Mesures et commandes de thermos ---------------------------------------
+
+// Une fiche de mesures conserve une version complete du dessin des fenetres et
+// de chaque thermos. `source` = technician | client | phone.
+// `accuracy` = final | client | approximate.
+model ThermosMeasurement {
+  id                   Int                    @id @default(autoincrement())
+  clientId             Int
+  client               Client                 @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  followUpId           Int?
+  followUp             ClientFollowUp?         @relation(fields: [followUpId], references: [id], onDelete: SetNull)
+  workOrderId          Int?
+  workOrder            WorkOrder?              @relation(fields: [workOrderId], references: [id], onDelete: SetNull)
+  technicianId         Int?
+  technician           Technician?             @relation(fields: [technicianId], references: [id], onDelete: SetNull)
+  parentId             Int?
+  parent               ThermosMeasurement?     @relation("MeasurementRevisions", fields: [parentId], references: [id], onDelete: SetNull)
+  revisions            ThermosMeasurement[]    @relation("MeasurementRevisions")
+  source               String
+  status               String                  @default("draft")
+  accuracy             String                  @default("approximate")
+  revision             Int                     @default(1)
+  data                 Json
+  windowCount          Int                     @default(0)
+  paneCount            Int                     @default(0)
+  publicTokenHash      String?                 @unique
+  publicTokenExpiresAt DateTime?
+  requestedAt          DateTime?
+  startedAt            DateTime?
+  receivedAt           DateTime?
+  validatedAt          DateTime?
+  aiAnalysisCount      Int                     @default(0)
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
+  thermosOrders        ThermosOrder[]
+
+  @@index([clientId, createdAt])
+  @@index([followUpId, createdAt])
+  @@index([workOrderId])
+  @@index([technicianId, status])
+  @@index([status])
+  @@map("thermos_measurements")
+}
+
+model ThermosSupplier {
+  id                  Int            @id @default(autoincrement())
+  name                String
+  contactName         String?
+  email               String
+  phone               String?
+  leadTimeDays        Int            @default(21)
+  autoFollowUpEnabled Boolean        @default(true)
+  isActive            Boolean        @default(true)
+  isDefault           Boolean        @default(false)
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  orders              ThermosOrder[]
+
+  @@index([isActive])
+  @@index([email])
+  @@map("thermos_suppliers")
+}
+
+model ThermosOrder {
+  id                      Int                         @id @default(autoincrement())
+  number                  String                      @unique
+  supplierId              Int
+  supplier                ThermosSupplier             @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  measurementId           Int?
+  measurement             ThermosMeasurement?         @relation(fields: [measurementId], references: [id], onDelete: SetNull)
+  clientId                Int?
+  client                  Client?                     @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  followUpId              Int?
+  followUp                ClientFollowUp?             @relation(fields: [followUpId], references: [id], onDelete: SetNull)
+  workOrderId             Int?
+  workOrder               WorkOrder?                  @relation(fields: [workOrderId], references: [id], onDelete: SetNull)
+  status                  String                      @default("draft")
+  revision                Int                         @default(1)
+  supplierNameSnapshot    String
+  supplierContactSnapshot String?
+  supplierEmailSnapshot   String
+  clientNameSnapshot      String
+  leadTimeDaysSnapshot    Int
+  sentAt                  DateTime?
+  expectedReadyAt         DateTime?
+  nextReminderAt          DateTime?
+  lastReminderAt          DateTime?
+  reminderCount           Int                         @default(0)
+  reminderLeaseUntil      DateTime?
+  lastReminderError       String?                     @db.Text
+  lastSupplierResponseAt  DateTime?
+  readyAt                 DateTime?
+  receivedAt              DateTime?
+  cancelledAt             DateTime?
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt
+  items                   ThermosOrderItem[]
+  responseTokens          ThermosOrderResponseToken[]
+  events                  ThermosOrderEvent[]
+
+  @@index([supplierId])
+  @@index([measurementId])
+  @@index([clientId])
+  @@index([followUpId])
+  @@index([workOrderId])
+  @@index([status])
+  @@index([nextReminderAt, status])
+  @@map("thermos_orders")
+}
+
+// Une ligne correspond toujours a un thermos physique, meme si plusieurs ont
+// exactement les memes dimensions.
+model ThermosOrderItem {
+  id                  Int          @id @default(autoincrement())
+  orderId             Int
+  order               ThermosOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  sourceThermosId     String?
+  label               String
+  internalCode        String       @unique
+  windowNumber        Int
+  thermosNumber       Int
+  widthSixteenths     Int
+  heightSixteenths    Int
+  thicknessSixteenths Int
+  options             Json?
+  grille              Json?
+  geometry            Json?
+  photoUrl            String?
+  notes               String?      @db.Text
+  position            Int          @default(0)
+
+  @@index([orderId])
+  @@map("thermos_order_items")
+}
+
+model ThermosOrderResponseToken {
+  id        String       @id @default(cuid())
+  orderId   Int
+  order     ThermosOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  tokenHash String       @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  revokedAt DateTime?
+  createdAt DateTime     @default(now())
+
+  @@index([orderId, createdAt])
+  @@index([expiresAt])
+  @@map("thermos_order_response_tokens")
+}
+
+model ThermosOrderEvent {
+  id         Int          @id @default(autoincrement())
+  orderId    Int
+  order      ThermosOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  type       String
+  actorType  String
+  actorLabel String?
+  metadata   Json?
+  createdAt  DateTime     @default(now())
+
+  @@index([orderId, createdAt])
+  @@map("thermos_order_events")
 }
