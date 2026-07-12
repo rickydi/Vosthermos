@@ -1,12 +1,13 @@
 (() => {
   const canvas = document.querySelector('[data-window-canvas]');
   const sheet = document.querySelector('[data-measure-sheet]');
+  const paneActionModal = document.querySelector('[data-pane-action-modal]');
+  const prototypeRoot = document.querySelector('.prototype');
   const toast = document.querySelector('[data-toast]');
-  if (!canvas || !sheet) return;
+  if (!canvas || !sheet || !paneActionModal) return;
 
   const MAX_PANES = 12;
   const MIN_CHILD_PX = 52;
-  const MIN_SPLIT_PX = 42;
   const PRESETS = {
     '1x1': { columns: 1, rows: 1 },
     '2x1': { columns: 2, rows: 1 },
@@ -20,6 +21,7 @@
   let splitSequence = 0;
   let toastTimer;
   let lastFocusedPaneId = null;
+  const paneActionState = { paneId: null, axis: null, count: 2 };
 
   function blankMeasurement() {
     return {
@@ -256,11 +258,11 @@
       pane.className = 'pane';
       pane.dataset.paneId = node.id;
       pane.setAttribute('aria-pressed', String(node.id === state.selectedPaneId));
-      pane.setAttribute('aria-label', `Thermos T${index}. Ouvrir largeur, hauteur et épaisseur.`);
+      pane.setAttribute('aria-label', `Thermos T${index}. Ouvrir les mesures ou les divisions.`);
       const summary = paneSummary(node);
-      pane.innerHTML = `${summary ? `<span class="pane-value">${summary}</span>` : ''}<span class="pane-code">T${index}</span><span class="pane-hint">Toucher pour mesurer</span>`;
+      pane.innerHTML = `${summary ? `<span class="pane-value">${summary}</span>` : ''}<span class="pane-code">T${index}</span><span class="pane-hint">Toucher pour choisir</span>`;
       renderDecorativeLines(pane, node);
-      pane.addEventListener('click', () => openPane(node.id));
+      pane.addEventListener('click', () => openPaneActions(node.id));
       return pane;
     }
 
@@ -320,9 +322,9 @@
         button.type = 'button';
         button.className = 'pane-pill';
         button.setAttribute('aria-pressed', String(node.id === state.selectedPaneId));
-        button.setAttribute('aria-label', `Sélectionner le thermos T${index}`);
+        button.setAttribute('aria-label', `Ouvrir les mesures ou les divisions du thermos T${index}`);
         button.textContent = paneIsComplete(node) ? `T${index} ✓` : `T${index} •`;
-        button.addEventListener('click', () => selectPane(node.id));
+        button.addEventListener('click', () => openPaneActions(node.id));
         strip.appendChild(button);
       });
     });
@@ -360,7 +362,7 @@
         label.className = 'progress-label';
         label.textContent = `T${index}`;
         step.append(marker, label);
-        step.addEventListener('click', () => openPane(node.id));
+        step.addEventListener('click', () => openPaneActions(node.id));
         progress.appendChild(step);
       });
     });
@@ -384,13 +386,7 @@
     document.querySelectorAll('[data-layout-summary]').forEach((output) => { output.textContent = layoutSummary(entries); });
     document.querySelectorAll('[data-selected-pane-output]').forEach((output) => { output.textContent = selectedLabel; });
     document.querySelectorAll('[data-layout-preset]').forEach((button) => { button.setAttribute('aria-pressed', String(button.dataset.layoutPreset === state.activePreset)); });
-    document.querySelectorAll('[data-direction-icon]').forEach((icon) => { icon.innerHTML = directionIconMarkup(icon.dataset.directionIcon); });
-    document.querySelectorAll('[data-split-selected]').forEach((button) => {
-      const atMaximum = entries.length >= MAX_PANES;
-      button.disabled = atMaximum || !state.selectedPaneId;
-      const action = button.dataset.splitSelected === 'vertical' ? 'côte à côte' : 'superposés';
-      button.setAttribute('aria-label', atMaximum ? `Maximum de ${MAX_PANES} thermos atteint` : `Diviser ${selectedLabel} en deux thermos ${action}`);
-    });
+    if (!paneActionModal.hidden) updatePaneActionModal(entries, indexes);
   }
 
   function directChildren(element, className) {
@@ -446,23 +442,45 @@
   }
 
   function positionDividerHandles() {
+    const canvasRect = canvas.getBoundingClientRect();
+    canvas.querySelectorAll('.pane[data-pane-id]').forEach((pane) => {
+      const rect = pane.getBoundingClientRect();
+      pane.classList.toggle('is-compact', rect.width < 82 || rect.height < 82);
+    });
     canvas.querySelectorAll('.layout-split[data-split-id]').forEach((element) => {
       const node = findNode(state.layout, element.dataset.splitId);
       if (!node || node.type !== 'split') return;
       const children = directChildren(element, 'layout-child');
       const handles = directChildren(element, 'divider-handle');
       const elementRect = element.getBoundingClientRect();
+      const axisPixels = node.axis === 'vertical' ? elementRect.width : elementRect.height;
+      const isDense = axisPixels / node.children.length < 76;
+      element.classList.toggle('is-dense', isDense);
       const minimum = minimumChildWeight(element, node);
       const total = node.sizes.reduce((sum, size) => sum + size, 0) || 100;
       handles.forEach((handle, index) => {
         const currentRect = children[index]?.getBoundingClientRect();
         const nextRect = children[index + 1]?.getBoundingClientRect();
         if (!currentRect || !nextRect) return;
+        let crossAxisPosition = node.axis === 'vertical' ? elementRect.height / 2 : elementRect.width / 2;
+        if (isDense && handles.length > 1) {
+          const handleSpacing = 44;
+          const handleRadius = handleSpacing / 2;
+          const trackSpan = (handles.length - 1) * handleSpacing;
+          const elementOffset = node.axis === 'vertical' ? elementRect.top - canvasRect.top : elementRect.left - canvasRect.left;
+          const canvasCrossAxis = node.axis === 'vertical' ? canvasRect.height : canvasRect.width;
+          const minimumCenter = handleRadius - elementOffset + trackSpan / 2;
+          const maximumCenter = canvasCrossAxis - handleRadius - elementOffset - trackSpan / 2;
+          const trackCenter = minimumCenter <= maximumCenter
+            ? Math.min(maximumCenter, Math.max(minimumCenter, crossAxisPosition))
+            : crossAxisPosition;
+          crossAxisPosition = trackCenter + (index - (handles.length - 1) / 2) * handleSpacing;
+        }
         if (node.axis === 'vertical') {
           handle.style.left = `${((currentRect.right + nextRect.left) / 2) - elementRect.left}px`;
-          handle.style.top = `${elementRect.height / 2}px`;
+          handle.style.top = `${crossAxisPosition}px`;
         } else {
-          handle.style.left = `${elementRect.width / 2}px`;
+          handle.style.left = `${crossAxisPosition}px`;
           handle.style.top = `${((currentRect.bottom + nextRect.top) / 2) - elementRect.top}px`;
         }
         const previous = node.sizes.slice(0, index).reduce((sum, size) => sum + size, 0);
@@ -552,13 +570,78 @@
     syncDecorativeCounters();
   }
 
-  function selectPane(paneId) {
+  function updatePaneActionModal(entries = getLeafEntries(state.layout), indexes = displayIndexMap(entries)) {
+    const pane = findNode(state.layout, paneActionState.paneId);
+    if (!pane || pane.type !== 'pane') return;
+    const label = `T${indexes.get(pane.id) || 1}`;
+    const resultingTotal = entries.length + paneActionState.count - 1;
+    const exceedsMaximum = resultingTotal > MAX_PANES;
+    const direction = paneActionState.axis === 'vertical' ? 'côte à côte' : 'superposés';
+
+    paneActionModal.querySelectorAll('[data-pane-action-label]').forEach((output) => { output.textContent = label; });
+    paneActionModal.querySelectorAll('[data-modal-axis]').forEach((button) => {
+      button.setAttribute('aria-pressed', String(button.dataset.modalAxis === paneActionState.axis));
+    });
+    paneActionModal.querySelectorAll('[data-section-count]').forEach((button) => {
+      const count = Number(button.dataset.sectionCount);
+      button.disabled = entries.length + count - 1 > MAX_PANES;
+      button.setAttribute('aria-pressed', String(count === paneActionState.count));
+      button.setAttribute('aria-label', button.disabled ? `${count} sections dépasseraient le maximum de ${MAX_PANES} thermos` : `${count} sections`);
+    });
+
+    const result = paneActionModal.querySelector('[data-pane-action-result]');
+    if (result) {
+      if (exceedsMaximum) result.textContent = `Cette division créerait ${resultingTotal} thermos; maximum ${MAX_PANES}.`;
+      else if (!paneActionState.axis) result.textContent = 'Choisissez une orientation.';
+      else result.textContent = `${label} deviendra ${paneActionState.count} thermos ${direction}.`;
+    }
+
+    const warning = paneActionModal.querySelector('[data-pane-action-warning]');
+    if (warning) {
+      warning.hidden = !paneHasData(pane);
+      warning.textContent = paneHasData(pane) ? `Les mesures, options et le carrelage de ${label} seront effacés.` : '';
+    }
+
+    const createButton = paneActionModal.querySelector('[data-create-sections]');
+    if (createButton) {
+      createButton.disabled = !paneActionState.axis || exceedsMaximum;
+      createButton.textContent = !paneActionState.axis
+        ? 'Choisir l’orientation'
+        : paneHasData(pane)
+          ? `Créer ${paneActionState.count} sections et effacer les données`
+          : `Créer ${paneActionState.count} sections`;
+    }
+  }
+
+  function openPaneActions(paneId) {
+    const pane = findNode(state.layout, paneId);
+    if (!pane || pane.type !== 'pane') return;
+    if (!sheet.hidden) closeSheet({ restoreFocus: false });
+    lastFocusedPaneId = paneId;
+    paneActionState.paneId = paneId;
+    paneActionState.axis = null;
+    paneActionState.count = 2;
     state.selectedPaneId = paneId;
     renderLayout();
     fillSheet(paneId);
+    paneActionModal.hidden = false;
+    if (prototypeRoot) prototypeRoot.inert = true;
+    document.body.classList.add('pane-action-open');
+    updatePaneActionModal();
+    requestAnimationFrame(() => paneActionModal.querySelector('[data-open-pane-measure]')?.focus());
+  }
+
+  function closePaneActions({ restoreFocus = true } = {}) {
+    paneActionModal.hidden = true;
+    if (prototypeRoot) prototypeRoot.inert = false;
+    document.body.classList.remove('pane-action-open');
+    if (!restoreFocus) return;
+    const paneId = paneActionState.paneId || lastFocusedPaneId;
+    requestAnimationFrame(() => canvas.querySelector(`.pane[data-pane-id="${paneId}"]`)?.focus({ preventScroll: true }));
   }
 
   function openPane(paneId) {
+    closePaneActions({ restoreFocus: false });
     lastFocusedPaneId = paneId;
     state.selectedPaneId = paneId;
     renderLayout();
@@ -571,10 +654,11 @@
     firstInput?.select();
   }
 
-  function closeSheet() {
+  function closeSheet({ restoreFocus = true } = {}) {
     sheet.classList.remove('is-open');
     sheet.hidden = true;
     document.body.classList.remove('measure-open');
+    if (!restoreFocus) return;
     const paneId = lastFocusedPaneId;
     requestAnimationFrame(() => canvas.querySelector(`.pane[data-pane-id="${paneId}"]`)?.focus({ preventScroll: true }));
   }
@@ -591,7 +675,8 @@
     state.selectedPaneId = getLeafEntries(state.layout)[0].node.id;
     state.activePreset = key;
     state.topologyPreset = key;
-    closeSheet();
+    closePaneActions({ restoreFocus: false });
+    closeSheet({ restoreFocus: false });
     renderLayout();
     fillSheet(state.selectedPaneId);
     markDirty();
@@ -601,35 +686,34 @@
     return true;
   }
 
-  function splitSelectedPane(axis) {
+  function splitPane(paneId, axis, sectionCount, { allowDataLoss = false } = {}) {
     const entries = getLeafEntries(state.layout);
-    if (entries.length >= MAX_PANES) {
+    const count = Number(sectionCount);
+    const resultingTotal = entries.length + count - 1;
+    if (!['vertical', 'horizontal'].includes(axis) || !Number.isInteger(count) || count < 2 || count > 4) return false;
+    if (resultingTotal > MAX_PANES) {
       showToast(`Maximum de ${MAX_PANES} thermos atteint.`, 'warning');
-      return;
+      return false;
     }
-    const pane = findNode(state.layout, state.selectedPaneId);
-    if (!pane || pane.type !== 'pane') return;
-    const oldLabel = selectedDisplayLabel();
-    const paneElement = canvas.querySelector(`.pane[data-pane-id="${pane.id}"]`);
-    const paneRect = paneElement?.getBoundingClientRect();
-    const availableAxis = axis === 'vertical' ? paneRect?.width : paneRect?.height;
-    if (availableAxis && (availableAxis - 4) / 2 < MIN_SPLIT_PX) {
-      showToast(`${oldLabel} est trop petit pour être divisé dans ce sens sur cet écran.`, 'warning');
-      return;
-    }
-    if (paneHasData(pane) && !window.confirm(`Les mesures de ${oldLabel} seront effacées pour créer deux nouveaux thermos. Continuer?`)) return;
+    const pane = findNode(state.layout, paneId);
+    if (!pane || pane.type !== 'pane') return false;
+    const oldLabel = `T${displayIndexMap(entries).get(pane.id) || 1}`;
+    if (paneHasData(pane) && !allowDataLoss && !window.confirm(`Les mesures et options de ${oldLabel} seront effacées pour créer ${count} thermos. Continuer?`)) return false;
 
     const firstPane = { type: 'pane', id: pane.id, measurement: blankMeasurement(), decorative: { vertical: 0, horizontal: 0 } };
-    const secondPane = createPane();
-    const replacement = createSplit(axis, [firstPane, secondPane]);
+    const children = [firstPane, ...Array.from({ length: count - 1 }, () => createPane())];
+    const replacement = createSplit(axis, children);
     state.layout = replaceNode(state.layout, pane.id, replacement);
     state.selectedPaneId = firstPane.id;
     state.activePreset = 'custom';
     state.topologyPreset = null;
+    closePaneActions({ restoreFocus: false });
     renderLayout();
     fillSheet(state.selectedPaneId);
     markDirty();
-    showToast(`${oldLabel} a été divisé en deux thermos ${axis === 'vertical' ? 'côte à côte' : 'superposés'}.`);
+    requestAnimationFrame(() => canvas.querySelector(`.pane[data-pane-id="${firstPane.id}"]`)?.focus({ preventScroll: true }));
+    showToast(`${count} sections créées dans ${oldLabel}.`);
+    return true;
   }
 
   function equalizeLayout() {
@@ -648,7 +732,8 @@
     state.topologyPreset = initialSnapshot.topologyPreset;
     paneSequence = initialSnapshot.paneSequence;
     splitSequence = initialSnapshot.splitSequence;
-    closeSheet();
+    closePaneActions({ restoreFocus: false });
+    closeSheet({ restoreFocus: false });
     renderLayout();
     markDirty();
     showToast('Disposition et mesures initiales rétablies.');
@@ -668,12 +753,41 @@
     field.addEventListener(field.type === 'checkbox' || field.tagName === 'SELECT' ? 'change' : 'input', update);
   });
 
-  document.querySelectorAll('[data-close-sheet]').forEach((button) => button.addEventListener('click', closeSheet));
+  document.querySelectorAll('[data-close-sheet]').forEach((button) => button.addEventListener('click', () => closeSheet()));
   sheet.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeSheet(); });
-  document.querySelectorAll('[data-layout-preset]').forEach((button) => button.addEventListener('click', () => applyPreset(button.dataset.layoutPreset)));
-  document.querySelectorAll('[data-split-selected]').forEach((button) => button.addEventListener('click', () => splitSelectedPane(button.dataset.splitSelected)));
+  document.querySelectorAll('[data-layout-preset]').forEach((button) => button.addEventListener('click', () => {
+    if (applyPreset(button.dataset.layoutPreset)) button.closest('details')?.removeAttribute('open');
+  }));
   document.querySelectorAll('[data-equalize]').forEach((button) => button.addEventListener('click', equalizeLayout));
   document.querySelectorAll('[data-reset]').forEach((button) => button.addEventListener('click', resetDrawing));
+
+  paneActionModal.querySelectorAll('[data-close-pane-action]').forEach((button) => button.addEventListener('click', () => closePaneActions()));
+  paneActionModal.querySelectorAll('[data-modal-axis]').forEach((button) => button.addEventListener('click', () => {
+    paneActionState.axis = button.dataset.modalAxis;
+    updatePaneActionModal();
+  }));
+  paneActionModal.querySelectorAll('[data-section-count]').forEach((button) => button.addEventListener('click', () => {
+    if (button.disabled) return;
+    paneActionState.count = Number(button.dataset.sectionCount);
+    updatePaneActionModal();
+  }));
+  paneActionModal.querySelector('[data-open-pane-measure]')?.addEventListener('click', () => openPane(paneActionState.paneId));
+  paneActionModal.querySelector('[data-create-sections]')?.addEventListener('click', () => splitPane(paneActionState.paneId, paneActionState.axis, paneActionState.count, { allowDataLoss: true }));
+  paneActionModal.addEventListener('click', (event) => { if (event.target === paneActionModal) closePaneActions(); });
+  paneActionModal.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closePaneActions();
+      return;
+    }
+    if (event.key !== 'Tab') return;
+    const focusable = [...paneActionModal.querySelectorAll('button:not(:disabled)')];
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  });
 
   document.querySelectorAll('[data-counter]').forEach((counter) => {
     const key = counter.dataset.counter;
@@ -726,4 +840,15 @@
   };
 
   renderLayout();
+
+  const previewParams = new URLSearchParams(window.location.search);
+  const previewPaneId = previewParams.get('previewPane');
+  if (previewPaneId && findNode(state.layout, previewPaneId)?.type === 'pane') {
+    openPaneActions(previewPaneId);
+    const previewAxis = previewParams.get('axis');
+    const previewCount = Number(previewParams.get('sections'));
+    if (['vertical', 'horizontal'].includes(previewAxis)) paneActionState.axis = previewAxis;
+    if ([2, 3, 4].includes(previewCount)) paneActionState.count = previewCount;
+    updatePaneActionModal();
+  }
 })();
