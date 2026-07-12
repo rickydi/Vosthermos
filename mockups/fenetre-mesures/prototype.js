@@ -128,7 +128,8 @@
     sheet.classList.add('is-open');
     document.body.classList.add('measure-open');
     const firstInput = sheet.querySelector('[data-measure-key="width"]');
-    if (window.matchMedia('(min-width: 900px)').matches) firstInput?.focus({ preventScroll: true });
+    firstInput?.focus();
+    firstInput?.select();
   }
 
   function closeSheet() {
