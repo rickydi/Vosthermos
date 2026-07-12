@@ -19,6 +19,7 @@
       3: { width: '31', widthFraction: '7/8', height: '48', heightFraction: '1/2', thickness: '1', thicknessFraction: '0' },
     },
   };
+  const initialMeasurements = cloneMeasurements(state.measurements);
 
   let toastTimer;
   const fractions = ['', '0', '1/16', '1/8', '3/16', '1/4', '5/16', '3/8', '7/16', '1/2', '9/16', '5/8', '11/16', '3/4', '13/16', '7/8', '15/16'];
@@ -72,6 +73,22 @@
   function measurementFor(index) {
     state.measurements[index] ||= { width: '', widthFraction: '', height: '', heightFraction: '', thickness: '', thicknessFraction: '' };
     return state.measurements[index];
+  }
+
+  function blankMeasurement() {
+    return { width: '', widthFraction: '', height: '', heightFraction: '', thickness: '', thicknessFraction: '' };
+  }
+
+  function cloneMeasurements(measurements) {
+    return Object.fromEntries(Object.entries(measurements).map(([index, measurement]) => [index, { ...measurement }]));
+  }
+
+  function hasAnyEnteredMeasurement() {
+    return Object.values(state.measurements).some((measurement) => Object.values(measurement).some((value) => value !== ''));
+  }
+
+  function clearMeasurements(count) {
+    state.measurements = Object.fromEntries(Array.from({ length: count }, (_, index) => [index + 1, blankMeasurement()]));
   }
 
   function formattedDimension(whole, fraction) {
@@ -255,6 +272,7 @@
     }
     appendDividerHandles();
     renderPaneStrip();
+    renderSummaryList();
     const completedPaneCount = Array.from({ length: state.paneCount }, (_, index) => index + 1).filter(paneIsComplete).length;
     document.querySelectorAll('[data-pane-count-output]').forEach((output) => { output.textContent = String(state.paneCount); });
     document.querySelectorAll('[data-complete-pane-output]').forEach((output) => { output.textContent = String(completedPaneCount); });
@@ -263,7 +281,13 @@
     document.querySelectorAll('[data-split]').forEach((button) => { button.setAttribute('aria-pressed', String(button.dataset.split === state.orientation)); });
     document.querySelectorAll('[data-direction-icon]').forEach((icon) => { icon.innerHTML = directionIconMarkup(icon.dataset.directionIcon); });
     document.querySelectorAll('[data-move-symbol]').forEach((symbol) => { symbol.innerHTML = directionIconMarkup(state.orientation); });
-    document.querySelectorAll('[data-move-copy]').forEach((copy) => { copy.textContent = 'Glissez les poignées pour ajuster.'; });
+    document.querySelectorAll('[data-move-copy]').forEach((copy) => { copy.textContent = 'Glissez pour ajuster.'; });
+    document.querySelectorAll('[data-add-division-pane]').forEach((label) => { label.textContent = `T${state.selectedPane}`; });
+    document.querySelectorAll('[data-add-division]').forEach((button) => {
+      const atMaximum = state.paneCount >= 6;
+      button.disabled = atMaximum;
+      button.setAttribute('aria-label', atMaximum ? 'Maximum de 6 thermos atteint' : `Diviser le thermos T${state.selectedPane} en deux`);
+    });
     renderProgressSteps();
   }
 
@@ -278,6 +302,19 @@
         button.textContent = paneIsComplete(index) ? `T${index} ✓` : `T${index} •`;
         button.addEventListener('click', () => openPane(index));
         strip.appendChild(button);
+      }
+    });
+  }
+
+  function renderSummaryList() {
+    document.querySelectorAll('[data-summary-list]').forEach((list) => {
+      list.innerHTML = '';
+      for (let index = 1; index <= state.paneCount; index += 1) {
+        const complete = paneIsComplete(index);
+        const row = document.createElement('div');
+        row.className = `summary-row${complete ? '' : ' pending'}`;
+        row.innerHTML = `<code>T${index}</code><small>${complete ? 'Mesuré' : 'À compléter'}</small><span class="state"></span>`;
+        list.appendChild(row);
       }
     });
   }
@@ -337,11 +374,20 @@
 
   function setSections(orientation) {
     const selector = document.querySelector('[data-section-count]');
-    state.paneCount = Math.min(12, Math.max(2, Number(selector?.value || 3)));
+    const nextPaneCount = Math.min(6, Math.max(2, Number(selector?.value || 3)));
+    const structureChanged = nextPaneCount !== state.paneCount || orientation !== state.orientation;
+    if (!structureChanged) return;
+    if (hasAnyEnteredMeasurement() && !window.confirm('Changer le nombre ou le sens des divisions effacera les mesures de cette fenêtre. Continuer?')) {
+      if (selector) selector.value = String(state.paneCount);
+      return;
+    }
+    state.paneCount = nextPaneCount;
     state.orientation = orientation;
     state.dividerPositions = equalDividerPositions();
     state.selectedPane = Math.min(state.selectedPane, state.paneCount);
+    clearMeasurements(state.paneCount);
     renderPanes();
+    fillSheet(state.selectedPane);
     markDirty();
     showToast(`${state.paneCount} thermos égaux créés. Touchez une section pour inscrire ses mesures.`);
   }
@@ -354,14 +400,52 @@
     showToast(`${state.paneCount} thermos répartis également.`);
   }
 
+  function splitSelectedPane() {
+    if (!draggableDividers) return;
+    if (state.paneCount >= 6) {
+      showToast('Maximum de 6 thermos atteint.', 'warning');
+      return;
+    }
+
+    ensureDividerPositions();
+    const selectedIndex = state.selectedPane - 1;
+    const edges = [0, ...state.dividerPositions, 100];
+    const start = edges[selectedIndex];
+    const end = edges[selectedIndex + 1];
+    const nextMinimum = Math.min(16, Math.max(7, 72 / (state.paneCount + 1)));
+    if ((end - start) < nextMinimum * 2) {
+      showToast(`Agrandissez T${state.selectedPane} avant de le diviser.`, 'warning');
+      return;
+    }
+    const selectedMeasurement = measurementFor(state.selectedPane);
+    const hasEnteredMeasurement = Object.values(selectedMeasurement).some((value) => value !== '');
+    if (hasEnteredMeasurement && !window.confirm(`T${state.selectedPane} contient déjà des mesures. Le diviser effacera les mesures des deux nouvelles vitres. Continuer?`)) return;
+
+    for (let index = state.paneCount; index > state.selectedPane; index -= 1) {
+      state.measurements[index + 1] = state.measurements[index];
+    }
+    state.measurements[state.selectedPane] = blankMeasurement();
+    state.measurements[state.selectedPane + 1] = blankMeasurement();
+    state.dividerPositions.splice(selectedIndex, 0, (start + end) / 2);
+    state.paneCount += 1;
+
+    const selector = document.querySelector('[data-section-count]');
+    if (selector) selector.value = String(state.paneCount);
+    renderPanes();
+    fillSheet(state.selectedPane);
+    markDirty();
+    showToast(`T${state.selectedPane} divisé en deux. Les deux nouvelles vitres sont à mesurer.`);
+  }
+
   function resetDrawing() {
-    const confirmation = draggableDividers ? 'Revenir au dessin initial?' : 'Réinitialiser le dessin et revenir à un seul thermos?';
+    const confirmation = draggableDividers ? 'Revenir au dessin et aux mesures initiales?' : 'Réinitialiser le dessin et revenir à un seul thermos?';
     if (!window.confirm(confirmation)) return;
     if (draggableDividers) {
       state.paneCount = initialPaneCount;
       state.selectedPane = Math.min(Number(document.body.dataset.initialPane || 1), initialPaneCount);
       state.orientation = initialOrientation;
       state.dividerPositions = equalDividerPositions(initialPaneCount);
+      state.measurements = cloneMeasurements(initialMeasurements);
       const selector = document.querySelector('[data-section-count]');
       if (selector) selector.value = String(initialPaneCount);
     } else {
@@ -375,7 +459,7 @@
     renderPanes();
     closeSheet();
     markDirty();
-    showToast(draggableDividers ? 'Dessin initial rétabli.' : 'Dessin réinitialisé.');
+    showToast(draggableDividers ? 'Dessin et mesures initiales rétablis.' : 'Dessin réinitialisé.');
   }
 
   sheet.querySelectorAll('[data-measure-key]').forEach((field) => {
@@ -392,6 +476,7 @@
   document.querySelectorAll('[data-close-sheet]').forEach((button) => button.addEventListener('click', closeSheet));
   document.querySelectorAll('[data-split]').forEach((button) => button.addEventListener('click', () => setSections(button.dataset.split)));
   document.querySelectorAll('[data-equalize]').forEach((button) => button.addEventListener('click', equalizeDividers));
+  document.querySelectorAll('[data-add-division]').forEach((button) => button.addEventListener('click', splitSelectedPane));
   document.querySelectorAll('[data-reset]').forEach((button) => button.addEventListener('click', resetDrawing));
   document.querySelectorAll('[data-section-count]').forEach((select) => select.addEventListener('change', () => {
     if (draggableDividers) setSections(state.orientation);
