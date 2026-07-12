@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Style 05 — Pile de thermos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Familjen+Grotesk:wght@500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="base.css">
+  <style>
+    :root {
+      --page:#edf4f6; --surface:#fff; --surface-2:#e3eff1; --ink:#18353c; --muted:#60777d; --line:#c3d6da;
+      --accent:#006c78; --accent-ink:#fff; --success:#3a806c; --warning:#bf7116; --radius:22px; --shadow:0 18px 48px rgba(24,53,60,.11);
+      --font-display:"Familjen Grotesk",sans-serif; --font-ui:"Atkinson Hyperlegible",sans-serif; --font-data:"Space Mono",monospace;
+    }
+    .topbar { margin-left:48px; }
+    .pile-head { display:flex; flex-wrap:wrap; align-items:end; justify-content:space-between; gap:14px; margin:20px 0 16px; }
+    .pile-head h1 { margin:4px 0 0; font:700 clamp(32px,7vw,62px)/.94 var(--font-display); }
+    .completion { display:flex; align-items:center; gap:10px; padding:10px 13px; border:1px solid var(--line); border-radius:14px; background:#fff; }
+    .completion strong { font-family:var(--font-data); }
+    .completion-bar { width:86px; height:8px; overflow:hidden; border-radius:99px; background:#d7e5e7; }
+    .completion-bar i { display:block; width:67%; height:100%; background:var(--success); }
+    .pile-layout { display:grid; gap:15px; }
+    .overview-card { padding:14px; }
+    .overview-card .window-stage { min-height:195px; margin:12px -14px 0; border-block:1px solid var(--line); background:#dcebed; }
+    .overview-card .window-canvas { width:min(80%,520px); border-width:8px; }
+    .overview-card .pane[aria-pressed="true"] { border-color:var(--accent); }
+    .overview-card .divider-handle { background:var(--accent); }
+    .touch-note { margin:10px 0 0; color:var(--muted); font-size:12px; text-align:center; }
+    .cards-section { overflow:hidden; }
+    .cards-section > h2 { margin:4px 0 4px; font:700 25px var(--font-display); }
+    .cards-section > p { margin:0 0 13px; color:var(--muted); }
+    .glass-cards { display:flex; gap:13px; overflow-x:auto; padding:5px max(16px,calc((100vw - 320px)/2)) 20px; margin-inline:-16px; scroll-snap-type:x mandatory; scrollbar-width:thin; }
+    .glass-card { flex:0 0 min(82vw,330px); min-height:270px; display:flex; flex-direction:column; scroll-snap-align:center; padding:18px; border:1px solid var(--line); border-radius:24px; background:rgba(255,255,255,.82); color:var(--ink); text-align:left; box-shadow:0 12px 32px rgba(24,53,60,.09); transition:transform .18s ease,box-shadow .18s ease; }
+    .glass-card:hover { transform:translateY(-3px); box-shadow:0 20px 42px rgba(24,53,60,.14); }
+    .glass-card.selected { border:3px solid var(--accent); background:#fff; box-shadow:0 0 0 5px rgba(0,108,120,.12),0 20px 46px rgba(24,53,60,.16); }
+    .glass-card-head { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+    .glass-card h3 { margin:0; font:700 29px var(--font-display); }
+    .glass-code { font:700 10px var(--font-data); color:var(--muted); }
+    .glass-state { padding:5px 8px; border-radius:999px; background:#dff0e9; color:var(--success); font-size:10px; font-weight:800; }
+    .glass-state.pending { background:#fff0d9; color:#9a5a10; }
+    .measure-preview { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-top:25px; }
+    .measure-preview div { min-width:0; padding:11px 7px; border:1px solid var(--line); border-radius:12px; background:#f4f8f9; }
+    .measure-preview small { display:block; color:var(--muted); font-size:8px; text-transform:uppercase; letter-spacing:.05em; }
+    .measure-preview b { display:block; margin-top:4px; overflow:hidden; text-overflow:ellipsis; font:700 11px var(--font-data); white-space:nowrap; }
+    .open-card { margin-top:auto; padding-top:20px; color:var(--accent); font-weight:800; }
+    .equal-card { margin-top:3px; padding:16px; border:2px solid #80b5bb; border-radius:19px; background:#dff0f2; }
+    .equal-card h3 { margin:0; font:700 19px var(--font-display); }
+    .equal-card p { margin:5px 0 12px; color:#48656b; font-size:12px; }
+    .equal-card .primary { width:100%; }
+    details.toolbox { margin-top:13px; border:1px solid var(--line); border-radius:18px; background:#fff; overflow:hidden; }
+    details.toolbox summary { min-height:54px; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:13px 16px; cursor:pointer; font-weight:800; }
+    details.toolbox summary::after { content:"＋"; font-size:21px; }
+    details.toolbox[open] summary::after { content:"−"; }
+    .toolbox-body { display:grid; gap:12px; padding:0 14px 14px; }
+    .toolbox-body .tool-block { box-shadow:none; }
+    .measure-sheet { border-top:7px solid var(--accent); }
+    .measure-sheet .sheet-grip { background:#9bbec2; }
+    .measure-sheet .primary { background:var(--accent); }
+    @media(min-width:780px){ .glass-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));overflow:visible;margin:0;padding:5px}.glass-card{min-width:0;min-height:290px}.toolbox-body{grid-template-columns:1fr 1fr}.toolbox-body .photo-tool{grid-column:1/-1} }
+    @media(min-width:1180px){ .pile-layout{grid-template-columns:minmax(380px,.72fr) minmax(0,1.28fr);align-items:start}.overview-card{position:sticky;top:16px}.overview-card .window-stage{min-height:430px}.cards-section{padding-top:4px}.glass-cards{grid-template-columns:repeat(3,minmax(0,1fr))}.glass-card{padding:15px}.measure-preview{grid-template-columns:1fr}.measure-preview div{display:flex;justify-content:space-between;gap:8px}.measure-preview b{margin:0}.measure-sheet{left:auto;right:24px;top:24px;bottom:24px;width:540px;max-height:calc(100vh - 48px)} }
+  </style>
+</head>
+<body data-initial-panes="3" data-initial-pane="2" data-initial-orientation="vertical">
+  <a class="back-to-index" href="index.html" aria-label="Retour aux cinq styles">←</a>
+  <div class="prototype"><div class="shell">
+    <div class="topbar"><div class="brand-lockup"><img class="brand-mark" src="../../public/images/Vos-Thermos-Logo.png" alt=""><div class="brand-copy"><strong>Jean Tremblay</strong><span>Fenêtre salon · Mesures finales</span></div></div><span class="mode-chip">Technicien</span></div>
+    <header class="pile-head"><div><p class="eyebrow">Style 05 · Pile de thermos</p><h1>Une vitre à la fois.</h1></div><div class="completion"><div><small class="muted">Progression</small><br><strong>2 / 3</strong></div><span class="completion-bar"><i></i></span></div></header>
+    <div class="window-tabs"><button class="window-tab" data-window-tab aria-selected="true">Salon · 3T</button><button class="window-tab" data-window-tab aria-selected="false">Cuisine · 1T</button><button class="add-window" data-add-window>＋ Fenêtre</button></div>
+
+    <div class="pile-layout">
+      <section class="overview-card card"><div class="card-head"><div><p class="eyebrow">Vue d’ensemble</p><h2>Fenêtre salon</h2><p>Touchez une section pour ouvrir sa carte.</p></div><button class="small-action">Dupliquer</button></div><div class="window-stage"><div class="window-canvas" data-window-canvas></div></div><p class="touch-note">Le thermos sélectionné garde une double bordure et son nom.</p></section>
+
+      <main class="cards-section"><p class="eyebrow">Thermos physiques</p><h2>Faites défiler, puis touchez la carte</h2><p>Sur téléphone, la carte active reste seule au centre.</p>
+        <div class="glass-cards">
+          <button class="glass-card" data-card-pane="1"><div class="glass-card-head"><div><span class="glass-code">F01–T01</span><h3>Thermos 1</h3></div><span class="glass-state">Complet</span></div><div class="measure-preview"><div><small>Largeur</small><b>32 1/4</b></div><div><small>Hauteur</small><b>48 1/2</b></div><div><small>Épaisseur</small><b>1 po</b></div></div><span class="open-card">Ouvrir les mesures →</span></button>
+          <button class="glass-card selected" data-card-pane="2"><div class="glass-card-head"><div><span class="glass-code">F01–T02</span><h3>Thermos 2</h3></div><span class="glass-state pending">À mesurer</span></div><div class="measure-preview"><div><small>Largeur</small><b>—</b></div><div><small>Hauteur</small><b>—</b></div><div><small>Épaisseur</small><b>—</b></div></div><span class="open-card">Écrire L × H × E →</span></button>
+          <button class="glass-card" data-card-pane="3"><div class="glass-card-head"><div><span class="glass-code">F01–T03</span><h3>Thermos 3</h3></div><span class="glass-state">Complet</span></div><div class="measure-preview"><div><small>Largeur</small><b>31 7/8</b></div><div><small>Hauteur</small><b>48 1/2</b></div><div><small>Épaisseur</small><b>1 po</b></div></div><span class="open-card">Ouvrir les mesures →</span></button>
+        </div>
+
+        <section class="equal-card"><h3>Ces 3 thermos ont les mêmes mesures?</h3><p>Complétez T2, puis copiez largeur, hauteur, épaisseur et options aux trois cartes.</p><button class="primary" data-apply-measure>Appliquer les mesures de <span data-active-pane>T2</span> aux 3 thermos</button></section>
+
+        <details class="toolbox"><summary>Modifier le dessin et la photo</summary><div class="toolbox-body">
+          <section class="tool-block"><h3>Sections égales</h3><p>Le nombre choisi correspond au nombre de thermos physiques.</p><label><span class="field-label">Nombre de sections</span><select class="select" data-section-count><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option><option>8</option><option>10</option><option>12</option></select></label><div class="button-row" style="margin-top:9px"><button class="primary" data-split="vertical">Verticales</button><button class="button" data-split="horizontal">Horizontales</button></div><button class="danger-link" data-reset style="margin-top:9px">Réinitialiser</button></section>
+          <section class="tool-block"><h3>Carrelage décoratif</h3><p>Ajouté seulement dans <span data-active-pane>T2</span>.</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><span class="field-label">Vertical</span><div class="counter" data-counter="vertical"><button data-delta="-1">−</button><output>0</output><button data-delta="1">＋</button></div></div><div><span class="field-label">Horizontal</span><div class="counter" data-counter="horizontal"><button data-delta="-1">−</button><output>0</output><button data-delta="1">＋</button></div></div></div></section>
+          <section class="tool-block photo-tool"><h3>Photo de face</h3><p>La détection peut préparer les cartes de thermos automatiquement.</p><div class="button-row"><button class="button" data-photo>Prendre la photo</button><button class="primary" data-detect disabled>Détecter les divisions</button></div></section>
+        </div></details>
+      </main>
+    </div>
+    <div class="sticky-actions"><span class="dirty-dot" data-dirty></span><button class="draft" data-save-draft>Enregistrer</button><button class="final" data-finalize>Valider les 3 thermos</button></div>
+  </div></div>
+
+  <aside class="measure-sheet" data-measure-sheet hidden>
+    <div class="sheet-grip"></div><div class="sheet-head"><div><span class="sheet-kicker mono">Carte F01–<span data-active-pane>T2</span></span><h2>Thermos <span data-active-pane>T2</span></h2><p>Les trois mesures principales restent ensemble.</p></div><button class="close-sheet" data-close-sheet aria-label="Fermer">×</button></div>
+    <div class="measure-grid"><label class="dimension"><span class="field-label">Largeur *</span><span class="dimension-parts"><input type="number" placeholder="Ex. 32" data-measure-key="width"><select data-measure-key="widthFraction" aria-label="Fraction largeur"></select><span>po</span></span></label><label class="dimension"><span class="field-label">Hauteur *</span><span class="dimension-parts"><input type="number" placeholder="Ex. 48" data-measure-key="height"><select data-measure-key="heightFraction" aria-label="Fraction hauteur"></select><span>po</span></span></label><label class="dimension"><span class="field-label">Épaisseur *</span><span class="dimension-parts"><input type="number" placeholder="Ex. 1" data-measure-key="thickness"><select data-measure-key="thicknessFraction" aria-label="Fraction épaisseur"></select><span>po</span></span></label></div>
+    <div class="option-grid"><label class="option-chip"><input type="checkbox">Low-E</label><label class="option-chip"><input type="checkbox">Argon</label><label class="option-chip"><input type="checkbox">Trempé</label><label class="option-chip"><input type="checkbox">Laminé</label></div>
+    <div class="sheet-selects"><label><span class="field-label">Intercalaire</span><select class="select"><option>Noir</option><option>Gris</option><option>Blanc</option><option>Inox</option></select></label><label><span class="field-label">Vitrage</span><select class="select"><option>Double</option><option>Triple</option><option>Simple</option></select></label><label><span class="field-label">Accès</span><select class="select"><option>Facile</option><option>Moyen</option><option>Difficile</option></select></label></div>
+    <div class="sheet-actions"><button class="secondary" data-close-sheet>Fermer</button><button class="primary" data-close-sheet>Garder cette carte</button></div>
+  </aside>
+  <div class="toast" data-toast role="status"></div><script src="prototype.js"></script>
+  <script>document.querySelectorAll('[data-card-pane]').forEach((card)=>card.addEventListener('click',()=>{document.querySelectorAll('[data-card-pane]').forEach((item)=>item.classList.toggle('selected',item===card));document.querySelector(`.pane[data-pane="${card.dataset.cardPane}"]`)?.click();}));</script>
+</body>
+</html>

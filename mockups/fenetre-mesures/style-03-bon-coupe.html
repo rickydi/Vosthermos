@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Style 03 — Bon de coupe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@600;700&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="base.css">
+  <style>
+    :root {
+      --page:#e7eaec; --surface:#fff; --surface-2:#f0f1f2; --ink:#252a2e; --muted:#687077; --line:#c5c9cc;
+      --accent:#d9681e; --accent-ink:#fff; --success:#34715a; --warning:#bd731d; --radius:8px; --shadow:0 8px 24px rgba(37,42,46,.11);
+      --font-display:"Archivo Narrow",sans-serif; --font-ui:"IBM Plex Sans",sans-serif; --font-data:"IBM Plex Mono",monospace;
+    }
+    .topbar { margin-left:48px; padding-bottom:12px; border-bottom:3px solid var(--ink); }
+    .mode-chip { border-radius:3px; background:var(--ink); color:#fff; border-color:var(--ink); }
+    .work-order-head { display:grid; gap:14px; margin:20px 0 15px; }
+    .order-code { display:inline-flex; width:max-content; padding:6px 9px; border:2px solid var(--ink); background:#fff; font:600 12px var(--font-data); }
+    .work-order-head h1 { margin:4px 0 0; font:700 clamp(34px,6vw,64px)/.9 var(--font-display); text-transform:uppercase; }
+    .order-meta { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; border:1px solid var(--line); background:var(--line); }
+    .order-meta div { padding:11px; background:#f8f9f9; }
+    .order-meta small { display:block; color:var(--muted); font-size:9px; text-transform:uppercase; letter-spacing:.08em; }
+    .order-meta b { font-family:var(--font-data); font-size:12px; }
+    .workbench { display:grid; gap:12px; }
+    .window-list { padding:10px; border-radius:8px; }
+    .window-list .window-tabs { padding:0; }
+    .window-list .window-tab,.window-list .add-window { border-radius:4px; }
+    .drawing-card { padding:14px; border-radius:8px; }
+    .drawing-card .window-stage { min-height:300px; margin:12px -14px 0; border-block:1px solid var(--line); background:#dfe5e7; }
+    .drawing-card .window-canvas { border-width:9px; border-color:#4b5256; gap:4px; padding:7px; box-shadow:none; }
+    .drawing-card .pane { border-color:#5e777d; border-radius:0; }
+    .drawing-card .pane[aria-pressed="true"] { border-color:var(--accent); box-shadow:inset 0 0 0 2px #fff,0 0 0 3px var(--accent); }
+    .drawing-card .pane[aria-pressed="true"]::after { border-radius:2px; background:var(--accent); }
+    .drawing-card .divider-handle { border-radius:4px; background:var(--accent); }
+    .cut-table { padding:0; overflow:hidden; border-radius:8px; }
+    .cut-title { display:flex; justify-content:space-between; gap:10px; align-items:center; padding:12px 14px; border-bottom:2px solid var(--ink); }
+    .cut-title h2 { margin:0; font:700 20px var(--font-display); text-transform:uppercase; }
+    .cut-row { display:grid; grid-template-columns:58px 1fr auto; gap:10px; align-items:center; min-height:64px; padding:10px 14px; border-bottom:1px solid var(--line); background:#fff; }
+    .cut-row:last-child { border:0; }
+    .cut-row code { font:600 12px var(--font-data); }
+    .cut-data strong { display:block; font:600 12px var(--font-data); }
+    .cut-data span { display:block; margin-top:3px; color:var(--muted); font-size:11px; }
+    .status-stamp { padding:5px 7px; border:2px solid var(--success); color:var(--success); font:600 9px var(--font-data); text-transform:uppercase; transform:rotate(-2deg); }
+    .status-stamp.missing { border-color:var(--accent); color:var(--accent); transform:rotate(2deg); }
+    .work-tools { display:grid; gap:10px; margin-top:12px; }
+    .work-tools .tool-block { border-radius:6px; background:#f7f7f6; }
+    .work-tools .button,.work-tools .primary,.work-tools .danger-link,.work-tools .select,.work-tools .counter button { border-radius:4px; }
+    .equal-banner { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; padding:13px; border:2px dashed var(--accent); background:#fff6ed; }
+    .equal-banner p { margin:0; color:#65401e; font-size:12px; }
+    .measure-sheet { border-radius:8px; border:3px solid var(--ink); box-shadow:12px 12px 0 rgba(37,42,46,.22); }
+    .measure-sheet::before { content:"FICHE DE COUPE"; display:block; margin:-18px -18px 16px; padding:8px 18px; background:var(--ink); color:#fff; font:600 11px var(--font-data); letter-spacing:.12em; }
+    .measure-sheet .sheet-grip { display:none; }
+    .measure-sheet .dimension-parts,.measure-sheet .option-chip,.measure-sheet .select,.measure-sheet .notes,.measure-sheet button { border-radius:4px; }
+    .sticky-actions { border-radius:7px; background:#252a2e; border-color:#252a2e; }
+    .sticky-actions .draft { color:#fff; border-color:#7c8388; border-radius:4px; }
+    .sticky-actions .final { border-radius:4px; }
+    .sticky-actions .dirty-dot { background:#ffb05d; }
+    @media(min-width:760px){ .work-order-head{grid-template-columns:1fr auto;align-items:end}.order-meta{min-width:430px}.work-tools{grid-template-columns:1fr 1fr}.work-tools .equal-banner{grid-column:1/-1} }
+    @media(min-width:1180px){ .workbench{grid-template-columns:180px minmax(0,1fr) 360px;align-items:start}.window-list{position:sticky;top:16px}.window-list .window-tabs{flex-direction:column;overflow:visible}.window-list button{width:100%;text-align:left}.cut-table{position:sticky;top:16px}.drawing-card .window-stage{min-height:470px}.measure-sheet{top:28px;right:28px;bottom:auto;left:auto;width:570px;max-height:calc(100vh - 56px)} }
+  </style>
+</head>
+<body data-initial-panes="3" data-initial-pane="2" data-initial-orientation="vertical">
+  <a class="back-to-index" href="index.html" aria-label="Retour aux cinq styles">←</a>
+  <div class="prototype"><div class="shell">
+    <div class="topbar"><div class="brand-lockup"><img class="brand-mark" src="../../public/images/Vos-Thermos-Logo.png" alt=""><div class="brand-copy"><strong>Vosthermos · Atelier de mesures</strong><span>Dossier client Jean Tremblay</span></div></div><span class="mode-chip">Technicien</span></div>
+    <header class="work-order-head"><div><span class="order-code">DOSSIER VT-260712-041</span><h1>Fenêtre salon</h1></div><div class="order-meta"><div><small>Fenêtres</small><b>02</b></div><div><small>Thermos</small><b>04</b></div><div><small>Complétés</small><b>03 / 04</b></div></div></header>
+
+    <div class="workbench">
+      <aside class="window-list card"><p class="eyebrow" style="margin:4px 4px 9px">Liste des fenêtres</p><div class="window-tabs"><button class="window-tab" data-window-tab aria-selected="true">F01 · Salon</button><button class="window-tab" data-window-tab aria-selected="false">F02 · Cuisine</button><button class="add-window" data-add-window>＋ Ajouter</button></div></aside>
+
+      <main>
+        <section class="drawing-card card"><div class="card-head"><div><p class="eyebrow">Plan de coupe F01</p><h2>Cliquez un thermos pour ouvrir sa fiche</h2><p>Les poignées orange déplacent les séparations.</p></div><button class="small-action">Dupliquer F01</button></div><div class="window-stage"><div class="window-canvas" data-window-canvas></div></div><div class="pane-strip" data-pane-strip></div></section>
+
+        <div class="work-tools">
+          <section class="tool-block"><h3>Composition structurelle</h3><p>Créer plusieurs unités de verre scellé de taille égale.</p><label><span class="field-label">Nombre d’unités</span><select class="select" data-section-count><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option><option>8</option><option>10</option><option>12</option></select></label><div class="button-row" style="margin-top:8px"><button class="primary" data-split="vertical">Division verticale</button><button class="button" data-split="horizontal">Division horizontale</button></div><button class="danger-link" data-reset style="margin-top:8px">Réinitialiser</button></section>
+          <section class="tool-block"><h3>Photo et détection</h3><p>Associer la photo de chantier et confirmer le tracé proposé.</p><div class="button-row"><button class="button" data-photo>Ajouter la photo</button><button class="primary" data-detect disabled>Analyser la photo</button></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px"><div><span class="field-label">Carrelage V</span><div class="counter" data-counter="vertical"><button data-delta="-1">−</button><output>0</output><button data-delta="1">＋</button></div></div><div><span class="field-label">Carrelage H</span><div class="counter" data-counter="horizontal"><button data-delta="-1">−</button><output>0</output><button data-delta="1">＋</button></div></div></div></section>
+          <section class="equal-banner"><p><strong>Les 3 thermos sont identiques?</strong><br>Mesurez-en un, puis appliquez ses dimensions aux autres.</p><button class="primary" data-apply-measure>Appliquer <span data-active-pane>T2</span> aux 3</button></section>
+        </div>
+      </main>
+
+      <aside class="cut-table card"><div class="cut-title"><h2>Unités de verre</h2><span class="mono" style="font-size:10px">F01</span></div><button class="cut-row" style="width:100%;border-inline:0;border-top:0;text-align:left" data-open-summary="1"><code>F01–T01</code><span class="cut-data"><strong>32 1/4 × 48 1/2 × 1</strong><span>Double · Low-E · Argon</span></span><span class="status-stamp">Conforme</span></button><button class="cut-row" style="width:100%;border-inline:0;border-top:0;text-align:left" data-open-summary="2"><code>F01–T02</code><span class="cut-data"><strong>Mesure manquante</strong><span>Touchez T2 sur le plan</span></span><span class="status-stamp missing">À mesurer</span></button><button class="cut-row" style="width:100%;border-inline:0;border-top:0;text-align:left" data-open-summary="3"><code>F01–T03</code><span class="cut-data"><strong>31 7/8 × 48 1/2 × 1</strong><span>Double · Low-E · Argon</span></span><span class="status-stamp">Conforme</span></button></aside>
+    </div>
+    <div class="sticky-actions"><span class="dirty-dot" data-dirty></span><button class="draft" data-save-draft>Enregistrer le relevé</button><button class="final" data-finalize>Valider pour la commande</button></div>
+  </div></div>
+
+  <aside class="measure-sheet" data-measure-sheet hidden>
+    <div class="sheet-grip"></div><div class="sheet-head"><div><span class="sheet-kicker mono">F01–<span data-active-pane>T2</span></span><h2>Unité <span data-active-pane>T2</span></h2><p>Largeur × hauteur × épaisseur de fabrication.</p></div><button class="close-sheet" data-close-sheet aria-label="Fermer">×</button></div>
+    <div class="measure-grid"><label class="dimension"><span class="field-label">Largeur *</span><span class="dimension-parts"><input type="number" placeholder="Ex. 32" data-measure-key="width"><select data-measure-key="widthFraction" aria-label="Fraction largeur"></select><span>po</span></span></label><label class="dimension"><span class="field-label">Hauteur *</span><span class="dimension-parts"><input type="number" placeholder="Ex. 48" data-measure-key="height"><select data-measure-key="heightFraction" aria-label="Fraction hauteur"></select><span>po</span></span></label><label class="dimension"><span class="field-label">Épaisseur *</span><span class="dimension-parts"><input type="number" placeholder="Ex. 1" data-measure-key="thickness"><select data-measure-key="thicknessFraction" aria-label="Fraction épaisseur"></select><span>po</span></span></label></div>
+    <div class="option-grid"><label class="option-chip"><input type="checkbox" checked>Low-E</label><label class="option-chip"><input type="checkbox" checked>Argon</label><label class="option-chip"><input type="checkbox">Trempé</label><label class="option-chip"><input type="checkbox">Laminé</label></div>
+    <div class="sheet-selects"><label><span class="field-label">Intercalaire</span><select class="select"><option>Noir</option><option>Gris</option><option>Blanc</option><option>Inox</option></select></label><label><span class="field-label">Vitrage</span><select class="select"><option>Double</option><option>Triple</option><option>Simple</option></select></label><label><span class="field-label">Accès</span><select class="select"><option>Facile</option><option>Moyen</option><option>Difficile</option></select></label></div>
+    <div class="sheet-actions"><button class="secondary" data-close-sheet>Fermer la fiche</button><button class="primary" data-close-sheet>Confirmer <span data-active-pane>T2</span></button></div>
+  </aside>
+  <div class="toast" data-toast role="status"></div><script src="prototype.js"></script>
+  <script>document.querySelectorAll('[data-open-summary]').forEach((button)=>button.addEventListener('click',()=>document.querySelector(`.pane[data-pane="${button.dataset.openSummary}"]`)?.click()));</script>
+</body>
+</html>

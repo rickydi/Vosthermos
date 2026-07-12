@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Laboratoire — Prise de mesures Vosthermos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Barlow+Condensed:wght@600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <style>
+    :root { --red:#e30718; --ink:#101820; --teal:#003845; --mist:#eef4f5; --line:#cbd7da; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--mist); color:var(--ink); font-family:"Atkinson Hyperlegible",sans-serif; }
+    a { color:inherit; }
+    .hero { position:relative; overflow:hidden; background:var(--teal); color:#fff; }
+    .hero::before { content:""; position:absolute; inset:0; opacity:.16; background-image:linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px); background-size:28px 28px; mask-image:linear-gradient(90deg,transparent,#000); }
+    .hero-inner { position:relative; width:min(1180px,100%); margin:auto; padding:42px 20px 52px; }
+    .brand { display:flex; align-items:center; gap:12px; }
+    .brand img { width:48px; height:48px; object-fit:contain; border-radius:14px; background:#fff; }
+    .brand strong { font-family:"Barlow Condensed"; font-size:22px; letter-spacing:.02em; }
+    .kicker { margin:54px 0 8px; color:#8ee0e2; font:700 12px "IBM Plex Mono"; letter-spacing:.13em; text-transform:uppercase; }
+    h1 { max-width:780px; margin:0; font:800 clamp(42px,7vw,82px)/.88 "Barlow Condensed"; letter-spacing:-.025em; }
+    .intro { max-width:700px; margin:20px 0 0; color:rgba(255,255,255,.76); font-size:18px; line-height:1.55; }
+    .rule { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1px; margin-top:34px; border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.16); }
+    .rule div { padding:14px; background:rgba(0,32,40,.78); }
+    .rule strong { display:block; font:600 15px "IBM Plex Mono"; }
+    .rule span { color:rgba(255,255,255,.62); font-size:12px; }
+    main { width:min(1180px,100%); margin:auto; padding:28px 16px 70px; }
+    .test-note { display:flex; gap:14px; align-items:flex-start; margin-bottom:24px; padding:17px; border:1px solid var(--line); border-radius:18px; background:#fff; }
+    .test-note b { display:grid; place-items:center; flex:0 0 34px; height:34px; border-radius:50%; background:#d9f0f1; color:#006874; font:700 15px "IBM Plex Mono"; }
+    .test-note p { margin:0; line-height:1.5; }
+    .grid { display:grid; gap:18px; }
+    .concept { --c:#087e8b; position:relative; display:grid; min-height:340px; overflow:hidden; border:1px solid var(--line); border-radius:26px; background:#fff; box-shadow:0 18px 45px rgba(10,36,45,.08); }
+    .visual { position:relative; min-height:210px; display:grid; place-items:center; overflow:hidden; background:var(--bg,#d7f3f5); }
+    .visual::before { content:""; position:absolute; inset:0; background-image:linear-gradient(color-mix(in srgb,var(--c) 12%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--c) 12%,transparent) 1px,transparent 1px); background-size:22px 22px; }
+    .mini-window { position:relative; z-index:1; width:min(74%,360px); aspect-ratio:1.7; display:grid; grid-template-columns:1fr 1.3fr 1fr; gap:5px; padding:8px; border:9px solid var(--frame,#17242a); background:#dceff1; box-shadow:0 18px 28px rgba(0,0,0,.18); transform:rotate(var(--tilt,0)); transition:transform .2s ease; }
+    .concept:hover .mini-window { transform:rotate(0) translateY(-4px); }
+    .mini-window i { position:relative; display:grid; place-items:center; border:2px solid var(--c); background:rgba(255,255,255,.64); color:var(--frame,#17242a); font:700 16px "IBM Plex Mono"; font-style:normal; }
+    .mini-window i:nth-child(2) { border-width:4px; box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 25%,transparent); }
+    .concept-copy { display:grid; grid-template-columns:1fr auto; gap:14px; align-items:end; padding:20px; }
+    .number { margin:0 0 5px; color:var(--c); font:600 11px "IBM Plex Mono"; letter-spacing:.12em; }
+    h2 { margin:0; font:800 30px/1 "Barlow Condensed"; }
+    .concept p { margin:9px 0 0; color:#596b72; line-height:1.45; }
+    .open { display:inline-flex; align-items:center; justify-content:center; min-height:48px; padding:12px 17px; border-radius:13px; background:var(--c); color:var(--button,#fff); font-weight:700; text-decoration:none; white-space:nowrap; }
+    .tag { position:absolute; z-index:2; top:14px; left:14px; padding:7px 10px; border-radius:999px; background:rgba(255,255,255,.9); color:#26383e; font-size:11px; font-weight:700; box-shadow:0 4px 16px rgba(0,0,0,.09); }
+    .concept:nth-child(2) { --c:#f4c542; --button:#13263d; --bg:#f7fafc; --frame:#13263d; }
+    .concept:nth-child(3) { --c:#d9681e; --bg:#e7eaec; --frame:#252a2e; }
+    .concept:nth-child(4) { --c:#ff9558; --bg:#071823; --frame:#a5e5f0; }
+    .concept:nth-child(4) .mini-window { background:#143744; color:#fff; }
+    .concept:nth-child(4) .mini-window i { color:#f8fcff; background:rgba(12,43,55,.55); }
+    .concept:nth-child(5) { --c:#006c78; --bg:#edf4f6; --frame:#18353c; }
+    footer { width:min(1180px,100%); margin:auto; padding:0 20px 36px; color:#65767d; font-size:12px; }
+    @media(min-width:760px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr));}.concept:first-child{grid-column:1/-1;grid-template-columns:1.05fr .95fr}.concept:first-child .visual{min-height:360px}.concept:first-child .concept-copy{padding:32px}.concept:first-child h2{font-size:44px} }
+    @media(max-width:620px){ .rule{grid-template-columns:1fr}.concept-copy{grid-template-columns:1fr}.open{width:100%}.hero-inner{padding-top:24px}.kicker{margin-top:38px} }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="brand"><img src="../../public/images/Vos-Thermos-Logo.png" alt=""><div><strong>Vosthermos</strong><div>Laboratoire d’interface</div></div></div>
+      <p class="kicker">Prise de mesures · 5 directions</p>
+      <h1>Une fenêtre.<br>Cinq façons de la mesurer.</h1>
+      <p class="intro">Chaque prototype utilise le même cas réel. Touchez une section du dessin : sa fiche <strong>Largeur × Hauteur × Épaisseur</strong> s’ouvre immédiatement.</p>
+      <div class="rule"><div><strong>390–430 px</strong><span>Téléphone, gros contrôles tactiles</span></div><div><strong>768–1100 px</strong><span>Tablette et petit portable</span></div><div><strong>1280–1440 px</strong><span>Plan et inspecteur côte à côte</span></div></div>
+    </div>
+  </header>
+
+  <main>
+    <div class="test-note"><b>i</b><p><strong>Pour comparer :</strong> ouvre chaque style, clique T1/T2/T3, entre une mesure, crée 3 sections égales, puis réduis la fenêtre du navigateur comme un téléphone.</p></div>
+    <section class="grid" aria-label="Cinq prototypes">
+      <article class="concept">
+        <span class="tag">Recommandation générale</span>
+        <div class="visual"><div class="mini-window"><i>T1</i><i>T2</i><i>T3</i></div></div>
+        <div class="concept-copy"><div><p class="number">STYLE 01</p><h2>Gabarit sur verre</h2><p>Les cotes vivent près du dessin. Le meilleur équilibre entre client, technicien et administration.</p></div><a class="open" href="style-01-gabarit.html">Ouvrir le style</a></div>
+      </article>
+      <article class="concept">
+        <span class="tag">Le plus simple pour le client</span>
+        <div class="visual"><div class="mini-window"><i>T1</i><i>T2</i><i>T3</i></div></div>
+        <div class="concept-copy"><div><p class="number">STYLE 02</p><h2>Ruban de chantier</h2><p>Un parcours Photo → Divisions → Mesures → Vérification qui évite de se perdre.</p></div><a class="open" href="style-02-ruban.html">Ouvrir</a></div>
+      </article>
+      <article class="concept">
+        <span class="tag">Le plus rapide en volume</span>
+        <div class="visual"><div class="mini-window"><i>T1</i><i>T2</i><i>T3</i></div></div>
+        <div class="concept-copy"><div><p class="number">STYLE 03</p><h2>Bon de coupe</h2><p>Une vue d’atelier : états, codes et mesures manquantes visibles immédiatement.</p></div><a class="open" href="style-03-bon-coupe.html">Ouvrir</a></div>
+      </article>
+      <article class="concept">
+        <span class="tag">Le plus visuel</span>
+        <div class="visual"><div class="mini-window"><i>T1</i><i>T2</i><i>T3</i></div></div>
+        <div class="concept-copy"><div><p class="number">STYLE 04</p><h2>Photo tracée</h2><p>La photo devient le plan. Les divisions et mesures semblent posées sur la vraie fenêtre.</p></div><a class="open" href="style-04-photo.html">Ouvrir</a></div>
+      </article>
+      <article class="concept">
+        <span class="tag">Recommandation mobile</span>
+        <div class="visual"><div class="mini-window"><i>T1</i><i>T2</i><i>T3</i></div></div>
+        <div class="concept-copy"><div><p class="number">STYLE 05</p><h2>Pile de thermos</h2><p>Chaque vitre devient une grande carte; les sections égales peuvent recevoir les mêmes mesures.</p></div><a class="open" href="style-05-pile.html">Ouvrir</a></div>
+      </article>
+    </section>
+  </main>
+  <footer>Prototype local isolé — aucune donnée enregistrée, aucun envoi client, aucune modification de la production.</footer>
+</body>
+</html>

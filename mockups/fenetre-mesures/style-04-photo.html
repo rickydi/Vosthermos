@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Style 04 — Photo tracée</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@500;600;700&family=JetBrains+Mono:wght@500;700&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="base.css">
+  <style>
+    :root {
+      color-scheme:dark;
+      --page:#071823; --surface:#0e2935; --surface-2:#143744; --ink:#f8fcff; --muted:#9fb9c4; --line:#2b5260;
+      --accent:#ff9558; --accent-ink:#071823; --success:#57b69a; --warning:#ffb16e; --danger:#ff8893; --radius:18px; --shadow:0 22px 60px rgba(0,0,0,.34);
+      --font-display:"Geologica",sans-serif; --font-ui:"Noto Sans",sans-serif; --font-data:"JetBrains Mono",monospace;
+    }
+    .prototype { background:radial-gradient(circle at 80% 0,#123d4b,transparent 34%),var(--page); }
+    .topbar { margin-left:48px; }
+    .brand-mark { background:#fff; }
+    .mode-chip { background:rgba(255,255,255,.07); }
+    .photo-head { display:flex; flex-wrap:wrap; align-items:end; justify-content:space-between; gap:15px; margin:20px 0 16px; }
+    .photo-head h1 { margin:5px 0 0; font:700 clamp(30px,6vw,60px)/.95 var(--font-display); }
+    .level-chip { display:flex; align-items:center; gap:9px; min-height:44px; padding:9px 12px; border:1px solid #3d6572; border-radius:14px; background:#0d2834; color:#c9dae0; font-size:12px; }
+    .level { position:relative; width:48px; height:14px; border:1px solid #567682; border-radius:99px; background:#071823; }
+    .level::after { content:""; position:absolute; left:50%; top:50%; width:10px; height:10px; transform:translate(-50%,-50%); border-radius:50%; background:#58d39f; box-shadow:0 0 12px #58d39f; }
+    .photo-layout { display:grid; gap:14px; }
+    .camera-card { position:relative; overflow:hidden; min-height:620px; border:1px solid var(--line); border-radius:24px; background:#0b202a; box-shadow:var(--shadow); }
+    .camera-card .window-stage { position:absolute; inset:0; min-height:100%; }
+    .camera-card .window-stage.has-photo::after { background:linear-gradient(180deg,rgba(7,24,35,.16),rgba(7,24,35,.62)),url("../../public/images/vitre-thermos/reparation-1.jpg") center/cover; }
+    .camera-card .window-stage::before { background-image:linear-gradient(rgba(165,229,240,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(165,229,240,.08) 1px,transparent 1px); background-size:36px 36px; }
+    .camera-card .window-canvas { width:min(80%,760px); border:3px solid #a5e5f0; outline:1px dashed rgba(165,229,240,.7); outline-offset:13px; padding:5px; gap:4px; background:rgba(9,34,44,.2); box-shadow:0 0 0 999px rgba(4,17,24,.14); }
+    .camera-card .pane { border-color:#a5e5f0; background:rgba(10,45,57,.16); color:#fff; text-shadow:0 2px 5px #000; backdrop-filter:blur(1px); }
+    .camera-card .pane[aria-pressed="true"] { border-color:var(--accent); box-shadow:inset 0 0 0 3px rgba(255,255,255,.9),0 0 0 4px rgba(255,149,88,.5); }
+    .camera-card .pane[aria-pressed="true"]::after { background:var(--accent); color:#071823; }
+    .camera-card .divider-handle { background:var(--accent); color:#071823; box-shadow:0 0 0 6px rgba(255,149,88,.22); }
+    .camera-top { position:absolute; z-index:8; top:14px; left:14px; right:14px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .camera-label { padding:9px 11px; border:1px solid rgba(255,255,255,.2); border-radius:12px; background:rgba(7,24,35,.72); backdrop-filter:blur(12px); font-size:12px; font-weight:700; }
+    .camera-tools { position:absolute; z-index:8; left:14px; right:14px; bottom:14px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; padding:9px; border:1px solid rgba(255,255,255,.18); border-radius:16px; background:rgba(7,24,35,.78); backdrop-filter:blur(16px); }
+    .camera-tools button { min-height:48px; border:1px solid #3c6470; border-radius:11px; background:#12323e; color:#fff; font-weight:800; }
+    .camera-tools .detect { background:var(--accent); color:#071823; border-color:var(--accent); }
+    .lens-corners::before,.lens-corners::after { content:""; position:absolute; z-index:7; inset:72px 22px 92px; pointer-events:none; border:0 solid #a5e5f0; }
+    .lens-corners::before { border-left-width:3px; border-top-width:3px; width:42px; height:42px; }
+    .lens-corners::after { left:auto; top:auto; border-right-width:3px; border-bottom-width:3px; width:42px; height:42px; }
+    .photo-side { display:grid; gap:12px; }
+    .photo-panel { padding:16px; border:1px solid var(--line); border-radius:18px; background:var(--surface); }
+    .photo-panel h2 { margin:0; font:600 19px var(--font-display); }
+    .photo-panel p { margin:6px 0 14px; color:var(--muted); font-size:12px; line-height:1.45; }
+    .photo-panel .select,.photo-panel .button,.photo-panel .primary,.photo-panel .counter button { background:#102f3b; }
+    .photo-panel .primary { background:var(--accent); color:#071823; }
+    .window-tabs .window-tab,.window-tabs .add-window { background:#0e2935; }
+    .window-tabs .window-tab[aria-selected="true"] { background:#143d49; box-shadow:inset 0 -3px 0 var(--accent); }
+    .measure-sheet { background:#0d2935; border-color:#3d6370; color:#fff; }
+    .measure-sheet .dimension-parts,.measure-sheet .select,.measure-sheet .notes { background:#071e29; }
+    .measure-sheet .option-chip { background:#113440; }
+    .measure-sheet .primary { background:var(--accent); color:#071823; }
+    .sticky-actions { background:rgba(7,24,35,.9); }
+    .sticky-actions .draft { color:#fff; }
+    @media(min-width:880px){ .photo-layout{grid-template-columns:minmax(0,1fr) 340px;align-items:start}.photo-side{position:sticky;top:16px}.camera-card{min-height:720px}.measure-sheet{left:auto;right:28px;top:28px;bottom:28px;width:520px;max-height:calc(100vh - 56px)} }
+    @media(max-width:600px){ .camera-card{min-height:520px;border-radius:18px}.camera-card .window-canvas{width:86%;outline-offset:7px}.camera-tools{grid-template-columns:1fr 1fr}.camera-tools button:last-child{grid-column:1/-1}.photo-head{margin-top:12px}.level-chip{width:100%;justify-content:space-between} }
+  </style>
+</head>
+<body data-initial-panes="3" data-initial-pane="2" data-initial-orientation="vertical">
+  <a class="back-to-index" href="index.html" aria-label="Retour aux cinq styles">←</a>
+  <div class="prototype"><div class="shell">
+    <div class="topbar"><div class="brand-lockup"><img class="brand-mark" src="../../public/images/Vos-Thermos-Logo.png" alt=""><div class="brand-copy"><strong>Jean Tremblay</strong><span>Fenêtre salon · Photo de référence</span></div></div><span class="mode-chip">Photo analysée</span></div>
+    <header class="photo-head"><div><p class="eyebrow">Style 04 · Photo tracée</p><h1>Mesurez sur la vraie fenêtre.</h1></div><div class="level-chip"><span>Photo assez droite</span><span class="level" aria-hidden="true"></span><b>0,4°</b></div></header>
+    <div class="window-tabs"><button class="window-tab" data-window-tab aria-selected="true">Salon · 3T</button><button class="window-tab" data-window-tab aria-selected="false">Cuisine · 1T</button><button class="add-window" data-add-window>＋ Fenêtre</button></div>
+
+    <div class="photo-layout">
+      <main class="camera-card">
+        <div class="camera-top"><span class="camera-label">F01 · Vue intérieure</span><span class="camera-label">Touchez une vitre pour la mesurer</span></div>
+        <div class="lens-corners"></div>
+        <div class="window-stage has-photo"><div class="window-canvas" data-window-canvas aria-label="Tracé interactif sur la photo"></div></div>
+        <div class="camera-tools"><button data-photo>Reprendre la photo</button><button>Tracer manuellement</button><button class="detect" data-detect>Relancer la détection</button></div>
+      </main>
+
+      <aside class="photo-side">
+        <section class="photo-panel"><p class="eyebrow">Thermos actifs</p><div class="pane-strip" data-pane-strip></div><p>La bordure orange indique exactement quelle vitre recevra les dimensions.</p></section>
+        <section class="photo-panel"><h2>Corriger les divisions</h2><p>Détection proposée : 3 thermos verticaux.</p><label><span class="field-label">Sections égales</span><select class="select" data-section-count><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select></label><div class="button-row" style="margin-top:9px"><button class="primary" data-split="vertical">Verticales</button><button class="button" data-split="horizontal">Horizontales</button></div><button class="danger-link" data-reset style="margin-top:9px">Effacer le tracé</button></section>
+        <section class="photo-panel"><h2>Carrelage dans <span data-active-pane>T2</span></h2><p>Les lignes décoratives sont superposées à la photo sans créer de thermos.</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><span class="field-label">Vertical</span><div class="counter" data-counter="vertical"><button data-delta="-1">−</button><output>0</output><button data-delta="1">＋</button></div></div><div><span class="field-label">Horizontal</span><div class="counter" data-counter="horizontal"><button data-delta="-1">−</button><output>0</output><button data-delta="1">＋</button></div></div></div></section>
+      </aside>
+    </div>
+    <div class="sticky-actions"><span class="dirty-dot" data-dirty></span><button class="draft" data-save-draft>Enregistrer</button><button class="final" data-finalize>Valider le tracé et les mesures</button></div>
+  </div></div>
+
+  <aside class="measure-sheet" data-measure-sheet hidden>
+    <div class="sheet-grip"></div><div class="sheet-head"><div><span class="sheet-kicker mono">Repère F01 · <span data-active-pane>T2</span></span><h2>Mesurer <span data-active-pane>T2</span></h2><p>La section orange reste visible derrière cette fiche.</p></div><button class="close-sheet" data-close-sheet aria-label="Fermer">×</button></div>
+    <div class="measure-grid"><label class="dimension"><span class="field-label">Largeur *</span><span class="dimension-parts"><input type="number" placeholder="Ex. 32" data-measure-key="width"><select data-measure-key="widthFraction" aria-label="Fraction largeur"></select><span>po</span></span></label><label class="dimension"><span class="field-label">Hauteur *</span><span class="dimension-parts"><input type="number" placeholder="Ex. 48" data-measure-key="height"><select data-measure-key="heightFraction" aria-label="Fraction hauteur"></select><span>po</span></span></label><label class="dimension"><span class="field-label">Épaisseur *</span><span class="dimension-parts"><input type="number" placeholder="Ex. 1" data-measure-key="thickness"><select data-measure-key="thicknessFraction" aria-label="Fraction épaisseur"></select><span>po</span></span></label></div>
+    <div class="option-grid"><label class="option-chip"><input type="checkbox">Low-E</label><label class="option-chip"><input type="checkbox">Argon</label><label class="option-chip"><input type="checkbox">Trempé</label><label class="option-chip"><input type="checkbox">Laminé</label></div>
+    <div class="sheet-selects"><label><span class="field-label">Intercalaire</span><select class="select"><option>Noir</option><option>Gris</option><option>Blanc</option><option>Inox</option></select></label><label><span class="field-label">Vitrage</span><select class="select"><option>Double</option><option>Triple</option><option>Simple</option></select></label><label><span class="field-label">Accès</span><select class="select"><option>Facile</option><option>Moyen</option><option>Difficile</option></select></label></div>
+    <div class="sheet-actions"><button class="secondary" data-close-sheet>Retour à la photo</button><button class="primary" data-close-sheet>Placer les mesures sur <span data-active-pane>T2</span></button></div>
+  </aside>
+  <div class="toast" data-toast role="status"></div><script src="prototype.js"></script>
+</body>
+</html>

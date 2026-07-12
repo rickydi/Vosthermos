@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Style 02 — Ruban de chantier</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Roboto+Mono:wght@500;700&family=Source+Sans+3:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="base.css">
+  <style>
+    :root {
+      --page:#f7fafc; --surface:#fff; --surface-2:#edf3f8; --ink:#13263d; --muted:#60748b; --line:#c9d8e8;
+      --accent:#f4c542; --accent-ink:#13263d; --success:#168a64; --warning:#b96c16; --radius:16px;
+      --font-display:"Archivo Black",sans-serif; --font-ui:"Source Sans 3",sans-serif; --font-data:"Roboto Mono",monospace;
+    }
+    .topbar { margin-left:48px; }
+    .journey { margin:8px 0 22px; border:1px solid #dcc448; border-radius:14px; background:var(--accent); color:var(--ink); box-shadow:0 8px 0 #d9b92e; }
+    .tape { display:grid; grid-template-columns:repeat(4,1fr); min-height:76px; background-image:repeating-linear-gradient(90deg,rgba(19,38,61,.28) 0 1px,transparent 1px 12px); background-position:left bottom; background-size:auto 15px; background-repeat:repeat-x; }
+    .tape-step { position:relative; display:grid; place-content:center; gap:3px; padding:15px 5px 21px; text-align:center; color:rgba(19,38,61,.56); font-size:10px; font-weight:900; text-transform:uppercase; }
+    .tape-step::after { content:""; position:absolute; bottom:-5px; left:50%; width:13px; height:13px; transform:translateX(-50%) rotate(45deg); border:3px solid var(--accent); background:#fff; }
+    .tape-step.done { color:var(--ink); }
+    .tape-step.done::after { background:var(--success); }
+    .tape-step.current { background:rgba(255,255,255,.34); color:var(--ink); }
+    .tape-step.current::after { width:18px; height:18px; bottom:-8px; background:var(--ink); }
+    .tape-step b { font-family:var(--font-data); font-size:14px; }
+    .guided-layout { display:grid; gap:16px; }
+    .step-rail { display:none; }
+    .task-card { padding:16px; }
+    .task-title { display:flex; align-items:flex-start; gap:12px; }
+    .step-number { display:grid; place-items:center; flex:0 0 46px; height:46px; border-radius:12px; background:var(--ink); color:var(--accent); font:700 18px var(--font-data); }
+    .task-title h1 { margin:0; font:400 clamp(24px,5vw,42px)/1 var(--font-display); }
+    .task-title p { margin:6px 0 0; color:var(--muted); }
+    .task-card .window-stage { min-height:290px; margin:18px -16px 0; border-block:1px solid var(--line); background:#edf5fb; }
+    .task-card .window-canvas { width:min(83%,560px); border-color:#1c334b; }
+    .task-card .pane[aria-pressed="true"] { border-color:var(--ink); box-shadow:inset 0 0 0 3px #fff,0 0 0 5px var(--accent); }
+    .task-card .pane[aria-pressed="true"]::after { background:var(--ink); color:#fff; }
+    .task-card .divider-handle { background:var(--accent); color:var(--ink); }
+    .click-callout { display:flex; gap:10px; align-items:center; margin:14px 0 0; padding:12px; border-radius:12px; background:#fff8d7; color:#4d4316; font-weight:700; }
+    .click-callout span { display:grid; place-items:center; width:30px; height:30px; border-radius:50%; background:var(--accent); font-family:var(--font-data); }
+    .guided-tools { display:grid; gap:12px; margin-top:15px; }
+    .guided-tools .tool-block { background:#f7fafc; }
+    .orientation { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .orientation button { min-height:54px; }
+    .photo-card { padding:16px; background:var(--ink); color:#fff; border-color:var(--ink); }
+    .photo-card p { color:rgba(255,255,255,.67); }
+    .photo-card .button { background:transparent; border-color:rgba(255,255,255,.3); color:#fff; }
+    .recap { padding:16px; }
+    .recap-grid { display:grid; gap:8px; margin-top:14px; }
+    .recap-item { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:11px 0; border-bottom:1px solid var(--line); }
+    .recap-item:last-child { border-bottom:0; }
+    .recap-item b { font-family:var(--font-data); }
+    .recap-item span { color:var(--muted); font-size:12px; }
+    .measure-sheet { border-radius:18px; border-top:10px solid var(--accent); }
+    .measure-sheet .sheet-kicker { color:#856700; }
+    .measure-sheet .dimension-parts { border-width:2px; }
+    .measure-sheet .primary { background:var(--ink); color:#fff; }
+    .sticky-actions .final { background:var(--brand-red); }
+    @media(min-width:780px){ .guided-tools{grid-template-columns:1fr 1fr}.photo-card{grid-column:1/-1}.task-card{padding:22px}.task-card .window-stage{margin:20px -22px 0}.recap-grid{grid-template-columns:repeat(3,1fr)}.recap-item{display:block;border:1px solid var(--line);border-radius:12px;padding:12px}.recap-item span{display:block;margin-top:5px} }
+    @media(min-width:1180px){
+      .journey{display:none}.guided-layout{grid-template-columns:210px minmax(0,1fr) 300px;align-items:start}.step-rail{display:grid;position:sticky;top:18px;border:1px solid var(--line);border-radius:18px;background:#fff;overflow:hidden}.desktop-step{display:grid;grid-template-columns:42px 1fr;gap:9px;align-items:center;padding:16px;border-bottom:1px solid var(--line);color:var(--muted)}.desktop-step:last-child{border:0}.desktop-step b{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--surface-2);font-family:var(--font-data)}.desktop-step.current{background:#fff8d2;color:var(--ink)}.desktop-step.current b{background:var(--accent)}.desktop-step.done b{background:var(--success);color:#fff}.recap{position:sticky;top:18px}.measure-sheet{right:24px;top:24px;bottom:24px;max-height:calc(100vh - 48px)}
+    }
+  </style>
+</head>
+<body data-initial-panes="3" data-initial-pane="2" data-initial-orientation="vertical">
+  <a class="back-to-index" href="index.html" aria-label="Retour aux cinq styles">←</a>
+  <div class="prototype"><div class="shell">
+    <div class="topbar"><div class="brand-lockup"><img class="brand-mark" src="../../public/images/Vos-Thermos-Logo.png" alt=""><div class="brand-copy"><strong>Mesures de Jean Tremblay</strong><span>Fenêtre salon · Pré-soumission</span></div></div><span class="mode-chip">Lien client</span></div>
+
+    <nav class="journey" aria-label="Progression"><div class="tape"><div class="tape-step done"><b>01</b>Photo</div><div class="tape-step done"><b>02</b>Divisions</div><div class="tape-step current"><b>03</b>Mesures</div><div class="tape-step"><b>04</b>Vérifier</div></div></nav>
+
+    <div class="guided-layout">
+      <aside class="step-rail" aria-label="Étapes"><div class="desktop-step done"><b>✓</b><span>Photo de face</span></div><div class="desktop-step done"><b>✓</b><span>Divisions</span></div><div class="desktop-step current"><b>3</b><span>Mesurer chaque vitre</span></div><div class="desktop-step"><b>4</b><span>Vérifier et envoyer</span></div></aside>
+
+      <main class="task-card card">
+        <div class="task-title"><span class="step-number">03</span><div><h1>Mesurez chaque thermos</h1><p>Choisissez une section sur le dessin, puis entrez ses trois dimensions.</p></div></div>
+        <div class="window-tabs" style="margin-top:16px"><button class="window-tab" data-window-tab aria-selected="true">Salon · 3T</button><button class="window-tab" data-window-tab aria-selected="false">Cuisine · 1T</button><button class="add-window" data-add-window>＋ Fenêtre</button></div>
+        <div class="window-stage"><div class="window-canvas" data-window-canvas aria-label="Dessin interactif de la fenêtre"></div></div>
+        <div class="pane-strip" data-pane-strip></div>
+        <div class="click-callout"><span>!</span><div><strong>Touchez T2</strong><br><small>La fiche Largeur × Hauteur × Épaisseur s’ouvrira.</small></div></div>
+
+        <div class="guided-tools">
+          <section class="tool-block"><h3>Ajuster les sections</h3><p>Choisissez combien de thermos égaux composent cette zone.</p><label><span class="field-label">Nombre de sections</span><select class="select" data-section-count><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select></label><div class="orientation" style="margin-top:9px"><button class="primary" data-split="vertical">Verticales</button><button class="button" data-split="horizontal">Horizontales</button></div><button class="danger-link" data-reset style="margin-top:9px">Recommencer le dessin</button></section>
+          <section class="tool-block"><h3>Carrelage dans <span data-active-pane>T2</span></h3><p>Décoratif seulement : le nombre de thermos ne change pas.</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><span class="field-label">Vertical</span><div class="counter" data-counter="vertical"><button data-delta="-1">−</button><output>0</output><button data-delta="1">＋</button></div></div><div><span class="field-label">Horizontal</span><div class="counter" data-counter="horizontal"><button data-delta="-1">−</button><output>0</output><button data-delta="1">＋</button></div></div></div></section>
+          <section class="tool-block photo-card"><h3>La photo reste disponible</h3><p>Reprenez-la ou relancez la détection sans perdre les mesures déjà inscrites.</p><div class="button-row"><button class="button" data-photo>Prendre la photo</button><button class="primary" data-detect disabled>Détecter les divisions</button></div></section>
+        </div>
+      </main>
+
+      <aside class="recap card"><p class="eyebrow">Étape actuelle</p><h2 style="margin:5px 0 0;font-family:var(--font-display);font-size:20px">2 thermos sur 3</h2><div class="recap-grid"><div class="recap-item"><b>T1</b><span>32 1/4 × 48 1/2 × 1 po</span></div><div class="recap-item"><b>T2</b><span>À mesurer</span></div><div class="recap-item"><b>T3</b><span>31 7/8 × 48 1/2 × 1 po</span></div></div><p style="margin:15px 0 0;color:var(--muted);font-size:12px;line-height:1.45">Les mesures servent à la pré-soumission. Un technicien confirmera avant la commande.</p></aside>
+    </div>
+    <div class="sticky-actions"><span class="dirty-dot" data-dirty></span><button class="draft" data-save-draft>Enregistrer</button><button class="final" data-finalize>Continuer vers la vérification</button></div>
+  </div></div>
+
+  <aside class="measure-sheet" data-measure-sheet hidden>
+    <div class="sheet-grip"></div><div class="sheet-head"><div><span class="sheet-kicker">Étape 3 · <span data-active-pane>T2</span></span><h2>Mesurer <span data-active-pane>T2</span></h2><p>Écrivez les pouces entiers, puis choisissez la fraction.</p></div><button class="close-sheet" data-close-sheet aria-label="Fermer">×</button></div>
+    <div class="measure-grid"><label class="dimension"><span class="field-label">Largeur *</span><span class="dimension-parts"><input type="number" placeholder="Ex. 32" data-measure-key="width"><select data-measure-key="widthFraction" aria-label="Fraction largeur"></select><span>po</span></span></label><label class="dimension"><span class="field-label">Hauteur *</span><span class="dimension-parts"><input type="number" placeholder="Ex. 48" data-measure-key="height"><select data-measure-key="heightFraction" aria-label="Fraction hauteur"></select><span>po</span></span></label><label class="dimension"><span class="field-label">Épaisseur</span><span class="dimension-parts"><input type="number" placeholder="Ex. 1" data-measure-key="thickness"><select data-measure-key="thicknessFraction" aria-label="Fraction épaisseur"></select><span>po</span></span></label></div>
+    <div class="option-grid"><label class="option-chip"><input type="checkbox">Low-E</label><label class="option-chip"><input type="checkbox">Argon</label><label class="option-chip"><input type="checkbox">Trempé</label><label class="option-chip"><input type="checkbox">Laminé</label></div>
+    <div class="sheet-selects"><label><span class="field-label">Intercalaire</span><select class="select"><option>Noir</option><option>Gris</option><option>Blanc</option><option>Inox</option></select></label><label><span class="field-label">Vitrage</span><select class="select"><option>Double</option><option>Triple</option><option>Simple</option></select></label><label><span class="field-label">Accès</span><select class="select"><option>Facile</option><option>Moyen</option><option>Difficile</option></select></label></div>
+    <div class="sheet-actions"><button class="secondary" data-close-sheet>Retour au dessin</button><button class="primary" data-close-sheet>Garder et continuer</button></div>
+  </aside>
+  <div class="toast" data-toast role="status"></div><script src="prototype.js"></script>
+</body>
+</html>
