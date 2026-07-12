@@ -10,16 +10,18 @@
   <link rel="stylesheet" href="base.css">
   <style>
     :root {
-      --page:#eef4f5; --surface:#fff; --surface-2:#e3eff0; --ink:#101820; --muted:#5f7078; --line:#c9d8db;
-      --accent:#1597a8; --accent-ink:#fff; --success:#2e7d62; --warning:#c47a1d; --radius:20px;
+      --page:#f5efe6; --surface:#fffaf2; --surface-2:#e6f1f3; --ink:#132127; --muted:#65737b; --line:rgba(19,33,39,.12);
+      --accent:#003845; --accent-ink:#fff; --success:#2e7d62; --warning:#d7a64b; --danger:#b90513; --brand-red:#e30718; --radius:20px;
       --font-display:"Barlow Condensed",sans-serif; --font-ui:"Atkinson Hyperlegible",sans-serif; --font-data:"IBM Plex Mono",monospace;
     }
+    .prototype { background:radial-gradient(circle at 12% 4%,rgba(227,7,24,.09),transparent 26rem),radial-gradient(circle at 88% 2%,rgba(0,56,69,.12),transparent 30rem),var(--page); }
+    .eyebrow { color:var(--brand-red); }
     .topbar { margin-left:48px; }
     .gabarit-hero { display:grid; gap:16px; margin-bottom:18px; }
     .gabarit-hero .lead { margin:8px 0 0; max-width:680px; color:var(--muted); line-height:1.5; }
-    .progress-card { width:min(100%,360px); padding:10px 11px 9px; border:1px solid color-mix(in srgb,var(--accent) 28%,var(--line)); border-radius:15px; background:color-mix(in srgb,var(--surface) 94%,var(--accent)); box-shadow:0 10px 28px rgba(16,36,45,.08); }
+    .progress-card { width:min(100%,360px); padding:10px 11px 9px; border:1px solid color-mix(in srgb,var(--accent) 22%,var(--line)); border-radius:15px; background:color-mix(in srgb,var(--surface) 96%,var(--accent)); box-shadow:0 10px 28px rgba(6,29,36,.1); }
     .progress-head { display:flex; align-items:center; justify-content:space-between; gap:12px; }
-    .progress-head span { color:var(--muted); font-size:10px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; }
+    .progress-head span { color:var(--brand-red); font-size:10px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; }
     .progress-head strong { color:var(--ink); font:700 11px var(--font-data); }
     .thermo-progress { display:flex; align-items:flex-start; overflow-x:auto; padding:8px 0 1px; scrollbar-width:none; }
     .thermo-progress::-webkit-scrollbar { display:none; }
@@ -30,7 +32,7 @@
     .progress-node { position:relative; z-index:1; width:30px; height:30px; display:grid; place-items:center; padding:0; border:2px solid var(--line); border-radius:50%; background:var(--surface); color:var(--muted); font:700 11px/1 var(--font-data); }
     .progress-node svg { display:block; width:15px; height:15px; margin:auto; }
     .progress-step.is-complete .progress-node { border-color:var(--success); background:var(--success); color:#fff; }
-    .progress-step.is-current .progress-node { border-color:var(--accent); color:var(--accent); box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 16%,transparent); }
+    .progress-step.is-current .progress-node { border-color:var(--brand-red); color:var(--brand-red); box-shadow:0 0 0 4px rgba(227,7,24,.12); }
     .progress-step.is-current.is-complete .progress-node { background:var(--success); color:#fff; box-shadow:0 0 0 4px color-mix(in srgb,var(--success) 16%,transparent); }
     .progress-label { font:700 10px/1 var(--font-data); }
     .progress-step.is-current .progress-label { color:var(--ink); }
@@ -38,13 +40,13 @@
     .side-windows { padding:12px; }
     .side-windows .window-tabs { margin:0; }
     .plan-card { padding:15px; overflow:hidden; }
-    .plan-card .window-stage { margin:10px -15px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); background:#d7f3f5; }
+    .plan-card .window-stage { margin:10px -15px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); background:#e6f1f3; }
     .dimension-frame { position:absolute; inset:7% 4%; pointer-events:none; color:#44636d; font:600 11px var(--font-data); }
     .dimension-frame::before, .dimension-frame::after { content:""; position:absolute; background:var(--accent); opacity:.55; }
     .dimension-frame::before { left:7%; right:7%; top:0; height:1px; }
     .dimension-frame::after { top:7%; bottom:7%; left:0; width:1px; }
-    .dim-width { position:absolute; top:-8px; left:50%; transform:translateX(-50%); padding:0 8px; background:#d7f3f5; }
-    .dim-height { position:absolute; left:-26px; top:50%; transform:rotate(-90deg) translateX(-50%); transform-origin:center; padding:0 8px; background:#d7f3f5; }
+    .dim-width { position:absolute; top:-8px; left:50%; transform:translateX(-50%); padding:0 8px; background:#e6f1f3; }
+    .dim-height { position:absolute; left:-26px; top:50%; transform:rotate(-90deg) translateX(-50%); transform-origin:center; padding:0 8px; background:#e6f1f3; }
     .plan-instruction { display:flex; align-items:center; gap:10px; margin:10px 0 0; color:var(--muted); font-size:12px; }
     .plan-instruction b { display:grid; place-items:center; width:28px; height:28px; border-radius:50%; background:var(--accent); color:#fff; font:700 12px/1 var(--font-data); }
     .division-toolbar { display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"heading actions" "controls controls" "tip tip"; gap:7px 9px; align-items:center; margin-top:12px; padding:9px; border:1px solid color-mix(in srgb,var(--accent) 42%,var(--line)); border-radius:14px; background:color-mix(in srgb,var(--accent) 7%,var(--surface)); }
@@ -85,10 +87,11 @@
     .summary-row small { color:var(--muted); }
     .summary-row .state { width:10px; height:10px; border-radius:50%; background:var(--success); }
     .summary-row.pending .state { background:var(--warning); }
-    .sheet-kicker { color:var(--accent); font:700 11px var(--font-data); letter-spacing:.1em; text-transform:uppercase; }
+    .sheet-kicker { color:var(--brand-red); font:700 11px var(--font-data); letter-spacing:.1em; text-transform:uppercase; }
     .measure-sheet { border-top:5px solid var(--accent); }
-    .measure-sheet .dimension-parts { background:#f8fbfb; }
-    .glass-tip { margin:13px 0 0; padding:11px; border-left:4px solid var(--accent); background:#eaf6f6; color:#33535b; font-size:12px; line-height:1.45; }
+    .measure-sheet .dimension-parts { background:#fffdf9; }
+    .glass-tip { margin:13px 0 0; padding:11px; border-left:4px solid var(--accent); background:#e6f1f3; color:#24434b; font-size:12px; line-height:1.45; }
+    .sticky-actions .final { background:linear-gradient(180deg,#ff3547,#b90513); box-shadow:0 20px 36px -22px rgba(227,7,24,.95); }
     @media(max-width:759px){
       .plan-card{padding:12px}
       .plan-card .window-stage{min-height:300px;margin:10px -12px 0;padding:24px 0}
