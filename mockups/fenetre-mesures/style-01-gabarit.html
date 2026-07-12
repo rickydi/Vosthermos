@@ -27,7 +27,7 @@
       box-shadow:0 10px 26px rgba(6,29,36,.18);
     }
     .topbar .brand-lockup { flex:0 0 auto; }
-    .topbar .brand-mark { width:112px; height:34px; object-fit:fill; border-radius:0; filter:brightness(1.1) drop-shadow(0 3px 8px rgba(0,0,0,.2)); }
+    .topbar .brand-mark { width:auto; height:64px; object-fit:contain; border-radius:0; filter:brightness(1.1) drop-shadow(0 3px 8px rgba(0,0,0,.2)); }
     .topbar .mode-chip { border-color:rgba(255,255,255,.18); background:rgba(255,255,255,.08); color:#fff; }
     .gabarit-hero { display:grid; gap:16px; margin-bottom:18px; }
     .gabarit-hero .lead { margin:8px 0 0; max-width:680px; color:var(--muted); line-height:1.5; }
@@ -140,7 +140,7 @@
       .division-controls{grid-template-columns:82px minmax(210px,1fr)}
       .tool-grid{grid-template-columns:1.2fr .8fr}.photo-actions{grid-column:1/-1}.summary-card{display:none}
     }
-    @media(min-width:720px){.topbar{margin:-24px -24px 20px;padding-left:76px}.topbar .brand-mark{width:180px;height:50px}}
+    @media(min-width:720px){.topbar{margin:-24px -24px 20px;padding-left:76px}.topbar .brand-mark{height:70px}}
     @media(max-width:360px){.division-reset .reset-label{display:none}.division-reset{width:44px;padding:0}}
     @media(min-width:1180px){
       .workspace{grid-template-columns:170px minmax(0,1fr) 290px;align-items:start}.side-windows{position:sticky;top:18px}.side-windows .window-tabs{flex-direction:column;overflow:visible}.side-windows .window-tab,.side-windows .add-window{width:100%;text-align:left}.summary-card{display:block;position:sticky;top:18px}.plan-card{padding:20px}.plan-card .window-stage{margin:18px -20px 0}.tool-grid{grid-template-columns:1fr 1fr}.measure-sheet{top:20px;bottom:20px;right:20px;left:auto;width:480px;max-height:calc(100vh - 40px)}
