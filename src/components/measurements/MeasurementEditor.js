@@ -1,6 +1,7 @@
 "use client";
 
 import { forwardRef, useImperativeHandle, useMemo, useRef, useState } from "react";
+import { getStructuralDividers, moveStructuralDivider, resetWindowDivisions } from "@/lib/thermos-layout";
 
 const FRACTIONS = [
   [0, "0"], [1, "1/16"], [2, "1/8"], [3, "3/16"], [4, "1/4"], [5, "5/16"],
@@ -111,9 +112,56 @@ function reNumberWindows(data) {
   };
 }
 
-function Blueprint({ win, selectedId, onSelect }) {
+function Blueprint({ win, selectedId, onSelect, onMoveDivider }) {
+  const canvasRef = useRef(null);
+  const dragRef = useRef(null);
+  const dividers = useMemo(() => getStructuralDividers(win.panes), [win.panes]);
+
+  function pointerPosition(event, divider) {
+    const canvas = canvasRef.current;
+    const rect = canvas?.getBoundingClientRect();
+    if (!rect || !canvas.clientWidth || !canvas.clientHeight) return divider.position;
+    const ratio = divider.axis === "vertical"
+      ? (event.clientX - rect.left - canvas.clientLeft) / canvas.clientWidth
+      : (event.clientY - rect.top - canvas.clientTop) / canvas.clientHeight;
+    return Math.min(divider.maximumPosition, Math.max(divider.minimumPosition, Math.round(ratio * 10000)));
+  }
+
+  function startDividerDrag(event, divider) {
+    event.preventDefault();
+    event.stopPropagation();
+    dragRef.current = { pointerId: event.pointerId, dividerId: divider.id };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  }
+
+  function dragDivider(event, divider) {
+    if (dragRef.current?.pointerId !== event.pointerId || dragRef.current?.dividerId !== divider.id) return;
+    event.preventDefault();
+    onMoveDivider(divider, pointerPosition(event, divider));
+  }
+
+  function stopDividerDrag(event) {
+    if (dragRef.current?.pointerId !== event.pointerId) return;
+    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    dragRef.current = null;
+  }
+
+  function moveDividerWithKeyboard(event, divider) {
+    const previousKey = divider.axis === "vertical" ? "ArrowLeft" : "ArrowUp";
+    const nextKey = divider.axis === "vertical" ? "ArrowRight" : "ArrowDown";
+    if (![previousKey, nextKey, "Home", "End"].includes(event.key)) return;
+    event.preventDefault();
+    const step = event.shiftKey ? 500 : 100;
+    const nextPosition = event.key === "Home"
+      ? divider.minimumPosition
+      : event.key === "End"
+        ? divider.maximumPosition
+        : divider.position + (event.key === previousKey ? -step : step);
+    onMoveDivider(divider, Math.min(divider.maximumPosition, Math.max(divider.minimumPosition, nextPosition)));
+  }
+
   return (
-    <div className="relative aspect-[4/3] min-h-72 rounded-xl overflow-hidden border-4 border-slate-500/60 bg-sky-950/30 shadow-inner">
+    <div ref={canvasRef} className="relative aspect-[4/3] min-h-72 rounded-xl overflow-hidden border-4 border-slate-500/60 bg-sky-950/30 shadow-inner">
       {win.photoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={win.photoUrl} alt={`Photo de ${win.label}`} className="absolute inset-0 w-full h-full object-cover opacity-45" />
@@ -125,7 +173,7 @@ function Blueprint({ win, selectedId, onSelect }) {
         return (
           <button
             key={pane.id} type="button" onClick={() => onSelect(pane.id)}
-            className={`absolute border-2 transition-all overflow-hidden ${selected ? "border-cyan-300 bg-cyan-400/20 z-10 shadow-[0_0_0_2px_rgba(34,211,238,.25)]" : "border-white/65 bg-sky-300/5 hover:bg-sky-300/15"}`}
+            className={`absolute border-2 transition-colors overflow-hidden ${selected ? "border-cyan-300 bg-cyan-400/20 z-10 shadow-[0_0_0_2px_rgba(34,211,238,.25)]" : "border-white/65 bg-sky-300/5 hover:bg-sky-300/15"}`}
             style={{ left: `${pane.x / 100}%`, top: `${pane.y / 100}%`, width: `${pane.width / 100}%`, height: `${pane.height / 100}%` }}
             aria-label={`Thermos ${pane.number}`}
           >
@@ -144,6 +192,51 @@ function Blueprint({ win, selectedId, onSelect }) {
           </button>
         );
       })}
+      {dividers.flatMap((divider) => divider.segments.map((segment, segmentIndex) => {
+        const vertical = divider.axis === "vertical";
+        const positionStyle = vertical
+          ? {
+              left: `${divider.position / 100}%`,
+              top: `${segment.start / 100}%`,
+              height: `${(segment.end - segment.start) / 100}%`,
+              width: "36px",
+              transform: "translateX(-50%)",
+            }
+          : {
+              top: `${divider.position / 100}%`,
+              left: `${segment.start / 100}%`,
+              width: `${(segment.end - segment.start) / 100}%`,
+              height: "36px",
+              transform: "translateY(-50%)",
+            };
+        const percentage = Math.round(divider.position / 100);
+        return (
+          <button
+            key={`${divider.id}:${segmentIndex}`}
+            type="button"
+            role="slider"
+            aria-label={`Déplacer la division ${vertical ? "verticale" : "horizontale"}`}
+            aria-orientation={vertical ? "horizontal" : "vertical"}
+            aria-valuemin={Math.round(divider.minimumPosition / 100)}
+            aria-valuemax={Math.round(divider.maximumPosition / 100)}
+            aria-valuenow={percentage}
+            aria-valuetext={`${percentage} % du cadre`}
+            title="Glisser pour déplacer · Flèches: 1 % · Maj + flèche: 5 %"
+            className={`group absolute z-30 flex items-center justify-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-white/90 ${vertical ? "cursor-col-resize" : "cursor-row-resize"}`}
+            style={{ ...positionStyle, touchAction: "none" }}
+            onPointerDown={(event) => startDividerDrag(event, divider)}
+            onPointerMove={(event) => dragDivider(event, divider)}
+            onPointerUp={stopDividerDrag}
+            onPointerCancel={stopDividerDrag}
+            onLostPointerCapture={() => { dragRef.current = null; }}
+            onKeyDown={(event) => moveDividerWithKeyboard(event, divider)}
+            onClick={(event) => { event.preventDefault(); event.stopPropagation(); }}
+          >
+            <span className={`absolute rounded-full bg-cyan-200 shadow-[0_0_0_1px_rgba(8,47,73,.75),0_0_12px_rgba(34,211,238,.85)] transition-all group-hover:bg-white group-focus-visible:bg-white ${vertical ? "inset-y-0 left-1/2 w-1 -translate-x-1/2 group-hover:w-1.5" : "inset-x-0 top-1/2 h-1 -translate-y-1/2 group-hover:h-1.5"}`} />
+            <span className={`relative rounded-full border border-cyan-100/80 bg-slate-900 text-cyan-100 shadow-lg ${vertical ? "h-9 w-3" : "h-3 w-9"}`} aria-hidden="true" />
+          </button>
+        );
+      }))}
     </div>
   );
 }
@@ -216,6 +309,29 @@ const MeasurementEditor = forwardRef(function MeasurementEditor({
     const pieces = splitPane(selectedPane, direction);
     updateWindow((win) => ({ panes: win.panes.flatMap((pane) => pane.id === selectedPane.id ? pieces : [pane]) }));
     setSelectedPaneId(pieces[0].id);
+  }
+
+  function moveDivider(divider, nextPosition) {
+    updateWindow((win) => ({ panes: moveStructuralDivider(win.panes, divider, nextPosition) }));
+  }
+
+  function resetDivisions() {
+    const hasCustomDrawing = activeWindow.panes.length !== 1
+      || activeWindow.panes[0]?.x !== 0
+      || activeWindow.panes[0]?.y !== 0
+      || activeWindow.panes[0]?.width !== 10000
+      || activeWindow.panes[0]?.height !== 10000;
+    if (!hasCustomDrawing) return;
+    const confirmed = confirm(
+      `Réinitialiser le dessin de ${activeWindow.label}?\n\nToutes les divisions et les mesures/options des thermos de cette fenêtre seront effacées. La photo, le nom et l’emplacement seront conservés.`
+    );
+    if (!confirmed) return;
+    const next = reNumberWindows(resetWindowDivisions(data, activeWindow.id));
+    const resetWindow = next.windows.find((win) => win.id === activeWindow.id);
+    setData(next);
+    setDirty(true);
+    setSelectedPaneId(resetWindow?.panes[0]?.id);
+    setMessage("Le dessin de la fenêtre a été réinitialisé. Ajoutez les divisions nécessaires.");
   }
 
   function removePane() {
@@ -357,7 +473,13 @@ const MeasurementEditor = forwardRef(function MeasurementEditor({
             {data.windows.length > 1 && <button type="button" onClick={removeWindow} className="rounded-lg border border-red-400/30 px-3 py-2 text-red-300" title="Supprimer"><i className="fas fa-trash" /></button>}
           </div>
 
-          <Blueprint win={activeWindow} selectedId={selectedPane.id} onSelect={setSelectedPaneId} />
+          <Blueprint win={activeWindow} selectedId={selectedPane.id} onSelect={setSelectedPaneId} onMoveDivider={moveDivider} />
+          {activeWindow.panes.length > 1 && (
+            <p className="flex items-center gap-2 text-xs admin-text-muted">
+              <span className="inline-block h-3 w-1 rounded-full bg-cyan-200 shadow-[0_0_8px_rgba(34,211,238,.8)]" aria-hidden="true" />
+              Glissez les poignées cyan pour placer les divisions. Les flèches du clavier permettent un ajustement précis.
+            </p>
+          )}
 
           <div className="grid sm:grid-cols-2 gap-3">
             <div className="rounded-xl border admin-border p-3">
@@ -367,6 +489,14 @@ const MeasurementEditor = forwardRef(function MeasurementEditor({
                 <button type="button" onClick={() => structuralSplit("vertical")} className="rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-2 text-xs font-bold"><i className="fas fa-arrows-left-right-to-line mr-2" />Séparer verticalement</button>
                 <button type="button" onClick={() => structuralSplit("horizontal")} className="rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-2 text-xs font-bold"><i className="fas fa-arrows-up-down-to-line mr-2" />Séparer horizontalement</button>
                 {activeWindow.panes.length > 1 && <button type="button" onClick={removePane} className="rounded-lg border border-red-400/30 text-red-300 px-3 py-2 text-xs font-bold">Retirer T{selectedPane.number}</button>}
+                <button
+                  type="button"
+                  onClick={resetDivisions}
+                  disabled={activeWindow.panes.length === 1 && activeWindow.panes[0]?.x === 0 && activeWindow.panes[0]?.y === 0 && activeWindow.panes[0]?.width === 10000 && activeWindow.panes[0]?.height === 10000}
+                  className="rounded-lg border admin-border px-3 py-2 text-xs font-bold admin-text-muted hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
+                >
+                  <i className="fas fa-rotate-left mr-2" />Réinitialiser le dessin
+                </button>
               </div>
             </div>
             <div className="rounded-xl border border-amber-300/25 bg-amber-300/5 p-3">

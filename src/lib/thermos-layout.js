@@ -4,6 +4,10 @@ const GEOMETRY_SCALE = 10000;
 const MAX_DIMENSION_SIXTEENTHS = 240 * 16;
 const MIN_THICKNESS_SIXTEENTHS = 4; // 1/4 po
 const MAX_THICKNESS_SIXTEENTHS = 2 * 16;
+const MIN_DIVIDER_PANE_SIZE = 100;
+const DIVIDER_ADJACENCY_TOLERANCE = 800;
+const DIVIDER_GROUP_POSITION_TOLERANCE = 150;
+const DIVIDER_SEGMENT_TOLERANCE = 12;
 
 function makeId(prefix) {
   const uuid = globalThis.crypto?.randomUUID?.();
@@ -221,6 +225,200 @@ export function removeWindow(value, windowId) {
   return normalizeMeasurementData({
     ...data,
     windows: data.windows.filter((windowValue) => windowValue.id !== windowId),
+  });
+}
+
+function mergeDividerSegments(segments) {
+  const sorted = [...segments]
+    .filter((segment) => segment && segment.end > segment.start)
+    .sort((a, b) => a.start - b.start || a.end - b.end);
+  const merged = [];
+  for (const segment of sorted) {
+    const previous = merged[merged.length - 1];
+    if (previous && segment.start <= previous.end + DIVIDER_SEGMENT_TOLERANCE) {
+      previous.end = Math.max(previous.end, segment.end);
+    } else {
+      merged.push({ start: segment.start, end: segment.end });
+    }
+  }
+  return merged;
+}
+
+export function getStructuralDividers(value) {
+  const panes = Array.isArray(value) ? value : Array.isArray(value?.panes) ? value.panes : [];
+  const groups = [];
+
+  function addDivider(axis, position, start, end, beforePaneId, afterPaneId) {
+    if (!(end > start)) return;
+    const matchingGroups = groups.filter((candidate) => (
+      candidate.axis === axis
+      && Math.abs(candidate.position - position) <= DIVIDER_GROUP_POSITION_TOLERANCE
+      && candidate.segments.some((segment) => (
+        start <= segment.end + DIVIDER_SEGMENT_TOLERANCE
+        && end >= segment.start - DIVIDER_SEGMENT_TOLERANCE
+      ))
+    ));
+    let group = matchingGroups[0];
+    if (!group) {
+      group = {
+        axis,
+        position: Math.round(position),
+        positions: [],
+        beforePaneIds: new Set(),
+        afterPaneIds: new Set(),
+        segments: [],
+      };
+      groups.push(group);
+    } else {
+      for (const matchingGroup of matchingGroups.slice(1)) {
+        group.positions.push(...matchingGroup.positions);
+        matchingGroup.beforePaneIds.forEach((paneId) => group.beforePaneIds.add(paneId));
+        matchingGroup.afterPaneIds.forEach((paneId) => group.afterPaneIds.add(paneId));
+        group.segments.push(...matchingGroup.segments);
+        groups.splice(groups.indexOf(matchingGroup), 1);
+      }
+    }
+    group.positions.push(position);
+    group.position = Math.round(group.positions.reduce((sum, entry) => sum + entry, 0) / group.positions.length);
+    group.beforePaneIds.add(beforePaneId);
+    group.afterPaneIds.add(afterPaneId);
+    group.segments.push({ start, end });
+  }
+
+  function hasInterveningPane(firstIndex, secondIndex, axis, firstEdge, secondEdge, start, end) {
+    const minimumEdge = Math.min(firstEdge, secondEdge);
+    const maximumEdge = Math.max(firstEdge, secondEdge);
+    if (!(end > start) || maximumEdge - minimumEdge <= DIVIDER_SEGMENT_TOLERANCE) return false;
+    return panes.some((pane, paneIndex) => {
+      if (paneIndex === firstIndex || paneIndex === secondIndex) return false;
+      const paneAxisStart = axis === "vertical" ? finiteNumber(pane.x) : finiteNumber(pane.y);
+      const paneAxisEnd = paneAxisStart + (axis === "vertical" ? finiteNumber(pane.width) : finiteNumber(pane.height));
+      const paneSegmentStart = axis === "vertical" ? finiteNumber(pane.y) : finiteNumber(pane.x);
+      const paneSegmentEnd = paneSegmentStart + (axis === "vertical" ? finiteNumber(pane.height) : finiteNumber(pane.width));
+      const overlapsDividerSegment = Math.min(end, paneSegmentEnd) - Math.max(start, paneSegmentStart) > DIVIDER_SEGMENT_TOLERANCE;
+      const occupiesEdgeGap = paneAxisStart < maximumEdge - DIVIDER_SEGMENT_TOLERANCE
+        && paneAxisEnd > minimumEdge + DIVIDER_SEGMENT_TOLERANCE;
+      return overlapsDividerSegment && occupiesEdgeGap;
+    });
+  }
+
+  for (let firstIndex = 0; firstIndex < panes.length; firstIndex += 1) {
+    const first = panes[firstIndex];
+    for (let secondIndex = firstIndex + 1; secondIndex < panes.length; secondIndex += 1) {
+      const second = panes[secondIndex];
+      const firstRight = finiteNumber(first.x) + finiteNumber(first.width);
+      const secondRight = finiteNumber(second.x) + finiteNumber(second.width);
+      const firstBottom = finiteNumber(first.y) + finiteNumber(first.height);
+      const secondBottom = finiteNumber(second.y) + finiteNumber(second.height);
+      const verticalStart = Math.max(finiteNumber(first.y), finiteNumber(second.y));
+      const verticalEnd = Math.min(firstBottom, secondBottom);
+      const horizontalStart = Math.max(finiteNumber(first.x), finiteNumber(second.x));
+      const horizontalEnd = Math.min(firstRight, secondRight);
+
+      if (
+        Math.abs(firstRight - finiteNumber(second.x)) <= DIVIDER_ADJACENCY_TOLERANCE
+        && !hasInterveningPane(firstIndex, secondIndex, "vertical", firstRight, finiteNumber(second.x), verticalStart, verticalEnd)
+      ) {
+        addDivider("vertical", (firstRight + finiteNumber(second.x)) / 2, verticalStart, verticalEnd, first.id, second.id);
+      } else if (
+        Math.abs(secondRight - finiteNumber(first.x)) <= DIVIDER_ADJACENCY_TOLERANCE
+        && !hasInterveningPane(firstIndex, secondIndex, "vertical", secondRight, finiteNumber(first.x), verticalStart, verticalEnd)
+      ) {
+        addDivider("vertical", (secondRight + finiteNumber(first.x)) / 2, verticalStart, verticalEnd, second.id, first.id);
+      }
+
+      if (
+        Math.abs(firstBottom - finiteNumber(second.y)) <= DIVIDER_ADJACENCY_TOLERANCE
+        && !hasInterveningPane(firstIndex, secondIndex, "horizontal", firstBottom, finiteNumber(second.y), horizontalStart, horizontalEnd)
+      ) {
+        addDivider("horizontal", (firstBottom + finiteNumber(second.y)) / 2, horizontalStart, horizontalEnd, first.id, second.id);
+      } else if (
+        Math.abs(secondBottom - finiteNumber(first.y)) <= DIVIDER_ADJACENCY_TOLERANCE
+        && !hasInterveningPane(firstIndex, secondIndex, "horizontal", secondBottom, finiteNumber(first.y), horizontalStart, horizontalEnd)
+      ) {
+        addDivider("horizontal", (secondBottom + finiteNumber(first.y)) / 2, horizontalStart, horizontalEnd, second.id, first.id);
+      }
+    }
+  }
+
+  return groups.map((group) => {
+    const beforePaneIds = [...group.beforePaneIds].sort();
+    const afterPaneIds = [...group.afterPaneIds].sort();
+    const beforePanes = panes.filter((pane) => group.beforePaneIds.has(pane.id));
+    const afterPanes = panes.filter((pane) => group.afterPaneIds.has(pane.id));
+    const minimumPosition = Math.max(...beforePanes.map((pane) => (
+      group.axis === "vertical"
+        ? finiteNumber(pane.x) + MIN_DIVIDER_PANE_SIZE
+        : finiteNumber(pane.y) + MIN_DIVIDER_PANE_SIZE
+    )));
+    const maximumPosition = Math.min(...afterPanes.map((pane) => (
+      group.axis === "vertical"
+        ? finiteNumber(pane.x) + finiteNumber(pane.width) - MIN_DIVIDER_PANE_SIZE
+        : finiteNumber(pane.y) + finiteNumber(pane.height) - MIN_DIVIDER_PANE_SIZE
+    )));
+    return {
+      id: `${group.axis}:${beforePaneIds.join(",")}|${afterPaneIds.join(",")}`,
+      axis: group.axis,
+      position: group.position,
+      minimumPosition,
+      maximumPosition,
+      beforePaneIds,
+      afterPaneIds,
+      segments: mergeDividerSegments(group.segments),
+    };
+  }).filter((divider) => divider.minimumPosition <= divider.maximumPosition);
+}
+
+export function moveStructuralDivider(value, divider, nextPosition) {
+  const panes = Array.isArray(value) ? value : [];
+  if (!divider || !["vertical", "horizontal"].includes(divider.axis)) return panes;
+  const beforePaneIds = new Set(Array.isArray(divider.beforePaneIds) ? divider.beforePaneIds : []);
+  const afterPaneIds = new Set(Array.isArray(divider.afterPaneIds) ? divider.afterPaneIds : []);
+  if (!beforePaneIds.size || !afterPaneIds.size) return panes;
+
+  const beforePanes = panes.filter((pane) => beforePaneIds.has(pane.id));
+  const afterPanes = panes.filter((pane) => afterPaneIds.has(pane.id));
+  if (!beforePanes.length || !afterPanes.length) return panes;
+  const minimumPosition = Math.max(...beforePanes.map((pane) => (
+    divider.axis === "vertical"
+      ? finiteNumber(pane.x) + MIN_DIVIDER_PANE_SIZE
+      : finiteNumber(pane.y) + MIN_DIVIDER_PANE_SIZE
+  )));
+  const maximumPosition = Math.min(...afterPanes.map((pane) => (
+    divider.axis === "vertical"
+      ? finiteNumber(pane.x) + finiteNumber(pane.width) - MIN_DIVIDER_PANE_SIZE
+      : finiteNumber(pane.y) + finiteNumber(pane.height) - MIN_DIVIDER_PANE_SIZE
+  )));
+  if (minimumPosition > maximumPosition) return panes;
+  const target = integerInRange(nextPosition, minimumPosition, maximumPosition, divider.position);
+
+  return panes.map((pane) => {
+    if (beforePaneIds.has(pane.id)) {
+      return divider.axis === "vertical"
+        ? { ...pane, width: target - finiteNumber(pane.x) }
+        : { ...pane, height: target - finiteNumber(pane.y) };
+    }
+    if (afterPaneIds.has(pane.id)) {
+      if (divider.axis === "vertical") {
+        const right = finiteNumber(pane.x) + finiteNumber(pane.width);
+        return { ...pane, x: target, width: right - target };
+      }
+      const bottom = finiteNumber(pane.y) + finiteNumber(pane.height);
+      return { ...pane, y: target, height: bottom - target };
+    }
+    return pane;
+  });
+}
+
+export function resetWindowDivisions(value, windowId) {
+  const data = normalizeMeasurementData(value);
+  return normalizeMeasurementData({
+    ...data,
+    windows: data.windows.map((windowValue) => (
+      windowValue.id === windowId
+        ? { ...windowValue, panes: [createEmptyPane()] }
+        : windowValue
+    )),
   });
 }
 
