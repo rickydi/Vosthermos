@@ -867,6 +867,7 @@ function MeasurementModal({ fu, source, onClose, onCreated }) {
   const [reuseUrl, setReuseUrl] = useState("");
   const [delivery, setDelivery] = useState(null);
   const creationKeyRef = useRef("");
+  const creationPayloadRef = useRef(null);
   const creationStorageKey = `thermos-measurement-create:${fu.id}:${source}`;
   const sourceMeta = {
     technician: { title: "Mesures technicien", icon: "fa-ruler-combined", text: "Crée une fiche de mesures finales avec épaisseur et options. Elle pourra ensuite générer la commande fournisseur." },
@@ -895,20 +896,36 @@ function MeasurementModal({ fu, source, onClose, onCreated }) {
     try {
       let measurement = createdMeasurement;
       if (!measurement) {
+        const proposedPayload = {
+          clientId: fu.clientId,
+          followUpId: fu.id,
+          source,
+          technicianId: technicianId ? Number(technicianId) : null,
+          parentId: source === "technician" ? fu.latestMeasurement?.id || null : null,
+        };
         if (!creationKeyRef.current) {
-          try { creationKeyRef.current = globalThis.sessionStorage?.getItem(creationStorageKey) || ""; } catch {}
+          let storedValue = "";
+          try { storedValue = globalThis.sessionStorage?.getItem(creationStorageKey) || ""; } catch {}
+          if (storedValue) {
+            try {
+              const stored = JSON.parse(storedValue);
+              if (stored?.key && stored?.payload?.clientId === fu.clientId && stored.payload.followUpId === fu.id && stored.payload.source === source) {
+                creationKeyRef.current = stored.key;
+                creationPayloadRef.current = stored.payload;
+              }
+            } catch {
+              if (/^[A-Za-z0-9_-]{16,100}$/.test(storedValue)) creationKeyRef.current = storedValue;
+            }
+          }
           if (!creationKeyRef.current) creationKeyRef.current = globalThis.crypto?.randomUUID?.() || `measurement-${fu.id}-${source}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
-          try { globalThis.sessionStorage?.setItem(creationStorageKey, creationKeyRef.current); } catch {}
         }
+        if (!creationPayloadRef.current) creationPayloadRef.current = proposedPayload;
+        try { globalThis.sessionStorage?.setItem(creationStorageKey, JSON.stringify({ key: creationKeyRef.current, payload: creationPayloadRef.current })); } catch {}
         const res = await fetch("/api/admin/measurements", {
           method: "POST", headers: MUTATION_HEADERS,
           body: JSON.stringify({
-            clientId: fu.clientId,
-            followUpId: fu.id,
-            source,
+            ...creationPayloadRef.current,
             idempotencyKey: creationKeyRef.current,
-            technicianId: technicianId ? Number(technicianId) : null,
-            parentId: source === "technician" ? fu.latestMeasurement?.id || null : null,
           }),
         });
         const body = await res.json().catch(() => ({}));
