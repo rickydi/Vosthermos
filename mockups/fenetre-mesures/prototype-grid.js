@@ -9,11 +9,12 @@
   const MAX_PANES = 12;
   const MIN_CHILD_PX = 52;
   const PRESETS = {
-    '1x1': { columns: 1, rows: 1 },
-    '2x1': { columns: 2, rows: 1 },
-    '3x1': { columns: 3, rows: 1 },
-    '2x2': { columns: 2, rows: 2 },
-    '3x2': { columns: 3, rows: 2 },
+    '1x1': { columns: 1, rows: 1, label: 'Vitre simple' },
+    '2x1': { columns: 2, rows: 1, label: 'Deux côte à côte' },
+    '1x2': { columns: 1, rows: 2, label: 'Deux superposés' },
+    '3x1': { columns: 3, rows: 1, label: 'Trois côte à côte' },
+    '2x2': { columns: 2, rows: 2, label: 'Quatre en grille' },
+    '3x2': { columns: 3, rows: 2, label: 'Six en grille' },
   };
   const fractions = ['', '0', '1/16', '1/8', '3/16', '1/4', '5/16', '3/8', '7/16', '1/2', '9/16', '5/8', '11/16', '3/4', '13/16', '7/8', '15/16'];
 
@@ -384,6 +385,7 @@
     document.querySelectorAll('[data-progress-label]').forEach((progress) => { progress.setAttribute('aria-label', `${completed} thermos sur ${entries.length} mesurés`); });
     document.querySelectorAll('[data-divider-count-output]').forEach((output) => { output.textContent = String(countSeparators(state.layout)); });
     document.querySelectorAll('[data-layout-summary]').forEach((output) => { output.textContent = layoutSummary(entries); });
+    document.querySelectorAll('[data-preset-summary]').forEach((output) => { output.textContent = PRESETS[state.activePreset]?.label || 'Disposition personnalisée'; });
     document.querySelectorAll('[data-selected-pane-output]').forEach((output) => { output.textContent = selectedLabel; });
     document.querySelectorAll('[data-layout-preset]').forEach((button) => { button.setAttribute('aria-pressed', String(button.dataset.layoutPreset === state.activePreset)); });
     if (!paneActionModal.hidden) updatePaneActionModal(entries, indexes);
@@ -842,6 +844,7 @@
   renderLayout();
 
   const previewParams = new URLSearchParams(window.location.search);
+  if (previewParams.get('previewModels') === '1') document.querySelector('.layout-presets-menu')?.setAttribute('open', '');
   const previewPaneId = previewParams.get('previewPane');
   if (previewPaneId && findNode(state.layout, previewPaneId)?.type === 'pane') {
     openPaneActions(previewPaneId);
