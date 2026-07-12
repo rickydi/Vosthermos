@@ -14,6 +14,7 @@
       --accent:#003845; --accent-ink:#fff; --success:#2e7d62; --warning:#d7a64b; --danger:#b90513; --brand-red:#e30718; --radius:20px;
       --font-display:"Barlow Condensed",sans-serif; --font-ui:"Atkinson Hyperlegible",sans-serif; --font-data:"IBM Plex Mono",monospace;
     }
+    html { min-width:0; }
     .prototype { background:var(--page); }
     .eyebrow { color:var(--brand-red); }
     .topbar {
@@ -29,13 +30,13 @@
     .topbar .brand-lockup { flex:0 0 auto; }
     .topbar .brand-mark { width:auto; height:64px; object-fit:contain; border-radius:0; filter:brightness(1.1) drop-shadow(0 3px 8px rgba(0,0,0,.2)); }
     .topbar .mode-chip { border-color:rgba(255,255,255,.18); background:rgba(255,255,255,.08); color:#fff; }
-    .gabarit-hero { display:grid; gap:16px; margin-bottom:18px; }
+    .gabarit-hero { min-width:0; display:grid; gap:16px; margin-bottom:18px; }
     .gabarit-hero .lead { margin:8px 0 0; max-width:680px; color:var(--muted); line-height:1.5; }
-    .progress-card { width:100%; padding:10px 11px 9px; border:1px solid color-mix(in srgb,var(--accent) 22%,var(--line)); border-radius:15px; background:color-mix(in srgb,var(--surface) 96%,var(--accent)); box-shadow:0 10px 28px rgba(6,29,36,.1); }
+    .progress-card { width:100%; min-width:0; max-width:100%; padding:10px 11px 9px; border:1px solid color-mix(in srgb,var(--accent) 22%,var(--line)); border-radius:15px; background:color-mix(in srgb,var(--surface) 96%,var(--accent)); box-shadow:0 10px 28px rgba(6,29,36,.1); }
     .progress-head { display:flex; align-items:center; justify-content:space-between; gap:12px; }
     .progress-head span { color:var(--brand-red); font-size:10px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; }
     .progress-head strong { color:var(--ink); font:700 11px var(--font-data); }
-    .thermo-progress { display:flex; align-items:flex-start; overflow-x:auto; padding:8px 0 1px; scrollbar-width:none; }
+    .thermo-progress { min-width:0; display:flex; align-items:flex-start; overflow-x:auto; padding:8px 0 1px; scrollbar-width:none; }
     .thermo-progress::-webkit-scrollbar { display:none; }
     .progress-step { position:relative; flex:1 1 58px; min-width:48px; min-height:48px; display:grid; justify-items:center; align-content:start; gap:4px; padding:0 4px; border:0; background:transparent; color:var(--muted); }
     .progress-step::after { content:""; position:absolute; z-index:0; top:14px; left:calc(50% + 16px); right:calc(-50% + 16px); height:2px; border-radius:99px; background:var(--line); }
@@ -48,10 +49,10 @@
     .progress-step.is-current.is-complete .progress-node { background:var(--success); color:#fff; box-shadow:0 0 0 4px color-mix(in srgb,var(--success) 16%,transparent); }
     .progress-label { font:700 10px/1 var(--font-data); }
     .progress-step.is-current .progress-label { color:var(--ink); }
-    .workspace { display:grid; gap:15px; }
-    .side-windows { width:100%; padding:12px; }
-    .side-windows .window-tabs { margin:0; }
-    .plan-card { padding:15px; overflow:hidden; }
+    .workspace { min-width:0; display:grid; gap:15px; }
+    .side-windows { width:100%; min-width:0; padding:12px; }
+    .side-windows .window-tabs { min-width:0; max-width:100%; margin:0; }
+    .plan-card { width:100%; min-width:0; padding:15px; overflow:hidden; }
     .plan-card .window-stage { margin:10px -15px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); background:var(--surface); }
     .plan-card .window-stage::before { display:none; }
     .dimension-frame { position:absolute; inset:7% 4%; pointer-events:none; color:#44636d; font:600 11px var(--font-data); }
@@ -62,11 +63,21 @@
     .dim-height { position:absolute; left:-26px; top:50%; transform:rotate(-90deg) translateX(-50%); transform-origin:center; padding:0 8px; background:var(--surface); }
     .plan-instruction { display:flex; align-items:center; gap:10px; margin:10px 0 0; color:var(--muted); font-size:12px; }
     .plan-instruction b { display:grid; place-items:center; width:28px; height:28px; border-radius:50%; background:var(--accent); color:#fff; font:700 12px/1 var(--font-data); }
-    .division-toolbar { display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"heading actions" "controls controls" "tip tip"; gap:7px 9px; align-items:center; margin-top:12px; padding:9px; border:1px solid color-mix(in srgb,var(--accent) 42%,var(--line)); border-radius:14px; background:color-mix(in srgb,var(--accent) 7%,var(--surface)); }
+    .division-toolbar { min-width:0; display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"heading actions" "presets presets" "split split" "tip tip"; gap:8px 9px; align-items:center; margin-top:12px; padding:9px; border:1px solid color-mix(in srgb,var(--accent) 42%,var(--line)); border-radius:14px; background:color-mix(in srgb,var(--accent) 7%,var(--surface)); }
     .division-heading { grid-area:heading; min-width:0; }
     .division-heading h3 { margin:0; font:800 16px var(--font-display); }
     .division-heading p { margin:2px 0 0; color:var(--muted); font-size:11px; }
     .division-heading strong { color:var(--ink); font-family:var(--font-data); }
+    .layout-presets { grid-area:presets; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:5px; }
+    .layout-preset { min-width:0; min-height:44px; display:grid; place-items:center; padding:6px 4px; border:1px solid color-mix(in srgb,var(--accent) 28%,var(--line)); border-radius:9px; background:var(--surface); color:var(--ink); font:800 12px/1 var(--font-data); }
+    .layout-preset[aria-pressed="true"] { border-color:var(--accent); background:var(--accent); color:#fff; box-shadow:0 7px 16px -12px rgba(0,56,69,.9); }
+    .selected-split { grid-area:split; display:grid; grid-template-columns:66px minmax(0,1fr); gap:6px; align-items:stretch; }
+    .selected-pane-badge { display:grid; place-items:center; align-content:center; gap:1px; padding:5px; border:1px solid color-mix(in srgb,var(--accent) 34%,var(--line)); border-radius:10px; background:var(--surface); color:var(--muted); font-size:9px; font-weight:800; text-align:center; }
+    .selected-pane-badge strong { color:var(--accent); font:800 15px/1 var(--font-data); }
+    .split-selected-actions { display:grid; grid-template-columns:1fr 1fr; gap:5px; }
+    .split-selected-action { min-width:0; min-height:46px; display:flex; align-items:center; justify-content:center; gap:5px; padding:6px 7px; border:1px solid color-mix(in srgb,var(--accent) 34%,var(--line)); border-radius:10px; background:var(--surface); color:var(--ink); font-size:11px; font-weight:900; line-height:1.05; }
+    .split-selected-action svg { width:17px; height:17px; flex:0 0 auto; }
+    .split-selected-action:disabled { color:var(--muted); }
     .division-controls { grid-area:controls; display:grid; grid-template-columns:76px minmax(0,1fr); gap:7px; align-items:center; }
     .division-count .select { min-height:42px; padding:7px 9px; border-color:color-mix(in srgb,var(--accent) 34%,var(--line)); }
     .orientation-switch { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
@@ -85,6 +96,17 @@
     .division-tip { min-width:0; display:flex; align-items:center; gap:7px; margin:0; color:#48636b; font-size:11px; }
     .division-tip .move-symbol { flex:0 0 auto; display:grid; place-items:center; width:25px; height:22px; border-radius:7px; background:var(--accent); color:#fff; line-height:0; }
     .division-tip .move-symbol svg { display:block; width:14px; height:14px; margin:auto; }
+    body[data-recursive-layout="true"] .window-canvas { display:flex; gap:0; }
+    body[data-recursive-layout="true"] .window-canvas > .pane { flex:1 1 auto; }
+    .layout-split { position:relative; flex:1 1 auto; width:100%; height:100%; min-width:0; min-height:0; display:flex; gap:4px; }
+    .layout-split[data-axis="vertical"] { flex-direction:row; }
+    .layout-split[data-axis="horizontal"] { flex-direction:column; }
+    .layout-child { position:relative; min-width:0; min-height:0; display:flex; }
+    body[data-recursive-layout="true"] .layout-child > .pane { width:100%; height:100%; overflow:hidden; }
+    body[data-recursive-layout="true"] .divider-handle { right:auto; bottom:auto; pointer-events:auto; touch-action:none; transform:translate(-50%,-50%); }
+    body[data-recursive-layout="true"] .layout-split[data-axis="vertical"] > .divider-handle { cursor:ew-resize; }
+    body[data-recursive-layout="true"] .layout-split[data-axis="horizontal"] > .divider-handle { cursor:ns-resize; }
+    body[data-recursive-layout="true"] .divider-handle.is-dragging { background:#087484; box-shadow:0 0 0 5px rgba(21,151,168,.2),0 6px 18px rgba(0,0,0,.28); }
     body[data-draggable-dividers="true"] .divider-handle { pointer-events:auto; touch-action:none; cursor:ew-resize; }
     body[data-draggable-dividers="true"] .window-canvas[data-orientation="vertical"] .divider-handle { right:auto; bottom:auto; transform:translate(-50%,-50%); }
     body[data-draggable-dividers="true"] .window-canvas[data-orientation="horizontal"] .divider-handle { right:auto; bottom:auto; transform:translate(-50%,-50%); cursor:ns-resize; }
@@ -118,6 +140,9 @@
       .orientation-choice .move-arrow svg{width:16px;height:16px}
       .division-reset,.division-equalize{min-height:44px;padding:5px 6px;font-size:10px}
       .division-add{min-height:44px;padding:6px 9px}
+      .layout-preset{min-height:46px;font-size:11px}
+      .selected-split{grid-template-columns:58px minmax(0,1fr)}
+      .split-selected-action{min-height:48px;padding:6px 5px;font-size:10px}
       .dimension-frame{display:none}
       .window-canvas{width:calc(100% - 12px);aspect-ratio:1.3;gap:4px;padding:5px;border-width:7px;box-shadow:0 14px 30px rgba(0,0,0,.16),inset 0 0 0 1px rgba(255,255,255,.7)}
       .pane{border-width:2px}
@@ -136,8 +161,7 @@
     @media(min-width:760px){
       .gabarit-hero{grid-template-columns:1fr auto;align-items:end}
       .progress-card{width:360px}
-      .division-toolbar{grid-template-columns:minmax(120px,1fr) minmax(250px,430px) auto;grid-template-areas:"heading controls actions" "tip tip tip";padding:9px 11px}
-      .division-controls{grid-template-columns:82px minmax(210px,1fr)}
+      .division-toolbar{grid-template-columns:minmax(150px,1fr) auto;grid-template-areas:"heading actions" "presets presets" "split split" "tip tip";padding:10px 11px}
       .tool-grid{grid-template-columns:1.2fr .8fr}.photo-actions{grid-column:1/-1}.summary-card{display:none}
     }
     @media(min-width:720px){.topbar{margin:-24px -24px 20px;padding-left:76px}.topbar .brand-mark{height:70px}}
@@ -147,7 +171,7 @@
     }
   </style>
 </head>
-<body data-initial-panes="3" data-initial-pane="2" data-initial-orientation="vertical" data-draggable-dividers="true">
+<body data-initial-panes="6" data-initial-pane="2" data-initial-orientation="mixed" data-draggable-dividers="true" data-recursive-layout="true">
   <a class="back-to-index" href="index.html" aria-label="Retour aux cinq styles"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5m6-6-6 6 6 6"/></svg></a>
   <div class="prototype">
     <div class="shell">
@@ -158,38 +182,42 @@
 
       <header class="gabarit-hero">
         <div><p class="eyebrow">Style 01 · Gabarit sur verre</p><h1 class="title">Mesurez là où vous regardez.</h1><p class="lead">Le plan reste au centre. Touchez une vitre pour ouvrir immédiatement Largeur × Hauteur × Épaisseur.</p></div>
-        <div class="progress-card" data-progress-label aria-label="Deux thermos sur trois mesurés"><div class="progress-head"><span>Étapes de mesure</span><strong><span data-complete-pane-output>2</span> / <span data-pane-count-output>3</span> mesurés</strong></div><div class="thermo-progress" data-progress-steps></div></div>
+        <div class="progress-card" data-progress-label aria-label="Deux thermos sur six mesurés"><div class="progress-head"><span>Étapes de mesure</span><strong><span data-complete-pane-output>2</span> / <span data-pane-count-output>6</span> mesurés</strong></div><div class="thermo-progress" data-progress-steps></div></div>
       </header>
 
       <div class="workspace">
         <aside class="side-windows card" aria-label="Fenêtres du dossier">
           <p class="eyebrow" style="margin:2px 5px 9px">Fenêtres</p>
           <div class="window-tabs">
-            <button class="window-tab" data-window-tab aria-selected="true">Salon · <span data-pane-count-output>3</span>T</button>
+            <button class="window-tab" data-window-tab aria-selected="true">Salon · <span data-pane-count-output>6</span>T</button>
             <button class="window-tab" data-window-tab aria-selected="false">Cuisine · 1T</button>
             <button class="add-window" data-add-window>＋ Fenêtre</button>
           </div>
         </aside>
 
         <main class="plan-card card">
-          <div class="card-head"><div><p class="eyebrow">Fenêtre salon</p><h2>Plan de vitrage</h2><p>F01 · Vue intérieure · <span data-pane-count-output>3</span> thermos</p></div><button class="small-action">Renommer</button></div>
+          <div class="card-head"><div><p class="eyebrow">Fenêtre salon</p><h2>Plan de vitrage</h2><p>F01 · Vue intérieure · <span data-pane-count-output>6</span> thermos</p></div><button class="small-action">Renommer</button></div>
           <section class="division-toolbar" aria-label="Configurer les divisions de la fenêtre">
-            <div class="division-heading"><h3>Divisions</h3><p><strong data-pane-count-output>3</strong> thermos · <strong data-divider-count-output>2</strong> séparations</p></div>
-            <div class="division-controls">
-              <label class="division-count"><span class="sr-only">Nombre de thermos</span><select class="select" data-section-count aria-label="Nombre de thermos"><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select></label>
-              <div class="orientation-switch" role="group" aria-label="Sens des divisions">
-                <button type="button" class="orientation-choice" data-split="vertical" aria-pressed="true"><span class="move-arrow" data-direction-icon="vertical" aria-hidden="true">↔</span><span>Vertical</span></button>
-                <button type="button" class="orientation-choice" data-split="horizontal" aria-pressed="false"><span class="move-arrow" data-direction-icon="horizontal" aria-hidden="true">↕</span><span>Horizontal</span></button>
+            <div class="division-heading"><h3>Disposition</h3><p><strong data-layout-summary>3 colonnes × 2 rangées · 6 thermos</strong></p></div>
+            <div class="layout-presets" role="group" aria-label="Configurations rapides">
+              <button type="button" class="layout-preset" data-layout-preset="1x1" aria-label="Créer une seule vitre">1×1</button>
+              <button type="button" class="layout-preset" data-layout-preset="2x1" aria-label="Créer 2 colonnes et 1 rangée">2×1</button>
+              <button type="button" class="layout-preset" data-layout-preset="3x1" aria-label="Créer 3 colonnes et 1 rangée">3×1</button>
+              <button type="button" class="layout-preset" data-layout-preset="2x2" aria-label="Créer 2 colonnes et 2 rangées">2×2</button>
+              <button type="button" class="layout-preset" data-layout-preset="3x2" aria-label="Créer 3 colonnes et 2 rangées" aria-pressed="true">3×2</button>
+            </div>
+            <div class="selected-split">
+              <div class="selected-pane-badge"><span>Sélection</span><strong data-selected-pane-output>T2</strong></div>
+              <div class="split-selected-actions" role="group" aria-label="Diviser le thermos sélectionné">
+                <button type="button" class="split-selected-action" data-split-selected="vertical"><span data-direction-icon="vertical" aria-hidden="true">↔</span><span>Côte à côte</span></button>
+                <button type="button" class="split-selected-action" data-split-selected="horizontal"><span data-direction-icon="horizontal" aria-hidden="true">↕</span><span>Superposés</span></button>
               </div>
             </div>
             <div class="division-actions">
               <button type="button" class="division-equalize" data-equalize><span class="equal-symbol" aria-hidden="true">=</span><span>Égales</span></button>
               <button type="button" class="division-reset" data-reset aria-label="Réinitialiser le dessin"><span class="reset-symbol" aria-hidden="true">↺</span><span class="reset-label">Réinit.</span></button>
             </div>
-            <div class="division-footer">
-              <button type="button" class="division-add" data-add-division><span class="add-symbol" aria-hidden="true">＋</span><span>Diviser <span data-add-division-pane>T2</span></span></button>
-              <p class="division-tip"><span class="move-symbol" data-move-symbol aria-hidden="true">↔</span><span data-move-copy>Glissez pour ajuster.</span></p>
-            </div>
+            <p class="division-tip"><span class="move-symbol" aria-hidden="true">＋</span><span>Touchez une vitre, puis choisissez comment la diviser.</span></p>
           </section>
           <div class="window-stage">
             <div class="dimension-frame"><span class="dim-width">largeur du cadre</span><span class="dim-height">hauteur du cadre</span></div>
@@ -224,19 +252,19 @@
     </div>
   </div>
 
-  <aside class="measure-sheet" data-measure-sheet hidden aria-label="Mesures du thermos sélectionné">
+  <aside class="measure-sheet" data-measure-sheet hidden role="dialog" aria-modal="true" aria-label="Mesures du thermos sélectionné">
     <div class="sheet-grip"></div><div class="sheet-head"><div><span class="sheet-kicker mono">F01 · <span data-active-pane>T2</span></span><h2>Mesures de <span data-active-pane>T2</span></h2><p>Les valeurs apparaissent directement dans la vitre.</p></div><button class="close-sheet" data-close-sheet aria-label="Fermer"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 7l10 10M17 7 7 17"/></svg></button></div>
     <div class="measure-grid">
       <label class="dimension"><span class="field-label">Largeur *</span><span class="dimension-parts"><input type="number" min="0" max="240" placeholder="Ex. 32" data-measure-key="width"><select aria-label="Fraction largeur" data-measure-key="widthFraction"></select><span>po</span></span></label>
       <label class="dimension"><span class="field-label">Hauteur *</span><span class="dimension-parts"><input type="number" min="0" max="240" placeholder="Ex. 48" data-measure-key="height"><select aria-label="Fraction hauteur" data-measure-key="heightFraction"></select><span>po</span></span></label>
       <label class="dimension"><span class="field-label">Épaisseur *</span><span class="dimension-parts"><input type="number" min="0" max="2" placeholder="Ex. 1" data-measure-key="thickness"><select aria-label="Fraction épaisseur" data-measure-key="thicknessFraction"></select><span>po</span></span></label>
     </div>
-    <div class="option-grid"><label class="option-chip"><input type="checkbox">Low-E</label><label class="option-chip"><input type="checkbox">Argon</label><label class="option-chip"><input type="checkbox">Trempé</label><label class="option-chip"><input type="checkbox">Laminé</label></div>
-    <div class="sheet-selects"><label><span class="field-label">Intercalaire</span><select class="select"><option value="">Je ne sais pas / Inconnu</option><option>Noir</option><option>Gris</option><option>Blanc</option><option>Inox</option></select></label><label><span class="field-label">Vitrage</span><select class="select"><option>Double</option><option>Triple</option><option>Simple</option></select></label><label><span class="field-label">Accès</span><select class="select"><option>Facile</option><option>Moyen</option><option>Difficile</option></select></label></div>
-    <label style="display:block;margin-top:14px"><span class="field-label">Notes particulières</span><textarea class="notes" placeholder="Forme, défaut, accès, particularité…"></textarea></label>
+    <div class="option-grid"><label class="option-chip"><input type="checkbox" data-measure-key="lowE">Low-E</label><label class="option-chip"><input type="checkbox" data-measure-key="argon">Argon</label><label class="option-chip"><input type="checkbox" data-measure-key="tempered">Trempé</label><label class="option-chip"><input type="checkbox" data-measure-key="laminated">Laminé</label></div>
+    <div class="sheet-selects"><label><span class="field-label">Intercalaire</span><select class="select" data-measure-key="spacer"><option value="">Je ne sais pas / Inconnu</option><option>Noir</option><option>Gris</option><option>Blanc</option><option>Inox</option></select></label><label><span class="field-label">Vitrage</span><select class="select" data-measure-key="glazing"><option value="">Choisir</option><option>Double</option><option>Triple</option><option>Simple</option></select></label><label><span class="field-label">Accès</span><select class="select" data-measure-key="access"><option value="">Choisir</option><option>Facile</option><option>Moyen</option><option>Difficile</option></select></label></div>
+    <label style="display:block;margin-top:14px"><span class="field-label">Notes particulières</span><textarea class="notes" data-measure-key="notes" placeholder="Forme, défaut, accès, particularité…"></textarea></label>
     <div class="sheet-actions"><button class="secondary" data-close-sheet>Fermer</button><button class="primary" data-close-sheet>Garder ces mesures</button></div>
   </aside>
   <div class="toast" data-toast role="status"></div>
-  <script src="prototype.js"></script>
+  <script src="prototype-grid.js"></script>
 </body>
 </html>
