@@ -40,13 +40,14 @@
     .side-windows { padding:12px; }
     .side-windows .window-tabs { margin:0; }
     .plan-card { padding:15px; overflow:hidden; }
-    .plan-card .window-stage { margin:10px -15px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); background:#e6f1f3; }
+    .plan-card .window-stage { margin:10px -15px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); background:var(--surface); }
+    .plan-card .window-stage::before { display:none; }
     .dimension-frame { position:absolute; inset:7% 4%; pointer-events:none; color:#44636d; font:600 11px var(--font-data); }
     .dimension-frame::before, .dimension-frame::after { content:""; position:absolute; background:var(--accent); opacity:.55; }
     .dimension-frame::before { left:7%; right:7%; top:0; height:1px; }
     .dimension-frame::after { top:7%; bottom:7%; left:0; width:1px; }
-    .dim-width { position:absolute; top:-8px; left:50%; transform:translateX(-50%); padding:0 8px; background:#e6f1f3; }
-    .dim-height { position:absolute; left:-26px; top:50%; transform:rotate(-90deg) translateX(-50%); transform-origin:center; padding:0 8px; background:#e6f1f3; }
+    .dim-width { position:absolute; top:-8px; left:50%; transform:translateX(-50%); padding:0 8px; background:var(--surface); }
+    .dim-height { position:absolute; left:-26px; top:50%; transform:rotate(-90deg) translateX(-50%); transform-origin:center; padding:0 8px; background:var(--surface); }
     .plan-instruction { display:flex; align-items:center; gap:10px; margin:10px 0 0; color:var(--muted); font-size:12px; }
     .plan-instruction b { display:grid; place-items:center; width:28px; height:28px; border-radius:50%; background:var(--accent); color:#fff; font:700 12px/1 var(--font-data); }
     .division-toolbar { display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"heading actions" "controls controls" "tip tip"; gap:7px 9px; align-items:center; margin-top:12px; padding:9px; border:1px solid color-mix(in srgb,var(--accent) 42%,var(--line)); border-radius:14px; background:color-mix(in srgb,var(--accent) 7%,var(--surface)); }
@@ -57,7 +58,7 @@
     .division-controls { grid-area:controls; display:grid; grid-template-columns:76px minmax(0,1fr); gap:7px; align-items:center; }
     .division-count .select { min-height:42px; padding:7px 9px; border-color:color-mix(in srgb,var(--accent) 34%,var(--line)); }
     .orientation-switch { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
-    .orientation-choice { min-width:0; min-height:42px; display:flex; align-items:center; justify-content:center; gap:6px; padding:7px 9px; border:1px solid var(--line); border-radius:10px; background:var(--surface); color:var(--ink); font-size:12px; font-weight:800; }
+    .orientation-choice { min-width:0; min-height:46px; display:flex; align-items:center; justify-content:center; gap:6px; padding:7px 9px; border:1px solid var(--line); border-radius:10px; background:var(--surface); color:var(--ink); font-size:13px; font-weight:900; }
     .orientation-choice[aria-pressed="true"] { border-color:var(--accent); background:var(--accent); color:var(--accent-ink); }
     .orientation-choice .move-arrow { width:18px; height:18px; display:inline-grid; place-items:center; flex:0 0 auto; line-height:0; }
     .orientation-choice .move-arrow svg { display:block; width:16px; height:16px; margin:auto; }
@@ -97,9 +98,9 @@
       .plan-card .window-stage{min-height:300px;margin:10px -12px 0;padding:24px 0}
       .division-controls{grid-template-columns:64px minmax(0,1fr);gap:5px}
       .orientation-switch{gap:4px}
-      .orientation-choice{gap:3px;padding:5px 4px;font-size:10px;white-space:nowrap}
-      .orientation-choice .move-arrow{width:15px;height:15px}
-      .orientation-choice .move-arrow svg{width:14px;height:14px}
+      .orientation-choice{min-height:46px;gap:4px;padding:6px 4px;font-size:12px;white-space:nowrap}
+      .orientation-choice .move-arrow{width:17px;height:17px}
+      .orientation-choice .move-arrow svg{width:16px;height:16px}
       .division-reset,.division-equalize{min-height:44px;padding:5px 6px;font-size:10px}
       .dimension-frame{display:none}
       .window-canvas{width:calc(100% - 12px);aspect-ratio:1.3;gap:4px;padding:5px;border-width:7px;box-shadow:0 14px 30px rgba(0,0,0,.16),inset 0 0 0 1px rgba(255,255,255,.7)}
@@ -159,8 +160,8 @@
             <div class="division-controls">
               <label class="division-count"><span class="sr-only">Nombre de thermos</span><select class="select" data-section-count aria-label="Nombre de thermos"><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select></label>
               <div class="orientation-switch" role="group" aria-label="Sens des divisions">
-                <button type="button" class="orientation-choice" data-split="vertical" aria-pressed="true"><span class="move-arrow" data-direction-icon="vertical" aria-hidden="true">↔</span><span>Verticales</span></button>
-                <button type="button" class="orientation-choice" data-split="horizontal" aria-pressed="false"><span class="move-arrow" data-direction-icon="horizontal" aria-hidden="true">↕</span><span>Horizontales</span></button>
+                <button type="button" class="orientation-choice" data-split="vertical" aria-pressed="true"><span class="move-arrow" data-direction-icon="vertical" aria-hidden="true">↔</span><span>Vertical</span></button>
+                <button type="button" class="orientation-choice" data-split="horizontal" aria-pressed="false"><span class="move-arrow" data-direction-icon="horizontal" aria-hidden="true">↕</span><span>Horizontal</span></button>
               </div>
             </div>
             <div class="division-actions">
