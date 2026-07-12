@@ -234,9 +234,12 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   box-shadow: 0 4px 14px rgba(0,0,0,.24);
   display: grid;
   place-items: center;
+  padding: 0;
+  line-height: 0;
   font-weight: 900;
   pointer-events: none;
 }
+.divider-handle svg { display: block; width: 18px; height: 18px; margin: auto; }
 .window-canvas[data-orientation="vertical"] .divider-handle { top: 50%; right: -28px; transform: translateY(-50%); }
 .window-canvas[data-orientation="horizontal"] .divider-handle { left: 50%; bottom: -28px; transform: translateX(-50%); }
 
@@ -285,7 +288,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .photo-actions .button, .photo-actions .primary { flex: 1 1 180px; }
 
 .counter { display: grid; grid-template-columns: 46px 1fr 46px; align-items: center; gap: 8px; }
-.counter button { min-height: 46px; border: 1px solid var(--line); border-radius: 11px; background: var(--surface); color: var(--ink); font-size: 20px; font-weight: 900; }
+.counter button { min-height: 46px; display: grid; place-items: center; padding: 0; border: 1px solid var(--line); border-radius: 11px; background: var(--surface); color: var(--ink); font-size: 20px; font-weight: 900; line-height: 1; }
 .counter output { text-align: center; font-family: var(--font-data); font-weight: 900; }
 
 .measure-sheet {
@@ -311,7 +314,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .sheet-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
 .sheet-head h2 { margin: 2px 0 0; font-family: var(--font-display); font-size: 25px; }
 .sheet-head p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
-.close-sheet { width: 46px; height: 46px; border: 1px solid var(--line); border-radius: 50%; background: transparent; color: inherit; font-size: 23px; }
+.close-sheet { flex: 0 0 46px; width: 46px; height: 46px; display: grid; place-items: center; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: transparent; color: inherit; font: 700 23px/1 var(--font-ui); }
+.close-sheet svg { display: block; width: 19px; height: 19px; margin: auto; }
 .measure-grid { display: grid; gap: 13px; }
 .dimension { display: block; }
 .dimension-parts { display: grid; grid-template-columns: minmax(74px, 1fr) minmax(110px, 1fr) 42px; border: 1px solid var(--line); border-radius: 13px; overflow: hidden; background: var(--surface); }
@@ -397,13 +401,16 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   height: 40px;
   display: grid;
   place-items: center;
+  padding: 0;
   border: 1px solid var(--line);
   border-radius: 50%;
   background: var(--surface);
   color: var(--ink);
   text-decoration: none;
+  font: 800 20px/1 var(--font-data);
   box-shadow: 0 6px 18px rgba(0,0,0,.14);
 }
+.back-to-index svg { display: block; width: 18px; height: 18px; margin: auto; }
 
 @media (min-width: 720px) {
   .shell { padding: 24px; }

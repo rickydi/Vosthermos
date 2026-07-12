@@ -23,6 +23,17 @@
   let toastTimer;
   const fractions = ['', '0', '1/16', '1/8', '3/16', '1/4', '5/16', '3/8', '7/16', '1/2', '9/16', '5/8', '11/16', '3/4', '13/16', '7/8', '15/16'];
 
+  function directionIconMarkup(orientation) {
+    const path = orientation === 'vertical'
+      ? '<path d="M4 12h16M7.5 8.5 4 12l3.5 3.5M16.5 8.5 20 12l-3.5 3.5"/>'
+      : '<path d="M12 4v16M8.5 7.5 12 4l3.5 3.5M8.5 16.5 12 20l3.5-3.5"/>';
+    return `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
+  }
+
+  function checkIconMarkup() {
+    return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 12.5 4 4L18.5 8"/></svg>';
+  }
+
   function equalDividerPositions(count = state.paneCount) {
     return Array.from({ length: Math.max(0, count - 1) }, (_, index) => ((index + 1) / count) * 100);
   }
@@ -197,7 +208,7 @@
       handle.className = 'divider-handle';
       handle.dataset.dividerIndex = String(index);
       handle.tabIndex = 0;
-      handle.textContent = state.orientation === 'vertical' ? '↔' : '↕';
+      handle.innerHTML = directionIconMarkup(state.orientation);
       handle.setAttribute('role', 'separator');
       handle.setAttribute('aria-orientation', state.orientation);
       handle.setAttribute('aria-label', `Séparation entre T${index + 1} et T${index + 2}`);
@@ -233,7 +244,7 @@
         const handle = document.createElement('span');
         handle.className = 'divider-handle';
         handle.setAttribute('aria-hidden', 'true');
-        handle.textContent = '↔';
+        handle.innerHTML = directionIconMarkup(state.orientation);
         pane.appendChild(handle);
       }
       pane.addEventListener('click', () => openPane(index));
@@ -244,11 +255,13 @@
     const completedPaneCount = Array.from({ length: state.paneCount }, (_, index) => index + 1).filter(paneIsComplete).length;
     document.querySelectorAll('[data-pane-count-output]').forEach((output) => { output.textContent = String(state.paneCount); });
     document.querySelectorAll('[data-complete-pane-output]').forEach((output) => { output.textContent = String(completedPaneCount); });
-    document.querySelectorAll('[data-progress-label]').forEach((progress) => { progress.setAttribute('aria-label', `${completedPaneCount} thermos sur ${state.paneCount} complétés`); });
+    document.querySelectorAll('[data-progress-label]').forEach((progress) => { progress.setAttribute('aria-label', `${completedPaneCount} thermos sur ${state.paneCount} mesurés`); });
     document.querySelectorAll('[data-divider-count-output]').forEach((output) => { output.textContent = String(Math.max(0, state.paneCount - 1)); });
     document.querySelectorAll('[data-split]').forEach((button) => { button.setAttribute('aria-pressed', String(button.dataset.split === state.orientation)); });
-    document.querySelectorAll('[data-move-symbol]').forEach((symbol) => { symbol.textContent = state.orientation === 'vertical' ? '↔' : '↕'; });
+    document.querySelectorAll('[data-direction-icon]').forEach((icon) => { icon.innerHTML = directionIconMarkup(icon.dataset.directionIcon); });
+    document.querySelectorAll('[data-move-symbol]').forEach((symbol) => { symbol.innerHTML = directionIconMarkup(state.orientation); });
     document.querySelectorAll('[data-move-copy]').forEach((copy) => { copy.textContent = 'Glissez les poignées pour ajuster.'; });
+    renderProgressSteps();
   }
 
   function renderPaneStrip() {
@@ -262,6 +275,33 @@
         button.textContent = paneIsComplete(index) ? `T${index} ✓` : `T${index} •`;
         button.addEventListener('click', () => openPane(index));
         strip.appendChild(button);
+      }
+    });
+  }
+
+  function renderProgressSteps() {
+    document.querySelectorAll('[data-progress-steps]').forEach((progress) => {
+      progress.innerHTML = '';
+      for (let index = 1; index <= state.paneCount; index += 1) {
+        const complete = paneIsComplete(index);
+        const current = index === state.selectedPane;
+        const step = document.createElement('button');
+        step.type = 'button';
+        step.className = `progress-step${complete ? ' is-complete' : ''}${current ? ' is-current' : ''}${index === state.paneCount ? ' is-last' : ''}`;
+        step.setAttribute('aria-label', `T${index}, ${complete ? 'mesuré' : 'à mesurer'}${current ? ', sélectionné' : ''}`);
+        if (current) step.setAttribute('aria-current', 'step');
+
+        const node = document.createElement('span');
+        node.className = 'progress-node';
+        if (complete) node.innerHTML = checkIconMarkup();
+        else node.textContent = String(index);
+
+        const label = document.createElement('span');
+        label.className = 'progress-label';
+        label.textContent = `T${index}`;
+        step.append(node, label);
+        step.addEventListener('click', () => openPane(index));
+        progress.appendChild(step);
       }
     });
   }

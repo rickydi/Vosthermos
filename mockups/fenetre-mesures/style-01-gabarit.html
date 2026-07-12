@@ -17,10 +17,23 @@
     .topbar { margin-left:48px; }
     .gabarit-hero { display:grid; gap:16px; margin-bottom:18px; }
     .gabarit-hero .lead { margin:8px 0 0; max-width:680px; color:var(--muted); line-height:1.5; }
-    .progress-glass { display:flex; gap:8px; align-items:center; }
-    .progress-glass span { width:38px; height:5px; border-radius:99px; background:var(--line); }
-    .progress-glass span.done { background:var(--success); }
-    .progress-glass span.current { width:70px; background:var(--accent); }
+    .progress-card { width:min(100%,360px); padding:10px 11px 9px; border:1px solid color-mix(in srgb,var(--accent) 28%,var(--line)); border-radius:15px; background:color-mix(in srgb,var(--surface) 94%,var(--accent)); box-shadow:0 10px 28px rgba(16,36,45,.08); }
+    .progress-head { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .progress-head span { color:var(--muted); font-size:10px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; }
+    .progress-head strong { color:var(--ink); font:700 11px var(--font-data); }
+    .thermo-progress { display:flex; align-items:flex-start; overflow-x:auto; padding:8px 0 1px; scrollbar-width:none; }
+    .thermo-progress::-webkit-scrollbar { display:none; }
+    .progress-step { position:relative; flex:1 1 58px; min-width:48px; min-height:48px; display:grid; justify-items:center; align-content:start; gap:4px; padding:0 4px; border:0; background:transparent; color:var(--muted); }
+    .progress-step::after { content:""; position:absolute; z-index:0; top:14px; left:calc(50% + 16px); right:calc(-50% + 16px); height:2px; border-radius:99px; background:var(--line); }
+    .progress-step.is-last::after { display:none; }
+    .progress-step.is-complete::after { background:color-mix(in srgb,var(--success) 68%,var(--line)); }
+    .progress-node { position:relative; z-index:1; width:30px; height:30px; display:grid; place-items:center; padding:0; border:2px solid var(--line); border-radius:50%; background:var(--surface); color:var(--muted); font:700 11px/1 var(--font-data); }
+    .progress-node svg { display:block; width:15px; height:15px; margin:auto; }
+    .progress-step.is-complete .progress-node { border-color:var(--success); background:var(--success); color:#fff; }
+    .progress-step.is-current .progress-node { border-color:var(--accent); color:var(--accent); box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 16%,transparent); }
+    .progress-step.is-current.is-complete .progress-node { background:var(--success); color:#fff; box-shadow:0 0 0 4px color-mix(in srgb,var(--success) 16%,transparent); }
+    .progress-label { font:700 10px/1 var(--font-data); }
+    .progress-step.is-current .progress-label { color:var(--ink); }
     .workspace { display:grid; gap:15px; }
     .side-windows { padding:12px; }
     .side-windows .window-tabs { margin:0; }
@@ -33,7 +46,7 @@
     .dim-width { position:absolute; top:-8px; left:50%; transform:translateX(-50%); padding:0 8px; background:#d7f3f5; }
     .dim-height { position:absolute; left:-26px; top:50%; transform:rotate(-90deg) translateX(-50%); transform-origin:center; padding:0 8px; background:#d7f3f5; }
     .plan-instruction { display:flex; align-items:center; gap:10px; margin:10px 0 0; color:var(--muted); font-size:12px; }
-    .plan-instruction b { display:grid; place-items:center; width:28px; height:28px; border-radius:50%; background:var(--accent); color:#fff; font-family:var(--font-data); }
+    .plan-instruction b { display:grid; place-items:center; width:28px; height:28px; border-radius:50%; background:var(--accent); color:#fff; font:700 12px/1 var(--font-data); }
     .division-toolbar { display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"heading actions" "controls controls" "tip tip"; gap:7px 9px; align-items:center; margin-top:12px; padding:9px; border:1px solid color-mix(in srgb,var(--accent) 42%,var(--line)); border-radius:14px; background:color-mix(in srgb,var(--accent) 7%,var(--surface)); }
     .division-heading { grid-area:heading; min-width:0; }
     .division-heading h3 { margin:0; font:800 16px var(--font-display); }
@@ -44,14 +57,16 @@
     .orientation-switch { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
     .orientation-choice { min-width:0; min-height:42px; display:flex; align-items:center; justify-content:center; gap:6px; padding:7px 9px; border:1px solid var(--line); border-radius:10px; background:var(--surface); color:var(--ink); font-size:12px; font-weight:800; }
     .orientation-choice[aria-pressed="true"] { border-color:var(--accent); background:var(--accent); color:var(--accent-ink); }
-    .orientation-choice .move-arrow { font:800 17px var(--font-data); }
+    .orientation-choice .move-arrow { width:18px; height:18px; display:inline-grid; place-items:center; flex:0 0 auto; line-height:0; }
+    .orientation-choice .move-arrow svg { display:block; width:16px; height:16px; margin:auto; }
     .division-actions { grid-area:actions; display:flex; gap:5px; }
     .division-reset,.division-equalize { min-height:34px; display:inline-flex; align-items:center; justify-content:center; gap:4px; padding:5px 7px; border:1px solid var(--line); border-radius:9px; background:var(--surface); font-size:11px; font-weight:800; }
     .division-reset { border-color:color-mix(in srgb,var(--danger) 34%,var(--line)); color:var(--danger); }
     .division-equalize { border-color:color-mix(in srgb,var(--accent) 34%,var(--line)); color:#166775; }
     .division-reset .reset-symbol,.division-equalize .equal-symbol { font-size:16px; line-height:1; }
     .division-tip { grid-area:tip; display:flex; align-items:center; gap:7px; margin:0; color:#48636b; font-size:11px; }
-    .division-tip .move-symbol { flex:0 0 auto; display:grid; place-items:center; width:25px; height:22px; border-radius:7px; background:var(--accent); color:#fff; font:800 13px var(--font-data); }
+    .division-tip .move-symbol { flex:0 0 auto; display:grid; place-items:center; width:25px; height:22px; border-radius:7px; background:var(--accent); color:#fff; line-height:0; }
+    .division-tip .move-symbol svg { display:block; width:14px; height:14px; margin:auto; }
     body[data-draggable-dividers="true"] .divider-handle { pointer-events:auto; touch-action:none; cursor:ew-resize; }
     body[data-draggable-dividers="true"] .window-canvas[data-orientation="vertical"] .divider-handle { right:auto; bottom:auto; transform:translate(-50%,-50%); }
     body[data-draggable-dividers="true"] .window-canvas[data-orientation="horizontal"] .divider-handle { right:auto; bottom:auto; transform:translate(-50%,-50%); cursor:ns-resize; }
@@ -80,18 +95,19 @@
       .division-controls{grid-template-columns:64px minmax(0,1fr);gap:5px}
       .orientation-switch{gap:4px}
       .orientation-choice{gap:3px;padding:5px 4px;font-size:10px;white-space:nowrap}
-      .orientation-choice .move-arrow{font-size:14px}
+      .orientation-choice .move-arrow{width:15px;height:15px}
+      .orientation-choice .move-arrow svg{width:14px;height:14px}
       .division-reset,.division-equalize{min-height:44px;padding:5px 6px;font-size:10px}
       .dimension-frame{display:none}
       .window-canvas{width:calc(100% - 12px);aspect-ratio:1.3;gap:4px;padding:5px;border-width:7px;box-shadow:0 14px 30px rgba(0,0,0,.16),inset 0 0 0 1px rgba(255,255,255,.7)}
       .pane{border-width:2px}
       .pane:hover{transform:none}
       .pane[aria-pressed="true"]{border-width:3px;box-shadow:inset 0 0 0 2px rgba(255,255,255,.9)}
-      .pane[aria-pressed="true"]::after{content:"\2713";left:auto;right:5px;bottom:5px;width:22px;height:22px;display:grid;place-items:center;transform:none;padding:0;border-radius:50%;font-size:12px;letter-spacing:0}
+      .pane[aria-pressed="true"]::after{content:"\2713";left:auto;right:5px;bottom:5px;width:22px;height:22px;display:grid;place-items:center;transform:none;padding:0;border-radius:50%;font:800 12px/1 var(--font-ui);letter-spacing:0}
       .pane-code{font-size:18px}
       .pane-value,.pane-hint{display:none}
       .divider-handle{width:44px;height:44px;isolation:isolate;border-radius:999px;background:transparent;font:800 15px var(--font-data);box-shadow:none}
-      .divider-handle::before{content:"";position:absolute;z-index:-1;inset:0 5px;border-radius:999px;background:var(--accent);box-shadow:0 3px 10px rgba(0,0,0,.2)}
+      .divider-handle::before{content:"";position:absolute;z-index:-1;inset:5px;border-radius:50%;background:var(--accent);box-shadow:0 3px 10px rgba(0,0,0,.2)}
       body[data-draggable-dividers="true"] .divider-handle.is-dragging{background:transparent}
       body[data-draggable-dividers="true"] .divider-handle.is-dragging::before{background:#087484}
       .pane-strip{padding-top:8px}
@@ -110,7 +126,7 @@
   </style>
 </head>
 <body data-initial-panes="3" data-initial-pane="2" data-initial-orientation="vertical" data-draggable-dividers="true">
-  <a class="back-to-index" href="index.html" aria-label="Retour aux cinq styles">←</a>
+  <a class="back-to-index" href="index.html" aria-label="Retour aux cinq styles"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5m6-6-6 6 6 6"/></svg></a>
   <div class="prototype">
     <div class="shell">
       <div class="topbar">
@@ -120,7 +136,7 @@
 
       <header class="gabarit-hero">
         <div><p class="eyebrow">Style 01 · Gabarit sur verre</p><h1 class="title">Mesurez là où vous regardez.</h1><p class="lead">Le plan reste au centre. Touchez une vitre pour ouvrir immédiatement Largeur × Hauteur × Épaisseur.</p></div>
-        <div><div class="progress-glass" data-progress-label aria-label="Deux thermos sur trois complétés"><span class="done"></span><span class="current"></span><span></span></div><p class="muted mono" style="font-size:11px;margin:8px 0 0"><span data-complete-pane-output>2</span> / <span data-pane-count-output>3</span> complétés</p></div>
+        <div class="progress-card" data-progress-label aria-label="Deux thermos sur trois mesurés"><div class="progress-head"><span>Étapes de mesure</span><strong><span data-complete-pane-output>2</span> / <span data-pane-count-output>3</span> mesurés</strong></div><div class="thermo-progress" data-progress-steps></div></div>
       </header>
 
       <div class="workspace">
@@ -140,8 +156,8 @@
             <div class="division-controls">
               <label class="division-count"><span class="sr-only">Nombre de thermos</span><select class="select" data-section-count aria-label="Nombre de thermos"><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select></label>
               <div class="orientation-switch" role="group" aria-label="Sens des divisions">
-                <button type="button" class="orientation-choice" data-split="vertical" aria-pressed="true"><span class="move-arrow" aria-hidden="true">↔</span><span>Verticales</span></button>
-                <button type="button" class="orientation-choice" data-split="horizontal" aria-pressed="false"><span class="move-arrow" aria-hidden="true">↕</span><span>Horizontales</span></button>
+                <button type="button" class="orientation-choice" data-split="vertical" aria-pressed="true"><span class="move-arrow" data-direction-icon="vertical" aria-hidden="true">↔</span><span>Verticales</span></button>
+                <button type="button" class="orientation-choice" data-split="horizontal" aria-pressed="false"><span class="move-arrow" data-direction-icon="horizontal" aria-hidden="true">↕</span><span>Horizontales</span></button>
               </div>
             </div>
             <div class="division-actions">
@@ -184,7 +200,7 @@
   </div>
 
   <aside class="measure-sheet" data-measure-sheet hidden aria-label="Mesures du thermos sélectionné">
-    <div class="sheet-grip"></div><div class="sheet-head"><div><span class="sheet-kicker mono">F01 · <span data-active-pane>T2</span></span><h2>Mesures de <span data-active-pane>T2</span></h2><p>Les valeurs apparaissent directement dans la vitre.</p></div><button class="close-sheet" data-close-sheet aria-label="Fermer">×</button></div>
+    <div class="sheet-grip"></div><div class="sheet-head"><div><span class="sheet-kicker mono">F01 · <span data-active-pane>T2</span></span><h2>Mesures de <span data-active-pane>T2</span></h2><p>Les valeurs apparaissent directement dans la vitre.</p></div><button class="close-sheet" data-close-sheet aria-label="Fermer"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 7l10 10M17 7 7 17"/></svg></button></div>
     <div class="measure-grid">
       <label class="dimension"><span class="field-label">Largeur *</span><span class="dimension-parts"><input type="number" min="0" max="240" placeholder="Ex. 32" data-measure-key="width"><select aria-label="Fraction largeur" data-measure-key="widthFraction"></select><span>po</span></span></label>
       <label class="dimension"><span class="field-label">Hauteur *</span><span class="dimension-parts"><input type="number" min="0" max="240" placeholder="Ex. 48" data-measure-key="height"><select aria-label="Fraction hauteur" data-measure-key="heightFraction"></select><span>po</span></span></label>
