@@ -13,6 +13,26 @@
 
   const MAX_PANES = 12;
   const MIN_CHILD_PX = 52;
+  const languageParams = new URLSearchParams(window.location.search);
+  const requestedClientLanguage = languageParams.get('clientLang')
+    || languageParams.get('lang')
+    || prototypeRoot.dataset.clientLanguage
+    || document.documentElement.lang
+    || 'fr';
+  const clientLanguage = requestedClientLanguage.toLowerCase().startsWith('en') ? 'en' : 'fr';
+  const paneCopy = clientLanguage === 'en'
+    ? {
+        editing: 'You are editing',
+        choose: 'Tap to select',
+        selectedLabel: (code, paneCode) => code + ', glass unit ' + paneCode + '. You are editing this glass unit.',
+        availableLabel: (code, paneCode) => code + ', glass unit ' + paneCode + '. Select this glass unit.',
+      }
+    : {
+        editing: 'Vous éditez',
+        choose: 'Toucher pour choisir',
+        selectedLabel: (code, paneCode) => code + ', thermos ' + paneCode + '. Vous éditez ce thermos.',
+        availableLabel: (code, paneCode) => code + ', thermos ' + paneCode + '. Sélectionner ce thermos.',
+      };
   const PRESETS = {
     '1x1': { columns: 1, rows: 1, label: 'Vitre simple' },
     '2x1-narrow-left': { columns: 2, rows: 1, sizes: [34, 66], label: 'Petite vitre à gauche', summary: 'Petite vitre à gauche' },
@@ -606,14 +626,21 @@
     function renderNode(node, indexes, handleOwners) {
       if (node.type === 'pane') {
         const index = indexes.get(node.id);
+        const paneCode = 'T' + index;
+        const isSelected = node.id === state.selectedPaneId;
         const pane = document.createElement('button');
         pane.type = 'button';
         pane.className = 'pane';
         pane.dataset.paneId = node.id;
-        pane.setAttribute('aria-pressed', String(node.id === state.selectedPaneId));
-        pane.setAttribute('aria-label', state.code + ', thermos T' + index + '. Sélectionner ce thermos.');
+        pane.lang = clientLanguage;
+        pane.setAttribute('aria-pressed', String(isSelected));
+        pane.setAttribute('aria-label', isSelected ? paneCopy.selectedLabel(state.code, paneCode) : paneCopy.availableLabel(state.code, paneCode));
         const summary = paneSummary(node);
-        pane.innerHTML = (summary ? '<span class="pane-value">' + summary + '</span>' : '') + '<span class="pane-code">T' + index + '</span><span class="pane-hint">Toucher pour choisir</span>';
+        const paneCodeMarkup = isSelected
+          ? '<span class="pane-code pane-code-editing" lang="' + clientLanguage + '"><small>' + paneCopy.editing + '</small><strong>' + paneCode + '</strong></span>'
+          : '<span class="pane-code">' + paneCode + '</span>';
+        const paneHintMarkup = isSelected ? '' : '<span class="pane-hint" lang="' + clientLanguage + '">' + paneCopy.choose + '</span>';
+        pane.innerHTML = (summary ? '<span class="pane-value">' + summary + '</span>' : '') + paneCodeMarkup + paneHintMarkup;
         renderDecorativeLines(pane, node);
         pane.addEventListener('click', () => selectPaneOnly(api, node.id));
         return pane;
