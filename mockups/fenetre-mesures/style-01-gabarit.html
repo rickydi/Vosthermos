@@ -30,9 +30,9 @@
     .topbar .brand-lockup { flex:0 0 auto; }
     .topbar .brand-mark { width:auto; height:64px; object-fit:contain; border-radius:0; filter:brightness(1.1) drop-shadow(0 3px 8px rgba(0,0,0,.2)); }
     .topbar .mode-chip { border-color:rgba(255,255,255,.18); background:rgba(255,255,255,.08); color:#fff; }
-    .gabarit-hero { min-width:0; display:grid; gap:16px; margin-bottom:18px; }
-    .gabarit-hero .lead { margin:8px 0 0; max-width:680px; color:var(--muted); line-height:1.5; }
+    .measurement-flow { width:min(100%,920px); min-width:0; display:grid; gap:16px; margin:0 auto; }
     .progress-card { width:100%; min-width:0; max-width:100%; padding:10px 11px 9px; border:1px solid color-mix(in srgb,var(--accent) 22%,var(--line)); border-radius:15px; background:color-mix(in srgb,var(--surface) 96%,var(--accent)); box-shadow:0 10px 28px rgba(6,29,36,.1); }
+    .dossier-progress { order:-1; }
     .progress-head { display:flex; align-items:center; justify-content:space-between; gap:12px; }
     .progress-head span { color:var(--brand-red); font-size:10px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; }
     .progress-head strong { color:var(--ink); font:700 11px var(--font-data); }
@@ -49,10 +49,10 @@
     .progress-step.is-current.is-complete .progress-node { background:var(--success); color:#fff; box-shadow:0 0 0 4px color-mix(in srgb,var(--success) 16%,transparent); }
     .progress-label { font:700 10px/1 var(--font-data); }
     .progress-step.is-current .progress-label { color:var(--ink); }
-    .workspace { min-width:0; display:grid; gap:15px; }
-    .plan-column { min-width:0; display:grid; gap:15px; align-content:start; }
-    .side-windows { width:100%; min-width:0; padding:12px; }
-    .side-windows .window-tabs { min-width:0; max-width:100%; margin:0; }
+    .window-plan-list { width:100%; min-width:0; display:grid; gap:18px; margin:0; padding:0; }
+    .window-plan { width:100%; min-width:0; scroll-margin-top:16px; }
+    .window-plan:focus { outline:none; }
+    .window-plan:focus-visible .plan-card { outline:3px solid color-mix(in srgb,var(--accent) 34%,transparent); outline-offset:4px; }
     .plan-card { width:100%; min-width:0; padding:15px; overflow:hidden; }
     .plan-card .window-stage { margin:10px -15px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); background:var(--surface); }
     .plan-card .window-stage::before { display:none; }
@@ -127,6 +127,13 @@
     body[data-draggable-dividers="true"] .divider-handle.is-dragging { background:#087484; box-shadow:0 0 0 5px rgba(21,151,168,.2),0 6px 18px rgba(0,0,0,.28); }
     body[data-draggable-dividers="true"] .divider-handle:focus-visible { outline:3px solid color-mix(in srgb,var(--accent) 48%,transparent); outline-offset:3px; }
     .tool-grid { grid-template-columns:1fr; margin-top:15px; }
+    .add-window-large { width:100%; min-height:84px; display:flex; align-items:center; justify-content:center; gap:13px; padding:16px; border:2px dashed color-mix(in srgb,var(--accent) 45%,var(--line)); border-radius:18px; background:color-mix(in srgb,var(--accent) 4%,var(--surface)); color:var(--accent); text-align:left; transition:border-color .16s ease,background .16s ease,transform .16s ease; }
+    .add-window-large:hover { border-color:var(--accent); background:color-mix(in srgb,var(--accent) 8%,var(--surface)); transform:translateY(-1px); }
+    .add-window-large:focus-visible { outline:3px solid color-mix(in srgb,var(--brand-red) 54%,transparent); outline-offset:3px; }
+    .add-window-icon { flex:0 0 46px; width:46px; height:46px; display:grid; place-items:center; border-radius:50%; background:var(--accent); color:#fff; font:700 30px/1 var(--font-ui); }
+    .add-window-copy { display:grid; gap:2px; }
+    .add-window-copy strong { font-size:16px; font-weight:900; }
+    .add-window-copy small { color:var(--muted); font-size:11px; font-weight:700; }
     .tool-block.accent { border-color:color-mix(in srgb,var(--accent) 40%,var(--line)); }
     .decorative-controls { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
     .decorative-line { position:absolute; z-index:1; pointer-events:none; background:#b87b38; opacity:.74; }
@@ -196,6 +203,11 @@
     .glass-tip { margin:13px 0 0; padding:11px; border-left:4px solid var(--accent); background:#e6f1f3; color:#24434b; font-size:12px; line-height:1.45; }
     .sticky-actions .final { background:linear-gradient(180deg,#ff3547,#b90513); box-shadow:0 20px 36px -22px rgba(227,7,24,.95); }
     @media(max-width:759px){
+      .measurement-flow{gap:12px}
+      .window-plan-list{gap:14px}
+      .add-window-large{min-height:74px;padding:12px;border-radius:15px}
+      .add-window-icon{flex-basis:40px;width:40px;height:40px;font-size:26px}
+      .add-window-copy strong{font-size:15px}
       .pane-action-modal{padding:14px}
       .pane-action-card{max-height:calc(100dvh - 28px);padding:17px;border-radius:21px}
       .pane-action-head h2{font-size:26px}
@@ -225,15 +237,17 @@
       .plan-instruction{margin-top:8px}
     }
     @media(min-width:760px){
-      .gabarit-hero{display:block}
       .layout-presets{grid-template-columns:repeat(3,minmax(0,1fr))}
       .pane-action-modal{place-items:center}
       .pane-action-card{margin:auto;padding:21px}
+      .window-plan-list{gap:20px}
+      .add-window-large{min-height:88px}
+      .add-window-icon{flex-basis:48px;width:48px;height:48px}
       .tool-grid{grid-template-columns:1.2fr .8fr}.photo-actions{grid-column:1/-1}.summary-card{display:none}
     }
     @media(min-width:720px){.topbar{margin:-24px -24px 20px;padding-left:76px}.topbar .brand-mark{height:70px}}
     @media(min-width:1180px){
-      .workspace{grid-template-columns:170px minmax(0,1fr) 290px;align-items:start}.side-windows{position:sticky;top:18px}.side-windows .window-tabs{flex-direction:column;overflow:visible}.side-windows .window-tab,.side-windows .add-window{width:100%;text-align:left}.summary-card{display:block;position:sticky;top:18px}.plan-card{padding:20px}.plan-card .window-stage{margin:18px -20px 0}.tool-grid{grid-template-columns:1fr 1fr}.measure-sheet{top:20px;bottom:20px;right:20px;left:auto;width:480px;max-height:calc(100vh - 40px)}
+      .plan-card{padding:20px}.plan-card .window-stage{margin:18px -20px 0}.tool-grid{grid-template-columns:1fr 1fr}.measure-sheet{top:20px;bottom:20px;right:20px;left:auto;width:480px;max-height:calc(100vh - 40px)}
     }
   </style>
 </head>
@@ -246,76 +260,69 @@
         <span class="mode-chip">Mesures finales</span>
       </div>
 
-      <header class="gabarit-hero">
-        <div><p class="eyebrow">Style 01 · Gabarit sur verre</p><h1 class="title">Mesurez là où vous regardez.</h1><p class="lead">Touchez une vitre pour entrer ses mesures ou ajouter ses divisions.</p></div>
-      </header>
+      <main class="measurement-flow">
+        <section class="progress-card dossier-progress" data-dossier-progress-label aria-label="Aucun thermos mesuré">
+          <div class="progress-head"><span>Étapes de mesure</span><strong><span data-dossier-complete-output>0</span> / <span data-dossier-pane-output>0</span> mesurés</strong></div>
+          <div class="thermo-progress" data-dossier-progress-steps></div>
+        </section>
 
-      <div class="workspace">
-        <aside class="side-windows card" aria-label="Fenêtres du dossier">
-          <p class="eyebrow" style="margin:2px 5px 9px">Fenêtres</p>
-          <div class="window-tabs">
-            <button class="window-tab" data-window-tab aria-selected="true">Salon · <span data-pane-count-output>6</span>T</button>
-            <button class="window-tab" data-window-tab aria-selected="false">Cuisine · 1T</button>
-            <button class="add-window" data-add-window>＋ Fenêtre</button>
-          </div>
-        </aside>
+        <div class="window-plan-list" data-window-list aria-label="Fenêtres à mesurer"></div>
 
-        <div class="plan-column">
-          <div class="progress-card" data-progress-label aria-label="Aucun thermos sur six n’est mesuré"><div class="progress-head"><span>Étapes de mesure</span><strong><span data-complete-pane-output>0</span> / <span data-pane-count-output>6</span> mesurés</strong></div><div class="thermo-progress" data-progress-steps></div></div>
-        <main class="plan-card card">
-          <div class="card-head"><div><p class="eyebrow">Fenêtre salon</p><h2>Plan de vitrage</h2><p>F01 · Vue intérieure · <span data-pane-count-output>6</span> thermos</p></div><button class="small-action">Renommer</button></div>
-          <section class="division-toolbar" aria-label="Choisir un modèle de fenêtre">
-            <details class="layout-presets-menu" id="window-models">
-              <summary><span class="layout-presets-summary"><strong data-preset-summary>Six égaux</strong><small>12 exemples de fenêtres</small></span></summary>
-              <div class="layout-presets" role="group" aria-label="Configurations rapides">
-                <button type="button" class="layout-preset" data-layout-preset="1x1" aria-label="Créer une vitre simple"><span class="preset-window" data-columns="1" data-rows="1" aria-hidden="true"><span class="preset-pane"></span></span><span class="preset-copy"><strong>Vitre simple</strong><small>1 thermos</small></span></button>
-                <button type="button" class="layout-preset" data-layout-preset="2x1-narrow-left" aria-label="Créer une petite vitre à gauche et une grande à droite"><span class="preset-window" data-layout="left-narrow" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Petite à gauche</strong><small>2 thermos</small></span></button>
-                <button type="button" class="layout-preset" data-layout-preset="2x1" aria-label="Créer deux vitres égales côte à côte"><span class="preset-window" data-columns="2" data-rows="1" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Deux égaux</strong><small>2 thermos</small></span></button>
-                <button type="button" class="layout-preset" data-layout-preset="1x2" aria-label="Créer deux vitres superposées"><span class="preset-window" data-columns="1" data-rows="2" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Deux superposés</strong><small>2 thermos</small></span></button>
-                <button type="button" class="layout-preset" data-layout-preset="3x1" aria-label="Créer trois vitres côte à côte"><span class="preset-window" data-columns="3" data-rows="1" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Trois côte à côte</strong><small>3 thermos</small></span></button>
-                <button type="button" class="layout-preset" data-layout-preset="2x2" aria-label="Créer quatre vitres égales"><span class="preset-window" data-columns="2" data-rows="2" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Quatre égaux</strong><small>4 thermos</small></span></button>
-                <button type="button" class="layout-preset" data-layout-preset="3x2" aria-label="Créer six vitres égales" aria-pressed="true"><span class="preset-window" data-columns="3" data-rows="2" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Six égaux</strong><small>6 thermos</small></span></button>
-                <button type="button" class="layout-preset" data-layout-preset="3x3" aria-label="Créer neuf vitres égales"><span class="preset-window" data-columns="3" data-rows="3" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Neuf égaux</strong><small>9 thermos</small></span></button>
-                <button type="button" class="layout-preset" data-layout-preset="top-3-bottom-1" aria-label="Créer trois vitres en haut et une grande en bas"><span class="preset-window" data-layout="top-three" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Trois en haut</strong><small>4 thermos</small></span></button>
-                <button type="button" class="layout-preset" data-layout-preset="top-1-bottom-3" aria-label="Créer une grande vitre en haut et trois en bas"><span class="preset-window" data-layout="bottom-three" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Trois en bas</strong><small>4 thermos</small></span></button>
-                <button type="button" class="layout-preset" data-layout-preset="left-1-right-3" aria-label="Créer une grande vitre à gauche et trois à droite"><span class="preset-window" data-layout="grand-left" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Grand à gauche</strong><small>4 thermos</small></span></button>
-                <button type="button" class="layout-preset" data-layout-preset="left-3-right-1" aria-label="Créer trois vitres à gauche et une grande à droite"><span class="preset-window" data-layout="grand-right" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Grand à droite</strong><small>4 thermos</small></span></button>
-              </div>
-            </details>
-          </section>
-          <div class="window-stage">
-            <div class="dimension-frame"><span class="dim-width">largeur du cadre</span><span class="dim-height">hauteur du cadre</span></div>
-            <div class="window-canvas" data-window-canvas aria-label="Dessin interactif de la fenêtre"></div>
-          </div>
-          <div class="pane-strip" data-pane-strip aria-label="Thermos de la fenêtre"></div>
-          <p class="plan-instruction"><b>1</b><span>Touchez un thermos (T1, T2…) pour choisir quoi faire.</span></p>
-
-          <div class="tool-grid">
-            <section class="tool-block">
-              <h3>Carrelage décoratif</h3><p>Ces lignes restent dans <span data-active-pane>T2</span>; elles ne créent pas de thermos.</p>
-              <div class="decorative-controls">
-                <div><span class="field-label">Vertical</span><div class="counter" data-counter="vertical"><button data-delta="-1">−</button><output>0</output><button data-delta="1">＋</button></div></div>
-                <div><span class="field-label">Horizontal</span><div class="counter" data-counter="horizontal"><button data-delta="-1">−</button><output>0</output><button data-delta="1">＋</button></div></div>
-              </div>
-            </section>
-            <section class="tool-block photo-actions">
-              <h3>Photo de référence</h3><p>Une photo bien de face aide à confirmer les divisions.</p>
-              <div class="button-row"><button class="button" data-photo>Prendre une photo de face</button><button class="primary" data-detect disabled>Détecter les divisions</button></div>
-            </section>
-          </div>
-        </main>
-        </div>
-
-        <aside class="summary-card card">
-          <p class="eyebrow">Vérification rapide</p><h2 style="margin:4px 0 0;font-family:var(--font-display)">Fenêtre salon</h2>
-          <div class="summary-list" data-summary-list><div class="summary-row pending"><code>T1</code><small>À compléter</small><span class="state"></span></div><div class="summary-row pending"><code>T2</code><small>À compléter</small><span class="state"></span></div><div class="summary-row pending"><code>T3</code><small>À compléter</small><span class="state"></span></div></div>
-          <p class="glass-tip">Le rouge Vosthermos reste réservé à l’action finale, pour qu’elle soit impossible à confondre.</p>
-        </aside>
-      </div>
+        <button type="button" class="add-window-large" data-add-window>
+          <span class="add-window-icon" aria-hidden="true">+</span>
+          <span class="add-window-copy"><strong>Ajouter une autre fenêtre</strong><small>Créer un nouveau plan de vitrage</small></span>
+        </button>
+      </main>
 
       <div class="sticky-actions"><span class="dirty-dot" data-dirty title="Modifications non enregistrées"></span><button class="draft" data-save-draft>Enregistrer</button><button class="final" data-finalize>Valider les mesures finales</button></div>
     </div>
   </div>
+
+  <template data-window-template>
+    <article class="window-plan" data-window-plan tabindex="-1">
+      <section class="plan-card card">
+        <div class="card-head"><div><p class="eyebrow">Fenêtre <span data-window-name>Salon</span></p><h2>Plan de vitrage</h2><p><span data-window-code>F01</span> · Vue intérieure · <span data-pane-count-output>6</span> thermos · <span data-complete-pane-output>0</span> mesurés</p></div><button type="button" class="small-action" data-rename-window>Renommer</button></div>
+        <section class="division-toolbar" aria-label="Choisir un modèle de fenêtre">
+          <details class="layout-presets-menu">
+            <summary><span class="layout-presets-summary"><strong data-preset-summary>Six égaux</strong><small>12 exemples de fenêtres</small></span></summary>
+            <div class="layout-presets" role="group" aria-label="Configurations rapides">
+              <button type="button" class="layout-preset" data-layout-preset="1x1" aria-label="Créer une vitre simple"><span class="preset-window" data-columns="1" data-rows="1" aria-hidden="true"><span class="preset-pane"></span></span><span class="preset-copy"><strong>Vitre simple</strong><small>1 thermos</small></span></button>
+              <button type="button" class="layout-preset" data-layout-preset="2x1-narrow-left" aria-label="Créer une petite vitre à gauche et une grande à droite"><span class="preset-window" data-layout="left-narrow" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Petite à gauche</strong><small>2 thermos</small></span></button>
+              <button type="button" class="layout-preset" data-layout-preset="2x1" aria-label="Créer deux vitres égales côte à côte"><span class="preset-window" data-columns="2" data-rows="1" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Deux égaux</strong><small>2 thermos</small></span></button>
+              <button type="button" class="layout-preset" data-layout-preset="1x2" aria-label="Créer deux vitres superposées"><span class="preset-window" data-columns="1" data-rows="2" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Deux superposés</strong><small>2 thermos</small></span></button>
+              <button type="button" class="layout-preset" data-layout-preset="3x1" aria-label="Créer trois vitres côte à côte"><span class="preset-window" data-columns="3" data-rows="1" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Trois côte à côte</strong><small>3 thermos</small></span></button>
+              <button type="button" class="layout-preset" data-layout-preset="2x2" aria-label="Créer quatre vitres égales"><span class="preset-window" data-columns="2" data-rows="2" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Quatre égaux</strong><small>4 thermos</small></span></button>
+              <button type="button" class="layout-preset" data-layout-preset="3x2" aria-label="Créer six vitres égales" aria-pressed="true"><span class="preset-window" data-columns="3" data-rows="2" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Six égaux</strong><small>6 thermos</small></span></button>
+              <button type="button" class="layout-preset" data-layout-preset="3x3" aria-label="Créer neuf vitres égales"><span class="preset-window" data-columns="3" data-rows="3" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Neuf égaux</strong><small>9 thermos</small></span></button>
+              <button type="button" class="layout-preset" data-layout-preset="top-3-bottom-1" aria-label="Créer trois vitres en haut et une grande en bas"><span class="preset-window" data-layout="top-three" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Trois en haut</strong><small>4 thermos</small></span></button>
+              <button type="button" class="layout-preset" data-layout-preset="top-1-bottom-3" aria-label="Créer une grande vitre en haut et trois en bas"><span class="preset-window" data-layout="bottom-three" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Trois en bas</strong><small>4 thermos</small></span></button>
+              <button type="button" class="layout-preset" data-layout-preset="left-1-right-3" aria-label="Créer une grande vitre à gauche et trois à droite"><span class="preset-window" data-layout="grand-left" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Grand à gauche</strong><small>4 thermos</small></span></button>
+              <button type="button" class="layout-preset" data-layout-preset="left-3-right-1" aria-label="Créer trois vitres à gauche et une grande à droite"><span class="preset-window" data-layout="grand-right" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Grand à droite</strong><small>4 thermos</small></span></button>
+            </div>
+          </details>
+        </section>
+        <div class="window-stage">
+          <div class="dimension-frame"><span class="dim-width">largeur du cadre</span><span class="dim-height">hauteur du cadre</span></div>
+          <div class="window-canvas" data-window-canvas aria-label="Dessin interactif de la fenêtre"></div>
+        </div>
+        <div class="pane-strip" data-pane-strip aria-label="Thermos de la fenêtre"></div>
+        <p class="plan-instruction"><b>1</b><span>Touchez un thermos (T1, T2…) pour choisir quoi faire.</span></p>
+        <div class="tool-grid">
+          <section class="tool-block">
+            <h3>Carrelage décoratif</h3><p>Ces lignes restent dans <span data-window-active-pane>T1</span>; elles ne créent pas de thermos.</p>
+            <div class="decorative-controls">
+              <div><span class="field-label">Vertical</span><div class="counter" data-counter="vertical"><button type="button" data-delta="-1">−</button><output>0</output><button type="button" data-delta="1">＋</button></div></div>
+              <div><span class="field-label">Horizontal</span><div class="counter" data-counter="horizontal"><button type="button" data-delta="-1">−</button><output>0</output><button type="button" data-delta="1">＋</button></div></div>
+            </div>
+          </section>
+          <section class="tool-block photo-actions">
+            <h3>Photo de référence</h3><p>Une photo bien de face aide à confirmer les divisions.</p>
+            <div class="button-row"><button type="button" class="button" data-photo>Prendre une photo de face</button><button type="button" class="primary" data-detect disabled>Détecter les divisions</button></div>
+          </section>
+        </div>
+      </section>
+    </article>
+  </template>
 
   <div class="pane-action-modal" data-pane-action-modal hidden>
     <section class="pane-action-card" role="dialog" aria-modal="true" aria-labelledby="pane-action-title">
@@ -354,7 +361,7 @@
   </div>
 
   <aside class="measure-sheet" data-measure-sheet hidden role="dialog" aria-modal="true" aria-label="Mesures du thermos sélectionné">
-    <div class="sheet-grip"></div><div class="sheet-head"><div><span class="sheet-kicker mono">F01 · <span data-active-pane>T2</span></span><h2>Mesures de <span data-active-pane>T2</span></h2><p>Les valeurs apparaissent directement dans la vitre.</p></div><button class="close-sheet" data-close-sheet aria-label="Fermer"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 7l10 10M17 7 7 17"/></svg></button></div>
+    <div class="sheet-grip"></div><div class="sheet-head"><div><span class="sheet-kicker mono"><span data-sheet-window>F01</span> · <span data-sheet-pane>T1</span></span><h2>Mesures de <span data-sheet-pane>T1</span></h2><p>Les valeurs apparaissent directement dans la vitre.</p></div><button class="close-sheet" data-close-sheet aria-label="Fermer"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 7l10 10M17 7 7 17"/></svg></button></div>
     <div class="measure-grid">
       <label class="dimension"><span class="field-label">Largeur *</span><span class="dimension-parts"><input type="number" min="0" max="240" placeholder="Ex. 32" data-measure-key="width"><select aria-label="Fraction largeur" data-measure-key="widthFraction"></select><span>po</span></span></label>
       <label class="dimension"><span class="field-label">Hauteur *</span><span class="dimension-parts"><input type="number" min="0" max="240" placeholder="Ex. 48" data-measure-key="height"><select aria-label="Fraction hauteur" data-measure-key="heightFraction"></select><span>po</span></span></label>
