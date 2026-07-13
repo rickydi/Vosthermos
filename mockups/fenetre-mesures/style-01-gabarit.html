@@ -78,14 +78,26 @@
     .layout-presets-menu summary::after { content:"⌄"; color:var(--accent); font-size:16px; line-height:1; transition:transform .16s ease; }
     .layout-presets-menu[open] summary::after { transform:rotate(180deg); }
     .layout-presets { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; margin-top:7px; }
-    .layout-preset { position:relative; min-width:0; min-height:112px; display:grid; grid-template-rows:58px auto; align-items:center; gap:7px; padding:10px; border:1px solid color-mix(in srgb,var(--accent) 28%,var(--line)); border-radius:12px; background:#fffdf9; color:var(--ink); text-align:left; }
+    .layout-preset { position:relative; min-width:0; min-height:118px; display:grid; grid-template-rows:64px auto; align-items:center; gap:7px; padding:9px; border:1px solid color-mix(in srgb,var(--accent) 28%,var(--line)); border-radius:12px; background:#fffdf9; color:var(--ink); text-align:left; }
     .layout-preset[aria-pressed="true"] { border-color:var(--accent); background:color-mix(in srgb,var(--accent) 9%,var(--surface)); box-shadow:inset 0 0 0 1px var(--accent),0 8px 18px -15px rgba(0,56,69,.9); }
     .layout-preset[aria-pressed="true"]::after { content:"✓"; position:absolute; right:7px; bottom:7px; width:21px; height:21px; display:grid; place-items:center; border-radius:50%; background:var(--accent); color:#fff; font:900 11px/1 var(--font-ui); }
-    .preset-window { width:min(100%,112px); height:58px; display:grid; gap:3px; justify-self:center; padding:4px; border:4px solid #16343c; border-radius:3px; background:#dcebed; box-shadow:inset 0 0 0 1px rgba(255,255,255,.9); }
+    .preset-window { width:min(100%,128px); height:64px; display:grid; gap:3px; justify-self:center; padding:4px; border:4px solid #16343c; border-radius:3px; background:#dcebed; box-shadow:inset 0 0 0 1px rgba(255,255,255,.9); }
     .preset-window[data-columns="1"] { grid-template-columns:1fr; }
     .preset-window[data-columns="2"] { grid-template-columns:repeat(2,1fr); }
     .preset-window[data-columns="3"] { grid-template-columns:repeat(3,1fr); }
+    .preset-window[data-rows="3"] { grid-template-rows:repeat(3,1fr); }
     .preset-window[data-rows="2"] { grid-template-rows:repeat(2,1fr); }
+    .preset-window[data-layout="left-narrow"] { grid-template-columns:34fr 66fr; }
+    .preset-window[data-layout="top-three"],.preset-window[data-layout="bottom-three"] { grid-template-columns:repeat(3,1fr); grid-template-rows:34fr 66fr; }
+    .preset-window[data-layout="top-three"] .preset-pane:last-child { grid-column:1/-1; }
+    .preset-window[data-layout="bottom-three"] { grid-template-rows:66fr 34fr; }
+    .preset-window[data-layout="bottom-three"] .preset-pane:first-child { grid-column:1/-1; }
+    .preset-window[data-layout="grand-left"],.preset-window[data-layout="grand-right"] { grid-template-rows:repeat(3,1fr); }
+    .preset-window[data-layout="grand-left"] { grid-template-columns:60fr 40fr; }
+    .preset-window[data-layout="grand-left"] .preset-pane:first-child { grid-row:1/-1; }
+    .preset-window[data-layout="grand-right"] { grid-template-columns:40fr 60fr; }
+    .preset-window[data-layout="grand-right"] .preset-pane:last-child { grid-column:2; grid-row:1/-1; }
+    .preset-window[data-layout="grand-right"] .preset-pane:not(:last-child) { grid-column:1; }
     .preset-pane { min-width:0; min-height:0; border:2px solid var(--accent); background:linear-gradient(145deg,#f8ffff,#d9ecef); }
     .preset-copy { min-width:0; display:grid; gap:1px; line-height:1.05; }
     .preset-copy strong { font-size:12px; font-weight:900; }
@@ -191,7 +203,7 @@
       .orientation-choice .move-arrow svg{width:16px;height:16px}
       .division-reset,.division-equalize{min-height:44px;padding:5px 6px;font-size:10px}
       .division-add{min-height:44px;padding:6px 9px}
-      .layout-preset{min-height:108px;padding:9px}
+      .layout-preset{min-height:116px;padding:7px}
       .dimension-frame{display:none}
       .window-canvas{width:calc(100% - 12px);aspect-ratio:1.3;gap:4px;padding:5px;border-width:7px;box-shadow:0 14px 30px rgba(0,0,0,.16),inset 0 0 0 1px rgba(255,255,255,.7)}
       .pane{border-width:2px}
@@ -252,14 +264,20 @@
           <section class="division-toolbar" aria-label="Configurer les divisions de la fenêtre">
             <div class="division-heading"><h3>Disposition</h3><p><strong data-layout-summary>3 colonnes × 2 rangées · 6 thermos</strong></p></div>
             <details class="layout-presets-menu" id="window-models">
-              <summary><span class="layout-presets-summary"><strong data-preset-summary>Six en grille</strong><small>Voir des exemples de fenêtres</small></span></summary>
+              <summary><span class="layout-presets-summary"><strong data-preset-summary>Six égaux</strong><small>12 exemples de fenêtres</small></span></summary>
               <div class="layout-presets" role="group" aria-label="Configurations rapides">
                 <button type="button" class="layout-preset" data-layout-preset="1x1" aria-label="Créer une vitre simple"><span class="preset-window" data-columns="1" data-rows="1" aria-hidden="true"><span class="preset-pane"></span></span><span class="preset-copy"><strong>Vitre simple</strong><small>1 thermos</small></span></button>
-                <button type="button" class="layout-preset" data-layout-preset="2x1" aria-label="Créer deux vitres côte à côte"><span class="preset-window" data-columns="2" data-rows="1" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Deux côte à côte</strong><small>2 thermos</small></span></button>
+                <button type="button" class="layout-preset" data-layout-preset="2x1-narrow-left" aria-label="Créer une petite vitre à gauche et une grande à droite"><span class="preset-window" data-layout="left-narrow" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Petite à gauche</strong><small>2 thermos</small></span></button>
+                <button type="button" class="layout-preset" data-layout-preset="2x1" aria-label="Créer deux vitres égales côte à côte"><span class="preset-window" data-columns="2" data-rows="1" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Deux égaux</strong><small>2 thermos</small></span></button>
                 <button type="button" class="layout-preset" data-layout-preset="1x2" aria-label="Créer deux vitres superposées"><span class="preset-window" data-columns="1" data-rows="2" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Deux superposés</strong><small>2 thermos</small></span></button>
                 <button type="button" class="layout-preset" data-layout-preset="3x1" aria-label="Créer trois vitres côte à côte"><span class="preset-window" data-columns="3" data-rows="1" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Trois côte à côte</strong><small>3 thermos</small></span></button>
-                <button type="button" class="layout-preset" data-layout-preset="2x2" aria-label="Créer quatre vitres en grille"><span class="preset-window" data-columns="2" data-rows="2" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Quatre en grille</strong><small>4 thermos</small></span></button>
-                <button type="button" class="layout-preset" data-layout-preset="3x2" aria-label="Créer six vitres en grille" aria-pressed="true"><span class="preset-window" data-columns="3" data-rows="2" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Six en grille</strong><small>6 thermos</small></span></button>
+                <button type="button" class="layout-preset" data-layout-preset="2x2" aria-label="Créer quatre vitres égales"><span class="preset-window" data-columns="2" data-rows="2" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Quatre égaux</strong><small>4 thermos</small></span></button>
+                <button type="button" class="layout-preset" data-layout-preset="3x2" aria-label="Créer six vitres égales" aria-pressed="true"><span class="preset-window" data-columns="3" data-rows="2" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Six égaux</strong><small>6 thermos</small></span></button>
+                <button type="button" class="layout-preset" data-layout-preset="3x3" aria-label="Créer neuf vitres égales"><span class="preset-window" data-columns="3" data-rows="3" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Neuf égaux</strong><small>9 thermos</small></span></button>
+                <button type="button" class="layout-preset" data-layout-preset="top-3-bottom-1" aria-label="Créer trois vitres en haut et une grande en bas"><span class="preset-window" data-layout="top-three" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Trois en haut</strong><small>4 thermos</small></span></button>
+                <button type="button" class="layout-preset" data-layout-preset="top-1-bottom-3" aria-label="Créer une grande vitre en haut et trois en bas"><span class="preset-window" data-layout="bottom-three" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Trois en bas</strong><small>4 thermos</small></span></button>
+                <button type="button" class="layout-preset" data-layout-preset="left-1-right-3" aria-label="Créer une grande vitre à gauche et trois à droite"><span class="preset-window" data-layout="grand-left" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Grand à gauche</strong><small>4 thermos</small></span></button>
+                <button type="button" class="layout-preset" data-layout-preset="left-3-right-1" aria-label="Créer trois vitres à gauche et une grande à droite"><span class="preset-window" data-layout="grand-right" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Grand à droite</strong><small>4 thermos</small></span></button>
               </div>
             </details>
             <div class="division-actions">

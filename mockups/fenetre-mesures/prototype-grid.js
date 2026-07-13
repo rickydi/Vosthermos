@@ -10,11 +10,17 @@
   const MIN_CHILD_PX = 52;
   const PRESETS = {
     '1x1': { columns: 1, rows: 1, label: 'Vitre simple' },
-    '2x1': { columns: 2, rows: 1, label: 'Deux côte à côte' },
+    '2x1-narrow-left': { columns: 2, rows: 1, sizes: [34, 66], label: 'Petite à gauche', summary: 'Petite à gauche' },
+    '2x1': { columns: 2, rows: 1, label: 'Deux égaux' },
     '1x2': { columns: 1, rows: 2, label: 'Deux superposés' },
     '3x1': { columns: 3, rows: 1, label: 'Trois côte à côte' },
-    '2x2': { columns: 2, rows: 2, label: 'Quatre en grille' },
-    '3x2': { columns: 3, rows: 2, label: 'Six en grille' },
+    '2x2': { columns: 2, rows: 2, label: 'Quatre égaux' },
+    '3x2': { columns: 3, rows: 2, label: 'Six égaux' },
+    '3x3': { columns: 3, rows: 3, label: 'Neuf égaux' },
+    'top-3-bottom-1': { layout: 'top-3-bottom-1', label: 'Trois en haut', summary: '3 en haut, 1 en bas' },
+    'top-1-bottom-3': { layout: 'top-1-bottom-3', label: 'Trois en bas', summary: '1 en haut, 3 en bas' },
+    'left-1-right-3': { layout: 'left-1-right-3', label: 'Grand à gauche', summary: 'Grand à gauche, 3 à droite' },
+    'left-3-right-1': { layout: 'left-3-right-1', label: 'Grand à droite', summary: '3 à gauche, grand à droite' },
   };
   const fractions = ['', '0', '1/16', '1/8', '3/16', '1/4', '5/16', '3/8', '7/16', '1/2', '9/16', '5/8', '11/16', '3/4', '13/16', '7/8', '15/16'];
 
@@ -62,10 +68,27 @@
       splitSequence = 0;
     }
 
+    if (preset.layout === 'top-3-bottom-1') {
+      return createSplit('horizontal', [createSplit('vertical', Array.from({ length: 3 }, () => createPane())), createPane()], [34, 66]);
+    }
+    if (preset.layout === 'top-1-bottom-3') {
+      return createSplit('horizontal', [createPane(), createSplit('vertical', Array.from({ length: 3 }, () => createPane()))], [66, 34]);
+    }
+    if (preset.layout === 'left-1-right-3') {
+      const layout = createSplit('vertical', [createPane(), createSplit('horizontal', Array.from({ length: 3 }, () => createPane()))], [60, 40]);
+      layout.displayOrder = 'tree';
+      return layout;
+    }
+    if (preset.layout === 'left-3-right-1') {
+      const layout = createSplit('vertical', [createSplit('horizontal', Array.from({ length: 3 }, () => createPane())), createPane()], [40, 60]);
+      layout.displayOrder = 'tree';
+      return layout;
+    }
+
     const linkedColumns = preset.rows > 1 && preset.columns > 1 ? `preset-${key}-columns` : null;
     const buildRow = () => {
       const panes = Array.from({ length: preset.columns }, () => createPane());
-      return panes.length === 1 ? panes[0] : createSplit('vertical', panes, null, linkedColumns);
+      return panes.length === 1 ? panes[0] : createSplit('vertical', panes, preset.sizes || null, linkedColumns);
     };
 
     const rows = Array.from({ length: preset.rows }, buildRow);
@@ -108,6 +131,7 @@
     };
 
     visit(root, { left: 0, top: 0, width: 1, height: 1 });
+    if (root.displayOrder === 'tree') return entries;
     return entries.sort((a, b) => {
       if (Math.abs(a.bounds.top - b.bounds.top) > .0001) return a.bounds.top - b.bounds.top;
       if (Math.abs(a.bounds.left - b.bounds.left) > .0001) return a.bounds.left - b.bounds.left;
@@ -132,6 +156,13 @@
     return matches;
   }
 
+  function linkedHandleOwners(root, owners = new Map()) {
+    if (!root || root.type !== 'split') return owners;
+    if (root.linkId && !owners.has(root.linkId)) owners.set(root.linkId, root.id);
+    root.children.forEach((child) => linkedHandleOwners(child, owners));
+    return owners;
+  }
+
   function replaceNode(root, id, replacement) {
     if (root.id === id) return replacement;
     if (root.type === 'split') {
@@ -146,9 +177,12 @@
     node.children.forEach(equalizeNode);
   }
 
-  function countSeparators(node) {
+  function countSeparators(node, countedLinks = new Set()) {
     if (node.type !== 'split') return 0;
-    return Math.max(0, node.children.length - 1) + node.children.reduce((sum, child) => sum + countSeparators(child), 0);
+    const countOwnSeparators = !node.linkId || !countedLinks.has(node.linkId);
+    if (node.linkId) countedLinks.add(node.linkId);
+    const ownCount = countOwnSeparators ? Math.max(0, node.children.length - 1) : 0;
+    return ownCount + node.children.reduce((sum, child) => sum + countSeparators(child, countedLinks), 0);
   }
 
   const initialLayout = buildPresetLayout('3x2', { resetIds: true });
@@ -251,7 +285,7 @@
     }
   }
 
-  function renderNode(node, indexes) {
+  function renderNode(node, indexes, handleOwners) {
     if (node.type === 'pane') {
       const index = indexes.get(node.id);
       const pane = document.createElement('button');
@@ -277,11 +311,12 @@
       wrapper.className = 'layout-child';
       wrapper.dataset.childIndex = String(index);
       wrapper.style.flex = `${node.sizes[index]} 1 0px`;
-      wrapper.appendChild(renderNode(child, indexes));
+      wrapper.appendChild(renderNode(child, indexes, handleOwners));
       split.appendChild(wrapper);
     });
 
-    node.children.slice(0, -1).forEach((_, index) => {
+    const ownsHandles = !node.linkId || handleOwners.get(node.linkId) === node.id;
+    if (ownsHandles) node.children.slice(0, -1).forEach((_, index) => {
       const handle = document.createElement('div');
       handle.className = 'divider-handle';
       handle.dataset.splitId = node.id;
@@ -290,7 +325,7 @@
       handle.innerHTML = directionIconMarkup(node.axis);
       handle.setAttribute('role', 'separator');
       handle.setAttribute('aria-orientation', node.axis);
-      handle.setAttribute('aria-label', `${node.axis === 'vertical' ? 'Séparation verticale' : 'Séparation horizontale'} ${index + 1}`);
+      handle.setAttribute('aria-label', `${node.axis === 'vertical' ? 'Séparation verticale' : 'Séparation horizontale'} ${index + 1}${node.linkId ? ', continue sur toutes les rangées' : ''}`);
       handle.title = node.axis === 'vertical' ? 'Glisser à gauche ou à droite' : 'Glisser vers le haut ou le bas';
       handle.addEventListener('pointerdown', (event) => startDividerDrag(event, node.id, index));
       handle.addEventListener('keydown', (event) => moveDividerWithKeyboard(event, node.id, index));
@@ -303,9 +338,10 @@
     const entries = getLeafEntries(state.layout);
     if (!entries.some(({ node }) => node.id === state.selectedPaneId)) state.selectedPaneId = entries[0]?.node.id || null;
     const indexes = displayIndexMap(entries);
+    const handleOwners = linkedHandleOwners(state.layout);
     canvas.innerHTML = '';
     canvas.removeAttribute('data-orientation');
-    canvas.appendChild(renderNode(state.layout, indexes));
+    canvas.appendChild(renderNode(state.layout, indexes, handleOwners));
     renderPaneStrip(entries, indexes);
     renderSummaryList(entries, indexes);
     renderProgressSteps(entries, indexes);
@@ -372,6 +408,7 @@
   function layoutSummary(entries) {
     const preset = PRESETS[state.activePreset];
     if (!preset) return `Disposition personnalisée · ${entries.length} thermos`;
+    if (preset.summary) return `${preset.summary} · ${entries.length} thermos`;
     const columnLabel = preset.columns > 1 ? 'colonnes' : 'colonne';
     const rowLabel = preset.rows > 1 ? 'rangées' : 'rangée';
     return `${preset.columns} ${columnLabel} × ${preset.rows} ${rowLabel} · ${entries.length} thermos`;
@@ -669,7 +706,7 @@
     const preset = PRESETS[key];
     if (!preset) return false;
     if (state.activePreset === key) {
-      showToast(`La disposition ${key.replace('x', ' × ')} est déjà active.`);
+      showToast(`Le modèle « ${preset.label} » est déjà actif.`);
       return false;
     }
     if (layoutHasData() && !window.confirm('Changer la disposition effacera les mesures de cette fenêtre. Continuer?')) return false;
@@ -682,9 +719,10 @@
     renderLayout();
     fillSheet(state.selectedPaneId);
     markDirty();
+    const paneCount = getLeafEntries(state.layout).length;
     showToast(detected
-      ? `${preset.columns} colonnes × ${preset.rows} rangées détectées. ${preset.columns * preset.rows} thermos à mesurer.`
-      : `Disposition ${preset.columns} × ${preset.rows} créée. ${preset.columns * preset.rows} thermos à mesurer.`);
+      ? `${preset.columns} colonnes × ${preset.rows} rangées détectées. ${paneCount} thermos à mesurer.`
+      : `Modèle « ${preset.label} » créé. ${paneCount} thermos à mesurer.`);
     return true;
   }
 
@@ -720,7 +758,8 @@
 
   function equalizeLayout() {
     equalizeNode(state.layout);
-    state.activePreset = state.topologyPreset || 'custom';
+    const preset = PRESETS[state.topologyPreset];
+    state.activePreset = preset && !preset.layout && !preset.sizes ? state.topologyPreset : 'custom';
     renderLayout();
     markDirty();
     showToast('Toutes les divisions ont été réparties également.');
@@ -844,6 +883,15 @@
   renderLayout();
 
   const previewParams = new URLSearchParams(window.location.search);
+  const previewPreset = previewParams.get('previewPreset');
+  if (PRESETS[previewPreset]) {
+    state.layout = buildPresetLayout(previewPreset, { resetIds: true });
+    state.selectedPaneId = getLeafEntries(state.layout)[0].node.id;
+    state.activePreset = previewPreset;
+    state.topologyPreset = previewPreset;
+    renderLayout();
+    fillSheet(state.selectedPaneId);
+  }
   if (previewParams.get('previewModels') === '1') document.querySelector('.layout-presets-menu')?.setAttribute('open', '');
   const previewPaneId = previewParams.get('previewPane');
   if (previewPaneId && findNode(state.layout, previewPaneId)?.type === 'pane') {
