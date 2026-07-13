@@ -747,7 +747,7 @@
     }
 
     function positionDividerHandles() {
-      const canvasRect = canvas.getBoundingClientRect();
+      const frameRect = canvas.firstElementChild?.getBoundingClientRect() || canvas.getBoundingClientRect();
       const dividerTracks = { vertical: [], horizontal: [] };
       const dividerTrackByKey = new Map();
       const placedHandleCenters = [];
@@ -786,7 +786,7 @@
 
       function safeCrossPosition(target, minimum, maximum, blocked, preferStart) {
         if (minimum >= maximum) return Math.max(0, target);
-        const clearance = 44;
+        const clearance = 26;
         let segments = [[minimum, maximum]];
         blocked.forEach((item) => {
           const position = typeof item === 'number' ? item : item.position;
@@ -840,28 +840,24 @@
             start: ownerCrossStart,
             end: ownerCrossStart + (node.axis === 'vertical' ? elementRect.height : elementRect.width),
           };
+          const frameCrossStart = node.axis === 'vertical' ? frameRect.top : frameRect.left;
+          const frameCrossEnd = node.axis === 'vertical' ? frameRect.bottom : frameRect.right;
+          const frameCrossCenter = (frameCrossStart + frameCrossEnd) / 2;
           const trackCrossCenter = (mergedTrack.start + mergedTrack.end) / 2;
-          const canvasCrossCenter = node.axis === 'vertical'
-            ? (canvasRect.top + canvasRect.bottom) / 2
-            : (canvasRect.left + canvasRect.right) / 2;
-          const towardStartEdge = node.axis === 'vertical'
-            ? trackCrossCenter <= canvasCrossCenter
-            : trackCrossCenter < canvasCrossCenter;
+          const touchesStartEdge = Math.abs(mergedTrack.start - frameCrossStart) <= 8;
+          const touchesEndEdge = Math.abs(mergedTrack.end - frameCrossEnd) <= 8;
+          let towardStartEdge;
+          if (touchesStartEdge !== touchesEndEdge) towardStartEdge = touchesStartEdge;
+          else if (touchesStartEdge && touchesEndEdge) towardStartEdge = node.axis === 'vertical';
+          else towardStartEdge = trackCrossCenter <= frameCrossCenter;
           // Keep the control inside the outer third instead of on its inner boundary.
+          // Use the full inner frame so asymmetric presets keep the same visual anchor.
           // The midpoint of that outer third is 1/6 from the chosen frame edge.
           const crossRatio = towardStartEdge ? 1 / 6 : 5 / 6;
           const crossLength = mergedTrack.end - mergedTrack.start;
-          let crossTarget = (mergedTrack.start - ownerCrossStart) + crossLength * crossRatio;
+          const frameCrossTarget = frameCrossStart + (frameCrossEnd - frameCrossStart) * crossRatio;
+          const crossTarget = frameCrossTarget - ownerCrossStart;
           handle.dataset.crossAnchor = towardStartEdge ? 'start' : 'end';
-          if (isDense && handles.length > 1) {
-            const spacing = 44;
-            const radius = spacing / 2;
-            const track = (handles.length - 1) * spacing;
-            const minCenter = (mergedTrack.start - ownerCrossStart) + radius + track / 2;
-            const maxCenter = (mergedTrack.end - ownerCrossStart) - radius - track / 2;
-            if (minCenter <= maxCenter) crossTarget = Math.min(maxCenter, Math.max(minCenter, crossTarget));
-            crossTarget += (index - (handles.length - 1) / 2) * spacing;
-          }
           const blockedCrossPositions = node.axis === 'vertical'
             ? dividerTracks.horizontal
               .filter((track) => mainPosition >= track.start - 8 && mainPosition <= track.end + 8)
