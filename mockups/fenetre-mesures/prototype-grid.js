@@ -33,6 +33,16 @@
         selectedLabel: (code, paneCode) => code + ', thermos ' + paneCode + '. Vous éditez ce thermos.',
         availableLabel: (code, paneCode) => code + ', thermos ' + paneCode + '. Sélectionner ce thermos.',
       };
+  const DIMENSION_KEYS = ['width', 'height', 'thickness'];
+  const UNIT_CONFIG = {
+    in: { factor: 1, decimals: 4 },
+    mm: { factor: 25.4, decimals: 2 },
+    cm: { factor: 2.54, decimals: 3 },
+  };
+  const DIMENSION_MAX_INCHES = { width: 240, height: 240, thickness: 2 };
+  const unitCopy = clientLanguage === 'en'
+    ? { title: 'Unit', in: 'in', changed: 'Measurement unit', invalid: 'Enter a valid measurement.', maximum: 'Maximum' }
+    : { title: 'Unité', in: 'po', changed: 'Unité de mesure', invalid: 'Entrez une mesure valide.', maximum: 'Maximum' };
   const PRESETS = {
     '1x1': { columns: 1, rows: 1, label: 'Vitre simple' },
     '2x1-narrow-left': { columns: 2, rows: 1, sizes: [34, 66], label: 'Petite vitre à gauche', summary: 'Petite vitre à gauche' },
@@ -47,11 +57,13 @@
     'left-1-right-3': { layout: 'left-1-right-3', label: 'Grand à gauche', summary: 'Grand à gauche, 3 à droite' },
     'left-3-right-1': { layout: 'left-3-right-1', label: 'Grand à droite', summary: '3 à gauche, grand à droite' },
   };
-  const fractions = ['', '0', '1/16', '1/8', '3/16', '1/4', '5/16', '3/8', '7/16', '1/2', '9/16', '5/8', '11/16', '3/4', '13/16', '7/8', '15/16'];
+  const fractionBySixteenth = ['', '1/16', '1/8', '3/16', '1/4', '5/16', '3/8', '7/16', '1/2', '9/16', '5/8', '11/16', '3/4', '13/16', '7/8', '15/16'];
+  const fractions = [...fractionBySixteenth];
   const controllers = [];
   const controllerById = new Map();
   let windowSequence = 0;
   let activeWindowId = null;
+  let measurementUnit = 'in';
   let toastTimer;
 
   function clone(value) {
@@ -60,7 +72,7 @@
 
   function blankMeasurement() {
     return {
-      width: '', widthFraction: '', height: '', heightFraction: '', thickness: '', thicknessFraction: '',
+      widthInches: null, heightInches: null, thicknessInches: null,
       lowE: false, argon: false, tempered: false, laminated: false,
       spacer: '', glazing: '', access: '', notes: '',
     };
@@ -152,31 +164,74 @@
       + node.children.reduce((sum, child) => sum + countSeparators(child, countedLinks), 0);
   }
 
-  function formattedDimension(whole, fraction) {
-    const parts = [whole, fraction].filter((value) => value !== '' && value !== '0');
-    return parts.length ? parts.join(' ') : whole === '0' ? '0' : '';
+  function fractionToDecimal(value) {
+    if (!value) return 0;
+    const [numerator, denominator] = String(value).split('/').map(Number);
+    return Number.isFinite(numerator) && Number.isFinite(denominator) && denominator > 0 ? numerator / denominator : 0;
+  }
+
+  function parseLocalizedNumber(value) {
+    const normalized = String(value ?? '').trim().replace(/\s+/g, '').replace(',', '.');
+    if (!normalized) return null;
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : NaN;
+  }
+
+  function formatLocalizedNumber(value, decimals) {
+    if (!Number.isFinite(value)) return '';
+    const formatted = value.toFixed(decimals).replace(/(\.[0-9]*?[1-9])0+$/, '$1').replace(/\.0+$/, '');
+    return clientLanguage === 'fr' ? formatted.replace('.', ',') : formatted;
+  }
+
+  function imperialParts(inches) {
+    if (!Number.isFinite(inches)) return { whole: '', fraction: '', approximate: false };
+    const roundedSixteenths = Math.round(inches * 16);
+    const whole = Math.floor(roundedSixteenths / 16);
+    const remainder = ((roundedSixteenths % 16) + 16) % 16;
+    return {
+      whole: String(whole),
+      fraction: fractionBySixteenth[remainder] || '',
+      approximate: Math.abs(inches - roundedSixteenths / 16) > .00001,
+    };
+  }
+
+  function dimensionForDisplay(measurement, key, unit = measurementUnit) {
+    const inches = measurement?.[key + 'Inches'];
+    if (!Number.isFinite(inches)) return { text: '', whole: '', fraction: '', approximate: false };
+    if (unit === 'in') {
+      const parts = imperialParts(inches);
+      const value = [parts.whole, parts.fraction].filter(Boolean).join(' ') || '0';
+      return { ...parts, text: (parts.approximate ? '≈ ' : '') + value };
+    }
+    return {
+      text: formatLocalizedNumber(inches * UNIT_CONFIG[unit].factor, UNIT_CONFIG[unit].decimals),
+      whole: '',
+      fraction: '',
+      approximate: false,
+    };
+  }
+
+  function unitSuffix(unit = measurementUnit) {
+    return unit === 'in' ? unitCopy.in : unit;
   }
 
   function paneSummary(pane) {
     const value = pane.measurement;
-    const width = formattedDimension(value.width, value.widthFraction);
-    const height = formattedDimension(value.height, value.heightFraction);
-    const thickness = formattedDimension(value.thickness, value.thicknessFraction);
+    const width = dimensionForDisplay(value, 'width').text;
+    const height = dimensionForDisplay(value, 'height').text;
+    const thickness = dimensionForDisplay(value, 'thickness').text;
     if (!width && !height && !thickness) return '';
-    return (width || '—') + ' × ' + (height || '—') + ' × ' + (thickness || '—') + ' po';
+    return (width || '—') + ' × ' + (height || '—') + ' × ' + (thickness || '—') + ' ' + unitSuffix();
   }
 
   function paneIsComplete(pane) {
-    const value = pane.measurement;
-    return Boolean(
-      formattedDimension(value.width, value.widthFraction)
-      && formattedDimension(value.height, value.heightFraction)
-      && formattedDimension(value.thickness, value.thicknessFraction)
-    );
+    return DIMENSION_KEYS.every((key) => Number.isFinite(pane.measurement[key + 'Inches']) && pane.measurement[key + 'Inches'] > 0);
   }
 
   function paneHasData(pane) {
-    const hasMeasurement = Object.values(pane.measurement).some((value) => value === true || (typeof value === 'string' && value !== ''));
+    const hasMeasurement = Object.values(pane.measurement).some((value) => value === true
+      || (typeof value === 'string' && value !== '')
+      || (typeof value === 'number' && Number.isFinite(value)));
     return hasMeasurement || Boolean(pane.decorative.enabled) || pane.decorative.vertical > 0 || pane.decorative.horizontal > 0;
   }
 
@@ -202,6 +257,19 @@
     toast.classList.add('is-visible');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => toast.classList.remove('is-visible'), 3000);
+  }
+
+  function setMeasurementUnit(nextUnit, { announce = true } = {}) {
+    if (!UNIT_CONFIG[nextUnit]) return false;
+    const changed = measurementUnit !== nextUnit;
+    measurementUnit = nextUnit;
+    controllers.forEach((controller) => controller.render());
+    document.querySelectorAll('select[data-measure-unit]').forEach((select) => { select.value = measurementUnit; });
+    if (changed && announce) {
+      markDirty();
+      showToast(unitCopy.changed + ' : ' + unitSuffix() + '.');
+    }
+    return changed;
   }
 
   function updateDossierProgress() {
@@ -420,6 +488,13 @@
     const photoHelp = root.querySelector('[data-photo-help]');
     const photoStatus = root.querySelector('[data-photo-status]');
     const measureFields = [...root.querySelectorAll('[data-measure-key]')];
+    const dimensionControls = new Map(DIMENSION_KEYS.map((key) => [key, {
+      input: root.querySelector('[data-measure-dimension="' + key + '"][data-measure-part="value"]'),
+      fraction: root.querySelector('[data-measure-dimension="' + key + '"][data-measure-part="fraction"]'),
+      unit: root.querySelector('[data-measure-unit-output="' + key + '"]'),
+    }]));
+    const unitSelect = root.querySelector('[data-measure-unit]');
+    const unitTitle = root.querySelector('[data-measure-unit-title]');
     const decorativeEnabled = root.querySelector('[data-decorative-enabled]');
     const decorativeOptions = root.querySelector('[data-decorative-options]');
     const decorativeStatus = root.querySelector('[data-decorative-status]');
@@ -430,6 +505,7 @@
     let renderVersion = 0;
     let photoDetectionToken = 0;
     let photoPreviewUrl = null;
+    let forceDimensionSync = false;
     let api;
 
     root.dataset.windowId = seed.id;
@@ -702,6 +778,45 @@
       root.querySelectorAll('[data-editor-state]').forEach((node) => {
         node.textContent = editorState.label;
         node.dataset.state = editorState.value;
+      });
+      const displayUnitChanged = root.dataset.measureUnit !== measurementUnit;
+      root.dataset.measureUnit = measurementUnit;
+      if (unitTitle) unitTitle.textContent = unitCopy.title;
+      if (unitSelect) {
+        unitSelect.value = measurementUnit;
+        unitSelect.setAttribute('aria-label', unitCopy.changed);
+        const inchOption = unitSelect.querySelector('option[value="in"]');
+        if (inchOption) inchOption.textContent = unitCopy.in;
+      }
+      const decimalSeparator = clientLanguage === 'fr' ? ',' : '.';
+      const placeholders = {
+        in: { width: 'Ex. 32', height: 'Ex. 48', thickness: 'Ex. 1' },
+        mm: { width: 'Ex. 813', height: 'Ex. 1219', thickness: 'Ex. 25' + decimalSeparator + '4' },
+        cm: { width: 'Ex. 81' + decimalSeparator + '3', height: 'Ex. 121' + decimalSeparator + '9', thickness: 'Ex. 2' + decimalSeparator + '54' },
+      };
+      dimensionControls.forEach((control, key) => {
+        const displayed = pane ? dimensionForDisplay(pane.measurement, key) : { text: '', whole: '', fraction: '', approximate: false };
+        const imperial = measurementUnit === 'in';
+        if (control.input) {
+          control.input.disabled = !pane;
+          control.input.inputMode = imperial ? 'numeric' : 'decimal';
+          control.input.placeholder = placeholders[measurementUnit][key];
+          if (forceDimensionSync || displayUnitChanged || document.activeElement !== control.input) {
+            control.input.value = imperial ? displayed.whole : displayed.text;
+            control.input.removeAttribute('aria-invalid');
+            control.input.setCustomValidity('');
+          }
+        }
+        if (control.fraction) {
+          control.fraction.hidden = !imperial;
+          control.fraction.disabled = !pane || !imperial;
+          control.fraction.setAttribute('aria-hidden', String(!imperial));
+          if (forceDimensionSync || displayUnitChanged || document.activeElement !== control.fraction) control.fraction.value = imperial ? displayed.fraction : '';
+        }
+        if (control.unit) {
+          control.unit.textContent = (imperial && displayed.approximate ? '≈ ' : '') + unitSuffix();
+          control.unit.dataset.approximate = String(imperial && displayed.approximate);
+        }
       });
       measureFields.forEach((field) => {
         const value = pane?.measurement?.[field.dataset.measureKey];
@@ -1145,6 +1260,46 @@
       return true;
     }
 
+    function updateDisplayedDimension(paneId, key, { forceSync = false } = {}) {
+      const pane = getPane(paneId);
+      const control = dimensionControls.get(key);
+      if (!pane || !control?.input) return false;
+      const rawValue = control.input.value.trim();
+      let inches = null;
+      const invalidate = (message) => {
+        pane.measurement[key + 'Inches'] = null;
+        control.input.setAttribute('aria-invalid', 'true');
+        control.input.setCustomValidity(message);
+        renderLayout();
+        markDirty();
+        return false;
+      };
+      if (measurementUnit === 'in') {
+        const fraction = control.fraction?.value || '';
+        if (rawValue || fraction) {
+          const whole = rawValue ? parseLocalizedNumber(rawValue) : 0;
+          if (!Number.isFinite(whole)) return invalidate(unitCopy.invalid);
+          inches = fraction ? Math.trunc(whole) + fractionToDecimal(fraction) : whole;
+        }
+      } else if (rawValue) {
+        const displayedValue = parseLocalizedNumber(rawValue);
+        if (!Number.isFinite(displayedValue)) return invalidate(unitCopy.invalid);
+        inches = displayedValue / UNIT_CONFIG[measurementUnit].factor;
+      }
+      if (Number.isFinite(inches) && inches > DIMENSION_MAX_INCHES[key]) {
+        const maximum = DIMENSION_MAX_INCHES[key] * UNIT_CONFIG[measurementUnit].factor;
+        return invalidate(unitCopy.maximum + ' : ' + formatLocalizedNumber(maximum, UNIT_CONFIG[measurementUnit].decimals) + ' ' + unitSuffix() + '.');
+      }
+      control.input.removeAttribute('aria-invalid');
+      control.input.setCustomValidity('');
+      pane.measurement[key + 'Inches'] = inches;
+      forceDimensionSync = forceSync;
+      renderLayout();
+      forceDimensionSync = false;
+      markDirty();
+      return true;
+    }
+
     function focusPane(paneId) {
       canvas.querySelector('.pane[data-pane-id="' + paneId + '"]')?.focus({ preventScroll: true });
     }
@@ -1181,6 +1336,7 @@
       resetDrawing,
       setName,
       updateMeasurement,
+      updateDisplayedDimension,
       focusPane,
       processPhoto,
       snapshot,
@@ -1196,10 +1352,24 @@
     root.querySelectorAll('[data-equalize]').forEach((button) => button.addEventListener('click', equalizeLayout));
     root.querySelectorAll('[data-reset]').forEach((button) => button.addEventListener('click', resetDrawing));
     root.querySelectorAll('[data-rename-window]').forEach((button) => button.addEventListener('click', () => openWindowRenameModal(api)));
-    measureFields.forEach((field) => {
-      if (field.tagName === 'SELECT' && field.dataset.measureKey?.endsWith('Fraction') && !field.options.length) {
-        fractions.forEach((fraction) => field.add(new Option(fraction || 'Fraction', fraction)));
+    dimensionControls.forEach((control, key) => {
+      if (control.fraction && !control.fraction.options.length) {
+        fractions.forEach((fraction) => control.fraction.add(new Option(fraction || 'Fraction', fraction)));
       }
+      control.input?.addEventListener('input', () => {
+        if (state.selectedPaneId) updateDisplayedDimension(state.selectedPaneId, key);
+      });
+      control.input?.addEventListener('blur', () => {
+        forceDimensionSync = true;
+        renderLayout();
+        forceDimensionSync = false;
+      });
+      control.fraction?.addEventListener('change', () => {
+        if (state.selectedPaneId) updateDisplayedDimension(state.selectedPaneId, key, { forceSync: true });
+      });
+    });
+    unitSelect?.addEventListener('change', () => setMeasurementUnit(unitSelect.value));
+    measureFields.forEach((field) => {
       const update = () => {
         if (!state.selectedPaneId) return;
         updateMeasurement(
@@ -1408,12 +1578,15 @@
   window.__vosthermosGridPrototype = {
     snapshot: () => clone({
       activeWindowId,
+      measurementUnit,
       windows: controllers.map((controller) => controller.snapshot()),
     }),
     addWindow: () => addWindow(),
   };
 
   const previewParams = new URLSearchParams(window.location.search);
+  const previewUnit = previewParams.get('previewUnit');
+  if (UNIT_CONFIG[previewUnit]) setMeasurementUnit(previewUnit, { announce: false });
   const previewWindowCount = Math.min(4, Math.max(1, Number(previewParams.get('previewWindows')) || 1));
   while (controllers.length < previewWindowCount) addWindow({ focus: false });
   const previewWindowIndex = Math.max(0, Math.min(controllers.length - 1, (Number(previewParams.get('previewWindow')) || 1) - 1));

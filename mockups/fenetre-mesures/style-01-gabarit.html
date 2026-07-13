@@ -201,8 +201,16 @@
     .thermos-section-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:10px; }
     .thermos-section-head h4 { margin:0; font:800 18px/1 var(--font-display); }
     .thermos-section-head small { color:var(--muted); font-size:10px; }
+    .thermos-measure-head { align-items:center; }
+    .measure-unit-picker { display:flex; align-items:center; gap:6px; color:var(--muted); }
+    .measure-unit-picker > span { font:800 9px/1 var(--font-ui); letter-spacing:.07em; text-transform:uppercase; }
+    .measure-unit-picker select { min-width:62px; min-height:34px; padding:5px 25px 5px 9px; border:1px solid color-mix(in srgb,var(--accent) 28%,var(--line)); border-radius:10px; background:var(--surface-2); color:var(--accent); font:900 12px/1 var(--font-data); }
+    .measure-unit-picker select:focus-visible { outline:3px solid color-mix(in srgb,var(--brand-red) 42%,transparent); outline-offset:2px; }
     .thermos-measure-grid { gap:10px; }
     .thermos-editor .dimension-parts { background:#fffdf9; }
+    [data-window-plan]:not([data-measure-unit="in"]) .dimension-parts { grid-template-columns:minmax(0,1fr) 52px; }
+    [data-measure-unit-output][data-approximate="true"] { color:#8a5a0a; }
+    .dimension-parts:has(input[aria-invalid="true"]) { border-color:var(--danger); box-shadow:0 0 0 3px color-mix(in srgb,var(--danger) 13%,transparent); }
     .thermos-option-grid { margin-top:0; }
     .thermos-selects { margin-top:12px; }
     .thermos-notes { display:block; margin-top:12px; }
@@ -432,11 +440,14 @@
 
           <div class="thermos-editor-body">
             <section class="thermos-editor-section" aria-labelledby="thermos-measure-title">
-              <div class="thermos-section-head"><h4 id="thermos-measure-title">Mesures</h4><small>Largeur × Hauteur × Épaisseur</small></div>
+              <div class="thermos-section-head thermos-measure-head">
+                <h4 id="thermos-measure-title">Mesures</h4>
+                <label class="measure-unit-picker"><span data-measure-unit-title>Unité</span><select data-measure-unit aria-label="Unité de mesure"><option value="in">po</option><option value="mm">mm</option><option value="cm">cm</option></select></label>
+              </div>
               <div class="measure-grid thermos-measure-grid">
-                <label class="dimension"><span class="field-label">Largeur *</span><span class="dimension-parts"><input type="number" min="0" max="240" inputmode="decimal" placeholder="Ex. 32" data-measure-key="width"><select aria-label="Fraction largeur" data-measure-key="widthFraction"></select><span>po</span></span></label>
-                <label class="dimension"><span class="field-label">Hauteur *</span><span class="dimension-parts"><input type="number" min="0" max="240" inputmode="decimal" placeholder="Ex. 48" data-measure-key="height"><select aria-label="Fraction hauteur" data-measure-key="heightFraction"></select><span>po</span></span></label>
-                <label class="dimension"><span class="field-label">Épaisseur *</span><span class="dimension-parts"><input type="number" min="0" max="2" step="0.01" inputmode="decimal" placeholder="Ex. 1" data-measure-key="thickness"><select aria-label="Fraction épaisseur" data-measure-key="thicknessFraction"></select><span>po</span></span></label>
+                <label class="dimension"><span class="field-label">Largeur *</span><span class="dimension-parts"><input type="text" inputmode="decimal" autocomplete="off" placeholder="Ex. 32" data-measure-dimension="width" data-measure-part="value"><select aria-label="Fraction largeur" data-measure-dimension="width" data-measure-part="fraction"></select><span data-measure-unit-output="width">po</span></span></label>
+                <label class="dimension"><span class="field-label">Hauteur *</span><span class="dimension-parts"><input type="text" inputmode="decimal" autocomplete="off" placeholder="Ex. 48" data-measure-dimension="height" data-measure-part="value"><select aria-label="Fraction hauteur" data-measure-dimension="height" data-measure-part="fraction"></select><span data-measure-unit-output="height">po</span></span></label>
+                <label class="dimension"><span class="field-label">Épaisseur *</span><span class="dimension-parts"><input type="text" inputmode="decimal" autocomplete="off" placeholder="Ex. 1" data-measure-dimension="thickness" data-measure-part="value"><select aria-label="Fraction épaisseur" data-measure-dimension="thickness" data-measure-part="fraction"></select><span data-measure-unit-output="thickness">po</span></span></label>
               </div>
             </section>
 
