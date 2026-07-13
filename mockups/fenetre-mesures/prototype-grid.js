@@ -421,10 +421,17 @@
 
   function createWindowController(root, seed) {
     const canvas = root.querySelector('[data-window-canvas]');
+    const photoInput = root.querySelector('[data-photo-input]');
+    const photoTrigger = root.querySelector('[data-photo-trigger]');
+    const photoLabel = root.querySelector('[data-photo-label]');
+    const photoHelp = root.querySelector('[data-photo-help]');
+    const photoStatus = root.querySelector('[data-photo-status]');
     if (!canvas) return null;
     let paneSequence = 0;
     let splitSequence = 0;
     let renderVersion = 0;
+    let photoDetectionToken = 0;
+    let photoPreviewUrl = null;
     let api;
 
     root.dataset.windowId = seed.id;
@@ -499,6 +506,77 @@
       topologyPreset: seed.preset,
       photo: false,
     };
+
+    function setPhotoUi(status, message = '') {
+      const analyzing = status === 'analyzing';
+      photoTrigger?.setAttribute('aria-busy', String(analyzing));
+      photoTrigger?.classList.toggle('is-complete', status === 'success');
+      const actionLabel = analyzing ? 'Analyse de la photo…' : state.photo ? 'Reprendre la photo' : 'Prendre une photo';
+      if (photoLabel) photoLabel.textContent = actionLabel;
+      if (photoInput) {
+        photoInput.disabled = analyzing;
+        photoInput.setAttribute('aria-label', actionLabel + ' de la fenêtre');
+      }
+      if (photoHelp) {
+        photoHelp.textContent = analyzing
+          ? 'Le dessin se crée automatiquement'
+          : state.photo
+            ? 'Une nouvelle photo remplacera cette analyse'
+            : 'Les divisions seront détectées automatiquement';
+      }
+      if (!photoStatus) return;
+      photoStatus.textContent = message;
+      photoStatus.hidden = !message;
+      if (message) photoStatus.dataset.state = status;
+      else delete photoStatus.dataset.state;
+    }
+
+    function setPhotoPreview(file) {
+      if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+      photoPreviewUrl = URL.createObjectURL(file);
+      root.querySelectorAll('.window-stage').forEach((stage) => {
+        stage.classList.add('has-photo');
+        stage.style.setProperty('--photo-image', 'url("' + photoPreviewUrl + '")');
+      });
+    }
+
+    async function detectPhotoPreset(file) {
+      // Prototype hook: the production detector will return the matching preset key here.
+      await file.slice(0, 1).arrayBuffer();
+      return '3x2';
+    }
+
+    async function processPhoto(file) {
+      if (!file || (file.type && !file.type.startsWith('image/'))) {
+        setPhotoUi('error', 'Choisissez une photo de fenêtre.');
+        return false;
+      }
+      const token = ++photoDetectionToken;
+      state.photo = true;
+      setPhotoPreview(file);
+      setPhotoUi('analyzing', 'Analyse automatique de la photo…');
+      markDirty();
+      try {
+        const presetKey = await detectPhotoPreset(file);
+        if (token !== photoDetectionToken) return false;
+        const preset = PRESETS[presetKey];
+        if (!preset) throw new Error('Disposition non reconnue');
+        const applied = applyPreset(presetKey, { detected: true });
+        if (token !== photoDetectionToken) return false;
+        if (applied) root.querySelector('.layout-presets-menu')?.removeAttribute('open');
+        setPhotoUi(
+          applied ? 'success' : 'info',
+          applied
+            ? 'Photo analysée · disposition « ' + preset.label + ' » appliquée.'
+            : 'Photo conservée · dessin non modifié.'
+        );
+        return applied;
+      } catch {
+        if (token !== photoDetectionToken) return false;
+        setPhotoUi('error', 'Divisions non reconnues. Reprenez la photo bien de face ou choisissez un type.');
+        return false;
+      }
+    }
 
     function getEntries() {
       return getLeafEntries(state.layout);
@@ -968,6 +1046,10 @@
       const preset = PRESETS[key];
       if (!preset) return false;
       if (!preview && state.activePreset === key) {
+        if (detected) {
+          showToast('Disposition détectée : ' + preset.label + '. Elle est déjà appliquée.');
+          return true;
+        }
         showToast('La disposition « ' + preset.label + ' » est déjà active.');
         return false;
       }
@@ -1030,9 +1112,16 @@
       state.selectedPaneId = initialSnapshot.selectedPaneId;
       state.activePreset = initialSnapshot.activePreset;
       state.topologyPreset = initialSnapshot.topologyPreset;
+      photoDetectionToken += 1;
       state.photo = false;
-      root.querySelectorAll('.window-stage').forEach((stage) => stage.classList.remove('has-photo'));
-      root.querySelectorAll('[data-detect]').forEach((button) => { button.disabled = true; });
+      if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+      photoPreviewUrl = null;
+      if (photoInput) photoInput.value = '';
+      root.querySelectorAll('.window-stage').forEach((stage) => {
+        stage.classList.remove('has-photo');
+        stage.style.removeProperty('--photo-image');
+      });
+      setPhotoUi('idle');
       interactionService.closeFor(api);
       renderLayout();
       markDirty();
@@ -1071,6 +1160,7 @@
         selectedPaneId: state.selectedPaneId,
         activePreset: state.activePreset,
         leaves: getEntries().map(({ node }) => node.id),
+        photo: state.photo,
       });
     }
 
@@ -1094,6 +1184,7 @@
       setName,
       updateMeasurement,
       focusPane,
+      processPhoto,
       snapshot,
     };
 
@@ -1117,14 +1208,13 @@
         markDirty();
       }));
     });
-    root.querySelectorAll('[data-photo]').forEach((button) => button.addEventListener('click', () => {
-      state.photo = true;
-      root.querySelectorAll('.window-stage').forEach((stage) => stage.classList.add('has-photo'));
-      root.querySelectorAll('[data-detect]').forEach((detect) => { detect.disabled = false; });
-      markDirty();
-      showToast('Photo ajoutée à ' + state.code + '.');
-    }));
-    root.querySelectorAll('[data-detect]').forEach((button) => button.addEventListener('click', () => applyPreset('3x2', { detected: true })));
+    photoInput?.addEventListener('click', () => {
+      photoInput.value = '';
+    });
+    photoInput?.addEventListener('change', () => {
+      const file = photoInput.files?.[0];
+      if (file) void processPhoto(file);
+    });
     root.querySelectorAll('[data-apply-measure]').forEach((button) => button.addEventListener('click', () => {
       const pane = getPane(state.selectedPaneId);
       if (!pane) return;
@@ -1138,7 +1228,11 @@
       ? new ResizeObserver(() => requestAnimationFrame(positionDividerHandles))
       : null;
     resizeObserver?.observe(canvas);
-    api.destroy = () => resizeObserver?.disconnect();
+    api.destroy = () => {
+      photoDetectionToken += 1;
+      if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+      resizeObserver?.disconnect();
+    };
     return api;
   }
 

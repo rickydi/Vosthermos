@@ -74,13 +74,14 @@
     .dim-height { position:absolute; left:-26px; top:50%; transform:rotate(-90deg) translateX(-50%); transform-origin:center; padding:0 8px; background:var(--surface); }
     .plan-instruction { display:flex; align-items:center; gap:10px; margin:10px 0 0; color:var(--muted); font-size:12px; }
     .plan-instruction b { display:grid; place-items:center; width:28px; height:28px; border-radius:50%; background:var(--accent); color:#fff; font:700 12px/1 var(--font-data); }
-    .division-toolbar { min-width:0; margin-top:12px; }
+    .division-toolbar { min-width:0; display:grid; gap:9px; margin-top:12px; }
     .layout-presets-menu { min-width:0; }
     .layout-presets-menu summary { min-height:46px; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 10px; border:1px solid color-mix(in srgb,var(--accent) 28%,var(--line)); border-radius:10px; background:var(--surface); color:var(--ink); font-size:12px; font-weight:900; cursor:pointer; list-style:none; }
     .layout-presets-menu summary::-webkit-details-marker { display:none; }
     .layout-presets-summary { min-width:0; display:grid; gap:1px; }
     .layout-presets-summary strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; }
     .layout-presets-summary small { color:var(--muted); font-size:10px; font-weight:700; }
+    .layout-presets-summary small span { color:var(--accent); font-weight:900; }
     .layout-presets-menu summary::after { content:"⌄"; color:var(--accent); font-size:16px; line-height:1; transition:transform .16s ease; }
     .layout-presets-menu[open] summary::after { transform:rotate(180deg); }
     .layout-presets { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; margin-top:7px; }
@@ -108,6 +109,26 @@
     .preset-copy { min-width:0; display:grid; gap:1px; line-height:1.05; }
     .preset-copy strong { font-size:12px; font-weight:900; }
     .preset-copy small { color:var(--muted); font-size:10px; }
+    .layout-choice-or { display:flex; align-items:center; gap:9px; color:var(--muted); font-size:10px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; }
+    .layout-choice-or::before,.layout-choice-or::after { content:""; flex:1; height:1px; background:var(--line); }
+    .photo-layout-control { display:grid; gap:7px; }
+    .photo-layout-action { position:relative; width:100%; min-height:66px; display:grid; grid-template-columns:42px minmax(0,1fr) 18px; align-items:center; gap:10px; padding:10px 12px; border:1px solid color-mix(in srgb,var(--accent) 34%,var(--line)); border-radius:12px; background:var(--surface); color:var(--ink); text-align:left; cursor:pointer; }
+    .photo-layout-action:hover { border-color:color-mix(in srgb,var(--accent) 66%,var(--line)); background:color-mix(in srgb,var(--accent) 4%,var(--surface)); }
+    .photo-layout-action:focus-within { outline:3px solid color-mix(in srgb,var(--brand-red) 48%,transparent); outline-offset:2px; }
+    .photo-layout-action[aria-busy="true"] { cursor:progress; border-color:var(--accent); }
+    .photo-layout-action.is-complete { border-color:color-mix(in srgb,var(--success) 58%,var(--line)); background:color-mix(in srgb,var(--success) 7%,var(--surface)); }
+    .photo-layout-input { position:absolute; inset:0; z-index:2; width:100%; height:100%; margin:0; opacity:0; cursor:pointer; }
+    .photo-layout-icon { width:42px; height:42px; display:grid; place-items:center; border-radius:11px; background:var(--accent); color:#fff; }
+    .photo-layout-icon svg { width:21px; height:21px; }
+    .photo-layout-copy { min-width:0; display:grid; gap:2px; }
+    .photo-layout-copy strong { font-size:15px; font-weight:900; }
+    .photo-layout-copy small { color:var(--muted); font-size:11px; line-height:1.25; }
+    .photo-layout-arrow { color:var(--accent); font-size:22px; font-weight:900; line-height:1; }
+    .photo-layout-status { margin:0; padding:8px 10px; border-radius:9px; background:var(--surface-2); color:#304b53; font-size:11px; font-weight:800; line-height:1.35; }
+    .photo-layout-status[hidden] { display:none; }
+    .photo-layout-status[data-state="success"] { background:color-mix(in srgb,var(--success) 11%,var(--surface)); color:#205b49; }
+    .photo-layout-status[data-state="error"] { background:#fff0e8; color:#8a3d0a; }
+    .plan-card .window-stage.has-photo::after { background:linear-gradient(180deg,rgba(6,24,35,.16),rgba(6,24,35,.48)),var(--photo-image,url("../../public/images/vitre-thermos/detail-1.jpg")) center/cover; }
     .division-controls { grid-area:controls; display:grid; grid-template-columns:76px minmax(0,1fr); gap:7px; align-items:center; }
     .division-count .select { min-height:42px; padding:7px 9px; border-color:color-mix(in srgb,var(--accent) 34%,var(--line)); }
     .orientation-switch { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
@@ -274,11 +295,11 @@
       .window-plan-list{gap:20px}
       .add-window-large{min-height:88px}
       .add-window-icon{flex-basis:48px;width:48px;height:48px}
-      .tool-grid{grid-template-columns:1.2fr .8fr}.photo-actions{grid-column:1/-1}.summary-card{display:none}
+      .tool-grid{grid-template-columns:1fr}.summary-card{display:none}
     }
     @media(min-width:720px){.topbar{margin:-24px -24px 20px;padding-left:76px}.topbar .brand-mark{height:70px}}
     @media(min-width:1180px){
-      .plan-card{padding:20px}.plan-card .window-stage{margin:18px -20px 0}.tool-grid{grid-template-columns:1fr 1fr}.measure-sheet{top:20px;bottom:20px;right:20px;left:auto;width:480px;max-height:calc(100vh - 40px)}
+      .plan-card{padding:20px}.plan-card .window-stage{margin:18px -20px 0}.tool-grid{grid-template-columns:1fr}.measure-sheet{top:20px;bottom:20px;right:20px;left:auto;width:480px;max-height:calc(100vh - 40px)}
     }
   </style>
 </head>
@@ -319,9 +340,9 @@
           </div>
           <span class="plan-status"><strong data-complete-pane-output>0</strong>&nbsp;/&nbsp;<span data-pane-count-output>6</span>&nbsp;mesurés</span>
         </header>
-        <section class="division-toolbar" aria-label="Choisir un modèle de fenêtre">
+        <section class="division-toolbar" aria-label="Choisir un type de fenêtre ou prendre une photo">
           <details class="layout-presets-menu">
-            <summary><span class="layout-presets-summary"><strong data-preset-summary>Six égaux</strong><small>12 exemples de fenêtres</small></span></summary>
+            <summary><span class="layout-presets-summary"><strong>Choisir un type de fenêtre</strong><small>Sélection : <span data-preset-summary>Six égaux</span></small></span></summary>
             <div class="layout-presets" role="group" aria-label="Configurations rapides">
               <button type="button" class="layout-preset" data-layout-preset="1x1" aria-label="Créer une vitre simple"><span class="preset-window" data-columns="1" data-rows="1" aria-hidden="true"><span class="preset-pane"></span></span><span class="preset-copy"><strong>Vitre simple</strong><small>1 thermos</small></span></button>
               <button type="button" class="layout-preset" data-layout-preset="2x1-narrow-left" aria-label="Créer une petite vitre à gauche et une grande à droite"><span class="preset-window" data-layout="left-narrow" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Petite à gauche</strong><small>2 thermos</small></span></button>
@@ -337,6 +358,16 @@
               <button type="button" class="layout-preset" data-layout-preset="left-3-right-1" aria-label="Créer trois vitres à gauche et une grande à droite"><span class="preset-window" data-layout="grand-right" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Grand à droite</strong><small>4 thermos</small></span></button>
             </div>
           </details>
+          <div class="layout-choice-or" aria-hidden="true"><span>ou</span></div>
+          <div class="photo-layout-control">
+            <label class="photo-layout-action" data-photo-trigger>
+              <input class="photo-layout-input" type="file" accept="image/*" capture="environment" data-photo-input aria-label="Prendre une photo de la fenêtre" aria-describedby="photo-layout-status">
+              <span class="photo-layout-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5 13 3h-2L9.5 5H6a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3V8a3 3 0 0 0-3-3h-3.5Z"/><circle cx="12" cy="12" r="4"/></svg></span>
+              <span class="photo-layout-copy"><strong data-photo-label>Prendre une photo</strong><small data-photo-help>Les divisions seront détectées automatiquement</small></span>
+              <span class="photo-layout-arrow" aria-hidden="true">›</span>
+            </label>
+            <p class="photo-layout-status" id="photo-layout-status" data-photo-status aria-live="polite" hidden></p>
+          </div>
         </section>
         <div class="window-stage">
           <div class="dimension-frame"><span class="dim-width">largeur du cadre</span><span class="dim-height">hauteur du cadre</span></div>
@@ -351,10 +382,6 @@
               <div><span class="field-label">Vertical</span><div class="counter" data-counter="vertical"><button type="button" data-delta="-1">−</button><output>0</output><button type="button" data-delta="1">＋</button></div></div>
               <div><span class="field-label">Horizontal</span><div class="counter" data-counter="horizontal"><button type="button" data-delta="-1">−</button><output>0</output><button type="button" data-delta="1">＋</button></div></div>
             </div>
-          </section>
-          <section class="tool-block photo-actions">
-            <h3>Photo de référence</h3><p>Une photo bien de face aide à confirmer les divisions.</p>
-            <div class="button-row"><button type="button" class="button" data-photo>Prendre une photo de face</button><button type="button" class="primary" data-detect disabled>Détecter les divisions</button></div>
           </section>
         </div>
       </section>
