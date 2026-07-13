@@ -850,21 +850,28 @@
           if (touchesStartEdge !== touchesEndEdge) towardStartEdge = touchesStartEdge;
           else if (touchesStartEdge && touchesEndEdge) towardStartEdge = node.axis === 'vertical';
           else towardStartEdge = trackCrossCenter <= frameCrossCenter;
-          // Keep the control inside the outer third instead of on its inner boundary.
-          // Use the full inner frame so asymmetric presets keep the same visual anchor.
-          // The midpoint of that outer third is 1/6 from the chosen frame edge.
-          const crossRatio = towardStartEdge ? 1 / 6 : 5 / 6;
-          const crossLength = mergedTrack.end - mergedTrack.start;
-          const frameCrossTarget = frameCrossStart + (frameCrossEnd - frameCrossStart) * crossRatio;
+          const perpendicularTracks = node.axis === 'vertical' ? dividerTracks.horizontal : dividerTracks.vertical;
+          const crossingTracks = perpendicularTracks.filter((track) => (
+            mainPosition >= track.start - 8 && mainPosition <= track.end + 8
+          ));
+          const crossCuts = crossingTracks
+            .map((track) => track.position)
+            .filter((position) => position > mergedTrack.start + 8 && position < mergedTrack.end - 8)
+            .sort((a, b) => a - b);
+          // Anchor one-third inside the outermost pane, not one-third of the whole frame.
+          const exteriorSectionStart = towardStartEdge
+            ? mergedTrack.start
+            : (crossCuts[crossCuts.length - 1] ?? mergedTrack.start);
+          const exteriorSectionEnd = towardStartEdge
+            ? (crossCuts[0] ?? mergedTrack.end)
+            : mergedTrack.end;
+          const exteriorSectionLength = exteriorSectionEnd - exteriorSectionStart;
+          const frameCrossTarget = towardStartEdge
+            ? exteriorSectionStart + exteriorSectionLength / 3
+            : exteriorSectionEnd - exteriorSectionLength / 3;
           const crossTarget = frameCrossTarget - ownerCrossStart;
           handle.dataset.crossAnchor = towardStartEdge ? 'start' : 'end';
-          const blockedCrossPositions = node.axis === 'vertical'
-            ? dividerTracks.horizontal
-              .filter((track) => mainPosition >= track.start - 8 && mainPosition <= track.end + 8)
-              .map((track) => track.position - elementRect.top)
-            : dividerTracks.vertical
-              .filter((track) => mainPosition >= track.start - 8 && mainPosition <= track.end + 8)
-              .map((track) => track.position - elementRect.left);
+          const blockedCrossPositions = crossingTracks.map((track) => track.position - ownerCrossStart);
           placedHandleCenters.forEach((placed) => {
             if (placed.axis !== node.axis) return;
             const mainDistance = Math.abs(placed.main - mainPosition);
@@ -874,9 +881,9 @@
               clearance: Math.sqrt((48 ** 2) - (mainDistance ** 2)),
             });
           });
-          const edgeMargin = Math.min(22, crossLength / 4);
-          const crossMinimum = (mergedTrack.start - ownerCrossStart) + edgeMargin;
-          const crossMaximum = (mergedTrack.end - ownerCrossStart) - edgeMargin;
+          const edgeMargin = Math.min(22, exteriorSectionLength / 4);
+          const crossMinimum = (exteriorSectionStart - ownerCrossStart) + edgeMargin;
+          const crossMaximum = (exteriorSectionEnd - ownerCrossStart) - edgeMargin;
           const cross = safeCrossPosition(crossTarget, crossMinimum, crossMaximum, blockedCrossPositions, towardStartEdge);
           placedHandleCenters.push({ axis: node.axis, main: mainPosition, cross: ownerCrossStart + cross });
           if (node.axis === 'vertical') {
