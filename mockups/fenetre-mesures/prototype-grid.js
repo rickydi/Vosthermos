@@ -748,6 +748,70 @@
 
     function positionDividerHandles() {
       const canvasRect = canvas.getBoundingClientRect();
+      const dividerTracks = { vertical: [], horizontal: [] };
+      const dividerTrackByKey = new Map();
+      const placedHandleCenters = [];
+      canvas.querySelectorAll('.layout-split[data-split-id]').forEach((split) => {
+        const axis = split.dataset.axis;
+        const splitNode = findNode(state.layout, split.dataset.splitId);
+        if (!splitNode || splitNode.type !== 'split') return;
+        const children = directChildren(split, 'layout-child');
+        children.slice(0, -1).forEach((child, index) => {
+          const currentRect = child.getBoundingClientRect();
+          const nextRect = children[index + 1]?.getBoundingClientRect();
+          if (!nextRect) return;
+          const trackKey = axis + ':' + (splitNode.linkId ? 'linked:' + splitNode.linkId : 'split:' + splitNode.id) + ':' + index;
+          let track;
+          if (axis === 'vertical') {
+            track = {
+              position: (currentRect.right + nextRect.left) / 2,
+              start: Math.min(currentRect.top, nextRect.top),
+              end: Math.max(currentRect.bottom, nextRect.bottom),
+            };
+          } else {
+            track = {
+              position: (currentRect.bottom + nextRect.top) / 2,
+              start: Math.min(currentRect.left, nextRect.left),
+              end: Math.max(currentRect.right, nextRect.right),
+            };
+          }
+          dividerTracks[axis].push(track);
+          const existingTrack = dividerTrackByKey.get(trackKey);
+          if (existingTrack) {
+            existingTrack.start = Math.min(existingTrack.start, track.start);
+            existingTrack.end = Math.max(existingTrack.end, track.end);
+          } else dividerTrackByKey.set(trackKey, { ...track });
+        });
+      });
+
+      function safeCrossPosition(target, minimum, maximum, blocked, preferStart) {
+        if (minimum >= maximum) return Math.max(0, target);
+        const clearance = 44;
+        let segments = [[minimum, maximum]];
+        blocked.forEach((item) => {
+          const position = typeof item === 'number' ? item : item.position;
+          const itemClearance = typeof item === 'number' ? clearance : item.clearance;
+          const blockedStart = position - itemClearance;
+          const blockedEnd = position + itemClearance;
+          segments = segments.flatMap(([start, end]) => {
+            if (blockedEnd <= start || blockedStart >= end) return [[start, end]];
+            const next = [];
+            if (blockedStart > start) next.push([start, Math.min(end, blockedStart)]);
+            if (blockedEnd < end) next.push([Math.max(start, blockedEnd), end]);
+            return next;
+          });
+        });
+        if (!segments.length) return Math.min(maximum, Math.max(minimum, target));
+        const candidates = segments.map(([start, end]) => Math.min(end, Math.max(start, target)));
+        const exteriorCandidates = candidates.filter((position) => preferStart ? position <= target : position >= target);
+        return (exteriorCandidates.length ? exteriorCandidates : candidates)
+          .sort((a, b) => {
+            const distance = Math.abs(a - target) - Math.abs(b - target);
+            if (Math.abs(distance) > .01) return distance;
+            return preferStart ? a - b : b - a;
+          })[0];
+      }
+
       canvas.querySelectorAll('.pane[data-pane-id]').forEach((pane) => {
         const rect = pane.getBoundingClientRect();
         pane.classList.toggle('is-compact', rect.width < 82 || rect.height < 82);
@@ -767,24 +831,62 @@
           const currentRect = children[index]?.getBoundingClientRect();
           const nextRect = children[index + 1]?.getBoundingClientRect();
           if (!currentRect || !nextRect) return;
-          let cross = node.axis === 'vertical' ? elementRect.height / 2 : elementRect.width / 2;
+          const mainPosition = node.axis === 'vertical'
+            ? (currentRect.right + nextRect.left) / 2
+            : (currentRect.bottom + nextRect.top) / 2;
+          const ownerCrossStart = node.axis === 'vertical' ? elementRect.top : elementRect.left;
+          const trackKey = node.axis + ':' + (node.linkId ? 'linked:' + node.linkId : 'split:' + node.id) + ':' + index;
+          const mergedTrack = dividerTrackByKey.get(trackKey) || {
+            start: ownerCrossStart,
+            end: ownerCrossStart + (node.axis === 'vertical' ? elementRect.height : elementRect.width),
+          };
+          const trackCrossCenter = (mergedTrack.start + mergedTrack.end) / 2;
+          const canvasCrossCenter = node.axis === 'vertical'
+            ? (canvasRect.top + canvasRect.bottom) / 2
+            : (canvasRect.left + canvasRect.right) / 2;
+          const towardStartEdge = node.axis === 'vertical'
+            ? trackCrossCenter <= canvasCrossCenter
+            : trackCrossCenter < canvasCrossCenter;
+          const crossRatio = towardStartEdge ? 1 / 3 : 2 / 3;
+          const crossLength = mergedTrack.end - mergedTrack.start;
+          let crossTarget = (mergedTrack.start - ownerCrossStart) + crossLength * crossRatio;
+          handle.dataset.crossAnchor = towardStartEdge ? 'start' : 'end';
           if (isDense && handles.length > 1) {
             const spacing = 44;
             const radius = spacing / 2;
             const track = (handles.length - 1) * spacing;
-            const offset = node.axis === 'vertical' ? elementRect.top - canvasRect.top : elementRect.left - canvasRect.left;
-            const canvasCross = node.axis === 'vertical' ? canvasRect.height : canvasRect.width;
-            const minCenter = radius - offset + track / 2;
-            const maxCenter = canvasCross - radius - offset - track / 2;
-            if (minCenter <= maxCenter) cross = Math.min(maxCenter, Math.max(minCenter, cross));
-            cross += (index - (handles.length - 1) / 2) * spacing;
+            const minCenter = (mergedTrack.start - ownerCrossStart) + radius + track / 2;
+            const maxCenter = (mergedTrack.end - ownerCrossStart) - radius - track / 2;
+            if (minCenter <= maxCenter) crossTarget = Math.min(maxCenter, Math.max(minCenter, crossTarget));
+            crossTarget += (index - (handles.length - 1) / 2) * spacing;
           }
+          const blockedCrossPositions = node.axis === 'vertical'
+            ? dividerTracks.horizontal
+              .filter((track) => mainPosition >= track.start - 8 && mainPosition <= track.end + 8)
+              .map((track) => track.position - elementRect.top)
+            : dividerTracks.vertical
+              .filter((track) => mainPosition >= track.start - 8 && mainPosition <= track.end + 8)
+              .map((track) => track.position - elementRect.left);
+          placedHandleCenters.forEach((placed) => {
+            if (placed.axis !== node.axis) return;
+            const mainDistance = Math.abs(placed.main - mainPosition);
+            if (mainDistance >= 48) return;
+            blockedCrossPositions.push({
+              position: placed.cross - ownerCrossStart,
+              clearance: Math.sqrt((48 ** 2) - (mainDistance ** 2)),
+            });
+          });
+          const edgeMargin = Math.min(22, crossLength / 4);
+          const crossMinimum = (mergedTrack.start - ownerCrossStart) + edgeMargin;
+          const crossMaximum = (mergedTrack.end - ownerCrossStart) - edgeMargin;
+          const cross = safeCrossPosition(crossTarget, crossMinimum, crossMaximum, blockedCrossPositions, towardStartEdge);
+          placedHandleCenters.push({ axis: node.axis, main: mainPosition, cross: ownerCrossStart + cross });
           if (node.axis === 'vertical') {
-            handle.style.left = ((currentRect.right + nextRect.left) / 2) - elementRect.left + 'px';
+            handle.style.left = mainPosition - elementRect.left + 'px';
             handle.style.top = cross + 'px';
           } else {
             handle.style.left = cross + 'px';
-            handle.style.top = ((currentRect.bottom + nextRect.top) / 2) - elementRect.top + 'px';
+            handle.style.top = mainPosition - elementRect.top + 'px';
           }
           const previous = node.sizes.slice(0, index).reduce((sum, size) => sum + size, 0);
           const boundary = previous + node.sizes[index];

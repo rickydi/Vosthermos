@@ -55,10 +55,10 @@
     .window-plan:focus-visible .plan-card { outline:3px solid color-mix(in srgb,var(--accent) 34%,transparent); outline-offset:4px; }
     .plan-card { width:100%; min-width:0; padding:15px; overflow:hidden; }
     .plan-head { min-width:0; display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px; }
-    .plan-head h2 { min-width:0; overflow:hidden; margin:0; color:var(--ink); font:800 23px/1 var(--font-display); text-overflow:ellipsis; white-space:nowrap; }
+    .plan-identity { min-width:0; display:flex; align-items:center; gap:4px; }
+    .plan-head h2 { flex:0 1 auto; min-width:0; overflow:hidden; margin:0; color:var(--ink); font:800 23px/1 var(--font-display); text-overflow:ellipsis; white-space:nowrap; }
     .plan-name { color:var(--ink); }
-    .plan-head-actions { display:flex; align-items:center; gap:6px; }
-    .plan-status { min-height:32px; display:flex; align-items:center; padding:6px 8px; border-radius:999px; background:var(--surface-2); color:#304b53; font:700 10px/1 var(--font-data); white-space:nowrap; }
+    .plan-status { justify-self:end; min-height:32px; display:flex; align-items:center; padding:6px 8px; border-radius:999px; background:var(--surface-2); color:#304b53; font:700 10px/1 var(--font-data); white-space:nowrap; }
     .plan-status strong { color:var(--accent); }
     .rename-window { flex:0 0 40px; width:40px; height:40px; display:grid; place-items:center; padding:0; border:1px solid var(--line); border-radius:11px; background:var(--surface); color:var(--accent); }
     .rename-window svg { width:18px; height:18px; }
@@ -313,11 +313,11 @@
     <article class="window-plan" data-window-plan tabindex="-1">
       <section class="plan-card card">
         <header class="plan-head">
-          <h2><span data-window-code>F01</span><span aria-hidden="true"> · </span><span class="plan-name" data-window-name>Salon</span></h2>
-          <div class="plan-head-actions">
-            <span class="plan-status"><strong data-complete-pane-output>0</strong>&nbsp;/&nbsp;<span data-pane-count-output>6</span>&nbsp;mesurés</span>
+          <div class="plan-identity">
+            <h2><span data-window-code>F01</span><span aria-hidden="true"> · </span><span class="plan-name" data-window-name>Salon</span></h2>
             <button type="button" class="rename-window" data-rename-window aria-label="Renommer F01 Salon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 20 4.2-1 10.6-10.6a2.1 2.1 0 0 0-3-3L5.2 16 4 20Z"/><path d="m13.8 7.2 3 3"/></svg></button>
           </div>
+          <span class="plan-status"><strong data-complete-pane-output>0</strong>&nbsp;/&nbsp;<span data-pane-count-output>6</span>&nbsp;mesurés</span>
         </header>
         <section class="division-toolbar" aria-label="Choisir un modèle de fenêtre">
           <details class="layout-presets-menu">
