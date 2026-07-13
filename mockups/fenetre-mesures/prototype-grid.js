@@ -3,14 +3,13 @@
   const windowList = document.querySelector('[data-window-list]');
   const windowTemplate = document.querySelector('template[data-window-template]');
   const addWindowButton = document.querySelector('[data-add-window]');
-  const sheet = document.querySelector('[data-measure-sheet]');
   const paneActionModal = document.querySelector('[data-pane-action-modal]');
   const windowRenameModal = document.querySelector('[data-window-rename-modal]');
   const windowRenameForm = document.querySelector('[data-window-rename-form]');
   const windowRenameInput = document.querySelector('[data-window-rename-input]');
   const windowRenameError = document.querySelector('[data-window-rename-error]');
   const toast = document.querySelector('[data-toast]');
-  if (!prototypeRoot || !windowList || !windowTemplate || !sheet || !paneActionModal || !windowRenameModal || !windowRenameForm || !windowRenameInput) return;
+  if (!prototypeRoot || !windowList || !windowTemplate || !paneActionModal || !windowRenameModal || !windowRenameForm || !windowRenameInput) return;
 
   const MAX_PANES = 12;
   const MIN_CHILD_PX = 52;
@@ -45,6 +44,10 @@
       lowE: false, argon: false, tempered: false, laminated: false,
       spacer: '', glazing: '', access: '', notes: '',
     };
+  }
+
+  function blankDecorative() {
+    return { enabled: false, vertical: 0, horizontal: 0 };
   }
 
   function getLeafEntries(root) {
@@ -154,7 +157,7 @@
 
   function paneHasData(pane) {
     const hasMeasurement = Object.values(pane.measurement).some((value) => value === true || (typeof value === 'string' && value !== ''));
-    return hasMeasurement || pane.decorative.vertical > 0 || pane.decorative.horizontal > 0;
+    return hasMeasurement || Boolean(pane.decorative.enabled) || pane.decorative.vertical > 0 || pane.decorative.horizontal > 0;
   }
 
   function directionIconMarkup(axis) {
@@ -217,7 +220,7 @@
         label.className = 'progress-label';
         label.textContent = item.controller.state.code + ' T' + item.index;
         step.append(marker, label);
-        step.addEventListener('click', () => item.controller.openPaneActions(item.pane.id));
+        step.addEventListener('click', () => item.controller.selectPaneOnly(item.pane.id));
         progress.appendChild(step);
       });
     });
@@ -236,7 +239,6 @@
     if (!controller) return;
     if (interaction.controller && interaction.controller !== controller) {
       if (!paneActionModal.hidden) closePaneActions({ restoreFocus: false });
-      if (!sheet.hidden) closeSheet({ restoreFocus: false });
       if (!windowRenameModal.hidden) closeWindowRenameModal({ restoreFocus: false });
     }
     activeWindowId = controller.id;
@@ -256,17 +258,17 @@
     });
   }
 
-  function fillSharedSheet(controller, paneId) {
-    const pane = controller?.getPane(paneId);
-    if (!pane) return;
-    const label = controller.getPaneLabel(paneId);
-    sheet.querySelectorAll('[data-sheet-pane], [data-active-pane]').forEach((node) => { node.textContent = label; });
-    sheet.querySelectorAll('[data-sheet-window], [data-window-code]').forEach((node) => { node.textContent = controller.state.code; });
-    sheet.querySelectorAll('[data-measure-key]').forEach((field) => {
-      const value = pane.measurement[field.dataset.measureKey];
-      if (field.type === 'checkbox') field.checked = Boolean(value);
-      else field.value = value ?? '';
-    });
+  function selectPaneOnly(controller, paneId, { focus = true } = {}) {
+    if (!controller?.getPane(paneId)) return false;
+    activateController(controller);
+    interaction.controller = controller;
+    interaction.paneId = paneId;
+    interaction.axis = null;
+    interaction.count = 2;
+    interaction.mode = null;
+    const selected = controller.selectPane(paneId);
+    if (selected && focus) requestAnimationFrame(() => controller.focusPane(paneId));
+    return selected;
   }
 
   function updatePaneActionModal() {
@@ -318,14 +320,6 @@
     if (restoreFocus) focusInteractionPane();
   }
 
-  function closeSheet({ restoreFocus = true } = {}) {
-    sheet.classList.remove('is-open');
-    sheet.hidden = true;
-    document.body.classList.remove('measure-open');
-    if (interaction.mode === 'measure') interaction.mode = null;
-    if (restoreFocus) focusInteractionPane();
-  }
-
   function closeWindowRenameModal({ restoreFocus = true } = {}) {
     const focusTarget = interaction.lastFocusedElement;
     const controller = interaction.controller;
@@ -345,7 +339,6 @@
   function openWindowRenameModal(controller) {
     if (!controller) return;
     if (!paneActionModal.hidden) closePaneActions({ restoreFocus: false });
-    if (!sheet.hidden) closeSheet({ restoreFocus: false });
     activateController(controller);
     interaction.controller = controller;
     interaction.paneId = null;
@@ -369,7 +362,6 @@
   function openPaneActions(controller, paneId) {
     const pane = controller.getPane(paneId);
     if (!pane) return;
-    if (!sheet.hidden) closeSheet({ restoreFocus: false });
     activateController(controller);
     interaction.controller = controller;
     interaction.paneId = paneId;
@@ -382,34 +374,15 @@
     prototypeRoot.inert = true;
     document.body.classList.add('pane-action-open');
     updatePaneActionModal();
-    requestAnimationFrame(() => paneActionModal.querySelector('[data-open-pane-measure]')?.focus());
-  }
-
-  function openMeasureSheet(controller, paneId) {
-    if (!controller.getPane(paneId)) return;
-    closePaneActions({ restoreFocus: false });
-    activateController(controller);
-    interaction.controller = controller;
-    interaction.paneId = paneId;
-    interaction.mode = 'measure';
-    controller.selectPane(paneId);
-    fillSharedSheet(controller, paneId);
-    sheet.hidden = false;
-    sheet.classList.add('is-open');
-    document.body.classList.add('measure-open');
-    const firstInput = sheet.querySelector('[data-measure-key="width"]');
-    firstInput?.focus();
-    firstInput?.select();
+    requestAnimationFrame(() => paneActionModal.querySelector('[data-modal-axis]')?.focus());
   }
 
   const interactionService = {
     activate: activateController,
     openPaneActions,
-    openMeasureSheet,
     closeFor(controller) {
       if (interaction.controller !== controller) return;
       closePaneActions({ restoreFocus: false });
-      closeSheet({ restoreFocus: false });
     },
     refresh(controller) {
       if (interaction.controller === controller && interaction.mode === 'action' && !paneActionModal.hidden) updatePaneActionModal();
@@ -426,6 +399,11 @@
     const photoLabel = root.querySelector('[data-photo-label]');
     const photoHelp = root.querySelector('[data-photo-help]');
     const photoStatus = root.querySelector('[data-photo-status]');
+    const measureFields = [...root.querySelectorAll('[data-measure-key]')];
+    const decorativeEnabled = root.querySelector('[data-decorative-enabled]');
+    const decorativeOptions = root.querySelector('[data-decorative-options]');
+    const decorativeStatus = root.querySelector('[data-decorative-status]');
+    const editSelectedThermos = root.querySelector('[data-edit-selected-thermos]');
     if (!canvas) return null;
     let paneSequence = 0;
     let splitSequence = 0;
@@ -443,7 +421,7 @@
         type: 'pane',
         id: seed.id + '-p' + paneSequence,
         measurement: { ...blankMeasurement(), ...measurement },
-        decorative: { vertical: 0, horizontal: 0 },
+        decorative: blankDecorative(),
       };
     }
 
@@ -610,6 +588,7 @@
     }
 
     function renderDecorativeLines(element, pane) {
+      if (!pane.decorative.enabled) return;
       for (let index = 0; index < pane.decorative.vertical; index += 1) {
         const line = document.createElement('span');
         line.className = 'decorative-line decorative-line-v';
@@ -632,11 +611,11 @@
         pane.className = 'pane';
         pane.dataset.paneId = node.id;
         pane.setAttribute('aria-pressed', String(node.id === state.selectedPaneId));
-        pane.setAttribute('aria-label', state.code + ', thermos T' + index + '. Ouvrir les mesures ou les divisions.');
+        pane.setAttribute('aria-label', state.code + ', thermos T' + index + '. Sélectionner ce thermos.');
         const summary = paneSummary(node);
         pane.innerHTML = (summary ? '<span class="pane-value">' + summary + '</span>' : '') + '<span class="pane-code">T' + index + '</span><span class="pane-hint">Toucher pour choisir</span>';
         renderDecorativeLines(pane, node);
-        pane.addEventListener('click', () => openPaneActions(api, node.id));
+        pane.addEventListener('click', () => selectPaneOnly(api, node.id));
         return pane;
       }
       const split = document.createElement('div');
@@ -672,48 +651,6 @@
       return split;
     }
 
-    function renderPaneStrip(entries, indexes) {
-      root.querySelectorAll('[data-pane-strip]').forEach((strip) => {
-        strip.innerHTML = '';
-        entries.forEach(({ node }) => {
-          const index = indexes.get(node.id);
-          const button = document.createElement('button');
-          button.type = 'button';
-          button.className = 'pane-pill';
-          button.setAttribute('aria-pressed', String(node.id === state.selectedPaneId));
-          button.setAttribute('aria-label', state.code + ' T' + index + ', ouvrir les mesures ou les divisions');
-          button.textContent = paneIsComplete(node) ? 'T' + index + ' ✓' : 'T' + index + ' •';
-          button.addEventListener('click', () => openPaneActions(api, node.id));
-          strip.appendChild(button);
-        });
-      });
-    }
-
-    function renderProgressSteps(entries, indexes) {
-      root.querySelectorAll('[data-progress-steps]').forEach((progress) => {
-        progress.innerHTML = '';
-        entries.forEach(({ node }, entryIndex) => {
-          const index = indexes.get(node.id);
-          const complete = paneIsComplete(node);
-          const current = node.id === state.selectedPaneId;
-          const step = document.createElement('button');
-          step.type = 'button';
-          step.className = 'progress-step' + (complete ? ' is-complete' : '') + (current ? ' is-current' : '') + (entryIndex === entries.length - 1 ? ' is-last' : '');
-          step.setAttribute('aria-label', state.code + ' T' + index + ', ' + (complete ? 'mesuré' : 'à mesurer'));
-          if (current) step.setAttribute('aria-current', 'step');
-          const marker = document.createElement('span');
-          marker.className = 'progress-node';
-          marker.innerHTML = complete ? checkIconMarkup() : String(index);
-          const label = document.createElement('span');
-          label.className = 'progress-label';
-          label.textContent = 'T' + index;
-          step.append(marker, label);
-          step.addEventListener('click', () => openPaneActions(api, node.id));
-          progress.appendChild(step);
-        });
-      });
-    }
-
     function layoutSummary(entries) {
       const preset = PRESETS[state.activePreset];
       if (!preset) return 'Disposition personnalisée · ' + entries.length + ' thermos';
@@ -723,17 +660,54 @@
       return preset.columns + ' ' + columnLabel + ' × ' + preset.rows + ' ' + rowLabel + ' · ' + entries.length + ' thermos';
     }
 
-    function syncDecorativeCounters() {
+    function syncInlineEditor() {
       const pane = getPane(state.selectedPaneId);
+      const paneLabel = pane ? getPaneLabel(pane.id) : '—';
+      const editorState = !pane
+        ? { label: 'Aucun thermos', value: 'empty' }
+        : paneIsComplete(pane)
+          ? { label: 'Mesures complètes', value: 'complete' }
+          : paneHasData(pane)
+            ? { label: 'Mesures en cours', value: 'progress' }
+            : { label: 'À mesurer', value: 'empty' };
+      root.querySelectorAll('[data-editor-window]').forEach((node) => { node.textContent = state.code; });
+      root.querySelectorAll('[data-editor-pane]').forEach((node) => { node.textContent = paneLabel; });
+      root.querySelectorAll('[data-editor-state]').forEach((node) => {
+        node.textContent = editorState.label;
+        node.dataset.state = editorState.value;
+      });
+      measureFields.forEach((field) => {
+        const value = pane?.measurement?.[field.dataset.measureKey];
+        field.disabled = !pane;
+        if (field.type === 'checkbox') field.checked = Boolean(value);
+        else if (document.activeElement !== field) field.value = value ?? '';
+      });
+      const decorativeIsEnabled = Boolean(pane?.decorative?.enabled);
+      if (decorativeEnabled) {
+        decorativeEnabled.disabled = !pane;
+        decorativeEnabled.setAttribute('aria-checked', String(decorativeIsEnabled));
+        decorativeEnabled.setAttribute('aria-expanded', String(decorativeIsEnabled));
+      }
+      if (decorativeOptions) {
+        decorativeOptions.hidden = !decorativeIsEnabled;
+        decorativeOptions.setAttribute('aria-hidden', String(!decorativeIsEnabled));
+      }
+      if (decorativeStatus) {
+        decorativeStatus.textContent = decorativeIsEnabled ? 'Oui' : 'Non';
+        decorativeStatus.dataset.state = decorativeIsEnabled ? 'enabled' : 'disabled';
+      }
       root.querySelectorAll('[data-counter]').forEach((counter) => {
         const output = counter.querySelector('output');
         if (output) output.textContent = String(pane?.decorative?.[counter.dataset.counter] || 0);
       });
+      if (editSelectedThermos) {
+        editSelectedThermos.disabled = !pane;
+        editSelectedThermos.setAttribute('aria-label', pane ? 'Modifier le thermos sélectionné ' + state.code + ' ' + paneLabel : 'Aucun thermos sélectionné');
+      }
     }
 
     function updateLayoutMeta(entries, indexes) {
       const completed = entries.filter(({ node }) => paneIsComplete(node)).length;
-      const selectedLabel = 'T' + (indexes.get(state.selectedPaneId) || 1);
       root.querySelectorAll('[data-window-code]').forEach((node) => { node.textContent = state.code; });
       root.querySelectorAll('[data-window-name]').forEach((node) => { node.textContent = state.name; });
       root.querySelectorAll('[data-rename-window]').forEach((button) => { button.setAttribute('aria-label', 'Renommer ' + state.code + ' ' + state.name); });
@@ -745,7 +719,6 @@
       root.querySelectorAll('[data-divider-count-output]').forEach((node) => { node.textContent = String(countSeparators(state.layout)); });
       root.querySelectorAll('[data-layout-summary]').forEach((node) => { node.textContent = layoutSummary(entries); });
       root.querySelectorAll('[data-preset-summary]').forEach((node) => { node.textContent = PRESETS[state.activePreset]?.label || 'Disposition personnalisée'; });
-      root.querySelectorAll('[data-window-active-pane]').forEach((node) => { node.textContent = selectedLabel; });
       root.querySelectorAll('[data-layout-preset]').forEach((button) => {
         button.setAttribute('aria-pressed', String(button.dataset.layoutPreset === state.activePreset));
       });
@@ -760,10 +733,8 @@
       canvas.innerHTML = '';
       canvas.removeAttribute('data-orientation');
       canvas.appendChild(renderNode(state.layout, indexes, owners));
-      renderPaneStrip(entries, indexes);
-      renderProgressSteps(entries, indexes);
       updateLayoutMeta(entries, indexes);
-      syncDecorativeCounters();
+      syncInlineEditor();
       requestAnimationFrame(() => {
         if (version === renderVersion) positionDividerHandles();
       });
@@ -1083,7 +1054,7 @@
       if (!pane) return false;
       const oldLabel = getPaneLabel(pane.id);
       if (paneHasData(pane) && !allowDataLoss && !window.confirm('Les mesures et options de ' + state.code + ' ' + oldLabel + ' seront effacées. Continuer?')) return false;
-      const firstPane = { type: 'pane', id: pane.id, measurement: blankMeasurement(), decorative: { vertical: 0, horizontal: 0 } };
+      const firstPane = { type: 'pane', id: pane.id, measurement: blankMeasurement(), decorative: blankDecorative() };
       const children = [firstPane, ...Array.from({ length: count - 1 }, () => createPane())];
       state.layout = replaceNode(state.layout, pane.id, createSplit(axis, children));
       state.selectedPaneId = firstPane.id;
@@ -1175,8 +1146,8 @@
       getPaneLabel,
       resolvePaneId,
       selectPane,
+      selectPaneOnly(paneId) { return selectPaneOnly(api, paneId); },
       openPaneActions(paneId) { openPaneActions(api, paneId); },
-      openMeasureSheet(paneId) { openMeasureSheet(api, paneId); },
       splitPane,
       applyPreset,
       equalizeLayout,
@@ -1198,15 +1169,39 @@
     root.querySelectorAll('[data-equalize]').forEach((button) => button.addEventListener('click', equalizeLayout));
     root.querySelectorAll('[data-reset]').forEach((button) => button.addEventListener('click', resetDrawing));
     root.querySelectorAll('[data-rename-window]').forEach((button) => button.addEventListener('click', () => openWindowRenameModal(api)));
+    measureFields.forEach((field) => {
+      if (field.tagName === 'SELECT' && field.dataset.measureKey?.endsWith('Fraction') && !field.options.length) {
+        fractions.forEach((fraction) => field.add(new Option(fraction || 'Fraction', fraction)));
+      }
+      const update = () => {
+        if (!state.selectedPaneId) return;
+        updateMeasurement(
+          state.selectedPaneId,
+          field.dataset.measureKey,
+          field.type === 'checkbox' ? field.checked : field.value
+        );
+      };
+      field.addEventListener(field.type === 'checkbox' || field.tagName === 'SELECT' ? 'change' : 'input', update);
+    });
+    decorativeEnabled?.addEventListener('click', () => {
+      const pane = getPane(state.selectedPaneId);
+      if (!pane) return;
+      pane.decorative.enabled = !pane.decorative.enabled;
+      renderLayout();
+      markDirty();
+    });
     root.querySelectorAll('[data-counter]').forEach((counter) => {
       counter.querySelectorAll('[data-delta]').forEach((button) => button.addEventListener('click', () => {
         const pane = getPane(state.selectedPaneId);
-        if (!pane) return;
+        if (!pane || !pane.decorative.enabled) return;
         const key = counter.dataset.counter;
         pane.decorative[key] = Math.max(0, Math.min(8, pane.decorative[key] + Number(button.dataset.delta)));
         renderLayout();
         markDirty();
       }));
+    });
+    editSelectedThermos?.addEventListener('click', () => {
+      if (state.selectedPaneId) openPaneActions(api, state.selectedPaneId);
     });
     photoInput?.addEventListener('click', () => {
       photoInput.value = '';
@@ -1215,15 +1210,6 @@
       const file = photoInput.files?.[0];
       if (file) void processPhoto(file);
     });
-    root.querySelectorAll('[data-apply-measure]').forEach((button) => button.addEventListener('click', () => {
-      const pane = getPane(state.selectedPaneId);
-      if (!pane) return;
-      getEntries().forEach(({ node }) => { node.measurement = clone(pane.measurement); });
-      renderLayout();
-      markDirty();
-      showToast('Mesures de ' + state.code + ' ' + getPaneLabel(pane.id) + ' appliquées aux ' + getEntries().length + ' thermos de cette fenêtre.');
-    }));
-
     const resizeObserver = 'ResizeObserver' in window
       ? new ResizeObserver(() => requestAnimationFrame(positionDividerHandles))
       : null;
@@ -1342,23 +1328,6 @@
     }
   });
 
-  sheet.querySelectorAll('[data-measure-key]').forEach((field) => {
-    if (field.tagName === 'SELECT' && field.dataset.measureKey?.endsWith('Fraction') && !field.options.length) {
-      fractions.forEach((fraction) => field.add(new Option(fraction || 'Fraction', fraction)));
-    }
-    const update = () => {
-      if (interaction.mode !== 'measure' || !interaction.controller) return;
-      interaction.controller.updateMeasurement(
-        interaction.paneId,
-        field.dataset.measureKey,
-        field.type === 'checkbox' ? field.checked : field.value
-      );
-    };
-    field.addEventListener(field.type === 'checkbox' || field.tagName === 'SELECT' ? 'change' : 'input', update);
-  });
-  sheet.querySelectorAll('[data-close-sheet]').forEach((button) => button.addEventListener('click', () => closeSheet()));
-  sheet.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeSheet(); });
-
   paneActionModal.querySelectorAll('[data-close-pane-action]').forEach((button) => button.addEventListener('click', () => closePaneActions()));
   paneActionModal.querySelectorAll('[data-modal-axis]').forEach((button) => button.addEventListener('click', () => {
     interaction.axis = button.dataset.modalAxis;
@@ -1369,9 +1338,6 @@
     interaction.count = Number(button.dataset.sectionCount);
     updatePaneActionModal();
   }));
-  paneActionModal.querySelector('[data-open-pane-measure]')?.addEventListener('click', () => {
-    if (interaction.controller) openMeasureSheet(interaction.controller, interaction.paneId);
-  });
   paneActionModal.querySelector('[data-create-sections]')?.addEventListener('click', () => {
     interaction.controller?.splitPane(interaction.paneId, interaction.axis, interaction.count, { allowDataLoss: true });
   });
@@ -1428,6 +1394,17 @@
   const previewPreset = previewParams.get('previewPreset');
   if (previewController && PRESETS[previewPreset]) previewController.applyPreset(previewPreset, { preview: true });
   if (previewParams.get('previewModels') === '1') previewController?.root.querySelector('.layout-presets-menu')?.setAttribute('open', '');
+  const previewSelectedPaneId = previewController?.resolvePaneId(previewParams.get('previewSelected'));
+  if (previewController && previewSelectedPaneId) selectPaneOnly(previewController, previewSelectedPaneId, { focus: false });
+  if (previewController && previewParams.get('previewDecorative') === '1') {
+    const decorativePane = previewController.getPane(previewSelectedPaneId || previewController.state.selectedPaneId);
+    if (decorativePane) {
+      decorativePane.decorative.enabled = true;
+      decorativePane.decorative.vertical = Math.min(8, Math.max(0, Number(previewParams.get('decorativeV')) || 0));
+      decorativePane.decorative.horizontal = Math.min(8, Math.max(0, Number(previewParams.get('decorativeH')) || 0));
+      previewController.render();
+    }
+  }
   const previewPaneId = previewController?.resolvePaneId(previewParams.get('previewPane'));
   if (previewController && previewParams.get('previewRename') === '1') {
     openWindowRenameModal(previewController);
