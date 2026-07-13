@@ -1,4 +1,7 @@
 (() => {
+  const pageParams = new URLSearchParams(window.location.search);
+  if (pageParams.get('tutorialEmbed') === '1') return;
+
   const modal = document.querySelector('[data-tutorial-modal]');
   const card = modal?.querySelector('.tutorial-card');
   const openButtons = [...document.querySelectorAll('[data-tutorial-open]')];
@@ -6,55 +9,47 @@
   const previousButton = modal?.querySelector('[data-tutorial-prev]');
   const nextButton = modal?.querySelector('[data-tutorial-next]');
   const toggleButton = modal?.querySelector('[data-tutorial-toggle]');
-  const demo = modal?.querySelector('[data-tutorial-demo]');
+  const frame = modal?.querySelector('[data-tutorial-frame]');
+  const stage = modal?.querySelector('[data-tutorial-stage]');
+  const loading = modal?.querySelector('[data-tutorial-loading]');
   const dots = modal?.querySelector('[data-tutorial-dots]');
   const progress = modal?.querySelector('[data-tutorial-progress]');
-  if (!modal || !card || !openButtons.length || !closeButton || !previousButton || !nextButton || !toggleButton || !demo || !dots || !progress) return;
+  if (!modal || !card || !openButtons.length || !closeButton || !previousButton || !nextButton || !toggleButton || !frame || !stage || !loading || !dots || !progress) return;
 
-  const languageParams = new URLSearchParams(window.location.search);
-  const requestedLanguage = languageParams.get('clientLang') || languageParams.get('lang') || document.documentElement.lang || 'fr';
+  const requestedLanguage = pageParams.get('clientLang') || pageParams.get('lang') || document.documentElement.lang || 'fr';
   const language = requestedLanguage.toLowerCase().startsWith('en') ? 'en' : 'fr';
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const STEP_DURATION = 5200;
+  const channel = 'vosthermos-measure-tutorial';
+  const durations = [6500, 5600, 6800, 6800, 6800, 6400, 6200];
   const backgroundElements = [document.querySelector('.prototype'), document.querySelector('.back-to-index')].filter(Boolean);
   const initialInertState = new Map(backgroundElements.map((node) => [node, node.inert]));
   const copy = language === 'en'
     ? {
-        launcher: 'Tutorial', openLabel: 'Open the measurement tutorial', kicker: 'Quick tutorial', heading: 'Measure a window',
-        duration: 'About 40 sec', step: 'Step', of: 'of', previous: 'Previous', next: 'Next', pause: 'Pause', resume: 'Resume', replay: 'Replay', finish: 'Start measuring', close: 'Close tutorial',
-        dotsLabel: 'Tutorial steps', demoLabel: 'Animated window measurement demonstration',
-        demo: {
-          mode: 'Final measurements', room: 'Living room', model: 'Choose window type', photo: 'Take a photo', divide: 'Edit selected glass unit',
-          width: 'Width', height: 'Height', thickness: 'Thickness', spacer: 'Spacer', decorative: 'Grilles', addWindow: 'Add another window', save: 'Save', finalize: 'Confirm final measurements',
-          values: ['32 1/4 in', '48 7/8 in', '1 in'],
-        },
+        launcher: 'Tutorial', openLabel: 'Open the live measurement tutorial', kicker: 'Live demonstration', heading: 'Measure a window',
+        duration: 'About 1 min', step: 'Step', of: 'of', previous: 'Previous', next: 'Next', pause: 'Pause', resume: 'Resume', replay: 'Replay', finish: 'Close', close: 'Close tutorial',
+        dotsLabel: 'Tutorial steps', stageLabel: 'Live demonstration of the measurement application', frameLabel: 'Isolated copy of the measurement application', loading: 'Preparing the live demonstration…',
         steps: [
-          { title: 'Choose the window', description: 'Open the model list, or take a straight-on photo of the complete window.', tip: 'A photo suggests the closest layout automatically. You can still correct it.' },
-          { title: 'Select one glass unit', description: 'Tap the pane you want to measure. Its T number shows exactly which unit you are editing.', tip: 'The selected unit pulses and the editor follows it.' },
-          { title: 'Enter three measurements', description: 'Enter width, height and thickness. Inches stay the default, with mm and cm available.', tip: 'Fractions appear in inches; metric values keep their exact precision.' },
-          { title: 'Divide only when needed', description: 'Use Edit selected glass unit, choose vertical or horizontal, then choose the number of sections.', tip: 'You can drag each divider afterward to match the real window.' },
-          { title: 'Add the glass options', description: 'Record Low-E, Argon, spacer, glazing and decorative grilles for the selected unit.', tip: 'Unknown remains a valid choice when the client cannot identify an option.' },
-          { title: 'Add the other windows', description: 'Use the large plus after the first plan. Each new window receives its own F number.', tip: 'Finish one window at a time to keep every T number tied to the right opening.' },
-          { title: 'Save or confirm', description: 'Save keeps a draft. Confirm final measurements means the complete measurement request is ready.', tip: 'Only confirm after every required glass unit has its three measurements.' },
+          { title: 'Choose the window', description: 'Watch the real model list open, then the Four equal layout is selected.', tip: 'Take a photo is the second option. The camera is not opened during the tutorial.', position: 'bottom', side: 'right' },
+          { title: 'Select one glass unit', description: 'The tutorial taps T2 in the real drawing. The editor then follows that exact unit.', tip: 'The isolated copy behaves like your dossier, but nothing is saved to it.', position: 'bottom', side: 'left' },
+          { title: 'Enter three measurements', description: 'Width, height and thickness are entered in the real fields, including inch fractions.', tip: 'Inches remain the default; mm and cm are also available.', position: 'top', side: 'right' },
+          { title: 'Divide only when needed', description: 'The real Edit button opens. Vertical and two sections are chosen, then created.', tip: 'You can move the new divider afterward to match the actual window.', position: 'bottom', side: 'right' },
+          { title: 'Add the glass options', description: 'Low-E, Argon and decorative grilles are selected on the active glass unit.', tip: 'Unknown remains a valid spacer choice when the client is unsure.', position: 'top', side: 'right' },
+          { title: 'Add the other windows', description: 'The large plus creates a true second glazing plan with its own F number.', tip: 'Complete one window at a time so every T number stays tied to the right opening.', position: 'top', side: 'left' },
+          { title: 'Save or confirm', description: 'Save keeps a draft. Confirm final measurements marks the measurement request as complete.', tip: 'This demonstration is isolated: these clicks never alter the client file.', position: 'top', side: 'left' },
         ],
       }
     : {
-        launcher: 'Tutoriel', openLabel: 'Ouvrir le tutoriel de prise de mesures', kicker: 'Tutoriel rapide', heading: 'Mesurer une fenêtre',
-        duration: 'Environ 40 s', step: 'Étape', of: 'sur', previous: 'Précédent', next: 'Suivant', pause: 'Pause', resume: 'Reprendre', replay: 'Rejouer', finish: 'Commencer à mesurer', close: 'Fermer le tutoriel',
-        dotsLabel: 'Étapes du tutoriel', demoLabel: 'Démonstration animée de la prise de mesures',
-        demo: {
-          mode: 'Mesures finales', room: 'Salon', model: 'Choisir un type', photo: 'Prendre une photo', divide: 'Modifier le thermos sélectionné',
-          width: 'Largeur', height: 'Hauteur', thickness: 'Épaisseur', spacer: 'Intercalaire', decorative: 'Carreaux', addWindow: 'Ajouter une autre fenêtre', save: 'Enregistrer', finalize: 'Valider les mesures finales',
-          values: ['32 1/4 po', '48 7/8 po', '1 po'],
-        },
+        launcher: 'Tutoriel', openLabel: 'Ouvrir le tutoriel réel de prise de mesures', kicker: 'Démonstration réelle', heading: 'Mesurer une fenêtre',
+        duration: 'Environ 1 min', step: 'Étape', of: 'sur', previous: 'Précédent', next: 'Suivant', pause: 'Pause', resume: 'Reprendre', replay: 'Rejouer', finish: 'Fermer', close: 'Fermer le tutoriel',
+        dotsLabel: 'Étapes du tutoriel', stageLabel: 'Démonstration réelle de l’application de mesures', frameLabel: 'Copie isolée de l’application de mesures', loading: 'Préparation de la démonstration réelle…',
         steps: [
-          { title: 'Choisissez la fenêtre', description: 'Ouvrez la liste des modèles ou prenez une photo bien de face de la fenêtre complète.', tip: 'La photo propose automatiquement la disposition la plus proche, que vous pouvez corriger.' },
-          { title: 'Sélectionnez un thermos', description: 'Touchez la vitre à mesurer. Son numéro T indique exactement quel thermos vous modifiez.', tip: 'Le thermos sélectionné s’anime légèrement et son formulaire le suit.' },
-          { title: 'Entrez trois mesures', description: 'Inscrivez largeur, hauteur et épaisseur. Les pouces restent par défaut, avec mm et cm en option.', tip: 'Les fractions apparaissent en pouces; les valeurs métriques gardent leur précision exacte.' },
-          { title: 'Divisez seulement au besoin', description: 'Touchez Modifier le thermos, choisissez vertical ou horizontal, puis le nombre de sections.', tip: 'Vous pourrez ensuite déplacer chaque division pour reproduire la vraie fenêtre.' },
-          { title: 'Ajoutez les options', description: 'Notez Low-E, Argon, intercalaire, vitrage et carreaux décoratifs pour le thermos sélectionné.', tip: 'Le choix Inconnu reste permis lorsque le client ne peut pas identifier une option.' },
-          { title: 'Ajoutez les autres fenêtres', description: 'Utilisez le gros plus après le premier plan. Chaque nouvelle fenêtre reçoit son propre numéro F.', tip: 'Terminez une fenêtre à la fois pour garder chaque numéro T lié à la bonne ouverture.' },
-          { title: 'Enregistrez ou validez', description: 'Enregistrer conserve un brouillon. Valider confirme que toute la prise de mesures est terminée.', tip: 'Validez seulement lorsque tous les thermos requis possèdent leurs trois mesures.' },
+          { title: 'Choisissez la fenêtre', description: 'La vraie liste des modèles s’ouvre, puis la disposition Quatre égaux est sélectionnée.', tip: 'Prendre une photo reste la deuxième option. La caméra ne s’ouvre pas pendant le tutoriel.', position: 'bottom', side: 'right' },
+          { title: 'Sélectionnez un thermos', description: 'Le tutoriel touche réellement T2 dans le dessin. Le formulaire suit alors ce thermos précis.', tip: 'Cette copie fonctionne comme le dossier, mais aucune donnée n’y est conservée.', position: 'bottom', side: 'left' },
+          { title: 'Entrez trois mesures', description: 'Largeur, hauteur et épaisseur sont inscrites dans les vrais champs, avec les fractions de pouce.', tip: 'Les pouces restent par défaut; les unités mm et cm sont aussi offertes.', position: 'top', side: 'right' },
+          { title: 'Divisez seulement au besoin', description: 'Le vrai bouton Modifier s’ouvre. Vertical, deux sections puis Créer sont sélectionnés.', tip: 'La nouvelle division peut ensuite être déplacée pour reproduire la vraie fenêtre.', position: 'bottom', side: 'right' },
+          { title: 'Ajoutez les options', description: 'Low-E, Argon et les carreaux décoratifs sont activés sur le thermos sélectionné.', tip: 'Inconnu reste un choix valide pour l’intercalaire lorsque le client hésite.', position: 'top', side: 'right' },
+          { title: 'Ajoutez les autres fenêtres', description: 'Le gros plus crée un vrai deuxième plan de vitrage avec son propre numéro F.', tip: 'Terminez une fenêtre à la fois pour lier chaque numéro T à la bonne ouverture.', position: 'top', side: 'left' },
+          { title: 'Enregistrez ou validez', description: 'Enregistrer garde un brouillon. Valider les mesures finales confirme que la prise de mesures est terminée.', tip: 'La démonstration est isolée : ces clics ne modifient jamais le dossier du client.', position: 'top', side: 'left' },
         ],
       };
 
@@ -62,16 +57,22 @@
   const descriptionNode = modal.querySelector('[data-tutorial-step-description]');
   const tipNode = modal.querySelector('[data-tutorial-step-tip]');
   const countNode = modal.querySelector('[data-tutorial-step-count]');
+  const durationNode = modal.querySelector('[data-tutorial-duration]');
+  const loadingLabel = loading.querySelector('b');
   const toggleLabel = modal.querySelector('[data-tutorial-toggle-label]');
   const nextLabel = modal.querySelector('[data-tutorial-next-label]');
   const playIcon = modal.querySelector('[data-tutorial-play-icon]');
   const pauseIcon = modal.querySelector('[data-tutorial-pause-icon]');
   let currentStep = 0;
   let playing = false;
-  let timer = null;
+  let stepFinished = false;
+  let activeRunId = '';
+  let runCounter = 0;
+  let progressElapsed = 0;
+  let progressStartedAt = 0;
+  let activeDuration = durations[0];
   let progressFrame = null;
-  let remainingMs = STEP_DURATION;
-  let startedAt = 0;
+  let advanceTimer = null;
   let lastFocused = null;
 
   function setText(selector, value) {
@@ -89,17 +90,14 @@
     modal.lang = language;
     setText('[data-tutorial-kicker]', copy.kicker);
     setText('[data-tutorial-heading]', copy.heading);
-    setText('[data-tutorial-duration]', copy.duration);
+    durationNode.textContent = copy.duration;
     setText('[data-tutorial-prev-label]', copy.previous);
     previousButton.setAttribute('aria-label', copy.previous);
     closeButton.setAttribute('aria-label', copy.close);
     dots.setAttribute('aria-label', copy.dotsLabel);
-    demo.setAttribute('aria-label', copy.demoLabel);
-    Object.entries(copy.demo).forEach(([key, value]) => {
-      if (key === 'values') return;
-      modal.querySelectorAll('[data-demo-copy="' + key + '"]').forEach((node) => { node.textContent = value; });
-    });
-    modal.querySelectorAll('.demo-field b').forEach((node, index) => { node.textContent = copy.demo.values[index] || ''; });
+    stage.setAttribute('aria-label', copy.stageLabel);
+    frame.title = copy.frameLabel;
+    loadingLabel.textContent = copy.loading;
   }
 
   function buildDots() {
@@ -115,126 +113,200 @@
     });
   }
 
-  function clearTimer({ captureElapsed = false } = {}) {
-    if (captureElapsed && startedAt) {
-      remainingMs = Math.max(0, remainingMs - (performance.now() - startedAt));
-    }
-    if (timer) window.clearTimeout(timer);
-    timer = null;
-    startedAt = 0;
+  function frameUrl(step) {
+    const url = new URL(window.location.href);
+    url.search = '';
+    url.hash = '';
+    url.searchParams.set('tutorialEmbed', '1');
+    url.searchParams.set('tutorialScene', String(step));
+    url.searchParams.set('tutorialRun', activeRunId);
+    url.searchParams.set('clientLang', language);
+    url.searchParams.set('previewUnit', 'in');
+    url.searchParams.set('previewPreset', step === 0 ? '1x1' : '2x2');
+    url.searchParams.set('previewSelected', step === 1 ? 'p1' : 'p2');
+    return url.href;
   }
 
-  function syncProgress({ reset = false } = {}) {
+  function postToFrame(type) {
+    frame.contentWindow?.postMessage({ channel, type, runId: activeRunId, playing }, window.location.origin);
+  }
+
+  function stopAdvanceTimer() {
+    if (advanceTimer) window.clearTimeout(advanceTimer);
+    advanceTimer = null;
+  }
+
+  function stopProgress({ capture = false } = {}) {
+    if (capture && progressStartedAt) {
+      progressElapsed = Math.min(activeDuration, progressElapsed + performance.now() - progressStartedAt);
+    }
+    progressStartedAt = 0;
     if (progressFrame) window.cancelAnimationFrame(progressFrame);
     progressFrame = null;
-    if (reset) remainingMs = STEP_DURATION;
-    const completedRatio = currentStep === copy.steps.length - 1 ? 1 : 1 - (remainingMs / STEP_DURATION);
-    modal.dataset.playing = String(playing);
     progress.style.transition = 'none';
-    progress.style.width = Math.max(0, Math.min(100, completedRatio * 100)) + '%';
+    progress.style.width = Math.min(100, (progressElapsed / activeDuration) * 100) + '%';
+  }
+
+  function animateProgress() {
+    stopProgress();
+    if (!playing || stepFinished) return;
+    const remaining = Math.max(0, activeDuration - progressElapsed);
+    progress.style.width = Math.min(100, (progressElapsed / activeDuration) * 100) + '%';
     void progress.offsetWidth;
-    if (playing) {
-      progressFrame = window.requestAnimationFrame(() => {
-        progressFrame = null;
-        if (!playing || modal.hidden) return;
-        progress.style.transition = 'width ' + remainingMs + 'ms linear';
-        progress.style.width = '100%';
-      });
-    }
+    progressStartedAt = performance.now();
+    progressFrame = window.requestAnimationFrame(() => {
+      progressFrame = null;
+      if (!playing || modal.hidden) return;
+      progress.style.transition = 'width ' + remaining + 'ms linear';
+      progress.style.width = '100%';
+    });
   }
 
-  function scheduleNext() {
-    clearTimer();
-    if (!playing) return;
-    if (currentStep >= copy.steps.length - 1) {
-      playing = false;
-      renderStep({ resetProgress: false });
-      return;
-    }
-    startedAt = performance.now();
-    timer = window.setTimeout(() => {
-      timer = null;
-      startedAt = 0;
-      currentStep += 1;
-      if (currentStep === copy.steps.length - 1) playing = false;
-      renderStep({ resetProgress: true });
-    }, Math.max(0, remainingMs));
-  }
-
-  function renderStep({ resetProgress = false } = {}) {
-    const step = copy.steps[currentStep];
-    titleNode.textContent = step.title;
-    descriptionNode.textContent = step.description;
-    tipNode.textContent = step.tip;
-    countNode.textContent = copy.step + ' ' + (currentStep + 1) + ' ' + copy.of + ' ' + copy.steps.length;
-    demo.dataset.demoStep = String(currentStep);
+  function syncControls() {
+    modal.dataset.playing = String(playing);
     previousButton.disabled = currentStep === 0;
     nextLabel.textContent = currentStep === copy.steps.length - 1 ? copy.finish : copy.next;
     nextButton.setAttribute('aria-label', nextLabel.textContent);
-    toggleLabel.textContent = playing ? copy.pause : currentStep === copy.steps.length - 1 ? copy.replay : copy.resume;
-    toggleButton.setAttribute('aria-label', toggleLabel.textContent);
+    const toggleText = playing ? copy.pause : stepFinished && currentStep === copy.steps.length - 1 ? copy.replay : copy.resume;
+    toggleLabel.textContent = toggleText;
+    toggleButton.setAttribute('aria-label', toggleText);
     playIcon.toggleAttribute('hidden', playing);
     pauseIcon.toggleAttribute('hidden', !playing);
     [...dots.children].forEach((dot, index) => {
       if (index === currentStep) dot.setAttribute('aria-current', 'step');
       else dot.removeAttribute('aria-current');
     });
-    syncProgress({ reset: resetProgress });
-    scheduleNext();
   }
 
-  function setStep(index) {
+  function renderStepCopy() {
+    const step = copy.steps[currentStep];
+    titleNode.textContent = step.title;
+    descriptionNode.textContent = step.description;
+    tipNode.textContent = step.tip;
+    countNode.textContent = copy.step + ' ' + (currentStep + 1) + ' ' + copy.of + ' ' + copy.steps.length;
+    stage.dataset.captionPosition = step.position;
+    stage.dataset.captionSide = step.side;
+    syncControls();
+  }
+
+  function loadStep() {
+    stopAdvanceTimer();
+    stopProgress();
+    postToFrame('STOP');
+    stepFinished = false;
+    progressElapsed = 0;
+    activeDuration = durations[currentStep];
+    progress.style.transition = 'none';
+    progress.style.width = '0%';
+    runCounter += 1;
+    activeRunId = Date.now().toString(36) + '-' + runCounter;
+    stage.classList.remove('is-ready');
+    loading.hidden = false;
+    renderStepCopy();
+    frame.src = frameUrl(currentStep);
+  }
+
+  function setStep(index, forcePlaying = playing) {
     currentStep = Math.max(0, Math.min(copy.steps.length - 1, index));
-    if (currentStep === copy.steps.length - 1) playing = false;
-    renderStep({ resetProgress: true });
+    playing = Boolean(forcePlaying);
+    loadStep();
+  }
+
+  function pauseTutorial() {
+    if (!playing) return;
+    playing = false;
+    stopAdvanceTimer();
+    stopProgress({ capture: true });
+    postToFrame('PAUSE');
+    syncControls();
+  }
+
+  function resumeTutorial() {
+    if (playing) return;
+    if (stepFinished) {
+      if (currentStep === copy.steps.length - 1) setStep(0, true);
+      else setStep(currentStep + 1, true);
+      return;
+    }
+    playing = true;
+    postToFrame('RESUME');
+    animateProgress();
+    syncControls();
+  }
+
+  function togglePlayback() {
+    if (playing) pauseTutorial();
+    else resumeTutorial();
   }
 
   function openTutorial() {
     lastFocused = document.activeElement;
     currentStep = 0;
-    remainingMs = STEP_DURATION;
     playing = !reducedMotion;
     modal.hidden = false;
     backgroundElements.forEach((node) => { node.inert = true; });
     document.body.classList.add('tutorial-open');
-    renderStep({ resetProgress: true });
+    loadStep();
     closeButton.focus({ preventScroll: true });
   }
 
   function closeTutorial() {
-    clearTimer();
-    if (progressFrame) window.cancelAnimationFrame(progressFrame);
-    progressFrame = null;
-    remainingMs = STEP_DURATION;
-    startedAt = 0;
+    stopAdvanceTimer();
+    stopProgress();
+    postToFrame('STOP');
+    frame.src = 'about:blank';
+    activeRunId = '';
     playing = false;
-    modal.dataset.playing = 'false';
+    stepFinished = false;
+    stage.classList.remove('is-ready');
+    loading.hidden = false;
     modal.hidden = true;
     backgroundElements.forEach((node) => { node.inert = initialInertState.get(node) || false; });
     document.body.classList.remove('tutorial-open');
     if (lastFocused instanceof HTMLElement) lastFocused.focus({ preventScroll: true });
   }
 
-  function togglePlayback() {
-    if (currentStep === copy.steps.length - 1 && !playing) {
-      currentStep = 0;
-      playing = true;
-      renderStep({ resetProgress: true });
-      return;
-    }
-    if (playing) {
-      clearTimer({ captureElapsed: true });
-      playing = false;
-    } else {
-      playing = true;
-    }
-    renderStep({ resetProgress: false });
-  }
-
   function focusableNodes() {
     return [...modal.querySelectorAll('button:not(:disabled),[href],input:not(:disabled),select:not(:disabled),textarea:not(:disabled),[tabindex]:not([tabindex="-1"])')]
       .filter((node) => !node.hidden && node.getClientRects().length > 0);
   }
+
+  window.addEventListener('message', (message) => {
+    if (message.origin !== window.location.origin || message.source !== frame.contentWindow || message.data?.channel !== channel) return;
+    if (Number(message.data.scene) !== currentStep) return;
+    if (message.data.type === 'FRAME_READY') {
+      stage.classList.add('is-ready');
+      loading.hidden = true;
+      postToFrame('START');
+      return;
+    }
+    if (message.data.runId !== activeRunId) return;
+    if (message.data.type === 'KEY_COMMAND') {
+      if (message.data.key === 'Escape') closeTutorial();
+      else if (message.data.key === 'ArrowLeft') setStep(currentStep - 1);
+      else if (message.data.key === 'ArrowRight' && currentStep < copy.steps.length - 1) setStep(currentStep + 1);
+      else if (message.data.key === ' ') togglePlayback();
+      return;
+    }
+    if (message.data.type === 'PREPARED') {
+      activeDuration = Number(message.data.duration) || durations[currentStep];
+      progressElapsed = 0;
+      if (playing) animateProgress();
+      return;
+    }
+    if (message.data.type === 'STEP_DONE') {
+      stepFinished = true;
+      progressElapsed = activeDuration;
+      stopProgress();
+      progress.style.width = '100%';
+      if (playing && currentStep < copy.steps.length - 1) {
+        advanceTimer = window.setTimeout(() => setStep(currentStep + 1, true), reducedMotion ? 0 : 420);
+      } else if (currentStep === copy.steps.length - 1) {
+        playing = false;
+        syncControls();
+      }
+    }
+  });
 
   applyLanguage();
   buildDots();
@@ -255,7 +327,7 @@
     }
     if (event.key === 'ArrowLeft') {
       event.preventDefault();
-      setStep(currentStep - 1);
+      if (currentStep > 0) setStep(currentStep - 1);
       return;
     }
     if (event.key === 'ArrowRight') {
@@ -282,9 +354,6 @@
     }
   });
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden || modal.hidden || !playing) return;
-    clearTimer({ captureElapsed: true });
-    playing = false;
-    renderStep({ resetProgress: false });
+    if (document.hidden && !modal.hidden && playing) pauseTutorial();
   });
 })();

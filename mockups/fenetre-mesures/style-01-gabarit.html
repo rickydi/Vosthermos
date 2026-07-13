@@ -521,39 +521,16 @@
         <button type="button" class="tutorial-close" data-tutorial-close aria-label="Fermer le tutoriel"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 7l10 10M17 7 7 17"/></svg></button>
       </header>
 
-      <div class="tutorial-layout">
-        <section class="tutorial-story">
-          <div class="tutorial-meta"><span class="tutorial-step-count" data-tutorial-step-count>Étape 1 sur 7</span><span class="tutorial-duration" data-tutorial-duration>Environ 40 s</span></div>
-          <div class="tutorial-story-copy" aria-live="polite" aria-atomic="true"><h3 data-tutorial-step-title>Choisissez la fenêtre</h3><p id="measure-tutorial-description" data-tutorial-step-description>Sélectionnez un modèle ou prenez une photo de face.</p></div>
-          <div class="tutorial-tip"><span class="tutorial-tip-icon" aria-hidden="true">i</span><span data-tutorial-step-tip>La photo propose automatiquement la disposition la plus proche.</span></div>
-          <nav class="tutorial-dots" data-tutorial-dots aria-label="Étapes du tutoriel"></nav>
-        </section>
-
-        <section class="tutorial-demo-shell" data-tutorial-demo data-demo-step="0" aria-label="Démonstration animée de la prise de mesures">
-          <div class="tutorial-device" aria-hidden="true">
-            <div class="demo-app-top"><span class="demo-brand"><span class="demo-brand-mark">VT</span> Vosthermos</span><span class="demo-mode" data-demo-copy="mode">Mesures finales</span></div>
-            <div class="demo-app-body">
-              <div class="demo-progress"><span></span><span></span><span></span><span></span></div>
-              <div class="demo-window-card">
-                <div class="demo-window-head"><strong>F01 · <span data-demo-copy="room">Salon</span></strong><small>0 / 4</small></div>
-                <div class="demo-actions">
-                  <div class="demo-action demo-model-action"><span class="demo-action-icon">▦</span><span data-demo-copy="model">Choisir un type</span></div>
-                  <div class="demo-action demo-photo-action"><span class="demo-action-icon">◉</span><span data-demo-copy="photo">Prendre une photo</span></div>
-                </div>
-                <div class="demo-window-grid"><span class="demo-pane one">T1</span><span class="demo-pane two">T2</span><span class="demo-pane three">T3</span><span class="demo-pane four">T4</span></div>
-                <div class="demo-edit-action"><span>↔</span><b data-demo-copy="divide">Modifier le thermos sélectionné</b></div>
-                <div class="demo-measurements">
-                  <div class="demo-field"><span data-demo-copy="width">Largeur</span><b>32 1/4 po</b></div>
-                  <div class="demo-field"><span data-demo-copy="height">Hauteur</span><b>48 7/8 po</b></div>
-                  <div class="demo-field"><span data-demo-copy="thickness">Épaisseur</span><b>1 po</b></div>
-                </div>
-                <div class="demo-options"><span class="demo-option">Low-E</span><span class="demo-option">Argon</span><span class="demo-option" data-demo-copy="spacer">Intercalaire</span><span class="demo-option" data-demo-copy="decorative">Carreaux</span></div>
-                <div class="demo-add-window"><b>+</b><span data-demo-copy="addWindow">Ajouter une autre fenêtre</span></div>
-              </div>
-            </div>
-            <div class="demo-footer"><span data-demo-copy="save">Enregistrer</span><span class="demo-final" data-demo-copy="finalize">Valider les mesures finales</span></div>
-          </div>
-          <span class="tutorial-tap-cursor" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 3 10 9-5 1 3 6-3 2-3-6-4 4L7 3Z"/></svg></span>
+      <div class="tutorial-live-layout">
+        <section class="tutorial-live-stage" data-tutorial-stage data-caption-position="bottom" aria-label="Démonstration réelle de la prise de mesures">
+          <iframe class="tutorial-live-frame" data-tutorial-frame title="Démonstration réelle de l’application de mesures" tabindex="-1"></iframe>
+          <div class="tutorial-frame-loading" data-tutorial-loading role="status"><span aria-hidden="true"></span><b>Préparation de la démonstration…</b></div>
+          <aside class="tutorial-caption">
+            <div class="tutorial-meta"><span class="tutorial-step-count" data-tutorial-step-count>Étape 1 sur 7</span><span class="tutorial-duration" data-tutorial-duration>Environ 1 min</span></div>
+            <div class="tutorial-story-copy" aria-live="polite" aria-atomic="true"><h3 data-tutorial-step-title>Choisissez la fenêtre</h3><p id="measure-tutorial-description" data-tutorial-step-description>Sélectionnez un modèle ou prenez une photo de face.</p></div>
+            <div class="tutorial-tip"><span class="tutorial-tip-icon" aria-hidden="true">i</span><span data-tutorial-step-tip>Cette démonstration utilise la vraie interface sans toucher à votre dossier.</span></div>
+            <nav class="tutorial-dots" data-tutorial-dots aria-label="Étapes du tutoriel"></nav>
+          </aside>
         </section>
       </div>
 
@@ -567,6 +544,7 @@
   </div>
   <div class="toast" data-toast role="status"></div>
   <script src="prototype-grid.js"></script>
+  <script src="tutorial-frame.js"></script>
   <script src="tutorial-guide.js"></script>
 </body>
 </html>

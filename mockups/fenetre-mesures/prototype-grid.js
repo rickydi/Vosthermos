@@ -1572,7 +1572,8 @@
     showToast(controllers.length + ' fenêtre' + (controllers.length > 1 ? 's enregistrées.' : ' enregistrée.'));
   }));
   document.querySelectorAll('[data-finalize]').forEach((button) => button.addEventListener('click', () => {
-    showToast('Prototype seulement : les mesures des ' + controllers.length + ' fenêtres seraient validées ici.');
+    const windowCount = controllers.length;
+    showToast('Prototype seulement : les mesures ' + (windowCount === 1 ? 'de la fenêtre' : 'des ' + windowCount + ' fenêtres') + ' seraient validées ici.');
   }));
 
   window.__vosthermosGridPrototype = {
