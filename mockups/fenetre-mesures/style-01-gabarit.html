@@ -66,12 +66,6 @@
     .rename-window:focus-visible { outline:3px solid color-mix(in srgb,var(--brand-red) 48%,transparent); outline-offset:2px; }
     .plan-card .window-stage { margin:10px -15px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); background:var(--surface); }
     .plan-card .window-stage::before { display:none; }
-    .dimension-frame { position:absolute; inset:7% 4%; pointer-events:none; color:#44636d; font:600 11px var(--font-data); }
-    .dimension-frame::before, .dimension-frame::after { content:""; position:absolute; background:var(--accent); opacity:.55; }
-    .dimension-frame::before { left:7%; right:7%; top:0; height:1px; }
-    .dimension-frame::after { top:7%; bottom:7%; left:0; width:1px; }
-    .dim-width { position:absolute; top:-8px; left:50%; transform:translateX(-50%); padding:0 8px; background:var(--surface); }
-    .dim-height { position:absolute; left:-26px; top:50%; transform:rotate(-90deg) translateX(-50%); transform-origin:center; padding:0 8px; background:var(--surface); }
     .division-toolbar { min-width:0; display:grid; gap:9px; margin-top:12px; }
     .layout-presets-menu { min-width:0; }
     .layout-presets-menu summary { min-height:66px; display:grid; grid-template-columns:42px minmax(0,1fr) 18px; align-items:center; gap:10px; padding:10px 12px; border:1px solid color-mix(in srgb,var(--accent) 34%,var(--line)); border-radius:12px; background:var(--surface); color:var(--ink); text-align:left; cursor:pointer; list-style:none; }
@@ -314,7 +308,6 @@
       .orientation-choice .move-arrow{width:17px;height:17px}
       .orientation-choice .move-arrow svg{width:16px;height:16px}
       .layout-preset{min-height:116px;padding:7px}
-      .dimension-frame{display:none}
       .window-canvas{width:calc(100% - 12px);aspect-ratio:1.3;gap:4px;padding:5px;border-width:7px;box-shadow:0 14px 30px rgba(0,0,0,.16),inset 0 0 0 1px rgba(255,255,255,.7)}
       .pane{border-width:2px}
       .pane:hover{transform:none}
@@ -350,6 +343,7 @@
       .pane[aria-pressed="true"]::before{animation:none;opacity:.7;transform:none}
     }
   </style>
+  <link rel="stylesheet" href="tutorial-guide.css">
 </head>
 <body data-initial-panes="6" data-initial-pane="2" data-initial-orientation="mixed" data-draggable-dividers="true" data-recursive-layout="true">
   <a class="back-to-index" href="index.html" aria-label="Retour aux cinq styles"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5m6-6-6 6 6 6"/></svg></a>
@@ -357,7 +351,10 @@
     <div class="shell">
       <div class="topbar">
         <div class="brand-lockup"><img class="brand-mark" src="../../public/images/Vos-Thermos-Logo_Blanc.png" alt="Vosthermos"></div>
-        <span class="mode-chip">Mesures finales</span>
+        <div class="topbar-actions">
+          <button type="button" class="tutorial-launch" data-tutorial-open aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 7 8 5-8 5V7Z"/><circle cx="12" cy="12" r="10"/></svg><span data-tutorial-launch-label>Tutoriel</span></button>
+          <span class="mode-chip">Mesures finales</span>
+        </div>
       </div>
 
       <main class="measurement-flow">
@@ -422,7 +419,6 @@
           </div>
         </section>
         <div class="window-stage">
-          <div class="dimension-frame"><span class="dim-width">largeur du cadre</span><span class="dim-height">hauteur du cadre</span></div>
           <div class="window-canvas" data-window-canvas aria-label="Dessin interactif de la fenêtre"></div>
         </div>
 
@@ -518,7 +514,59 @@
       </section>
     </section>
   </div>
+  <div class="measure-tutorial" data-tutorial-modal hidden>
+    <section class="tutorial-card" role="dialog" aria-modal="true" aria-labelledby="measure-tutorial-title" aria-describedby="measure-tutorial-description" tabindex="-1">
+      <header class="tutorial-head">
+        <div class="tutorial-head-copy"><span class="tutorial-kicker" data-tutorial-kicker>Tutoriel rapide</span><h2 id="measure-tutorial-title" data-tutorial-heading>Mesurer une fenêtre</h2></div>
+        <button type="button" class="tutorial-close" data-tutorial-close aria-label="Fermer le tutoriel"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 7l10 10M17 7 7 17"/></svg></button>
+      </header>
+
+      <div class="tutorial-layout">
+        <section class="tutorial-story">
+          <div class="tutorial-meta"><span class="tutorial-step-count" data-tutorial-step-count>Étape 1 sur 7</span><span class="tutorial-duration" data-tutorial-duration>Environ 40 s</span></div>
+          <div class="tutorial-story-copy" aria-live="polite" aria-atomic="true"><h3 data-tutorial-step-title>Choisissez la fenêtre</h3><p id="measure-tutorial-description" data-tutorial-step-description>Sélectionnez un modèle ou prenez une photo de face.</p></div>
+          <div class="tutorial-tip"><span class="tutorial-tip-icon" aria-hidden="true">i</span><span data-tutorial-step-tip>La photo propose automatiquement la disposition la plus proche.</span></div>
+          <nav class="tutorial-dots" data-tutorial-dots aria-label="Étapes du tutoriel"></nav>
+        </section>
+
+        <section class="tutorial-demo-shell" data-tutorial-demo data-demo-step="0" aria-label="Démonstration animée de la prise de mesures">
+          <div class="tutorial-device" aria-hidden="true">
+            <div class="demo-app-top"><span class="demo-brand"><span class="demo-brand-mark">VT</span> Vosthermos</span><span class="demo-mode" data-demo-copy="mode">Mesures finales</span></div>
+            <div class="demo-app-body">
+              <div class="demo-progress"><span></span><span></span><span></span><span></span></div>
+              <div class="demo-window-card">
+                <div class="demo-window-head"><strong>F01 · <span data-demo-copy="room">Salon</span></strong><small>0 / 4</small></div>
+                <div class="demo-actions">
+                  <div class="demo-action demo-model-action"><span class="demo-action-icon">▦</span><span data-demo-copy="model">Choisir un type</span></div>
+                  <div class="demo-action demo-photo-action"><span class="demo-action-icon">◉</span><span data-demo-copy="photo">Prendre une photo</span></div>
+                </div>
+                <div class="demo-window-grid"><span class="demo-pane one">T1</span><span class="demo-pane two">T2</span><span class="demo-pane three">T3</span><span class="demo-pane four">T4</span></div>
+                <div class="demo-edit-action"><span>↔</span><b data-demo-copy="divide">Modifier le thermos sélectionné</b></div>
+                <div class="demo-measurements">
+                  <div class="demo-field"><span data-demo-copy="width">Largeur</span><b>32 1/4 po</b></div>
+                  <div class="demo-field"><span data-demo-copy="height">Hauteur</span><b>48 7/8 po</b></div>
+                  <div class="demo-field"><span data-demo-copy="thickness">Épaisseur</span><b>1 po</b></div>
+                </div>
+                <div class="demo-options"><span class="demo-option">Low-E</span><span class="demo-option">Argon</span><span class="demo-option" data-demo-copy="spacer">Intercalaire</span><span class="demo-option" data-demo-copy="decorative">Carreaux</span></div>
+                <div class="demo-add-window"><b>+</b><span data-demo-copy="addWindow">Ajouter une autre fenêtre</span></div>
+              </div>
+            </div>
+            <div class="demo-footer"><span data-demo-copy="save">Enregistrer</span><span class="demo-final" data-demo-copy="finalize">Valider les mesures finales</span></div>
+          </div>
+          <span class="tutorial-tap-cursor" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 3 10 9-5 1 3 6-3 2-3-6-4 4L7 3Z"/></svg></span>
+        </section>
+      </div>
+
+      <footer class="tutorial-controls">
+        <button type="button" class="tutorial-control tutorial-control-prev" data-tutorial-prev><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg><span data-tutorial-prev-label>Précédent</span></button>
+        <button type="button" class="tutorial-control tutorial-control-play" data-tutorial-toggle><svg data-tutorial-play-icon viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5v14l11-7L8 5Z"/></svg><svg data-tutorial-pause-icon viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5v14M15 5v14"/></svg><span data-tutorial-toggle-label>Pause</span></button>
+        <button type="button" class="tutorial-control tutorial-control-next" data-tutorial-next><span data-tutorial-next-label>Suivant</span><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+      </footer>
+      <div class="tutorial-progress-track" aria-hidden="true"><span class="tutorial-progress-bar" data-tutorial-progress></span></div>
+    </section>
+  </div>
   <div class="toast" data-toast role="status"></div>
   <script src="prototype-grid.js"></script>
+  <script src="tutorial-guide.js"></script>
 </body>
 </html>
