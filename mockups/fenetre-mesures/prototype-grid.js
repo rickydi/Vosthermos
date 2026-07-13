@@ -629,7 +629,7 @@
     const result = paneActionModal.querySelector('[data-pane-action-result]');
     if (result) {
       if (exceedsMaximum) result.textContent = `Cette division créerait ${resultingTotal} thermos; maximum ${MAX_PANES}.`;
-      else if (!paneActionState.axis) result.textContent = 'Choisissez une orientation.';
+      else if (!paneActionState.axis) result.textContent = 'Choisissez vertical ou horizontal.';
       else result.textContent = `${label} deviendra ${paneActionState.count} thermos ${direction}.`;
     }
 
@@ -643,7 +643,7 @@
     if (createButton) {
       createButton.disabled = !paneActionState.axis || exceedsMaximum;
       createButton.textContent = !paneActionState.axis
-        ? 'Choisir l’orientation'
+        ? 'Choisir vertical ou horizontal'
         : paneHasData(pane)
           ? `Créer ${paneActionState.count} sections et effacer les données`
           : `Créer ${paneActionState.count} sections`;

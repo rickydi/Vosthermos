@@ -143,42 +143,64 @@
     .measure-sheet { border-top:5px solid var(--accent); }
     .measure-sheet .dimension-parts { background:#fffdf9; }
     body.pane-action-open { overflow:hidden; }
-    .pane-action-modal { position:fixed; z-index:90; inset:0; display:grid; align-items:end; padding:12px; background:rgba(0,31,39,.58); backdrop-filter:blur(3px); }
+    .pane-action-modal { position:fixed; z-index:90; inset:0; display:grid; place-items:center; padding:18px; background:rgba(0,31,39,.62); backdrop-filter:blur(4px); overflow:auto; }
     .pane-action-modal[hidden] { display:none; }
-    .pane-action-card { width:min(430px,100%); max-height:calc(100dvh - 24px); overflow:auto; margin:0 auto; padding:18px; border:1px solid rgba(255,255,255,.7); border-radius:24px; background:var(--surface); color:var(--ink); box-shadow:0 28px 90px rgba(0,0,0,.34); animation:sheet-in .2s ease-out; }
+    .pane-action-card { width:min(460px,100%); max-height:calc(100dvh - 36px); overflow:auto; margin:auto; padding:20px; border:1px solid rgba(255,255,255,.78); border-radius:24px; background:var(--surface); color:var(--ink); box-shadow:0 28px 90px rgba(0,0,0,.38); animation:sheet-in .2s ease-out; }
     .pane-action-head { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; }
     .pane-action-kicker { display:block; color:var(--brand-red); font:800 10px var(--font-data); letter-spacing:.09em; text-transform:uppercase; }
-    .pane-action-head h2 { margin:3px 0 0; font:800 27px/1 var(--font-display); }
+    .pane-action-head h2 { margin:3px 0 0; font:800 29px/1 var(--font-display); }
     .pane-action-close { flex:0 0 44px; width:44px; height:44px; display:grid; place-items:center; padding:0; border:1px solid var(--line); border-radius:50%; background:transparent; color:var(--ink); }
     .pane-action-close svg { width:18px; height:18px; }
-    .pane-measure-action { width:100%; min-height:58px; display:grid; grid-template-columns:42px 1fr 20px; align-items:center; gap:10px; margin-top:17px; padding:9px 13px; border:0; border-radius:14px; background:var(--accent); color:#fff; text-align:left; box-shadow:0 14px 25px -17px rgba(0,56,69,.9); }
-    .pane-measure-icon { width:42px; height:42px; display:grid; place-items:center; border-radius:11px; background:rgba(255,255,255,.14); font:800 20px/1 var(--font-data); }
-    .pane-measure-copy strong { display:block; font-size:15px; }
-    .pane-measure-copy small { display:block; margin-top:2px; color:rgba(255,255,255,.78); font-size:11px; }
-    .pane-action-divider { display:flex; align-items:center; gap:9px; margin:17px 0 13px; color:var(--muted); font-size:9px; font-weight:900; letter-spacing:.1em; text-transform:uppercase; }
+    .pane-measure-action { width:100%; min-height:72px; display:grid; grid-template-columns:48px 1fr 24px; align-items:center; gap:12px; margin-top:18px; padding:11px 14px; border:2px solid var(--accent); border-radius:16px; background:var(--accent); color:#fff; text-align:left; box-shadow:0 17px 28px -18px rgba(0,56,69,.95); }
+    .pane-measure-action:hover { background:#004b5a; border-color:#004b5a; }
+    .pane-measure-action:focus-visible { outline:3px solid color-mix(in srgb,var(--brand-red) 70%,#fff); outline-offset:3px; }
+    .pane-measure-icon { width:48px; height:48px; display:grid; place-items:center; border-radius:13px; background:rgba(255,255,255,.16); font:800 22px/1 var(--font-data); }
+    .pane-measure-copy strong { display:block; font-size:17px; }
+    .pane-measure-copy small { display:block; margin-top:3px; color:rgba(255,255,255,.82); font-size:12px; }
+    .pane-measure-arrow { font-size:24px; line-height:1; }
+    .pane-action-divider { display:flex; align-items:center; gap:10px; margin:14px 0; color:#53676e; font-size:10px; font-weight:900; letter-spacing:.1em; text-transform:uppercase; }
     .pane-action-divider::before,.pane-action-divider::after { content:""; flex:1; height:1px; background:var(--line); }
+    .pane-divide-action { padding:14px; border:1px solid color-mix(in srgb,var(--accent) 27%,var(--line)); border-radius:17px; background:color-mix(in srgb,var(--accent) 5%,var(--surface)); }
+    .pane-divide-head { display:flex; align-items:center; gap:11px; margin-bottom:13px; }
+    .pane-divide-icon { flex:0 0 42px; width:42px; height:42px; position:relative; display:block; border:2px solid var(--accent); border-radius:10px; background:#f3fbfc; }
+    .pane-divide-icon::before,.pane-divide-icon::after { content:""; position:absolute; top:5px; bottom:5px; width:2px; background:var(--accent); }
+    .pane-divide-icon::before { left:13px; }
+    .pane-divide-icon::after { right:13px; }
+    .pane-divide-head strong,.pane-divide-head small { display:block; }
+    .pane-divide-head strong { font-size:16px; }
+    .pane-divide-head small { margin-top:2px; color:var(--muted); font-size:11px; }
     .pane-action-field { margin:0 0 13px; }
-    .pane-action-label { display:block; margin-bottom:7px; color:#3f555d; font-size:11px; font-weight:900; }
-    .axis-options { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-    .axis-option { min-width:0; min-height:60px; display:grid; grid-template-columns:34px 1fr; align-items:center; gap:8px; padding:8px 10px; border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line)); border-radius:12px; background:#fffdf9; color:var(--ink); text-align:left; }
-    .axis-option[aria-pressed="true"] { border-color:var(--accent); background:color-mix(in srgb,var(--accent) 9%,var(--surface)); box-shadow:inset 0 0 0 1px var(--accent); }
+    .pane-action-label { display:flex; align-items:center; gap:7px; margin-bottom:8px; color:#304b53; font-size:12px; font-weight:900; }
+    .pane-action-step { width:22px; height:22px; display:grid; place-items:center; border-radius:50%; background:var(--accent); color:#fff; font:800 11px/1 var(--font-data); }
+    .axis-options { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+    .axis-option { min-width:0; min-height:70px; display:grid; grid-template-columns:40px 1fr; align-items:center; gap:9px; padding:10px; border:2px solid color-mix(in srgb,var(--accent) 28%,var(--line)); border-radius:13px; background:#fff; color:var(--ink); text-align:left; }
+    .axis-option[aria-pressed="true"] { border-color:var(--accent); background:color-mix(in srgb,var(--accent) 9%,#fff); box-shadow:inset 0 0 0 1px var(--accent); }
     .axis-option strong,.axis-option small { display:block; }
-    .axis-option strong { font-size:13px; }
-    .axis-option small { margin-top:2px; color:var(--muted); font-size:10px; }
-    .axis-preview { width:34px; height:34px; position:relative; display:block; border:2px solid var(--accent); border-radius:5px; background:#edf7f8; }
+    .axis-option strong { font-size:14px; }
+    .axis-option small { margin-top:3px; color:var(--muted); font-size:10px; line-height:1.2; }
+    .axis-preview { width:40px; height:40px; position:relative; display:block; border:2px solid var(--accent); border-radius:6px; background:#edf7f8; }
     .axis-preview::after { content:""; position:absolute; background:var(--accent); }
     .axis-preview.vertical::after { top:2px; bottom:2px; left:50%; width:2px; transform:translateX(-50%); }
     .axis-preview.horizontal::after { top:50%; right:2px; left:2px; height:2px; transform:translateY(-50%); }
     .section-options { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
-    .section-option { min-height:48px; padding:8px; border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line)); border-radius:11px; background:#fffdf9; color:var(--ink); font:800 17px/1 var(--font-data); }
+    .section-option { min-height:52px; display:grid; place-items:center; gap:2px; padding:7px; border:2px solid color-mix(in srgb,var(--accent) 28%,var(--line)); border-radius:11px; background:#fff; color:var(--ink); }
+    .section-option strong { font:800 18px/1 var(--font-data); }
+    .section-option small { color:var(--muted); font-size:9px; font-weight:800; text-transform:uppercase; }
     .section-option[aria-pressed="true"] { border-color:var(--accent); background:var(--accent); color:#fff; box-shadow:0 9px 18px -14px rgba(0,56,69,.9); }
-    .pane-action-result { min-height:18px; margin:2px 0 10px; color:#3f555d; font-size:12px; text-align:center; }
+    .section-option[aria-pressed="true"] small { color:rgba(255,255,255,.8); }
+    .pane-action-result { min-height:18px; margin:2px 0 10px; color:#304b53; font-size:12px; font-weight:700; text-align:center; }
     .pane-action-warning { margin:0 0 10px; padding:9px 10px; border-radius:10px; background:#fff0e8; color:#8a3d0a; font-size:11px; line-height:1.35; }
     .pane-action-warning[hidden] { display:none; }
-    .create-sections { width:100%; min-height:50px; border:0; border-radius:13px; background:var(--accent); color:#fff; font-weight:900; }
+    .create-sections { width:100%; min-height:52px; border:0; border-radius:13px; background:var(--accent); color:#fff; font-weight:900; }
+    .create-sections:disabled { background:#9aadb1; color:#f7fbfb; cursor:not-allowed; }
     .glass-tip { margin:13px 0 0; padding:11px; border-left:4px solid var(--accent); background:#e6f1f3; color:#24434b; font-size:12px; line-height:1.45; }
     .sticky-actions .final { background:linear-gradient(180deg,#ff3547,#b90513); box-shadow:0 20px 36px -22px rgba(227,7,24,.95); }
     @media(max-width:759px){
+      .pane-action-modal{padding:14px}
+      .pane-action-card{max-height:calc(100dvh - 28px);padding:17px;border-radius:21px}
+      .pane-action-head h2{font-size:26px}
+      .pane-measure-action{min-height:68px;margin-top:15px}
+      .pane-divide-action{padding:12px}
       .plan-card{padding:12px}
       .plan-card .window-stage{min-height:300px;margin:10px -12px 0;padding:24px 0}
       .division-controls{grid-template-columns:64px minmax(0,1fr);gap:5px}
@@ -298,33 +320,36 @@
   <div class="pane-action-modal" data-pane-action-modal hidden>
     <section class="pane-action-card" role="dialog" aria-modal="true" aria-labelledby="pane-action-title">
       <div class="pane-action-head">
-        <div><span class="pane-action-kicker">Thermos <span data-pane-action-label>T2</span></span><h2 id="pane-action-title">Que voulez-vous faire?</h2></div>
+        <div><span class="pane-action-kicker">Thermos <span data-pane-action-label>T2</span></span><h2 id="pane-action-title">Choisissez une action</h2></div>
         <button type="button" class="pane-action-close" data-close-pane-action aria-label="Fermer"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 7l10 10M17 7 7 17"/></svg></button>
       </div>
       <button type="button" class="pane-measure-action" data-open-pane-measure>
         <span class="pane-measure-icon" aria-hidden="true">↔</span>
-        <span class="pane-measure-copy"><strong>Entrer les mesures</strong><small>Largeur × Hauteur × Épaisseur</small></span>
-        <span aria-hidden="true">›</span>
+        <span class="pane-measure-copy"><strong>Mesurer ce thermos</strong><small>Entrer largeur × hauteur × épaisseur</small></span>
+        <span class="pane-measure-arrow" aria-hidden="true">›</span>
       </button>
-      <div class="pane-action-divider"><span>Ou diviser ce thermos</span></div>
-      <div class="pane-action-field">
-        <span class="pane-action-label" id="axis-label">Orientation</span>
-        <div class="axis-options" role="group" aria-labelledby="axis-label">
-          <button type="button" class="axis-option" data-modal-axis="vertical" aria-pressed="false"><span class="axis-preview vertical" aria-hidden="true"></span><span><strong>Côte à côte</strong><small>Séparations verticales</small></span></button>
-          <button type="button" class="axis-option" data-modal-axis="horizontal" aria-pressed="false"><span class="axis-preview horizontal" aria-hidden="true"></span><span><strong>Superposés</strong><small>Séparations horizontales</small></span></button>
+      <div class="pane-action-divider"><span>ou</span></div>
+      <section class="pane-divide-action" aria-labelledby="divide-action-title">
+        <div class="pane-divide-head"><span class="pane-divide-icon" aria-hidden="true"></span><span><strong id="divide-action-title">Diviser ce thermos</strong><small>Créer de 2 à 4 sections égales.</small></span></div>
+        <div class="pane-action-field">
+          <span class="pane-action-label" id="axis-label"><span class="pane-action-step" aria-hidden="true">1</span>Choisissez le sens</span>
+          <div class="axis-options" role="group" aria-labelledby="axis-label">
+            <button type="button" class="axis-option" data-modal-axis="vertical" aria-pressed="false"><span class="axis-preview vertical" aria-hidden="true"></span><span><strong>Vertical</strong><small>Vitres côte à côte</small></span></button>
+            <button type="button" class="axis-option" data-modal-axis="horizontal" aria-pressed="false"><span class="axis-preview horizontal" aria-hidden="true"></span><span><strong>Horizontal</strong><small>Vitres superposées</small></span></button>
+          </div>
         </div>
-      </div>
-      <div class="pane-action-field">
-        <span class="pane-action-label" id="section-count-label">Nombre de sections</span>
-        <div class="section-options" role="group" aria-labelledby="section-count-label">
-          <button type="button" class="section-option" data-section-count="2" aria-pressed="true">2</button>
-          <button type="button" class="section-option" data-section-count="3" aria-pressed="false">3</button>
-          <button type="button" class="section-option" data-section-count="4" aria-pressed="false">4</button>
+        <div class="pane-action-field">
+          <span class="pane-action-label" id="section-count-label"><span class="pane-action-step" aria-hidden="true">2</span>Choisissez le nombre</span>
+          <div class="section-options" role="group" aria-labelledby="section-count-label">
+            <button type="button" class="section-option" data-section-count="2" aria-pressed="true"><strong>2</strong><small>sections</small></button>
+            <button type="button" class="section-option" data-section-count="3" aria-pressed="false"><strong>3</strong><small>sections</small></button>
+            <button type="button" class="section-option" data-section-count="4" aria-pressed="false"><strong>4</strong><small>sections</small></button>
+          </div>
         </div>
-      </div>
-      <p class="pane-action-result" data-pane-action-result aria-live="polite">Choisissez une orientation.</p>
-      <p class="pane-action-warning" data-pane-action-warning aria-live="polite" hidden></p>
-      <button type="button" class="create-sections" data-create-sections disabled>Choisir l’orientation</button>
+        <p class="pane-action-result" data-pane-action-result aria-live="polite">Choisissez vertical ou horizontal.</p>
+        <p class="pane-action-warning" data-pane-action-warning aria-live="polite" hidden></p>
+        <button type="button" class="create-sections" data-create-sections disabled>Choisir vertical ou horizontal</button>
+      </section>
     </section>
   </div>
 
