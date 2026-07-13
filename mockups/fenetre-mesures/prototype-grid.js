@@ -847,7 +847,9 @@
           const towardStartEdge = node.axis === 'vertical'
             ? trackCrossCenter <= canvasCrossCenter
             : trackCrossCenter < canvasCrossCenter;
-          const crossRatio = towardStartEdge ? 1 / 3 : 2 / 3;
+          // Keep the control inside the outer third instead of on its inner boundary.
+          // The midpoint of that outer third is 1/6 from the chosen frame edge.
+          const crossRatio = towardStartEdge ? 1 / 6 : 5 / 6;
           const crossLength = mergedTrack.end - mergedTrack.start;
           let crossTarget = (mergedTrack.start - ownerCrossStart) + crossLength * crossRatio;
           handle.dataset.crossAnchor = towardStartEdge ? 'start' : 'end';
