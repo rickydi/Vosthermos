@@ -5,8 +5,12 @@
   const addWindowButton = document.querySelector('[data-add-window]');
   const sheet = document.querySelector('[data-measure-sheet]');
   const paneActionModal = document.querySelector('[data-pane-action-modal]');
+  const windowRenameModal = document.querySelector('[data-window-rename-modal]');
+  const windowRenameForm = document.querySelector('[data-window-rename-form]');
+  const windowRenameInput = document.querySelector('[data-window-rename-input]');
+  const windowRenameError = document.querySelector('[data-window-rename-error]');
   const toast = document.querySelector('[data-toast]');
-  if (!prototypeRoot || !windowList || !windowTemplate || !sheet || !paneActionModal) return;
+  if (!prototypeRoot || !windowList || !windowTemplate || !sheet || !paneActionModal || !windowRenameModal || !windowRenameForm || !windowRenameInput) return;
 
   const MAX_PANES = 12;
   const MIN_CHILD_PX = 52;
@@ -233,6 +237,7 @@
     if (interaction.controller && interaction.controller !== controller) {
       if (!paneActionModal.hidden) closePaneActions({ restoreFocus: false });
       if (!sheet.hidden) closeSheet({ restoreFocus: false });
+      if (!windowRenameModal.hidden) closeWindowRenameModal({ restoreFocus: false });
     }
     activeWindowId = controller.id;
     controllers.forEach((item) => {
@@ -319,6 +324,46 @@
     document.body.classList.remove('measure-open');
     if (interaction.mode === 'measure') interaction.mode = null;
     if (restoreFocus) focusInteractionPane();
+  }
+
+  function closeWindowRenameModal({ restoreFocus = true } = {}) {
+    const focusTarget = interaction.lastFocusedElement;
+    const controller = interaction.controller;
+    windowRenameModal.hidden = true;
+    document.body.classList.remove('window-rename-open');
+    if (interaction.mode === 'rename') {
+      interaction.mode = null;
+      prototypeRoot.inert = false;
+    }
+    if (!restoreFocus) return;
+    requestAnimationFrame(() => {
+      if (focusTarget?.isConnected) focusTarget.focus({ preventScroll: true });
+      else controller?.root.focus({ preventScroll: true });
+    });
+  }
+
+  function openWindowRenameModal(controller) {
+    if (!controller) return;
+    if (!paneActionModal.hidden) closePaneActions({ restoreFocus: false });
+    if (!sheet.hidden) closeSheet({ restoreFocus: false });
+    activateController(controller);
+    interaction.controller = controller;
+    interaction.paneId = null;
+    interaction.mode = 'rename';
+    interaction.lastFocusedElement = document.activeElement;
+    windowRenameInput.value = controller.state.name;
+    if (windowRenameError) {
+      windowRenameError.hidden = true;
+      windowRenameError.textContent = '';
+    }
+    windowRenameModal.querySelectorAll('[data-window-rename-code]').forEach((node) => { node.textContent = controller.state.code; });
+    windowRenameModal.hidden = false;
+    prototypeRoot.inert = true;
+    document.body.classList.add('window-rename-open');
+    requestAnimationFrame(() => {
+      windowRenameInput.focus();
+      windowRenameInput.select();
+    });
   }
 
   function openPaneActions(controller, paneId) {
@@ -613,6 +658,7 @@
       const selectedLabel = 'T' + (indexes.get(state.selectedPaneId) || 1);
       root.querySelectorAll('[data-window-code]').forEach((node) => { node.textContent = state.code; });
       root.querySelectorAll('[data-window-name]').forEach((node) => { node.textContent = state.name; });
+      root.querySelectorAll('[data-rename-window]').forEach((button) => { button.setAttribute('aria-label', 'Renommer ' + state.code + ' ' + state.name); });
       root.querySelectorAll('[data-pane-count-output]').forEach((node) => { node.textContent = String(entries.length); });
       root.querySelectorAll('[data-complete-pane-output]').forEach((node) => { node.textContent = String(completed); });
       root.querySelectorAll('[data-progress-label]').forEach((node) => {
@@ -886,10 +932,8 @@
       showToast(state.code + ' a été réinitialisée.');
     }
 
-    function renameWindow() {
-      const value = window.prompt('Nom de ' + state.code, state.name);
-      if (value === null) return false;
-      const name = value.trim();
+    function setName(value) {
+      const name = String(value ?? '').trim();
       if (!name || name === state.name) return false;
       state.name = name;
       renderLayout();
@@ -940,7 +984,7 @@
       applyPreset,
       equalizeLayout,
       resetDrawing,
-      renameWindow,
+      setName,
       updateMeasurement,
       focusPane,
       snapshot,
@@ -955,7 +999,7 @@
     }));
     root.querySelectorAll('[data-equalize]').forEach((button) => button.addEventListener('click', equalizeLayout));
     root.querySelectorAll('[data-reset]').forEach((button) => button.addEventListener('click', resetDrawing));
-    root.querySelectorAll('[data-rename-window]').forEach((button) => button.addEventListener('click', renameWindow));
+    root.querySelectorAll('[data-rename-window]').forEach((button) => button.addEventListener('click', () => openWindowRenameModal(api)));
     root.querySelectorAll('[data-counter]').forEach((counter) => {
       counter.querySelectorAll('[data-delta]').forEach((button) => button.addEventListener('click', () => {
         const pane = getPane(state.selectedPaneId);
@@ -1054,6 +1098,49 @@
     return controller;
   }
 
+  windowRenameModal.querySelectorAll('[data-close-window-rename]').forEach((button) => button.addEventListener('click', () => closeWindowRenameModal()));
+  windowRenameForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const name = windowRenameInput.value.trim();
+    if (!name) {
+      if (windowRenameError) {
+        windowRenameError.textContent = 'Entrez un nom pour cette fenêtre.';
+        windowRenameError.hidden = false;
+      }
+      windowRenameInput.focus();
+      return;
+    }
+    if (interaction.mode === 'rename') interaction.controller?.setName(name);
+    closeWindowRenameModal();
+  });
+  windowRenameInput.addEventListener('input', () => {
+    if (!windowRenameError) return;
+    windowRenameError.hidden = true;
+    windowRenameError.textContent = '';
+  });
+  windowRenameModal.addEventListener('click', (event) => {
+    if (event.target === windowRenameModal) closeWindowRenameModal();
+  });
+  windowRenameModal.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeWindowRenameModal();
+      return;
+    }
+    if (event.key !== 'Tab') return;
+    const focusable = [...windowRenameModal.querySelectorAll('input, button:not(:disabled)')];
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  });
+
   sheet.querySelectorAll('[data-measure-key]').forEach((field) => {
     if (field.tagName === 'SELECT' && field.dataset.measureKey?.endsWith('Fraction') && !field.options.length) {
       fractions.forEach((fraction) => field.add(new Option(fraction || 'Fraction', fraction)));
@@ -1141,7 +1228,9 @@
   if (previewController && PRESETS[previewPreset]) previewController.applyPreset(previewPreset, { preview: true });
   if (previewParams.get('previewModels') === '1') previewController?.root.querySelector('.layout-presets-menu')?.setAttribute('open', '');
   const previewPaneId = previewController?.resolvePaneId(previewParams.get('previewPane'));
-  if (previewController && previewPaneId) {
+  if (previewController && previewParams.get('previewRename') === '1') {
+    openWindowRenameModal(previewController);
+  } else if (previewController && previewPaneId) {
     previewController.openPaneActions(previewPaneId);
     const previewAxis = previewParams.get('axis');
     const previewCount = Number(previewParams.get('sections'));

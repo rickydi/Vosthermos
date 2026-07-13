@@ -54,6 +54,16 @@
     .window-plan:focus { outline:none; }
     .window-plan:focus-visible .plan-card { outline:3px solid color-mix(in srgb,var(--accent) 34%,transparent); outline-offset:4px; }
     .plan-card { width:100%; min-width:0; padding:15px; overflow:hidden; }
+    .plan-head { min-width:0; display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px; }
+    .plan-head h2 { min-width:0; overflow:hidden; margin:0; color:var(--ink); font:800 23px/1 var(--font-display); text-overflow:ellipsis; white-space:nowrap; }
+    .plan-name { color:var(--ink); }
+    .plan-head-actions { display:flex; align-items:center; gap:6px; }
+    .plan-status { min-height:32px; display:flex; align-items:center; padding:6px 8px; border-radius:999px; background:var(--surface-2); color:#304b53; font:700 10px/1 var(--font-data); white-space:nowrap; }
+    .plan-status strong { color:var(--accent); }
+    .rename-window { flex:0 0 40px; width:40px; height:40px; display:grid; place-items:center; padding:0; border:1px solid var(--line); border-radius:11px; background:var(--surface); color:var(--accent); }
+    .rename-window svg { width:18px; height:18px; }
+    .rename-window:hover { border-color:color-mix(in srgb,var(--accent) 45%,var(--line)); background:color-mix(in srgb,var(--accent) 5%,var(--surface)); }
+    .rename-window:focus-visible { outline:3px solid color-mix(in srgb,var(--brand-red) 48%,transparent); outline-offset:2px; }
     .plan-card .window-stage { margin:10px -15px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); background:var(--surface); }
     .plan-card .window-stage::before { display:none; }
     .dimension-frame { position:absolute; inset:7% 4%; pointer-events:none; color:#44636d; font:600 11px var(--font-data); }
@@ -150,6 +160,20 @@
     .measure-sheet { border-top:5px solid var(--accent); }
     .measure-sheet .dimension-parts { background:#fffdf9; }
     body.pane-action-open { overflow:hidden; }
+    body.window-rename-open { overflow:hidden; }
+    .window-rename-modal { position:fixed; z-index:95; inset:0; display:grid; place-items:center; padding:18px; background:rgba(0,31,39,.62); backdrop-filter:blur(4px); overflow:auto; }
+    .window-rename-modal[hidden] { display:none; }
+    .window-rename-card { width:min(390px,100%); margin:auto; padding:20px; border:1px solid rgba(255,255,255,.78); border-radius:22px; background:var(--surface); color:var(--ink); box-shadow:0 28px 90px rgba(0,0,0,.38); animation:sheet-in .2s ease-out; }
+    .window-rename-head { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; }
+    .window-rename-head h2 { margin:3px 0 0; font:800 27px/1 var(--font-display); }
+    .window-rename-field { display:grid; gap:7px; margin-top:20px; }
+    .window-rename-field > span { color:#304b53; font-size:12px; font-weight:900; }
+    .window-rename-field input { width:100%; min-height:52px; padding:11px 13px; border:2px solid color-mix(in srgb,var(--accent) 28%,var(--line)); border-radius:12px; background:#fff; color:var(--ink); font:700 17px var(--font-ui); }
+    .window-rename-field input:focus { border-color:var(--accent); outline:3px solid color-mix(in srgb,var(--accent) 13%,transparent); }
+    .window-rename-error { margin:8px 0 0; color:var(--danger); font-size:12px; font-weight:700; }
+    .window-rename-error[hidden] { display:none; }
+    .window-rename-actions { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:18px; }
+    .window-rename-actions button { min-height:48px; border-radius:12px; font-weight:900; }
     .pane-action-modal { position:fixed; z-index:90; inset:0; display:grid; place-items:center; padding:18px; background:rgba(0,31,39,.62); backdrop-filter:blur(4px); overflow:auto; }
     .pane-action-modal[hidden] { display:none; }
     .pane-action-card { width:min(460px,100%); max-height:calc(100dvh - 36px); overflow:auto; margin:auto; padding:20px; border:1px solid rgba(255,255,255,.78); border-radius:24px; background:var(--surface); color:var(--ink); box-shadow:0 28px 90px rgba(0,0,0,.38); animation:sheet-in .2s ease-out; }
@@ -203,6 +227,10 @@
     .glass-tip { margin:13px 0 0; padding:11px; border-left:4px solid var(--accent); background:#e6f1f3; color:#24434b; font-size:12px; line-height:1.45; }
     .sticky-actions .final { background:linear-gradient(180deg,#ff3547,#b90513); box-shadow:0 20px 36px -22px rgba(227,7,24,.95); }
     @media(max-width:759px){
+      .plan-head h2{font-size:22px}
+      .plan-status{padding:5px 7px}
+      .window-rename-modal{padding:14px}
+      .window-rename-card{padding:18px;border-radius:20px}
       .measurement-flow{gap:12px}
       .window-plan-list{gap:14px}
       .add-window-large{min-height:74px;padding:12px;border-radius:15px}
@@ -237,6 +265,9 @@
       .plan-instruction{margin-top:8px}
     }
     @media(min-width:760px){
+      .plan-head h2{font-size:27px}
+      .plan-status{font-size:11px}
+      .rename-window{flex-basis:42px;width:42px;height:42px}
       .layout-presets{grid-template-columns:repeat(3,minmax(0,1fr))}
       .pane-action-modal{place-items:center}
       .pane-action-card{margin:auto;padding:21px}
@@ -281,7 +312,13 @@
   <template data-window-template>
     <article class="window-plan" data-window-plan tabindex="-1">
       <section class="plan-card card">
-        <div class="card-head"><div><p class="eyebrow">Fenêtre <span data-window-name>Salon</span></p><h2>Plan de vitrage</h2><p><span data-window-code>F01</span> · Vue intérieure · <span data-pane-count-output>6</span> thermos · <span data-complete-pane-output>0</span> mesurés</p></div><button type="button" class="small-action" data-rename-window>Renommer</button></div>
+        <header class="plan-head">
+          <h2><span data-window-code>F01</span><span aria-hidden="true"> · </span><span class="plan-name" data-window-name>Salon</span></h2>
+          <div class="plan-head-actions">
+            <span class="plan-status"><strong data-complete-pane-output>0</strong>&nbsp;/&nbsp;<span data-pane-count-output>6</span>&nbsp;mesurés</span>
+            <button type="button" class="rename-window" data-rename-window aria-label="Renommer F01 Salon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 20 4.2-1 10.6-10.6a2.1 2.1 0 0 0-3-3L5.2 16 4 20Z"/><path d="m13.8 7.2 3 3"/></svg></button>
+          </div>
+        </header>
         <section class="division-toolbar" aria-label="Choisir un modèle de fenêtre">
           <details class="layout-presets-menu">
             <summary><span class="layout-presets-summary"><strong data-preset-summary>Six égaux</strong><small>12 exemples de fenêtres</small></span></summary>
@@ -323,6 +360,18 @@
       </section>
     </article>
   </template>
+
+  <div class="window-rename-modal" data-window-rename-modal hidden>
+    <form class="window-rename-card" data-window-rename-form role="dialog" aria-modal="true" aria-labelledby="window-rename-title">
+      <div class="window-rename-head">
+        <div><span class="pane-action-kicker" data-window-rename-code>F01</span><h2 id="window-rename-title">Renommer la fenêtre</h2></div>
+        <button type="button" class="pane-action-close" data-close-window-rename aria-label="Fermer"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 7l10 10M17 7 7 17"/></svg></button>
+      </div>
+      <label class="window-rename-field"><span>Nom de la pièce ou de la fenêtre</span><input type="text" data-window-rename-input maxlength="60" autocomplete="off" placeholder="Ex. Salon"></label>
+      <p class="window-rename-error" data-window-rename-error role="alert" hidden></p>
+      <div class="window-rename-actions"><button type="button" class="secondary" data-close-window-rename>Annuler</button><button type="submit" class="primary">Enregistrer</button></div>
+    </form>
+  </div>
 
   <div class="pane-action-modal" data-pane-action-modal hidden>
     <section class="pane-action-card" role="dialog" aria-modal="true" aria-labelledby="pane-action-title">
