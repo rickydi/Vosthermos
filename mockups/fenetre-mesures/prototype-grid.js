@@ -187,8 +187,6 @@
 
   const initialLayout = buildPresetLayout('3x2', { resetIds: true });
   const initialEntries = getLeafEntries(initialLayout);
-  Object.assign(initialEntries[0].node.measurement, { width: '32', widthFraction: '1/4', height: '48', heightFraction: '1/2', thickness: '1', thicknessFraction: '0' });
-  Object.assign(initialEntries[2].node.measurement, { width: '31', widthFraction: '7/8', height: '48', heightFraction: '1/2', thickness: '1', thicknessFraction: '0' });
 
   const initialSnapshot = {
     layout: clone(initialLayout),
@@ -797,7 +795,9 @@
   document.querySelectorAll('[data-close-sheet]').forEach((button) => button.addEventListener('click', () => closeSheet()));
   sheet.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeSheet(); });
   document.querySelectorAll('[data-layout-preset]').forEach((button) => button.addEventListener('click', () => {
-    if (applyPreset(button.dataset.layoutPreset)) button.closest('details')?.removeAttribute('open');
+    const key = button.dataset.layoutPreset;
+    const applied = applyPreset(key);
+    if (applied || state.activePreset === key) button.closest('details')?.removeAttribute('open');
   }));
   document.querySelectorAll('[data-equalize]').forEach((button) => button.addEventListener('click', equalizeLayout));
   document.querySelectorAll('[data-reset]').forEach((button) => button.addEventListener('click', resetDrawing));
