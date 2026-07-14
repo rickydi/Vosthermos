@@ -442,8 +442,10 @@
         step.setAttribute('aria-label', item.controller.state.code + ' T' + item.index + ', ' + (item.complete ? 'mesuré' : 'à mesurer'));
         if (current) step.setAttribute('aria-current', 'step');
         const marker = document.createElement('span');
-        marker.className = 'progress-node';
-        marker.innerHTML = item.complete ? checkIconMarkup() : String(item.index);
+        marker.className = 'progress-node icon-circle-center';
+        marker.innerHTML = item.complete
+          ? checkIconMarkup()
+          : '<span class="icon-circle-glyph">' + item.index + '</span>';
         const label = document.createElement('span');
         label.className = 'progress-label';
         label.textContent = item.controller.state.code + ' T' + item.index;
@@ -868,7 +870,7 @@
       if (ownsHandles) {
         node.children.slice(0, -1).forEach((_, index) => {
           const handle = document.createElement('div');
-          handle.className = 'divider-handle';
+          handle.className = 'divider-handle icon-circle-center';
           handle.dataset.splitId = node.id;
           handle.dataset.dividerIndex = String(index);
           handle.tabIndex = 0;

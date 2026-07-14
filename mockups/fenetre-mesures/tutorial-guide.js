@@ -4,6 +4,10 @@
 
   const modal = document.querySelector('[data-tutorial-modal]');
   const card = modal?.querySelector('.tutorial-card');
+  const onboarding = document.querySelector('[data-tutorial-prompt]');
+  const onboardingCard = onboarding?.querySelector('.tutorial-prompt-card');
+  const onboardingStart = onboarding?.querySelector('[data-tutorial-prompt-start]');
+  const onboardingSkip = onboarding?.querySelector('[data-tutorial-prompt-skip]');
   const openButtons = [...document.querySelectorAll('[data-tutorial-open]')];
   const closeButton = modal?.querySelector('[data-tutorial-close]');
   const previousButton = modal?.querySelector('[data-tutorial-prev]');
@@ -14,7 +18,7 @@
   const loading = modal?.querySelector('[data-tutorial-loading]');
   const dots = modal?.querySelector('[data-tutorial-dots]');
   const progress = modal?.querySelector('[data-tutorial-progress]');
-  if (!modal || !card || !openButtons.length || !closeButton || !previousButton || !nextButton || !toggleButton || !frame || !stage || !loading || !dots || !progress) return;
+  if (!modal || !card || !onboarding || !onboardingCard || !onboardingStart || !onboardingSkip || !openButtons.length || !closeButton || !previousButton || !nextButton || !toggleButton || !frame || !stage || !loading || !dots || !progress) return;
 
   const requestedLanguage = pageParams.get('clientLang') || pageParams.get('lang') || document.documentElement.lang || 'fr';
   const language = requestedLanguage.toLowerCase().startsWith('en') ? 'en' : 'fr';
@@ -26,9 +30,11 @@
     .map((duration) => Math.round(duration * TUTORIAL_TIME_FACTOR));
   const backgroundElements = [document.querySelector('.prototype'), document.querySelector('.back-to-index')].filter(Boolean);
   const initialInertState = new Map(backgroundElements.map((node) => [node, node.inert]));
+  const ONBOARDING_STORAGE_KEY = 'vosthermos:measurement-tutorial-prompt:' + window.location.pathname;
   const copy = language === 'en'
     ? {
         launcher: 'Tutorial', openLabel: 'Open the live measurement tutorial', kicker: 'Live demonstration', heading: 'Measure a window',
+        promptKicker: 'Need help?', promptHeading: 'Would you like to see how it works?', promptDescription: 'A short demonstration shows you how to choose the window, enter the measurements and confirm the file.', promptDuration: 'About 1 minute', promptStart: 'Watch the tutorial', promptSkip: 'Not now',
         duration: 'About 1 min', step: 'Step', of: 'of', previous: 'Previous', next: 'Next', pause: 'Pause', resume: 'Resume', replay: 'Replay', finish: 'Close', close: 'Close tutorial',
         dotsLabel: 'Tutorial steps', stageLabel: 'Live demonstration of the measurement application', frameLabel: 'Isolated copy of the measurement application', loading: 'Preparing the live demonstration…',
         steps: [
@@ -43,6 +49,7 @@
       }
     : {
         launcher: 'Tutoriel', openLabel: 'Ouvrir le tutoriel réel de prise de mesures', kicker: 'Démonstration réelle', heading: 'Mesurer une fenêtre',
+        promptKicker: 'Besoin d’aide?', promptHeading: 'Voulez-vous voir comment ça fonctionne?', promptDescription: 'Une courte démonstration vous montre comment choisir la fenêtre, entrer les mesures et valider le dossier.', promptDuration: 'Environ 1 minute', promptStart: 'Voir le tutoriel', promptSkip: 'Pas maintenant',
         duration: 'Environ 1 min', step: 'Étape', of: 'sur', previous: 'Précédent', next: 'Suivant', pause: 'Pause', resume: 'Reprendre', replay: 'Rejouer', finish: 'Fermer', close: 'Fermer le tutoriel',
         dotsLabel: 'Étapes du tutoriel', stageLabel: 'Démonstration réelle de l’application de mesures', frameLabel: 'Copie isolée de l’application de mesures', loading: 'Préparation de la démonstration réelle…',
         steps: [
@@ -77,6 +84,7 @@
   let progressFrame = null;
   let advanceTimer = null;
   let lastFocused = null;
+  let onboardingLastFocused = null;
 
   function setText(selector, value) {
     const node = document.querySelector(selector);
@@ -91,6 +99,13 @@
       button.setAttribute('aria-label', copy.openLabel);
     });
     modal.lang = language;
+    onboarding.lang = language;
+    setText('[data-tutorial-prompt-kicker]', copy.promptKicker);
+    setText('[data-tutorial-prompt-title]', copy.promptHeading);
+    setText('[data-tutorial-prompt-description]', copy.promptDescription);
+    setText('[data-tutorial-prompt-duration]', copy.promptDuration);
+    onboardingStart.textContent = copy.promptStart;
+    onboardingSkip.textContent = copy.promptSkip;
     setText('[data-tutorial-kicker]', copy.kicker);
     setText('[data-tutorial-heading]', copy.heading);
     durationNode.textContent = copy.duration;
@@ -242,9 +257,47 @@
     else resumeTutorial();
   }
 
-  function openTutorial() {
+  function onboardingWasHandled() {
+    try {
+      return window.sessionStorage.getItem(ONBOARDING_STORAGE_KEY) === '1';
+    } catch {
+      return false;
+    }
+  }
+
+  function rememberOnboardingChoice() {
+    try {
+      window.sessionStorage.setItem(ONBOARDING_STORAGE_KEY, '1');
+    } catch {
+      // The prompt still works when browser storage is unavailable.
+    }
+  }
+
+  function closeOnboarding({ restoreFocus = true, remember = true } = {}) {
+    if (onboarding.hidden) return;
+    if (remember) rememberOnboardingChoice();
+    onboarding.hidden = true;
+    backgroundElements.forEach((node) => { node.inert = initialInertState.get(node) || false; });
+    document.body.classList.remove('tutorial-prompt-open');
+    if (restoreFocus && onboardingLastFocused instanceof HTMLElement) onboardingLastFocused.focus({ preventScroll: true });
+  }
+
+  function openOnboarding({ force = false } = {}) {
+    if (!force && onboardingWasHandled()) return;
     document.dispatchEvent(new Event('vosthermos:close-help'));
-    lastFocused = document.activeElement;
+    const activeElement = document.activeElement;
+    onboardingLastFocused = activeElement instanceof HTMLElement && activeElement !== document.body ? activeElement : openButtons[0];
+    onboarding.hidden = false;
+    backgroundElements.forEach((node) => { node.inert = true; });
+    document.body.classList.add('tutorial-prompt-open');
+    requestAnimationFrame(() => onboardingStart.focus({ preventScroll: true }));
+  }
+
+  function openTutorial(options = {}) {
+    const requestedReturnFocus = options?.returnFocus;
+    if (!onboarding.hidden) closeOnboarding({ restoreFocus: false });
+    document.dispatchEvent(new Event('vosthermos:close-help'));
+    lastFocused = requestedReturnFocus instanceof HTMLElement ? requestedReturnFocus : document.activeElement;
     currentStep = 0;
     playing = !reducedMotion;
     modal.hidden = false;
@@ -252,6 +305,12 @@
     document.body.classList.add('tutorial-open');
     loadStep();
     closeButton.focus({ preventScroll: true });
+  }
+
+  function startTutorialFromOnboarding() {
+    const returnFocus = onboardingLastFocused instanceof HTMLElement ? onboardingLastFocused : openButtons[0];
+    closeOnboarding({ restoreFocus: false });
+    openTutorial({ returnFocus });
   }
 
   function closeTutorial() {
@@ -314,6 +373,28 @@
 
   applyLanguage();
   buildDots();
+  onboardingStart.addEventListener('click', startTutorialFromOnboarding);
+  onboardingSkip.addEventListener('click', () => closeOnboarding());
+  onboarding.addEventListener('click', (event) => { if (event.target === onboarding) closeOnboarding(); });
+  onboarding.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeOnboarding();
+      return;
+    }
+    if (event.key !== 'Tab') return;
+    const focusable = [...onboardingCard.querySelectorAll('button:not(:disabled)')];
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  });
   openButtons.forEach((button) => button.addEventListener('click', openTutorial));
   closeButton.addEventListener('click', closeTutorial);
   previousButton.addEventListener('click', () => setStep(currentStep - 1));
@@ -360,7 +441,11 @@
   document.addEventListener('visibilitychange', () => {
     if (document.hidden && !modal.hidden && playing) pauseTutorial();
   });
-  if (new URLSearchParams(window.location.search).get('previewTutorial') === '1') {
+  const previewTutorial = pageParams.get('previewTutorial');
+  const previewOnboarding = pageParams.get('previewOnboarding');
+  if (previewTutorial === '1') {
     requestAnimationFrame(openTutorial);
+  } else if (previewOnboarding !== '0') {
+    requestAnimationFrame(() => openOnboarding({ force: previewOnboarding === '1' }));
   }
 })();

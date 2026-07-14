@@ -225,7 +225,7 @@
     if (!draggableDividers) return;
     state.dividerPositions.forEach((position, index) => {
       const handle = document.createElement('div');
-      handle.className = 'divider-handle';
+      handle.className = 'divider-handle icon-circle-center';
       handle.dataset.dividerIndex = String(index);
       handle.tabIndex = 0;
       handle.innerHTML = directionIconMarkup(state.orientation);
@@ -262,7 +262,7 @@
       renderDecorativeLines(pane, index);
       if (!draggableDividers && index < state.paneCount) {
         const handle = document.createElement('span');
-        handle.className = 'divider-handle';
+        handle.className = 'divider-handle icon-circle-center';
         handle.setAttribute('aria-hidden', 'true');
         handle.innerHTML = directionIconMarkup(state.orientation);
         pane.appendChild(handle);
@@ -332,9 +332,9 @@
         if (current) step.setAttribute('aria-current', 'step');
 
         const node = document.createElement('span');
-        node.className = 'progress-node';
+        node.className = 'progress-node icon-circle-center';
         if (complete) node.innerHTML = checkIconMarkup();
-        else node.textContent = String(index);
+        else node.innerHTML = '<span class="icon-circle-glyph">' + index + '</span>';
 
         const label = document.createElement('span');
         label.className = 'progress-label';
