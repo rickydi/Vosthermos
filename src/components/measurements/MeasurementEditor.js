@@ -166,12 +166,7 @@ function Blueprint({ win, selectedId, onSelect, onMoveDivider }) {
 
   return (
     <div ref={canvasRef} className="relative aspect-[4/3] min-h-72 rounded-xl overflow-hidden border-4 border-slate-500/60 bg-sky-950/30 shadow-inner">
-      {win.photoUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={win.photoUrl} alt={`Photo de ${win.label}`} className="absolute inset-0 w-full h-full object-cover opacity-45" />
-      ) : (
-        <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "linear-gradient(rgba(56,189,248,.15) 1px,transparent 1px),linear-gradient(90deg,rgba(56,189,248,.15) 1px,transparent 1px)", backgroundSize: "24px 24px" }} />
-      )}
+      <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "linear-gradient(rgba(56,189,248,.15) 1px,transparent 1px),linear-gradient(90deg,rgba(56,189,248,.15) 1px,transparent 1px)", backgroundSize: "24px 24px" }} />
       {win.panes.map((pane) => {
         const selected = pane.id === selectedId;
         return (

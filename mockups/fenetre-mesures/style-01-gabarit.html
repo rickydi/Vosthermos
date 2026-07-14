@@ -60,6 +60,7 @@
     .plan-name { color:var(--ink); }
     .plan-status { justify-self:end; min-height:32px; display:flex; align-items:center; padding:6px 8px; border-radius:999px; background:var(--surface-2); color:#304b53; font:700 10px/1 var(--font-data); white-space:nowrap; }
     .plan-status strong { color:var(--accent); }
+    .plan-head-tools { justify-self:end; display:flex; align-items:center; gap:5px; }
     .rename-window { flex:0 0 40px; width:40px; height:40px; display:grid; place-items:center; padding:0; border:1px solid var(--line); border-radius:11px; background:var(--surface); color:var(--accent); }
     .rename-window svg { width:18px; height:18px; }
     .rename-window:hover { border-color:color-mix(in srgb,var(--accent) 45%,var(--line)); background:color-mix(in srgb,var(--accent) 5%,var(--surface)); }
@@ -105,6 +106,7 @@
     .layout-choice-or { display:flex; align-items:center; gap:9px; color:var(--muted); font-size:10px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; }
     .layout-choice-or::before,.layout-choice-or::after { content:""; flex:1; height:1px; background:var(--line); }
     .photo-layout-control { display:grid; gap:7px; }
+    .photo-control-row { display:grid; grid-template-columns:minmax(0,1fr) 34px; align-items:center; gap:6px; }
     .photo-layout-action { position:relative; width:100%; min-height:66px; display:grid; grid-template-columns:42px minmax(0,1fr) 18px; align-items:center; gap:10px; padding:10px 12px; border:1px solid color-mix(in srgb,var(--accent) 34%,var(--line)); border-radius:12px; background:var(--surface); color:var(--ink); text-align:left; cursor:pointer; }
     .photo-layout-action:hover { border-color:color-mix(in srgb,var(--accent) 66%,var(--line)); background:color-mix(in srgb,var(--accent) 4%,var(--surface)); }
     .photo-layout-action:focus-within { outline:3px solid color-mix(in srgb,var(--brand-red) 48%,transparent); outline-offset:2px; }
@@ -121,7 +123,6 @@
     .photo-layout-status[hidden] { display:none; }
     .photo-layout-status[data-state="success"] { background:color-mix(in srgb,var(--success) 11%,var(--surface)); color:#205b49; }
     .photo-layout-status[data-state="error"] { background:#fff0e8; color:#8a3d0a; }
-    .plan-card .window-stage.has-photo::after { background:linear-gradient(180deg,rgba(6,24,35,.16),rgba(6,24,35,.48)),var(--photo-image,url("../../public/images/vitre-thermos/detail-1.jpg")) center/cover; }
     .division-controls { grid-area:controls; display:grid; grid-template-columns:76px minmax(0,1fr); gap:7px; align-items:center; }
     .division-count .select { min-height:42px; padding:7px 9px; border-color:color-mix(in srgb,var(--accent) 34%,var(--line)); }
     .orientation-switch { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
@@ -193,6 +194,7 @@
     .thermos-editor-section + .thermos-editor-section { padding-top:15px; border-top:1px solid var(--line); }
     .thermos-editor-section:last-child { padding-bottom:0; }
     .thermos-section-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:10px; }
+    .section-title-with-help { min-width:0; display:flex; align-items:center; gap:5px; }
     .thermos-section-head h4 { margin:0; font:800 18px/1 var(--font-display); }
     .thermos-section-head small { color:var(--muted); font-size:10px; }
     .thermos-measure-head { align-items:center; }
@@ -278,6 +280,24 @@
     .create-sections:disabled { background:#9aadb1; color:#f7fbfb; cursor:not-allowed; }
     .glass-tip { margin:13px 0 0; padding:11px; border-left:4px solid var(--accent); background:#e6f1f3; color:#24434b; font-size:12px; line-height:1.45; }
     .sticky-actions .final { background:linear-gradient(180deg,#ff3547,#b90513); box-shadow:0 20px 36px -22px rgba(227,7,24,.95); }
+    .context-help-trigger { position:relative; z-index:3; flex:0 0 auto; width:30px; height:30px; display:inline-grid; place-items:center; padding:0; border:1px solid color-mix(in srgb,var(--accent) 38%,var(--line)); border-radius:50%; background:color-mix(in srgb,var(--accent) 7%,var(--surface)); color:var(--accent); font:900 13px/1 var(--font-data); box-shadow:none; }
+    .context-help-trigger::before { content:""; position:absolute; inset:-7px; border-radius:50%; }
+    .context-help-trigger:hover,.context-help-trigger[aria-expanded="true"] { border-color:var(--accent); background:var(--accent); color:#fff; }
+    .context-help-trigger:focus-visible { outline:3px solid color-mix(in srgb,var(--brand-red) 48%,transparent); outline-offset:3px; }
+    .photo-control-row > .context-help-trigger { justify-self:end; }
+    .sticky-actions .context-help-trigger { flex:0 0 30px; min-height:30px; align-self:center; }
+    .context-help-panel { position:fixed; z-index:155; left:16px; top:16px; width:min(340px,calc(100vw - 24px)); padding:16px; border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line)); border-radius:17px; background:#fffaf3; color:var(--ink); box-shadow:0 24px 70px rgba(0,31,39,.28); }
+    .context-help-panel[hidden] { display:none; }
+    .context-help-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+    .context-help-kicker { display:block; color:var(--brand-red); font:800 9px/1 var(--font-data); letter-spacing:.09em; text-transform:uppercase; }
+    .context-help-head h2 { margin:4px 0 0; font:800 23px/1 var(--font-display); }
+    .context-help-close { flex:0 0 36px; width:36px; height:36px; display:grid; place-items:center; padding:0; border:1px solid var(--line); border-radius:50%; background:var(--surface); color:var(--ink); }
+    .context-help-close svg { width:16px; height:16px; }
+    .context-help-body { margin-top:11px; color:#304b53; font-size:12px; line-height:1.45; }
+    .context-help-body p { margin:0; }
+    .context-help-body ul { display:grid; gap:5px; margin:9px 0 0; padding:0; list-style:none; }
+    .context-help-body li { padding-left:10px; border-left:3px solid color-mix(in srgb,var(--accent) 38%,var(--line)); }
+    .context-help-body strong { color:var(--ink); }
     @media(max-width:759px){
       .plan-head h2{font-size:22px}
       .plan-status{padding:5px 7px}
@@ -290,6 +310,7 @@
       .add-window-copy strong{font-size:15px}
       .pane-action-modal{padding:14px}
       .pane-action-card{max-height:calc(100dvh - 28px);padding:17px;border-radius:21px}
+      .context-help-panel{top:auto!important;right:8px;bottom:calc(102px + env(safe-area-inset-bottom));left:8px!important;width:auto;max-height:min(52dvh,390px);overflow:auto}
       .pane-action-head h2{font-size:26px}
       .pane-divide-action{padding:12px}
       .plan-card{padding:12px}
@@ -371,7 +392,7 @@
         </button>
       </main>
 
-      <div class="sticky-actions"><span class="dirty-dot" data-dirty title="Modifications non enregistrées"></span><button class="draft" data-save-draft>Enregistrer</button><button class="final" data-finalize>Valider les mesures finales</button></div>
+      <div class="sticky-actions"><span class="dirty-dot" data-dirty title="Modifications non enregistrées"></span><button type="button" class="context-help-trigger" data-help-key="finalization" aria-haspopup="dialog" aria-expanded="false" aria-controls="measurement-help-panel" aria-label="Aide sur enregistrer et valider">?</button><button class="draft" data-save-draft>Enregistrer</button><button class="final" data-finalize>Valider les mesures finales</button></div>
     </div>
   </div>
 
@@ -383,7 +404,7 @@
             <h2><span data-window-code>F01</span><span aria-hidden="true"> · </span><span class="plan-name" data-window-name>Salon</span></h2>
             <button type="button" class="rename-window" data-rename-window aria-label="Renommer F01 Salon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 20 4.2-1 10.6-10.6a2.1 2.1 0 0 0-3-3L5.2 16 4 20Z"/><path d="m13.8 7.2 3 3"/></svg></button>
           </div>
-          <span class="plan-status"><strong data-complete-pane-output>0</strong>&nbsp;/&nbsp;<span data-pane-count-output>6</span>&nbsp;mesurés</span>
+          <div class="plan-head-tools"><button type="button" class="context-help-trigger" data-help-key="plan" aria-haspopup="dialog" aria-expanded="false" aria-controls="measurement-help-panel" aria-label="Aide pour utiliser le plan">?</button><span class="plan-status"><strong data-complete-pane-output>0</strong>&nbsp;/&nbsp;<span data-pane-count-output>6</span>&nbsp;mesurés</span></div>
         </header>
         <section class="division-toolbar" aria-label="Choisir un type de fenêtre ou prendre une photo">
           <details class="layout-presets-menu">
@@ -409,12 +430,12 @@
           </details>
           <div class="layout-choice-or" aria-hidden="true"><span>ou</span></div>
           <div class="photo-layout-control">
-            <label class="photo-layout-action" data-photo-trigger>
+            <div class="photo-control-row"><label class="photo-layout-action" data-photo-trigger>
               <input class="photo-layout-input" type="file" accept="image/*" capture="environment" data-photo-input aria-label="Prendre une photo de la fenêtre" aria-describedby="photo-layout-status">
               <span class="choice-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5 13 3h-2L9.5 5H6a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3V8a3 3 0 0 0-3-3h-3.5Z"/><circle cx="12" cy="12" r="4"/></svg></span>
               <span class="choice-action-copy"><strong data-photo-label>Prendre une photo</strong><small data-photo-help>Les divisions seront détectées automatiquement</small></span>
               <span class="choice-action-arrow" aria-hidden="true">›</span>
-            </label>
+            </label><button type="button" class="context-help-trigger" data-help-key="photo" aria-haspopup="dialog" aria-expanded="false" aria-controls="measurement-help-panel" aria-label="Aide sur la photo">?</button></div>
             <p class="photo-layout-status" id="photo-layout-status" data-photo-status aria-live="polite" hidden></p>
           </div>
         </section>
@@ -437,7 +458,7 @@
           <div class="thermos-editor-body">
             <section class="thermos-editor-section" aria-labelledby="thermos-measure-title">
               <div class="thermos-section-head thermos-measure-head">
-                <h4 id="thermos-measure-title">Mesures</h4>
+                <span class="section-title-with-help"><h4 id="thermos-measure-title">Mesures</h4><button type="button" class="context-help-trigger" data-help-key="measurements" aria-haspopup="dialog" aria-expanded="false" aria-controls="measurement-help-panel" aria-label="Aide sur les mesures">?</button></span>
                 <label class="measure-unit-picker"><span data-measure-unit-title>Unité</span><select data-measure-unit aria-label="Unité de mesure"><option value="in">po</option><option value="mm">mm</option><option value="cm">cm</option></select></label>
               </div>
               <div class="measure-grid thermos-measure-grid">
@@ -448,7 +469,7 @@
             </section>
 
             <section class="thermos-editor-section" aria-labelledby="thermos-options-title">
-              <div class="thermos-section-head"><h4 id="thermos-options-title">Options du thermos</h4></div>
+              <div class="thermos-section-head"><span class="section-title-with-help"><h4 id="thermos-options-title">Options du thermos</h4><button type="button" class="context-help-trigger" data-help-key="glass-options" aria-haspopup="dialog" aria-expanded="false" aria-controls="measurement-help-panel" aria-label="Aide sur les options du thermos">?</button></span></div>
               <div class="option-grid thermos-option-grid"><label class="option-chip"><input type="checkbox" data-measure-key="lowE">Low-E</label><label class="option-chip"><input type="checkbox" data-measure-key="argon">Argon</label><label class="option-chip"><input type="checkbox" data-measure-key="tempered">Trempé</label><label class="option-chip"><input type="checkbox" data-measure-key="laminated">Laminé</label></div>
               <div class="sheet-selects thermos-selects"><label><span class="field-label">Intercalaire</span><select class="select" data-measure-key="spacer"><option value="">Je ne sais pas / Inconnu</option><option>Noir</option><option>Gris</option><option>Blanc</option><option>Inox</option></select></label><label><span class="field-label">Vitrage</span><select class="select" data-measure-key="glazing"><option value="">Choisir</option><option>Double</option><option>Triple</option><option>Simple</option></select></label><label><span class="field-label">Accès</span><select class="select" data-measure-key="access"><option value="">Choisir</option><option>Facile</option><option>Moyen</option><option>Difficile</option></select></label></div>
               <label class="thermos-notes"><span class="field-label">Notes particulières</span><textarea class="notes" data-measure-key="notes" placeholder="Forme, défaut, accès, particularité…"></textarea></label>
@@ -542,6 +563,10 @@
       <div class="tutorial-progress-track" aria-hidden="true"><span class="tutorial-progress-bar" data-tutorial-progress></span></div>
     </section>
   </div>
+  <aside class="context-help-panel" id="measurement-help-panel" data-help-panel role="dialog" aria-modal="false" aria-labelledby="measurement-help-title" hidden>
+    <div class="context-help-head"><div><span class="context-help-kicker" data-help-kicker>Aide rapide</span><h2 id="measurement-help-title" data-help-title></h2></div><button type="button" class="context-help-close" data-help-close aria-label="Fermer l’aide"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 7l10 10M17 7 7 17"/></svg></button></div>
+    <div class="context-help-body" data-help-body></div>
+  </aside>
   <div class="toast" data-toast role="status"></div>
   <script src="prototype-grid.js"></script>
   <script src="tutorial-frame.js"></script>

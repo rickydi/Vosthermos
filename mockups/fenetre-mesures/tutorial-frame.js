@@ -6,7 +6,10 @@
   const language = (params.get('clientLang') || params.get('lang') || 'fr').toLowerCase().startsWith('en') ? 'en' : 'fr';
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const channel = 'vosthermos-measure-tutorial';
-  const durations = [6500, 5600, 6800, 6800, 6800, 6400, 6200];
+  const TUTORIAL_SPEED_RATIO = 0.7;
+  const TUTORIAL_TIME_FACTOR = 1 / TUTORIAL_SPEED_RATIO;
+  const baseDurations = [6500, 5600, 6800, 6800, 6800, 6400, 6200];
+  const durations = baseDurations.map((duration) => Math.round(duration * TUTORIAL_TIME_FACTOR));
   let runId = '';
   let events = [];
   let nextEventIndex = 0;
@@ -171,21 +174,22 @@
 
   function buildSceneEvents() {
     const complete = () => post('STEP_DONE', { duration: durations[scene] });
-    if (scene === 0) return [
+    const scaleEvents = (items) => items.map((item) => ({ ...item, at: Math.round(item.at * TUTORIAL_TIME_FACTOR) }));
+    if (scene === 0) return scaleEvents([
       { at: 0, run: () => focusTarget('.layout-presets-menu summary', 'center') },
       { at: 850, run: () => clickTarget('.layout-presets-menu summary') },
       { at: 1900, run: () => focusTarget('[data-layout-preset="2x2"]') },
       { at: 2850, run: () => clickTarget('[data-layout-preset="2x2"]') },
       { at: 4200, run: () => focusTarget('[data-window-canvas]') },
-      { at: durations[scene], run: complete },
-    ];
-    if (scene === 1) return [
+      { at: baseDurations[scene], run: complete },
+    ]);
+    if (scene === 1) return scaleEvents([
       { at: 0, run: () => focusTarget(paneAt(1), 'center') },
       { at: 950, run: () => clickTarget(paneAt(1)) },
       { at: 2600, run: () => focusTarget('[data-thermos-editor]', 'center') },
-      { at: durations[scene], run: complete },
-    ];
-    if (scene === 2) return [
+      { at: baseDurations[scene], run: complete },
+    ]);
+    if (scene === 2) return scaleEvents([
       { at: 0, run: () => focusTarget('input[data-measure-dimension="width"]', 'center') },
       { at: 700, run: () => setInput('input[data-measure-dimension="width"]', '3') },
       { at: 1050, run: () => setInput('input[data-measure-dimension="width"]', '32') },
@@ -195,9 +199,9 @@
       { at: 2850, run: () => selectValue('select[data-measure-dimension="height"]', '7/8') },
       { at: 3550, run: () => setInput('input[data-measure-dimension="thickness"]', '1') },
       { at: 4650, run: () => focusTarget('[data-editor-state]') },
-      { at: durations[scene], run: complete },
-    ];
-    if (scene === 3) return [
+      { at: baseDurations[scene], run: complete },
+    ]);
+    if (scene === 3) return scaleEvents([
       { at: 0, run: () => focusTarget('[data-edit-selected-thermos]', 'center') },
       { at: 850, run: () => clickTarget('[data-edit-selected-thermos]') },
       { at: 1750, run: () => focusTarget('[data-modal-axis="vertical"]') },
@@ -207,9 +211,9 @@
       { at: 4300, run: () => focusTarget('[data-create-sections]') },
       { at: 4900, run: () => clickTarget('[data-create-sections]') },
       { at: 5750, run: () => focusTarget('[data-window-canvas]') },
-      { at: durations[scene], run: complete },
-    ];
-    if (scene === 4) return [
+      { at: baseDurations[scene], run: complete },
+    ]);
+    if (scene === 4) return scaleEvents([
       { at: 0, run: () => focusTarget('.thermos-option-grid', 'center') },
       { at: 650, run: () => clickTarget('input[data-measure-key="lowE"]') },
       { at: 1150, run: () => clickTarget('input[data-measure-key="argon"]') },
@@ -219,23 +223,23 @@
       { at: 3850, run: () => clickTarget('[data-counter="vertical"] [data-delta="1"]') },
       { at: 4550, run: () => clickTarget('[data-counter="horizontal"] [data-delta="1"]') },
       { at: 5450, run: () => focusTarget('[data-decorative-options]') },
-      { at: durations[scene], run: complete },
-    ];
-    if (scene === 5) return [
+      { at: baseDurations[scene], run: complete },
+    ]);
+    if (scene === 5) return scaleEvents([
       { at: 0, run: () => focusTarget('[data-add-window]', 'center') },
       { at: 1000, run: () => clickTarget('[data-add-window]') },
       { at: 2850, run: () => focusTarget('[data-window-plan]:last-child .plan-head', 'start') },
       { at: 4300, run: () => focusTarget('[data-window-plan]:last-child [data-window-canvas]') },
-      { at: durations[scene], run: complete },
-    ];
-    return [
+      { at: baseDurations[scene], run: complete },
+    ]);
+    return scaleEvents([
       { at: 0, run: () => focusTarget('[data-save-draft]', 'center') },
       { at: 850, run: () => clickTarget('[data-save-draft]') },
       { at: 2100, run: () => focusTarget('[data-finalize]') },
       { at: 3000, run: () => clickTarget('[data-finalize]') },
       { at: 4050, run: () => focusTarget('.sticky-actions') },
-      { at: durations[scene], run: complete },
-    ];
+      { at: baseDurations[scene], run: complete },
+    ]);
   }
 
   function clearTimeline() {

@@ -9,7 +9,12 @@
   const windowRenameInput = document.querySelector('[data-window-rename-input]');
   const windowRenameError = document.querySelector('[data-window-rename-error]');
   const toast = document.querySelector('[data-toast]');
-  if (!prototypeRoot || !windowList || !windowTemplate || !paneActionModal || !windowRenameModal || !windowRenameForm || !windowRenameInput) return;
+  const helpPanel = document.querySelector('[data-help-panel]');
+  const helpTitle = helpPanel?.querySelector('[data-help-title]');
+  const helpBody = helpPanel?.querySelector('[data-help-body]');
+  const helpKicker = helpPanel?.querySelector('[data-help-kicker]');
+  const helpClose = helpPanel?.querySelector('[data-help-close]');
+  if (!prototypeRoot || !windowList || !windowTemplate || !paneActionModal || !windowRenameModal || !windowRenameForm || !windowRenameInput || !helpPanel || !helpTitle || !helpBody || !helpClose) return;
 
   const MAX_PANES = 12;
   const MIN_CHILD_PX = 52;
@@ -43,6 +48,65 @@
   const unitCopy = clientLanguage === 'en'
     ? { title: 'Unit', in: 'in', changed: 'Measurement unit', invalid: 'Enter a valid measurement.', maximum: 'Maximum' }
     : { title: 'Unité', in: 'po', changed: 'Unité de mesure', invalid: 'Entrez une mesure valide.', maximum: 'Maximum' };
+  const helpCopy = clientLanguage === 'en'
+    ? {
+        kicker: 'Quick help', close: 'Close help', trigger: 'Open help',
+        plan: {
+          title: 'Using the plan',
+          body: 'Tap a glass unit (T1, T2…) to select it. Drag the arrows on a divider to adjust the proportions. The drawing identifies each unit; it is not to scale.',
+        },
+        photo: {
+          title: 'What is the photo used for?',
+          body: 'Take the photo straight on. It detects the divisions and stays attached to the file, beside the model in the admin report. It never appears behind the drawing and does not replace the measurements.',
+        },
+        measurements: {
+          title: 'What should I measure?',
+          body: 'Each T1, T2… represents one sealed glass unit. Enter that unit’s dimensions, not the full frame. Thickness means the complete sealed unit.',
+        },
+        'glass-options': {
+          title: 'Understanding the options',
+          body: 'These choices describe the selected glass unit only.',
+          items: [
+            ['Low-E', 'Coating that reduces heat loss.'], ['Argon', 'Insulating gas between the panes.'],
+            ['Tempered', 'Heat-treated safety glass.'], ['Laminated', 'Glass held together by an interlayer.'],
+            ['Spacer', 'Perimeter bar separating the panes.'], ['Glazing', 'Number of glass panes.'],
+            ['Access', 'How easy the unit is to reach and replace.'],
+          ],
+        },
+        finalization: {
+          title: 'Save or confirm?',
+          body: 'Save keeps your work so you can return later. Confirm marks all measurements as final and ready for the next step.',
+        },
+      }
+    : {
+        kicker: 'Aide rapide', close: 'Fermer l’aide', trigger: 'Ouvrir l’aide',
+        plan: {
+          title: 'Utiliser le plan',
+          body: 'Touchez un thermos (T1, T2…) pour le sélectionner. Faites glisser les flèches sur les séparations pour ajuster les proportions. Le dessin sert à identifier les thermos; il n’est pas à l’échelle.',
+        },
+        photo: {
+          title: 'À quoi sert la photo?',
+          body: 'Prenez la fenêtre bien de face. La photo sert à détecter les divisions et reste jointe au dossier, à côté du modèle dans le rapport admin. Elle n’apparaît jamais derrière le dessin et ne remplace pas les mesures.',
+        },
+        measurements: {
+          title: 'Quoi mesurer?',
+          body: 'Chaque T1, T2… représente un thermos, soit une unité de vitrage scellée. Entrez les dimensions de ce thermos, pas celles du cadre complet. L’épaisseur correspond à l’unité complète.',
+        },
+        'glass-options': {
+          title: 'Comprendre les options',
+          body: 'Ces choix décrivent seulement le thermos sélectionné.',
+          items: [
+            ['Low-E', 'Couche qui réduit les pertes de chaleur.'], ['Argon', 'Gaz isolant entre les vitres.'],
+            ['Trempé', 'Verre de sécurité traité.'], ['Laminé', 'Verre retenu par une pellicule.'],
+            ['Intercalaire', 'Barre au pourtour qui sépare les vitres.'], ['Vitrage', 'Nombre de feuilles de verre.'],
+            ['Accès', 'Facilité pour atteindre et remplacer le thermos.'],
+          ],
+        },
+        finalization: {
+          title: 'Enregistrer ou valider?',
+          body: 'Enregistrer conserve le travail pour le reprendre plus tard. Valider confirme que toutes les mesures sont finales et prêtes pour la prochaine étape.',
+        },
+      };
   const PRESETS = {
     '1x1': { columns: 1, rows: 1, label: 'Vitre simple' },
     '2x1-narrow-left': { columns: 2, rows: 1, sizes: [34, 66], label: 'Petite vitre à gauche', summary: 'Petite vitre à gauche' },
@@ -65,6 +129,7 @@
   let activeWindowId = null;
   let measurementUnit = 'in';
   let toastTimer;
+  let activeHelpTrigger = null;
 
   function clone(value) {
     return JSON.parse(JSON.stringify(value));
@@ -259,6 +324,81 @@
     toastTimer = setTimeout(() => toast.classList.remove('is-visible'), 3000);
   }
 
+  function setHelpTriggerLabels(root = document) {
+    root.querySelectorAll('[data-help-key]').forEach((trigger) => {
+      const entry = helpCopy[trigger.dataset.helpKey];
+      if (!entry) return;
+      trigger.setAttribute('aria-label', helpCopy.trigger + ': ' + entry.title);
+    });
+  }
+
+  function renderHelpBody(entry) {
+    helpBody.replaceChildren();
+    const paragraph = document.createElement('p');
+    paragraph.textContent = entry.body;
+    helpBody.appendChild(paragraph);
+    if (!entry.items?.length) return;
+    const list = document.createElement('ul');
+    entry.items.forEach(([term, description]) => {
+      const item = document.createElement('li');
+      const label = document.createElement('strong');
+      label.textContent = term + ': ';
+      item.append(label, document.createTextNode(description));
+      list.appendChild(item);
+    });
+    helpBody.appendChild(list);
+  }
+
+  function positionHelpPanel(trigger = activeHelpTrigger) {
+    if (!trigger || helpPanel.hidden) return;
+    if (window.innerWidth <= 759) {
+      helpPanel.style.removeProperty('left');
+      helpPanel.style.removeProperty('top');
+      return;
+    }
+    const triggerRect = trigger.getBoundingClientRect();
+    const panelRect = helpPanel.getBoundingClientRect();
+    const gutter = 12;
+    const proposedLeft = triggerRect.left + (triggerRect.width - panelRect.width) / 2;
+    const left = Math.min(window.innerWidth - panelRect.width - gutter, Math.max(gutter, proposedLeft));
+    let top = triggerRect.bottom + 10;
+    if (top + panelRect.height > window.innerHeight - gutter) top = triggerRect.top - panelRect.height - 10;
+    top = Math.min(window.innerHeight - panelRect.height - gutter, Math.max(gutter, top));
+    helpPanel.style.left = Math.round(left) + 'px';
+    helpPanel.style.top = Math.round(top) + 'px';
+  }
+
+  function closeHelp({ restoreFocus = false } = {}) {
+    if (helpPanel.hidden) return;
+    const trigger = activeHelpTrigger;
+    trigger?.setAttribute('aria-expanded', 'false');
+    helpPanel.hidden = true;
+    activeHelpTrigger = null;
+    if (restoreFocus && trigger?.isConnected) requestAnimationFrame(() => trigger.focus({ preventScroll: true }));
+  }
+
+  function openHelp(trigger) {
+    const entry = helpCopy[trigger?.dataset.helpKey];
+    if (!entry) return;
+    if (activeHelpTrigger === trigger && !helpPanel.hidden) {
+      closeHelp({ restoreFocus: true });
+      return;
+    }
+    activeHelpTrigger?.setAttribute('aria-expanded', 'false');
+    activeHelpTrigger = trigger;
+    trigger.setAttribute('aria-expanded', 'true');
+    helpPanel.lang = clientLanguage;
+    if (helpKicker) helpKicker.textContent = helpCopy.kicker;
+    helpTitle.textContent = entry.title;
+    helpClose.setAttribute('aria-label', helpCopy.close);
+    renderHelpBody(entry);
+    helpPanel.hidden = false;
+    requestAnimationFrame(() => {
+      positionHelpPanel(trigger);
+      helpClose.focus({ preventScroll: true });
+    });
+  }
+
   function setMeasurementUnit(nextUnit, { announce = true } = {}) {
     if (!UNIT_CONFIG[nextUnit]) return false;
     const changed = measurementUnit !== nextUnit;
@@ -426,6 +566,7 @@
 
   function openWindowRenameModal(controller) {
     if (!controller) return;
+    closeHelp();
     if (!paneActionModal.hidden) closePaneActions({ restoreFocus: false });
     activateController(controller);
     interaction.controller = controller;
@@ -450,6 +591,7 @@
   function openPaneActions(controller, paneId) {
     const pane = controller.getPane(paneId);
     if (!pane) return;
+    closeHelp();
     activateController(controller);
     interaction.controller = controller;
     interaction.paneId = paneId;
@@ -504,7 +646,6 @@
     let splitSequence = 0;
     let renderVersion = 0;
     let photoDetectionToken = 0;
-    let photoPreviewUrl = null;
     let forceDimensionSync = false;
     let api;
 
@@ -605,15 +746,6 @@
       else delete photoStatus.dataset.state;
     }
 
-    function setPhotoPreview(file) {
-      if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
-      photoPreviewUrl = URL.createObjectURL(file);
-      root.querySelectorAll('.window-stage').forEach((stage) => {
-        stage.classList.add('has-photo');
-        stage.style.setProperty('--photo-image', 'url("' + photoPreviewUrl + '")');
-      });
-    }
-
     async function detectPhotoPreset(file) {
       // Prototype hook: the production detector will return the matching preset key here.
       await file.slice(0, 1).arrayBuffer();
@@ -627,7 +759,6 @@
       }
       const token = ++photoDetectionToken;
       state.photo = true;
-      setPhotoPreview(file);
       setPhotoUi('analyzing', 'Analyse automatique de la photo…');
       markDirty();
       try {
@@ -1227,13 +1358,7 @@
       state.topologyPreset = initialSnapshot.topologyPreset;
       photoDetectionToken += 1;
       state.photo = false;
-      if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
-      photoPreviewUrl = null;
       if (photoInput) photoInput.value = '';
-      root.querySelectorAll('.window-stage').forEach((stage) => {
-        stage.classList.remove('has-photo');
-        stage.style.removeProperty('--photo-image');
-      });
       setPhotoUi('idle');
       interactionService.closeFor(api);
       renderLayout();
@@ -1413,7 +1538,6 @@
     resizeObserver?.observe(canvas);
     api.destroy = () => {
       photoDetectionToken += 1;
-      if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
       resizeObserver?.disconnect();
     };
     return api;
@@ -1448,6 +1572,7 @@
     const id = 'w' + windowSequence;
     const code = 'F' + String(windowSequence).padStart(2, '0');
     namespaceRootIds(root, id);
+    setHelpTriggerLabels(root);
     const existingName = root.querySelector('[data-window-name]')?.textContent?.trim();
     const controller = createWindowController(root, {
       id,
@@ -1559,6 +1684,26 @@
     }
   });
 
+  helpClose.addEventListener('click', () => closeHelp({ restoreFocus: true }));
+  document.addEventListener('click', (event) => {
+    const trigger = event.target instanceof Element ? event.target.closest('[data-help-key]') : null;
+    if (trigger) {
+      event.preventDefault();
+      openHelp(trigger);
+      return;
+    }
+    if (!helpPanel.hidden && !helpPanel.contains(event.target)) closeHelp();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || helpPanel.hidden) return;
+    event.preventDefault();
+    closeHelp({ restoreFocus: true });
+  });
+  document.addEventListener('vosthermos:close-help', () => closeHelp());
+  window.addEventListener('resize', () => positionHelpPanel(), { passive: true });
+  window.addEventListener('scroll', () => positionHelpPanel(), { passive: true, capture: true });
+  setHelpTriggerLabels(document);
+
   const existingPlans = [...windowList.querySelectorAll(':scope > [data-window-plan]')];
   if (existingPlans.length) {
     existingPlans.forEach((root, index) => registerWindow(root, { first: index === 0 }));
@@ -1605,6 +1750,12 @@
       decorativePane.decorative.horizontal = Math.min(8, Math.max(0, Number(previewParams.get('decorativeH')) || 0));
       previewController.render();
     }
+  }
+  const previewHelpKey = previewParams.get('previewHelp');
+  if (helpCopy[previewHelpKey]?.title) {
+    const previewHelpScope = previewHelpKey === 'finalization' ? document : previewController?.root || document;
+    const previewHelpTrigger = previewHelpScope.querySelector('[data-help-key="' + previewHelpKey + '"]');
+    if (previewHelpTrigger) openHelp(previewHelpTrigger);
   }
   const previewPaneId = previewController?.resolvePaneId(previewParams.get('previewPane'));
   if (previewController && previewParams.get('previewRename') === '1') {

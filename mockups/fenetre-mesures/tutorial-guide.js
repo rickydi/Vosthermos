@@ -20,7 +20,10 @@
   const language = requestedLanguage.toLowerCase().startsWith('en') ? 'en' : 'fr';
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const channel = 'vosthermos-measure-tutorial';
-  const durations = [6500, 5600, 6800, 6800, 6800, 6400, 6200];
+  const TUTORIAL_SPEED_RATIO = 0.7;
+  const TUTORIAL_TIME_FACTOR = 1 / TUTORIAL_SPEED_RATIO;
+  const durations = [6500, 5600, 6800, 6800, 6800, 6400, 6200]
+    .map((duration) => Math.round(duration * TUTORIAL_TIME_FACTOR));
   const backgroundElements = [document.querySelector('.prototype'), document.querySelector('.back-to-index')].filter(Boolean);
   const initialInertState = new Map(backgroundElements.map((node) => [node, node.inert]));
   const copy = language === 'en'
@@ -240,6 +243,7 @@
   }
 
   function openTutorial() {
+    document.dispatchEvent(new Event('vosthermos:close-help'));
     lastFocused = document.activeElement;
     currentStep = 0;
     playing = !reducedMotion;
@@ -356,4 +360,7 @@
   document.addEventListener('visibilitychange', () => {
     if (document.hidden && !modal.hidden && playing) pauseTutorial();
   });
+  if (new URLSearchParams(window.location.search).get('previewTutorial') === '1') {
+    requestAnimationFrame(openTutorial);
+  }
 })();
