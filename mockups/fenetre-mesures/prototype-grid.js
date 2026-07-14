@@ -31,12 +31,38 @@
         choose: 'Tap to select',
         selectedLabel: (code, paneCode) => code + ', glass unit ' + paneCode + '. You are editing this glass unit.',
         availableLabel: (code, paneCode) => code + ', glass unit ' + paneCode + '. Select this glass unit.',
+        selectionTitle: (paneCode) => paneCode + ' selected',
+        selectionDescription: (paneCode) => 'The measurements and options below now belong to ' + paneCode + '.',
+        editorKicker: 'You are now entering',
+        editorPrefix: 'Measurements for',
+        divideTitle: (paneCode) => 'Divide ' + paneCode,
+        divideDescription: 'Add vertical or horizontal divisions',
+        divideLabel: (code, paneCode) => 'Divide selected glass unit ' + code + ' ' + paneCode,
+        measurementsAction: 'Measurements',
+        measurementsActionLabel: (paneCode) => 'Go to measurements for ' + paneCode,
+        noPane: 'No glass unit',
+        complete: 'Measurements complete',
+        progress: 'Measurements in progress',
+        todo: 'To measure',
       }
     : {
         editing: 'Vous éditez',
         choose: 'Toucher pour choisir',
         selectedLabel: (code, paneCode) => code + ', thermos ' + paneCode + '. Vous éditez ce thermos.',
         availableLabel: (code, paneCode) => code + ', thermos ' + paneCode + '. Sélectionner ce thermos.',
+        selectionTitle: (paneCode) => paneCode + ' sélectionné',
+        selectionDescription: (paneCode) => 'Les mesures et options ci-dessous sont maintenant liées à ' + paneCode + '.',
+        editorKicker: 'Vous remplissez maintenant',
+        editorPrefix: 'Mesures de',
+        divideTitle: (paneCode) => 'Diviser ' + paneCode,
+        divideDescription: 'Ajouter des divisions verticales ou horizontales',
+        divideLabel: (code, paneCode) => 'Diviser le thermos sélectionné ' + code + ' ' + paneCode,
+        measurementsAction: 'Mesures',
+        measurementsActionLabel: (paneCode) => 'Aller aux mesures de ' + paneCode,
+        noPane: 'Aucun thermos',
+        complete: 'Mesures complètes',
+        progress: 'Mesures en cours',
+        todo: 'À mesurer',
       };
   const DIMENSION_KEYS = ['width', 'height', 'thickness'];
   const UNIT_CONFIG = {
@@ -450,7 +476,7 @@
         label.className = 'progress-label';
         label.textContent = item.controller.state.code + ' T' + item.index;
         step.append(marker, label);
-        step.addEventListener('click', () => item.controller.selectPaneOnly(item.pane.id));
+        step.addEventListener('click', () => item.controller.selectPaneOnly(item.pane.id, { reveal: true }));
         progress.appendChild(step);
       });
     });
@@ -464,6 +490,26 @@
     mode: null,
     lastFocusedElement: null,
   };
+  const selectionFeedbackTimers = new WeakMap();
+
+  function revealSelectionLink(controller) {
+    const root = controller?.root;
+    const handoff = root?.querySelector('[data-selection-handoff]');
+    const editor = root?.querySelector('[data-thermos-editor]');
+    if (!root || !handoff || !editor) return;
+    const targets = [handoff, editor];
+    targets.forEach((node) => node.classList.remove('is-selection-updated'));
+    const previousTimer = selectionFeedbackTimers.get(root);
+    if (previousTimer) window.clearTimeout(previousTimer);
+    requestAnimationFrame(() => {
+      targets.forEach((node) => node.classList.add('is-selection-updated'));
+      const timer = window.setTimeout(() => {
+        targets.forEach((node) => node.classList.remove('is-selection-updated'));
+        selectionFeedbackTimers.delete(root);
+      }, 760);
+      selectionFeedbackTimers.set(root, timer);
+    });
+  }
 
   function activateController(controller) {
     if (!controller) return;
@@ -488,7 +534,7 @@
     });
   }
 
-  function selectPaneOnly(controller, paneId, { focus = true } = {}) {
+  function selectPaneOnly(controller, paneId, { focus = true, reveal = false } = {}) {
     if (!controller?.getPane(paneId)) return false;
     activateController(controller);
     interaction.controller = controller;
@@ -497,7 +543,12 @@
     interaction.count = 2;
     interaction.mode = null;
     const selected = controller.selectPane(paneId);
-    if (selected && focus) requestAnimationFrame(() => controller.focusPane(paneId));
+    if (selected && (focus || reveal)) {
+      requestAnimationFrame(() => {
+        if (focus) controller.focusPane(paneId);
+        if (reveal) revealSelectionLink(controller);
+      });
+    }
     return selected;
   }
 
@@ -643,6 +694,8 @@
     const decorativeOptions = root.querySelector('[data-decorative-options]');
     const decorativeStatus = root.querySelector('[data-decorative-status]');
     const editSelectedThermos = root.querySelector('[data-edit-selected-thermos]');
+    const goToMeasures = root.querySelector('[data-go-to-measures]');
+    const thermosEditor = root.querySelector('[data-thermos-editor]');
     if (!canvas) return null;
     let paneSequence = 0;
     let splitSequence = 0;
@@ -851,7 +904,7 @@
         const paneHintMarkup = isSelected ? '' : '<span class="pane-hint" lang="' + clientLanguage + '">' + paneCopy.choose + '</span>';
         pane.innerHTML = (summary ? '<span class="pane-value">' + summary + '</span>' : '') + paneCodeMarkup + paneHintMarkup;
         renderDecorativeLines(pane, node);
-        pane.addEventListener('click', () => selectPaneOnly(api, node.id));
+        pane.addEventListener('click', () => selectPaneOnly(api, node.id, { reveal: true }));
         return pane;
       }
       const split = document.createElement('div');
@@ -900,14 +953,36 @@
       const pane = getPane(state.selectedPaneId);
       const paneLabel = pane ? getPaneLabel(pane.id) : '—';
       const editorState = !pane
-        ? { label: 'Aucun thermos', value: 'empty' }
+        ? { label: paneCopy.noPane, value: 'empty' }
         : paneIsComplete(pane)
-          ? { label: 'Mesures complètes', value: 'complete' }
+          ? { label: paneCopy.complete, value: 'complete' }
           : paneHasData(pane)
-            ? { label: 'Mesures en cours', value: 'progress' }
-            : { label: 'À mesurer', value: 'empty' };
+            ? { label: paneCopy.progress, value: 'progress' }
+            : { label: paneCopy.todo, value: 'empty' };
+      const selectionTitle = pane ? paneCopy.selectionTitle(paneLabel) : editorState.label;
+      const selectionDescription = pane
+        ? paneCopy.selectionDescription(paneLabel)
+        : (clientLanguage === 'en' ? 'Select a glass unit in the drawing.' : 'Sélectionnez un thermos dans le dessin.');
+      root.querySelectorAll('[data-selection-pane]').forEach((node) => { node.textContent = paneLabel; });
+      root.querySelectorAll('[data-selection-title]').forEach((node) => {
+        if (node.textContent !== selectionTitle) node.textContent = selectionTitle;
+      });
+      root.querySelectorAll('[data-selection-description]').forEach((node) => {
+        if (node.textContent !== selectionDescription) node.textContent = selectionDescription;
+      });
+      root.querySelectorAll('[data-editor-kicker]').forEach((node) => { node.textContent = paneCopy.editorKicker; });
+      root.querySelectorAll('[data-editor-title-prefix]').forEach((node) => { node.textContent = paneCopy.editorPrefix; });
       root.querySelectorAll('[data-editor-window]').forEach((node) => { node.textContent = state.code; });
       root.querySelectorAll('[data-editor-pane]').forEach((node) => { node.textContent = paneLabel; });
+      root.querySelectorAll('[data-thermos-editor]').forEach((node) => {
+        node.setAttribute('aria-label', paneCopy.editorPrefix + ' ' + paneLabel + ', ' + state.code);
+      });
+      if (goToMeasures) {
+        goToMeasures.disabled = !pane;
+        goToMeasures.setAttribute('aria-label', pane ? paneCopy.measurementsActionLabel(paneLabel) : editorState.label);
+        const actionLabel = goToMeasures.querySelector('[data-go-to-measures-label]');
+        if (actionLabel) actionLabel.textContent = paneCopy.measurementsAction;
+      }
       root.querySelectorAll('[data-editor-state]').forEach((node) => {
         node.textContent = editorState.label;
         node.dataset.state = editorState.value;
@@ -977,7 +1052,11 @@
       });
       if (editSelectedThermos) {
         editSelectedThermos.disabled = !pane;
-        editSelectedThermos.setAttribute('aria-label', pane ? 'Modifier le thermos sélectionné ' + state.code + ' ' + paneLabel : 'Aucun thermos sélectionné');
+        editSelectedThermos.setAttribute('aria-label', pane ? paneCopy.divideLabel(state.code, paneLabel) : editorState.label);
+        const editTitle = editSelectedThermos.querySelector('[data-edit-selected-title]');
+        const editDescription = editSelectedThermos.querySelector('[data-edit-selected-description]');
+        if (editTitle) editTitle.textContent = pane ? paneCopy.divideTitle(paneLabel) : editorState.label;
+        if (editDescription) editDescription.textContent = paneCopy.divideDescription;
       }
     }
 
@@ -1455,7 +1534,7 @@
       getPaneLabel,
       resolvePaneId,
       selectPane,
-      selectPaneOnly(paneId) { return selectPaneOnly(api, paneId); },
+      selectPaneOnly(paneId, options) { return selectPaneOnly(api, paneId, options); },
       openPaneActions(paneId) { openPaneActions(api, paneId); },
       splitPane,
       applyPreset,
@@ -1471,6 +1550,13 @@
 
     root.addEventListener('pointerdown', () => interactionService.activate(api), true);
     root.addEventListener('focusin', () => interactionService.activate(api));
+    goToMeasures?.addEventListener('click', () => {
+      if (!thermosEditor) return;
+      revealSelectionLink(api);
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      thermosEditor.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' });
+      requestAnimationFrame(() => thermosEditor.focus({ preventScroll: true }));
+    });
     root.querySelectorAll('[data-layout-preset]').forEach((button) => button.addEventListener('click', () => {
       const key = button.dataset.layoutPreset;
       const applied = applyPreset(key);
