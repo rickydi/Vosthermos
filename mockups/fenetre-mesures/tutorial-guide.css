@@ -64,7 +64,8 @@ body.tutorial-open,body.tutorial-prompt-open { overflow: hidden; }
 }
 
 .tutorial-prompt-visual span {
-  --icon-optical-x: 1.5px;
+  --icon-optical-x: .3px;
+  --icon-optical-y: .5px;
   width: 58px;
   height: 58px;
   border: 1px solid rgba(255,255,255,.42);
