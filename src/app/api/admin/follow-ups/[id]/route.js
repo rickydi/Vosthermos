@@ -9,6 +9,7 @@ import { publishAdminEvent } from "@/lib/event-bus";
 // Créneaux admin (plus larges que le calendrier public) : 6h à 20h, un RDV par
 // créneau (contrainte unique date+timeSlot en base).
 const VISIT_TIME_SLOTS = ["6h", "7h", "8h", "9h", "10h", "11h", "12h", "13h", "14h", "15h", "16h", "17h", "18h", "19h", "20h"];
+const CONTACT_MENU_STATES = ["reached", "a1", "a2", "voicemail", "waiting_photos", "none"];
 
 // Annule (best effort) l'Appointment créé pour le RDV de visite de ce suivi.
 // On le retrouve par date + créneau + la note posée à la création — jamais par
@@ -88,6 +89,49 @@ export async function PUT(req, { params }) {
     if (value !== undefined) data[key] = value;
   }
 
+  // Menu Contact : une seule commande garde contactedAt, les tentatives et les
+  // deux états temporaires cohérents. « voicemail » compte une nouvelle
+  // tentative; « waiting_photos » confirme le contact et démarre son délai.
+  if (body.contactState !== undefined) {
+    const contactState = String(body.contactState || "");
+    if (!CONTACT_MENU_STATES.includes(contactState)) {
+      return NextResponse.json({ error: "État de contact invalide" }, { status: 400 });
+    }
+
+    const now = new Date();
+    if (contactState === "reached") {
+      data.contactedAt = existing.contactedAt || now;
+      data.contactStatus = null;
+      data.contactStatusAt = null;
+    } else if (contactState === "a1" || contactState === "a2") {
+      data.contactedAt = null;
+      data.contactAttempts = contactState === "a1" ? 1 : 2;
+      data.lastAttemptAt = now;
+      data.contactStatus = null;
+      data.contactStatusAt = null;
+    } else if (contactState === "voicemail") {
+      data.contactedAt = null;
+      data.contactAttempts = Math.min((existing.contactAttempts || 0) + 1, 9);
+      data.lastAttemptAt = now;
+      data.contactStatus = "voicemail";
+      data.contactStatusAt = now;
+    } else if (contactState === "waiting_photos") {
+      data.contactedAt = existing.contactedAt || now;
+      data.contactStatus = "waiting_photos";
+      data.contactStatusAt = now;
+    } else {
+      data.contactedAt = null;
+      data.contactAttempts = 0;
+      data.lastAttemptAt = null;
+      data.contactStatus = null;
+      data.contactStatusAt = null;
+    }
+
+    if (["reached", "waiting_photos"].includes(contactState) && existing.nextAction === "Appeler le client") {
+      data.nextAction = null;
+    }
+  }
+
   // Issue finale (open/won/lost) — refonte suivi.
   if (body.outcome !== undefined) {
     data.outcome = ["won", "lost"].includes(body.outcome) ? body.outcome : "open";
@@ -116,6 +160,10 @@ export async function PUT(req, { params }) {
     // Le rappel auto « Appeler le client » n'a plus de raison d'être une fois le contact fait.
     if (body.toggleMilestone === "contactedAt" && body.on && existing.nextAction === "Appeler le client" && data.nextAction === undefined) {
       data.nextAction = null;
+    }
+    if (body.contactState === undefined && body.toggleMilestone === "contactedAt") {
+      data.contactStatus = null;
+      data.contactStatusAt = null;
     }
   }
 
@@ -215,6 +263,13 @@ export async function PUT(req, { params }) {
       if (data.contactAttempts > (existing.contactAttempts || 0)) data.lastAttemptAt = new Date();
     }
   }
+  if (
+    body.contactState === undefined &&
+    (body.bumpAttempt || body.resetAttempts || body.contactAttempts !== undefined || body.contactedAt !== undefined)
+  ) {
+    data.contactStatus = null;
+    data.contactStatusAt = null;
+  }
 
   // Cascade logique : poser un jalon plus avancé implique que le contact a eu
   // lieu (on ne planifie pas une visite ni n'envoie une soumission sans avoir
@@ -229,6 +284,10 @@ export async function PUT(req, { params }) {
     if (existing.nextAction === "Appeler le client" && data.nextAction === undefined) {
       data.nextAction = null;
     }
+  }
+  if (impliesContact && body.contactState === undefined) {
+    data.contactStatus = null;
+    data.contactStatusAt = null;
   }
 
   // Auto-horodatage legacy si un status est poussé directement.
