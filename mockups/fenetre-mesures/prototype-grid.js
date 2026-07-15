@@ -29,12 +29,18 @@
     ? {
         editing: 'You are editing',
         choose: 'Tap to select',
+        measurementsRequired: 'Measurements required',
+        measurementsRequiredShort: 'To measure',
+        measurementsRequiredLabel: 'Measurements required.',
         selectedLabel: (code, paneCode) => code + ', glass unit ' + paneCode + '. You are editing this glass unit.',
         availableLabel: (code, paneCode) => code + ', glass unit ' + paneCode + '. Select this glass unit.',
       }
     : {
         editing: 'Vous éditez',
         choose: 'Toucher pour choisir',
+        measurementsRequired: 'Mesures à remplir',
+        measurementsRequiredShort: 'À mesurer',
+        measurementsRequiredLabel: 'Mesures à remplir.',
         selectedLabel: (code, paneCode) => code + ', thermos ' + paneCode + '. Vous éditez ce thermos.',
         availableLabel: (code, paneCode) => code + ', thermos ' + paneCode + '. Sélectionner ce thermos.',
       };
@@ -837,19 +843,25 @@
         const index = indexes.get(node.id);
         const paneCode = 'T' + index;
         const isSelected = node.id === state.selectedPaneId;
+        const needsMeasurements = !paneIsComplete(node);
         const pane = document.createElement('button');
         pane.type = 'button';
         pane.className = 'pane';
         pane.dataset.paneId = node.id;
         pane.lang = clientLanguage;
         pane.setAttribute('aria-pressed', String(isSelected));
-        pane.setAttribute('aria-label', isSelected ? paneCopy.selectedLabel(state.code, paneCode) : paneCopy.availableLabel(state.code, paneCode));
+        pane.classList.toggle('is-measurement-needed', needsMeasurements);
+        const paneAriaLabel = isSelected ? paneCopy.selectedLabel(state.code, paneCode) : paneCopy.availableLabel(state.code, paneCode);
+        pane.setAttribute('aria-label', paneAriaLabel + (needsMeasurements ? ' ' + paneCopy.measurementsRequiredLabel : ''));
         const summary = paneSummary(node);
         const paneCodeMarkup = isSelected
           ? '<span class="pane-code pane-code-editing" lang="' + clientLanguage + '"><small>' + paneCopy.editing + '</small><strong>' + paneCode + '</strong></span>'
           : '<span class="pane-code">' + paneCode + '</span>';
-        const paneHintMarkup = isSelected ? '' : '<span class="pane-hint" lang="' + clientLanguage + '">' + paneCopy.choose + '</span>';
-        pane.innerHTML = (summary ? '<span class="pane-value">' + summary + '</span>' : '') + paneCodeMarkup + paneHintMarkup;
+        const paneHintMarkup = isSelected || needsMeasurements ? '' : '<span class="pane-hint" lang="' + clientLanguage + '">' + paneCopy.choose + '</span>';
+        const measurementStatusMarkup = needsMeasurements
+          ? '<span class="pane-measurement-needed" lang="' + clientLanguage + '" aria-hidden="true"><span class="pane-measurement-full">' + paneCopy.measurementsRequired + '</span><span class="pane-measurement-short">' + paneCopy.measurementsRequiredShort + '</span></span>'
+          : '';
+        pane.innerHTML = (summary ? '<span class="pane-value">' + summary + '</span>' : '') + paneCodeMarkup + paneHintMarkup + measurementStatusMarkup;
         renderDecorativeLines(pane, node);
         pane.addEventListener('click', () => selectPaneOnly(api, node.id));
         return pane;
