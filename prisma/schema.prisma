@@ -407,6 +407,10 @@ model ClientFollowUp {
   // Tentatives de contact restées sans réponse (suivi des relances).
   contactAttempts Int       @default(0)
   lastAttemptAt   DateTime?
+  // État temporaire choisi dans le menu Contact : "voicemail" ou
+  // "waiting_photos". Les états standards restent dérivés des champs ci-dessus.
+  contactStatus   String?
+  contactStatusAt DateTime?
   outcome         String    @default("open")
   nextAction      String?
   nextActionDate  DateTime?

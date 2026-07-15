@@ -31,6 +31,7 @@ export function serializeFollowUp(followUp) {
     visitScheduledAt: followUp.visitScheduledAt?.toISOString() || null,
     invoicedAt: followUp.invoicedAt?.toISOString() || null,
     lastAttemptAt: followUp.lastAttemptAt?.toISOString() || null,
+    contactStatusAt: followUp.contactStatusAt?.toISOString() || null,
     nextActionDate: dateOnlyIso(followUp.nextActionDate),
     createdAt: followUp.createdAt?.toISOString() || null,
     updatedAt: followUp.updatedAt?.toISOString() || null,
@@ -269,6 +270,12 @@ export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client, fo
     if (["invoiced", "sent", "paid"].includes(st) && !followUp.invoicedAt) ms.invoicedAt = workOrder.invoiceSentAt || workOrder.invoiceIssuedAt || new Date();
     const wantWon = ["quote_accepted", "scheduled", "in_progress", "completed", "invoiced", "sent", "paid"].includes(st);
     if (wantWon && followUp.outcome !== "won" && followUp.outcome !== "lost") ms.outcome = "won";
+    // Une progression réelle du dossier remplace les états temporaires
+    // « message vocal » / « attente photos » du menu Contact.
+    if (Object.keys(ms).length && followUp.contactStatus) {
+      ms.contactStatus = null;
+      ms.contactStatusAt = null;
+    }
     if (Object.keys(ms).length) {
       followUp = await prisma.clientFollowUp.update({ where: { id: followUp.id }, data: ms });
     }

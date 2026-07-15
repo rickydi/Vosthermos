@@ -35,6 +35,14 @@ function computeSla(fu, sla, now) {
     if (!(t > 0) || !since) return false;
     return (now - new Date(since).getTime()) / 3600000 > t;
   };
+  // « Attente photos » repart de la sélection de cet état et utilise le délai
+  // de soumission (48 h par défaut). L'alerte reste portée par le menu Contact.
+  if (fu.contactStatus === "waiting_photos") {
+    return {
+      stage: "waiting_photos",
+      overdue: overdue("soumission", fu.contactStatusAt || fu.contactedAt || fu.updatedAt),
+    };
+  }
   if (!fu.contactedAt) return { stage: "to_contact", overdue: overdue("to_contact", fu.lastAttemptAt || fu.createdAt) };
   // Visite planifiée (RDV) : en retard seulement si le jour du RDV est passé sans
   // que la visite soit marquée faite. Passage libre : le client est toujours sur
@@ -223,26 +231,24 @@ export default function SuiviSimple() {
     }
   }
 
-  // État de contact via le menu déroulant : rejoint / 1-2 tentatives sans réponse / réinit.
-  // Un seul appel : pose contactedAt et/ou contactAttempts de façon cohérente.
+  // État de contact via le menu déroulant. L'API applique en une commande les
+  // jalons, tentatives et états temporaires pour éviter les données incohérentes.
   async function setContactState(fu, state) {
     const now = new Date().toISOString();
+    const attempts = fu.contactAttempts || 0;
     const optimistic =
-      state === "reached" ? { contactedAt: fu.contactedAt || now }
-      : state === "a1" ? { contactAttempts: 1, contactedAt: null, lastAttemptAt: now }
-      : state === "a2" ? { contactAttempts: 2, contactedAt: null, lastAttemptAt: now }
-      : { contactAttempts: 0, contactedAt: null, lastAttemptAt: null };
+      state === "reached" ? { contactedAt: fu.contactedAt || now, contactStatus: null, contactStatusAt: null }
+      : state === "a1" ? { contactAttempts: 1, contactedAt: null, lastAttemptAt: now, contactStatus: null, contactStatusAt: null }
+      : state === "a2" ? { contactAttempts: 2, contactedAt: null, lastAttemptAt: now, contactStatus: null, contactStatusAt: null }
+      : state === "voicemail" ? { contactAttempts: Math.min(attempts + 1, 9), contactedAt: null, lastAttemptAt: now, contactStatus: "voicemail", contactStatusAt: now }
+      : state === "waiting_photos" ? { contactedAt: fu.contactedAt || now, contactStatus: "waiting_photos", contactStatusAt: now }
+      : { contactAttempts: 0, contactedAt: null, lastAttemptAt: null, contactStatus: null, contactStatusAt: null };
     patchLocal(fu.id, optimistic);
-    const body =
-      state === "reached" ? { toggleMilestone: "contactedAt", on: true }
-      : state === "a1" ? { contactAttempts: 1, toggleMilestone: "contactedAt", on: false }
-      : state === "a2" ? { contactAttempts: 2, toggleMilestone: "contactedAt", on: false }
-      : { resetAttempts: true, toggleMilestone: "contactedAt", on: false };
     try {
       const res = await fetch(`/api/admin/follow-ups/${fu.id}`, {
         method: "PUT",
         headers: MUTATION_HEADERS,
-        body: JSON.stringify(body),
+        body: JSON.stringify({ contactState: state }),
       });
       if (!res.ok) throw new Error();
       patchLocal(fu.id, await res.json());
@@ -378,7 +384,7 @@ export default function SuiviSimple() {
                 </div>
 
                 <div className="flex items-center gap-1.5 mt-3 flex-wrap">
-                  <ContactMenu fu={fu} onPick={(state) => setContactState(fu, state)} overdue={overdueStage === "to_contact"} />
+                  <ContactMenu fu={fu} onPick={(state) => setContactState(fu, state)} overdue={["to_contact", "waiting_photos"].includes(overdueStage)} />
                   {FOLLOW_UP_MILESTONES.filter((m) => m.key !== "contactedAt").map((m) => {
                     if (m.key === "visitDoneAt") {
                       return <VisiteMenu key={m.key} fu={fu} onPick={(state) => (state === "rdv" ? setRdvFor(fu) : setVisite(fu, state))} overdue={overdueStage === "visit"} />;
@@ -417,7 +423,7 @@ export default function SuiviSimple() {
 
                 {flagged && (
                   <div className="mt-2 text-xs text-rose-300 font-semibold">
-                    <i className="fas fa-triangle-exclamation mr-1"></i>2 tentatives sans réponse — relancer ou marquer refusé
+                    <i className="fas fa-triangle-exclamation mr-1"></i>{attempts} tentatives sans réponse — relancer ou marquer refusé
                   </div>
                 )}
 
@@ -460,19 +466,23 @@ export default function SuiviSimple() {
 }
 
 // Menu déroulant compact pour l'état de contact (remplace les 2 boutons "Contacté"
-// + "Sans réponse"). 4 choix : rejoint / 1-2 tentatives sans réponse / à contacter.
+// + "Sans réponse"). 6 choix, dont message vocal et attente de photos.
 // Code couleur voulu par Erik : DEUX couleurs seulement — vert = fait,
 // rouge = à faire / pas réussi. Gris = aucun état choisi.
 const CONTACT_STATES = {
   none: { label: "À contacter", icon: "fa-circle", cls: "admin-bg admin-border admin-text-muted" },
   a1: { label: "1 tentative", icon: "fa-phone-slash", cls: "border-rose-400/50 text-rose-300 bg-rose-500/10" },
   a2: { label: "2 tentatives", icon: "fa-phone-slash", cls: "border-rose-400/50 text-rose-300 bg-rose-500/10" },
+  voicemail: { label: "Message vocal", icon: "fa-voicemail", cls: "border-rose-400/50 text-rose-300 bg-rose-500/10" },
+  waiting_photos: { label: "Attente photos", icon: "fa-camera", cls: "bg-emerald-500/15 border-emerald-400/40 text-emerald-300" },
   reached: { label: "Contacté", icon: "fa-circle-check", cls: "bg-emerald-500/15 border-emerald-400/40 text-emerald-300" },
 };
 const CONTACT_OPTIONS = [
   { key: "reached", label: "Contacté (rejoint)", icon: "fa-circle-check", tone: "text-emerald-400" },
   { key: "a1", label: "1 tentative — sans réponse", icon: "fa-phone-slash", tone: "text-rose-400" },
   { key: "a2", label: "2 tentatives — sans réponse", icon: "fa-phone-slash", tone: "text-rose-400" },
+  { key: "voicemail", label: "Message vocal", icon: "fa-voicemail", tone: "text-rose-400" },
+  { key: "waiting_photos", label: "En attente de photos", icon: "fa-camera", tone: "text-emerald-400" },
   { key: "none", label: "À contacter (réinitialiser)", icon: "fa-rotate-left", tone: "admin-text-muted" },
 ];
 
@@ -480,14 +490,22 @@ function ContactMenu({ fu, onPick, overdue }) {
   const [open, setOpen] = useState(false);
   const attempts = fu.contactAttempts || 0;
   const reached = !!fu.contactedAt;
-  const current = reached ? "reached" : attempts >= 2 ? "a2" : attempts === 1 ? "a1" : "none";
+  const special = ["voicemail", "waiting_photos"].includes(fu.contactStatus) ? fu.contactStatus : null;
+  const current = special || (reached ? "reached" : attempts >= 2 ? "a2" : attempts === 1 ? "a1" : "none");
   const cur = CONTACT_STATES[current];
+  const title = current === "voicemail"
+    ? `Message vocal laissé${fu.lastAttemptAt ? ` · ${fmtDate(fu.lastAttemptAt)}` : ""}`
+    : current === "waiting_photos"
+      ? `En attente de photos${fu.contactStatusAt ? ` · depuis le ${fmtDate(fu.contactStatusAt)}` : ""}`
+      : attempts > 0 && !reached
+        ? `${attempts} tentative${attempts > 1 ? "s" : ""} sans réponse · dernière ${fmtDate(fu.lastAttemptAt)}`
+        : "Statut de contact";
 
   return (
     <div className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        title={attempts > 0 && !reached ? `${attempts} tentative${attempts > 1 ? "s" : ""} sans réponse · dernière ${fmtDate(fu.lastAttemptAt)}` : "Statut de contact"}
+        title={title}
         className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${cur.cls} ${overdue ? "vt-flash-red" : ""}`}
       >
         <i className={`fas ${cur.icon}`}></i>
