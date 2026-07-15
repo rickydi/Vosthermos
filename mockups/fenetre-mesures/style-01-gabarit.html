@@ -348,6 +348,8 @@
       .pane[aria-pressed="true"]::after{content:none;display:none}
       .pane-code{font-size:18px}
       .pane-value,.pane-hint{display:none}
+      body[data-recursive-layout="true"] .pane.is-measurement-needed .pane-code{position:absolute;z-index:3;top:5px;left:50%;transform:translateX(-50%)}
+      body[data-recursive-layout="true"] .pane.is-measurement-needed .pane-code-editing{top:0;gap:1px;transform:translateX(-50%)}
       .divider-handle{width:44px;height:44px;isolation:isolate;border-radius:999px;background:transparent;font:800 15px var(--font-data);box-shadow:none}
       .divider-handle::before{content:"";position:absolute;z-index:-1;inset:5px;border-radius:50%;background:var(--accent);box-shadow:0 3px 10px rgba(0,0,0,.2)}
       body[data-draggable-dividers="true"] .divider-handle.is-dragging{background:transparent}
