@@ -169,12 +169,12 @@
     .pane-code-editing { display:grid; place-items:center; gap:3px; line-height:1; }
     .pane-code-editing small { font:800 clamp(8px,1.4vw,10px)/1 var(--font-ui); letter-spacing:.07em; text-transform:uppercase; white-space:nowrap; }
     .pane-code-editing strong { font:900 1.18em/1 var(--font-data); }
-    .pane-measurement-needed { position:absolute; z-index:3; right:6px; bottom:6px; left:6px; width:max-content; max-width:calc(100% - 12px); margin:auto; padding:4px 7px; border:1px solid rgba(227,7,24,.24); border-radius:999px; background:rgba(255,247,247,.9); color:var(--brand-red); box-shadow:0 2px 8px rgba(134,0,10,.08); font:900 clamp(7px,1.25vw,10px)/1.08 var(--font-ui); text-align:center; white-space:normal; pointer-events:none; animation:measurement-needed-pulse 3.6s ease-in-out infinite; }
+    .pane-measurement-needed { position:absolute; z-index:3; right:6px; bottom:6px; left:6px; width:max-content; max-width:calc(100% - 12px); margin:auto; padding:5px 9px; border:1px solid rgba(227,7,24,.24); border-radius:999px; background:rgba(255,247,247,.9); color:var(--brand-red); box-shadow:0 2px 8px rgba(134,0,10,.08); font:900 clamp(11px,1.55vw,13px)/1.12 var(--font-ui); text-align:center; white-space:normal; pointer-events:none; animation:measurement-needed-pulse 3.6s ease-in-out infinite; }
     .pane-measurement-short { display:none; }
     body[data-recursive-layout="true"] .pane.is-compact .pane-code-editing small { font-size:6px; letter-spacing:.035em; }
-    body[data-recursive-layout="true"] .pane.is-compact.is-measurement-needed .pane-code { transform:translateY(-8px); }
-    body[data-recursive-layout="true"] .pane.is-compact.is-measurement-needed .pane-code-editing { gap:1px; transform:translateY(-11px); }
-    body[data-recursive-layout="true"] .pane.is-compact .pane-measurement-needed { right:3px; bottom:3px; left:3px; max-width:calc(100% - 6px); padding:2px 3px; border-radius:6px; font-size:clamp(8px,2.2vw,9px); line-height:1.05; }
+    body[data-recursive-layout="true"] .pane.is-compact.is-measurement-needed .pane-code { transform:translateY(-15px); }
+    body[data-recursive-layout="true"] .pane.is-compact.is-measurement-needed .pane-code-editing { gap:1px; transform:translateY(-18px); }
+    body[data-recursive-layout="true"] .pane.is-compact .pane-measurement-needed { right:3px; bottom:3px; left:3px; max-width:calc(100% - 6px); padding:3px 4px; border-radius:7px; font-size:clamp(11px,3vw,12px); line-height:1.1; }
     body[data-recursive-layout="true"] .pane.is-compact .pane-measurement-needed[lang="en"] .pane-measurement-full { display:none; }
     body[data-recursive-layout="true"] .pane.is-compact .pane-measurement-needed[lang="en"] .pane-measurement-short { display:inline; }
     @keyframes selected-thermos-breathe {
@@ -356,6 +356,8 @@
     @media(max-width:350px){
       .pane-measurement-full{display:none}
       .pane-measurement-short{display:inline}
+      body[data-recursive-layout="true"] .pane.is-compact.is-measurement-needed .pane-code{transform:translateY(-10px)}
+      body[data-recursive-layout="true"] .pane.is-compact.is-measurement-needed .pane-code-editing{transform:translateY(-13px)}
     }
     @media(min-width:760px){
       .plan-head h2{font-size:27px}
