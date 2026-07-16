@@ -8,13 +8,19 @@
   const windowRenameForm = document.querySelector('[data-window-rename-form]');
   const windowRenameInput = document.querySelector('[data-window-rename-input]');
   const windowRenameError = document.querySelector('[data-window-rename-error]');
+  const windowIncompleteModal = document.querySelector('[data-window-incomplete-modal]');
+  const windowIncompleteCode = document.querySelector('[data-window-incomplete-code]');
+  const windowIncompleteTitle = document.querySelector('[data-window-incomplete-title]');
+  const windowIncompleteMessage = document.querySelector('[data-window-incomplete-message]');
+  const windowIncompleteReturn = document.querySelector('[data-window-incomplete-return]');
+  const windowIncompleteContinue = document.querySelector('[data-window-incomplete-continue]');
   const toast = document.querySelector('[data-toast]');
   const helpPanel = document.querySelector('[data-help-panel]');
   const helpTitle = helpPanel?.querySelector('[data-help-title]');
   const helpBody = helpPanel?.querySelector('[data-help-body]');
   const helpKicker = helpPanel?.querySelector('[data-help-kicker]');
   const helpClose = helpPanel?.querySelector('[data-help-close]');
-  if (!prototypeRoot || !windowList || !windowTemplate || !paneActionModal || !windowRenameModal || !windowRenameForm || !windowRenameInput || !helpPanel || !helpTitle || !helpBody || !helpClose) return;
+  if (!prototypeRoot || !windowList || !windowTemplate || !paneActionModal || !windowRenameModal || !windowRenameForm || !windowRenameInput || !windowIncompleteModal || !windowIncompleteCode || !windowIncompleteTitle || !windowIncompleteMessage || !windowIncompleteReturn || !windowIncompleteContinue || !helpPanel || !helpTitle || !helpBody || !helpClose) return;
 
   const MAX_PANES = 12;
   const MIN_CHILD_PX = 52;
@@ -29,8 +35,6 @@
     ? {
         editing: 'You are editing',
         choose: 'Tap to select',
-        measurementsRequired: 'Measurements required',
-        measurementsRequiredShort: 'To measure',
         measurementsRequiredLabel: 'Measurements required.',
         selectedLabel: (code, paneCode) => code + ', glass unit ' + paneCode + '. You are editing this glass unit.',
         availableLabel: (code, paneCode) => code + ', glass unit ' + paneCode + '. Select this glass unit.',
@@ -38,12 +42,34 @@
     : {
         editing: 'Vous éditez',
         choose: 'Toucher pour choisir',
-        measurementsRequired: 'Mesures à remplir',
-        measurementsRequiredShort: 'À mesurer',
         measurementsRequiredLabel: 'Mesures à remplir.',
         selectedLabel: (code, paneCode) => code + ', thermos ' + paneCode + '. Vous éditez ce thermos.',
         availableLabel: (code, paneCode) => code + ', thermos ' + paneCode + '. Sélectionner ce thermos.',
       };
+  const incompleteWindowCopy = clientLanguage === 'en'
+    ? {
+        kicker: 'Incomplete measurements',
+        title: (code, name) => code + ' · ' + name + ' is not complete',
+        close: 'Close',
+        action: 'Complete measurements',
+        continue: 'Add anyway',
+        message: (missing, total) => 'There ' + (missing === 1 ? 'is ' : 'are ') + missing + ' glass unit' + (missing === 1 ? '' : 's') + ' left to measure out of ' + total + '.',
+      }
+    : {
+        kicker: 'Mesures incomplètes',
+        title: (code, name) => code + ' · ' + name + ' n’est pas terminée',
+        close: 'Fermer',
+        action: 'Compléter les mesures',
+        continue: 'Ajouter quand même',
+        message: (missing, total) => 'Il reste ' + missing + ' thermos sur ' + total + ' à mesurer.',
+      };
+  windowIncompleteCode.textContent = incompleteWindowCopy.kicker;
+  windowIncompleteReturn.textContent = incompleteWindowCopy.action;
+  windowIncompleteContinue.textContent = incompleteWindowCopy.continue;
+  windowIncompleteModal.lang = clientLanguage;
+  windowIncompleteModal.querySelectorAll('[data-close-window-incomplete]').forEach((button) => {
+    button.setAttribute('aria-label', incompleteWindowCopy.close);
+  });
   const DIMENSION_KEYS = ['width', 'height', 'thickness'];
   const UNIT_CONFIG = {
     in: { factor: 1, decimals: 4 },
@@ -476,6 +502,7 @@
     if (interaction.controller && interaction.controller !== controller) {
       if (!paneActionModal.hidden) closePaneActions({ restoreFocus: false });
       if (!windowRenameModal.hidden) closeWindowRenameModal({ restoreFocus: false });
+      if (!windowIncompleteModal.hidden) closeWindowIncompleteModal({ restoreFocus: false });
     }
     activeWindowId = controller.id;
     controllers.forEach((item) => {
@@ -594,6 +621,85 @@
       windowRenameInput.focus();
       windowRenameInput.select();
     });
+  }
+
+  function incompleteWindowDetails(controller) {
+    if (!controller) return null;
+    const entries = controller.getEntries();
+    const incompleteEntries = entries.filter(({ node }) => !paneIsComplete(node));
+    return incompleteEntries.length ? { controller, entries, incompleteEntries } : null;
+  }
+
+  function closeWindowIncompleteModal({ restoreFocus = true } = {}) {
+    const focusTarget = interaction.lastFocusedElement;
+    const controller = interaction.controller;
+    windowIncompleteModal.hidden = true;
+    document.body.classList.remove('window-incomplete-open');
+    if (interaction.mode === 'incomplete') {
+      interaction.mode = null;
+      prototypeRoot.inert = false;
+    }
+    if (!restoreFocus) return;
+    requestAnimationFrame(() => {
+      if (focusTarget?.isConnected) focusTarget.focus({ preventScroll: true });
+      else controller?.root.focus({ preventScroll: true });
+    });
+  }
+
+  function openWindowIncompleteModal(details) {
+    if (!details?.controller || !details.incompleteEntries.length) return;
+    closeHelp();
+    if (!paneActionModal.hidden) closePaneActions({ restoreFocus: false });
+    if (!windowRenameModal.hidden) closeWindowRenameModal({ restoreFocus: false });
+    const { controller, entries, incompleteEntries } = details;
+    activateController(controller);
+    interaction.controller = controller;
+    interaction.paneId = incompleteEntries[0].node.id;
+    interaction.mode = 'incomplete';
+    interaction.lastFocusedElement = document.activeElement;
+    windowIncompleteTitle.textContent = incompleteWindowCopy.title(controller.state.code, controller.state.name);
+    windowIncompleteMessage.textContent = incompleteWindowCopy.message(incompleteEntries.length, entries.length);
+    windowIncompleteModal.hidden = false;
+    prototypeRoot.inert = true;
+    document.body.classList.add('window-incomplete-open');
+    requestAnimationFrame(() => windowIncompleteReturn.focus());
+  }
+
+  function returnToIncompleteMeasurements() {
+    const controller = interaction.controller;
+    const paneId = interaction.paneId;
+    const pane = controller?.getPane(paneId);
+    const firstMissingDimension = pane
+      ? DIMENSION_KEYS.find((key) => !Number.isFinite(pane.measurement[key + 'Inches']) || pane.measurement[key + 'Inches'] <= 0)
+      : null;
+    closeWindowIncompleteModal({ restoreFocus: false });
+    if (!controller || !paneId) return;
+    selectPaneOnly(controller, paneId, { focus: false });
+    const targetInput = firstMissingDimension
+      ? controller.root.querySelector('[data-measure-dimension="' + firstMissingDimension + '"][data-measure-part="value"]')
+      : null;
+    const scrollTarget = targetInput || controller.root.querySelector('.thermos-editor');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    scrollTarget?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+    requestAnimationFrame(() => {
+      if (targetInput) targetInput.focus({ preventScroll: true });
+      else controller.focusPane(paneId);
+    });
+  }
+
+  function continueAddingWindow() {
+    closeWindowIncompleteModal({ restoreFocus: false });
+    addWindow();
+  }
+
+  function requestAddWindow() {
+    const activeController = controllerById.get(activeWindowId) || controllers[controllers.length - 1];
+    const incompleteDetails = incompleteWindowDetails(activeController);
+    if (incompleteDetails) {
+      openWindowIncompleteModal(incompleteDetails);
+      return null;
+    }
+    return addWindow();
   }
 
   function openPaneActions(controller, paneId) {
@@ -850,18 +956,14 @@
         pane.dataset.paneId = node.id;
         pane.lang = clientLanguage;
         pane.setAttribute('aria-pressed', String(isSelected));
-        pane.classList.toggle('is-measurement-needed', needsMeasurements);
         const paneAriaLabel = isSelected ? paneCopy.selectedLabel(state.code, paneCode) : paneCopy.availableLabel(state.code, paneCode);
         pane.setAttribute('aria-label', paneAriaLabel + (needsMeasurements ? ' ' + paneCopy.measurementsRequiredLabel : ''));
         const summary = paneSummary(node);
         const paneCodeMarkup = isSelected
           ? '<span class="pane-code pane-code-editing" lang="' + clientLanguage + '"><small>' + paneCopy.editing + '</small><strong>' + paneCode + '</strong></span>'
           : '<span class="pane-code">' + paneCode + '</span>';
-        const paneHintMarkup = isSelected || needsMeasurements ? '' : '<span class="pane-hint" lang="' + clientLanguage + '">' + paneCopy.choose + '</span>';
-        const measurementStatusMarkup = needsMeasurements
-          ? '<span class="pane-measurement-needed" lang="' + clientLanguage + '" aria-hidden="true"><span class="pane-measurement-full">' + paneCopy.measurementsRequired + '</span><span class="pane-measurement-short">' + paneCopy.measurementsRequiredShort + '</span></span>'
-          : '';
-        pane.innerHTML = (summary ? '<span class="pane-value">' + summary + '</span>' : '') + paneCodeMarkup + paneHintMarkup + measurementStatusMarkup;
+        const paneHintMarkup = isSelected ? '' : '<span class="pane-hint" lang="' + clientLanguage + '">' + paneCopy.choose + '</span>';
+        pane.innerHTML = (summary ? '<span class="pane-value">' + summary + '</span>' : '') + paneCodeMarkup + paneHintMarkup;
         renderDecorativeLines(pane, node);
         pane.addEventListener('click', () => selectPaneOnly(api, node.id));
         return pane;
@@ -1664,6 +1766,34 @@
     }
   });
 
+  windowIncompleteModal.querySelectorAll('[data-close-window-incomplete]').forEach((button) => {
+    button.addEventListener('click', () => closeWindowIncompleteModal());
+  });
+  windowIncompleteReturn.addEventListener('click', returnToIncompleteMeasurements);
+  windowIncompleteContinue.addEventListener('click', continueAddingWindow);
+  windowIncompleteModal.addEventListener('click', (event) => {
+    if (event.target === windowIncompleteModal) closeWindowIncompleteModal();
+  });
+  windowIncompleteModal.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeWindowIncompleteModal();
+      return;
+    }
+    if (event.key !== 'Tab') return;
+    const focusable = [...windowIncompleteModal.querySelectorAll('button:not(:disabled)')];
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  });
+
   paneActionModal.querySelectorAll('[data-close-pane-action]').forEach((button) => button.addEventListener('click', () => closePaneActions()));
   paneActionModal.querySelectorAll('[data-modal-axis]').forEach((button) => button.addEventListener('click', () => {
     interaction.axis = button.dataset.modalAxis;
@@ -1724,7 +1854,7 @@
   } else {
     addWindow({ focus: false });
   }
-  addWindowButton?.addEventListener('click', () => addWindow());
+  addWindowButton?.addEventListener('click', requestAddWindow);
 
   document.querySelectorAll('[data-save-draft]').forEach((button) => button.addEventListener('click', () => {
     document.querySelectorAll('[data-dirty]').forEach((node) => { node.hidden = true; });
@@ -1772,7 +1902,10 @@
     if (previewHelpTrigger) openHelp(previewHelpTrigger);
   }
   const previewPaneId = previewController?.resolvePaneId(previewParams.get('previewPane'));
-  if (previewController && previewParams.get('previewRename') === '1') {
+  if (previewController && previewParams.get('previewIncomplete') === '1') {
+    const previewIncompleteDetails = incompleteWindowDetails(previewController);
+    if (previewIncompleteDetails) openWindowIncompleteModal(previewIncompleteDetails);
+  } else if (previewController && previewParams.get('previewRename') === '1') {
     openWindowRenameModal(previewController);
   } else if (previewController && previewPaneId) {
     previewController.openPaneActions(previewPaneId);

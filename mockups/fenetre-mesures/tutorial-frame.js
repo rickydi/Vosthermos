@@ -114,6 +114,10 @@
   function updateCursor() {
     if (!currentTarget?.isConnected || !cursor) return;
     const rect = currentTarget.getBoundingClientRect();
+    if (!rect.width || !rect.height) {
+      cursor.style.opacity = '0';
+      return;
+    }
     cursor.style.left = rect.left + rect.width * .72 + 'px';
     cursor.style.top = rect.top + rect.height * .55 + 'px';
   }
@@ -228,8 +232,10 @@
     if (scene === 5) return scaleEvents([
       { at: 0, run: () => focusTarget('[data-add-window]', 'center') },
       { at: 1000, run: () => clickTarget('[data-add-window]') },
-      { at: 2850, run: () => focusTarget('[data-window-plan]:last-child .plan-head', 'start') },
-      { at: 4300, run: () => focusTarget('[data-window-plan]:last-child [data-window-canvas]') },
+      { at: 1800, run: () => focusTarget('[data-window-incomplete-continue]') },
+      { at: 2450, run: () => clickTarget('[data-window-incomplete-continue]') },
+      { at: 3600, run: () => focusTarget('[data-window-plan]:last-child .plan-head', 'start') },
+      { at: 4950, run: () => focusTarget('[data-window-plan]:last-child [data-window-canvas]') },
       { at: baseDurations[scene], run: complete },
     ]);
     return scaleEvents([

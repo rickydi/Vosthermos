@@ -169,21 +169,10 @@
     .pane-code-editing { display:grid; place-items:center; gap:3px; line-height:1; }
     .pane-code-editing small { font:800 clamp(8px,1.4vw,10px)/1 var(--font-ui); letter-spacing:.07em; text-transform:uppercase; white-space:nowrap; }
     .pane-code-editing strong { font:900 1.18em/1 var(--font-data); }
-    .pane-measurement-needed { position:absolute; z-index:3; right:6px; bottom:6px; left:6px; width:max-content; max-width:calc(100% - 12px); margin:auto; padding:5px 9px; border:1px solid rgba(227,7,24,.24); border-radius:999px; background:rgba(255,247,247,.9); color:var(--brand-red); box-shadow:0 2px 8px rgba(134,0,10,.08); font:900 clamp(11px,1.55vw,13px)/1.12 var(--font-ui); text-align:center; white-space:normal; pointer-events:none; animation:measurement-needed-pulse 3.6s ease-in-out infinite; }
-    .pane-measurement-short { display:none; }
     body[data-recursive-layout="true"] .pane.is-compact .pane-code-editing small { font-size:6px; letter-spacing:.035em; }
-    body[data-recursive-layout="true"] .pane.is-compact.is-measurement-needed .pane-code { position:absolute; z-index:3; top:5px; left:50%; transform:translateX(-50%); }
-    body[data-recursive-layout="true"] .pane.is-compact.is-measurement-needed .pane-code-editing { top:0; gap:1px; transform:translateX(-50%); }
-    body[data-recursive-layout="true"] .pane.is-compact .pane-measurement-needed { right:3px; bottom:3px; left:3px; max-width:calc(100% - 6px); padding:3px 4px; border-radius:7px; font-size:clamp(11px,3vw,12px); line-height:1.1; }
-    body[data-recursive-layout="true"] .pane.is-compact .pane-measurement-needed[lang="en"] .pane-measurement-full { display:none; }
-    body[data-recursive-layout="true"] .pane.is-compact .pane-measurement-needed[lang="en"] .pane-measurement-short { display:inline; }
     @keyframes selected-thermos-breathe {
       0%,100% { opacity:.38; transform:scale(.97); box-shadow:inset 0 0 0 2px rgba(21,151,168,.26); }
       50% { opacity:.92; transform:scale(1); box-shadow:inset 0 0 0 4px rgba(21,151,168,.58),inset 0 0 32px rgba(21,151,168,.22); }
-    }
-    @keyframes measurement-needed-pulse {
-      0%,100% { border-color:rgba(227,7,24,.18); background:rgba(255,247,247,.76); box-shadow:0 2px 8px rgba(134,0,10,.04); }
-      50% { border-color:rgba(227,7,24,.48); background:rgba(255,239,240,.98); box-shadow:0 2px 10px rgba(134,0,10,.16),0 0 0 3px rgba(227,7,24,.06); }
     }
     .thermos-editor { margin:12px 0 0; overflow:hidden; border:1px solid color-mix(in srgb,var(--accent) 24%,var(--line)); border-radius:18px; background:var(--surface); box-shadow:0 12px 26px rgba(6,29,36,.08); }
     .thermos-editor-head { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:13px 14px; border-bottom:1px solid var(--line); background:color-mix(in srgb,var(--surface-2) 45%,var(--surface)); }
@@ -240,7 +229,7 @@
     .decorative-options .counter { grid-template-columns:40px minmax(28px,1fr) 40px; gap:5px; }
     .decorative-options .counter button { min-height:42px; }
     body.pane-action-open { overflow:hidden; }
-    body.window-rename-open { overflow:hidden; }
+    body.window-rename-open,body.window-incomplete-open { overflow:hidden; }
     .window-rename-modal { position:fixed; z-index:95; inset:0; display:grid; place-items:center; padding:18px; background:rgba(0,31,39,.62); backdrop-filter:blur(4px); overflow:auto; }
     .window-rename-modal[hidden] { display:none; }
     .window-rename-card { width:min(390px,100%); margin:auto; padding:20px; border:1px solid rgba(255,255,255,.78); border-radius:22px; background:var(--surface); color:var(--ink); box-shadow:0 28px 90px rgba(0,0,0,.38); animation:sheet-in .2s ease-out; }
@@ -254,6 +243,15 @@
     .window-rename-error[hidden] { display:none; }
     .window-rename-actions { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:18px; }
     .window-rename-actions button { min-height:48px; border-radius:12px; font-weight:900; }
+    .window-incomplete-card { width:min(420px,100%); }
+    .window-incomplete-summary { margin:18px 0 0; padding:14px 15px; border:1px solid rgba(227,7,24,.2); border-left:5px solid var(--brand-red); border-radius:12px; background:#fff5f5; }
+    .window-incomplete-summary p { margin:0; color:#5d3034; font-size:14px; font-weight:750; line-height:1.45; }
+    .window-incomplete-actions { display:grid; gap:8px; margin-top:16px; }
+    .window-incomplete-actions button { width:100%; min-height:50px; border:0; border-radius:12px; background:var(--accent); color:#fff; font-weight:900; }
+    .window-incomplete-actions button:hover { background:#004b5a; }
+    .window-incomplete-actions button:focus-visible { outline:3px solid color-mix(in srgb,var(--brand-red) 48%,transparent); outline-offset:3px; }
+    .window-incomplete-actions .secondary { min-height:44px; border:1px solid var(--line); background:transparent; color:#304b53; }
+    .window-incomplete-actions .secondary:hover { border-color:color-mix(in srgb,var(--accent) 40%,var(--line)); background:color-mix(in srgb,var(--accent) 5%,var(--surface)); color:var(--accent); }
     .pane-action-modal { position:fixed; z-index:90; inset:0; display:grid; place-items:center; padding:18px; background:rgba(0,31,39,.62); backdrop-filter:blur(4px); overflow:auto; }
     .pane-action-modal[hidden] { display:none; }
     .pane-action-card { width:min(460px,100%); max-height:calc(100dvh - 36px); overflow:auto; margin:auto; padding:20px; border:1px solid rgba(255,255,255,.78); border-radius:24px; background:var(--surface); color:var(--ink); box-shadow:0 28px 90px rgba(0,0,0,.38); animation:sheet-in .2s ease-out; }
@@ -348,16 +346,10 @@
       .pane[aria-pressed="true"]::after{content:none;display:none}
       .pane-code{font-size:18px}
       .pane-value,.pane-hint{display:none}
-      body[data-recursive-layout="true"] .pane.is-measurement-needed .pane-code{position:absolute;z-index:3;top:5px;left:50%;transform:translateX(-50%)}
-      body[data-recursive-layout="true"] .pane.is-measurement-needed .pane-code-editing{top:0;gap:1px;transform:translateX(-50%)}
       .divider-handle{width:44px;height:44px;isolation:isolate;border-radius:999px;background:transparent;font:800 15px var(--font-data);box-shadow:none}
       .divider-handle::before{content:"";position:absolute;z-index:-1;inset:5px;border-radius:50%;background:var(--accent);box-shadow:0 3px 10px rgba(0,0,0,.2)}
       body[data-draggable-dividers="true"] .divider-handle.is-dragging{background:transparent}
       body[data-draggable-dividers="true"] .divider-handle.is-dragging::before{background:#087484}
-    }
-    @media(max-width:350px){
-      .pane-measurement-full{display:none}
-      .pane-measurement-short{display:inline}
     }
     @media(min-width:760px){
       .plan-head h2{font-size:27px}
@@ -380,7 +372,6 @@
     }
     @media(prefers-reduced-motion:reduce){
       .pane[aria-pressed="true"]::before{animation:none;opacity:.7;transform:none}
-      .pane-measurement-needed{animation:none;opacity:1}
     }
   </style>
   <link rel="stylesheet" href="tutorial-guide.css">
@@ -524,6 +515,17 @@
       <p class="window-rename-error" data-window-rename-error role="alert" hidden></p>
       <div class="window-rename-actions"><button type="button" class="secondary" data-close-window-rename>Annuler</button><button type="submit" class="primary">Enregistrer</button></div>
     </form>
+  </div>
+
+  <div class="window-rename-modal window-incomplete-modal" data-window-incomplete-modal hidden>
+    <section class="window-rename-card window-incomplete-card" role="alertdialog" aria-modal="true" aria-labelledby="window-incomplete-title" aria-describedby="window-incomplete-message">
+      <div class="window-rename-head">
+        <div><span class="pane-action-kicker" data-window-incomplete-code>Mesures incomplètes</span><h2 id="window-incomplete-title" data-window-incomplete-title>F01 · Salon n’est pas terminée</h2></div>
+        <button type="button" class="pane-action-close icon-circle-center" data-close-window-incomplete aria-label="Fermer"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 7l10 10M17 7 7 17"/></svg></button>
+      </div>
+      <div class="window-incomplete-summary"><p id="window-incomplete-message" data-window-incomplete-message>Il reste des thermos à mesurer.</p></div>
+      <div class="window-incomplete-actions"><button type="button" data-window-incomplete-return>Compléter les mesures</button><button type="button" class="secondary" data-window-incomplete-continue>Ajouter quand même</button></div>
+    </section>
   </div>
 
   <div class="pane-action-modal" data-pane-action-modal hidden>
