@@ -366,9 +366,17 @@
       .add-window-large{min-height:88px}
       .add-window-icon{flex-basis:48px;width:48px;height:48px}
     }
-    @media(min-width:720px){.topbar{margin:-24px -24px 20px;padding-left:76px}.topbar .brand-mark{height:70px}}
+    @media(min-width:720px){
+      .topbar{margin:-24px -24px 20px;padding-left:76px}.topbar .brand-mark{height:70px}
+      .sticky-actions{gap:7px;padding:8px}
+      .sticky-actions button{min-height:46px}
+    }
+    @media(min-width:720px) and (max-width:1179px){
+      .sticky-actions{left:50%;right:auto;width:min(560px,calc(100vw - 48px));transform:translateX(-50%)}
+    }
     @media(min-width:1180px){
       .plan-card{padding:20px}.plan-card .window-stage{margin:18px -20px 0}
+      .sticky-actions{width:min(560px,100%);margin:20px auto 0}
     }
     @media(prefers-reduced-motion:reduce){
       .pane[aria-pressed="true"]::before{animation:none;opacity:.7;transform:none}
