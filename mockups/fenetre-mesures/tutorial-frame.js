@@ -31,76 +31,9 @@
     node?.dispatchEvent(new Event(type, { bubbles: true }));
   }
 
-  function setText(selector, text, root = document) {
-    const node = root.querySelector(selector);
-    if (node) node.textContent = text;
-  }
-
   function translateEnglish() {
     if (language !== 'en') return;
-    setText('.mode-chip', 'Final measurements');
-    setText('.progress-head > span', 'Measurement steps');
-    document.querySelectorAll('.plan-status').forEach((node) => {
-      const complete = node.querySelector('[data-complete-pane-output]')?.textContent || '0';
-      const total = node.querySelector('[data-pane-count-output]')?.textContent || '0';
-      node.innerHTML = '<strong data-complete-pane-output>' + complete + '</strong>&nbsp;/&nbsp;<span data-pane-count-output>' + total + '</span>&nbsp;measured';
-    });
-    document.querySelectorAll('.layout-presets-summary').forEach((node) => {
-      const selected = node.querySelector('[data-preset-summary]')?.textContent || 'Four equal';
-      node.innerHTML = '<strong>Choose a window type</strong><small>Selected: <span data-preset-summary>' + selected + '</span></small>';
-    });
-    const presets = {
-      '1x1': ['Single pane', '1 glass unit'], '2x1-narrow-left': ['Small left pane', '2 glass units'], '2x1': ['Two side by side', '2 glass units'],
-      '1x2': ['Two stacked', '2 glass units'], '3x1': ['Three side by side', '3 glass units'], '2x2': ['Four equal', '4 glass units'],
-      '3x2': ['Six equal', '6 glass units'], '3x3': ['Nine equal', '9 glass units'], 'top-3-bottom-1': ['Three on top', '4 glass units'],
-      'top-1-bottom-3': ['Three on bottom', '4 glass units'], 'left-1-right-3': ['Large pane on left', '4 glass units'], 'left-3-right-1': ['Large pane on right', '4 glass units'],
-    };
-    Object.entries(presets).forEach(([key, labels]) => {
-      const button = document.querySelector('[data-layout-preset="' + key + '"]');
-      if (!button) return;
-      setText('.preset-copy strong', labels[0], button);
-      setText('.preset-copy small', labels[1], button);
-    });
-    document.querySelectorAll('[data-photo-label]').forEach((node) => { node.textContent = 'Take a photo'; });
-    document.querySelectorAll('[data-photo-help]').forEach((node) => { node.textContent = 'Divisions are detected automatically'; });
-    document.querySelectorAll('[data-edit-selected-thermos] strong').forEach((node) => { node.textContent = 'Edit selected glass unit'; });
-    document.querySelectorAll('[data-edit-selected-thermos] small').forEach((node) => { node.textContent = 'Split vertically or horizontally'; });
-    document.querySelectorAll('.thermos-editor-kicker').forEach((node) => { node.textContent = 'Selected glass unit'; });
-    document.querySelectorAll('[data-editor-state]').forEach((node) => {
-      node.textContent = node.dataset.state === 'complete' ? 'Measurements complete' : node.dataset.state === 'progress' ? 'Measurements in progress' : 'To measure';
-    });
-    document.querySelectorAll('[aria-labelledby$="thermos-measure-title"] h4').forEach((node) => { node.textContent = 'Measurements'; });
-    document.querySelectorAll('[aria-labelledby$="thermos-options-title"] h4').forEach((node) => { node.textContent = 'Glass options'; });
-    document.querySelectorAll('[data-measure-dimension="width"]').forEach((node) => {
-      const label = node.closest('.dimension')?.querySelector('.field-label');
-      if (label) label.textContent = 'Width *';
-    });
-    document.querySelectorAll('[data-measure-dimension="height"]').forEach((node) => {
-      const label = node.closest('.dimension')?.querySelector('.field-label');
-      if (label) label.textContent = 'Height *';
-    });
-    document.querySelectorAll('[data-measure-dimension="thickness"]').forEach((node) => {
-      const label = node.closest('.dimension')?.querySelector('.field-label');
-      if (label) label.textContent = 'Thickness *';
-    });
-    document.querySelectorAll('[data-decorative-enabled] strong').forEach((node) => { node.textContent = 'Decorative grilles'; });
-    document.querySelectorAll('[data-decorative-enabled] small').forEach((node) => { node.textContent = 'Add lines without creating new glass units'; });
-    document.querySelectorAll('[data-add-window] strong').forEach((node) => { node.textContent = 'Add another window'; });
-    document.querySelectorAll('[data-add-window] small').forEach((node) => { node.textContent = 'Create a new glazing plan'; });
-    document.querySelectorAll('[data-undo] .history-action-label').forEach((node) => { node.textContent = 'Undo'; });
-    document.querySelectorAll('[data-redo] .history-action-label').forEach((node) => { node.textContent = 'Redo'; });
-    document.querySelectorAll('[data-finalize]').forEach((node) => { node.textContent = 'Confirm final measurements'; });
-    setText('#pane-action-title', 'Split this glass unit');
-    document.querySelectorAll('[data-pane-action-modal] .pane-action-head p').forEach((node) => { node.textContent = 'Create 2 to 4 glass units in the selected section.'; });
-    document.querySelectorAll('[data-modal-axis="vertical"] strong').forEach((node) => { node.textContent = 'Vertical'; });
-    document.querySelectorAll('[data-modal-axis="horizontal"] strong').forEach((node) => { node.textContent = 'Horizontal'; });
-    document.querySelectorAll('[data-create-sections]').forEach((node) => {
-      if (!node.disabled) node.textContent = 'Create glass units';
-    });
-    const toast = document.querySelector('[data-toast]');
-    if (toast?.textContent.includes('Prototype seulement')) toast.textContent = 'Prototype only: final measurements would be confirmed here.';
-    else if (toast?.textContent.includes('annulée')) toast.textContent = 'Last change undone.';
-    else if (toast?.textContent.includes('rétablie')) toast.textContent = 'Last change restored.';
+    document.documentElement.lang = 'en';
   }
 
   function ensureCursor() {

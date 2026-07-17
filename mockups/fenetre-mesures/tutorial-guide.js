@@ -39,7 +39,7 @@
         dotsLabel: 'Tutorial steps', stageLabel: 'Live demonstration of the measurement application', frameLabel: 'Isolated copy of the measurement application', loading: 'Preparing the live demonstration…',
         steps: [
           { title: 'Choose the window', description: 'Watch the real model list open, then the Four equal layout is selected.', tip: 'Take a photo is the second option. The camera is not opened during the tutorial.', position: 'bottom', side: 'right' },
-          { title: 'Select one glass unit', description: 'The tutorial taps T2 in the real drawing. The editor then follows that exact unit.', tip: 'The isolated copy behaves like your dossier, but nothing is saved to it.', position: 'bottom', side: 'left' },
+          { title: 'Select one glass unit', description: 'The tutorial taps T2 in the real drawing. The editor then follows that exact unit.', tip: 'The isolated copy behaves like your client file, but nothing is saved to it.', position: 'bottom', side: 'left' },
           { title: 'Enter three measurements', description: 'Width, height and thickness are entered in the real fields, including inch fractions.', tip: 'Inches remain the default; mm and cm are also available.', position: 'top', side: 'right' },
           { title: 'Divide only when needed', description: 'The real Edit button opens. Vertical and two sections are chosen, then created.', tip: 'You can move the new divider afterward to match the actual window.', position: 'bottom', side: 'right' },
           { title: 'Add the glass options', description: 'Low-E, Argon, spacer, glazing, ladder access and decorative grilles are selected on the active glass unit.', tip: 'I don’t know / Unknown remains available for the spacer and glazing when the client is unsure.', position: 'top', side: 'right' },
@@ -373,6 +373,7 @@
 
   applyLanguage();
   buildDots();
+  renderStepCopy();
   onboardingStart.addEventListener('click', startTutorialFromOnboarding);
   onboardingSkip.addEventListener('click', () => closeOnboarding());
   onboarding.addEventListener('click', (event) => { if (event.target === onboarding) closeOnboarding(); });

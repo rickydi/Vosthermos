@@ -33,6 +33,121 @@
     || document.documentElement.lang
     || 'fr';
   const clientLanguage = requestedClientLanguage.toLowerCase().startsWith('en') ? 'en' : 'fr';
+  const appCopy = clientLanguage === 'en'
+    ? {
+        documentTitle: 'Window measurements | Vosthermos', back: 'Back to the five styles', mode: 'Final measurements', steps: 'Measurement steps', measured: 'measured', windows: 'Windows to measure',
+        addWindow: 'Add another window', addWindowHelp: 'Create a new glazing plan', defaultWindowName: 'Living room',
+        toolbar: 'Choose a window type or take a photo', chooseType: 'Choose a window type', selection: 'Selected:', quickConfigurations: 'Quick configurations', or: 'or',
+        photo: {
+          take: 'Take a photo', retake: 'Retake the photo', analyzing: 'Analyzing photo…', input: (label) => label + ' of the window',
+          detectedHelp: 'Divisions are detected automatically', analyzingHelp: 'The drawing is created automatically', replaceHelp: 'A new photo will replace this analysis',
+          invalid: 'Choose a window photo.', analyzingMessage: 'Analyzing the photo automatically…', unknownLayout: 'Unrecognized layout',
+          applied: (label) => 'Photo analyzed · “' + label + '” layout applied.', retained: 'Photo saved · drawing unchanged.',
+          failed: 'Photo saved. Divisions were not recognized: retake it straight on or choose a type.', linked: 'Photo linked to this file.',
+        },
+        canvas: 'Interactive window drawing', editSelected: 'Edit selected glass unit', editSelectedHelp: 'Split vertically or horizontally', selectedUnit: 'Selected glass unit',
+        measurements: 'Measurements', dimensions: { width: 'Width', height: 'Height', thickness: 'Thickness' }, fraction: (label) => label + ' fraction',
+        glassOptions: 'Glass unit options', tempered: 'Tempered', laminated: 'Laminated', notes: 'Special notes', notesPlaceholder: 'Shape, defect, access, special details…',
+        decorative: 'Decorative grilles', decorativeHelp: 'Add grille lines without creating new glass units', decorativeInstruction: 'Choose the number of grille lines in this glass unit only.', yes: 'Yes', no: 'No',
+        vertical: 'Vertical', horizontal: 'Horizontal', removeLine: (axis) => 'Remove one ' + axis.toLowerCase() + ' line', addLine: (axis) => 'Add one ' + axis.toLowerCase() + ' line',
+        rename: { title: 'Rename window', close: 'Close', field: 'Room or window name', placeholder: 'e.g. Living room', cancel: 'Cancel', save: 'Save', required: 'Enter a name for this window.' },
+        divide: {
+          title: 'Split this glass unit', intro: 'Create 2 to 4 glass units in the selected section.', close: 'Close', options: 'Division options', direction: 'Choose the direction',
+          sideBySide: 'Panes side by side', stacked: 'Panes stacked', count: 'Choose the number', sections: 'sections', chooseAxis: 'Choose vertical or horizontal',
+          directionResult: (label, count, direction) => label + ' will become ' + count + ' glass units ' + direction + '.',
+          sideBySideResult: 'side by side', stackedResult: 'stacked', maximumAria: (count, max) => count + ' sections would exceed the maximum of ' + max + ' glass units',
+          maximumResult: (total, max) => 'This division would create ' + total + ' glass units; maximum ' + max + '.',
+          dataWarning: (label) => 'The current measurements and options for ' + label + ' will be erased.',
+          create: (count) => 'Create ' + count + ' sections', createAndErase: (count) => 'Create ' + count + ' sections and erase data',
+        },
+        progressAria: (complete, total, where) => complete + ' glass unit' + (complete === 1 ? '' : 's') + ' measured out of ' + total + ' in ' + where,
+        progressStep: (complete) => complete ? 'measured' : 'to measure',
+        divider: {
+          label: (axis, index, linked) => (axis === 'vertical' ? 'Vertical divider ' : 'Horizontal divider ') + index + (linked ? ', continues across all rows' : ''),
+          title: (axis) => axis === 'vertical' ? 'Drag left or right' : 'Drag up or down',
+        },
+        layout: {
+          custom: (count) => 'Custom layout · ' + count + ' glass unit' + (count === 1 ? '' : 's'),
+          grid: (columns, rows, count) => columns + ' column' + (columns === 1 ? '' : 's') + ' × ' + rows + ' row' + (rows === 1 ? '' : 's') + ' · ' + count + ' glass unit' + (count === 1 ? '' : 's'),
+        },
+        editorState: { none: 'No glass unit', complete: 'Measurements complete', progress: 'Measurements in progress', empty: 'To measure' },
+        editAria: (code, pane) => 'Edit selected glass unit ' + code + ' ' + pane, noSelection: 'No glass unit selected', renameAria: (code, name) => 'Rename ' + code + ' ' + name,
+        presetAlreadyDetected: (label) => 'Detected layout: ' + label + '. It is already applied.', presetAlreadyActive: (label) => 'The “' + label + '” layout is already active.',
+        changeLayoutConfirm: (code) => 'Changing the layout will erase the measurements for ' + code + '. Continue?',
+        presetCreated: (label, count, detected) => (detected ? 'Detected layout: ' + label + '. ' : '“' + label + '” layout created. ') + count + ' glass unit' + (count === 1 ? '' : 's') + ' to measure.',
+        maximumReached: (max, code) => 'Maximum of ' + max + ' glass units reached in ' + code + '.',
+        splitConfirm: (code, pane) => 'The measurements and options for ' + code + ' ' + pane + ' will be erased. Continue?',
+        splitCreated: (count, code, pane) => count + ' sections created in ' + code + ' ' + pane + '.', equalized: (code) => 'All dividers in ' + code + ' were distributed equally.',
+        resetConfirm: (code) => 'Reset only ' + code + ' and its measurements?', resetDone: (code) => code + ' was reset.', renamed: (code, name) => code + ' renamed “' + name + '”.', added: (code) => code + ' added.',
+        presets: {
+          '1x1': { label: 'Single glass unit', aria: 'Create one glass unit' },
+          '2x1-narrow-left': { label: 'Small on left', summary: 'Small on left', aria: 'Create a small pane on the left and a large pane on the right' },
+          '2x1': { label: 'Two equal', aria: 'Create two equal panes side by side' }, '1x2': { label: 'Two stacked', aria: 'Create two stacked panes' },
+          '3x1': { label: 'Three side by side', aria: 'Create three panes side by side' }, '2x2': { label: 'Four equal', aria: 'Create four equal panes' },
+          '3x2': { label: 'Six equal', aria: 'Create six equal panes' }, '3x3': { label: 'Nine equal', aria: 'Create nine equal panes' },
+          'top-3-bottom-1': { label: 'Three on top', summary: '3 on top, 1 on bottom', aria: 'Create three panes on top and one large pane below' },
+          'top-1-bottom-3': { label: 'Three on bottom', summary: '1 on top, 3 on bottom', aria: 'Create one large pane on top and three panes below' },
+          'left-1-right-3': { label: 'Large on left', summary: 'Large on left, 3 on right', aria: 'Create one large pane on the left and three panes on the right' },
+          'left-3-right-1': { label: 'Large on right', summary: '3 on left, large on right', aria: 'Create three panes on the left and one large pane on the right' },
+        },
+      }
+    : {
+        documentTitle: 'Mesures de fenêtres | Vosthermos', back: 'Retour aux cinq styles', mode: 'Mesures finales', steps: 'Étapes de mesure', measured: 'mesurés', windows: 'Fenêtres à mesurer',
+        addWindow: 'Ajouter une autre fenêtre', addWindowHelp: 'Créer un nouveau plan de vitrage', defaultWindowName: 'Salon',
+        toolbar: 'Choisir un type de fenêtre ou prendre une photo', chooseType: 'Choisir un type de fenêtre', selection: 'Sélection :', quickConfigurations: 'Configurations rapides', or: 'ou',
+        photo: {
+          take: 'Prendre une photo', retake: 'Reprendre la photo', analyzing: 'Analyse de la photo…', input: (label) => label + ' de la fenêtre',
+          detectedHelp: 'Les divisions seront détectées automatiquement', analyzingHelp: 'Le dessin se crée automatiquement', replaceHelp: 'Une nouvelle photo remplacera cette analyse',
+          invalid: 'Choisissez une photo de fenêtre.', analyzingMessage: 'Analyse automatique de la photo…', unknownLayout: 'Disposition non reconnue',
+          applied: (label) => 'Photo analysée · disposition « ' + label + ' » appliquée.', retained: 'Photo conservée · dessin non modifié.',
+          failed: 'Photo conservée. Divisions non reconnues : reprenez-la bien de face ou choisissez un type.', linked: 'Photo liée à ce dossier.',
+        },
+        canvas: 'Dessin interactif de la fenêtre', editSelected: 'Modifier le thermos sélectionné', editSelectedHelp: 'Diviser verticalement ou horizontalement', selectedUnit: 'Thermos sélectionné',
+        measurements: 'Mesures', dimensions: { width: 'Largeur', height: 'Hauteur', thickness: 'Épaisseur' }, fraction: (label) => 'Fraction ' + label.toLowerCase(),
+        glassOptions: 'Options du thermos', tempered: 'Trempé', laminated: 'Laminé', notes: 'Notes particulières', notesPlaceholder: 'Forme, défaut, accès, particularité…',
+        decorative: 'Carreaux décoratifs', decorativeHelp: 'Ajouter des lignes sans créer de nouveaux thermos', decorativeInstruction: 'Choisissez le nombre de lignes dans ce thermos seulement.', yes: 'Oui', no: 'Non',
+        vertical: 'Vertical', horizontal: 'Horizontal', removeLine: (axis) => 'Retirer une ligne ' + axis.toLowerCase(), addLine: (axis) => 'Ajouter une ligne ' + axis.toLowerCase(),
+        rename: { title: 'Renommer la fenêtre', close: 'Fermer', field: 'Nom de la pièce ou de la fenêtre', placeholder: 'Ex. Salon', cancel: 'Annuler', save: 'Enregistrer', required: 'Entrez un nom pour cette fenêtre.' },
+        divide: {
+          title: 'Diviser ce thermos', intro: 'Créez de 2 à 4 thermos dans la section sélectionnée.', close: 'Fermer', options: 'Options de division', direction: 'Choisissez le sens',
+          sideBySide: 'Vitres côte à côte', stacked: 'Vitres superposées', count: 'Choisissez le nombre', sections: 'sections', chooseAxis: 'Choisir vertical ou horizontal',
+          directionResult: (label, count, direction) => label + ' deviendra ' + count + ' thermos ' + direction + '.',
+          sideBySideResult: 'côte à côte', stackedResult: 'superposés', maximumAria: (count, max) => count + ' sections dépasseraient le maximum de ' + max + ' thermos',
+          maximumResult: (total, max) => 'Cette division créerait ' + total + ' thermos; maximum ' + max + '.',
+          dataWarning: (label) => 'Les mesures et options actuelles de ' + label + ' seront effacées.',
+          create: (count) => 'Créer ' + count + ' sections', createAndErase: (count) => 'Créer ' + count + ' sections et effacer les données',
+        },
+        progressAria: (complete, total, where) => complete + ' thermos sur ' + total + ' mesurés dans ' + where,
+        progressStep: (complete) => complete ? 'mesuré' : 'à mesurer',
+        divider: {
+          label: (axis, index, linked) => (axis === 'vertical' ? 'Séparation verticale ' : 'Séparation horizontale ') + index + (linked ? ', continue sur toutes les rangées' : ''),
+          title: (axis) => axis === 'vertical' ? 'Glisser à gauche ou à droite' : 'Glisser vers le haut ou le bas',
+        },
+        layout: {
+          custom: (count) => 'Disposition personnalisée · ' + count + ' thermos',
+          grid: (columns, rows, count) => columns + ' colonne' + (columns === 1 ? '' : 's') + ' × ' + rows + ' rangée' + (rows === 1 ? '' : 's') + ' · ' + count + ' thermos',
+        },
+        editorState: { none: 'Aucun thermos', complete: 'Mesures complètes', progress: 'Mesures en cours', empty: 'À mesurer' },
+        editAria: (code, pane) => 'Modifier le thermos sélectionné ' + code + ' ' + pane, noSelection: 'Aucun thermos sélectionné', renameAria: (code, name) => 'Renommer ' + code + ' ' + name,
+        presetAlreadyDetected: (label) => 'Disposition détectée : ' + label + '. Elle est déjà appliquée.', presetAlreadyActive: (label) => 'La disposition « ' + label + ' » est déjà active.',
+        changeLayoutConfirm: (code) => 'Changer la disposition effacera les mesures de ' + code + '. Continuer?',
+        presetCreated: (label, count, detected) => (detected ? 'Disposition détectée : ' + label + '. ' : 'Disposition « ' + label + ' » créée. ') + count + ' thermos à mesurer.',
+        maximumReached: (max, code) => 'Maximum de ' + max + ' thermos atteint dans ' + code + '.',
+        splitConfirm: (code, pane) => 'Les mesures et options de ' + code + ' ' + pane + ' seront effacées. Continuer?',
+        splitCreated: (count, code, pane) => count + ' sections créées dans ' + code + ' ' + pane + '.', equalized: (code) => 'Toutes les divisions de ' + code + ' ont été réparties également.',
+        resetConfirm: (code) => 'Réinitialiser seulement ' + code + ' et ses mesures?', resetDone: (code) => code + ' a été réinitialisée.', renamed: (code, name) => code + ' renommée « ' + name + ' ».', added: (code) => code + ' ajoutée.',
+        presets: {
+          '1x1': { label: 'Vitre simple', aria: 'Créer une vitre simple' },
+          '2x1-narrow-left': { label: 'Petite à gauche', summary: 'Petite à gauche', aria: 'Créer une petite vitre à gauche et une grande à droite' },
+          '2x1': { label: 'Deux égaux', aria: 'Créer deux vitres égales côte à côte' }, '1x2': { label: 'Deux superposés', aria: 'Créer deux vitres superposées' },
+          '3x1': { label: 'Trois côte à côte', aria: 'Créer trois vitres côte à côte' }, '2x2': { label: 'Quatre égaux', aria: 'Créer quatre vitres égales' },
+          '3x2': { label: 'Six égaux', aria: 'Créer six vitres égales' }, '3x3': { label: 'Neuf égaux', aria: 'Créer neuf vitres égales' },
+          'top-3-bottom-1': { label: 'Trois en haut', summary: '3 en haut, 1 en bas', aria: 'Créer trois vitres en haut et une grande en bas' },
+          'top-1-bottom-3': { label: 'Trois en bas', summary: '1 en haut, 3 en bas', aria: 'Créer une grande vitre en haut et trois en bas' },
+          'left-1-right-3': { label: 'Grand à gauche', summary: 'Grand à gauche, 3 à droite', aria: 'Créer une grande vitre à gauche et trois à droite' },
+          'left-3-right-1': { label: 'Grand à droite', summary: '3 à gauche, grand à droite', aria: 'Créer trois vitres à gauche et une grande à droite' },
+        },
+      };
   const paneCopy = clientLanguage === 'en'
     ? {
         editing: 'You are editing',
@@ -66,6 +181,8 @@
         message: (missing, total) => 'Il reste ' + missing + ' thermos sur ' + total + ' à mesurer.',
       };
   windowIncompleteCode.textContent = incompleteWindowCopy.kicker;
+  windowIncompleteTitle.textContent = incompleteWindowCopy.title('F01', appCopy.defaultWindowName);
+  windowIncompleteMessage.textContent = incompleteWindowCopy.message(1, 1);
   windowIncompleteReturn.textContent = incompleteWindowCopy.action;
   windowIncompleteContinue.textContent = incompleteWindowCopy.continue;
   windowIncompleteModal.lang = clientLanguage;
@@ -85,7 +202,7 @@
     ? {
         labels: { spacer: 'Spacer', glazing: 'Glazing', access: 'Access' },
         options: {
-          spacer: { '': 'I don’t know / Unknown', black: 'Black', gray: 'Gray', white: 'White', stainless: 'Stainless steel' },
+          spacer: { '': 'Choose', unknown: 'I don’t know / Unknown', black: 'Black', gray: 'Gray', white: 'White', stainless: 'Stainless steel' },
           glazing: { '': 'Choose', unknown: 'I don’t know / Unknown', double: 'Double', triple: 'Triple', single: 'Single' },
           access: { '': 'Choose', with_ladder: 'With ladder', without_ladder: 'Without ladder' },
         },
@@ -93,7 +210,7 @@
     : {
         labels: { spacer: 'Intercalaire', glazing: 'Vitrage', access: 'Accès' },
         options: {
-          spacer: { '': 'Je ne sais pas / Inconnu', black: 'Noir', gray: 'Gris', white: 'Blanc', stainless: 'Inox' },
+          spacer: { '': 'Choisir', unknown: 'Je ne sais pas / Inconnu', black: 'Noir', gray: 'Gris', white: 'Blanc', stainless: 'Inox' },
           glazing: { '': 'Choisir', unknown: 'Je ne sais pas / Inconnu', double: 'Double', triple: 'Triple', single: 'Simple' },
           access: { '': 'Choisir', with_ladder: 'Avec échelle', without_ladder: 'Sans échelle' },
         },
@@ -168,18 +285,18 @@
         },
       };
   const PRESETS = {
-    '1x1': { columns: 1, rows: 1, label: 'Vitre simple' },
-    '2x1-narrow-left': { columns: 2, rows: 1, sizes: [34, 66], label: 'Petite vitre à gauche', summary: 'Petite vitre à gauche' },
-    '2x1': { columns: 2, rows: 1, label: 'Deux égaux' },
-    '1x2': { columns: 1, rows: 2, label: 'Deux superposés' },
-    '3x1': { columns: 3, rows: 1, label: 'Trois côte à côte' },
-    '2x2': { columns: 2, rows: 2, label: 'Quatre égaux' },
-    '3x2': { columns: 3, rows: 2, label: 'Six égaux' },
-    '3x3': { columns: 3, rows: 3, label: 'Neuf égaux' },
-    'top-3-bottom-1': { layout: 'top-3-bottom-1', label: 'Trois en haut', summary: '3 en haut, 1 en bas' },
-    'top-1-bottom-3': { layout: 'top-1-bottom-3', label: 'Trois en bas', summary: '1 en haut, 3 en bas' },
-    'left-1-right-3': { layout: 'left-1-right-3', label: 'Grand à gauche', summary: 'Grand à gauche, 3 à droite' },
-    'left-3-right-1': { layout: 'left-3-right-1', label: 'Grand à droite', summary: '3 à gauche, grand à droite' },
+    '1x1': { columns: 1, rows: 1, ...appCopy.presets['1x1'] },
+    '2x1-narrow-left': { columns: 2, rows: 1, sizes: [34, 66], ...appCopy.presets['2x1-narrow-left'] },
+    '2x1': { columns: 2, rows: 1, ...appCopy.presets['2x1'] },
+    '1x2': { columns: 1, rows: 2, ...appCopy.presets['1x2'] },
+    '3x1': { columns: 3, rows: 1, ...appCopy.presets['3x1'] },
+    '2x2': { columns: 2, rows: 2, ...appCopy.presets['2x2'] },
+    '3x2': { columns: 3, rows: 2, ...appCopy.presets['3x2'] },
+    '3x3': { columns: 3, rows: 3, ...appCopy.presets['3x3'] },
+    'top-3-bottom-1': { layout: 'top-3-bottom-1', ...appCopy.presets['top-3-bottom-1'] },
+    'top-1-bottom-3': { layout: 'top-1-bottom-3', ...appCopy.presets['top-1-bottom-3'] },
+    'left-1-right-3': { layout: 'left-1-right-3', ...appCopy.presets['left-1-right-3'] },
+    'left-3-right-1': { layout: 'left-3-right-1', ...appCopy.presets['left-3-right-1'] },
   };
   const fractionBySixteenth = ['', '1/16', '1/8', '3/16', '1/4', '5/16', '3/8', '7/16', '1/2', '9/16', '5/8', '11/16', '3/4', '13/16', '7/8', '15/16'];
   const fractions = [...fractionBySixteenth];
@@ -393,6 +510,137 @@
         });
       });
     });
+  }
+
+  function setText(root, selector, value) {
+    root.querySelectorAll(selector).forEach((node) => { node.textContent = value; });
+  }
+
+  function setAttribute(root, selector, name, value) {
+    root.querySelectorAll(selector).forEach((node) => { node.setAttribute(name, value); });
+  }
+
+  function setLeadingText(node, value) {
+    if (!node) return;
+    const textNode = [...node.childNodes].find((child) => child.nodeType === Node.TEXT_NODE && child.textContent.trim());
+    if (textNode) textNode.textContent = value + ' ';
+    else node.prepend(document.createTextNode(value + ' '));
+  }
+
+  function setTrailingText(node, value) {
+    if (!node) return;
+    const textNode = [...node.childNodes].reverse().find((child) => child.nodeType === Node.TEXT_NODE && child.textContent.trim());
+    if (textNode) textNode.textContent = ' ' + value;
+    else node.append(document.createTextNode(' ' + value));
+  }
+
+  function presetPaneCount(key) {
+    const preset = PRESETS[key];
+    if (!preset) return 0;
+    if (preset.layout) return 4;
+    return preset.columns * preset.rows;
+  }
+
+  function localizeWindowUi(root) {
+    root.lang = clientLanguage;
+    setTrailingText(root.querySelector('.plan-status'), appCopy.measured);
+    setAttribute(root, '.division-toolbar', 'aria-label', appCopy.toolbar);
+    setText(root, '.layout-presets-summary strong', appCopy.chooseType);
+    setLeadingText(root.querySelector('.layout-presets-summary small'), appCopy.selection);
+    setAttribute(root, '.layout-presets', 'aria-label', appCopy.quickConfigurations);
+    root.querySelectorAll('[data-layout-preset]').forEach((button) => {
+      const preset = PRESETS[button.dataset.layoutPreset];
+      if (!preset) return;
+      const count = presetPaneCount(button.dataset.layoutPreset);
+      const label = button.querySelector('.preset-copy strong');
+      const quantity = button.querySelector('.preset-copy small');
+      if (label) label.textContent = preset.label;
+      if (quantity) quantity.textContent = count + ' ' + (clientLanguage === 'en' ? 'glass unit' + (count === 1 ? '' : 's') : 'thermos');
+      button.setAttribute('aria-label', preset.aria);
+    });
+    setText(root, '.layout-choice-or span', appCopy.or);
+    setAttribute(root, '[data-window-canvas]', 'aria-label', appCopy.canvas);
+    setText(root, '.edit-thermos-copy strong', appCopy.editSelected);
+    setText(root, '.edit-thermos-copy small', appCopy.editSelectedHelp);
+    setAttribute(root, '[data-thermos-editor]', 'aria-label', appCopy.selectedUnit);
+    setText(root, '.thermos-editor-kicker', appCopy.selectedUnit);
+    setText(root, '.thermos-measure-head h4', appCopy.measurements);
+    DIMENSION_KEYS.forEach((key) => {
+      const input = root.querySelector('[data-measure-dimension="' + key + '"][data-measure-part="value"]');
+      const fraction = root.querySelector('[data-measure-dimension="' + key + '"][data-measure-part="fraction"]');
+      const label = appCopy.dimensions[key];
+      const fieldLabel = input?.closest('.dimension')?.querySelector('.field-label');
+      if (fieldLabel) fieldLabel.textContent = label + ' *';
+      fraction?.setAttribute('aria-label', appCopy.fraction(label));
+    });
+    const optionSection = root.querySelector('.thermos-option-grid')?.closest('.thermos-editor-section');
+    const optionHeading = optionSection?.querySelector('h4');
+    if (optionHeading) optionHeading.textContent = appCopy.glassOptions;
+    const tempered = root.querySelector('[data-measure-key="tempered"]')?.closest('label');
+    const laminated = root.querySelector('[data-measure-key="laminated"]')?.closest('label');
+    setTrailingText(tempered, appCopy.tempered);
+    setTrailingText(laminated, appCopy.laminated);
+    const notes = root.querySelector('[data-measure-key="notes"]');
+    if (notes) notes.placeholder = appCopy.notesPlaceholder;
+    const notesLabel = notes?.closest('label')?.querySelector('.field-label');
+    if (notesLabel) notesLabel.textContent = appCopy.notes;
+    setText(root, '.decorative-toggle-copy strong', appCopy.decorative);
+    setText(root, '.decorative-toggle-copy small', appCopy.decorativeHelp);
+    setText(root, '.decorative-options > p', appCopy.decorativeInstruction);
+    root.querySelectorAll('[data-counter]').forEach((counter) => {
+      const axis = counter.dataset.counter === 'vertical' ? appCopy.vertical : appCopy.horizontal;
+      const label = counter.parentElement?.querySelector('.field-label');
+      if (label) label.textContent = axis;
+      counter.querySelector('[data-delta="-1"]')?.setAttribute('aria-label', appCopy.removeLine(axis));
+      counter.querySelector('[data-delta="1"]')?.setAttribute('aria-label', appCopy.addLine(axis));
+    });
+  }
+
+  function localizeStaticUi() {
+    document.documentElement.lang = clientLanguage;
+    document.title = appCopy.documentTitle;
+    prototypeRoot.lang = clientLanguage;
+    setAttribute(document, '.back-to-index', 'aria-label', appCopy.back);
+    setText(document, '.mode-chip', appCopy.mode);
+    setText(document, '.dossier-progress .progress-head > span', appCopy.steps);
+    setTrailingText(document.querySelector('.dossier-progress .progress-head strong'), appCopy.measured);
+    setAttribute(document, '[data-window-list]', 'aria-label', appCopy.windows);
+    setText(document, '.add-window-copy strong', appCopy.addWindow);
+    setText(document, '.add-window-copy small', appCopy.addWindowHelp);
+    if (helpKicker) helpKicker.textContent = helpCopy.kicker;
+    helpClose.setAttribute('aria-label', helpCopy.close);
+
+    windowRenameModal.lang = clientLanguage;
+    setText(windowRenameModal, '#window-rename-title', appCopy.rename.title);
+    setAttribute(windowRenameModal, '[data-close-window-rename]', 'aria-label', appCopy.rename.close);
+    setText(windowRenameModal, '.window-rename-field > span', appCopy.rename.field);
+    windowRenameInput.placeholder = appCopy.rename.placeholder;
+    const renameButtons = windowRenameModal.querySelectorAll('.window-rename-actions button');
+    if (renameButtons[0]) renameButtons[0].textContent = appCopy.rename.cancel;
+    if (renameButtons[1]) renameButtons[1].textContent = appCopy.rename.save;
+
+    paneActionModal.lang = clientLanguage;
+    setText(paneActionModal, '#pane-action-title', appCopy.divide.title);
+    setText(paneActionModal, '.pane-action-head p', appCopy.divide.intro);
+    setAttribute(paneActionModal, '[data-close-pane-action]', 'aria-label', appCopy.divide.close);
+    setAttribute(paneActionModal, '.pane-divide-action', 'aria-label', appCopy.divide.options);
+    const actionLabels = paneActionModal.querySelectorAll('.pane-action-label');
+    setTrailingText(actionLabels[0], appCopy.divide.direction);
+    setTrailingText(actionLabels[1], appCopy.divide.count);
+    const axisButtons = paneActionModal.querySelectorAll('[data-modal-axis]');
+    if (axisButtons[0]) {
+      const values = axisButtons[0].querySelectorAll('strong, small');
+      if (values[0]) values[0].textContent = appCopy.vertical;
+      if (values[1]) values[1].textContent = appCopy.divide.sideBySide;
+    }
+    if (axisButtons[1]) {
+      const values = axisButtons[1].querySelectorAll('strong, small');
+      if (values[0]) values[0].textContent = appCopy.horizontal;
+      if (values[1]) values[1].textContent = appCopy.divide.stacked;
+    }
+    setText(paneActionModal, '.section-option small', appCopy.divide.sections);
+    setText(paneActionModal, '[data-pane-action-result]', appCopy.divide.chooseAxis + '.');
+    setText(paneActionModal, '[data-create-sections]', appCopy.divide.chooseAxis);
   }
 
   function captureDossierSnapshot() {
@@ -753,7 +1001,7 @@
     document.querySelectorAll('[data-dossier-complete-output]').forEach((node) => { node.textContent = String(completed); });
     document.querySelectorAll('[data-dossier-pane-output]').forEach((node) => { node.textContent = String(items.length); });
     document.querySelectorAll('[data-dossier-progress-label]').forEach((node) => {
-      node.setAttribute('aria-label', completed + ' thermos sur ' + items.length + ' mesurés dans le dossier');
+      node.setAttribute('aria-label', appCopy.progressAria(completed, items.length, clientLanguage === 'en' ? 'the file' : 'le dossier'));
     });
     document.querySelectorAll('[data-dossier-progress-steps]').forEach((progress) => {
       progress.innerHTML = '';
@@ -762,7 +1010,7 @@
         const step = document.createElement('button');
         step.type = 'button';
         step.className = 'progress-step' + (item.complete ? ' is-complete' : '') + (current ? ' is-current' : '') + (itemIndex === items.length - 1 ? ' is-last' : '');
-        step.setAttribute('aria-label', item.controller.state.code + ' T' + item.index + ', ' + (item.complete ? 'mesuré' : 'à mesurer'));
+        step.setAttribute('aria-label', item.controller.state.code + ' T' + item.index + ', ' + appCopy.progressStep(item.complete));
         if (current) step.setAttribute('aria-current', 'step');
         const marker = document.createElement('span');
         marker.className = 'progress-node icon-circle-center';
@@ -834,7 +1082,7 @@
     const label = controller.getPaneLabel(pane.id);
     const resultingTotal = entries.length + interaction.count - 1;
     const exceedsMaximum = resultingTotal > MAX_PANES;
-    const direction = interaction.axis === 'vertical' ? 'côte à côte' : 'superposés';
+    const direction = interaction.axis === 'vertical' ? appCopy.divide.sideBySideResult : appCopy.divide.stackedResult;
     paneActionModal.querySelectorAll('[data-pane-action-label]').forEach((output) => { output.textContent = controller.state.code + ' · ' + label; });
     paneActionModal.querySelectorAll('[data-modal-axis]').forEach((button) => {
       button.setAttribute('aria-pressed', String(button.dataset.modalAxis === interaction.axis));
@@ -843,27 +1091,27 @@
       const count = Number(button.dataset.sectionCount);
       button.disabled = entries.length + count - 1 > MAX_PANES;
       button.setAttribute('aria-pressed', String(count === interaction.count));
-      button.setAttribute('aria-label', button.disabled ? count + ' sections dépasseraient le maximum de ' + MAX_PANES + ' thermos' : count + ' sections');
+      button.setAttribute('aria-label', button.disabled ? appCopy.divide.maximumAria(count, MAX_PANES) : count + ' ' + appCopy.divide.sections);
     });
     const result = paneActionModal.querySelector('[data-pane-action-result]');
     if (result) {
-      if (exceedsMaximum) result.textContent = 'Cette division créerait ' + resultingTotal + ' thermos; maximum ' + MAX_PANES + '.';
-      else if (!interaction.axis) result.textContent = 'Choisissez vertical ou horizontal.';
-      else result.textContent = label + ' deviendra ' + interaction.count + ' thermos ' + direction + '.';
+      if (exceedsMaximum) result.textContent = appCopy.divide.maximumResult(resultingTotal, MAX_PANES);
+      else if (!interaction.axis) result.textContent = appCopy.divide.chooseAxis + '.';
+      else result.textContent = appCopy.divide.directionResult(label, interaction.count, direction);
     }
     const warning = paneActionModal.querySelector('[data-pane-action-warning]');
     if (warning) {
       warning.hidden = !paneHasData(pane);
-      warning.textContent = paneHasData(pane) ? 'Les mesures et options actuelles de ' + label + ' seront effacées.' : '';
+      warning.textContent = paneHasData(pane) ? appCopy.divide.dataWarning(label) : '';
     }
     const createButton = paneActionModal.querySelector('[data-create-sections]');
     if (createButton) {
       createButton.disabled = !interaction.axis || exceedsMaximum;
       createButton.textContent = !interaction.axis
-        ? 'Choisir vertical ou horizontal'
+        ? appCopy.divide.chooseAxis
         : paneHasData(pane)
-          ? 'Créer ' + interaction.count + ' sections et effacer les données'
-          : 'Créer ' + interaction.count + ' sections';
+          ? appCopy.divide.createAndErase(interaction.count)
+          : appCopy.divide.create(interaction.count);
     }
   }
 
@@ -1060,6 +1308,7 @@
 
     root.dataset.windowId = seed.id;
     root.tabIndex = root.tabIndex >= 0 ? root.tabIndex : -1;
+    localizeWindowUi(root);
     localizeThermosSelects(root);
 
     function createPane(measurement = blankMeasurement()) {
@@ -1146,7 +1395,7 @@
       photo: Boolean(restoredSnapshot?.photo),
       photoRef: restoredSnapshot?.photoRef || null,
       photoStatus: restoredSnapshot?.photoStatus || (restoredSnapshot?.photo ? 'success' : 'idle'),
-      photoMessage: restoredSnapshot?.photoMessage || (restoredSnapshot?.photo ? (clientLanguage === 'en' ? 'Photo linked to this file.' : 'Photo liée à ce dossier.') : ''),
+      photoMessage: restoredSnapshot?.photoMessage || (restoredSnapshot?.photo ? appCopy.photo.linked : ''),
     };
 
     function setPhotoUi(status, message = '') {
@@ -1155,18 +1404,18 @@
       const analyzing = status === 'analyzing';
       photoTrigger?.setAttribute('aria-busy', String(analyzing));
       photoTrigger?.classList.toggle('is-complete', status === 'success');
-      const actionLabel = analyzing ? 'Analyse de la photo…' : state.photo ? 'Reprendre la photo' : 'Prendre une photo';
+      const actionLabel = analyzing ? appCopy.photo.analyzing : state.photo ? appCopy.photo.retake : appCopy.photo.take;
       if (photoLabel) photoLabel.textContent = actionLabel;
       if (photoInput) {
         photoInput.disabled = analyzing;
-        photoInput.setAttribute('aria-label', actionLabel + ' de la fenêtre');
+        photoInput.setAttribute('aria-label', appCopy.photo.input(actionLabel));
       }
       if (photoHelp) {
         photoHelp.textContent = analyzing
-          ? 'Le dessin se crée automatiquement'
+          ? appCopy.photo.analyzingHelp
           : state.photo
-            ? 'Une nouvelle photo remplacera cette analyse'
-            : 'Les divisions seront détectées automatiquement';
+            ? appCopy.photo.replaceHelp
+            : appCopy.photo.detectedHelp;
       }
       if (!photoStatus) return;
       photoStatus.textContent = message;
@@ -1183,7 +1432,7 @@
 
     async function processPhoto(file) {
       if (!file || (file.type && !file.type.startsWith('image/'))) {
-        setPhotoUi('error', 'Choisissez une photo de fenêtre.');
+        setPhotoUi('error', appCopy.photo.invalid);
         return false;
       }
       const token = ++photoDetectionToken;
@@ -1192,28 +1441,28 @@
       photoFileRegistry.set(photoRef, file);
       state.photo = true;
       state.photoRef = photoRef;
-      setPhotoUi('analyzing', 'Analyse automatique de la photo…');
+      setPhotoUi('analyzing', appCopy.photo.analyzingMessage);
       setPhotoAnalysisBusy(true);
       markDirty(historyGroup);
       try {
         const presetKey = await detectPhotoPreset(file);
         if (token !== photoDetectionToken) return false;
         const preset = PRESETS[presetKey];
-        if (!preset) throw new Error('Disposition non reconnue');
+        if (!preset) throw new Error(appCopy.photo.unknownLayout);
         const applied = applyPreset(presetKey, { detected: true, historyGroup });
         if (token !== photoDetectionToken) return false;
         if (applied) root.querySelector('.layout-presets-menu')?.removeAttribute('open');
         setPhotoUi(
           applied ? 'success' : 'info',
           applied
-            ? 'Photo analysée · disposition « ' + preset.label + ' » appliquée.'
-            : 'Photo conservée · dessin non modifié.'
+            ? appCopy.photo.applied(preset.label)
+            : appCopy.photo.retained
         );
         markDirty(historyGroup);
         return applied;
       } catch {
         if (token !== photoDetectionToken) return false;
-        setPhotoUi('error', 'Photo conservée. Divisions non reconnues : reprenez-la bien de face ou choisissez un type.');
+        setPhotoUi('error', appCopy.photo.failed);
         markDirty(historyGroup);
         return false;
       } finally {
@@ -1315,8 +1564,8 @@
           handle.innerHTML = directionIconMarkup(node.axis);
           handle.setAttribute('role', 'separator');
           handle.setAttribute('aria-orientation', node.axis);
-          handle.setAttribute('aria-label', (node.axis === 'vertical' ? 'Séparation verticale' : 'Séparation horizontale') + ' ' + (index + 1) + (node.linkId ? ', continue sur toutes les rangées' : ''));
-          handle.title = node.axis === 'vertical' ? 'Glisser à gauche ou à droite' : 'Glisser vers le haut ou le bas';
+          handle.setAttribute('aria-label', appCopy.divider.label(node.axis, index + 1, Boolean(node.linkId)));
+          handle.title = appCopy.divider.title(node.axis);
           handle.addEventListener('pointerdown', (event) => startDividerDrag(event, node.id, index));
           handle.addEventListener('keydown', (event) => moveDividerWithKeyboard(event, node.id, index));
           split.appendChild(handle);
@@ -1327,23 +1576,21 @@
 
     function layoutSummary(entries) {
       const preset = PRESETS[state.activePreset];
-      if (!preset) return 'Disposition personnalisée · ' + entries.length + ' thermos';
-      if (preset.summary) return preset.summary + ' · ' + entries.length + ' thermos';
-      const columnLabel = preset.columns > 1 ? 'colonnes' : 'colonne';
-      const rowLabel = preset.rows > 1 ? 'rangées' : 'rangée';
-      return preset.columns + ' ' + columnLabel + ' × ' + preset.rows + ' ' + rowLabel + ' · ' + entries.length + ' thermos';
+      if (!preset) return appCopy.layout.custom(entries.length);
+      if (preset.summary) return preset.summary + ' · ' + entries.length + ' ' + (clientLanguage === 'en' ? 'glass unit' + (entries.length === 1 ? '' : 's') : 'thermos');
+      return appCopy.layout.grid(preset.columns, preset.rows, entries.length);
     }
 
     function syncInlineEditor() {
       const pane = getPane(state.selectedPaneId);
       const paneLabel = pane ? getPaneLabel(pane.id) : '—';
       const editorState = !pane
-        ? { label: 'Aucun thermos', value: 'empty' }
+        ? { label: appCopy.editorState.none, value: 'empty' }
         : paneIsComplete(pane)
-          ? { label: 'Mesures complètes', value: 'complete' }
+          ? { label: appCopy.editorState.complete, value: 'complete' }
           : paneHasData(pane)
-            ? { label: 'Mesures en cours', value: 'progress' }
-            : { label: 'À mesurer', value: 'empty' };
+            ? { label: appCopy.editorState.progress, value: 'progress' }
+            : { label: appCopy.editorState.empty, value: 'empty' };
       root.querySelectorAll('[data-editor-window]').forEach((node) => { node.textContent = state.code; });
       root.querySelectorAll('[data-editor-pane]').forEach((node) => { node.textContent = paneLabel; });
       root.querySelectorAll('[data-editor-state]').forEach((node) => {
@@ -1360,10 +1607,11 @@
         if (inchOption) inchOption.textContent = unitCopy.in;
       }
       const decimalSeparator = clientLanguage === 'fr' ? ',' : '.';
+      const examplePrefix = clientLanguage === 'en' ? 'e.g. ' : 'Ex. ';
       const placeholders = {
-        in: { width: 'Ex. 32', height: 'Ex. 48', thickness: 'Ex. 1' },
-        mm: { width: 'Ex. 813', height: 'Ex. 1219', thickness: 'Ex. 25' + decimalSeparator + '4' },
-        cm: { width: 'Ex. 81' + decimalSeparator + '3', height: 'Ex. 121' + decimalSeparator + '9', thickness: 'Ex. 2' + decimalSeparator + '54' },
+        in: { width: examplePrefix + '32', height: examplePrefix + '48', thickness: examplePrefix + '1' },
+        mm: { width: examplePrefix + '813', height: examplePrefix + '1219', thickness: examplePrefix + '25' + decimalSeparator + '4' },
+        cm: { width: examplePrefix + '81' + decimalSeparator + '3', height: examplePrefix + '121' + decimalSeparator + '9', thickness: examplePrefix + '2' + decimalSeparator + '54' },
       };
       dimensionControls.forEach((control, key) => {
         const displayed = pane ? dimensionForDisplay(pane.measurement, key) : { text: '', whole: '', fraction: '', approximate: false };
@@ -1406,7 +1654,7 @@
         decorativeOptions.setAttribute('aria-hidden', String(!decorativeIsEnabled));
       }
       if (decorativeStatus) {
-        decorativeStatus.textContent = decorativeIsEnabled ? 'Oui' : 'Non';
+        decorativeStatus.textContent = decorativeIsEnabled ? appCopy.yes : appCopy.no;
         decorativeStatus.dataset.state = decorativeIsEnabled ? 'enabled' : 'disabled';
       }
       root.querySelectorAll('[data-counter]').forEach((counter) => {
@@ -1415,7 +1663,7 @@
       });
       if (editSelectedThermos) {
         editSelectedThermos.disabled = !pane;
-        editSelectedThermos.setAttribute('aria-label', pane ? 'Modifier le thermos sélectionné ' + state.code + ' ' + paneLabel : 'Aucun thermos sélectionné');
+        editSelectedThermos.setAttribute('aria-label', pane ? appCopy.editAria(state.code, paneLabel) : appCopy.noSelection);
       }
     }
 
@@ -1423,15 +1671,15 @@
       const completed = entries.filter(({ node }) => paneIsComplete(node)).length;
       root.querySelectorAll('[data-window-code]').forEach((node) => { node.textContent = state.code; });
       root.querySelectorAll('[data-window-name]').forEach((node) => { node.textContent = state.name; });
-      root.querySelectorAll('[data-rename-window]').forEach((button) => { button.setAttribute('aria-label', 'Renommer ' + state.code + ' ' + state.name); });
+      root.querySelectorAll('[data-rename-window]').forEach((button) => { button.setAttribute('aria-label', appCopy.renameAria(state.code, state.name)); });
       root.querySelectorAll('[data-pane-count-output]').forEach((node) => { node.textContent = String(entries.length); });
       root.querySelectorAll('[data-complete-pane-output]').forEach((node) => { node.textContent = String(completed); });
       root.querySelectorAll('[data-progress-label]').forEach((node) => {
-        node.setAttribute('aria-label', completed + ' thermos sur ' + entries.length + ' mesurés dans ' + state.code);
+        node.setAttribute('aria-label', appCopy.progressAria(completed, entries.length, state.code));
       });
       root.querySelectorAll('[data-divider-count-output]').forEach((node) => { node.textContent = String(countSeparators(state.layout)); });
       root.querySelectorAll('[data-layout-summary]').forEach((node) => { node.textContent = layoutSummary(entries); });
-      root.querySelectorAll('[data-preset-summary]').forEach((node) => { node.textContent = PRESETS[state.activePreset]?.label || 'Disposition personnalisée'; });
+      root.querySelectorAll('[data-preset-summary]').forEach((node) => { node.textContent = PRESETS[state.activePreset]?.label || (clientLanguage === 'en' ? 'Custom layout' : 'Disposition personnalisée'); });
       root.querySelectorAll('[data-layout-preset]').forEach((button) => {
         button.setAttribute('aria-pressed', String(button.dataset.layoutPreset === state.activePreset));
       });
@@ -1733,13 +1981,13 @@
       if (!preset) return false;
       if (!preview && state.activePreset === key) {
         if (detected) {
-          showToast('Disposition détectée : ' + preset.label + '. Elle est déjà appliquée.');
+          showToast(appCopy.presetAlreadyDetected(preset.label));
           return true;
         }
-        showToast('La disposition « ' + preset.label + ' » est déjà active.');
+        showToast(appCopy.presetAlreadyActive(preset.label));
         return false;
       }
-      if (!preview && layoutHasData() && !window.confirm('Changer la disposition effacera les mesures de ' + state.code + '. Continuer?')) return false;
+      if (!preview && layoutHasData() && !window.confirm(appCopy.changeLayoutConfirm(state.code))) return false;
       state.layout = buildPresetLayout(key);
       state.selectedPaneId = getEntries()[0]?.node.id || null;
       state.activePreset = key;
@@ -1749,9 +1997,7 @@
       if (!preview) markDirty(historyGroup);
       if (!preview) {
         const paneCount = getEntries().length;
-        showToast(detected
-          ? 'Disposition détectée : ' + preset.label + '. ' + paneCount + ' thermos à mesurer.'
-          : 'Disposition « ' + preset.label + ' » créée. ' + paneCount + ' thermos à mesurer.');
+        showToast(appCopy.presetCreated(preset.label, paneCount, detected));
       }
       return true;
     }
@@ -1762,13 +2008,13 @@
       const resultingTotal = entries.length + count - 1;
       if (!['vertical', 'horizontal'].includes(axis) || !Number.isInteger(count) || count < 2 || count > 4) return false;
       if (resultingTotal > MAX_PANES) {
-        showToast('Maximum de ' + MAX_PANES + ' thermos atteint dans ' + state.code + '.', 'warning');
+        showToast(appCopy.maximumReached(MAX_PANES, state.code), 'warning');
         return false;
       }
       const pane = getPane(paneId);
       if (!pane) return false;
       const oldLabel = getPaneLabel(pane.id);
-      if (paneHasData(pane) && !allowDataLoss && !window.confirm('Les mesures et options de ' + state.code + ' ' + oldLabel + ' seront effacées. Continuer?')) return false;
+      if (paneHasData(pane) && !allowDataLoss && !window.confirm(appCopy.splitConfirm(state.code, oldLabel))) return false;
       const firstPane = { type: 'pane', id: pane.id, measurement: blankMeasurement(), decorative: blankDecorative() };
       const children = [firstPane, ...Array.from({ length: count - 1 }, () => createPane())];
       state.layout = replaceNode(state.layout, pane.id, createSplit(axis, children));
@@ -1779,7 +2025,7 @@
       renderLayout();
       markDirty();
       requestAnimationFrame(() => focusPane(firstPane.id));
-      showToast(count + ' sections créées dans ' + state.code + ' ' + oldLabel + '.');
+      showToast(appCopy.splitCreated(count, state.code, oldLabel));
       return true;
     }
 
@@ -1789,11 +2035,11 @@
       state.activePreset = preset && !preset.layout && !preset.sizes ? state.topologyPreset : 'custom';
       renderLayout();
       markDirty();
-      showToast('Toutes les divisions de ' + state.code + ' ont été réparties également.');
+      showToast(appCopy.equalized(state.code));
     }
 
     function resetDrawing() {
-      if (!window.confirm('Réinitialiser seulement ' + state.code + ' et ses mesures?')) return;
+      if (!window.confirm(appCopy.resetConfirm(state.code))) return;
       state.layout = clone(initialSnapshot.layout);
       state.selectedPaneId = initialSnapshot.selectedPaneId;
       state.activePreset = initialSnapshot.activePreset;
@@ -1806,7 +2052,7 @@
       interactionService.closeFor(api);
       renderLayout();
       markDirty();
-      showToast(state.code + ' a été réinitialisée.');
+      showToast(appCopy.resetDone(state.code));
     }
 
     function setName(value) {
@@ -1815,7 +2061,7 @@
       state.name = name;
       renderLayout();
       markDirty();
-      showToast(state.code + ' renommée « ' + state.name + ' ».');
+      showToast(appCopy.renamed(state.code, state.name));
       return true;
     }
 
@@ -2039,11 +2285,10 @@
     const code = snapshot?.code || 'F' + String(windowSequence).padStart(2, '0');
     namespaceRootIds(root, id);
     setHelpTriggerLabels(root);
-    const existingName = root.querySelector('[data-window-name]')?.textContent?.trim();
     const controller = createWindowController(root, {
       id,
       code,
-      name: snapshot?.name || (first && existingName ? existingName : first ? 'Salon' : String(windowSequence)),
+      name: snapshot?.name || (first ? appCopy.defaultWindowName : String(windowSequence)),
       preset: snapshot?.initialSnapshot?.activePreset || (first ? '3x2' : '1x1'),
       selectedIndex: first ? 1 : 0,
       snapshot,
@@ -2069,7 +2314,7 @@
     const controller = registerWindow(root, { first: controllers.length === 0, focus });
     if (controller && controllers.length > 1 && focus) {
       markDirty();
-      showToast(controller.state.code + ' ajoutée.');
+      showToast(appCopy.added(controller.state.code));
     }
     return controller;
   }
@@ -2080,7 +2325,7 @@
     const name = windowRenameInput.value.trim();
     if (!name) {
       if (windowRenameError) {
-        windowRenameError.textContent = 'Entrez un nom pour cette fenêtre.';
+        windowRenameError.textContent = appCopy.rename.required;
         windowRenameError.hidden = false;
       }
       windowRenameInput.focus();
@@ -2199,6 +2444,7 @@
   window.addEventListener('scroll', () => positionHelpPanel(), { passive: true, capture: true });
   setHelpTriggerLabels(document);
 
+  localizeStaticUi();
   const existingPlans = [...windowList.querySelectorAll(':scope > [data-window-plan]')];
   if (existingPlans.length) {
     existingPlans.forEach((root, index) => registerWindow(root, { first: index === 0 }));
