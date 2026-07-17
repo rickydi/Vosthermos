@@ -14,13 +14,15 @@
   const windowIncompleteMessage = document.querySelector('[data-window-incomplete-message]');
   const windowIncompleteReturn = document.querySelector('[data-window-incomplete-return]');
   const windowIncompleteContinue = document.querySelector('[data-window-incomplete-continue]');
+  const undoButtons = [...document.querySelectorAll('[data-undo]')];
+  const redoButtons = [...document.querySelectorAll('[data-redo]')];
   const toast = document.querySelector('[data-toast]');
   const helpPanel = document.querySelector('[data-help-panel]');
   const helpTitle = helpPanel?.querySelector('[data-help-title]');
   const helpBody = helpPanel?.querySelector('[data-help-body]');
   const helpKicker = helpPanel?.querySelector('[data-help-kicker]');
   const helpClose = helpPanel?.querySelector('[data-help-close]');
-  if (!prototypeRoot || !windowList || !windowTemplate || !paneActionModal || !windowRenameModal || !windowRenameForm || !windowRenameInput || !windowIncompleteModal || !windowIncompleteCode || !windowIncompleteTitle || !windowIncompleteMessage || !windowIncompleteReturn || !windowIncompleteContinue || !helpPanel || !helpTitle || !helpBody || !helpClose) return;
+  if (!prototypeRoot || !windowList || !windowTemplate || !paneActionModal || !windowRenameModal || !windowRenameForm || !windowRenameInput || !windowIncompleteModal || !windowIncompleteCode || !windowIncompleteTitle || !windowIncompleteMessage || !windowIncompleteReturn || !windowIncompleteContinue || !undoButtons.length || !redoButtons.length || !helpPanel || !helpTitle || !helpBody || !helpClose) return;
 
   const MAX_PANES = 12;
   const MIN_CHILD_PX = 52;
@@ -70,6 +72,32 @@
   windowIncompleteModal.querySelectorAll('[data-close-window-incomplete]').forEach((button) => {
     button.setAttribute('aria-label', incompleteWindowCopy.close);
   });
+  const historyCopy = clientLanguage === 'en'
+    ? {
+        group: 'Change history', undo: 'Undo last change', redo: 'Redo last change',
+        undoLabel: 'Undo', redoLabel: 'Redo', finalizeLabel: 'Confirm final measurements', undone: 'Last change undone.', redone: 'Last change restored.', wait: 'Wait until the photo analysis is complete.',
+      }
+    : {
+        group: 'Historique des modifications', undo: 'Annuler la dernière modification', redo: 'Rétablir la dernière modification',
+        undoLabel: 'Annuler', redoLabel: 'Rétablir', finalizeLabel: 'Valider les mesures finales', undone: 'Dernière modification annulée.', redone: 'Dernière modification rétablie.', wait: 'Attendez la fin de l’analyse de la photo.',
+      };
+  const thermosSelectCopy = clientLanguage === 'en'
+    ? {
+        labels: { spacer: 'Spacer', glazing: 'Glazing', access: 'Access' },
+        options: {
+          spacer: { '': 'I don’t know / Unknown', black: 'Black', gray: 'Gray', white: 'White', stainless: 'Stainless steel' },
+          glazing: { '': 'Choose', unknown: 'I don’t know / Unknown', double: 'Double', triple: 'Triple', single: 'Single' },
+          access: { '': 'Choose', with_ladder: 'With ladder', without_ladder: 'Without ladder' },
+        },
+      }
+    : {
+        labels: { spacer: 'Intercalaire', glazing: 'Vitrage', access: 'Accès' },
+        options: {
+          spacer: { '': 'Je ne sais pas / Inconnu', black: 'Noir', gray: 'Gris', white: 'Blanc', stainless: 'Inox' },
+          glazing: { '': 'Choisir', unknown: 'Je ne sais pas / Inconnu', double: 'Double', triple: 'Triple', single: 'Simple' },
+          access: { '': 'Choisir', with_ladder: 'Avec échelle', without_ladder: 'Sans échelle' },
+        },
+      };
   const DIMENSION_KEYS = ['width', 'height', 'thickness'];
   const UNIT_CONFIG = {
     in: { factor: 1, decimals: 4 },
@@ -101,13 +129,13 @@
           items: [
             ['Low-E', 'Coating that reduces heat loss.'], ['Argon', 'Insulating gas between the panes.'],
             ['Tempered', 'Heat-treated safety glass.'], ['Laminated', 'Glass held together by an interlayer.'],
-            ['Spacer', 'Perimeter bar separating the panes.'], ['Glazing', 'Number of glass panes.'],
-            ['Access', 'How easy the unit is to reach and replace.'],
+            ['Spacer', 'Perimeter bar separating the panes.'], ['Glazing', 'Number of glass panes. Choose “I don’t know / Unknown” when needed.'],
+            ['Access', 'Indicates whether a ladder is required to reach the glass unit.'],
           ],
         },
         finalization: {
-          title: 'Save or confirm?',
-          body: 'Save keeps your work so you can return later. Confirm marks all measurements as final and ready for the next step.',
+          title: 'Undo, redo or confirm?',
+          body: 'Undo reverses the latest change. Redo restores it. Confirm marks all measurements as final and ready for the next step.',
         },
       }
     : {
@@ -130,13 +158,13 @@
           items: [
             ['Low-E', 'Couche qui réduit les pertes de chaleur.'], ['Argon', 'Gaz isolant entre les vitres.'],
             ['Trempé', 'Verre de sécurité traité.'], ['Laminé', 'Verre retenu par une pellicule.'],
-            ['Intercalaire', 'Barre au pourtour qui sépare les vitres.'], ['Vitrage', 'Nombre de feuilles de verre.'],
-            ['Accès', 'Facilité pour atteindre et remplacer le thermos.'],
+            ['Intercalaire', 'Barre au pourtour qui sépare les vitres.'], ['Vitrage', 'Nombre de feuilles de verre. Choisissez « Je ne sais pas / Inconnu » au besoin.'],
+            ['Accès', 'Indique si une échelle est nécessaire pour atteindre le thermos.'],
           ],
         },
         finalization: {
-          title: 'Enregistrer ou valider?',
-          body: 'Enregistrer conserve le travail pour le reprendre plus tard. Valider confirme que toutes les mesures sont finales et prêtes pour la prochaine étape.',
+          title: 'Annuler, rétablir ou valider?',
+          body: 'Annuler revient sur la dernière modification. Rétablir la remet. Valider confirme que toutes les mesures sont finales et prêtes pour la prochaine étape.',
         },
       };
   const PRESETS = {
@@ -157,9 +185,20 @@
   const fractions = [...fractionBySixteenth];
   const controllers = [];
   const controllerById = new Map();
+  const photoFileRegistry = new Map();
+  const HISTORY_LIMIT = 80;
+  const undoStack = [];
+  const redoStack = [];
   let windowSequence = 0;
   let activeWindowId = null;
   let measurementUnit = 'in';
+  let historyPresent = null;
+  let historyPresentFingerprint = '';
+  let historyLastGroup = null;
+  let historyRestoring = false;
+  let historyTransactionSequence = 0;
+  let photoFileSequence = 0;
+  let pendingPhotoAnalyses = 0;
   let toastTimer;
   let activeHelpTrigger = null;
 
@@ -343,8 +382,251 @@
     return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 12.5 4 4L18.5 8"/></svg>';
   }
 
-  function markDirty() {
-    document.querySelectorAll('[data-dirty]').forEach((node) => { node.hidden = false; });
+  function localizeThermosSelects(root = document) {
+    ['spacer', 'glazing', 'access'].forEach((key) => {
+      root.querySelectorAll('select[data-measure-key="' + key + '"]').forEach((select) => {
+        const label = select.closest('label')?.querySelector('.field-label');
+        if (label) label.textContent = thermosSelectCopy.labels[key];
+        [...select.options].forEach((option) => {
+          const text = thermosSelectCopy.options[key]?.[option.value];
+          if (text) option.textContent = text;
+        });
+      });
+    });
+  }
+
+  function captureDossierSnapshot() {
+    return clone({
+      activeWindowId,
+      measurementUnit,
+      windowSequence,
+      windows: controllers.map((controller) => controller.snapshot()),
+    });
+  }
+
+  function dossierFingerprint(snapshot) {
+    return JSON.stringify({
+      measurementUnit: snapshot.measurementUnit,
+      windowSequence: snapshot.windowSequence,
+      windows: snapshot.windows.map((windowSnapshot) => ({
+        id: windowSnapshot.id,
+        code: windowSnapshot.code,
+        name: windowSnapshot.name,
+        layout: windowSnapshot.layout,
+        activePreset: windowSnapshot.activePreset,
+        topologyPreset: windowSnapshot.topologyPreset,
+        photo: windowSnapshot.photo,
+        photoRef: windowSnapshot.photoRef,
+        photoStatus: windowSnapshot.photoStatus,
+        photoMessage: windowSnapshot.photoMessage,
+        paneSequence: windowSnapshot.paneSequence,
+        splitSequence: windowSnapshot.splitSequence,
+        initialSnapshot: windowSnapshot.initialSnapshot,
+      })),
+    });
+  }
+
+  function prunePhotoFileRegistry() {
+    const referenced = new Set();
+    const collect = (snapshot) => snapshot?.windows?.forEach((windowSnapshot) => {
+      if (windowSnapshot.photoRef) referenced.add(windowSnapshot.photoRef);
+    });
+    collect(historyPresent);
+    undoStack.forEach(collect);
+    redoStack.forEach(collect);
+    photoFileRegistry.forEach((file, photoRef) => {
+      if (!referenced.has(photoRef)) photoFileRegistry.delete(photoRef);
+    });
+  }
+
+  function updateHistoryControls() {
+    const canUndo = undoStack.length > 0;
+    const canRedo = redoStack.length > 0;
+    const photoAnalysisBusy = pendingPhotoAnalyses > 0;
+    undoButtons.forEach((button) => {
+      button.disabled = photoAnalysisBusy || !canUndo;
+      button.setAttribute('aria-label', historyCopy.undo);
+      button.title = photoAnalysisBusy ? historyCopy.wait : historyCopy.undo;
+      const label = button.querySelector('.history-action-label');
+      if (label) label.textContent = historyCopy.undoLabel;
+    });
+    redoButtons.forEach((button) => {
+      button.disabled = photoAnalysisBusy || !canRedo;
+      button.setAttribute('aria-label', historyCopy.redo);
+      button.title = photoAnalysisBusy ? historyCopy.wait : historyCopy.redo;
+      const label = button.querySelector('.history-action-label');
+      if (label) label.textContent = historyCopy.redoLabel;
+    });
+    document.querySelectorAll('[data-finalize]').forEach((button) => { button.textContent = historyCopy.finalizeLabel; });
+    document.querySelectorAll('.history-action-group').forEach((group) => group.setAttribute('aria-label', historyCopy.group));
+  }
+
+  function initializeHistory() {
+    undoStack.length = 0;
+    redoStack.length = 0;
+    historyPresent = captureDossierSnapshot();
+    historyPresentFingerprint = dossierFingerprint(historyPresent);
+    historyLastGroup = null;
+    updateHistoryControls();
+  }
+
+  function syncHistoryContext() {
+    if (historyRestoring || !historyPresent) return;
+    const nextSnapshot = captureDossierSnapshot();
+    if (dossierFingerprint(nextSnapshot) !== historyPresentFingerprint) return;
+    historyPresent = nextSnapshot;
+  }
+
+  function markDirty(historyGroup = null) {
+    if (historyRestoring) return false;
+    const nextSnapshot = captureDossierSnapshot();
+    const nextFingerprint = dossierFingerprint(nextSnapshot);
+    if (!historyPresent) {
+      historyPresent = nextSnapshot;
+      historyPresentFingerprint = nextFingerprint;
+      updateHistoryControls();
+      return false;
+    }
+    if (nextFingerprint === historyPresentFingerprint) {
+      historyPresent = nextSnapshot;
+      updateHistoryControls();
+      return false;
+    }
+    const continuesGroupedChange = Boolean(historyGroup && historyLastGroup === historyGroup && undoStack.length);
+    const groupedBaselineMatches = Boolean(continuesGroupedChange && dossierFingerprint(undoStack[undoStack.length - 1]) === nextFingerprint);
+    let groupReturnedToBaseline = false;
+    if (groupedBaselineMatches) {
+      undoStack.pop();
+      groupReturnedToBaseline = true;
+    } else if (!continuesGroupedChange) {
+      undoStack.push(historyPresent);
+      if (undoStack.length > HISTORY_LIMIT) undoStack.shift();
+    }
+    historyPresent = nextSnapshot;
+    historyPresentFingerprint = nextFingerprint;
+    historyLastGroup = groupReturnedToBaseline ? null : historyGroup;
+    redoStack.length = 0;
+    prunePhotoFileRegistry();
+    updateHistoryControls();
+    return true;
+  }
+
+  function closeHistoryOverlays() {
+    closeHelp({ restoreFocus: false });
+    if (!paneActionModal.hidden) closePaneActions({ restoreFocus: false });
+    if (!windowRenameModal.hidden) closeWindowRenameModal({ restoreFocus: false });
+    if (!windowIncompleteModal.hidden) closeWindowIncompleteModal({ restoreFocus: false });
+    interaction.controller = null;
+    interaction.paneId = null;
+    interaction.mode = null;
+    interaction.lastFocusedElement = null;
+    prototypeRoot.inert = false;
+  }
+
+  function captureHistoryFocusContext() {
+    const element = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const root = element?.closest('[data-window-plan]');
+    const controller = root ? controllerById.get(root.dataset.windowId) : null;
+    return {
+      element,
+      windowId: controller?.id || null,
+      paneId: element?.closest('.pane[data-pane-id]')?.dataset.paneId || controller?.state.selectedPaneId || null,
+    };
+  }
+
+  function restoreHistoryFocus(context, primaryButtons, secondaryButtons) {
+    requestAnimationFrame(() => {
+      if (context.windowId) {
+        const controller = controllerById.get(context.windowId);
+        const paneId = controller?.getPane(context.paneId) ? context.paneId : controller?.state.selectedPaneId;
+        const pane = paneId ? controller?.root.querySelector('.pane[data-pane-id="' + paneId + '"]') : null;
+        if (pane instanceof HTMLElement) {
+          pane.focus({ preventScroll: true });
+          return;
+        }
+      }
+      const elementStillUsable = context.element?.isConnected
+        && !context.element.closest('[hidden]')
+        && !(context.element instanceof HTMLButtonElement && context.element.disabled);
+      if (elementStillUsable) return;
+      const fallback = primaryButtons.find((button) => !button.disabled)
+        || secondaryButtons.find((button) => !button.disabled)
+        || document.querySelector('[data-finalize]');
+      fallback?.focus({ preventScroll: true });
+    });
+  }
+
+  function restoreDossierSnapshot(snapshot) {
+    closeHistoryOverlays();
+    controllers.forEach((controller) => controller.destroy?.());
+    controllers.length = 0;
+    controllerById.clear();
+    windowList.replaceChildren();
+    activeWindowId = null;
+    windowSequence = 0;
+    measurementUnit = UNIT_CONFIG[snapshot.measurementUnit] ? snapshot.measurementUnit : 'in';
+    snapshot.windows.forEach((windowSnapshot) => {
+      const root = cloneWindowTemplate();
+      if (!root) return;
+      windowList.appendChild(root);
+      registerWindow(root, { snapshot: windowSnapshot, focus: false });
+    });
+    windowSequence = Math.max(windowSequence, Number(snapshot.windowSequence) || 0);
+    const activeController = controllerById.get(snapshot.activeWindowId) || controllers[0];
+    if (activeController) activateController(activeController);
+    document.querySelectorAll('select[data-measure-unit]').forEach((select) => { select.value = measurementUnit; });
+    updateDossierProgress();
+  }
+
+  function undoHistory() {
+    if (pendingPhotoAnalyses > 0) {
+      showToast(historyCopy.wait, 'info');
+      return false;
+    }
+    if (!undoStack.length) return false;
+    const focusContext = captureHistoryFocusContext();
+    const previousSnapshot = undoStack.pop();
+    redoStack.push(historyPresent || captureDossierSnapshot());
+    historyRestoring = true;
+    try {
+      restoreDossierSnapshot(previousSnapshot);
+    } finally {
+      historyRestoring = false;
+    }
+    historyPresent = captureDossierSnapshot();
+    historyPresentFingerprint = dossierFingerprint(historyPresent);
+    historyLastGroup = null;
+    prunePhotoFileRegistry();
+    updateHistoryControls();
+    restoreHistoryFocus(focusContext, undoButtons, redoButtons);
+    showToast(historyCopy.undone);
+    return true;
+  }
+
+  function redoHistory() {
+    if (pendingPhotoAnalyses > 0) {
+      showToast(historyCopy.wait, 'info');
+      return false;
+    }
+    if (!redoStack.length) return false;
+    const focusContext = captureHistoryFocusContext();
+    const nextSnapshot = redoStack.pop();
+    undoStack.push(historyPresent || captureDossierSnapshot());
+    if (undoStack.length > HISTORY_LIMIT) undoStack.shift();
+    historyRestoring = true;
+    try {
+      restoreDossierSnapshot(nextSnapshot);
+    } finally {
+      historyRestoring = false;
+    }
+    historyPresent = captureDossierSnapshot();
+    historyPresentFingerprint = dossierFingerprint(historyPresent);
+    historyLastGroup = null;
+    prunePhotoFileRegistry();
+    updateHistoryControls();
+    restoreHistoryFocus(focusContext, redoButtons, undoButtons);
+    showToast(historyCopy.redone);
+    return true;
   }
 
   function showToast(message, tone = 'success') {
@@ -354,6 +636,15 @@
     toast.classList.add('is-visible');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => toast.classList.remove('is-visible'), 3000);
+  }
+
+  function setPhotoAnalysisBusy(active) {
+    pendingPhotoAnalyses = Math.max(0, pendingPhotoAnalyses + (active ? 1 : -1));
+    const busy = pendingPhotoAnalyses > 0;
+    prototypeRoot.inert = busy;
+    if (busy) prototypeRoot.setAttribute('aria-busy', 'true');
+    else prototypeRoot.removeAttribute('aria-busy');
+    updateHistoryControls();
   }
 
   function setHelpTriggerLabels(root = document) {
@@ -509,6 +800,7 @@
       item.root.classList.toggle('is-active', item.id === activeWindowId);
       item.root.setAttribute('aria-current', item.id === activeWindowId ? 'true' : 'false');
     });
+    syncHistoryContext();
     updateDossierProgress();
   }
 
@@ -748,7 +1040,9 @@
       input: root.querySelector('[data-measure-dimension="' + key + '"][data-measure-part="value"]'),
       fraction: root.querySelector('[data-measure-dimension="' + key + '"][data-measure-part="fraction"]'),
       unit: root.querySelector('[data-measure-unit-output="' + key + '"]'),
+      historyGroup: null,
     }]));
+    const fieldHistoryGroups = new WeakMap();
     const unitSelect = root.querySelector('[data-measure-unit]');
     const unitTitle = root.querySelector('[data-measure-unit-title]');
     const decorativeEnabled = root.querySelector('[data-decorative-enabled]');
@@ -756,8 +1050,9 @@
     const decorativeStatus = root.querySelector('[data-decorative-status]');
     const editSelectedThermos = root.querySelector('[data-edit-selected-thermos]');
     if (!canvas) return null;
-    let paneSequence = 0;
-    let splitSequence = 0;
+    const restoredSnapshot = seed.snapshot ? clone(seed.snapshot) : null;
+    let paneSequence = Number(restoredSnapshot?.paneSequence) || 0;
+    let splitSequence = Number(restoredSnapshot?.splitSequence) || 0;
     let renderVersion = 0;
     let photoDetectionToken = 0;
     let forceDimensionSync = false;
@@ -765,6 +1060,7 @@
 
     root.dataset.windowId = seed.id;
     root.tabIndex = root.tabIndex >= 0 ? root.tabIndex : -1;
+    localizeThermosSelects(root);
 
     function createPane(measurement = blankMeasurement()) {
       paneSequence += 1;
@@ -786,6 +1082,15 @@
         children,
         linkId: linkId ? seed.id + '-' + linkId : null,
       };
+    }
+
+    function syncSequencesFromLayout(node) {
+      if (!node) return;
+      const paneMatch = node.type === 'pane' ? node.id?.match(/-p(\d+)$/) : null;
+      const splitMatch = node.type === 'split' ? node.id?.match(/-s(\d+)$/) : null;
+      if (paneMatch) paneSequence = Math.max(paneSequence, Number(paneMatch[1]) || 0);
+      if (splitMatch) splitSequence = Math.max(splitSequence, Number(splitMatch[1]) || 0);
+      node.children?.forEach(syncSequencesFromLayout);
     }
 
     function buildPresetLayout(key) {
@@ -816,27 +1121,37 @@
       return rows.length === 1 ? rows[0] : createSplit('horizontal', rows);
     }
 
-    const initialLayout = buildPresetLayout(seed.preset);
+    const initialLayout = restoredSnapshot ? clone(restoredSnapshot.layout) : buildPresetLayout(seed.preset);
+    syncSequencesFromLayout(initialLayout);
     const initialEntries = getLeafEntries(initialLayout);
-    const initialSelected = initialEntries[Math.min(seed.selectedIndex || 0, initialEntries.length - 1)]?.node.id || null;
-    const initialSnapshot = {
-      layout: clone(initialLayout),
-      selectedPaneId: initialSelected,
-      activePreset: seed.preset,
-      topologyPreset: seed.preset,
-    };
+    const initialSelected = restoredSnapshot?.selectedPaneId
+      || initialEntries[Math.min(seed.selectedIndex || 0, initialEntries.length - 1)]?.node.id
+      || null;
+    const initialSnapshot = restoredSnapshot?.initialSnapshot
+      ? clone(restoredSnapshot.initialSnapshot)
+      : {
+          layout: clone(initialLayout),
+          selectedPaneId: initialSelected,
+          activePreset: seed.preset,
+          topologyPreset: seed.preset,
+        };
     const state = {
       id: seed.id,
       code: seed.code,
       name: seed.name,
       layout: initialLayout,
       selectedPaneId: initialSelected,
-      activePreset: seed.preset,
-      topologyPreset: seed.preset,
-      photo: false,
+      activePreset: restoredSnapshot?.activePreset || seed.preset,
+      topologyPreset: restoredSnapshot && Object.hasOwn(restoredSnapshot, 'topologyPreset') ? restoredSnapshot.topologyPreset : seed.preset,
+      photo: Boolean(restoredSnapshot?.photo),
+      photoRef: restoredSnapshot?.photoRef || null,
+      photoStatus: restoredSnapshot?.photoStatus || (restoredSnapshot?.photo ? 'success' : 'idle'),
+      photoMessage: restoredSnapshot?.photoMessage || (restoredSnapshot?.photo ? (clientLanguage === 'en' ? 'Photo linked to this file.' : 'Photo liée à ce dossier.') : ''),
     };
 
     function setPhotoUi(status, message = '') {
+      state.photoStatus = status;
+      state.photoMessage = message;
       const analyzing = status === 'analyzing';
       photoTrigger?.setAttribute('aria-busy', String(analyzing));
       photoTrigger?.classList.toggle('is-complete', status === 'success');
@@ -872,15 +1187,20 @@
         return false;
       }
       const token = ++photoDetectionToken;
+      const historyGroup = 'photo:' + seed.id + ':' + token;
+      const photoRef = 'photo-' + (++photoFileSequence);
+      photoFileRegistry.set(photoRef, file);
       state.photo = true;
+      state.photoRef = photoRef;
       setPhotoUi('analyzing', 'Analyse automatique de la photo…');
-      markDirty();
+      setPhotoAnalysisBusy(true);
+      markDirty(historyGroup);
       try {
         const presetKey = await detectPhotoPreset(file);
         if (token !== photoDetectionToken) return false;
         const preset = PRESETS[presetKey];
         if (!preset) throw new Error('Disposition non reconnue');
-        const applied = applyPreset(presetKey, { detected: true });
+        const applied = applyPreset(presetKey, { detected: true, historyGroup });
         if (token !== photoDetectionToken) return false;
         if (applied) root.querySelector('.layout-presets-menu')?.removeAttribute('open');
         setPhotoUi(
@@ -889,11 +1209,15 @@
             ? 'Photo analysée · disposition « ' + preset.label + ' » appliquée.'
             : 'Photo conservée · dessin non modifié.'
         );
+        markDirty(historyGroup);
         return applied;
       } catch {
         if (token !== photoDetectionToken) return false;
-        setPhotoUi('error', 'Divisions non reconnues. Reprenez la photo bien de face ou choisissez un type.');
+        setPhotoUi('error', 'Photo conservée. Divisions non reconnues : reprenez-la bien de face ou choisissez un type.');
+        markDirty(historyGroup);
         return false;
+      } finally {
+        setPhotoAnalysisBusy(false);
       }
     }
 
@@ -1158,7 +1482,7 @@
       });
     }
 
-    function moveSplitDividerTo(splitId, dividerIndex, requestedBoundary) {
+    function moveSplitDividerTo(splitId, dividerIndex, requestedBoundary, historyGroup = null) {
       const node = findNode(state.layout, splitId);
       const element = splitElement(splitId);
       if (!node || node.type !== 'split' || !element) return;
@@ -1180,7 +1504,7 @@
       state.activePreset = 'custom';
       updateLayoutMeta(getEntries(), getDisplayIndexMap());
       positionDividerHandles();
-      markDirty();
+      markDirty(historyGroup);
       updateDossierProgress();
     }
 
@@ -1358,9 +1682,10 @@
       const startBoundary = node.sizes.slice(0, dividerIndex + 1).reduce((sum, size) => sum + size, 0);
       const total = node.sizes.reduce((sum, size) => sum + size, 0) || 100;
       const availablePixels = availableAxisPixels(element, node);
+      const historyGroup = 'divider:' + seed.id + ':' + splitId + ':' + dividerIndex + ':' + (++historyTransactionSequence);
       const move = (moveEvent) => {
         const coordinate = node.axis === 'vertical' ? moveEvent.clientX : moveEvent.clientY;
-        moveSplitDividerTo(splitId, dividerIndex, startBoundary + ((coordinate - startCoordinate) / availablePixels) * total);
+        moveSplitDividerTo(splitId, dividerIndex, startBoundary + ((coordinate - startCoordinate) / availablePixels) * total, historyGroup);
       };
       const finish = (finishEvent) => {
         handle.classList.remove('is-dragging');
@@ -1399,10 +1724,11 @@
       if (!getPane(paneId)) return false;
       state.selectedPaneId = paneId;
       renderLayout();
+      syncHistoryContext();
       return true;
     }
 
-    function applyPreset(key, { detected = false, preview = false } = {}) {
+    function applyPreset(key, { detected = false, preview = false, historyGroup = null } = {}) {
       const preset = PRESETS[key];
       if (!preset) return false;
       if (!preview && state.activePreset === key) {
@@ -1420,7 +1746,7 @@
       state.topologyPreset = key;
       interactionService.closeFor(api);
       renderLayout();
-      if (!preview) markDirty();
+      if (!preview) markDirty(historyGroup);
       if (!preview) {
         const paneCount = getEntries().length;
         showToast(detected
@@ -1474,6 +1800,7 @@
       state.topologyPreset = initialSnapshot.topologyPreset;
       photoDetectionToken += 1;
       state.photo = false;
+      state.photoRef = null;
       if (photoInput) photoInput.value = '';
       setPhotoUi('idle');
       interactionService.closeFor(api);
@@ -1492,16 +1819,16 @@
       return true;
     }
 
-    function updateMeasurement(paneId, key, value) {
+    function updateMeasurement(paneId, key, value, historyGroup = null) {
       const pane = getPane(paneId);
       if (!pane || !(key in pane.measurement)) return false;
       pane.measurement[key] = value;
       renderLayout();
-      markDirty();
+      markDirty(historyGroup);
       return true;
     }
 
-    function updateDisplayedDimension(paneId, key, { forceSync = false } = {}) {
+    function updateDisplayedDimension(paneId, key, { forceSync = false, historyGroup = null } = {}) {
       const pane = getPane(paneId);
       const control = dimensionControls.get(key);
       if (!pane || !control?.input) return false;
@@ -1512,7 +1839,7 @@
         control.input.setAttribute('aria-invalid', 'true');
         control.input.setCustomValidity(message);
         renderLayout();
-        markDirty();
+        markDirty(historyGroup);
         return false;
       };
       if (measurementUnit === 'in') {
@@ -1537,7 +1864,7 @@
       forceDimensionSync = forceSync;
       renderLayout();
       forceDimensionSync = false;
-      markDirty();
+      markDirty(historyGroup);
       return true;
     }
 
@@ -1553,8 +1880,15 @@
         layout: state.layout,
         selectedPaneId: state.selectedPaneId,
         activePreset: state.activePreset,
+        topologyPreset: state.topologyPreset,
         leaves: getEntries().map(({ node }) => node.id),
         photo: state.photo,
+        photoRef: state.photoRef,
+        photoStatus: state.photoStatus,
+        photoMessage: state.photoMessage,
+        paneSequence,
+        splitSequence,
+        initialSnapshot,
       });
     }
 
@@ -1580,9 +1914,11 @@
       updateDisplayedDimension,
       focusPane,
       processPhoto,
+      getPhotoFile: () => state.photoRef ? photoFileRegistry.get(state.photoRef) || null : null,
       snapshot,
     };
 
+    setPhotoUi(state.photoStatus, state.photoMessage);
     root.addEventListener('pointerdown', () => interactionService.activate(api), true);
     root.addEventListener('focusin', () => interactionService.activate(api));
     root.querySelectorAll('[data-layout-preset]').forEach((button) => button.addEventListener('click', () => {
@@ -1597,13 +1933,18 @@
       if (control.fraction && !control.fraction.options.length) {
         fractions.forEach((fraction) => control.fraction.add(new Option(fraction || 'Fraction', fraction)));
       }
+      control.input?.addEventListener('focus', () => {
+        if (!control.historyGroup) control.historyGroup = 'dimension:' + seed.id + ':' + key + ':' + (++historyTransactionSequence);
+      });
       control.input?.addEventListener('input', () => {
-        if (state.selectedPaneId) updateDisplayedDimension(state.selectedPaneId, key);
+        if (!control.historyGroup) control.historyGroup = 'dimension:' + seed.id + ':' + key + ':' + (++historyTransactionSequence);
+        if (state.selectedPaneId) updateDisplayedDimension(state.selectedPaneId, key, { historyGroup: control.historyGroup });
       });
       control.input?.addEventListener('blur', () => {
         forceDimensionSync = true;
         renderLayout();
         forceDimensionSync = false;
+        control.historyGroup = null;
       });
       control.fraction?.addEventListener('change', () => {
         if (state.selectedPaneId) updateDisplayedDimension(state.selectedPaneId, key, { forceSync: true });
@@ -1611,12 +1952,19 @@
     });
     unitSelect?.addEventListener('change', () => setMeasurementUnit(unitSelect.value));
     measureFields.forEach((field) => {
+      if (field.tagName === 'TEXTAREA') {
+        field.addEventListener('focus', () => {
+          if (!fieldHistoryGroups.has(field)) fieldHistoryGroups.set(field, 'field:' + seed.id + ':' + field.dataset.measureKey + ':' + (++historyTransactionSequence));
+        });
+        field.addEventListener('blur', () => fieldHistoryGroups.delete(field));
+      }
       const update = () => {
         if (!state.selectedPaneId) return;
         updateMeasurement(
           state.selectedPaneId,
           field.dataset.measureKey,
-          field.type === 'checkbox' ? field.checked : field.value
+          field.type === 'checkbox' ? field.checked : field.value,
+          field.tagName === 'TEXTAREA' ? fieldHistoryGroups.get(field) : null
         );
       };
       field.addEventListener(field.type === 'checkbox' || field.tagName === 'SELECT' ? 'change' : 'input', update);
@@ -1683,19 +2031,22 @@
     });
   }
 
-  function registerWindow(root, { first = false, focus = false } = {}) {
-    windowSequence += 1;
-    const id = 'w' + windowSequence;
-    const code = 'F' + String(windowSequence).padStart(2, '0');
+  function registerWindow(root, { first = false, focus = false, snapshot = null } = {}) {
+    if (!snapshot) windowSequence += 1;
+    const restoredSequence = Number(String(snapshot?.id || '').match(/\d+$/)?.[0]) || 0;
+    if (snapshot) windowSequence = Math.max(windowSequence, restoredSequence);
+    const id = snapshot?.id || 'w' + windowSequence;
+    const code = snapshot?.code || 'F' + String(windowSequence).padStart(2, '0');
     namespaceRootIds(root, id);
     setHelpTriggerLabels(root);
     const existingName = root.querySelector('[data-window-name]')?.textContent?.trim();
     const controller = createWindowController(root, {
       id,
       code,
-      name: first && existingName ? existingName : first ? 'Salon' : String(windowSequence),
-      preset: first ? '3x2' : '1x1',
+      name: snapshot?.name || (first && existingName ? existingName : first ? 'Salon' : String(windowSequence)),
+      preset: snapshot?.initialSnapshot?.activePreset || (first ? '3x2' : '1x1'),
       selectedIndex: first ? 1 : 0,
+      snapshot,
     });
     if (!controller) return null;
     controllers.push(controller);
@@ -1856,22 +2207,35 @@
   }
   addWindowButton?.addEventListener('click', requestAddWindow);
 
-  document.querySelectorAll('[data-save-draft]').forEach((button) => button.addEventListener('click', () => {
-    document.querySelectorAll('[data-dirty]').forEach((node) => { node.hidden = true; });
-    showToast(controllers.length + ' fenêtre' + (controllers.length > 1 ? 's enregistrées.' : ' enregistrée.'));
-  }));
+  undoButtons.forEach((button) => button.addEventListener('click', undoHistory));
+  redoButtons.forEach((button) => button.addEventListener('click', redoHistory));
+  document.addEventListener('keydown', (event) => {
+    if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
+    if (prototypeRoot.inert) return;
+    if (event.target instanceof Element && event.target.closest('input, textarea, select, [contenteditable="true"]')) return;
+    const key = event.key.toLowerCase();
+    const wantsUndo = key === 'z' && !event.shiftKey;
+    const wantsRedo = (key === 'z' && event.shiftKey) || (key === 'y' && event.ctrlKey);
+    if (!wantsUndo && !wantsRedo) return;
+    event.preventDefault();
+    if (wantsRedo) redoHistory();
+    else undoHistory();
+  });
   document.querySelectorAll('[data-finalize]').forEach((button) => button.addEventListener('click', () => {
     const windowCount = controllers.length;
-    showToast('Prototype seulement : les mesures ' + (windowCount === 1 ? 'de la fenêtre' : 'des ' + windowCount + ' fenêtres') + ' seraient validées ici.');
+    showToast(clientLanguage === 'en'
+      ? 'Prototype only: measurements for ' + windowCount + ' window' + (windowCount === 1 ? '' : 's') + ' would be confirmed here.'
+      : 'Prototype seulement : les mesures ' + (windowCount === 1 ? 'de la fenêtre' : 'des ' + windowCount + ' fenêtres') + ' seraient validées ici.');
   }));
 
   window.__vosthermosGridPrototype = {
-    snapshot: () => clone({
-      activeWindowId,
-      measurementUnit,
-      windows: controllers.map((controller) => controller.snapshot()),
-    }),
+    snapshot: captureDossierSnapshot,
     addWindow: () => addWindow(),
+    undo: undoHistory,
+    redo: redoHistory,
+    canUndo: () => undoStack.length > 0,
+    canRedo: () => redoStack.length > 0,
+    getPhotoFile: (photoRef) => photoFileRegistry.get(photoRef) || null,
   };
 
   const previewParams = new URLSearchParams(window.location.search);
@@ -1916,4 +2280,5 @@
     updatePaneActionModal();
   }
   updateDossierProgress();
+  initializeHistory();
 })();

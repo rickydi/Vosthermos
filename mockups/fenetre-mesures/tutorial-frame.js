@@ -69,8 +69,8 @@
     document.querySelectorAll('[data-editor-state]').forEach((node) => {
       node.textContent = node.dataset.state === 'complete' ? 'Measurements complete' : node.dataset.state === 'progress' ? 'Measurements in progress' : 'To measure';
     });
-    setText('#thermos-measure-title', 'Measurements');
-    setText('#thermos-options-title', 'Glass options');
+    document.querySelectorAll('[aria-labelledby$="thermos-measure-title"] h4').forEach((node) => { node.textContent = 'Measurements'; });
+    document.querySelectorAll('[aria-labelledby$="thermos-options-title"] h4').forEach((node) => { node.textContent = 'Glass options'; });
     document.querySelectorAll('[data-measure-dimension="width"]').forEach((node) => {
       const label = node.closest('.dimension')?.querySelector('.field-label');
       if (label) label.textContent = 'Width *';
@@ -83,11 +83,12 @@
       const label = node.closest('.dimension')?.querySelector('.field-label');
       if (label) label.textContent = 'Thickness *';
     });
-    setText('#decorative-title', 'Decorative grilles');
+    document.querySelectorAll('[data-decorative-enabled] strong').forEach((node) => { node.textContent = 'Decorative grilles'; });
     document.querySelectorAll('[data-decorative-enabled] small').forEach((node) => { node.textContent = 'Add lines without creating new glass units'; });
     document.querySelectorAll('[data-add-window] strong').forEach((node) => { node.textContent = 'Add another window'; });
     document.querySelectorAll('[data-add-window] small').forEach((node) => { node.textContent = 'Create a new glazing plan'; });
-    document.querySelectorAll('[data-save-draft]').forEach((node) => { node.textContent = 'Save'; });
+    document.querySelectorAll('[data-undo] .history-action-label').forEach((node) => { node.textContent = 'Undo'; });
+    document.querySelectorAll('[data-redo] .history-action-label').forEach((node) => { node.textContent = 'Redo'; });
     document.querySelectorAll('[data-finalize]').forEach((node) => { node.textContent = 'Confirm final measurements'; });
     setText('#pane-action-title', 'Split this glass unit');
     document.querySelectorAll('[data-pane-action-modal] .pane-action-head p').forEach((node) => { node.textContent = 'Create 2 to 4 glass units in the selected section.'; });
@@ -98,7 +99,8 @@
     });
     const toast = document.querySelector('[data-toast]');
     if (toast?.textContent.includes('Prototype seulement')) toast.textContent = 'Prototype only: final measurements would be confirmed here.';
-    else if (toast?.textContent.includes('enregistr')) toast.textContent = 'Draft saved.';
+    else if (toast?.textContent.includes('annulée')) toast.textContent = 'Last change undone.';
+    else if (toast?.textContent.includes('rétablie')) toast.textContent = 'Last change restored.';
   }
 
   function ensureCursor() {
@@ -221,12 +223,13 @@
       { at: 0, run: () => focusTarget('.thermos-option-grid', 'center') },
       { at: 650, run: () => clickTarget('input[data-measure-key="lowE"]') },
       { at: 1150, run: () => clickTarget('input[data-measure-key="argon"]') },
-      { at: 1750, run: () => selectValue('select[data-measure-key="spacer"]', 'Noir') },
-      { at: 2350, run: () => selectValue('select[data-measure-key="glazing"]', 'Double') },
-      { at: 3000, run: () => clickTarget('[data-decorative-enabled]') },
-      { at: 3850, run: () => clickTarget('[data-counter="vertical"] [data-delta="1"]') },
-      { at: 4550, run: () => clickTarget('[data-counter="horizontal"] [data-delta="1"]') },
-      { at: 5450, run: () => focusTarget('[data-decorative-options]') },
+      { at: 1750, run: () => selectValue('select[data-measure-key="spacer"]', 'black') },
+      { at: 2350, run: () => selectValue('select[data-measure-key="glazing"]', 'double') },
+      { at: 2900, run: () => selectValue('select[data-measure-key="access"]', 'without_ladder') },
+      { at: 3450, run: () => clickTarget('[data-decorative-enabled]') },
+      { at: 4200, run: () => clickTarget('[data-counter="vertical"] [data-delta="1"]') },
+      { at: 4900, run: () => clickTarget('[data-counter="horizontal"] [data-delta="1"]') },
+      { at: 5700, run: () => focusTarget('[data-decorative-options]') },
       { at: baseDurations[scene], run: complete },
     ]);
     if (scene === 5) return scaleEvents([
@@ -239,11 +242,15 @@
       { at: baseDurations[scene], run: complete },
     ]);
     return scaleEvents([
-      { at: 0, run: () => focusTarget('[data-save-draft]', 'center') },
-      { at: 850, run: () => clickTarget('[data-save-draft]') },
-      { at: 2100, run: () => focusTarget('[data-finalize]') },
-      { at: 3000, run: () => clickTarget('[data-finalize]') },
-      { at: 4050, run: () => focusTarget('.sticky-actions') },
+      { at: 0, run: () => focusTarget('input[data-measure-key="lowE"]', 'center') },
+      { at: 650, run: () => clickTarget('input[data-measure-key="lowE"]') },
+      { at: 1350, run: () => focusTarget('[data-undo]') },
+      { at: 1900, run: () => clickTarget('[data-undo]') },
+      { at: 2700, run: () => focusTarget('[data-redo]') },
+      { at: 3250, run: () => clickTarget('[data-redo]') },
+      { at: 4100, run: () => focusTarget('[data-finalize]') },
+      { at: 4750, run: () => clickTarget('[data-finalize]') },
+      { at: 5550, run: () => focusTarget('.sticky-actions') },
       { at: baseDurations[scene], run: complete },
     ]);
   }

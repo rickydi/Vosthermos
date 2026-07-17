@@ -42,9 +42,9 @@
           { title: 'Select one glass unit', description: 'The tutorial taps T2 in the real drawing. The editor then follows that exact unit.', tip: 'The isolated copy behaves like your dossier, but nothing is saved to it.', position: 'bottom', side: 'left' },
           { title: 'Enter three measurements', description: 'Width, height and thickness are entered in the real fields, including inch fractions.', tip: 'Inches remain the default; mm and cm are also available.', position: 'top', side: 'right' },
           { title: 'Divide only when needed', description: 'The real Edit button opens. Vertical and two sections are chosen, then created.', tip: 'You can move the new divider afterward to match the actual window.', position: 'bottom', side: 'right' },
-          { title: 'Add the glass options', description: 'Low-E, Argon and decorative grilles are selected on the active glass unit.', tip: 'Unknown remains a valid spacer choice when the client is unsure.', position: 'top', side: 'right' },
+          { title: 'Add the glass options', description: 'Low-E, Argon, spacer, glazing, ladder access and decorative grilles are selected on the active glass unit.', tip: 'I don’t know / Unknown remains available for the spacer and glazing when the client is unsure.', position: 'top', side: 'right' },
           { title: 'Add the other windows', description: 'The large plus creates a true second glazing plan with its own F number.', tip: 'Complete one window at a time so every T number stays tied to the right opening.', position: 'top', side: 'left' },
-          { title: 'Save or confirm', description: 'Save keeps a draft. Confirm final measurements marks the measurement request as complete.', tip: 'This demonstration is isolated: these clicks never alter the client file.', position: 'top', side: 'left' },
+          { title: 'Undo, redo or confirm', description: 'Undo reverses the latest change. Redo restores it. Confirm marks the measurements as final.', tip: 'This demonstration is isolated: these clicks never alter the client file.', position: 'top', side: 'left' },
         ],
       }
     : {
@@ -57,9 +57,9 @@
           { title: 'Sélectionnez un thermos', description: 'Le tutoriel touche réellement T2 dans le dessin. Le formulaire suit alors ce thermos précis.', tip: 'Cette copie fonctionne comme le dossier, mais aucune donnée n’y est conservée.', position: 'bottom', side: 'left' },
           { title: 'Entrez trois mesures', description: 'Largeur, hauteur et épaisseur sont inscrites dans les vrais champs, avec les fractions de pouce.', tip: 'Les pouces restent par défaut; les unités mm et cm sont aussi offertes.', position: 'top', side: 'right' },
           { title: 'Divisez seulement au besoin', description: 'Le vrai bouton Modifier s’ouvre. Vertical, deux sections puis Créer sont sélectionnés.', tip: 'La nouvelle division peut ensuite être déplacée pour reproduire la vraie fenêtre.', position: 'bottom', side: 'right' },
-          { title: 'Ajoutez les options', description: 'Low-E, Argon et les carreaux décoratifs sont activés sur le thermos sélectionné.', tip: 'Inconnu reste un choix valide pour l’intercalaire lorsque le client hésite.', position: 'top', side: 'right' },
+          { title: 'Ajoutez les options', description: 'Low-E, Argon, l’intercalaire, le vitrage, l’accès avec ou sans échelle et les carreaux décoratifs sont choisis sur le thermos sélectionné.', tip: 'Je ne sais pas / Inconnu reste offert pour l’intercalaire et le vitrage lorsque le client hésite.', position: 'top', side: 'right' },
           { title: 'Ajoutez les autres fenêtres', description: 'Le gros plus crée un vrai deuxième plan de vitrage avec son propre numéro F.', tip: 'Terminez une fenêtre à la fois pour lier chaque numéro T à la bonne ouverture.', position: 'top', side: 'left' },
-          { title: 'Enregistrez ou validez', description: 'Enregistrer garde un brouillon. Valider les mesures finales confirme que la prise de mesures est terminée.', tip: 'La démonstration est isolée : ces clics ne modifient jamais le dossier du client.', position: 'top', side: 'left' },
+          { title: 'Annulez, rétablissez ou validez', description: 'Annuler revient sur la dernière modification. Rétablir la remet. Valider confirme la fin de la prise de mesures.', tip: 'La démonstration est isolée : ces clics ne modifient jamais le dossier du client.', position: 'top', side: 'left' },
         ],
       };
 

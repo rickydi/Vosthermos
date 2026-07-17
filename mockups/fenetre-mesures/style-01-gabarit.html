@@ -289,6 +289,12 @@
     .create-sections:disabled { background:#9aadb1; color:#f7fbfb; cursor:not-allowed; }
     .glass-tip { margin:13px 0 0; padding:11px; border-left:4px solid var(--accent); background:#e6f1f3; color:#24434b; font-size:12px; line-height:1.45; }
     .sticky-actions .final { background:linear-gradient(180deg,#ff3547,#b90513); box-shadow:0 20px 36px -22px rgba(227,7,24,.95); }
+    .history-action-group { flex:0 0 auto; display:flex; gap:6px; }
+    .sticky-actions .history-action { flex:0 0 46px; width:46px; min-height:46px; display:inline-flex; align-items:center; justify-content:center; gap:6px; border:1px solid color-mix(in srgb,var(--accent) 25%,var(--line)); border-radius:12px; background:color-mix(in srgb,var(--surface) 96%,var(--accent)); color:var(--accent); font-weight:900; line-height:1; }
+    .sticky-actions .history-action:hover:not(:disabled) { border-color:var(--accent); background:color-mix(in srgb,var(--accent) 8%,var(--surface)); }
+    .sticky-actions .history-action svg { width:20px; height:20px; }
+    .sticky-actions .history-action-label { display:none; }
+    .sticky-actions .history-action:disabled { border-color:var(--line); background:transparent; color:var(--muted); opacity:.38; }
     .context-help-trigger { position:relative; z-index:3; flex:0 0 auto; width:27px; height:27px; border:1px solid #dec36c; border-radius:50%; background:#fff4c7; color:#6f5100; box-shadow:none; }
     .context-help-trigger::before { content:""; position:absolute; inset:-9px; border-radius:50%; }
     .context-help-trigger .icon-circle-glyph { color:inherit; font:900 12px/1 var(--font-ui); }
@@ -370,6 +376,8 @@
       .topbar{margin:-24px -24px 20px;padding-left:76px}.topbar .brand-mark{height:70px}
       .sticky-actions{gap:7px;padding:8px}
       .sticky-actions button{min-height:46px}
+      .sticky-actions .history-action{flex-basis:auto;width:auto;padding:0 12px}
+      .sticky-actions .history-action-label{display:inline}
     }
     @media(min-width:720px) and (max-width:1179px){
       .sticky-actions{left:50%;right:auto;width:min(560px,calc(100vw - 48px));transform:translateX(-50%)}
@@ -410,7 +418,7 @@
         </button>
       </main>
 
-      <div class="sticky-actions"><span class="dirty-dot" data-dirty title="Modifications non enregistrées"></span><button type="button" class="context-help-trigger icon-circle-center" data-help-key="finalization" aria-haspopup="dialog" aria-expanded="false" aria-controls="measurement-help-panel" aria-label="Aide sur enregistrer et valider"><span class="icon-circle-glyph" aria-hidden="true">?</span></button><button class="draft" data-save-draft>Enregistrer</button><button class="final" data-finalize>Valider les mesures finales</button></div>
+      <div class="sticky-actions"><button type="button" class="context-help-trigger icon-circle-center" data-help-key="finalization" aria-haspopup="dialog" aria-expanded="false" aria-controls="measurement-help-panel" aria-label="Aide sur annuler, rétablir et valider"><span class="icon-circle-glyph" aria-hidden="true">?</span></button><div class="history-action-group" role="group" aria-label="Historique des modifications"><button type="button" class="history-action icon-circle-center" data-undo disabled aria-label="Annuler la dernière modification" title="Annuler la dernière modification"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 7-5 5 5 5"/><path d="M5 12h8a6 6 0 0 1 6 6"/></svg><span class="history-action-label">Annuler</span></button><button type="button" class="history-action icon-circle-center" data-redo disabled aria-label="Rétablir la dernière modification" title="Rétablir la dernière modification"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 7 5 5-5 5"/><path d="M19 12h-8a6 6 0 0 0-6 6"/></svg><span class="history-action-label">Rétablir</span></button></div><button type="button" class="final" data-finalize>Valider les mesures finales</button></div>
     </div>
   </div>
 
@@ -489,7 +497,7 @@
             <section class="thermos-editor-section" aria-labelledby="thermos-options-title">
               <div class="thermos-section-head"><span class="section-title-with-help"><h4 id="thermos-options-title">Options du thermos</h4><button type="button" class="context-help-trigger icon-circle-center" data-help-key="glass-options" aria-haspopup="dialog" aria-expanded="false" aria-controls="measurement-help-panel" aria-label="Aide sur les options du thermos"><span class="icon-circle-glyph" aria-hidden="true">?</span></button></span></div>
               <div class="option-grid thermos-option-grid"><label class="option-chip"><input type="checkbox" data-measure-key="lowE">Low-E</label><label class="option-chip"><input type="checkbox" data-measure-key="argon">Argon</label><label class="option-chip"><input type="checkbox" data-measure-key="tempered">Trempé</label><label class="option-chip"><input type="checkbox" data-measure-key="laminated">Laminé</label></div>
-              <div class="sheet-selects thermos-selects"><label><span class="field-label">Intercalaire</span><select class="select" data-measure-key="spacer"><option value="">Je ne sais pas / Inconnu</option><option>Noir</option><option>Gris</option><option>Blanc</option><option>Inox</option></select></label><label><span class="field-label">Vitrage</span><select class="select" data-measure-key="glazing"><option value="">Choisir</option><option>Double</option><option>Triple</option><option>Simple</option></select></label><label><span class="field-label">Accès</span><select class="select" data-measure-key="access"><option value="">Choisir</option><option>Facile</option><option>Moyen</option><option>Difficile</option></select></label></div>
+              <div class="sheet-selects thermos-selects"><label><span class="field-label">Intercalaire</span><select class="select" data-measure-key="spacer"><option value="">Je ne sais pas / Inconnu</option><option value="black">Noir</option><option value="gray">Gris</option><option value="white">Blanc</option><option value="stainless">Inox</option></select></label><label><span class="field-label">Vitrage</span><select class="select" data-measure-key="glazing"><option value="" selected disabled>Choisir</option><option value="unknown">Je ne sais pas / Inconnu</option><option value="double">Double</option><option value="triple">Triple</option><option value="single">Simple</option></select></label><label><span class="field-label">Accès</span><select class="select" data-measure-key="access"><option value="" selected disabled>Choisir</option><option value="with_ladder">Avec échelle</option><option value="without_ladder">Sans échelle</option></select></label></div>
               <label class="thermos-notes"><span class="field-label">Notes particulières</span><textarea class="notes" data-measure-key="notes" placeholder="Forme, défaut, accès, particularité…"></textarea></label>
             </section>
 
