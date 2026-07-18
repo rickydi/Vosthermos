@@ -68,9 +68,8 @@
     .plan-card .window-stage { margin:10px -15px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); background:var(--surface); }
     .plan-card .window-stage::before { display:none; }
     .division-toolbar { min-width:0; display:grid; gap:9px; margin-top:12px; }
-    .layout-control-row { position:relative; display:block; }
-    .photo-control-row { display:grid; grid-template-columns:minmax(0,1fr) 34px; align-items:start; gap:6px; }
-    .layout-presets-menu { width:100%; min-width:0; }
+    .layout-control-row,.photo-control-row { display:grid; grid-template-columns:minmax(0,1fr) 34px; align-items:start; gap:6px; }
+    .layout-presets-menu { min-width:0; }
     .layout-presets-menu summary { min-height:66px; display:grid; grid-template-columns:42px minmax(0,1fr) 18px; align-items:center; gap:10px; padding:10px 12px; border:1px solid color-mix(in srgb,var(--accent) 34%,var(--line)); border-radius:12px; background:var(--surface); color:var(--ink); text-align:left; cursor:pointer; list-style:none; }
     .layout-presets-menu summary::-webkit-details-marker { display:none; }
     .layout-presets-menu summary:hover { border-color:color-mix(in srgb,var(--accent) 66%,var(--line)); background:color-mix(in srgb,var(--accent) 4%,var(--surface)); }
@@ -80,6 +79,9 @@
     .layout-presets-summary small { color:var(--muted); font-size:10px; font-weight:700; }
     .layout-presets-summary small span { color:var(--accent); font-weight:900; }
     .layout-presets-menu[open] .layout-presets-arrow { transform:rotate(90deg); }
+    .layout-presets-menu[open] { grid-column:1/-1; grid-row:1; }
+    .layout-presets-menu[open] summary { grid-template-columns:42px minmax(0,1fr) 56px; }
+    .layout-presets-menu[open] .layout-presets-arrow { justify-self:end; }
     .layout-presets { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; margin-top:7px; }
     .layout-preset { position:relative; min-width:0; min-height:118px; display:grid; grid-template-rows:64px auto; align-items:center; gap:7px; padding:9px; border:1px solid color-mix(in srgb,var(--accent) 18%,var(--line)); border-radius:12px; background:color-mix(in srgb,var(--surface) 97%,var(--accent)); color:var(--ink); text-align:left; }
     .layout-preset[aria-pressed="true"] { border-color:color-mix(in srgb,var(--accent) 72%,var(--line)); background:color-mix(in srgb,var(--accent) 6%,var(--surface)); box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 34%,transparent); }
@@ -301,9 +303,9 @@
     .context-help-trigger .icon-circle-glyph { color:inherit; font:900 12px/1 var(--font-ui); }
     .context-help-trigger:hover,.context-help-trigger[aria-expanded="true"] { border-color:#c8a62f; background:#ffe99a; color:#4f3900; }
     .context-help-trigger:focus-visible { outline:3px solid color-mix(in srgb,var(--brand-red) 48%,transparent); outline-offset:3px; }
-    .plan-identity > .context-help-trigger { margin-left:4px; }
-    .plan-identity > .context-help-trigger::before { inset:-7px; }
-    .photo-control-row > .context-help-trigger { align-self:center; justify-self:end; }
+    .layout-control-row > .context-help-trigger,.photo-control-row > .context-help-trigger { align-self:center; justify-self:end; }
+    .layout-control-row > .context-help-trigger { grid-column:2; grid-row:1; }
+    .layout-presets-menu[open] + .context-help-trigger { align-self:start; margin-top:19px; transform:translateX(-42px); }
     .sticky-actions .context-help-trigger { flex:0 0 27px; min-height:27px; align-self:center; }
     .context-help-panel { position:fixed; z-index:155; left:16px; top:16px; width:min(340px,calc(100vw - 24px)); padding:16px; border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line)); border-radius:17px; background:#fffaf3; color:var(--ink); box-shadow:0 24px 70px rgba(0,31,39,.28); }
     .context-help-panel[hidden] { display:none; }
@@ -432,7 +434,6 @@
           <div class="plan-identity">
             <h2><span data-window-code>F01</span><span aria-hidden="true"> · </span><span class="plan-name" data-window-name>Salon</span></h2>
             <button type="button" class="rename-window" data-rename-window aria-label="Renommer F01 Salon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 20 4.2-1 10.6-10.6a2.1 2.1 0 0 0-3-3L5.2 16 4 20Z"/><path d="m13.8 7.2 3 3"/></svg></button>
-            <button type="button" class="context-help-trigger icon-circle-center" data-help-key="plan" aria-haspopup="dialog" aria-expanded="false" aria-controls="measurement-help-panel" aria-label="Aide pour utiliser le plan"><span class="icon-circle-glyph" aria-hidden="true">?</span></button>
           </div>
           <span class="plan-status"><strong data-complete-pane-output>0</strong>&nbsp;/&nbsp;<span data-pane-count-output>6</span>&nbsp;mesurés</span>
         </header>
@@ -457,7 +458,7 @@
               <button type="button" class="layout-preset" data-layout-preset="left-1-right-3" aria-label="Créer une grande vitre à gauche et trois à droite"><span class="preset-window" data-layout="grand-left" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Grand à gauche</strong><small>4 thermos</small></span></button>
               <button type="button" class="layout-preset" data-layout-preset="left-3-right-1" aria-label="Créer trois vitres à gauche et une grande à droite"><span class="preset-window" data-layout="grand-right" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Grand à droite</strong><small>4 thermos</small></span></button>
             </div>
-          </details></div>
+          </details><button type="button" class="context-help-trigger icon-circle-center" data-help-key="plan" aria-haspopup="dialog" aria-expanded="false" aria-controls="measurement-help-panel" aria-label="Aide pour utiliser le plan"><span class="icon-circle-glyph" aria-hidden="true">?</span></button></div>
           <div class="layout-choice-or" aria-hidden="true"><span>ou</span></div>
           <div class="photo-layout-control">
             <div class="photo-control-row"><label class="photo-layout-action" data-photo-trigger>
