@@ -2,27 +2,17 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import {
-  THERMOS_PRICING_DEFAULTS,
   THERMOS_PRICING_KEYS,
   normalizeThermosPricingSettings,
 } from "@/lib/thermos-pricing";
+import { getThermosPricingSettings } from "@/lib/thermos-pricing-server";
 
 export const dynamic = "force-dynamic";
-
-async function readSettings() {
-  const rows = await prisma.$queryRawUnsafe(
-    `SELECT key, value FROM site_settings WHERE key = ANY($1)`,
-    THERMOS_PRICING_KEYS,
-  );
-  const result = { ...THERMOS_PRICING_DEFAULTS };
-  for (const row of rows) result[row.key] = row.value;
-  return normalizeThermosPricingSettings(result);
-}
 
 export async function GET() {
   try {
     await requireAdmin();
-    return NextResponse.json({ settings: await readSettings() });
+    return NextResponse.json({ settings: await getThermosPricingSettings() });
   } catch (err) {
     return NextResponse.json({ error: err.message || "Unauthorized" }, { status: 401 });
   }
@@ -44,7 +34,7 @@ export async function POST(request) {
       );
     }
 
-    return NextResponse.json({ ok: true, settings: await readSettings() });
+    return NextResponse.json({ ok: true, settings: await getThermosPricingSettings() });
   } catch (err) {
     return NextResponse.json({ error: err.message || "Unauthorized" }, { status: 401 });
   }

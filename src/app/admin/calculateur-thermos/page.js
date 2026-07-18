@@ -1,4 +1,4 @@
-import ThermosCalculatorClient from "./ThermosCalculatorClient";
+import ThermosCalculatorClient from "@/components/thermos/ThermosCalculatorClient";
 
 export const metadata = {
   title: "Calculateur thermos visuel | Administration Vosthermos",

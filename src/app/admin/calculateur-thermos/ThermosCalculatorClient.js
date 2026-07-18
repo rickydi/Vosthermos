@@ -1,34 +1,54 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import ClientPicker from "@/components/admin/ClientPicker";
 import MeasurementEditor from "@/components/measurements/MeasurementEditor";
+import { COMPANY_INFO } from "@/lib/company-info";
 import { formatSixteenths } from "@/lib/thermos-layout";
 import {
-  THERMOS_PRICING_DEFAULTS,
   THERMOS_SPACER_COLORS,
-  calculateThermosQuote,
-  emptyThermosQuote,
   measurementPaneToThermosLine,
-  normalizeThermosPricingSettings,
-} from "@/lib/thermos-pricing";
+} from "@/lib/thermos-estimate-input";
 import styles from "./thermos-calculator.module.css";
+
+const ClientPicker = dynamic(() => import("@/components/admin/ClientPicker"), { ssr: false });
 
 const MONEY = new Intl.NumberFormat("fr-CA", {
   style: "currency",
   currency: "CAD",
   minimumFractionDigits: 2,
 });
+const PUBLIC_MAX_LINES = 20;
 
 function money(value) {
   return MONEY.format(Number(value) || 0);
 }
 
-function createInitialMeasurement(revision = 0) {
+function emptyQuote() {
+  return {
+    settings: {},
+    lines: [],
+    totals: {
+      quantity: 0,
+      sqft: 0,
+      piecesSubtotal: 0,
+      tripFee: 0,
+      margin: 0,
+      subtotal: 0,
+      tps: 0,
+      tvq: 0,
+      total: 0,
+      totalMinWithTaxes: 0,
+      totalMaxWithTaxes: 0,
+    },
+  };
+}
+
+function createInitialMeasurement(revision = 0, source = "admin") {
   return {
     id: `calculator-${revision}`,
-    source: "admin",
+    source,
     accuracy: "approximate",
     status: "in_progress",
     data: {
@@ -142,52 +162,35 @@ function selectedBreakdown(line) {
   ].filter(([, value]) => Number(value));
 }
 
-export default function ThermosCalculatorClient() {
+export default function ThermosCalculatorClient({ mode = "admin" }) {
+  const isPublic = mode === "public";
   const editorRef = useRef(null);
   const [editorRevision, setEditorRevision] = useState(0);
-  const initialMeasurement = useMemo(() => createInitialMeasurement(editorRevision), [editorRevision]);
+  const initialMeasurement = useMemo(
+    () => createInitialMeasurement(editorRevision, isPublic ? "client" : "admin"),
+    [editorRevision, isPublic],
+  );
   const [measurementData, setMeasurementData] = useState(initialMeasurement.data);
   const [selectedPane, setSelectedPane] = useState({
     windowId: initialMeasurement.data.windows[0].id,
     paneId: initialMeasurement.data.windows[0].panes[0].id,
   });
-  const [settings, setSettings] = useState(THERMOS_PRICING_DEFAULTS);
-  const [settingsReady, setSettingsReady] = useState(false);
-  const [settingsLoading, setSettingsLoading] = useState(true);
-  const [settingsError, setSettingsError] = useState("");
-  const [settingsLoadedAt, setSettingsLoadedAt] = useState(null);
+  const [quote, setQuote] = useState(() => emptyQuote());
+  const [quoteReady, setQuoteReady] = useState(true);
+  const [quoteLoading, setQuoteLoading] = useState(false);
+  const [quoteError, setQuoteError] = useState("");
+  const [quoteLoadedAt, setQuoteLoadedAt] = useState(null);
+  const [estimateRevision, setEstimateRevision] = useState(0);
   const [selectedClient, setSelectedClient] = useState(null);
   const [clientPickerOpen, setClientPickerOpen] = useState(false);
   const [city, setCity] = useState("");
   const [copied, setCopied] = useState(false);
   const [actionError, setActionError] = useState("");
 
-  const loadPricing = useCallback(async () => {
-    setSettingsLoading(true);
-    setSettingsReady(false);
-    setSettingsError("");
-    try {
-      const response = await fetch("/api/admin/thermos-pricing", { cache: "no-store" });
-      const body = await response.json().catch(() => ({}));
-      if (!response.ok || body.error) throw new Error(body.error || "Impossible de charger les tarifs.");
-      setSettings(normalizeThermosPricingSettings(body.settings));
-      setSettingsReady(true);
-      setSettingsLoadedAt(new Date());
-    } catch (error) {
-      setSettingsError(error.message || "Impossible de charger les tarifs administratifs.");
-    } finally {
-      setSettingsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadPricing();
-  }, [loadPricing]);
-
   useEffect(() => {
     setCopied(false);
     setActionError("");
-  }, [city, measurementData, selectedClient, settings]);
+  }, [city, measurementData, selectedClient]);
 
   const paneEntries = useMemo(() => buildPaneEntries(measurementData), [measurementData]);
   const pricedEntries = useMemo(() => paneEntries.filter(({ pane }) => (
@@ -209,11 +212,62 @@ export default function ThermosCalculatorClient() {
     complete: entry.complete,
     originalAccess: entry.pane.options?.access || "",
   })), [pricedEntries]);
-  const quote = useMemo(() => (
-    settingsReady && pricingLines.length
-      ? calculateThermosQuote(pricingLines, settings)
-      : emptyThermosQuote(settings)
-  ), [pricingLines, settings, settingsReady]);
+  useEffect(() => {
+    if (!pricingLines.length) {
+      setQuote(emptyQuote());
+      setQuoteReady(true);
+      setQuoteLoading(false);
+      setQuoteError("");
+      return undefined;
+    }
+    if (isPublic && pricingLines.length > PUBLIC_MAX_LINES) {
+      setQuoteReady(false);
+      setQuoteLoading(false);
+      setQuoteError(`Le calculateur public accepte un maximum de ${PUBLIC_MAX_LINES} thermos par estimation.`);
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    const endpoint = isPublic ? "/api/public/thermos-estimate" : "/api/admin/thermos-estimate";
+    setQuoteLoading(true);
+    setQuoteReady(false);
+    setQuoteError("");
+
+    const timer = window.setTimeout(async () => {
+      try {
+        const response = await fetch(endpoint, {
+          method: "POST",
+          cache: "no-store",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ lines: pricingLines }),
+          signal: controller.signal,
+        });
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok || body.error) throw new Error(body.error || "Impossible de calculer cette estimation.");
+
+        const nextQuote = isPublic ? {
+          settings: {},
+          lines: (body.lines || []).map((line, index) => ({ ...pricingLines[index], ...line })),
+          totals: { ...emptyQuote().totals, ...(body.totals || {}) },
+        } : body;
+        setQuote(nextQuote);
+        setQuoteReady(true);
+        setQuoteLoadedAt(new Date());
+      } catch (error) {
+        if (error.name === "AbortError") return;
+        setQuoteReady(false);
+        setQuoteError(error.message || "Impossible de calculer cette estimation.");
+      } finally {
+        if (!controller.signal.aborted) setQuoteLoading(false);
+      }
+    }, isPublic ? 350 : 180);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [estimateRevision, isPublic, pricingLines]);
+
   const selectedEntry = paneEntries.find((entry) => (
     entry.windowId === selectedPane.windowId && entry.paneId === selectedPane.paneId
   ));
@@ -223,7 +277,9 @@ export default function ThermosCalculatorClient() {
   const breakdown = selectedBreakdown(selectedLine);
   const workingCity = city || selectedClient?.city || "";
   const pricingConfigurationIssues = useMemo(() => {
+    if (isPublic) return [];
     const issues = [];
+    const settings = quote.settings || {};
     const numericSetting = (key) => Number(String(settings[key] ?? "0").replace(",", ".")) || 0;
     if (pricingLines.some((line) => line.glassType === "triple") && numericSetting("thermos_triple_percent") <= 0) {
       issues.push("Le tarif du triple vitrage doit être configuré dans les paramètres.");
@@ -235,7 +291,7 @@ export default function ThermosCalculatorClient() {
       issues.push("Le tarif du verre laminé doit être configuré dans les paramètres.");
     }
     return issues;
-  }, [pricingLines, settings]);
+  }, [isPublic, pricingLines, quote.settings]);
   const estimateIssues = useMemo(() => {
     const issues = [];
     const missingDimensions = paneEntries.length - pricedEntries.length;
@@ -246,7 +302,8 @@ export default function ThermosCalculatorClient() {
     issues.push(...pricingConfigurationIssues);
     return issues;
   }, [paneEntries, pricedEntries, pricingConfigurationIssues, quote.lines.length]);
-  const canUseEstimate = settingsReady && estimateIssues.length === 0;
+  const canUseEstimate = quoteReady && estimateIssues.length === 0;
+  const hasEstimate = quoteReady && quote.lines.length > 0;
   const workOrderHref = `/admin/bons/nouveau?fresh=1${selectedClient?.id ? `&clientId=${encodeURIComponent(selectedClient.id)}` : ""}`;
 
   const handleDataChange = useCallback((nextData) => {
@@ -271,7 +328,7 @@ export default function ThermosCalculatorClient() {
   function resetSimulation() {
     if (!window.confirm("Effacer cette simulation et recommencer avec une fenêtre vide?")) return;
     const nextRevision = editorRevision + 1;
-    const nextMeasurement = createInitialMeasurement(nextRevision);
+    const nextMeasurement = createInitialMeasurement(nextRevision, isPublic ? "client" : "admin");
     setEditorRevision(nextRevision);
     setMeasurementData(nextMeasurement.data);
     setSelectedPane({
@@ -322,26 +379,36 @@ export default function ThermosCalculatorClient() {
   }
 
   return (
-    <div className={styles.page}>
+    <div className={`${styles.page} ${isPublic ? styles.publicPage : ""}`} data-mode={isPublic ? "public" : "admin"}>
       <header className={styles.hero}>
         <div>
-          <span className={styles.eyebrow}>Outil interne · estimation en direct</span>
-          <h1 className={`${styles.title} admin-text`}>Calculateur thermos visuel</h1>
-          <p className={`${styles.intro} admin-text-muted`}>
-            Dessinez les fenêtres comme elles sont installées. Chaque thermos mesuré devient une ligne de prix identifiable.
+          <span className={styles.eyebrow}>{isPublic ? "Estimation gratuite · sans engagement" : "Outil interne · estimation en direct"}</span>
+          <h1 className={`${styles.title} ${isPublic ? "" : "admin-text"}`}>
+            {isPublic ? "Dessinez votre fenêtre. Voyez son prix." : "Calculateur thermos visuel"}
+          </h1>
+          <p className={`${styles.intro} ${isPublic ? "" : "admin-text-muted"}`}>
+            {isPublic
+              ? "Reproduisez la forme de votre fenêtre, ajoutez les mesures et obtenez une estimation selon les tarifs Vosthermos en vigueur."
+              : "Dessinez les fenêtres comme elles sont installées. Chaque thermos mesuré devient une ligne de prix identifiable."}
           </p>
         </div>
         <div className={styles.heroActions}>
           <button type="button" onClick={resetSimulation} className={styles.ghostAction}>
             <i className="fas fa-rotate-left" aria-hidden="true" /> Nouvelle simulation
           </button>
-          <Link href="/admin/parametres#thermos-pricing" target="_blank" className={styles.priceAction}>
-            <i className="fas fa-sliders" aria-hidden="true" /> Modifier les prix
-          </Link>
+          {isPublic ? (
+            <Link href="/rendez-vous" className={styles.priceAction}>
+              <i className="fas fa-calendar-check" aria-hidden="true" /> Faire confirmer le prix
+            </Link>
+          ) : (
+            <Link href="/admin/parametres#thermos-pricing" target="_blank" className={styles.priceAction}>
+              <i className="fas fa-sliders" aria-hidden="true" /> Modifier les prix
+            </Link>
+          )}
         </div>
       </header>
 
-      <section className={`${styles.contextCard} admin-card admin-border`}>
+      {!isPublic && <section className={`${styles.contextCard} admin-card admin-border`}>
         <div className={styles.clientBlock}>
           <div className={styles.contextIcon}><i className="fas fa-user" aria-hidden="true" /></div>
           <div className={styles.contextCopy}>
@@ -358,17 +425,30 @@ export default function ThermosCalculatorClient() {
           <span className="admin-text-muted">Ville ou secteur</span>
           <input className="admin-input" value={city} onChange={(event) => setCity(event.target.value)} placeholder="Ex. Montréal, Verdun" />
         </label>
-      </section>
+      </section>}
 
-      {settingsError && (
+      {isPublic && (
+        <section className={styles.publicGuide} aria-label="Comment utiliser le calculateur">
+          <article><span>1</span><div><strong>Choisissez la forme</strong><p>Sélectionnez le modèle qui ressemble à votre fenêtre.</p></div></article>
+          <article><span>2</span><div><strong>Ajoutez les mesures</strong><p>Entrez largeur, hauteur et options de chaque thermos.</p></div></article>
+          <article><span>3</span><div><strong>Voyez l’estimation</strong><p>Le prix se met à jour automatiquement, jusqu’à 20 thermos.</p></div></article>
+        </section>
+      )}
+
+      {quoteError && (
         <div className={styles.pricingError} role="alert">
-          <div><strong>Tarifs non disponibles</strong><span>{settingsError} Aucun montant ne peut être transmis tant que les prix administratifs ne sont pas rechargés.</span></div>
-          <button type="button" onClick={loadPricing} disabled={settingsLoading}>{settingsLoading ? "Chargement…" : "Réessayer"}</button>
+          <div>
+            <strong>Estimation non disponible</strong>
+            <span>{quoteError} {isPublic ? "Vos mesures restent affichées." : "Aucun montant ne doit être transmis avant le recalcul."}</span>
+          </div>
+          <button type="button" onClick={() => setEstimateRevision((value) => value + 1)} disabled={quoteLoading}>
+            {quoteLoading ? "Calcul…" : "Réessayer"}
+          </button>
         </div>
       )}
 
       <div className={styles.mobileEstimate}>
-        <div><span>Total actuel</span><strong>{settingsReady ? money(quote.totals.total) : "—"}</strong></div>
+        <div><span>{isPublic ? "Votre estimation" : "Total actuel"}</span><strong>{hasEstimate ? money(quote.totals.total) : "—"}</strong></div>
         <a href="#resultat-calculateur">{completeEntries.length} / {paneEntries.length} complets · Voir le détail</a>
       </div>
 
@@ -390,21 +470,21 @@ export default function ThermosCalculatorClient() {
         <aside id="resultat-calculateur" className={styles.receipt} aria-label="Résultat de la simulation">
           <div className={styles.receiptTop}>
             <div>
-              <span className={styles.receiptKicker}>Estimation actuelle</span>
-              <p className={styles.price} aria-live="polite">{settingsReady ? money(quote.totals.total) : "—"}</p>
+              <span className={styles.receiptKicker}>{isPublic ? "Votre estimation actuelle" : "Estimation actuelle"}</span>
+              <p className={styles.price} aria-live="polite">{hasEstimate ? money(quote.totals.total) : "—"}</p>
               <span className={styles.taxLabel}>Taxes incluses</span>
             </div>
-            <div className={styles.rateState} data-ready={settingsReady}>
+            <div className={styles.rateState} data-ready={quoteReady}>
               <span />
-              {settingsLoading ? "Prix en chargement" : settingsReady ? "Prix admin chargés" : "Calcul bloqué"}
+              {!pricingLines.length ? "Prêt à calculer" : quoteLoading ? "Prix en calcul" : quoteReady ? (isPublic ? "Tarifs à jour" : "Prix admin chargés") : "Calcul bloqué"}
             </div>
           </div>
 
-          {!settingsReady ? (
+          {!quoteReady ? (
             <div className={styles.priceUnavailable} role="status">
-              <i className={`fas ${settingsLoading ? "fa-spinner fa-spin" : "fa-triangle-exclamation"}`} aria-hidden="true" />
-              <strong>{settingsLoading ? "Chargement des prix administratifs" : "Prix temporairement indisponibles"}</strong>
-              <p>{settingsLoading ? "Le calcul apparaîtra dès que les tarifs seront prêts." : "Rechargez les tarifs avant de transmettre une estimation."}</p>
+              <i className={`fas ${quoteLoading ? "fa-spinner fa-spin" : "fa-triangle-exclamation"}`} aria-hidden="true" />
+              <strong>{quoteLoading ? "Calcul de votre estimation" : "Prix temporairement indisponibles"}</strong>
+              <p>{quoteLoading ? "Le résultat apparaîtra dès que le calcul sera prêt." : (isPublic ? "Vérifiez les mesures et réessayez." : "Relancez le calcul avant de transmettre une estimation.")}</p>
             </div>
           ) : <>
           <div className={styles.coverage}>
@@ -454,58 +534,81 @@ export default function ThermosCalculatorClient() {
                   <span>{formatSixteenths(selectedEntry?.pane.widthSixteenths)} × {formatSixteenths(selectedEntry?.pane.heightSixteenths)}</span>
                   <span>{optionLabels(selectedLine).join(" · ")}</span>
                 </div>
-                <dl className={styles.breakdown}>
-                  {breakdown.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{money(value)}</dd></div>)}
-                  <div className={styles.breakdownTotal}><dt>Total du thermos</dt><dd>{money(selectedLine.lineSubtotal)}</dd></div>
-                </dl>
+                {isPublic ? (
+                  <div className={styles.publicLineTotal}>
+                    <span>Estimation pour ce thermos</span>
+                    <strong>{money(selectedLine.lineSubtotal)}</strong>
+                  </div>
+                ) : (
+                  <dl className={styles.breakdown}>
+                    {breakdown.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{money(value)}</dd></div>)}
+                    <div className={styles.breakdownTotal}><dt>Total du thermos</dt><dd>{money(selectedLine.lineSubtotal)}</dd></div>
+                  </dl>
+                )}
               </>
             )}
           </section>
 
-          <dl className={styles.totals}>
+          {!isPublic && <dl className={styles.totals}>
             <div><dt>Thermos et installation</dt><dd>{money(quote.totals.piecesSubtotal)}</dd></div>
             <div><dt>Frais fixes</dt><dd>{money(quote.totals.tripFee)}</dd></div>
             <div><dt>Marge / administration</dt><dd>{money(quote.totals.margin)}</dd></div>
             <div className={styles.subtotal}><dt>Sous-total</dt><dd>{money(quote.totals.subtotal)}</dd></div>
             <div><dt>TPS</dt><dd>{money(quote.totals.tps)}</dd></div>
             <div><dt>TVQ</dt><dd>{money(quote.totals.tvq)}</dd></div>
-          </dl>
+          </dl>}
 
-          <div className={styles.range}>
+          {hasEstimate && <div className={styles.range}>
             <span>Fourchette taxes incluses</span>
             <strong>{money(quote.totals.totalMinWithTaxes)} — {money(quote.totals.totalMaxWithTaxes)}</strong>
-          </div>
+          </div>}
 
-          {settingsReady && estimateIssues.length > 0 && (
+          {quoteReady && estimateIssues.length > 0 && (
             <div className={styles.estimateBlocker} role="status">
-              <strong>Estimation encore provisoire</strong>
+              <strong>{isPublic ? "À préciser pour affiner le prix" : "Estimation encore provisoire"}</strong>
               <ul>{estimateIssues.map((issue) => <li key={issue}>{issue}</li>)}</ul>
             </div>
           )}
 
-          {actionError && <p className={styles.actionError} role="alert">{actionError}</p>}
+          {!isPublic && actionError && <p className={styles.actionError} role="alert">{actionError}</p>}
 
           <div className={styles.receiptActions}>
-            <button type="button" onClick={copySummary} disabled={!canUseEstimate} className={styles.copyButton}>
-              <i className={`fas ${copied ? "fa-check" : "fa-copy"}`} aria-hidden="true" /> {copied ? "Estimation copiée" : "Copier l’estimation"}
-            </button>
-            {canUseEstimate ? (
-              <Link href={workOrderHref} target="_blank" rel="noopener noreferrer" className={styles.workOrderButton}>Ouvrir un bon vierge <i className="fas fa-arrow-right" aria-hidden="true" /></Link>
+            {isPublic ? (
+              <>
+                <Link href="/rendez-vous" className={styles.copyButton}>
+                  <i className="fas fa-calendar-check" aria-hidden="true" /> Recevoir ma soumission gratuite
+                </Link>
+                <a href={`tel:${COMPANY_INFO.phoneTel}`} className={styles.workOrderButton}>
+                  <i className="fas fa-phone" aria-hidden="true" /> Parler à un spécialiste
+                </a>
+                <small className={styles.workOrderNote}>Estimation indicative. Le prix final est confirmé après validation des mesures et de l’accès.</small>
+              </>
             ) : (
-              <span className={`${styles.workOrderButton} ${styles.isDisabled}`} aria-disabled="true">Ouvrir un bon vierge <i className="fas fa-arrow-right" aria-hidden="true" /></span>
+              <>
+                <button type="button" onClick={copySummary} disabled={!canUseEstimate} className={styles.copyButton}>
+                  <i className={`fas ${copied ? "fa-check" : "fa-copy"}`} aria-hidden="true" /> {copied ? "Estimation copiée" : "Copier l’estimation"}
+                </button>
+                {canUseEstimate ? (
+                  <Link href={workOrderHref} target="_blank" rel="noopener noreferrer" className={styles.workOrderButton}>Ouvrir un bon vierge <i className="fas fa-arrow-right" aria-hidden="true" /></Link>
+                ) : (
+                  <span className={`${styles.workOrderButton} ${styles.isDisabled}`} aria-disabled="true">Ouvrir un bon vierge <i className="fas fa-arrow-right" aria-hidden="true" /></span>
+                )}
+                <small className={styles.workOrderNote}>Le client choisi est transféré. Les lignes de thermos restent à ajouter au bon.</small>
+              </>
             )}
-            <small className={styles.workOrderNote}>Le client choisi est transféré. Les lignes de thermos restent à ajouter au bon.</small>
           </div>
           </>}
 
           <div className={styles.pricingRefresh}>
-            <button type="button" onClick={loadPricing} disabled={settingsLoading}><i className={`fas fa-rotate ${settingsLoading ? "fa-spin" : ""}`} aria-hidden="true" /> Actualiser les prix</button>
-            <span>{settingsLoadedAt ? `Chargés à ${settingsLoadedAt.toLocaleTimeString("fr-CA", { hour: "2-digit", minute: "2-digit" })}` : "En attente des tarifs"}</span>
+            <button type="button" onClick={() => setEstimateRevision((value) => value + 1)} disabled={quoteLoading}>
+              <i className={`fas fa-rotate ${quoteLoading ? "fa-spin" : ""}`} aria-hidden="true" /> {isPublic ? "Recalculer" : "Actualiser les prix"}
+            </button>
+            <span>{quoteLoadedAt ? `Calculé à ${quoteLoadedAt.toLocaleTimeString("fr-CA", { hour: "2-digit", minute: "2-digit" })}` : "Prêt pour vos mesures"}</span>
           </div>
         </aside>
       </div>
 
-      <ClientPicker open={clientPickerOpen} onClose={() => setClientPickerOpen(false)} onPick={pickClient} />
+      {!isPublic && <ClientPicker open={clientPickerOpen} onClose={() => setClientPickerOpen(false)} onPick={pickClient} />}
     </div>
   );
 }

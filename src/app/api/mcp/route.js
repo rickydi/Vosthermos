@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { hoursDisplayFr } from "@/lib/company-hours";
 import { headers } from "next/headers";
 import {
-  calculateThermosReplacement,
   calculateEnergySavings,
   diagnoseProblem,
   compareRepairVsReplace,
@@ -12,6 +11,11 @@ import {
 import { SERVICES } from "@/lib/services-data";
 import { CITIES } from "@/lib/cities";
 import { COMPANY_INFO } from "@/lib/company-info";
+import {
+  calculatePublicThermosReplacement,
+  getThermosPricingSettings,
+} from "@/lib/thermos-pricing-server";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 // ============================================================================
 // Vosthermos MCP Server (Model Context Protocol)
@@ -50,6 +54,25 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS, DELETE",
   "Access-Control-Allow-Headers": "Content-Type, Accept, MCP-Protocol-Version, Mcp-Session-Id",
 };
+const MAX_BATCH_SIZE = 20;
+const MAX_BODY_BYTES = 100_000;
+
+class McpInputError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "McpInputError";
+  }
+}
+
+function createRequestContext() {
+  let thermosSettingsPromise;
+  return {
+    getThermosPricingSettings() {
+      thermosSettingsPromise ||= getThermosPricingSettings();
+      return thermosSettingsPromise;
+    },
+  };
+}
 
 // ── Tool definitions (schemas are JSON Schema) ──
 const TOOLS = [
@@ -205,7 +228,7 @@ const PROMPTS = [
 ];
 
 // ── Tool execution handler ──
-async function executeTool(name, args = {}) {
+async function executeTool(name, args = {}, context = createRequestContext()) {
   switch (name) {
     case "diagnose_window_door_problem":
       return diagnoseProblem({
@@ -213,12 +236,22 @@ async function executeTool(name, args = {}) {
         symptoms: args.symptoms || [],
       });
 
-    case "estimate_thermos_replacement_cost":
-      return calculateThermosReplacement({
-        widthInches: args.widthInches,
-        heightInches: args.heightInches,
-        quantity: args.quantity || 1,
-      });
+    case "estimate_thermos_replacement_cost": {
+      const width = Number(args.widthInches);
+      const height = Number(args.heightInches);
+      const quantity = Number(args.quantity ?? 1);
+      if (!Number.isFinite(width) || width <= 0 || width > 240 || !Number.isFinite(height) || height <= 0 || height > 240) {
+        throw new McpInputError("Les dimensions doivent etre des nombres positifs de 240 pouces ou moins.");
+      }
+      if (!Number.isInteger(quantity) || quantity < 1 || quantity > 20) {
+        throw new McpInputError("La quantite doit etre un entier entre 1 et 20.");
+      }
+      return calculatePublicThermosReplacement({
+        widthInches: width,
+        heightInches: height,
+        quantity,
+      }, await context.getThermosPricingSettings());
+    }
 
     case "estimate_energy_savings":
       return calculateEnergySavings({
@@ -399,7 +432,7 @@ function getPromptTemplate(name, args = {}) {
 }
 
 // ── JSON-RPC 2.0 handler ──
-async function handleJsonRpc(request) {
+async function handleJsonRpc(request, context = createRequestContext()) {
   const { jsonrpc, method, params, id } = request;
 
   if (jsonrpc !== "2.0") {
@@ -430,7 +463,7 @@ async function handleJsonRpc(request) {
         break;
 
       case "tools/call": {
-        const toolResult = await executeTool(params.name, params.arguments);
+        const toolResult = await executeTool(params.name, params.arguments, context);
         result = {
           content: [
             {
@@ -468,9 +501,11 @@ async function handleJsonRpc(request) {
 
     return { jsonrpc: "2.0", result, id };
   } catch (error) {
+    const safeMessage = error instanceof McpInputError ? error.message : "Internal error";
+    if (!(error instanceof McpInputError)) console.error("MCP request failed", error);
     return {
       jsonrpc: "2.0",
-      error: { code: -32000, message: error.message || "Internal error" },
+      error: { code: -32000, message: safeMessage },
       id: id ?? null,
     };
   }
@@ -478,6 +513,21 @@ async function handleJsonRpc(request) {
 
 // ── HTTP handlers ──
 export async function POST(req) {
+  const contentLength = Number(req.headers.get("content-length") || 0);
+  if (contentLength > MAX_BODY_BYTES) {
+    return NextResponse.json(
+      { jsonrpc: "2.0", error: { code: -32600, message: "Request too large" }, id: null },
+      { status: 413, headers: CORS_HEADERS },
+    );
+  }
+  const limited = rateLimit(`mcp:${clientIp(req)}`, { max: 60, windowMs: 60_000 });
+  if (!limited.ok) {
+    return NextResponse.json(
+      { jsonrpc: "2.0", error: { code: -32000, message: "Too many requests" }, id: null },
+      { status: 429, headers: { ...CORS_HEADERS, "Retry-After": String(limited.retryAfter) } },
+    );
+  }
+
   let body;
   try {
     body = await req.json();
@@ -490,7 +540,14 @@ export async function POST(req) {
 
   // Batch request support
   if (Array.isArray(body)) {
-    const responses = await Promise.all(body.map(handleJsonRpc));
+    if (!body.length || body.length > MAX_BATCH_SIZE) {
+      return NextResponse.json(
+        { jsonrpc: "2.0", error: { code: -32600, message: `Batch must contain 1 to ${MAX_BATCH_SIZE} requests` }, id: null },
+        { status: 400, headers: CORS_HEADERS },
+      );
+    }
+    const context = createRequestContext();
+    const responses = await Promise.all(body.map((request) => handleJsonRpc(request, context)));
     const filtered = responses.filter((r) => r !== null);
     if (filtered.length === 0) {
       return new NextResponse(null, { status: 202, headers: CORS_HEADERS });
@@ -500,7 +557,7 @@ export async function POST(req) {
     });
   }
 
-  const response = await handleJsonRpc(body);
+  const response = await handleJsonRpc(body, createRequestContext());
   if (response === null) {
     return new NextResponse(null, { status: 202, headers: CORS_HEADERS });
   }

@@ -14,6 +14,112 @@
   padding: 22px 18px 46px;
 }
 
+.publicPage {
+  padding-top: 34px;
+  color: var(--calc-ink);
+}
+
+.publicPage .hero {
+  position: relative;
+  isolation: isolate;
+  align-items: center;
+  min-height: 236px;
+  padding: 38px 42px 44px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 28px;
+  background: var(--calc-teal);
+  color: #fff;
+  box-shadow: 0 28px 75px rgba(0, 39, 48, 0.24);
+}
+
+.publicPage .hero::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: -1;
+  height: 14px;
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.74) 0 1px, transparent 1px 12px);
+  content: "";
+  opacity: 0.42;
+}
+
+.publicPage .hero > div:first-child {
+  max-width: 830px;
+}
+
+.publicPage .eyebrow {
+  color: #8edee7;
+}
+
+.publicPage .title {
+  max-width: 780px;
+  font-size: clamp(42px, 6vw, 74px);
+  line-height: 0.92;
+}
+
+.publicPage .intro {
+  max-width: 760px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 15px;
+}
+
+.publicPage .ghostAction {
+  border-color: rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.publicPage .priceAction {
+  border-color: var(--calc-red);
+  background: var(--calc-red);
+}
+
+.publicGuide {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0 0 20px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 56, 69, 0.18);
+  border-radius: 18px;
+  background: rgba(0, 56, 69, 0.14);
+  box-shadow: 0 14px 35px rgba(0, 39, 48, 0.08);
+}
+
+.publicGuide article {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 12px;
+  padding: 17px 20px;
+  background: rgba(255, 255, 255, 0.91);
+}
+
+.publicGuide article > span {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(0, 56, 69, 0.2);
+  border-radius: 50%;
+  color: var(--calc-red);
+  font: 800 16px/1 "IBM Plex Mono", Consolas, monospace;
+}
+
+.publicGuide strong {
+  display: block;
+  color: var(--calc-teal);
+  font-size: 13px;
+}
+
+.publicGuide p {
+  margin: 4px 0 0;
+  color: var(--calc-muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
 .hero {
   display: flex;
   align-items: flex-end;
@@ -627,6 +733,21 @@
   font-weight: 900;
 }
 
+.publicLineTotal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px;
+  color: var(--calc-muted);
+  font-size: 11px;
+}
+
+.publicLineTotal strong {
+  color: var(--calc-teal);
+  font: 900 25px/1 "Barlow Condensed", "Arial Narrow", Arial, sans-serif;
+}
+
 .totals {
   display: grid;
   gap: 7px;
@@ -858,6 +979,15 @@
     gap: 14px;
   }
 
+  .publicPage .hero {
+    min-height: 0;
+    padding: 28px 22px 34px;
+  }
+
+  .publicGuide {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .heroActions {
     width: 100%;
     justify-content: stretch;
@@ -906,6 +1036,10 @@
 @media (max-width: 430px) {
   .title {
     font-size: 34px;
+  }
+
+  .publicPage .title {
+    font-size: 42px;
   }
 
   .intro {

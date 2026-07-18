@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import {
-  calculateThermosReplacement,
   calculateEnergySavings,
   diagnoseProblem,
   compareRepairVsReplace,
   checkWarranty,
   getServicePricing,
 } from "@/lib/calc-engine";
+import { calculatePublicThermosReplacement } from "@/lib/thermos-pricing-server";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 // Universal calculate endpoint.
 // GET or POST with ?type=<thermos|energy|diagnose|compare|warranty|pricing>
@@ -32,6 +33,17 @@ function jsonErr(message, status = 400) {
   return NextResponse.json({ error: message, brand: "Vosthermos" }, {
     status,
     headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+    },
+  });
+}
+
+function jsonLive(data) {
+  return NextResponse.json(data, {
+    headers: {
+      "Cache-Control": "no-store",
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
@@ -66,13 +78,25 @@ async function handle(req) {
         // une vitre de 0 pi² — qu'un agent IA citait tel quel à un client.
         const w = Number(input.width || input.widthInches);
         const h = Number(input.height || input.heightInches);
-        if (!Number.isFinite(w) || w <= 0 || !Number.isFinite(h) || h <= 0) {
+        const quantity = Number(input.qty || input.quantity || 1);
+        if (!Number.isFinite(w) || w <= 0 || w > 240 || !Number.isFinite(h) || h <= 0 || h > 240) {
           return jsonErr("Parametres width et height requis (pouces, nombres positifs). Ex: ?type=thermos&width=24&height=36", 400);
         }
-        return jsonOk(calculateThermosReplacement({
+        if (!Number.isInteger(quantity) || quantity < 1 || quantity > 20) {
+          return jsonErr("Le parametre qty doit etre un entier entre 1 et 20.", 400);
+        }
+        const limited = rateLimit(`public-calculate-thermos:${clientIp(req)}`, { max: 60, windowMs: 60_000 });
+        if (!limited.ok) {
+          return NextResponse.json(
+            { error: "Trop de calculs rapproches. Reessayez dans un instant.", brand: "Vosthermos" },
+            { status: 429, headers: { "Retry-After": String(limited.retryAfter) } },
+          );
+        }
+
+        return jsonLive(await calculatePublicThermosReplacement({
           widthInches: w,
           heightInches: h,
-          quantity: input.qty || input.quantity || 1,
+          quantity,
         }));
       }
       case "energy":
@@ -109,7 +133,8 @@ async function handle(req) {
         return jsonErr(`Type inconnu: ${type}`);
     }
   } catch (err) {
-    return jsonErr(err.message || "Erreur de calcul", 500);
+    console.error("Public calculation failed", err);
+    return jsonErr("Erreur de calcul temporaire", 500);
   }
 }
 

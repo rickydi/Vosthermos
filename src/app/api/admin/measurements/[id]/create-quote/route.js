@@ -5,10 +5,9 @@ import { logAdminActivity } from "@/lib/admin-activity";
 import { publishAdminEvent } from "@/lib/event-bus";
 import {
   calculateThermosQuote,
-  measurementPaneToThermosLine,
-  THERMOS_PRICING_DEFAULTS,
-  THERMOS_PRICING_KEYS,
 } from "@/lib/thermos-pricing";
+import { measurementPaneToThermosLine } from "@/lib/thermos-estimate-input";
+import { getThermosPricingSettings } from "@/lib/thermos-pricing-server";
 import { flattenThermos, formatSixteenths, clientMeasurementCompletenessErrors } from "@/lib/thermos-layout";
 import {
   createMeasurementCalculationHash,
@@ -26,16 +25,6 @@ const VALID_SPACER_COLORS = new Set(["noir", "gris", "blanc", "inox"]);
 
 function money(value) {
   return Math.round((Number(value) || 0) * 100) / 100;
-}
-
-async function readThermosPricingSettings() {
-  const rows = await prisma.siteSetting.findMany({
-    where: { key: { in: THERMOS_PRICING_KEYS } },
-    select: { key: true, value: true },
-  });
-  const settings = { ...THERMOS_PRICING_DEFAULTS };
-  rows.forEach((row) => { settings[row.key] = row.value; });
-  return settings;
 }
 
 function normalizedChoice(value) {
@@ -195,7 +184,7 @@ export async function POST(req, { params }) {
     }
 
     const [pricingSettings, workOrderSettings] = await Promise.all([
-      readThermosPricingSettings(),
+      getThermosPricingSettings(),
       getWorkOrderSettings(),
     ]);
     const thermos = flattenThermos(measurement.data, measurement.clientId, measurement.client?.name || "Client");
