@@ -12,6 +12,7 @@ const GEOMETRY_EDGE_TOLERANCE = 20;
 const GEOMETRY_COVERAGE_TOLERANCE = 0.005;
 const FINAL_GLASS_TYPES = new Set(["simple", "double", "triple"]);
 const FINAL_ACCESS_TYPES = new Set(["with_ladder", "without_ladder", "easy", "medium", "hard"]);
+const FINAL_SPACER_COLORS = new Set(["noir", "gris", "blanc", "inox"]);
 
 function makeId(prefix) {
   const uuid = globalThis.crypto?.randomUUID?.();
@@ -706,7 +707,7 @@ export function measurementCompletenessErrors(value) {
       if (!pane.thicknessSixteenths) errors.push(`${label}: épaisseur manquante ou invalide (1/4 à 2 po)`);
       if (!FINAL_GLASS_TYPES.has(pane.options?.glassType)) errors.push(`${label}: type de vitrage requis`);
       const spacerColor = cleanText(pane.options?.spacerColor, 40).toLowerCase();
-      if (!spacerColor || spacerColor === "unknown") errors.push(`${label}: intercalaire requis`);
+      if (!FINAL_SPACER_COLORS.has(spacerColor)) errors.push(`${label}: intercalaire requis`);
       if (!FINAL_ACCESS_TYPES.has(pane.options?.access)) errors.push(`${label}: accès requis`);
     });
   });

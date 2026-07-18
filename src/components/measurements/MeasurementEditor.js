@@ -418,8 +418,12 @@ const MeasurementEditor = forwardRef(function MeasurementEditor({
   publicMode = false,
   technicianMode = false,
   demoMode = false,
+  calculatorMode = false,
+  photoEnabled = true,
   interactionDisabled = false,
   language,
+  onDataChange,
+  onSelectionChange,
   onSaved,
   onFinalized,
   onLanguageChange,
@@ -476,6 +480,7 @@ const MeasurementEditor = forwardRef(function MeasurementEditor({
   const unit = data.displayUnit || "in";
   const canUndo = historyPast.current.length > 0;
   const canRedo = historyFuture.current.length > 0;
+  const showPhoto = photoEnabled && !calculatorMode && (demoMode || Boolean(apiBase));
   void historyVersion;
 
   const commitData = useCallback((updater, { history = true, clearMessage = true } = {}) => {
@@ -562,6 +567,20 @@ const MeasurementEditor = forwardRef(function MeasurementEditor({
     const pane = win.panes.find((entry) => entry.id === activeSelection.paneId) || win.panes[0];
     if (win.id !== activeSelection.windowId || pane.id !== activeSelection.paneId) setActiveSelection({ windowId: win.id, paneId: pane.id });
   }, [data, activeSelection]);
+
+  useEffect(() => {
+    onDataChange?.(data);
+  }, [data, onDataChange]);
+
+  useEffect(() => {
+    if (!activeWindow || !activePane) return;
+    onSelectionChange?.({
+      windowId: activeWindow.id,
+      paneId: activePane.id,
+      windowIndex: activeWindowIndex,
+      paneNumber: activePane.number,
+    });
+  }, [activePane, activeWindow, activeWindowIndex, onSelectionChange]);
 
   useEffect(() => {
     onLanguageChange?.(locale);
@@ -727,15 +746,19 @@ const MeasurementEditor = forwardRef(function MeasurementEditor({
     save,
     isDirty: () => dirtyRef.current,
     isPhotoPending: () => Boolean(uploadingWindowId || analyzingWindowId),
+    getData: () => clone(dataRef.current),
+    focusPane: (windowId, paneId) => scrollToSelection(windowId, paneId),
   }));
 
   useEffect(() => {
+    if (calculatorMode) return undefined;
     if (!dirty || saving || finalizing || uploadingWindowId || analyzingWindowId) return undefined;
     const timer = setTimeout(() => persistSnapshot(clone(dataRef.current), false, { silent: true }), AUTOSAVE_DELAY);
     return () => clearTimeout(timer);
-  }, [data, dirty, saving, finalizing, uploadingWindowId, analyzingWindowId, persistSnapshot]);
+  }, [calculatorMode, data, dirty, saving, finalizing, uploadingWindowId, analyzingWindowId, persistSnapshot]);
 
   useEffect(() => {
+    if (calculatorMode) return undefined;
     const beforeUnload = (event) => {
       if (!dirtyRef.current) return;
       event.preventDefault();
@@ -743,7 +766,7 @@ const MeasurementEditor = forwardRef(function MeasurementEditor({
     };
     window.addEventListener("beforeunload", beforeUnload);
     return () => window.removeEventListener("beforeunload", beforeUnload);
-  }, [copy.autosave.leaveWarning]);
+  }, [calculatorMode, copy.autosave.leaveWarning]);
 
   useEffect(() => {
     if (!publicMode) return;
@@ -1033,8 +1056,8 @@ const MeasurementEditor = forwardRef(function MeasurementEditor({
     updatePane(win.id, pane.id, (entry) => ({ options: { ...entry.options, [key]: value } }));
   }
 
-  const modeLabel = technicianMode ? copy.modes.technician : publicMode ? copy.modes.client : measurement.accuracy === "approximate" ? copy.modes.approximate : copy.modes.admin;
-  const autosaveText = autosaveState === "saving" ? copy.autosave.saving
+  const modeLabel = calculatorMode ? (locale === "en" ? "Calculator" : "Calculateur") : technicianMode ? copy.modes.technician : publicMode ? copy.modes.client : measurement.accuracy === "approximate" ? copy.modes.approximate : copy.modes.admin;
+  const autosaveText = calculatorMode ? (locale === "en" ? "Live calculation" : "Calcul en direct") : autosaveState === "saving" ? copy.autosave.saving
     : autosaveState === "error" ? copy.autosave.failed
       : autosaveState === "unsaved" ? copy.autosave.unsaved
         : savedAt ? formatMeasurementCopy(copy.autosave.savedAt, { time: savedAt.toLocaleTimeString(locale === "en" ? "en-CA" : "fr-CA", { hour: "2-digit", minute: "2-digit" }) }) : copy.autosave.saved;
@@ -1042,7 +1065,7 @@ const MeasurementEditor = forwardRef(function MeasurementEditor({
   const tutorial = copy.tutorial.steps[tutorialStep];
 
   return (
-    <div className="measurement-workspace" lang={locale}>
+    <div className={`measurement-workspace${calculatorMode ? " is-calculator" : ""}`} lang={locale}>
       <fieldset
         disabled={finalizing || interactionDisabled}
         aria-busy={finalizing || interactionDisabled}
@@ -1054,8 +1077,8 @@ const MeasurementEditor = forwardRef(function MeasurementEditor({
             <img className="topbar-logo" src="/images/Vos-Thermos-Logo_Blanc.png" alt={copy.brandAlt} />
           </div>
           <div className="topbar-actions">
-            <button type="button" className="topbar-tutorial" onClick={() => { setTutorialStep(0); setTutorialOpen(true); setTutorialPlaying(true); }}><Icon name="play" /><span>{copy.tutorial.launcher}</span></button>
-            <button type="button" className="topbar-mode" onClick={() => changeLocale(locale === "fr" ? "en" : "fr")} aria-label={locale === "fr" ? "English" : "Français"}>{locale.toUpperCase()}</button>
+            {!calculatorMode && <button type="button" className="topbar-tutorial" onClick={() => { setTutorialStep(0); setTutorialOpen(true); setTutorialPlaying(true); }}><Icon name="play" /><span>{copy.tutorial.launcher}</span></button>}
+            {!calculatorMode && <button type="button" className="topbar-mode" onClick={() => changeLocale(locale === "fr" ? "en" : "fr")} aria-label={locale === "fr" ? "English" : "Français"}>{locale.toUpperCase()}</button>}
             <span className="topbar-mode">{modeLabel}</span>
           </div>
         </header>
@@ -1099,7 +1122,7 @@ const MeasurementEditor = forwardRef(function MeasurementEditor({
                   <span className="window-status"><strong>{completeCount}</strong>&nbsp;/ {win.panes.length} {copy.progress.measured}</span>
                 </header>
 
-                <section aria-label={copy.models.toolbarAria}>
+                <section aria-label={calculatorMode ? copy.models.chooseType : copy.models.toolbarAria}>
                   <div className="layout-picker-row">
                     <div className={`layout-picker${openLayoutId === win.id ? " is-open" : ""}`}>
                       <button
@@ -1123,6 +1146,7 @@ const MeasurementEditor = forwardRef(function MeasurementEditor({
                     </div>
                     <HelpButton label={copy.help.trigger} active={helpKey === "plan"} onClick={() => setHelpKey(helpKey === "plan" ? null : "plan")} />
                   </div>
+                  {showPhoto && <>
                   <div className="choice-separator">{locale === "en" ? "or" : "ou"}</div>
                   <div className="photo-action-row">
                     <label className={`photo-action${photoBusy ? " is-loading" : ""}${win.photoUrl ? " is-complete" : ""}`} aria-busy={photoBusy} data-state={win.photoUrl ? "success" : undefined}>
@@ -1134,6 +1158,7 @@ const MeasurementEditor = forwardRef(function MeasurementEditor({
                     <HelpButton label={copy.help.trigger} active={helpKey === "photo"} onClick={() => setHelpKey(helpKey === "photo" ? null : "photo")} />
                   </div>
                   {win.photoUrl && !publicMode && <div className="status is-success"><img src={win.photoUrl} alt={formatMeasurementCopy(copy.photo.adminPreviewAlt, { code: windowCode(windowIndex), name: win.label })} style={{ width: 54, height: 42, objectFit: "cover", borderRadius: 7 }} /><span>{copy.photo.adminPreview}</span></div>}
+                  </>}
                 </section>
 
                 <Blueprint
@@ -1203,13 +1228,13 @@ const MeasurementEditor = forwardRef(function MeasurementEditor({
       </div>
 
       <div className="action-bar">
-        <span className={`autosave is-${autosaveState}`} data-state={autosaveState}><span className="autosave-dot" />{autosaveText}</span>
+        <span className={`autosave is-${calculatorMode ? "saved" : autosaveState}`} data-state={calculatorMode ? "saved" : autosaveState}><span className="autosave-dot" />{autosaveText}</span>
         <div className="action-history" role="group" aria-label={copy.history.groupAria}>
           <button type="button" className="action-button" disabled={!canUndo || saving} onClick={undo} aria-label={copy.history.undo}><Icon name="undo" /><span className="action-label">{copy.history.undoShort}</span></button>
           <button type="button" className="action-button" disabled={!canRedo || saving} onClick={redo} aria-label={copy.history.redo}><Icon name="redo" /><span className="action-label">{copy.history.redoShort}</span></button>
         </div>
-        <button type="button" className="action-primary" disabled={saving || finalizing || Boolean(uploadingWindowId || analyzingWindowId)} onClick={() => save(true)}>{finalizing ? copy.validation.validating : publicMode ? copy.validation.clientAction : technicianMode ? copy.validation.technicianAction : copy.validation.adminAction}</button>
-        <HelpButton label={copy.help.trigger} active={helpKey === "finalization"} onClick={() => setHelpKey(helpKey === "finalization" ? null : "finalization")} />
+        {!calculatorMode && <button type="button" className="action-primary" disabled={saving || finalizing || Boolean(uploadingWindowId || analyzingWindowId)} onClick={() => save(true)}>{finalizing ? copy.validation.validating : publicMode ? copy.validation.clientAction : technicianMode ? copy.validation.technicianAction : copy.validation.adminAction}</button>}
+        {!calculatorMode && <HelpButton label={copy.help.trigger} active={helpKey === "finalization"} onClick={() => setHelpKey(helpKey === "finalization" ? null : "finalization")} />}
       </div>
 
       {renameModal && <Modal onClose={() => setRenameModal(null)} labelledBy="measurement-rename-title"><form onSubmit={submitRename}><div className="modal-head"><div><span className="modal-kicker">{windowCode(data.windows.findIndex((win) => win.id === renameModal.windowId))}</span><h2 className="modal-title" id="measurement-rename-title">{copy.modals.rename.title}</h2></div><button type="button" className="modal-close" onClick={() => setRenameModal(null)} aria-label={copy.common.close}><Icon name="close" /></button></div><div className="modal-body"><label className="field"><span className="field-label">{copy.windows.nameField}</span><input autoFocus maxLength={60} value={renameValue} placeholder={copy.windows.namePlaceholder} onChange={(event) => setRenameValue(event.target.value)} /></label></div><div className="modal-actions"><button type="button" className="modal-action" onClick={() => setRenameModal(null)}>{copy.common.cancel}</button><button type="submit" className="modal-action is-primary" disabled={!renameValue.trim()}>{copy.modals.rename.save}</button></div></form></Modal>}

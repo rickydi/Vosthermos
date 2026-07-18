@@ -3,7 +3,12 @@ import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { logAdminActivity } from "@/lib/admin-activity";
 import { publishAdminEvent } from "@/lib/event-bus";
-import { calculateThermosQuote, THERMOS_PRICING_DEFAULTS, THERMOS_PRICING_KEYS } from "@/lib/thermos-pricing";
+import {
+  calculateThermosQuote,
+  measurementPaneToThermosLine,
+  THERMOS_PRICING_DEFAULTS,
+  THERMOS_PRICING_KEYS,
+} from "@/lib/thermos-pricing";
 import { flattenThermos, formatSixteenths, clientMeasurementCompletenessErrors } from "@/lib/thermos-layout";
 import {
   createMeasurementCalculationHash,
@@ -17,6 +22,7 @@ import { getMeasurementById, measurementErrorResponse } from "@/lib/thermos-meas
 
 const MEASUREMENT_THERMOS_ITEM_TYPE = "measurement_thermos";
 const MEASUREMENT_TRIP_ITEM_TYPE = "measurement_trip";
+const VALID_SPACER_COLORS = new Set(["noir", "gris", "blanc", "inox"]);
 
 function money(value) {
   return Math.round((Number(value) || 0) * 100) / 100;
@@ -41,11 +47,8 @@ function isMissingRequiredChoice(value) {
   return !normalized || normalized === "unknown";
 }
 
-function pricingAccess(value) {
-  const access = normalizedChoice(value);
-  if (access === "without_ladder") return "easy";
-  if (access === "with_ladder") return "hard";
-  return ["easy", "medium", "hard"].includes(access) ? access : null;
+function isMissingRequiredSpacer(value) {
+  return !VALID_SPACER_COLORS.has(normalizedChoice(value));
 }
 
 function isMissingRequiredAccess(value) {
@@ -56,7 +59,7 @@ function missingThermosOptions(thermos) {
   return thermos.flatMap((pane) => {
     const fields = [];
     if (isMissingRequiredChoice(pane.options?.glassType)) fields.push("glassType");
-    if (isMissingRequiredChoice(pane.options?.spacerColor)) fields.push("spacerColor");
+    if (isMissingRequiredSpacer(pane.options?.spacerColor)) fields.push("spacerColor");
     if (isMissingRequiredAccess(pane.options?.access)) fields.push("access");
     if (!fields.length) return [];
     return [{
@@ -213,21 +216,7 @@ export async function POST(req, { params }) {
     if (thermos.some((pane) => pane.options?.laminated) && !(Number(pricingSettings.thermos_laminated_percent) > 0)) {
       return NextResponse.json({ error: "Configurez la majoration du verre laminé dans Paramètres avant de calculer cette soumission." }, { status: 400 });
     }
-    const quoteLines = thermos.map((pane) => ({
-      width: pane.widthSixteenths / 16,
-      height: pane.heightSixteenths / 16,
-      quantity: 1,
-      lowE: Boolean(pane.options?.lowE),
-      argon: Boolean(pane.options?.argon),
-      tempered: Boolean(pane.options?.tempered),
-      laminated: Boolean(pane.options?.laminated),
-      glassType: normalizedChoice(pane.options?.glassType),
-      spacerColor: normalizedChoice(pane.options?.spacerColor),
-      thicknessSixteenths: pane.thicknessSixteenths,
-      grill: Boolean(pane.grille?.enabled),
-      access: pricingAccess(pane.options?.access),
-      note: pane.options?.notes || "",
-    }));
+    const quoteLines = thermos.map((pane) => measurementPaneToThermosLine(pane));
     const quote = calculateThermosQuote(quoteLines, pricingSettings);
     const items = buildQuoteItems(thermos, quote);
     const storedItems = buildStoredQuoteItems(items);

@@ -48,6 +48,8 @@ export const ACCESS_OPTIONS = [
   { value: "hard", label: "Difficile", settingKey: "thermos_access_hard_per_unit" },
 ];
 
+export const THERMOS_SPACER_COLORS = ["noir", "gris", "blanc", "inox"];
+
 export function emptyThermosLine() {
   return {
     width: 24,
@@ -85,9 +87,61 @@ export function normalizeThermosPricingSettings(raw = {}) {
   return result;
 }
 
+export function emptyThermosQuote(settingsInput = {}) {
+  return {
+    settings: normalizeThermosPricingSettings(settingsInput),
+    lines: [],
+    totals: {
+      quantity: 0,
+      sqft: 0,
+      piecesSubtotal: 0,
+      tripFee: 0,
+      margin: 0,
+      subtotal: 0,
+      estimateMin: 0,
+      estimateMax: 0,
+      tps: 0,
+      tvq: 0,
+      total: 0,
+      totalMinWithTaxes: 0,
+      totalMaxWithTaxes: 0,
+    },
+  };
+}
+
+export function measurementAccessToPricingAccess(value) {
+  const access = String(value || "").trim().toLowerCase();
+  if (access === "without_ladder") return "easy";
+  if (access === "with_ladder") return "hard";
+  return ["easy", "medium", "hard"].includes(access) ? access : "easy";
+}
+
+export function measurementPaneToThermosLine(pane = {}, overrides = {}) {
+  const options = pane?.options || {};
+  const rawSpacerColor = String(options.spacerColor || "").trim().toLowerCase();
+  const spacerColor = THERMOS_SPACER_COLORS.includes(rawSpacerColor) ? rawSpacerColor : "";
+  return {
+    width: Math.max(0, Number(pane?.widthSixteenths) || 0) / 16,
+    height: Math.max(0, Number(pane?.heightSixteenths) || 0) / 16,
+    quantity: 1,
+    lowE: Boolean(options.lowE),
+    argon: Boolean(options.argon),
+    tempered: Boolean(options.tempered),
+    laminated: Boolean(options.laminated),
+    glassType: String(options.glassType || "").trim().toLowerCase(),
+    spacerColor: spacerColor === "unknown" ? "" : spacerColor,
+    thicknessSixteenths: pane?.thicknessSixteenths ?? null,
+    grill: Boolean(pane?.grille?.enabled),
+    access: measurementAccessToPricingAccess(options.access),
+    note: String(options.notes || "").trim(),
+    ...overrides,
+  };
+}
+
 export function calculateThermosQuote(linesInput = [], settingsInput = {}) {
   const settings = normalizeThermosPricingSettings(settingsInput);
-  const lines = (Array.isArray(linesInput) && linesInput.length ? linesInput : [emptyThermosLine()])
+  if (!Array.isArray(linesInput) || !linesInput.length) return emptyThermosQuote(settings);
+  const lines = linesInput
     .map((line) => ({
       ...emptyThermosLine(),
       ...line,
@@ -115,21 +169,23 @@ export function calculateThermosQuote(linesInput = [], settingsInput = {}) {
   const tvqRate = numberSetting(settings, "tvq_rate");
 
   const computedLines = lines.map((line) => {
-    const sqftPerUnit = money((line.width * line.height) / 144);
-    const baseGlassUnit = money(Math.max(minimumUnit, sqftPerUnit * pricePerSqft));
-    const lowEUnit = line.lowE ? money(sqftPerUnit * lowEPerSqft) : 0;
-    const argonUnit = line.argon ? money(sqftPerUnit * argonPerSqft) : 0;
-    const tripleUnit = line.glassType === "triple" ? money(baseGlassUnit * (triplePercent / 100)) : 0;
-    const simpleDiscountUnit = line.glassType === "simple" ? money(baseGlassUnit * (simpleDiscountPercent / 100)) : 0;
-    const laminatedUnit = line.laminated ? money(baseGlassUnit * (laminatedPercent / 100)) : 0;
-    const spacerUnit = line.spacerColor && line.spacerColor !== "noir" ? spacerOptionPerUnit : 0;
-    const thicknessUnit = line.thicknessSixteenths && Number(line.thicknessSixteenths) !== 13 ? nonstandardThicknessPerUnit : 0;
+    const hasDimensions = line.width > 0 && line.height > 0;
+    const sqftPerUnit = hasDimensions ? money((line.width * line.height) / 144) : 0;
+    const baseGlassUnit = hasDimensions ? money(Math.max(minimumUnit, sqftPerUnit * pricePerSqft)) : 0;
+    const lowEUnit = hasDimensions && line.lowE ? money(sqftPerUnit * lowEPerSqft) : 0;
+    const argonUnit = hasDimensions && line.argon ? money(sqftPerUnit * argonPerSqft) : 0;
+    const tripleUnit = hasDimensions && line.glassType === "triple" ? money(baseGlassUnit * (triplePercent / 100)) : 0;
+    const simpleDiscountUnit = hasDimensions && line.glassType === "simple" ? money(baseGlassUnit * (simpleDiscountPercent / 100)) : 0;
+    const laminatedUnit = hasDimensions && line.laminated ? money(baseGlassUnit * (laminatedPercent / 100)) : 0;
+    const spacerUnit = hasDimensions && line.spacerColor && line.spacerColor !== "noir" ? spacerOptionPerUnit : 0;
+    const thicknessUnit = hasDimensions && line.thicknessSixteenths && Number(line.thicknessSixteenths) !== 13 ? nonstandardThicknessPerUnit : 0;
     const adjustedGlassBase = Math.max(0, baseGlassUnit - simpleDiscountUnit + tripleUnit + laminatedUnit);
-    const temperedUnit = line.tempered ? money(sqftPerUnit * temperedPerSqft) : 0;
-    const grillUnit = line.grill ? grillPerUnit : 0;
+    const temperedUnit = hasDimensions && line.tempered ? money(sqftPerUnit * temperedPerSqft) : 0;
+    const grillUnit = hasDimensions && line.grill ? grillPerUnit : 0;
     const accessOption = ACCESS_OPTIONS.find((option) => option.value === line.access) || ACCESS_OPTIONS[0];
-    const accessUnit = accessOption.settingKey ? numberSetting(settings, accessOption.settingKey) : 0;
-    const unitSubtotal = money(Math.max(0, adjustedGlassBase + lowEUnit + argonUnit + temperedUnit + grillUnit + spacerUnit + thicknessUnit + installPerUnit + accessUnit));
+    const accessUnit = hasDimensions && accessOption.settingKey ? numberSetting(settings, accessOption.settingKey) : 0;
+    const installUnit = hasDimensions ? installPerUnit : 0;
+    const unitSubtotal = money(Math.max(0, adjustedGlassBase + lowEUnit + argonUnit + temperedUnit + grillUnit + spacerUnit + thicknessUnit + installUnit + accessUnit));
     const lineSubtotal = money(unitSubtotal * line.quantity);
 
     return {
@@ -146,7 +202,7 @@ export function calculateThermosQuote(linesInput = [], settingsInput = {}) {
       grillUnit,
       spacerUnit,
       thicknessUnit,
-      installUnit: installPerUnit,
+      installUnit,
       accessUnit,
       unitSubtotal,
       lineSubtotal,
