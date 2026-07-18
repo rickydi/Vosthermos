@@ -4,7 +4,7 @@ export const THERMOS_PRICING_KEYS = [
   "thermos_install_per_unit",
   "thermos_low_e_per_sqft",
   "thermos_argon_per_sqft",
-  "thermos_tempered_percent",
+  "thermos_tempered_per_sqft",
   "thermos_triple_percent",
   "thermos_simple_discount_percent",
   "thermos_laminated_percent",
@@ -26,7 +26,7 @@ export const THERMOS_PRICING_DEFAULTS = {
   thermos_install_per_unit: "85.00",
   thermos_low_e_per_sqft: "6.00",
   thermos_argon_per_sqft: "3.00",
-  thermos_tempered_percent: "35.00",
+  thermos_tempered_per_sqft: "40.00",
   thermos_triple_percent: "0.00",
   thermos_simple_discount_percent: "0.00",
   thermos_laminated_percent: "0.00",
@@ -101,7 +101,7 @@ export function calculateThermosQuote(linesInput = [], settingsInput = {}) {
   const installPerUnit = numberSetting(settings, "thermos_install_per_unit");
   const lowEPerSqft = numberSetting(settings, "thermos_low_e_per_sqft");
   const argonPerSqft = numberSetting(settings, "thermos_argon_per_sqft");
-  const temperedPercent = numberSetting(settings, "thermos_tempered_percent");
+  const temperedPerSqft = numberSetting(settings, "thermos_tempered_per_sqft");
   const triplePercent = numberSetting(settings, "thermos_triple_percent");
   const simpleDiscountPercent = numberSetting(settings, "thermos_simple_discount_percent");
   const laminatedPercent = numberSetting(settings, "thermos_laminated_percent");
@@ -125,8 +125,7 @@ export function calculateThermosQuote(linesInput = [], settingsInput = {}) {
     const spacerUnit = line.spacerColor && line.spacerColor !== "noir" ? spacerOptionPerUnit : 0;
     const thicknessUnit = line.thicknessSixteenths && Number(line.thicknessSixteenths) !== 13 ? nonstandardThicknessPerUnit : 0;
     const adjustedGlassBase = Math.max(0, baseGlassUnit - simpleDiscountUnit + tripleUnit + laminatedUnit);
-    const temperedBase = adjustedGlassBase + lowEUnit + argonUnit;
-    const temperedUnit = line.tempered ? money(temperedBase * (temperedPercent / 100)) : 0;
+    const temperedUnit = line.tempered ? money(sqftPerUnit * temperedPerSqft) : 0;
     const grillUnit = line.grill ? grillPerUnit : 0;
     const accessOption = ACCESS_OPTIONS.find((option) => option.value === line.access) || ACCESS_OPTIONS[0];
     const accessUnit = accessOption.settingKey ? numberSetting(settings, accessOption.settingKey) : 0;

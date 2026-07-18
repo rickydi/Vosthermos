@@ -9,7 +9,7 @@ const FIELDS = [
   { key: "thermos_install_per_unit", label: "Installation par thermos", suffix: "$" },
   { key: "thermos_low_e_per_sqft", label: "Option Low-E", suffix: "$/pi2" },
   { key: "thermos_argon_per_sqft", label: "Option argon", suffix: "$/pi2" },
-  { key: "thermos_tempered_percent", label: "Verre trempe", suffix: "%" },
+  { key: "thermos_tempered_per_sqft", label: "Verre trempé", suffix: "$/pi²" },
   { key: "thermos_triple_percent", label: "Majoration triple vitrage", suffix: "%" },
   { key: "thermos_simple_discount_percent", label: "Reduction verre simple", suffix: "%" },
   { key: "thermos_laminated_percent", label: "Majoration verre lamine", suffix: "%" },
