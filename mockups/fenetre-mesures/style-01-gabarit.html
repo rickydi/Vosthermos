@@ -69,6 +69,7 @@
     .plan-card .window-stage::before { display:none; }
     .division-toolbar { min-width:0; display:grid; gap:9px; margin-top:12px; }
     .layout-control-row,.photo-control-row { display:grid; grid-template-columns:minmax(0,1fr) 34px; align-items:start; gap:6px; }
+    .layout-control-row { row-gap:0; }
     .layout-presets-menu { min-width:0; }
     .layout-presets-menu summary { min-height:66px; display:grid; grid-template-columns:42px minmax(0,1fr) 18px; align-items:center; gap:10px; padding:10px 12px; border:1px solid color-mix(in srgb,var(--accent) 34%,var(--line)); border-radius:12px; background:var(--surface); color:var(--ink); text-align:left; cursor:pointer; list-style:none; }
     .layout-presets-menu summary::-webkit-details-marker { display:none; }
@@ -82,7 +83,8 @@
     .layout-presets-menu[open] { grid-column:1/-1; grid-row:1; }
     .layout-presets-menu[open] summary { grid-template-columns:42px minmax(0,1fr) 56px; }
     .layout-presets-menu[open] .layout-presets-arrow { justify-self:end; }
-    .layout-presets { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; margin-top:7px; }
+    .layout-presets { display:none; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; margin-top:7px; }
+    .layout-presets-menu[open] ~ .layout-presets { grid-column:1/-1; grid-row:2; display:grid; }
     .layout-preset { position:relative; min-width:0; min-height:118px; display:grid; grid-template-rows:64px auto; align-items:center; gap:7px; padding:9px; border:1px solid color-mix(in srgb,var(--accent) 18%,var(--line)); border-radius:12px; background:color-mix(in srgb,var(--surface) 97%,var(--accent)); color:var(--ink); text-align:left; }
     .layout-preset[aria-pressed="true"] { border-color:color-mix(in srgb,var(--accent) 72%,var(--line)); background:color-mix(in srgb,var(--accent) 6%,var(--surface)); box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 34%,transparent); }
     .layout-preset[aria-pressed="true"]::after { content:"✓"; position:absolute; right:7px; bottom:7px; width:21px; height:21px; display:grid; place-items:center; border-radius:50%; background:var(--accent); color:#fff; font:900 11px/1 var(--font-ui); }
@@ -439,12 +441,12 @@
         </header>
         <section class="division-toolbar" aria-label="Choisir un type de fenêtre ou prendre une photo">
           <div class="layout-control-row"><details class="layout-presets-menu">
-            <summary>
+            <summary aria-controls="layout-presets">
               <span class="choice-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M12 4v16"/></svg></span>
               <span class="choice-action-copy layout-presets-summary"><strong>Choisir un type de fenêtre</strong><small>Sélection : <span data-preset-summary>Six égaux</span></small></span>
               <span class="choice-action-arrow layout-presets-arrow" aria-hidden="true">›</span>
             </summary>
-            <div class="layout-presets" role="group" aria-label="Configurations rapides">
+          </details><button type="button" class="context-help-trigger icon-circle-center" data-help-key="plan" aria-haspopup="dialog" aria-expanded="false" aria-controls="measurement-help-panel" aria-label="Aide pour utiliser le plan"><span class="icon-circle-glyph" aria-hidden="true">?</span></button><div class="layout-presets" id="layout-presets" role="group" aria-label="Configurations rapides">
               <button type="button" class="layout-preset" data-layout-preset="1x1" aria-label="Créer une vitre simple"><span class="preset-window" data-columns="1" data-rows="1" aria-hidden="true"><span class="preset-pane"></span></span><span class="preset-copy"><strong>Vitre simple</strong><small>1 thermos</small></span></button>
               <button type="button" class="layout-preset" data-layout-preset="2x1-narrow-left" aria-label="Créer une petite vitre à gauche et une grande à droite"><span class="preset-window" data-layout="left-narrow" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Petite à gauche</strong><small>2 thermos</small></span></button>
               <button type="button" class="layout-preset" data-layout-preset="2x1" aria-label="Créer deux vitres égales côte à côte"><span class="preset-window" data-columns="2" data-rows="1" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Deux égaux</strong><small>2 thermos</small></span></button>
@@ -457,8 +459,7 @@
               <button type="button" class="layout-preset" data-layout-preset="top-1-bottom-3" aria-label="Créer une grande vitre en haut et trois en bas"><span class="preset-window" data-layout="bottom-three" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Trois en bas</strong><small>4 thermos</small></span></button>
               <button type="button" class="layout-preset" data-layout-preset="left-1-right-3" aria-label="Créer une grande vitre à gauche et trois à droite"><span class="preset-window" data-layout="grand-left" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Grand à gauche</strong><small>4 thermos</small></span></button>
               <button type="button" class="layout-preset" data-layout-preset="left-3-right-1" aria-label="Créer trois vitres à gauche et une grande à droite"><span class="preset-window" data-layout="grand-right" aria-hidden="true"><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span><span class="preset-pane"></span></span><span class="preset-copy"><strong>Grand à droite</strong><small>4 thermos</small></span></button>
-            </div>
-          </details><button type="button" class="context-help-trigger icon-circle-center" data-help-key="plan" aria-haspopup="dialog" aria-expanded="false" aria-controls="measurement-help-panel" aria-label="Aide pour utiliser le plan"><span class="icon-circle-glyph" aria-hidden="true">?</span></button></div>
+            </div></div>
           <div class="layout-choice-or" aria-hidden="true"><span>ou</span></div>
           <div class="photo-layout-control">
             <div class="photo-control-row"><label class="photo-layout-action" data-photo-trigger>

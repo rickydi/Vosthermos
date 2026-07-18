@@ -2170,7 +2170,11 @@
     root.querySelectorAll('[data-layout-preset]').forEach((button) => button.addEventListener('click', () => {
       const key = button.dataset.layoutPreset;
       const applied = applyPreset(key);
-      if (applied || state.activePreset === key) button.closest('details')?.removeAttribute('open');
+      if (applied || state.activePreset === key) {
+        const menu = root.querySelector('.layout-presets-menu');
+        menu?.removeAttribute('open');
+        menu?.querySelector('summary')?.focus({ preventScroll: true });
+      }
     }));
     root.querySelectorAll('[data-equalize]').forEach((button) => button.addEventListener('click', equalizeLayout));
     root.querySelectorAll('[data-reset]').forEach((button) => button.addEventListener('click', resetDrawing));
