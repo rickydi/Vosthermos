@@ -72,11 +72,12 @@ export async function POST(req, { params }) {
 
   try {
     const body = await req.json().catch(() => ({}));
-    const data = normalizeMeasurementData(Object.prototype.hasOwnProperty.call(body, "data") ? body.data : existing.data);
-    const errors = clientMeasurementCompletenessErrors(data);
+    const rawData = Object.prototype.hasOwnProperty.call(body, "data") ? body.data : existing.data;
+    const errors = clientMeasurementCompletenessErrors(rawData);
     if (errors.length) {
       return response({ error: "Ajoutez la largeur et la hauteur de chaque thermos avant d'envoyer.", details: errors }, { status: 400 });
     }
+    const data = normalizeMeasurementData(rawData);
     const measurement = await updateMeasurementRecord(existing, { data, status: "received" }, { actor: "public" });
     notify(measurement);
     return response(serializeMeasurementBundle(measurement, { publicView: true }));

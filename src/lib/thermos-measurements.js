@@ -11,6 +11,7 @@ import {
   createEmptyWindow,
   measurementCompletenessErrors,
   normalizeMeasurementData,
+  validatePaneGeometry,
 } from "@/lib/thermos-layout";
 
 export const MEASUREMENT_SOURCES = ["technician", "client", "phone"];
@@ -126,9 +127,10 @@ export function publicMeasurementExpiry(from = new Date()) {
   return new Date(from.getTime() + PUBLIC_MEASUREMENT_LINK_DAYS * 24 * 60 * 60 * 1000);
 }
 
-export function publicMeasurementUrl(token) {
+export function publicMeasurementUrl(token, locale = "") {
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.vosthermos.com").replace(/\/$/, "");
-  return `${siteUrl}/prendre-mesures/${token}`;
+  const baseUrl = `${siteUrl}/prendre-mesures/${token}`;
+  return ["fr", "en"].includes(locale) ? `${baseUrl}?lang=${locale}` : baseUrl;
 }
 
 export function serializeMeasurementBundle(record, { publicView = false } = {}) {
@@ -375,9 +377,9 @@ export async function updateMeasurementRecord(existing, input, { actor = "admin"
       throw Object.assign(new Error("Statut non permis"), { status: 403 });
     }
 
-    const nextData = update.data || normalizeMeasurementData(existing.data);
     if (status === "validated" && actor !== "public") {
-      const errors = measurementCompletenessErrors(nextData);
+      const validationData = Object.prototype.hasOwnProperty.call(input || {}, "data") ? input.data : existing.data;
+      const errors = measurementCompletenessErrors(validationData);
       if (errors.length) {
         throw Object.assign(new Error("Mesures finales incomplètes"), { status: 400, details: errors });
       }
@@ -404,6 +406,19 @@ export async function updateMeasurementRecord(existing, input, { actor = "admin"
   return prisma.thermosMeasurement.update({
     where: { id: existing.id },
     data: update,
+    include: measurementInclude,
+  });
+}
+
+export async function updateMeasurementLocale(existing, value) {
+  if (!existing?.id) throw Object.assign(new Error("Mesure introuvable"), { status: 404 });
+  const locale = value === "en" ? "en" : "fr";
+  const data = normalizeMeasurementData(existing.data);
+  if (data.locale === locale) return existing;
+
+  return prisma.thermosMeasurement.update({
+    where: { id: existing.id },
+    data: { data: { ...data, locale } },
     include: measurementInclude,
   });
 }
@@ -569,6 +584,13 @@ function cleanAiAnalysis(value) {
     },
   }));
   if (!panes.length) throw new Error("Aucune division de fenêtre détectée");
+  const geometry = validatePaneGeometry(panes);
+  if (!geometry.valid) {
+    throw Object.assign(new Error("La disposition détectée ne couvre pas correctement la fenêtre"), {
+      status: 422,
+      details: geometry.errors,
+    });
+  }
   return {
     confidence: Math.min(1, Math.max(0, Number(analysis.confidence) || 0)),
     panes,
@@ -666,6 +688,7 @@ Format: {"confidence":0.0,"panes":[{"x":0,"y":0,"width":10000,"height":10000,"gr
     const suggestedWindow = {
       ...existingWindow,
       photoUrl: resolvedPhotoUrl,
+      layoutPreset: "",
       panes: analysis.panes.map((pane) => ({
         ...pane,
         widthSixteenths: null,

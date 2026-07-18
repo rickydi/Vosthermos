@@ -267,10 +267,21 @@ function windowThermos(window) {
   return candidates.find(Array.isArray) || [];
 }
 
+function isMissingRequiredThermosOption(value) {
+  const normalized = cleanText(value, 100).toLowerCase();
+  return !normalized || normalized === "unknown";
+}
+
+function isMissingRequiredAccess(value) {
+  const normalized = cleanText(value, 100).toLowerCase();
+  return !["without_ladder", "with_ladder", "easy", "medium", "hard"].includes(normalized);
+}
+
 function draftItemsFromMeasurement(measurement) {
   const windows = measurementWindows(measurement.data);
   const items = [];
   const missing = [];
+  const missingOptions = [];
 
   windows.forEach((window, windowIndex) => {
     const windowNumber = Number.parseInt(window?.number, 10) || windowIndex + 1;
@@ -281,6 +292,18 @@ function draftItemsFromMeasurement(measurement) {
       const widthSixteenths = sixteenthsFromValue(thermos, "width");
       const heightSixteenths = sixteenthsFromValue(thermos, "height");
       const thicknessSixteenths = sixteenthsFromValue(thermos, "thickness");
+      const options = normalizeJsonObject(thermos?.options);
+      const optionFields = [];
+      if (isMissingRequiredThermosOption(options.glassType)) optionFields.push("glassType");
+      if (isMissingRequiredThermosOption(options.spacerColor)) optionFields.push("spacerColor");
+      if (isMissingRequiredAccess(options.access)) optionFields.push("access");
+      if (optionFields.length) {
+        missingOptions.push({
+          windowNumber,
+          thermosNumber: thermosIndex + 1,
+          fields: optionFields,
+        });
+      }
       if (!widthSixteenths || !heightSixteenths || !thicknessSixteenths) {
         missing.push({
           windowNumber,
@@ -301,7 +324,7 @@ function draftItemsFromMeasurement(measurement) {
           widthSixteenths,
           heightSixteenths,
           thicknessSixteenths,
-          options: normalizeJsonObject(thermos?.options),
+          options,
           grille: normalizeJsonObject(thermos?.grille || thermos?.decorativeGrille),
           geometry: normalizeJsonObject(
             thermos?.geometry || {
@@ -318,6 +341,12 @@ function draftItemsFromMeasurement(measurement) {
     });
   });
 
+  if (missingOptions.length) {
+    throw new ThermosOrderError(
+      "Choisissez le vitrage, l'intercalaire et l'accès de chaque thermos avant de préparer la commande fournisseur",
+      { code: "INCOMPLETE_THERMOS_OPTIONS", details: { missing: missingOptions } },
+    );
+  }
   if (missing.length) {
     throw new ThermosOrderError(
       "Toutes les dimensions finales, incluant l'épaisseur, sont requises avant la commande",

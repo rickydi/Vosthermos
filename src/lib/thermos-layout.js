@@ -8,6 +8,10 @@ const MIN_DIVIDER_PANE_SIZE = 100;
 const DIVIDER_ADJACENCY_TOLERANCE = 800;
 const DIVIDER_GROUP_POSITION_TOLERANCE = 150;
 const DIVIDER_SEGMENT_TOLERANCE = 12;
+const GEOMETRY_EDGE_TOLERANCE = 20;
+const GEOMETRY_COVERAGE_TOLERANCE = 0.005;
+const FINAL_GLASS_TYPES = new Set(["simple", "double", "triple"]);
+const FINAL_ACCESS_TYPES = new Set(["with_ladder", "without_ladder", "easy", "medium", "hard"]);
 
 function makeId(prefix) {
   const uuid = globalThis.crypto?.randomUUID?.();
@@ -52,15 +56,15 @@ function normalizeLinePositions(value) {
 
 function normalizeOptions(value) {
   const options = value && typeof value === "object" && !Array.isArray(value) ? value : {};
-  const glassType = ["simple", "double", "triple"].includes(options.glassType) ? options.glassType : "double";
-  const access = ["easy", "medium", "hard"].includes(options.access) ? options.access : "easy";
+  const glassType = ["unknown", "simple", "double", "triple"].includes(options.glassType) ? options.glassType : "";
+  const access = ["unknown", "with_ladder", "without_ladder", "easy", "medium", "hard"].includes(options.access) ? options.access : "";
   return {
     glassType,
     lowE: Boolean(options.lowE),
     argon: Boolean(options.argon),
     tempered: Boolean(options.tempered),
     laminated: Boolean(options.laminated),
-    spacerColor: cleanText(options.spacerColor || "noir", 40),
+    spacerColor: cleanText(options.spacerColor || "", 40),
     spacerType: cleanText(options.spacerType || "standard", 60),
     shape: cleanText(options.shape || "rectangle", 40) || "rectangle",
     access,
@@ -158,6 +162,7 @@ function normalizeWindow(value, index) {
     label: cleanText(windowValue.label, 120) || `Fenêtre ${index + 1}`,
     location: cleanText(windowValue.location, 160),
     photoUrl: cleanText(windowValue.photoUrl, 500) || null,
+    layoutPreset: cleanText(windowValue.layoutPreset, 60),
     viewSide: ["inside", "interior"].includes(windowValue.viewSide)
       ? "inside"
       : ["outside", "exterior"].includes(windowValue.viewSide)
@@ -192,6 +197,8 @@ export function normalizeMeasurementData(value) {
     });
   return {
     version: 1,
+    locale: ["fr", "en"].includes(data.locale) ? data.locale : "fr",
+    displayUnit: ["in", "mm", "cm"].includes(data.displayUnit) ? data.displayUnit : "in",
     notes: cleanText(data.notes, 4000),
     windows: windows.length ? windows : [createEmptyWindow()],
   };
@@ -203,6 +210,116 @@ export function countMeasurementData(value) {
     windowCount: data.windows.length,
     paneCount: data.windows.reduce((total, windowValue) => total + windowValue.panes.length, 0),
   };
+}
+
+function rectangleUnionArea(rectangles) {
+  const xCoordinates = Array.from(new Set(rectangles.flatMap((rectangle) => [rectangle.left, rectangle.right])))
+    .sort((a, b) => a - b);
+  let area = 0;
+
+  for (let index = 0; index < xCoordinates.length - 1; index += 1) {
+    const left = xCoordinates[index];
+    const right = xCoordinates[index + 1];
+    if (!(right > left)) continue;
+    const intervals = rectangles
+      .filter((rectangle) => rectangle.left < right && rectangle.right > left)
+      .map((rectangle) => [rectangle.top, rectangle.bottom])
+      .sort((first, second) => first[0] - second[0] || first[1] - second[1]);
+    if (!intervals.length) continue;
+
+    let coveredHeight = 0;
+    let [start, end] = intervals[0];
+    for (const [nextStart, nextEnd] of intervals.slice(1)) {
+      if (nextStart <= end) {
+        end = Math.max(end, nextEnd);
+      } else {
+        coveredHeight += end - start;
+        start = nextStart;
+        end = nextEnd;
+      }
+    }
+    coveredHeight += end - start;
+    area += (right - left) * coveredHeight;
+  }
+
+  return area;
+}
+
+export function validatePaneGeometry(value, options = {}) {
+  const panes = Array.isArray(value) ? value : [];
+  const edgeTolerance = Math.min(100, Math.max(0, finiteNumber(options.edgeTolerance, GEOMETRY_EDGE_TOLERANCE)));
+  const coverageTolerance = Math.min(0.05, Math.max(0, finiteNumber(options.coverageTolerance, GEOMETRY_COVERAGE_TOLERANCE)));
+  const errors = [];
+  const rectangles = [];
+
+  if (!panes.length) {
+    return { valid: false, errors: ["Aucun thermos ne couvre le cadre"] };
+  }
+
+  panes.forEach((pane, index) => {
+    const x = Number(pane?.x);
+    const y = Number(pane?.y);
+    const width = Number(pane?.width);
+    const height = Number(pane?.height);
+    const label = `Thermos ${index + 1}`;
+    if (![x, y, width, height].every(Number.isFinite)) {
+      errors.push(`${label}: coordonnées invalides`);
+      return;
+    }
+    if (!(width > 0) || !(height > 0)) {
+      errors.push(`${label}: surface nulle ou négative`);
+      return;
+    }
+    const right = x + width;
+    const bottom = y + height;
+    if (
+      x < -edgeTolerance
+      || y < -edgeTolerance
+      || right > GEOMETRY_SCALE + edgeTolerance
+      || bottom > GEOMETRY_SCALE + edgeTolerance
+    ) {
+      errors.push(`${label}: dépasse les limites du cadre`);
+    }
+    rectangles.push({
+      index,
+      left: Math.max(0, Math.min(GEOMETRY_SCALE, x)),
+      top: Math.max(0, Math.min(GEOMETRY_SCALE, y)),
+      right: Math.max(0, Math.min(GEOMETRY_SCALE, right)),
+      bottom: Math.max(0, Math.min(GEOMETRY_SCALE, bottom)),
+      raw: { x, y, right, bottom },
+    });
+  });
+
+  for (let firstIndex = 0; firstIndex < rectangles.length; firstIndex += 1) {
+    const first = rectangles[firstIndex];
+    for (let secondIndex = firstIndex + 1; secondIndex < rectangles.length; secondIndex += 1) {
+      const second = rectangles[secondIndex];
+      const overlapWidth = Math.min(first.raw.right, second.raw.right) - Math.max(first.raw.x, second.raw.x);
+      const overlapHeight = Math.min(first.raw.bottom, second.raw.bottom) - Math.max(first.raw.y, second.raw.y);
+      if (overlapWidth > edgeTolerance && overlapHeight > edgeTolerance) {
+        errors.push(`Thermos ${first.index + 1} et ${second.index + 1}: chevauchement détecté`);
+      }
+    }
+  }
+
+  const usableRectangles = rectangles.filter((rectangle) => rectangle.right > rectangle.left && rectangle.bottom > rectangle.top);
+  const frameArea = GEOMETRY_SCALE * GEOMETRY_SCALE;
+  const uncoveredArea = frameArea - rectangleUnionArea(usableRectangles);
+  if (uncoveredArea > frameArea * coverageTolerance) {
+    errors.push("Le dessin ne couvre pas complètement le cadre");
+  }
+
+  return { valid: errors.length === 0, errors };
+}
+
+export function measurementGeometryErrors(value) {
+  const data = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  const windows = Array.isArray(data.windows) ? data.windows : [];
+  if (!windows.length) return ["Aucune fenêtre à valider"];
+  return windows.flatMap((windowValue, windowIndex) => {
+    const validation = validatePaneGeometry(windowValue?.panes);
+    return validation.errors.map((error) => `Fenêtre ${windowIndex + 1}: ${error}`);
+  });
 }
 
 export function addWindow(value, overrides = {}) {
@@ -416,7 +533,7 @@ export function resetWindowDivisions(value, windowId) {
     ...data,
     windows: data.windows.map((windowValue) => (
       windowValue.id === windowId
-        ? { ...windowValue, panes: [createEmptyPane()] }
+        ? { ...windowValue, layoutPreset: "", panes: [createEmptyPane()] }
         : windowValue
     )),
   });
@@ -487,6 +604,8 @@ export function splitPaneEvenly(value, windowId, paneId, direction = "vertical",
           id: makeId("thermos"),
           widthSixteenths: null,
           heightSixteenths: null,
+          thicknessSixteenths: null,
+          options: normalizeOptions({}),
           grille: normalizeGrille({}),
           ...(axis === "horizontal"
             ? { y: cursor, height: size }
@@ -578,13 +697,17 @@ export function formatSixteenths(value, { unit = true } = {}) {
 
 export function measurementCompletenessErrors(value) {
   const data = normalizeMeasurementData(value);
-  const errors = [];
+  const errors = measurementGeometryErrors(value);
   data.windows.forEach((windowValue, windowIndex) => {
     windowValue.panes.forEach((pane, paneIndex) => {
       const label = `Fenêtre ${windowIndex + 1}, thermos ${paneIndex + 1}`;
       if (!pane.widthSixteenths) errors.push(`${label}: largeur manquante ou invalide (maximum 240 po)`);
       if (!pane.heightSixteenths) errors.push(`${label}: hauteur manquante ou invalide (maximum 240 po)`);
       if (!pane.thicknessSixteenths) errors.push(`${label}: épaisseur manquante ou invalide (1/4 à 2 po)`);
+      if (!FINAL_GLASS_TYPES.has(pane.options?.glassType)) errors.push(`${label}: type de vitrage requis`);
+      const spacerColor = cleanText(pane.options?.spacerColor, 40).toLowerCase();
+      if (!spacerColor || spacerColor === "unknown") errors.push(`${label}: intercalaire requis`);
+      if (!FINAL_ACCESS_TYPES.has(pane.options?.access)) errors.push(`${label}: accès requis`);
     });
   });
   return errors;
@@ -592,7 +715,7 @@ export function measurementCompletenessErrors(value) {
 
 export function clientMeasurementCompletenessErrors(value) {
   const data = normalizeMeasurementData(value);
-  const errors = [];
+  const errors = measurementGeometryErrors(value);
   data.windows.forEach((windowValue, windowIndex) => {
     windowValue.panes.forEach((pane, paneIndex) => {
       const label = `Fenêtre ${windowIndex + 1}, thermos ${paneIndex + 1}`;

@@ -134,7 +134,13 @@ function formatSixteenths(raw) {
 }
 
 function optionText(options = {}, grille = {}) {
-  const values = [options.glassType === "triple" ? "Triple" : "Double", options.lowE && "Low-E", options.argon && "Argon", options.tempered && "Trempé", options.laminated && "Laminé", grille.enabled && "Carrelage décoratif"].filter(Boolean);
+  const glassType = {
+    simple: "Simple",
+    double: "Double",
+    triple: "Triple",
+    unknown: "Inconnu",
+  }[options.glassType] || "Non précisé";
+  const values = [glassType, options.lowE && "Low-E", options.argon && "Argon", options.tempered && "Trempé", options.laminated && "Laminé", grille.enabled && "Carrelage décoratif"].filter(Boolean);
   return values.join(" · ") || "Standard";
 }
 

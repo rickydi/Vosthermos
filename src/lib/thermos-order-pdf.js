@@ -43,9 +43,41 @@ export function formatSixteenths(value) {
   return `${whole ? `${whole} ` : ""}${numerator}/${denominator} po`;
 }
 
+function normalizedChoice(value) {
+  return String(value ?? "").trim().toLowerCase();
+}
+
+function formatGlassType(value) {
+  const glassType = normalizedChoice(value);
+  if (!glassType) return "Vitrage non précisé";
+  if (glassType === "unknown") return "Vitrage inconnu";
+  if (["simple", "double", "triple"].includes(glassType)) return `Vitrage ${glassType}`;
+  return `Vitrage ${clean(value)}`;
+}
+
+function formatSpacerColor(value) {
+  const spacerColor = normalizedChoice(value);
+  if (!spacerColor) return "Intercalaire non précisé";
+  if (spacerColor === "unknown") return "Intercalaire inconnu";
+  return `Intercalaire ${clean(value)}`;
+}
+
+function formatAccess(value) {
+  const access = normalizedChoice(value);
+  const labels = {
+    without_ladder: "Accès sans échelle",
+    with_ladder: "Accès avec échelle",
+    easy: "Accès facile",
+    medium: "Accès moyen",
+    hard: "Accès difficile",
+    unknown: "Accès inconnu",
+  };
+  return labels[access] || null;
+}
+
 function formatOptions(item) {
   const options = item?.options && typeof item.options === "object" ? item.options : {};
-  const labels = [];
+  const labels = [formatGlassType(options.glassType), formatSpacerColor(options.spacerColor)];
   const known = [
     ["lowE", "Low-E"],
     ["argon", "Argon"],
@@ -56,8 +88,8 @@ function formatOptions(item) {
   for (const [key, label] of known) {
     if (options[key] === true) labels.push(label);
   }
-  if (options.spacerColor) labels.push(`Intercalaire ${options.spacerColor}`);
-  if (options.glassType) labels.push(clean(options.glassType));
+  const access = formatAccess(options.access);
+  if (access) labels.push(access);
   if (options.coating) labels.push(clean(options.coating));
   return labels.length ? labels.join(", ") : "Standard";
 }
@@ -320,9 +352,10 @@ export async function generateThermosOrderPdf(order, company = {}) {
         const item = order.items[index];
         doc.font("Helvetica").fontSize(8.3);
         const optionText = `${formatOptions(item)}\nGrille : ${formatGrille(item)}${item.notes ? `\nNote : ${clean(item.notes)}` : ""}`;
+        const labelText = `${clean(item.label)}${item.photoUrl ? "\nPhoto au dossier" : ""}`;
         const estimated = Math.max(
           46,
-          doc.heightOfString(clean(item.label), { width: 135, lineGap: 1 }) + 16,
+          doc.heightOfString(labelText, { width: 135, lineGap: 1 }) + 16,
           doc.heightOfString(optionText, { width: CONTENT_WIDTH - 374, lineGap: 1 }) + 16,
         );
         if (y + estimated > PAGE_HEIGHT - 48) {

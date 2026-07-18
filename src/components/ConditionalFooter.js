@@ -9,7 +9,9 @@ export default function ConditionalFooter({ company }) {
     pathname.startsWith("/admin") ||
     pathname.startsWith("/terrain") ||
     pathname.startsWith("/gestionnaire") ||
-    pathname.startsWith("/envoyer-photos")
+    pathname.startsWith("/envoyer-photos") ||
+    pathname.startsWith("/prendre-mesures") ||
+    pathname.startsWith("/confirmation-thermos")
   ) return null;
   return <Footer company={company} />;
 }

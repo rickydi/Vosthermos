@@ -876,6 +876,9 @@ function MeasurementModal({ fu, source, onClose, onCreated }) {
   ], (value) => String(value).trim().toLowerCase());
   const [technicians, setTechnicians] = useState([]);
   const [technicianId, setTechnicianId] = useState("");
+  const [clientLocale, setClientLocale] = useState(() => (
+    fu.latestMeasurement?.data?.locale === "en" ? "en" : "fr"
+  ));
   const [channels, setChannels] = useState({ sms: phoneOptions.length > 0, email: emailOptions.length > 0 });
   const [selectedPhone, setSelectedPhone] = useState(phoneOptions[0]?.value || "");
   const [selectedEmail, setSelectedEmail] = useState(emailOptions[0]?.value || "");
@@ -920,6 +923,7 @@ function MeasurementModal({ fu, source, onClose, onCreated }) {
           source,
           technicianId: technicianId ? Number(technicianId) : null,
           parentId: source === "technician" ? fu.latestMeasurement?.id || null : null,
+          ...(source === "client" ? { data: { locale: clientLocale, displayUnit: "in" } } : {}),
         };
         if (!creationKeyRef.current) {
           let storedValue = "";
@@ -959,6 +963,7 @@ function MeasurementModal({ fu, source, onClose, onCreated }) {
             channels: requestedChannels,
             phone: channels.sms ? selectedPhone : undefined,
             email: channels.email ? selectedEmail : undefined,
+            locale: clientLocale,
             reuseUrl: reuseUrl || undefined,
           }),
         });
@@ -997,6 +1002,19 @@ function MeasurementModal({ fu, source, onClose, onCreated }) {
           )}
           {source === "client" && (
             <div className="space-y-3">
+              <div>
+                <p className="admin-text text-sm font-bold mb-2">Langue du client</p>
+                <div className="grid grid-cols-2 gap-3">
+                  {[["fr", "Français"], ["en", "English"]].map(([value, label]) => (
+                    <label key={value} className={`rounded-xl border p-3 flex gap-2 items-center cursor-pointer ${clientLocale === value ? "border-cyan-400/40 bg-cyan-400/10 text-cyan-200" : "admin-border admin-text-muted"}`}>
+                      <input type="radio" name={`measurement-locale-${fu.id}`} value={value} checked={clientLocale === value} onChange={() => setClientLocale(value)} />
+                      <i className="fas fa-language" />
+                      <span className="text-sm font-bold">{label}</span>
+                    </label>
+                  ))}
+                </div>
+                <span className="block admin-text-muted text-xs mt-1.5">Le formulaire, le texto et le courriel utiliseront cette langue.</span>
+              </div>
               <div>
                 <p className="admin-text text-sm font-bold mb-2">Envoyer le lien par</p>
                 <div className="grid grid-cols-2 gap-3">

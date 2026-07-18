@@ -14,6 +14,7 @@ import {
   publicMeasurementUrl,
   resolveMeasurementClientName,
   serializeMeasurementBundle,
+  updateMeasurementLocale,
 } from "@/lib/thermos-measurements";
 
 function escapeHtml(value) {
@@ -66,20 +67,37 @@ function smsFailureMessage(result) {
     : "Le texto n’a pas pu être envoyé.";
 }
 
-async function sendMeasurementEmail(client, url) {
+async function sendMeasurementEmail(client, url, locale) {
   if (!client.email || !isMailDeliveryConfigured()) return false;
   const displayName = String(client.contactName || client.name || "").trim();
-  const greeting = displayName ? `Bonjour ${displayName},` : "Bonjour,";
-  const subject = "Prendre les mesures de vos thermos - Vosthermos";
-  const text = `${greeting}\n\nPour préparer votre présoumission, prenez une photo de face de chaque fenêtre et indiquez les mesures demandées dans notre formulaire sécurisé :\n${url}\n\nLe dessin automatique peut être corrigé. Ces mesures servent à la présoumission; Vosthermos validera les mesures finales avant la commande.\n\nLien valide ${PUBLIC_MEASUREMENT_LINK_DAYS} jours.\n\nVosthermos - 514-825-8411`;
-  const html = `<!doctype html><html lang="fr"><body style="margin:0;background:#eef1f5;font-family:Arial,sans-serif;color:#172033"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:28px 14px"><tr><td align="center"><table role="presentation" width="620" cellpadding="0" cellspacing="0" style="max-width:620px;background:#fff;border-radius:14px;overflow:hidden"><tr><td style="background:#002530;color:#fff;padding:28px 34px"><div style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;opacity:.8">Vosthermos</div><div style="font-size:25px;font-weight:800;margin-top:6px">Mesures de vos fenêtres</div></td></tr><tr><td style="padding:34px"><p style="font-size:18px;font-weight:700">${escapeHtml(greeting)}</p><p style="line-height:1.6">Pour préparer votre présoumission, prenez une photo de face de chaque fenêtre et indiquez les mesures demandées.</p><p style="text-align:center;margin:28px 0"><a href="${escapeHtml(url)}" style="display:inline-block;background:#e30718;color:#fff;text-decoration:none;font-weight:800;padding:15px 24px;border-radius:10px">Prendre mes mesures</a></p><p style="font-size:14px;line-height:1.6;color:#5b6470">Le dessin automatique peut être corrigé. Ces mesures servent à la présoumission; Vosthermos validera les mesures finales avant toute commande.</p><p style="font-size:13px;color:#6b7280">Lien valide ${PUBLIC_MEASUREMENT_LINK_DAYS} jours.<br><a href="${escapeHtml(url)}">${escapeHtml(url)}</a></p></td></tr></table></td></tr></table></body></html>`;
+  const english = locale === "en";
+  const greeting = displayName
+    ? `${english ? "Hello" : "Bonjour"} ${displayName},`
+    : english ? "Hello," : "Bonjour,";
+  const copy = english ? {
+    subject: "Enter your window measurements - Vosthermos",
+    heading: "Your window measurements",
+    intro: "To prepare your preliminary estimate, take a front-facing photo of each window and enter the requested measurements in our secure form.",
+    button: "Enter my measurements",
+    disclaimer: "You can correct the automatically generated drawing. These measurements are for the preliminary estimate; Vosthermos will verify the final measurements before placing an order.",
+    expiry: `This link is valid for ${PUBLIC_MEASUREMENT_LINK_DAYS} days.`,
+  } : {
+    subject: "Prendre les mesures de vos thermos - Vosthermos",
+    heading: "Mesures de vos fenêtres",
+    intro: "Pour préparer votre présoumission, prenez une photo de face de chaque fenêtre et indiquez les mesures demandées dans notre formulaire sécurisé.",
+    button: "Prendre mes mesures",
+    disclaimer: "Le dessin automatique peut être corrigé. Ces mesures servent à la présoumission; Vosthermos validera les mesures finales avant toute commande.",
+    expiry: `Lien valide ${PUBLIC_MEASUREMENT_LINK_DAYS} jours.`,
+  };
+  const text = `${greeting}\n\n${copy.intro}\n${url}\n\n${copy.disclaimer}\n\n${copy.expiry}\n\nVosthermos - 514-825-8411`;
+  const html = `<!doctype html><html lang="${english ? "en" : "fr"}"><body style="margin:0;background:#eef1f5;font-family:Arial,sans-serif;color:#172033"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:28px 14px"><tr><td align="center"><table role="presentation" width="620" cellpadding="0" cellspacing="0" style="max-width:620px;background:#fff;border-radius:14px;overflow:hidden"><tr><td style="background:#002530;color:#fff;padding:28px 34px"><div style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;opacity:.8">Vosthermos</div><div style="font-size:25px;font-weight:800;margin-top:6px">${copy.heading}</div></td></tr><tr><td style="padding:34px"><p style="font-size:18px;font-weight:700">${escapeHtml(greeting)}</p><p style="line-height:1.6">${copy.intro}</p><p style="text-align:center;margin:28px 0"><a href="${escapeHtml(url)}" style="display:inline-block;background:#e30718;color:#fff;text-decoration:none;font-weight:800;padding:15px 24px;border-radius:10px">${copy.button}</a></p><p style="font-size:14px;line-height:1.6;color:#5b6470">${copy.disclaimer}</p><p style="font-size:13px;color:#6b7280">${copy.expiry}<br><a href="${escapeHtml(url)}">${escapeHtml(url)}</a></p></td></tr></table></td></tr></table></body></html>`;
   const transporter = getTransporter();
   await transporter.sendMail({
     from: getMailFromHeader("Vosthermos"),
     to: client.email,
     replyTo: getReplyToEmail(),
     envelope: { from: getMailEnvelopeFrom(), to: client.email },
-    subject,
+    subject: copy.subject,
     text,
     html,
     headers: { "X-Entity-Ref-ID": `vosthermos-mesures-${Date.now()}` },
@@ -91,7 +109,7 @@ export async function POST(req, { params }) {
   let session;
   try { session = await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorisé" }, { status: 401 }); }
   const { id } = await params;
-  const existing = await getMeasurementById(id);
+  let existing = await getMeasurementById(id);
   if (!existing) return NextResponse.json({ error: "Mesure introuvable" }, { status: 404 });
   if (existing.source !== "client") {
     return NextResponse.json({ error: "Le lien public est réservé aux mesures client" }, { status: 400 });
@@ -99,6 +117,7 @@ export async function POST(req, { params }) {
 
   try {
     const body = await req.json().catch(() => ({}));
+    const locale = body.locale === "en" ? "en" : "fr";
     const requestedChannels = Array.isArray(body.channels) ? body.channels : ["sms", "email"];
     const channels = Array.from(new Set(requestedChannels.filter((channel) => ["sms", "email"].includes(channel))));
     if (!channels.length) throw Object.assign(new Error("Choisissez au moins un canal d’envoi"), { status: 400 });
@@ -117,6 +136,7 @@ export async function POST(req, { params }) {
       "Le courriel choisi",
     );
     const displayName = resolveMeasurementClientName(client, followUp);
+    existing = await updateMeasurementLocale(existing, locale);
     let issued;
     if (body.reuseUrl) {
       issued = reusableMeasurementLink(existing, body.reuseUrl);
@@ -124,6 +144,7 @@ export async function POST(req, { params }) {
     } else {
       issued = await issuePublicMeasurementLink(existing.id);
     }
+    issued = { ...issued, url: publicMeasurementUrl(issued.token, locale) };
     const deliveryClient = {
       ...client,
       contactName: displayName,
@@ -140,7 +161,9 @@ export async function POST(req, { params }) {
       if (!phone) {
         delivery.sms = { status: "unavailable", errorCode: "invalid_phone", message: "Le numéro choisi n’est pas un numéro Canada/États-Unis valide." };
       } else {
-        const message = `${displayName ? `Bonjour ${displayName}! ` : ""}Vosthermos : prenez une photo de face de chaque fenêtre et entrez vos mesures ici : ${issued.url} — lien valide ${PUBLIC_MEASUREMENT_LINK_DAYS} jours. Ces mesures servent à la présoumission.`;
+        const message = locale === "en"
+          ? `${displayName ? `Hello ${displayName}! ` : ""}Vosthermos: take a front-facing photo of each window and enter your measurements here: ${issued.url} — link valid for ${PUBLIC_MEASUREMENT_LINK_DAYS} days. These measurements are for your preliminary estimate.`
+          : `${displayName ? `Bonjour ${displayName}! ` : ""}Vosthermos : prenez une photo de face de chaque fenêtre et entrez vos mesures ici : ${issued.url} — lien valide ${PUBLIC_MEASUREMENT_LINK_DAYS} jours. Ces mesures servent à la présoumission.`;
         const result = await sendSmsDetailed(phone, message);
         delivery.sms = result.status === "accepted"
           ? { status: "accepted", errorCode: null, providerStatus: result.providerStatus, message: "Texto accepté par Twilio; la livraison finale dépend du réseau du destinataire." }
@@ -153,7 +176,7 @@ export async function POST(req, { params }) {
         delivery.email = { status: "unavailable", message: "Aucun courriel valide n’est disponible." };
       } else {
         try {
-          const emailSent = await sendMeasurementEmail(deliveryClient, issued.url);
+          const emailSent = await sendMeasurementEmail(deliveryClient, issued.url, locale);
           delivery.email = emailSent
             ? { status: "sent", message: "Courriel envoyé." }
             : { status: "unavailable", message: "Le service de courriel n’est pas configuré." };
@@ -174,7 +197,7 @@ export async function POST(req, { params }) {
       entityType: "thermos_measurement",
       entityId: issued.measurement.id,
       label: "Demande de mesures client préparée",
-      metadata: { channels, delivery, expiresAt: issued.expiresAt },
+      metadata: { channels, delivery, expiresAt: issued.expiresAt, locale },
     });
 
     return NextResponse.json({

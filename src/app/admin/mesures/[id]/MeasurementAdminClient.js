@@ -25,13 +25,28 @@ export default function MeasurementAdminClient({ id }) {
   async function createQuote() {
     setBusy("quote"); setError("");
     try {
+      if (editorRef.current?.isPhotoPending?.()) {
+        setError("Attendez la fin du téléversement et de l’analyse de la photo avant de créer ou d’actualiser la soumission.");
+        return;
+      }
       if (editorRef.current?.isDirty()) {
         const saved = await editorRef.current.save(false);
-        if (!saved) return;
+        if (!saved || editorRef.current?.isDirty()) {
+          setError("La fiche a changé pendant l’enregistrement. Vérifiez les mesures, puis réessayez avant de créer la soumission.");
+          return;
+        }
         if (measurement.source === "technician") {
           setError("Les corrections sont enregistrées. Validez de nouveau les mesures finales avant d’actualiser la soumission.");
           return;
         }
+      }
+      if (editorRef.current?.isDirty()) {
+        setError("Des changements ne sont pas encore enregistrés. La soumission n’a pas été créée.");
+        return;
+      }
+      if (editorRef.current?.isPhotoPending?.()) {
+        setError("Attendez la fin du téléversement et de l’analyse de la photo avant de créer ou d’actualiser la soumission.");
+        return;
       }
       const res = await fetch(`/api/admin/measurements/${id}/create-quote`, { method: "POST" });
       const body = await res.json().catch(() => ({}));
@@ -44,9 +59,21 @@ export default function MeasurementAdminClient({ id }) {
   async function createOrder() {
     setBusy("order"); setError("");
     try {
+      if (editorRef.current?.isPhotoPending?.()) {
+        setError("Attendez la fin du téléversement et de l’analyse de la photo avant de préparer la commande.");
+        return;
+      }
       if (editorRef.current?.isDirty()) {
         const saved = await editorRef.current.save(false);
-        if (saved) setError("Les corrections sont enregistrées. Validez de nouveau les mesures finales avant de préparer la commande.");
+        if (!saved || editorRef.current?.isDirty()) {
+          setError("La fiche a changé pendant l’enregistrement. Vérifiez les mesures, puis réessayez.");
+        } else {
+          setError("Les corrections sont enregistrées. Validez de nouveau les mesures finales avant de préparer la commande.");
+        }
+        return;
+      }
+      if (editorRef.current?.isPhotoPending?.()) {
+        setError("Attendez la fin du téléversement et de l’analyse de la photo avant de préparer la commande.");
         return;
       }
       const res = await fetch("/api/admin/thermos-orders", {
@@ -88,6 +115,7 @@ export default function MeasurementAdminClient({ id }) {
         initialMeasurement={measurement}
         apiBase={`/api/admin/measurements/${id}`}
         technicianMode={measurement.source === "technician"}
+        interactionDisabled={Boolean(busy)}
         onSaved={(next) => setMeasurement((old) => ({ ...old, ...next }))}
         onFinalized={(next) => setMeasurement((old) => ({ ...old, ...next }))}
       />

@@ -3,6 +3,7 @@ import Header from "@/components/Header";
 import ConditionalFooter from "@/components/ConditionalFooter";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
 import ChatBubble from "@/components/ChatBubble";
+import GoogleAnalyticsScripts from "@/components/GoogleAnalyticsScripts";
 import { CartProvider } from "@/components/CartContext";
 import Script from "next/script";
 import { getCompany } from "@/lib/company";
@@ -240,13 +241,7 @@ export default async function RootLayout({ children }) {
           <AnalyticsTracker />
           <ChatBubble />
         </CartProvider>
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-8NHVJ5P419"
-          strategy="afterInteractive"
-        />
-        <Script id="ga" strategy="afterInteractive">
-          {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-8NHVJ5P419');gtag('config','AW-18237535998');`}
-        </Script>
+        <GoogleAnalyticsScripts />
       </body>
     </html>
   );
