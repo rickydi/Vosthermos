@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { formatDateOnly, todayDateInput } from "@/lib/date-only";
 import { workOrderStatusLabel } from "@/lib/work-order-status";
@@ -605,7 +605,7 @@ function RefundModal({ payment, saving, onClose, onSubmit }) {
           {isRefund
             ? "Un recu de remboursement (PDF) sera cree; l'argent est considere sorti du compte."
             : "Une note de credit (PDF) sera creee; aucun argent rendu."}
-          {" "}La facture d'origine reste intacte pour la comptable.
+          {" "}La facture d&apos;origine reste intacte pour la comptable.
         </p>
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
@@ -647,39 +647,55 @@ export default function AdminPaymentsPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [savingId, setSavingId] = useState(null);
+  const latestLoadId = useRef(0);
+  const isSearching = Boolean(query.trim());
+  const effectiveFilter = isSearching ? "all" : filter;
 
   const queryString = useMemo(() => {
-    const params = new URLSearchParams({ status: filter, sort, limit: "500" });
+    const params = new URLSearchParams({ status: effectiveFilter, sort, limit: "500" });
     if (query.trim()) params.set("q", query.trim());
     return params.toString();
-  }, [filter, query, sort]);
+  }, [effectiveFilter, query, sort]);
+  const queryStringRef = useRef(queryString);
+  queryStringRef.current = queryString;
 
-  async function load(showSpinner = true) {
+  async function load(showSpinner = true, signal) {
+    const loadId = ++latestLoadId.current;
+    const currentQueryString = queryStringRef.current;
     if (showSpinner) setLoading(true);
     try {
-      const res = await fetch(`/api/admin/payments?${queryString}`, { cache: "no-store" });
+      const res = await fetch(`/api/admin/payments?${currentQueryString}`, { cache: "no-store", signal });
       if (res.status === 401) {
         window.location.href = `/admin/login?callbackUrl=${encodeURIComponent("/admin/paiements")}`;
         return;
       }
       const data = await readJson(res);
       if (!res.ok) throw new Error(data.error || `Erreur paiements (${res.status})`);
+      if (loadId !== latestLoadId.current || signal?.aborted) return;
       setPayments(data.payments || []);
       setSummary(data.summary || null);
       setLoadError("");
     } catch (err) {
+      if (err?.name === "AbortError" || loadId !== latestLoadId.current) return;
       console.error("Chargement paiements:", err);
       setLoadError("Impossible de charger les paiements. Verifie ta connexion puis reessaie.");
     } finally {
-      setLoading(false);
+      if (loadId === latestLoadId.current && !signal?.aborted) setLoading(false);
     }
   }
 
   useEffect(() => {
-    const timeout = setTimeout(() => load(), 150);
-    return () => clearTimeout(timeout);
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+    const controller = new AbortController();
+    const timeout = setTimeout(() => load(true, controller.signal), 250);
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
   }, [queryString]);
+
+  function handleSearchChange(event) {
+    setQuery(event.target.value);
+  }
 
   async function patchPayment(id, payload) {
     setSavingId(id);
@@ -728,8 +744,9 @@ export default function AdminPaymentsPage() {
         <div className="flex flex-wrap items-center gap-2">
           <input
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Client, telephone, facture"
+            onChange={handleSearchChange}
+            placeholder="Tout rechercher : montant, client, facture, date..."
+            aria-label="Rechercher dans tous les paiements"
             className="admin-input w-64 rounded-lg border px-3 py-2 text-sm"
           />
           <div className="flex rounded-lg border admin-border p-1">
@@ -777,8 +794,10 @@ export default function AdminPaymentsPage() {
           <button
             key={tab.key}
             onClick={() => setFilter(tab.key)}
+            disabled={isSearching && tab.key !== "all"}
+            title={isSearching && tab.key !== "all" ? "Efface la recherche pour utiliser ce filtre" : undefined}
             className={`whitespace-nowrap rounded-lg px-4 py-2 text-sm font-bold transition-colors ${
-              filter === tab.key ? "bg-[var(--color-red)] text-white" : "admin-text-muted admin-hover"
+              effectiveFilter === tab.key ? "bg-[var(--color-red)] text-white" : "admin-text-muted admin-hover"
             }`}
           >
             {tab.label}

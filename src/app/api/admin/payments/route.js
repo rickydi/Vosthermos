@@ -8,18 +8,7 @@ import {
   serializePaymentWorkOrder,
   validDate,
 } from "@/lib/payment-tracking";
-
-function includesSearch(q) {
-  if (!q) return undefined;
-  return [
-    { number: { contains: q, mode: "insensitive" } },
-    { client: { name: { contains: q, mode: "insensitive" } } },
-    { client: { phone: { contains: q } } },
-    { client: { secondaryPhone: { contains: q } } },
-    { client: { email: { contains: q, mode: "insensitive" } } },
-    { payments: { some: { reference: { contains: q, mode: "insensitive" } } } },
-  ];
-}
+import { filterPaymentsBySearch, rankPaymentsBySearch } from "@/lib/payment-search";
 
 function paidWithinDays(payment, days, now = new Date()) {
   const paidAt = validDate(payment.paidAt);
@@ -109,6 +98,39 @@ function sortPayments(a, b, sort = "due") {
   return timeValue(a.paymentDueAt || a.date) - timeValue(b.paymentDueAt || b.date);
 }
 
+function paymentResponse(payment) {
+  return {
+    id: payment.id,
+    number: payment.number,
+    date: payment.date,
+    statut: payment.statut,
+    total: payment.total,
+    quoteDepositPercent: payment.quoteDepositPercent,
+    invoiceIssuedAt: payment.invoiceIssuedAt,
+    invoiceSentAt: payment.invoiceSentAt,
+    paymentDueAt: payment.paymentDueAt,
+    paidAt: payment.paidAt,
+    paymentMethod: payment.paymentMethod,
+    client: payment.client ? {
+      id: payment.client.id,
+      name: payment.client.name,
+      company: payment.client.company,
+      phone: payment.client.phone,
+      secondaryPhone: payment.client.secondaryPhone,
+      email: payment.client.email,
+    } : null,
+    payments: payment.payments,
+    creditNotes: payment.creditNotes,
+    paymentsTotal: payment.paymentsTotal,
+    balanceDue: payment.balanceDue,
+    hasPartialPayments: payment.hasPartialPayments,
+    paymentTermsDays: payment.paymentTermsDays,
+    paymentState: payment.paymentState,
+    daysLate: payment.daysLate,
+    daysUntilDue: payment.daysUntilDue,
+  };
+}
+
 export async function GET(req) {
   try { await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
 
@@ -116,9 +138,10 @@ export async function GET(req) {
   // client ne peut pas parser (iOS Safari affichait alors un message cryptique).
   try {
   const { searchParams } = new URL(req.url);
-  const status = searchParams.get("status") || "open";
+  const requestedStatus = searchParams.get("status") || "open";
   const sort = searchParams.get("sort") === "recent" ? "recent" : "due";
-  const q = (searchParams.get("q") || "").trim();
+  const q = (searchParams.get("q") || "").trim().slice(0, 100);
+  const status = q ? "all" : requestedStatus;
   const limit = Math.min(500, Math.max(25, Number(searchParams.get("limit") || 250)));
   const now = new Date();
 
@@ -135,39 +158,81 @@ export async function GET(req) {
       },
     ],
   };
-  const searchWhere = includesSearch(q);
   const workOrders = await prisma.workOrder.findMany({
-    where: searchWhere ? { AND: [statusWhere, { OR: searchWhere }] } : statusWhere,
-    include: {
+    where: statusWhere,
+    select: {
+      id: true,
+      number: true,
+      date: true,
+      interventionAddress: true,
+      interventionCity: true,
+      interventionPostalCode: true,
+      description: true,
+      statut: true,
+      notes: true,
+      totalPieces: true,
+      totalLabor: true,
+      laborRate: true,
+      subtotal: true,
+      tps: true,
+      tvq: true,
+      total: true,
+      quoteDepositPercent: true,
+      invoiceIssuedAt: true,
+      invoiceSentAt: true,
+      paymentDueAt: true,
+      paidAt: true,
+      paymentMethod: true,
+      paymentNotes: true,
+      createdAt: true,
+      updatedAt: true,
       client: {
         select: {
           id: true,
           name: true,
+          type: true,
           company: true,
+          contactName: true,
+          address: true,
+          province: true,
+          postalCode: true,
           phone: true,
           secondaryPhone: true,
           email: true,
           city: true,
+          notes: true,
           paymentTermsDays: true,
         },
       },
       technician: { select: { id: true, name: true } },
       followUp: { select: { id: true, title: true, status: true } },
-      payments: { orderBy: [{ paidAt: "asc" }, { id: "asc" }] },
-      creditNotes: { orderBy: [{ issuedAt: "asc" }, { id: "asc" }] },
+      payments: {
+        select: { id: true, amount: true, method: true, reference: true, note: true, paidAt: true, createdAt: true, updatedAt: true },
+        orderBy: [{ paidAt: "asc" }, { id: "asc" }],
+      },
+      creditNotes: {
+        select: { id: true, number: true, subtotal: true, tps: true, tvq: true, total: true, refundMethod: true, refundRef: true, reason: true, issuedAt: true },
+        orderBy: [{ issuedAt: "asc" }, { id: "asc" }],
+      },
     },
     orderBy: sort === "recent"
       ? [{ invoiceIssuedAt: "desc" }, { date: "desc" }, { createdAt: "desc" }]
       : [{ paymentDueAt: "asc" }, { invoiceIssuedAt: "desc" }, { date: "desc" }],
-    take: limit,
+    // Une recherche doit pouvoir trouver un ancien paiement au-dela des 500
+    // premieres lignes. On limite seulement APRES le calcul des soldes et la
+    // recherche globale. Sans recherche, on conserve la limite habituelle.
+    take: q ? undefined : limit,
   });
 
   const allPayments = workOrders.map((workOrder) => serializePaymentWorkOrder(workOrder, now));
-  const filtered = filterPayments(allPayments, status).sort((a, b) => sortPayments(a, b, sort));
+  const searchedPayments = filterPaymentsBySearch(allPayments, q);
+  const sortedPayments = filterPayments(searchedPayments, status)
+    .sort((a, b) => sortPayments(a, b, sort));
+  const filtered = (q ? rankPaymentsBySearch(sortedPayments, q) : sortedPayments).slice(0, limit);
 
   return NextResponse.json({
-    payments: filtered,
-    summary: buildSummary(allPayments, now),
+    payments: filtered.map(paymentResponse),
+    summary: buildSummary(searchedPayments, now),
     status,
     sort,
   });
