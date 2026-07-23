@@ -90,6 +90,8 @@ export async function middleware(request) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|images|uploads).*)",
+    // Cette route accepte 25 MB par photo et valide elle-meme son JWT. La faire
+    // passer ici force Next a cloner le corps et le tronque a 10 MB par defaut.
+    "/((?!_next/static|_next/image|favicon.ico|images|uploads|api/public/photo-upload).*)",
   ],
 };

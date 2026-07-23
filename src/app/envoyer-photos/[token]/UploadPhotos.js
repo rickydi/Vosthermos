@@ -3,6 +3,21 @@
 import { useEffect, useRef, useState } from "react";
 
 const MAX_FILES = 10;
+const MAX_BYTES = 25 * 1024 * 1024;
+const ACCEPTED_EXTENSIONS = /\.(jpe?g|png|webp|gif|heic|heif)$/i;
+const ACCEPTED_MIMES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "image/heic",
+  "image/heif",
+]);
+
+function isAcceptedPhoto(file) {
+  const mime = String(file?.type || "").toLowerCase();
+  return ACCEPTED_MIMES.has(mime) || ACCEPTED_EXTENSIONS.test(String(file?.name || ""));
+}
 
 // Coquille plein écran de la page : bandeau Vosthermos + contenu. Le header,
 // le footer et la bulle de chat du site sont masqués sur /envoyer-photos —
@@ -33,6 +48,7 @@ export default function UploadPhotos({ token }) {
   const [files, setFiles] = useState([]); // File[]
   const [previews, setPreviews] = useState([]); // object URLs (même index que files)
   const [sending, setSending] = useState(false);
+  const [sendProgress, setSendProgress] = useState(null);
   const [sentCount, setSentCount] = useState(0);
   const [error, setError] = useState("");
   const inputRef = useRef(null);
@@ -53,11 +69,7 @@ export default function UploadPhotos({ token }) {
   // Libère les object URLs quand ils ne sont plus affichés.
   useEffect(() => () => { previews.forEach((u) => URL.revokeObjectURL(u)); }, [previews]);
 
-  function addFiles(list) {
-    setError("");
-    const incoming = Array.from(list || []).filter((f) => f.type.startsWith("image/"));
-    if (!incoming.length) return;
-    const next = [...files, ...incoming].slice(0, MAX_FILES);
+  function replaceFiles(next) {
     setFiles(next);
     setPreviews((old) => {
       old.forEach((u) => URL.revokeObjectURL(u));
@@ -65,33 +77,66 @@ export default function UploadPhotos({ token }) {
     });
   }
 
+  function addFiles(list) {
+    const selected = Array.from(list || []);
+    const supported = selected.filter(isAcceptedPhoto);
+    const incoming = supported.filter((file) => file.size <= MAX_BYTES);
+    const next = [...files, ...incoming].slice(0, MAX_FILES);
+    const messages = [];
+
+    if (selected.length > supported.length) {
+      messages.push("Certaines photos ont un format non supporté.");
+    }
+    if (supported.length > incoming.length) {
+      messages.push("Une photo dépasse la limite de 25 MB.");
+    }
+    if (files.length + incoming.length > MAX_FILES) {
+      messages.push(`Maximum ${MAX_FILES} photos à la fois.`);
+    }
+
+    setError(messages.join(" "));
+    if (incoming.length) replaceFiles(next);
+  }
+
   function removeAt(i) {
+    if (sending) return;
     const nextFiles = files.filter((_, idx) => idx !== i);
-    setFiles(nextFiles);
-    setPreviews((old) => {
-      old.forEach((u) => URL.revokeObjectURL(u));
-      return nextFiles.map((f) => URL.createObjectURL(f));
-    });
+    replaceFiles(nextFiles);
   }
 
   async function send() {
     if (!files.length || sending) return;
+    const batch = [...files];
+    let completed = 0;
     setSending(true);
     setError("");
     try {
-      const fd = new FormData();
-      files.forEach((f) => fd.append("photos", f));
-      const res = await fetch(`/api/public/photo-upload/${token}`, { method: "POST", body: fd });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Erreur d'envoi — réessayez");
-      setSentCount((n) => n + (data.saved || files.length));
-      setFiles([]);
-      setPreviews((old) => { old.forEach((u) => URL.revokeObjectURL(u)); return []; });
+      // Une requete par photo : chacune peut aller jusqu'a 25 MB sans creer un
+      // enorme corps multipart, et un echec ne renvoie pas les succes precedents.
+      for (let i = 0; i < batch.length; i += 1) {
+        setSendProgress({ current: i + 1, total: batch.length });
+        const fd = new FormData();
+        fd.append("photos", batch[i]);
+        const res = await fetch(`/api/public/photo-upload/${token}`, { method: "POST", body: fd });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Erreur d'envoi — réessayez");
+        completed += 1;
+      }
+
+      setSentCount((n) => n + completed);
+      replaceFiles([]);
       if (inputRef.current) inputRef.current.value = "";
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (e) {
-      setError(e.message);
+      // Les photos deja confirmees sont retirees : reessayer ne les dupliquera pas.
+      if (completed > 0) setSentCount((n) => n + completed);
+      replaceFiles(batch.slice(completed));
+      const prefix = completed > 0
+        ? `${completed} photo${completed > 1 ? "s" : ""} envoyée${completed > 1 ? "s" : ""}. `
+        : "";
+      setError(`${prefix}${e.message}`);
     } finally {
+      setSendProgress(null);
       setSending(false);
     }
   }
@@ -153,16 +198,21 @@ export default function UploadPhotos({ token }) {
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.gif,.heic,.heif"
         multiple
+        disabled={sending}
         className="hidden"
-        onChange={(e) => addFiles(e.target.files)}
+        onChange={(e) => {
+          addFiles(e.target.files);
+          e.target.value = "";
+        }}
       />
 
       <button
         type="button"
+        disabled={sending}
         onClick={() => inputRef.current?.click()}
-        className="w-full rounded-3xl border-2 border-dashed border-[var(--color-teal)]/35 bg-white active:scale-[0.99] transition-transform flex flex-col items-center justify-center gap-2.5 py-10 px-4 text-[var(--color-teal)] shadow-sm"
+        className="w-full rounded-3xl border-2 border-dashed border-[var(--color-teal)]/35 bg-white active:scale-[0.99] transition-transform flex flex-col items-center justify-center gap-2.5 py-10 px-4 text-[var(--color-teal)] shadow-sm disabled:opacity-60"
       >
         <span className="w-14 h-14 rounded-full bg-[var(--color-teal)]/10 flex items-center justify-center">
           <i className="fas fa-camera text-2xl"></i>
@@ -179,6 +229,7 @@ export default function UploadPhotos({ token }) {
               <img src={url} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
               <button
                 type="button"
+                disabled={sending}
                 onClick={() => removeAt(i)}
                 aria-label="Retirer cette photo"
                 className="absolute top-1.5 right-1.5 w-8 h-8 rounded-full bg-black/65 text-white text-sm flex items-center justify-center"
@@ -201,7 +252,7 @@ export default function UploadPhotos({ token }) {
         className="mt-5 w-full h-16 rounded-2xl bg-[var(--color-red)] text-white text-xl font-extrabold disabled:opacity-35 shadow-lg shadow-red-500/20 active:scale-[0.99] transition-transform"
       >
         {sending ? (
-          <><i className="fas fa-spinner fa-spin mr-2"></i>Envoi en cours…</>
+          <><i className="fas fa-spinner fa-spin mr-2"></i>Envoi {sendProgress ? `${sendProgress.current}/${sendProgress.total}` : "en cours"}…</>
         ) : (
           <><i className="fas fa-paper-plane mr-2"></i>Envoyer {files.length > 0 ? `${files.length} photo${files.length > 1 ? "s" : ""}` : "les photos"}</>
         )}

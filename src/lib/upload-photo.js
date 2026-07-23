@@ -26,6 +26,65 @@ const FORMAT_TO_EXT = {
   tiff: "tiff",
   svg: "svg",
 };
+
+// Identifie les formats autorises a partir du contenu reel du fichier.
+// Le nom et le Content-Type viennent du navigateur et peuvent etre absents ou
+// faux (certains telephones nomment notamment un JPEG avec l'extension .heic).
+export function detectImageFormat(input) {
+  const buffer = Buffer.isBuffer(input) ? input : Buffer.from(input || []);
+
+  if (
+    buffer.length >= 3
+    && buffer[0] === 0xff
+    && buffer[1] === 0xd8
+    && buffer[2] === 0xff
+  ) {
+    return { format: "jpeg", ext: "jpg", mime: "image/jpeg" };
+  }
+
+  if (
+    buffer.length >= 8
+    && buffer.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))
+  ) {
+    return { format: "png", ext: "png", mime: "image/png" };
+  }
+
+  const firstSix = buffer.length >= 6 ? buffer.subarray(0, 6).toString("ascii") : "";
+  if (firstSix === "GIF87a" || firstSix === "GIF89a") {
+    return { format: "gif", ext: "gif", mime: "image/gif" };
+  }
+
+  if (
+    buffer.length >= 12
+    && buffer.subarray(0, 4).toString("ascii") === "RIFF"
+    && buffer.subarray(8, 12).toString("ascii") === "WEBP"
+  ) {
+    return { format: "webp", ext: "webp", mime: "image/webp" };
+  }
+
+  // HEIC/HEIF et AVIF utilisent tous le conteneur ISO-BMFF "ftyp".
+  if (buffer.length >= 16 && buffer.subarray(4, 8).toString("ascii") === "ftyp") {
+    const declaredSize = buffer.readUInt32BE(0);
+    const end = Math.min(buffer.length, declaredSize >= 16 ? declaredSize : buffer.length, 128);
+    const brands = [buffer.subarray(8, 12).toString("ascii")];
+    for (let offset = 16; offset + 4 <= end; offset += 4) {
+      brands.push(buffer.subarray(offset, offset + 4).toString("ascii"));
+    }
+
+    if (brands.some((brand) => brand === "avif" || brand === "avis")) {
+      return { format: "avif", ext: "avif", mime: "image/avif" };
+    }
+
+    const heifBrands = new Set([
+      "heic", "heix", "hevc", "hevx", "heim", "heis", "hevm", "hevs", "mif1", "msf1",
+    ]);
+    if (brands.some((brand) => heifBrands.has(brand))) {
+      return { format: "heic", ext: "heic", mime: "image/heic" };
+    }
+  }
+
+  return null;
+}
 // Formats dont sharp preserve la sortie via toBuffer() sans encodeur special.
 // (heif/svg/inconnu -> reencodes en JPEG ; gif preserve transparence/animation.)
 const PASSTHROUGH = new Set(["jpeg", "png", "webp", "gif", "tiff", "avif"]);
@@ -63,7 +122,7 @@ export async function boundImageBuffer(input, { fallbackExt = "bin" } = {}) {
       meta = await sharp(input, { animated: true, limitInputPixels: false }).metadata();
     } catch {
       // Indecodable par sharp -> non re-decodable par l'optimiseur -> aucun risque memoire serveur.
-      return { buffer: input, ext: fallbackExt };
+      return { buffer: input, ext: fallbackExt, decoded: false };
     }
 
     const width = meta.width || 0;
@@ -84,7 +143,7 @@ export async function boundImageBuffer(input, { fallbackExt = "bin" } = {}) {
 
     // Deja sous la borne -> on garde l'original tel quel (zero re-encodage).
     if (width <= MAX_DIMENSION && height <= MAX_DIMENSION) {
-      return { buffer: input, ext };
+      return { buffer: input, ext, decoded: true };
     }
 
     let pipeline = sharp(input, { limitInputPixels: SHARP_MAX_INPUT_PIXELS, animated });
@@ -101,7 +160,7 @@ export async function boundImageBuffer(input, { fallbackExt = "bin" } = {}) {
     const buffer = await pipeline
       .resize({ width: MAX_DIMENSION, height: MAX_DIMENSION, fit: "inside", withoutEnlargement: true })
       .toBuffer();
-    return { buffer, ext: outExt };
+    return { buffer, ext: outExt, decoded: true };
   });
 }
 
