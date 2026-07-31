@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseMoney } from "@/lib/money";
 import NotifyMembersSection from "@/components/admin/NotifyMembersSection";
 import BlogNotifyMembersSection from "@/components/admin/BlogNotifyMembersSection";
 import ApiKeysSection from "@/components/admin/ApiKeysSection";
@@ -29,7 +30,9 @@ export default function AdminSettingsPage() {
 
   async function saveLaborRate(e) {
     e.preventDefault();
-    const value = Number(laborRate);
+    // parseMoney et non Number : un taux saisi « 85,50 » donnait NaN, et la
+    // sauvegarde s'interrompait sans rien dire.
+    const value = parseMoney(laborRate);
     if (!Number.isFinite(value) || value <= 0) return;
 
     setLaborRateSaving(true);
@@ -71,10 +74,10 @@ export default function AdminSettingsPage() {
             <label className="block admin-text-muted text-sm mb-1">Taux main d&apos;oeuvre</label>
             <div className="flex items-center gap-2">
               <input
-                type="number"
-                min="0"
-                step="0.01"
+                type="text"
+                inputMode="decimal"
                 value={laborRate}
+                onFocus={(e) => e.currentTarget.select()}
                 onChange={(e) => setLaborRate(e.target.value)}
                 className="admin-input w-32 border rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-red)]"
               />

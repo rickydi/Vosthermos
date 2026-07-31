@@ -125,7 +125,10 @@ export default function ServicesPage() {
             </div>
             <div>
               <label className="admin-text-muted text-xs mb-1 block">Prix ($)</label>
-              <input type="number" step="0.01" value={form.price}
+              {/* text + inputMode : type="number" rejette la virgule (« 20,00 »
+                  y devient une valeur vide). Le serveur lit les deux graphies. */}
+              <input type="text" inputMode="decimal" value={form.price}
+                onFocus={(e) => e.currentTarget.select()}
                 onChange={(e) => setForm({ ...form, price: e.target.value })}
                 className="admin-input border rounded-lg px-3 py-2 text-sm w-full" />
             </div>

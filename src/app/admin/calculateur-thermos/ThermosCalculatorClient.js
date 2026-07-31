@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import MeasurementEditor from "@/components/measurements/MeasurementEditor";
 import { COMPANY_INFO } from "@/lib/company-info";
+import { parseMoney } from "@/lib/money";
 import { formatSixteenths } from "@/lib/thermos-layout";
 import {
   THERMOS_SPACER_COLORS,
@@ -280,7 +281,7 @@ export default function ThermosCalculatorClient({ mode = "admin" }) {
     if (isPublic) return [];
     const issues = [];
     const settings = quote.settings || {};
-    const numericSetting = (key) => Number(String(settings[key] ?? "0").replace(",", ".")) || 0;
+    const numericSetting = (key) => parseMoney(settings[key] ?? "0");
     if (pricingLines.some((line) => line.glassType === "triple") && numericSetting("thermos_triple_percent") <= 0) {
       issues.push("Le tarif du triple vitrage doit être configuré dans les paramètres.");
     }

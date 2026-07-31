@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import SignaturePad from "@/components/terrain/SignaturePad";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
+import MoneyInput from "@/components/admin/MoneyInput";
 
 const STEPS = ["Client", "Travail", "Pieces", "Signature"];
 const CATEGORY_LABELS = {
@@ -631,15 +632,15 @@ export default function NouveauBon() {
                 <div className="flex gap-3 items-center">
                   <div className="flex items-center gap-1">
                     <label className="text-white/30 text-xs">Qte:</label>
-                    <input type="number" value={item.quantity}
-                      onChange={(e) => updateItem(i, "quantity", parseFloat(e.target.value) || 0)}
-                      className="w-16 bg-white/10 rounded-lg px-2 py-1 text-sm text-center" min="0" step="1" />
+                    <MoneyInput value={item.quantity} min={0}
+                      onChange={(v) => updateItem(i, "quantity", v)}
+                      className="w-16 bg-white/10 rounded-lg px-2 py-1 text-sm text-center" />
                   </div>
                   <div className="flex items-center gap-1">
                     <label className="text-white/30 text-xs">Prix:</label>
-                    <input type="number" value={item.unitPrice}
-                      onChange={(e) => updateItem(i, "unitPrice", parseFloat(e.target.value) || 0)}
-                      className="w-24 bg-white/10 rounded-lg px-2 py-1 text-sm text-right" min="0" step="0.01" />
+                    <MoneyInput value={item.unitPrice} min={0}
+                      onChange={(v) => updateItem(i, "unitPrice", v)}
+                      className="w-24 bg-white/10 rounded-lg px-2 py-1 text-sm text-right" />
                     <span className="text-white/30 text-xs">$</span>
                   </div>
                   <span className="text-[var(--color-red)] font-bold text-sm ml-auto">
@@ -657,9 +658,9 @@ export default function NouveauBon() {
               <h2 className="text-sm font-bold text-white/70 mb-3">Main d&apos;oeuvre</h2>
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2 flex-1">
-                  <input type="number" value={laborHours}
-                    onChange={(e) => setLaborHours(parseFloat(e.target.value) || 0)}
-                    className="w-20 bg-white/10 rounded-lg px-3 py-2 text-sm text-center" min="0" step="0.25" />
+                  <MoneyInput value={laborHours} min={0}
+                    onChange={(v) => setLaborHours(v)}
+                    className="w-20 bg-white/10 rounded-lg px-3 py-2 text-sm text-center" />
                   <span className="text-white/40 text-sm">h x {settings.labor_rate_per_hour.toFixed(2)}$/h</span>
                 </div>
                 <span className="text-[var(--color-red)] font-bold">{totalLabor.toFixed(2)}$</span>
@@ -757,9 +758,9 @@ export default function NouveauBon() {
               <h2 className="text-sm font-bold text-white/70 mb-3">Main d&apos;oeuvre (visite)</h2>
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2 flex-1">
-                  <input type="number" value={laborHours}
-                    onChange={(e) => setLaborHours(parseFloat(e.target.value) || 0)}
-                    className="w-20 bg-white/10 rounded-lg px-3 py-2 text-sm text-center" min="0" step="0.25" />
+                  <MoneyInput value={laborHours} min={0}
+                    onChange={(v) => setLaborHours(v)}
+                    className="w-20 bg-white/10 rounded-lg px-3 py-2 text-sm text-center" />
                   <span className="text-white/40 text-sm">h x {settings.labor_rate_per_hour.toFixed(2)}$/h</span>
                 </div>
                 <span className="text-[var(--color-red)] font-bold">{totalLabor.toFixed(2)}$</span>
@@ -935,15 +936,15 @@ export default function NouveauBon() {
                     <div className="flex gap-3 items-center">
                       <div className="flex items-center gap-1">
                         <label className="text-white/30 text-xs">Qte:</label>
-                        <input type="number" value={item.quantity}
-                          onChange={(e) => updateCurrentItems(currentSection.items.map((it, j) => j === i ? { ...it, quantity: parseFloat(e.target.value) || 0 } : it))}
-                          className="w-16 bg-white/10 rounded-lg px-2 py-1 text-sm text-center" min="0" step="1" />
+                        <MoneyInput value={item.quantity} min={0}
+                          onChange={(v) => updateCurrentItems(currentSection.items.map((it, j) => j === i ? { ...it, quantity: v } : it))}
+                          className="w-16 bg-white/10 rounded-lg px-2 py-1 text-sm text-center" />
                       </div>
                       <div className="flex items-center gap-1">
                         <label className="text-white/30 text-xs">Prix:</label>
-                        <input type="number" value={item.unitPrice}
-                          onChange={(e) => updateCurrentItems(currentSection.items.map((it, j) => j === i ? { ...it, unitPrice: parseFloat(e.target.value) || 0 } : it))}
-                          className="w-24 bg-white/10 rounded-lg px-2 py-1 text-sm text-right" min="0" step="0.01" />
+                        <MoneyInput value={item.unitPrice} min={0}
+                          onChange={(v) => updateCurrentItems(currentSection.items.map((it, j) => j === i ? { ...it, unitPrice: v } : it))}
+                          className="w-24 bg-white/10 rounded-lg px-2 py-1 text-sm text-right" />
                         <span className="text-white/30 text-xs">$</span>
                       </div>
                       <span className="text-[var(--color-red)] font-bold text-sm ml-auto">

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
+import { parseMoneyOrNull, roundMoney } from "@/lib/money";
 
 function serialize(s) {
   return { ...s, price: Number(s.price) };
@@ -14,7 +15,14 @@ export async function PUT(req, { params }) {
   const data = {};
   if (body.name !== undefined) data.name = body.name;
   if (body.category !== undefined) data.category = body.category;
-  if (body.price !== undefined) data.price = body.price;
+  if (body.price !== undefined) {
+    // Accepte « 20 », « 20.00 » et « 20,00 » indifferemment.
+    const price = parseMoneyOrNull(body.price);
+    if (price === null || price < 0) {
+      return NextResponse.json({ error: "Prix invalide" }, { status: 400 });
+    }
+    data.price = roundMoney(price);
+  }
   if (body.description !== undefined) data.description = body.description;
   if (body.isActive !== undefined) data.isActive = body.isActive;
   if (body.isPreset !== undefined) data.isPreset = body.isPreset;

@@ -230,33 +230,36 @@ export default function ThermosQuoteInline({
                     </div>
                   </div>
 
+                  {/* text + inputMode : avec type="number", une dimension tapee
+                      « 12,5 » arrivait vide (le navigateur refuse la virgule).
+                      La lecture des pouces accepte deja les deux graphies. */}
                   <div className="grid gap-3 md:grid-cols-4">
                     <LineField label="Largeur">
                       <input
-                        type="number"
-                        min="1"
-                        step="0.125"
+                        type="text"
+                        inputMode="decimal"
                         value={line.width}
+                        onFocus={(event) => event.currentTarget.select()}
                         onChange={(event) => updateLine(index, { width: event.target.value })}
                         className="admin-input w-full rounded-lg border px-3 py-2 text-sm"
                       />
                     </LineField>
                     <LineField label="Hauteur">
                       <input
-                        type="number"
-                        min="1"
-                        step="0.125"
+                        type="text"
+                        inputMode="decimal"
                         value={line.height}
+                        onFocus={(event) => event.currentTarget.select()}
                         onChange={(event) => updateLine(index, { height: event.target.value })}
                         className="admin-input w-full rounded-lg border px-3 py-2 text-sm"
                       />
                     </LineField>
                     <LineField label="Quantite">
                       <input
-                        type="number"
-                        min="1"
-                        step="1"
+                        type="text"
+                        inputMode="numeric"
                         value={line.quantity}
+                        onFocus={(event) => event.currentTarget.select()}
                         onChange={(event) => updateLine(index, { quantity: event.target.value })}
                         className="admin-input w-full rounded-lg border px-3 py-2 text-sm"
                       />

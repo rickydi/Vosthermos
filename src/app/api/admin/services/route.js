@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
+import { parseMoneyOrNull, roundMoney } from "@/lib/money";
 
 function serialize(s) {
   return { ...s, price: Number(s.price) };
@@ -31,13 +32,18 @@ export async function POST(req) {
   if (!body.code || !body.name || !body.category || body.price == null) {
     return NextResponse.json({ error: "code, name, category, price requis" }, { status: 400 });
   }
+  // Le prix arrive tel qu'il a ete tape : « 20 », « 20.00 » ou « 20,00 ».
+  const price = parseMoneyOrNull(body.price);
+  if (price === null || price < 0) {
+    return NextResponse.json({ error: "Prix invalide" }, { status: 400 });
+  }
 
   const service = await prisma.service.create({
     data: {
       code: body.code,
       name: body.name,
       category: body.category,
-      price: body.price,
+      price: roundMoney(price),
       description: body.description || null,
       isActive: body.isActive !== false,
       isPreset: !!body.isPreset,

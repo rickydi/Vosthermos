@@ -6,6 +6,7 @@ import { createOrTouchFollowUpFromWorkOrder } from "@/lib/follow-up-utils";
 import { sendInvoicePaymentUpdateEmail, sendPaidInvoiceEmail } from "@/lib/paid-invoice-email";
 import { documentPaymentSummary } from "@/lib/vosthermos-document";
 import { scopeWorkOrderThroughPayment } from "@/lib/payment-snapshot";
+import { parseMoneyOrNull } from "@/lib/money";
 import {
   buildPaymentTrackingData,
   isOpenPaymentStatus,
@@ -22,9 +23,12 @@ function cleanText(value) {
 }
 
 function parseMoneyInput(value) {
-  const normalized = String(value ?? "").replace(",", ".").replace(/[^\d.-]/g, "");
-  const amount = roundMoney(Number(normalized));
-  if (!Number.isFinite(amount) || amount <= 0) {
+  // parseMoney gere « 20 », « 20.00 », « 20,00 », « 1 250,75 » et « 20,00 $ ».
+  // L'ancien .replace(",", ".") ne remplacait que la PREMIERE virgule, donc un
+  // montant a separateur de milliers partait en NaN.
+  const parsed = parseMoneyOrNull(value);
+  const amount = parsed === null ? null : roundMoney(parsed);
+  if (amount === null || !Number.isFinite(amount) || amount <= 0) {
     throw new Error("Montant de paiement invalide");
   }
   return amount;
@@ -334,9 +338,8 @@ export async function PATCH(req, { params }) {
       if (creditable <= 0.005) {
         return NextResponse.json({ error: `Rien a crediter: ${paidTotal.toFixed(2)}$ encaisse, ${alreadyCredited.toFixed(2)}$ deja credite` }, { status: 400 });
       }
-      const amount = body.amount === undefined || body.amount === null || body.amount === ""
-        ? creditable
-        : roundMoney(Number(String(body.amount).replace(",", ".")));
+      const typedAmount = parseMoneyOrNull(body.amount);
+      const amount = typedAmount === null ? creditable : roundMoney(typedAmount);
       if (!Number.isFinite(amount) || amount <= 0) {
         return NextResponse.json({ error: "Montant invalide" }, { status: 400 });
       }

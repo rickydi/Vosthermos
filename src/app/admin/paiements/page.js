@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { formatDateOnly, todayDateInput } from "@/lib/date-only";
+import { parseMoney } from "@/lib/money";
 import { workOrderStatusLabel } from "@/lib/work-order-status";
 
 const FILTERS = [
@@ -366,6 +367,8 @@ function PaymentRow({ payment, saving, onPatch }) {
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <input
             value={depositAmount}
+            inputMode="decimal"
+            onFocus={(event) => event.currentTarget.select()}
             onChange={(event) => setDepositAmount(event.target.value)}
             placeholder="Montant depot"
             className="admin-input w-32 rounded-lg border px-3 py-2 text-xs"
@@ -406,7 +409,7 @@ function PaymentRow({ payment, saving, onPatch }) {
                 </div>
                 <div className="mt-2 flex justify-between gap-3">
                   <span className="admin-text-muted">Depot</span>
-                  <span className="admin-text font-bold">{money(String(depositAmount).replace(",", "."))}</span>
+                  <span className="admin-text font-bold">{money(parseMoney(depositAmount))}</span>
                 </div>
                 <div className="mt-2 flex justify-between gap-3">
                   <span className="admin-text-muted">Email</span>
@@ -558,8 +561,12 @@ function RefundModal({ payment, saving, onClose, onSubmit }) {
         <div className="space-y-2">
           <div>
             <label className="admin-text-muted mb-1 block text-[11px] font-bold uppercase">Montant</label>
+            {/* Pre-rempli avec le total encaisse : la selection au focus evite
+                d'avoir a double-cliquer pour saisir un autre montant. */}
             <input
               value={amount}
+              inputMode="decimal"
+              onFocus={(event) => event.currentTarget.select()}
               onChange={(event) => setAmount(event.target.value)}
               className="admin-input w-full rounded-lg border px-3 py-2 text-sm"
               placeholder="Montant"

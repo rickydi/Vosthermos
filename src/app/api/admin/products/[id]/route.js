@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
+import { parseMoneyOrNull, roundMoney } from "@/lib/money";
 
 export async function GET(request, { params }) {
   try {
@@ -36,8 +37,19 @@ export async function PUT(request, { params }) {
     if (data.name !== undefined) updateData.name = data.name;
     if (data.description !== undefined) updateData.description = data.description;
     if (data.detailedDescription !== undefined) updateData.detailedDescription = data.detailedDescription;
-    if (data.price !== undefined) updateData.price = parseFloat(data.price);
-    if (data.compareAtPrice !== undefined) updateData.compareAtPrice = data.compareAtPrice ? parseFloat(data.compareAtPrice) : null;
+    // parseFloat("20,50") vaut 20 : les cents etaient perdus en silence des que
+    // le prix etait saisi avec une virgule. parseMoneyOrNull lit les deux graphies.
+    if (data.price !== undefined) {
+      const price = parseMoneyOrNull(data.price);
+      if (price === null || price < 0) {
+        return NextResponse.json({ error: "Prix invalide" }, { status: 400 });
+      }
+      updateData.price = roundMoney(price);
+    }
+    if (data.compareAtPrice !== undefined) {
+      const compareAt = parseMoneyOrNull(data.compareAtPrice);
+      updateData.compareAtPrice = compareAt === null || compareAt <= 0 ? null : roundMoney(compareAt);
+    }
     if (data.availability !== undefined) updateData.availability = data.availability;
     if (data.categoryId !== undefined) updateData.categoryId = data.categoryId ? parseInt(data.categoryId) : null;
     if (data.sku !== undefined) updateData.sku = data.sku;

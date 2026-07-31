@@ -153,12 +153,15 @@ export default function ProductEditForm({ product, categories }) {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-white/50 text-sm mb-1">Prix ($)</label>
-                  <input name="price" type="number" step="0.01" value={form.price} onChange={handleChange}
+                  {/* text + inputMode : type="number" rejette la virgule. */}
+                  <input name="price" type="text" inputMode="decimal" value={form.price} onChange={handleChange}
+                    onFocus={(e) => e.currentTarget.select()}
                     className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[var(--color-red)]" />
                 </div>
                 <div>
                   <label className="block text-white/50 text-sm mb-1">Ancien prix ($)</label>
-                  <input name="compareAtPrice" type="number" step="0.01" value={form.compareAtPrice} onChange={handleChange}
+                  <input name="compareAtPrice" type="text" inputMode="decimal" value={form.compareAtPrice} onChange={handleChange}
+                    onFocus={(e) => e.currentTarget.select()}
                     placeholder="Optionnel"
                     className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-[var(--color-red)]" />
                 </div>

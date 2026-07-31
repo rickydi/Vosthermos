@@ -1,3 +1,5 @@
+import { parseMoney, parseMoneyOrNull } from "@/lib/money";
+
 export {
   THERMOS_SPACER_COLORS,
   measurementAccessToPricingAccess,
@@ -78,8 +80,8 @@ function money(value) {
 
 function numberSetting(settings, key) {
   const raw = settings?.[key] ?? THERMOS_PRICING_DEFAULTS[key] ?? 0;
-  const value = Number(String(raw).replace(",", "."));
-  return Number.isFinite(value) ? value : Number(THERMOS_PRICING_DEFAULTS[key] || 0);
+  const value = parseMoneyOrNull(raw);
+  return value === null ? Number(THERMOS_PRICING_DEFAULTS[key] || 0) : value;
 }
 
 export function normalizeThermosPricingSettings(raw = {}) {
@@ -120,9 +122,11 @@ export function calculateThermosQuote(linesInput = [], settingsInput = {}) {
     .map((line) => ({
       ...emptyThermosLine(),
       ...line,
-      width: Math.max(0, Number(line.width) || 0),
-      height: Math.max(0, Number(line.height) || 0),
-      quantity: Math.max(1, Number(line.quantity) || 1),
+      // parseMoney et non Number : une dimension tapee « 12,5 » donnait NaN,
+      // donc 0 apres le || — le thermos se retrouvait facture 0 pi2.
+      width: Math.max(0, parseMoney(line.width)),
+      height: Math.max(0, parseMoney(line.height)),
+      quantity: Math.max(1, parseMoney(line.quantity) || 1),
     }));
 
   const pricePerSqft = numberSetting(settings, "thermos_price_per_sqft");

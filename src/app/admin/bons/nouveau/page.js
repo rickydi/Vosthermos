@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import CatalogPicker from "@/components/admin/CatalogPicker";
 import ClientPicker from "@/components/admin/ClientPicker";
+import MoneyInput from "@/components/admin/MoneyInput";
 import ThermosQuoteInline from "@/components/admin/ThermosQuoteInline";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import { dateOnlyString, todayDateInput } from "@/lib/date-only";
@@ -1800,12 +1801,12 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
                         </div>
                         <div className="flex items-center gap-2 text-sm">
                           <label className="admin-text-muted text-xs">Qte</label>
-                          <input type="number" value={it.quantity} min="0" step="1"
-                            onChange={(e) => updateSectionItem(sIdx, iIdx, "quantity", parseFloat(e.target.value) || 0)}
+                          <MoneyInput value={it.quantity} min={0}
+                            onChange={(v) => updateSectionItem(sIdx, iIdx, "quantity", v)}
                             className="admin-input border rounded px-2 py-0.5 text-sm w-16 text-center" />
                           <label className="admin-text-muted text-xs ml-1">Prix</label>
-                          <input type="number" value={it.unitPrice} min="0" step="0.01"
-                            onChange={(e) => updateSectionItem(sIdx, iIdx, "unitPrice", parseFloat(e.target.value) || 0)}
+                          <MoneyInput value={it.unitPrice} min={0}
+                            onChange={(v) => updateSectionItem(sIdx, iIdx, "unitPrice", v)}
                             className="admin-input border rounded px-2 py-0.5 text-sm w-20 text-right" />
                           <span className="admin-text-muted text-xs">$</span>
                           <span className="ml-auto font-bold text-cyan-600 text-sm">
@@ -1888,9 +1889,9 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
                     </select>
                     {it.discountMode === "percent" ? (
                       <>
-                        <input
-                          type="number" value={it.discountPercent} min="0" max="100" step="0.5"
-                          onChange={(e) => updateItem(i, "discountPercent", parseFloat(e.target.value) || 0)}
+                        <MoneyInput
+                          value={it.discountPercent} min={0} max={100}
+                          onChange={(v) => updateItem(i, "discountPercent", v)}
                           className="admin-input border rounded px-2 py-1 text-sm w-20 text-center"
                         />
                         <span className="admin-text-muted text-xs">%</span>
@@ -1898,9 +1899,9 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
                       </>
                     ) : (
                       <>
-                        <input
-                          type="number" value={it.discountAmount} min="0" step="0.01"
-                          onChange={(e) => updateItem(i, "discountAmount", parseFloat(e.target.value) || 0)}
+                        <MoneyInput
+                          value={it.discountAmount} min={0}
+                          onChange={(v) => updateItem(i, "discountAmount", v)}
                           className="admin-input border rounded px-2 py-1 text-sm w-24 text-right"
                         />
                         <span className="admin-text-muted text-xs">$</span>
@@ -1929,12 +1930,12 @@ function NouveauBonAdmin({ forcedDocumentType = null } = {}) {
                 </div>
                 <div className="flex items-center gap-3 text-sm">
                   <label className="admin-text-muted text-xs">Qte</label>
-                  <input type="number" value={it.quantity} min="0" step="1"
-                    onChange={(e) => updateItem(i, "quantity", parseFloat(e.target.value) || 0)}
+                  <MoneyInput value={it.quantity} min={0}
+                    onChange={(v) => updateItem(i, "quantity", v)}
                     className="admin-input border rounded px-2 py-1 text-sm w-20 text-center" />
                   <label className="admin-text-muted text-xs ml-2">Prix</label>
-                  <input type="number" value={it.unitPrice} min="0" step="0.01"
-                    onChange={(e) => updateItem(i, "unitPrice", parseFloat(e.target.value) || 0)}
+                  <MoneyInput value={it.unitPrice} min={0}
+                    onChange={(v) => updateItem(i, "unitPrice", v)}
                     className="admin-input border rounded px-2 py-1 text-sm w-24 text-right" />
                   <span className="admin-text-muted text-xs">$</span>
                   <span className="ml-auto font-bold text-cyan-600">

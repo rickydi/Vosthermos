@@ -28,11 +28,13 @@ function PricingField({ field, value, onChange }) {
     <label className="block">
       <span className="admin-text-muted mb-1 block text-xs font-medium">{field.label}</span>
       <div className="flex items-center gap-2">
+        {/* text + inputMode : type="number" rejette la virgule, « 12,50 » y
+            arrivait vide. La lecture des reglages accepte les deux graphies. */}
         <input
-          type="number"
-          min="0"
-          step="0.01"
+          type="text"
+          inputMode="decimal"
           value={value}
+          onFocus={(event) => event.currentTarget.select()}
           onChange={(event) => onChange(field.key, event.target.value)}
           className="admin-input w-full rounded-lg border px-3 py-2 text-sm"
         />
