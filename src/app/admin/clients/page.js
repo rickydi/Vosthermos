@@ -21,6 +21,9 @@ const EMPTY_FORM = {
 };
 
 const SORT_OPTIONS = [
+  // « Pertinence » n'a de sens qu'avec une recherche en cours : le select ne
+  // l'affiche que dans ce cas (voir handleSearchChange).
+  { value: "relevance", label: "Pertinence", searchOnly: true },
   { value: "updated_desc", label: "Recemment modifie" },
   { value: "created_desc", label: "Date d'ajout (recent)" },
   { value: "created_asc", label: "Date d'ajout (ancien)" },
@@ -45,8 +48,12 @@ export default function ClientsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const timer = useRef(null);
+  const seq = useRef(0);
 
   const load = useCallback((q = "", sortValue = "updated_desc", pageValue = 1) => {
+    // Garde anti-course : deux frappes rapprochées peuvent revenir dans le
+    // désordre et afficher les résultats de la recherche précédente.
+    const my = ++seq.current;
     setLoading(true);
     const params = new URLSearchParams({
       q,
@@ -57,6 +64,7 @@ export default function ClientsPage() {
     fetch(`/api/admin/clients?${params}`)
       .then((r) => r.json())
       .then((data) => {
+        if (my !== seq.current) return;
         const nextPages = Math.max(1, Number(data.pages || 1));
         if (pageValue > nextPages) {
           setPage(nextPages);
@@ -70,6 +78,7 @@ export default function ClientsPage() {
         setLoading(false);
       })
       .catch(() => {
+        if (my !== seq.current) return;
         setPagination({ total: 0, pages: 1 });
         setLoading(false);
       });
@@ -84,6 +93,13 @@ export default function ClientsPage() {
   function handleSearchChange(value) {
     setPage(1);
     setSearch(value);
+    // Dès qu'on cherche, le tri par défaut devient la pertinence (le meilleur
+    // match en haut) et redevient chronologique quand le champ est vidé. Un tri
+    // choisi à la main n'est jamais écrasé.
+    setSort((prev) => {
+      if (value.trim()) return prev === "updated_desc" ? "relevance" : prev;
+      return prev === "relevance" ? "updated_desc" : prev;
+    });
   }
 
   function handleSortChange(value) {
@@ -362,13 +378,13 @@ export default function ClientsPage() {
       <div className="flex flex-col md:flex-row gap-3 mb-6">
         <input
           type="text"
-          placeholder="Rechercher par nom, contact, telephone, email, ville..."
+          placeholder="Rechercher par nom, contact, telephone, email, ville, adresse..."
           value={search}
           onChange={(e) => handleSearchChange(e.target.value)}
           className="admin-input border rounded-xl px-4 py-3 text-sm flex-1"
         />
         <select value={sort} onChange={(e) => handleSortChange(e.target.value)} className="admin-input border rounded-xl px-4 py-3 text-sm md:w-64">
-          {SORT_OPTIONS.map((option) => (
+          {SORT_OPTIONS.filter((option) => !option.searchOnly || search.trim()).map((option) => (
             <option key={option.value} value={option.value}>{option.label}</option>
           ))}
         </select>

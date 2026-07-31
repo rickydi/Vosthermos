@@ -4,6 +4,9 @@ import { requireAdmin } from "@/lib/admin-auth";
 import { createOrTouchFollowUpFromLead } from "@/lib/follow-up-utils";
 import { logAdminActivity } from "@/lib/admin-activity";
 import { clampInt } from "@/lib/api-utils";
+import { orderByIds, searchClientIds } from "@/lib/search";
+
+const CLIENT_INCLUDE = { _count: { select: { workOrders: true } } };
 
 export async function GET(req) {
   try { await requireAdmin(); } catch { return NextResponse.json({ error: "Non autorise" }, { status: 401 }); }
@@ -14,17 +17,26 @@ export async function GET(req) {
   const page = clampInt(searchParams.get("page"), 1, { min: 1, max: 100000 });
   const limit = clampInt(searchParams.get("limit"), 50, { min: 1, max: 200 });
 
-  const where = q ? {
-    OR: [
-      { name: { contains: q, mode: "insensitive" } },
-      { phone: { contains: q } },
-      { secondaryPhone: { contains: q } },
-      { email: { contains: q, mode: "insensitive" } },
-      { company: { contains: q, mode: "insensitive" } },
-      { contactName: { contains: q, mode: "insensitive" } },
-      { city: { contains: q, mode: "insensitive" } },
-    ],
-  } : {};
+  // La recherche passe par lib/search : insensible aux accents (« seguin »
+  // trouve « Séguin ») et telephone compare sur les chiffres seuls, quel que
+  // soit le format saisi ou stocke. Elle rend des IDs deja classes.
+  const matchedIds = await searchClientIds(q);
+  const where = matchedIds ? { id: { in: matchedIds } } : {};
+
+  // Tri par pertinence : c'est l'ordre des IDs qui fait foi, on pagine donc
+  // dessus avant d'aller chercher les fiches.
+  if (sort === "relevance" && matchedIds) {
+    const pageIds = matchedIds.slice((page - 1) * limit, page * limit);
+    const rows = pageIds.length
+      ? await prisma.client.findMany({ where: { id: { in: pageIds } }, include: CLIENT_INCLUDE })
+      : [];
+    return NextResponse.json({
+      clients: orderByIds(rows, pageIds),
+      total: matchedIds.length,
+      page,
+      pages: Math.ceil(matchedIds.length / limit),
+    });
+  }
 
   const orderByMap = {
     updated_desc: { updatedAt: "desc" },
@@ -40,7 +52,7 @@ export async function GET(req) {
   const [clients, total] = await Promise.all([
     prisma.client.findMany({
       where,
-      include: { _count: { select: { workOrders: true } } },
+      include: CLIENT_INCLUDE,
       orderBy,
       skip: (page - 1) * limit,
       take: limit,

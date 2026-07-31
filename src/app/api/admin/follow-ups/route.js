@@ -4,8 +4,29 @@ import { requireAdmin } from "@/lib/admin-auth";
 import { FOLLOW_UP_TERMINAL_STATUSES, normalizePhoneDigits, serializeFollowUp } from "@/lib/follow-up-utils";
 import { logAdminActivity } from "@/lib/admin-activity";
 import { publishAdminEvent } from "@/lib/event-bus";
+import { orderByIds, searchFollowUpIds } from "@/lib/search";
 
 export const dynamic = "force-dynamic";
+
+// Compteurs des onglets (En cours / Gagnes / Perdus). Calcules en base sur le
+// meme filtre que la liste : avant, ils etaient deduits des seuls dossiers
+// charges et sous-estimaient donc le total des qu'on depassait la limite.
+async function followUpCounts(where) {
+  const groups = await prisma.clientFollowUp.groupBy({
+    by: ["outcome"],
+    where,
+    _count: { _all: true },
+  });
+  const counts = { open: 0, won: 0, lost: 0, all: 0 };
+  for (const group of groups) {
+    const n = group._count._all;
+    counts.all += n;
+    if (group.outcome === "won") counts.won += n;
+    else if (group.outcome === "lost") counts.lost += n;
+    else counts.open += n;
+  }
+  return counts;
+}
 
 function dateOrNull(value) {
   if (!value) return null;
@@ -432,8 +453,12 @@ export async function GET(req) {
   const status = searchParams.get("status") || "active";
   const q = clean(searchParams.get("q"));
   const clientId = Number(searchParams.get("clientId"));
-  const limit = Math.min(parseInt(searchParams.get("limit") || "100", 10), 500);
+  const limit = Math.min(parseInt(searchParams.get("limit") || "100", 10), 1000);
   const includeActivity = searchParams.get("activity") !== "0";
+  // Filtre d'onglet applique en base : le refiltrage cote client masquait les
+  // dossiers au-dela de la limite de chargement.
+  const outcome = searchParams.get("outcome") || "all";
+  const wantCounts = searchParams.get("counts") === "1";
 
   const where = {};
   if (Number.isFinite(clientId) && clientId > 0) where.clientId = clientId;
@@ -443,21 +468,18 @@ export async function GET(req) {
     where.status = status;
   }
 
-  if (q) {
-    where.OR = [
-      { title: { contains: q, mode: "insensitive" } },
-      { contactName: { contains: q, mode: "insensitive" } },
-      { phone: { contains: q } },
-      { email: { contains: q, mode: "insensitive" } },
-      { service: { contains: q, mode: "insensitive" } },
-      { source: { contains: q, mode: "insensitive" } },
-      { notes: { contains: q, mode: "insensitive" } },
-      { client: { name: { contains: q, mode: "insensitive" } } },
-      { client: { phone: { contains: q } } },
-      { client: { secondaryPhone: { contains: q } } },
-      { client: { email: { contains: q, mode: "insensitive" } } },
-    ];
-  }
+  // Recherche insensible aux accents, telephone normalise, notes debarrassees de
+  // leurs marqueurs automatiques, resultats classes par pertinence (lib/search).
+  const matchedIds = await searchFollowUpIds(q, { limit });
+  if (matchedIds) where.id = { in: matchedIds };
+
+  // Les compteurs se lisent sur le filtre SANS l'onglet, sinon chaque onglet ne
+  // saurait compter que lui-meme. Copie obligatoire : Prisma ne serialise ses
+  // arguments qu'au moment du await, et `where` recoit l'onglet juste apres.
+  const countsPromise = wantCounts ? followUpCounts({ ...where }) : null;
+
+  if (outcome === "open") where.outcome = { notIn: ["won", "lost"] };
+  else if (outcome === "won" || outcome === "lost") where.outcome = outcome;
 
   const followUps = await prisma.clientFollowUp.findMany({
     where,
@@ -516,11 +538,15 @@ export async function GET(req) {
     take: limit,
   });
 
+  // En recherche, c'est la pertinence qui commande : un dossier trouve par le
+  // nom du client passe devant un dossier trouve par ses notes.
+  const ordered = matchedIds ? orderByIds(followUps, matchedIds) : followUps;
+
   if (!includeActivity) {
     // Notifications de carte (coin supérieur droit du suivi) : photos envoyées
     // par le client (source "client") + messages de chat non lus. Deux requêtes
     // légères, matchées par clientId puis par numéro (10 chiffres vérifiés).
-    const clientIds = [...new Set(followUps.map((f) => f.clientId).filter(Boolean))];
+    const clientIds = [...new Set(ordered.map((f) => f.clientId).filter(Boolean))];
     const [photoGroups, unreadConvs, allClientFollowUps] = await Promise.all([
       clientIds.length
         ? prisma.clientPhoto.groupBy({
@@ -562,7 +588,7 @@ export async function GET(req) {
       const d = tenDigits(c.clientPhone);
       if (d) convByPhone.set(d, c);
     }
-    return NextResponse.json(followUps.map((fu) => {
+    const items = ordered.map((fu) => {
       const conv =
         (fu.clientId && convByClient.get(fu.clientId)) ||
         convByPhone.get(tenDigits(fu.phone)) ||
@@ -575,11 +601,25 @@ export async function GET(req) {
         unreadChat: conv ? { conversationId: conv.id, count: conv.unreadCount } : null,
         followUpRank: rankById.get(fu.id) || null,
       };
-    }));
+    });
+    // Reponse enveloppee seulement si l'appelant demande les compteurs, pour ne
+    // pas casser les autres consommateurs qui attendent un tableau.
+    if (!countsPromise) return NextResponse.json(items);
+    const counts = await countsPromise;
+    const total = outcome === "all" ? counts.all : counts[outcome] ?? counts.all;
+    return NextResponse.json({ items, counts, total, truncated: items.length < total });
   }
 
-  const enriched = await attachCentralActivity(followUps);
-  return NextResponse.json(enriched.map(serializeFollowUpOperations));
+  const enriched = await attachCentralActivity(ordered);
+  if (!countsPromise) return NextResponse.json(enriched.map(serializeFollowUpOperations));
+  const counts = await countsPromise;
+  const total = outcome === "all" ? counts.all : counts[outcome] ?? counts.all;
+  return NextResponse.json({
+    items: enriched.map(serializeFollowUpOperations),
+    counts,
+    total,
+    truncated: enriched.length < total,
+  });
 }
 
 export async function POST(req) {

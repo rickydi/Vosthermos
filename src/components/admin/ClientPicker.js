@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 
 const SORT_OPTIONS = [
+  // Comme dans /admin/clients : « Pertinence » ne s'affiche que pendant une recherche.
+  { value: "relevance", label: "Pertinence", searchOnly: true },
   { value: "updated_desc", label: "Recemment modifie" },
   { value: "created_desc", label: "Date d'ajout (recent)" },
   { value: "name_asc", label: "Nom (A-Z)" },
@@ -48,7 +50,14 @@ export default function ClientPicker({ open, onClose, onPick }) {
 
   function handleSearchChange(v) {
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => setSearch(v), 250);
+    timer.current = setTimeout(() => {
+      setSearch(v);
+      // Meilleur match en haut pendant la recherche, tri chronologique sinon.
+      setSort((prev) => {
+        if (v.trim()) return prev === "updated_desc" ? "relevance" : prev;
+        return prev === "relevance" ? "updated_desc" : prev;
+      });
+    }, 250);
   }
 
   if (!open) return null;
@@ -69,7 +78,7 @@ export default function ClientPicker({ open, onClose, onPick }) {
         <div className="flex flex-col gap-3 border-b admin-border p-4 sm:flex-row">
           <input
             type="text"
-            placeholder="Rechercher par nom, contact, telephone, email, ville..."
+            placeholder="Rechercher par nom, contact, telephone, email, ville, adresse..."
             onChange={(e) => handleSearchChange(e.target.value)}
             className="admin-input w-full border rounded-lg px-4 py-2.5 text-sm sm:flex-1"
             autoFocus
@@ -79,7 +88,7 @@ export default function ClientPicker({ open, onClose, onPick }) {
             onChange={(e) => setSort(e.target.value)}
             className="admin-input w-full border rounded-lg px-3 py-2.5 text-sm sm:w-52"
           >
-            {SORT_OPTIONS.map((o) => (
+            {SORT_OPTIONS.filter((o) => !o.searchOnly || search.trim()).map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
             ))}
           </select>

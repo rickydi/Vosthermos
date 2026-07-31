@@ -81,8 +81,12 @@ export default function SuiviSimple() {
   const [measureFor, setMeasureFor] = useState(null); // { fu, source }
   const [sla, setSla] = useState(null);
   const [now, setNow] = useState(0); // 0 au SSR, posé au montage (évite tout mismatch d'hydratation)
+  const [tabCounts, setTabCounts] = useState(null); // comptés en base, pas sur la page
+  const [truncated, setTruncated] = useState(false);
   const searchRef = useRef("");
   searchRef.current = search;
+  const filterRef = useRef("open");
+  filterRef.current = filter;
   const seq = useRef(0);
 
   // Seuils SLA (réglés dans Paramètres) + horloge qui avance chaque minute pour que
@@ -99,22 +103,36 @@ export default function SuiviSimple() {
     return () => clearInterval(t);
   }, []);
 
-  const load = useCallback(async (q = searchRef.current) => {
+  const load = useCallback(async (q = searchRef.current, f = filterRef.current) => {
     const my = ++seq.current;
+    // Une recherche fouille TOUT le suivi : l'onglet ne doit pas cacher le
+    // dossier trouvé. Avant, chercher un client gagné depuis l'onglet « En
+    // cours » affichait « Aucun résultat » alors que le serveur l'avait trouvé.
+    const searching = q.trim().length > 0;
+    const params = new URLSearchParams({
+      status: "all",
+      activity: "0",
+      counts: "1",
+      limit: "1000",
+      outcome: searching ? "all" : f,
+    });
+    if (searching) params.set("q", q.trim());
     try {
-      const res = await fetch(`/api/admin/follow-ups?status=all&activity=0&limit=500${q.trim() ? `&q=${encodeURIComponent(q.trim())}` : ""}`, { cache: "no-store" });
-      const data = res.ok ? await res.json() : [];
-      if (my === seq.current) { setItems(Array.isArray(data) ? data : []); setLoading(false); }
+      const res = await fetch(`/api/admin/follow-ups?${params}`, { cache: "no-store" });
+      const data = res.ok ? await res.json() : null;
+      if (my !== seq.current) return;
+      setItems(Array.isArray(data?.items) ? data.items : []);
+      setTabCounts(data?.counts || null);
+      setTruncated(!!data?.truncated);
+      setLoading(false);
     } catch { if (my === seq.current) setLoading(false); }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
-
-  // recherche debouncée
+  // Recherche debouncée; le changement d'onglet, lui, recharge tout de suite.
   useEffect(() => {
-    const t = setTimeout(() => load(search), 250);
+    const t = setTimeout(() => load(search, filter), search ? 250 : 0);
     return () => clearTimeout(t);
-  }, [search, load]);
+  }, [search, filter, load]);
 
   // temps réel : un collègue (ou le terrain) coche un jalon -> on rafraîchit.
   // On ignore l'écho de nos propres mutations (origin = cet onglet, l'optimiste a
@@ -257,14 +275,20 @@ export default function SuiviSimple() {
     }
   }
 
-  const visible = items.filter((fu) => {
+  const searching = search.trim().length > 0;
+
+  // Le serveur a déjà filtré selon l'onglet. Ce second passage ne sert qu'à
+  // faire disparaître tout de suite une carte dont on vient de changer l'issue
+  // (mise à jour optimiste). En recherche, on n'enlève rien : tous les dossiers
+  // trouvés restent visibles, quel que soit l'onglet actif.
+  const visible = searching ? items : items.filter((fu) => {
     if (filter === "all") return true;
     if (filter === "won") return fu.outcome === "won";
     if (filter === "lost") return fu.outcome === "lost";
     return fu.outcome !== "won" && fu.outcome !== "lost"; // open
   });
 
-  const counts = {
+  const counts = tabCounts || {
     open: items.filter((f) => f.outcome !== "won" && f.outcome !== "lost").length,
     won: items.filter((f) => f.outcome === "won").length,
     lost: items.filter((f) => f.outcome === "lost").length,
@@ -281,7 +305,7 @@ export default function SuiviSimple() {
           mise en valeur en haut, puis la rangée compacte bouton + filtres. */}
       <div className="relative max-w-xl mx-auto mb-3">
         <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 admin-text-muted"></i>
-        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher nom, tél, service…"
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher nom, tél, ville, service…"
           className="admin-input border rounded-2xl pl-11 pr-4 py-3 text-base w-full focus:outline-none focus:border-[var(--color-red)] shadow-sm" />
         {search && (
           <button onClick={() => setSearch("")} aria-label="Effacer la recherche"
@@ -301,6 +325,20 @@ export default function SuiviSimple() {
           </button>
         ))}
       </div>
+
+      {/* Une recherche ne respecte plus l'onglet : on le dit, sinon voir un
+          dossier « gagné » remonter depuis l'onglet « En cours » surprend. */}
+      {!loading && searching && visible.length > 0 && (
+        <p className="text-center text-xs admin-text-muted mb-3">
+          {visible.length} résultat{visible.length > 1 ? "s" : ""} — tous les onglets confondus
+        </p>
+      )}
+      {!loading && !searching && truncated && (
+        <p className="text-center text-xs text-amber-300 mb-3">
+          <i className="fas fa-triangle-exclamation mr-1.5"></i>
+          Affichage limité aux 1000 dossiers les plus récents sur {counts[filter]} — utilise la recherche pour les plus anciens.
+        </p>
+      )}
 
       {loading ? (
         <div className="admin-text-muted text-sm py-16 text-center"><i className="fas fa-spinner fa-spin mr-2"></i>Chargement…</div>
