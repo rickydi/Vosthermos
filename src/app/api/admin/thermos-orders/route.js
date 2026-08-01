@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { logAdminActivity } from "@/lib/admin-activity";
+import { searchThermosOrderIds } from "@/lib/search";
 import {
   THERMOS_ORDER_STATUS,
   createThermosOrder,
@@ -39,21 +40,15 @@ export async function GET(request) {
     : status && status !== "all" && VALID_STATUSES.has(status)
       ? { status }
       : {};
+  // Recherche insensible aux accents + telephone du client normalise (lib/search).
+  const matchedIds = await searchThermosOrderIds(search);
   const where = {
     ...statusWhere,
     ...(supplierId ? { supplierId } : {}),
     ...(clientId ? { clientId } : {}),
     ...(followUpId ? { followUpId } : {}),
     ...(measurementId ? { measurementId } : {}),
-    ...(search
-      ? {
-          OR: [
-            { number: { contains: search, mode: "insensitive" } },
-            { clientNameSnapshot: { contains: search, mode: "insensitive" } },
-            { supplierNameSnapshot: { contains: search, mode: "insensitive" } },
-          ],
-        }
-      : {}),
+    ...(matchedIds ? { id: { in: matchedIds } } : {}),
   };
 
   try {

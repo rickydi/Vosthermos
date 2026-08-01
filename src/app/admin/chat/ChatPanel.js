@@ -75,6 +75,9 @@ export default function ChatPanel({ initialConversationId }) {
   const [conversations, setConversations] = useState([]);
   const [selected, setSelected] = useState(null);
   const [filter, setFilter] = useState("all");
+  const [search, setSearch] = useState("");
+  const [tabCounts, setTabCounts] = useState(null); // comptes en base
+  const [truncated, setTruncated] = useState(false);
   const [newMsg, setNewMsg] = useState("");
   const textareaRef = useRef(null);
   const [sending, setSending] = useState(false);
@@ -91,13 +94,35 @@ export default function ChatPanel({ initialConversationId }) {
   const prevMsgCountRef = useRef(0);
   const isFirstOpenRef = useRef(false);
 
+  // Recherche et onglet lus dans des refs : fetchConversations reste stable, si
+  // bien que le rafraichissement automatique (4 s) conserve la recherche en
+  // cours au lieu de la remplacer par la liste complete.
+  const searchRef = useRef("");
+  searchRef.current = search;
+  const filterRef = useRef("all");
+  filterRef.current = filter;
+  const convSeq = useRef(0);
+
   const fetchConversations = useCallback(async () => {
+    const my = ++convSeq.current;
+    const params = new URLSearchParams({ filter: filterRef.current, counts: "1", limit: "300" });
+    const q = searchRef.current.trim();
+    if (q) params.set("q", q);
     try {
-      const res = await fetch("/api/admin/chat");
+      const res = await fetch(`/api/admin/chat?${params}`);
       const data = await res.json();
-      if (Array.isArray(data)) setConversations(data);
+      if (my !== convSeq.current) return; // une frappe plus recente a pris le relais
+      setConversations(Array.isArray(data?.items) ? data.items : []);
+      setTabCounts(data?.counts || null);
+      setTruncated(!!data?.truncated);
     } catch {}
   }, []);
+
+  // Recherche debouncee; changer d'onglet recharge tout de suite.
+  useEffect(() => {
+    const timeout = setTimeout(() => fetchConversations(), search ? 250 : 0);
+    return () => clearTimeout(timeout);
+  }, [search, filter, fetchConversations]);
 
   const openConversation = useCallback(async (id, isNew = false) => {
     try {
@@ -327,12 +352,10 @@ export default function ChatPanel({ initialConversationId }) {
     }
   }
 
-  const filtered = conversations.filter((c) => {
-    if (filter === "unread" && c.unreadCount <= 0) return false;
-    if (filter === "archived" && !c.isArchived) return false;
-    if (filter === "all" && c.isArchived) return false;
-    return true;
-  });
+  // Le serveur filtre deja selon l'onglet et la recherche : plus de second
+  // passage ici, qui masquait tout ce qui depassait les 300 conversations
+  // chargees.
+  const filtered = conversations;
 
   const filterTabs = [
     { key: "all", label: "Toutes" },
@@ -346,14 +369,38 @@ export default function ChatPanel({ initialConversationId }) {
     <div className="flex gap-6 h-[calc(100dvh-8rem)] md:h-[calc(100vh-10rem)]">
       {/* Left: conversation list */}
       <div className={`w-full md:w-80 shrink-0 flex flex-col ${showMobileMessages ? "hidden md:flex" : "flex"}`}>
-        <div className="flex gap-1 mb-4">
+        <div className="relative mb-3">
+          <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 admin-text-muted text-xs"></i>
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Rechercher nom, tel, courriel, message…"
+            className="admin-input border rounded-xl pl-9 pr-8 py-2 text-sm w-full focus:outline-none focus:border-[var(--color-red)]"
+          />
+          {search && (
+            <button onClick={() => setSearch("")} aria-label="Effacer la recherche"
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full admin-text-muted hover:admin-text inline-flex items-center justify-center">
+              <i className="fas fa-times text-xs"></i>
+            </button>
+          )}
+        </div>
+
+        <div className="flex gap-1 mb-2">
           {filterTabs.map((tab) => (
             <button key={tab.key} onClick={() => setFilter(tab.key)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filter === tab.key ? "bg-[var(--color-red)]/10 text-[var(--color-red)]" : "admin-text-muted admin-hover"}`}>
               {tab.label}
+              {tabCounts && <span className="opacity-60 ml-1">{tabCounts[tab.key] ?? 0}</span>}
             </button>
           ))}
         </div>
+
+        {truncated && (
+          <p className="admin-text-muted text-[11px] mb-2 px-1">
+            <i className="fas fa-triangle-exclamation mr-1 text-amber-400"></i>
+            300 conversations affichees — affine avec la recherche.
+          </p>
+        )}
 
         <div className="flex-1 overflow-y-auto space-y-1">
           {filtered.map((c) => (
@@ -391,7 +438,11 @@ export default function ChatPanel({ initialConversationId }) {
               )}
             </button>
           ))}
-          {filtered.length === 0 && <p className="admin-text-muted text-sm text-center py-8">Aucune conversation</p>}
+          {filtered.length === 0 && (
+            <p className="admin-text-muted text-sm text-center py-8">
+              {search.trim() ? `Aucun resultat pour « ${search.trim()} » dans cet onglet` : "Aucune conversation"}
+            </p>
+          )}
         </div>
       </div>
 

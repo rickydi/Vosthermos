@@ -148,6 +148,105 @@ export async function searchFollowUpIds(input, { limit = 1000 } = {}) {
   return rows.map((row) => Number(row.id));
 }
 
+// Bons de travail, soumissions et factures. Le numéro de document (VOS2…) reste
+// la porte d'entrée la plus fréquente : il passe donc devant le nom du client.
+const WORK_ORDER_HAYSTACK = Prisma.sql`vt_unaccent(
+  coalesce(w.number, '') || ' ' ||
+  coalesce(c.name, '') || ' ' || coalesce(c.company, '') || ' ' || coalesce(c.contact_name, '') || ' ' ||
+  coalesce(c.city, '') || ' ' || coalesce(c.email, '')
+)`;
+
+export async function searchWorkOrderIds(input, { limit = 1000 } = {}) {
+  const q = parseSearchQuery(input);
+  if (!q) return null;
+
+  const phone = Prisma.sql`(${clientPhoneMatch(q.digits)})`;
+  const rows = await prisma.$queryRaw`
+    SELECT w.id
+    FROM work_orders w
+    LEFT JOIN clients c ON c.id = w."clientId"
+    WHERE (${everyTermMatches(WORK_ORDER_HAYSTACK, q.terms)}) OR ${phone}
+    ORDER BY
+      CASE
+        WHEN vt_unaccent(coalesce(w.number, '')) ILIKE vt_unaccent(${q.like}) THEN 0
+        WHEN vt_unaccent(coalesce(c.name, '')) ILIKE vt_unaccent(${q.prefix}) THEN 1
+        WHEN vt_unaccent(coalesce(c.name, '')) ILIKE vt_unaccent(${q.like}) THEN 2
+        WHEN ${phone} THEN 3
+        ELSE 4
+      END,
+      w.date DESC
+    LIMIT ${limit}
+  `;
+  return rows.map((row) => Number(row.id));
+}
+
+// Conversations de chat. On fouille aussi le CONTENU des messages : c'est
+// souvent la seule chose dont on se souvient d'une vieille conversation.
+export async function searchChatConversationIds(input, { limit = 500 } = {}) {
+  const q = parseSearchQuery(input);
+  if (!q) return null;
+
+  const identity = everyTermMatches(
+    Prisma.sql`vt_unaccent(
+      coalesce(v."clientName", '') || ' ' || coalesce(v."clientEmail", '') || ' ' || coalesce(c.name, '')
+    )`,
+    q.terms,
+  );
+  const phone = q.digits
+    ? Prisma.sql`(
+        vt_digits(coalesce(v."clientPhone", '')) LIKE ${q.digits}
+        OR vt_digits(coalesce(c.phone, '')) LIKE ${q.digits}
+        OR vt_digits(coalesce(c.secondary_phone, '')) LIKE ${q.digits}
+      )`
+    : Prisma.sql`false`;
+  const inMessages = Prisma.sql`EXISTS (
+    SELECT 1 FROM chat_messages m
+    WHERE m."conversationId" = v.id
+      AND vt_unaccent(coalesce(m.content, '')) ILIKE vt_unaccent(${q.like})
+  )`;
+
+  const rows = await prisma.$queryRaw`
+    SELECT v.id
+    FROM chat_conversations v
+    LEFT JOIN clients c ON c.id = v."clientId"
+    WHERE (${identity}) OR ${phone} OR ${inMessages}
+    ORDER BY
+      CASE
+        WHEN vt_unaccent(coalesce(v."clientName", '')) ILIKE vt_unaccent(${q.prefix}) THEN 0
+        WHEN ${identity} THEN 1
+        WHEN ${phone} THEN 2
+        ELSE 3
+      END,
+      v."lastMessageAt" DESC NULLS LAST
+    LIMIT ${limit}
+  `;
+  return rows.map((row) => Number(row.id));
+}
+
+// Commandes fournisseur de thermos.
+export async function searchThermosOrderIds(input, { limit = 500 } = {}) {
+  const q = parseSearchQuery(input);
+  if (!q) return null;
+
+  const haystack = Prisma.sql`vt_unaccent(
+    coalesce(o.number, '') || ' ' || coalesce(o."clientNameSnapshot", '') || ' ' ||
+    coalesce(o."supplierNameSnapshot", '') || ' ' || coalesce(c.name, '')
+  )`;
+  const phone = Prisma.sql`(${clientPhoneMatch(q.digits)})`;
+
+  const rows = await prisma.$queryRaw`
+    SELECT o.id
+    FROM thermos_orders o
+    LEFT JOIN clients c ON c.id = o."clientId"
+    WHERE (${everyTermMatches(haystack, q.terms)}) OR ${phone}
+    ORDER BY
+      CASE WHEN vt_unaccent(coalesce(o.number, '')) ILIKE vt_unaccent(${q.like}) THEN 0 ELSE 1 END,
+      o."updatedAt" DESC
+    LIMIT ${limit}
+  `;
+  return rows.map((row) => Number(row.id));
+}
+
 /** Remet une liste Prisma dans l'ordre de pertinence renvoyé par la recherche. */
 export function orderByIds(rows, ids) {
   const byId = new Map(rows.map((row) => [row.id, row]));

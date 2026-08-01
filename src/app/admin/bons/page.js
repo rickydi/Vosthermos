@@ -145,16 +145,27 @@ export default function BonsPage({ documentView = "all" } = {}) {
   const [showReport, setShowReport] = useState(false);
   const reportAvailable = documentView === "invoices";
 
+  // Garde de sequence : la frappe, le rafraichissement periodique, le retour au
+  // premier plan et le flux temps reel peuvent lancer plusieurs chargements a la
+  // fois. Sans elle, c'est la derniere reponse ARRIVEE qui s'affiche, pas la
+  // derniere demandee — la liste pouvait donc ignorer la recherche en cours.
+  const loadSeq = useRef(0);
+
   function loadWorkOrders(showSpinner = true) {
     const params = buildWorkOrdersQuery(documentView, filter, query);
+    const my = ++loadSeq.current;
     if (showSpinner) setLoading(true);
     fetch(`/api/admin/work-orders${params}`, { cache: "no-store", headers: { "Cache-Control": "no-cache" } })
       .then((r) => r.json())
       .then((data) => {
+        if (my !== loadSeq.current) return;
         setWorkOrders(data.workOrders || []);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        if (my !== loadSeq.current) return;
+        setLoading(false);
+      });
   }
 
   useEffect(() => {

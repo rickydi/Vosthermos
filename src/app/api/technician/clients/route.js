@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireTech } from "@/lib/technician-auth";
+import { orderByIds, searchClientIds } from "@/lib/search";
+
+// Le technicien voit une liste courte sur sa tablette; on dit combien de fiches
+// correspondent au total pour qu'il sache s'il doit preciser sa recherche.
+const TECH_RESULT_LIMIT = 20;
 
 export async function GET(req) {
   try {
@@ -10,23 +15,33 @@ export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q") || "";
 
+  const select = {
+    id: true, name: true, type: true, phone: true, email: true,
+    secondaryPhone: true,
+    company: true, address: true, city: true, province: true, postalCode: true,
+  };
+
+  // Meme recherche que cote admin : insensible aux accents (« seguin » trouve
+  // « Seguin ») et telephone compare sur les chiffres seuls, quel que soit le
+  // format tape sur la tablette.
+  const matchedIds = await searchClientIds(q);
+  if (matchedIds) {
+    const pageIds = matchedIds.slice(0, TECH_RESULT_LIMIT);
+    const rows = pageIds.length
+      ? await prisma.client.findMany({ where: { id: { in: pageIds } }, select })
+      : [];
+    const clients = orderByIds(rows, pageIds);
+    // Tableau simple conserve pour les appelants existants, total en en-tete.
+    return NextResponse.json(clients, {
+      headers: { "X-Total-Count": String(matchedIds.length) },
+    });
+  }
+
   const clients = await prisma.client.findMany({
-    where: q ? {
-      OR: [
-        { name: { contains: q, mode: "insensitive" } },
-        { phone: { contains: q } },
-        { secondaryPhone: { contains: q } },
-        { email: { contains: q, mode: "insensitive" } },
-        { company: { contains: q, mode: "insensitive" } },
-      ],
-    } : {},
+    where: {},
     orderBy: { updatedAt: "desc" },
-    take: 20,
-    select: {
-      id: true, name: true, type: true, phone: true, email: true,
-      secondaryPhone: true,
-      company: true, address: true, city: true, province: true, postalCode: true,
-    },
+    take: TECH_RESULT_LIMIT,
+    select,
   });
 
   return NextResponse.json(clients);

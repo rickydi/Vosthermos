@@ -18,6 +18,7 @@ import { parseDateOnly } from "@/lib/date-only";
 import { logAdminActivity } from "@/lib/admin-activity";
 import { buildPaymentTrackingData, serializePaymentWorkOrder } from "@/lib/payment-tracking";
 import { clampInt } from "@/lib/api-utils";
+import { searchWorkOrderIds } from "@/lib/search";
 import { INVOICE_STATUSES, QUOTE_STATUSES, WORK_ORDER_STATUSES, isInvoiceStatus, isQuoteStatus } from "@/lib/work-order-document";
 import { normalizeQuoteDepositPercent, normalizeQuotePaymentSchedule } from "@/lib/vosthermos-document";
 
@@ -54,17 +55,10 @@ export async function GET(req) {
     where.statut = { in: [...WORK_ORDER_STATUSES] };
   }
   if (techId) where.technicianId = parseInt(techId);
-  if (q) {
-    where.OR = [
-      { number: { contains: q, mode: "insensitive" } },
-      { client: { name: { contains: q, mode: "insensitive" } } },
-      { client: { company: { contains: q, mode: "insensitive" } } },
-      { client: { contactName: { contains: q, mode: "insensitive" } } },
-      { client: { email: { contains: q, mode: "insensitive" } } },
-      { client: { phone: { contains: q } } },
-      { client: { secondaryPhone: { contains: q } } },
-    ];
-  }
+  // Recherche insensible aux accents, telephone compare sur les chiffres seuls,
+  // numero de document prioritaire dans le classement (lib/search).
+  const matchedIds = await searchWorkOrderIds(q);
+  if (matchedIds) where.id = { in: matchedIds };
 
   const [workOrders, total, followUpColumns] = await Promise.all([
     prisma.workOrder.findMany({

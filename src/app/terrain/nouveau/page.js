@@ -25,6 +25,7 @@ export default function NouveauBon() {
   const [clientId, setClientId] = useState(null);
   const [clientSearch, setClientSearch] = useState("");
   const [clientResults, setClientResults] = useState([]);
+  const [clientResultsTotal, setClientResultsTotal] = useState(0);
   const [clientData, setClientData] = useState({ name: "", phone: "", secondaryPhone: "", email: "", address: "", city: "", province: "QC", postalCode: "" });
   const [clientType, setClientType] = useState("particulier");
   const [isNewClient, setIsNewClient] = useState(false);
@@ -83,27 +84,40 @@ export default function NouveauBon() {
   }, []);
 
   // Client search
+  // Gardes de sequence : sur le reseau mobile d'un chantier, deux reponses
+  // peuvent revenir dans le desordre et afficher les resultats de la frappe
+  // precedente. Seule la reponse de la recherche la plus recente est retenue.
   const searchTimer = useRef(null);
+  const clientSeq = useRef(0);
   useEffect(() => {
     clearTimeout(searchTimer.current);
     searchTimer.current = setTimeout(() => {
-      if (clientSearch.length < 2) { setClientResults([]); return; }
+      if (clientSearch.length < 2) { setClientResults([]); setClientResultsTotal(0); return; }
+      const my = ++clientSeq.current;
       fetch(`/api/technician/clients?q=${encodeURIComponent(clientSearch)}`)
-        .then((r) => r.json())
-        .then((data) => { if (Array.isArray(data)) setClientResults(data); })
+        .then((r) => r.json().then((data) => ({ data, total: Number(r.headers.get("X-Total-Count") || 0) })))
+        .then(({ data, total }) => {
+          if (my !== clientSeq.current) return;
+          if (Array.isArray(data)) { setClientResults(data); setClientResultsTotal(total || data.length); }
+        })
         .catch(() => {});
     }, 300);
   }, [clientSearch]);
 
   // Product search
   const prodTimer = useRef(null);
+  const productSeq = useRef(0);
   useEffect(() => {
     clearTimeout(prodTimer.current);
     prodTimer.current = setTimeout(() => {
       if (productSearch.length < 2) { setProductResults([]); return; }
+      const my = ++productSeq.current;
       fetch(`/api/technician/products?q=${encodeURIComponent(productSearch)}`)
         .then((r) => r.json())
-        .then((data) => { if (Array.isArray(data)) setProductResults(data); })
+        .then((data) => {
+          if (my !== productSeq.current) return;
+          if (Array.isArray(data)) setProductResults(data);
+        })
         .catch(() => {});
     }, 300);
   }, [productSearch]);
@@ -402,6 +416,13 @@ export default function NouveauBon() {
                         {c.secondaryPhone && <p className="text-white/40 text-xs">{c.secondaryPhone}</p>}
                       </button>
                     ))}
+                    {/* La liste est volontairement courte sur tablette : on dit
+                        quand il y a plus de fiches que ce qui est montre. */}
+                    {clientResultsTotal > clientResults.length && (
+                      <p className="text-white/40 text-xs text-center py-1">
+                        {clientResults.length} des {clientResultsTotal} fiches trouvees — precise ta recherche
+                      </p>
+                    )}
                   </div>
                 )}
                 <button onClick={() => setIsNewClient(true)}
