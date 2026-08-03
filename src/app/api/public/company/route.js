@@ -28,6 +28,11 @@ export async function GET() {
       logo: company.logo,
       facebook: company.facebook,
       instagram: company.instagram,
+      // Heures incluses pour que les pages Contact suivent /admin/parametres en
+      // direct, sans attendre un « Propager sur le site ».
+      hoursWeekdays: company.hoursWeekdays,
+      hoursSaturday: company.hoursSaturday,
+      hoursSunday: company.hoursSunday,
     };
     return NextResponse.json(safe, {
       headers: {

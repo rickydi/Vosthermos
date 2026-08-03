@@ -4,17 +4,8 @@ import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import QuoteForm from "@/components/QuoteForm";
 import { useCompany } from "@/lib/useCompany";
+import { hoursByDay } from "@/lib/company-hours";
 import "./contact.css";
-
-const hours = [
-  { day: "Lundi", time: "FERMÉ", closed: true },
-  { day: "Mardi", time: "10h - 17h" },
-  { day: "Mercredi", time: "10h - 17h" },
-  { day: "Jeudi", time: "10h - 17h" },
-  { day: "Vendredi", time: "10h - 17h" },
-  { day: "Samedi", time: "10h - 13h" },
-  { day: "Dimanche", time: "FERMÉ", closed: true },
-];
 
 // Contexte basé sur query string ?sujet=xxx
 const SUBJECT_CONTEXT = {
@@ -156,6 +147,9 @@ function ContactContent() {
   const context = { ...DEFAULT_CONTEXT, ...((sujet && SUBJECT_CONTEXT[sujet]) || {}) };
   const isPortalDemo = sujet === "portail-demo";
   const COMPANY_INFO = useCompany();
+  // Heures lues dans /admin/parametres (via useCompany), plus jamais ecrites
+  // en dur : le texte visible et le JSON-LD de cette page se contredisaient.
+  const hours = hoursByDay(COMPANY_INFO, "fr");
 
   return (
     <div className={`contact-page${isPortalDemo ? " contact-page-demo" : ""}`}>

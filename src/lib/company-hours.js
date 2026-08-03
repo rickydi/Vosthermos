@@ -86,6 +86,32 @@ export function hoursDisplayEn(src) {
   return parts.join(" • ") || "By appointment";
 }
 
+// Liste jour par jour pour les pages Contact, qui affichent les 7 jours.
+// Les deux pages Contact (FR et EN) avaient ete oubliees lors de la
+// centralisation : elles gardaient un tableau ecrit en dur qui annoncait
+// « Lundi FERME » et « Mar-Ven 10h-17h » alors que les parametres disaient
+// 8h-17h du lundi au vendredi. Le JSON-LD de la meme page, lui, etait juste :
+// le texte visible et le balisage envoye a Google se contredisaient.
+const DAY_LABELS = {
+  fr: ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"],
+  en: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+};
+const CLOSED_LABEL = { fr: "FERMÉ", en: "CLOSED" };
+
+export function hoursByDay(src, locale = "fr") {
+  const lang = locale === "en" ? "en" : "fr";
+  const r = getRanges(src);
+  const fmt = lang === "en" ? fmtEn : fmtFr;
+  const range = (parsed) => (parsed ? `${fmt(parsed.opens)} - ${fmt(parsed.closes)}` : null);
+  const weekday = range(r.weekdays);
+  const perDay = [weekday, weekday, weekday, weekday, weekday, range(r.saturday), range(r.sunday)];
+  return DAY_LABELS[lang].map((day, index) => ({
+    day,
+    time: perDay[index] || CLOSED_LABEL[lang],
+    closed: !perDay[index],
+  }));
+}
+
 // Pour l'API publique /api/public/services.
 export function hoursForApi() {
   return {
