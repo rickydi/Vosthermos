@@ -248,16 +248,38 @@ export default function AppDevicesPage() {
           <div className="space-y-2 mb-5">
             {devices.map((d) => {
               const pending = !d.activatedAt && !d.revokedAt;
+              // Version portee par l'appareil (envoyee a chaque echange avec le
+              // serveur) comparee a la derniere version deposee : on voit d'un
+              // coup d'oeil qui est a jour et qui traine.
+              const latest = release?.available ? release.version : null;
+              const upToDate = latest && d.appVersion === latest;
               return (
                 <div key={d.id} className={`flex items-start justify-between gap-3 rounded-lg border p-3 ${d.revokedAt ? "opacity-50 admin-border" : pending ? "border-amber-400/40 bg-amber-500/5" : "admin-border"}`}>
                   <div className="min-w-0">
-                    <p className="admin-text font-semibold">{d.name}</p>
+                    <p className="admin-text font-semibold">
+                      {d.name}
+                      {!d.revokedAt && !pending && (
+                        d.appVersion ? (
+                          <span className={`ml-2 align-middle text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                            upToDate
+                              ? "bg-emerald-500/20 text-emerald-300"
+                              : "bg-amber-500/20 text-amber-300"
+                          }`}>
+                            v{d.appVersion}{latest && !upToDate ? ` → v${latest} dispo` : " · à jour"}
+                          </span>
+                        ) : (
+                          <span className="ml-2 align-middle text-[10px] px-1.5 py-0.5 rounded bg-white/10 admin-text-muted">
+                            version inconnue
+                          </span>
+                        )
+                      )}
+                    </p>
                     <p className="admin-text-muted text-xs mt-0.5">
                       {d.revokedAt
                         ? `Révoqué ${timeAgo(d.revokedAt)}`
                         : pending
                           ? `En attente d'activation — code ${d.activationCode || "expiré"}`
-                          : `${d.model || d.platform}${d.appVersion ? ` · v${d.appVersion}` : ""} · vu ${timeAgo(d.lastSeenAt)}`}
+                          : `${d.model || d.platform} · vu ${timeAgo(d.lastSeenAt)}`}
                     </p>
                   </div>
                   {!d.revokedAt && (
