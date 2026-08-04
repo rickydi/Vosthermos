@@ -50,11 +50,14 @@ export async function PUT(req) {
   const notes = req.headers.get("x-app-notes") || "";
   const buffer = Buffer.from(await req.arrayBuffer());
 
-  // Controle d'integrite OBLIGATOIRE. ModSecurity est configure en
-  // « ProcessPartial » sur ce serveur : au-dela de sa limite de corps, il TRONQUE
-  // la requete et la laisse passer. Un premier envoi a ainsi produit un APK
-  // ampute de 11 Mo a exactement 10 Mio, accepte avec un 200. Sans cette
-  // verification, on distribuerait une app corrompue sans jamais le savoir.
+  // Controle d'integrite OBLIGATOIRE. Un route handler Next.js 16 ne recoit que
+  // les 10 PREMIERS Mo du corps : au-dela, il est tronque et la route s'execute
+  // quand meme (« Request body exceeded 10MB » en log, aucune exception). Un
+  // premier envoi a ainsi produit un APK ampute de 11 Mo a exactement 10 Mio,
+  // accepte avec un 200. Sans cette verification, on distribuerait une app
+  // corrompue sans jamais le savoir.
+  // A noter : serverActions.bodySizeLimit (30 Mo dans next.config) ne s'applique
+  // PAS ici — c'est un reglage distinct, reserve aux Server Actions.
   const expectedSha = (req.headers.get("x-app-sha256") || "").toLowerCase();
   if (!expectedSha) {
     return NextResponse.json({ error: "En-tete X-App-Sha256 manquant" }, { status: 400 });
