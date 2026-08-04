@@ -76,6 +76,6 @@ export async function PUT(req) {
     return NextResponse.json({ error: "Fichier trop petit pour etre un APK" }, { status: 400 });
   }
 
-  await saveRelease(buffer, { version, notes });
+  await saveRelease(buffer, { version, notes, sha256: actualSha });
   return NextResponse.json({ ok: true, version, sizeBytes: buffer.length, sha256: actualSha });
 }

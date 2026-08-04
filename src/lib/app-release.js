@@ -28,6 +28,7 @@ export async function getRelease() {
     return {
       version: meta.version || "inconnue",
       notes: meta.notes || "",
+      sha256: meta.sha256 || null,
       sizeBytes: stat.size,
       uploadedAt: (meta.uploadedAt ? new Date(meta.uploadedAt) : stat.mtime).toISOString(),
     };
@@ -36,11 +37,22 @@ export async function getRelease() {
   }
 }
 
-export async function saveRelease(buffer, { version, notes } = {}) {
+export async function saveRelease(buffer, { version, notes, sha256 } = {}) {
   await ensureReleaseDir();
   await fs.writeFile(APK_PATH, buffer);
   await fs.writeFile(
     META_PATH,
-    JSON.stringify({ version: version || "inconnue", notes: notes || "", uploadedAt: new Date().toISOString() }, null, 2),
+    JSON.stringify(
+      {
+        version: version || "inconnue",
+        notes: notes || "",
+        // Rendu aux telephones : ils reverifient l'empreinte apres
+        // telechargement avant de lancer l'installation.
+        sha256: sha256 || null,
+        uploadedAt: new Date().toISOString(),
+      },
+      null,
+      2,
+    ),
   );
 }
