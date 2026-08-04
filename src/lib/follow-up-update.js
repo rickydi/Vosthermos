@@ -1,0 +1,362 @@
+import prisma from "@/lib/prisma";
+import { serializeFollowUp, syncLatestWorkOrderFromFollowUpStatus } from "@/lib/follow-up-utils";
+import { deriveFollowUpStatus, FOLLOW_UP_MILESTONE_KEYS } from "@/lib/follow-up-columns";
+import { publishAdminEvent } from "@/lib/event-bus";
+
+// Mise a jour d'un suivi — logique extraite de /api/admin/follow-ups/[id] pour
+// etre partagee avec l'app mobile (/api/app/follow-up/[id]) : cocher « Visite
+// faite » depuis le telephone pendant l'appel doit produire EXACTEMENT le meme
+// resultat que depuis la page Suivi clients (jalons, cascade contact, RDV,
+// statut legacy, sync du bon de travail, evenements temps reel).
+
+// Créneaux admin (plus larges que le calendrier public) : 6h à 20h, un RDV par
+// créneau (contrainte unique date+timeSlot en base).
+const VISIT_TIME_SLOTS = ["6h", "7h", "8h", "9h", "10h", "11h", "12h", "13h", "14h", "15h", "16h", "17h", "18h", "19h", "20h"];
+const CONTACT_MENU_STATES = ["reached", "a1", "a2", "voicemail", "waiting_photos", "none"];
+
+// Annule (best effort) l'Appointment créé pour le RDV de visite de ce suivi.
+// On le retrouve par date + créneau + la note posée à la création — jamais par
+// simple téléphone, pour ne pas annuler le RDV d'un autre dossier.
+export async function cancelVisitAppointment(followUp) {
+  if (!followUp.visitScheduledAt || !followUp.visitTimeSlot) return;
+  try {
+    const day = followUp.visitScheduledAt.toISOString().slice(0, 10);
+    await prisma.appointment.updateMany({
+      where: {
+        date: new Date(`${day}T00:00:00.000Z`),
+        timeSlot: followUp.visitTimeSlot,
+        status: { not: "cancelled" },
+        notes: { contains: `suivi #${followUp.id}` },
+      },
+      data: { status: "cancelled" },
+    });
+  } catch (err) {
+    console.error("[follow-ups] annulation RDV visite:", err?.message || err);
+  }
+}
+
+function dateOrNull(value) {
+  if (value === undefined) return undefined;
+  if (!value) return null;
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return new Date(`${value}T12:00:00.000Z`);
+  }
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function numberOrNull(value) {
+  if (value === undefined) return undefined;
+  if (value === null || value === "") return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function cleanOrNull(value) {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  const text = String(value).trim();
+  return text || null;
+}
+
+/**
+ * Applique une commande de mise a jour de suivi (memes corps de requete que la
+ * page admin). Rend { error, status } en cas de refus, sinon
+ * { followUp (serialise), raw, existing, dataKeys, createdAppointment }.
+ * L'appelant garde a sa charge SON journal d'activite (logAdminActivity).
+ */
+export async function applyFollowUpUpdate({ followUpId, body, actor, origin }) {
+  // client inclus : la création d'un RDV de visite (visitRdv) a besoin du
+  // téléphone/adresse du client quand le suivi ne les porte pas lui-même.
+  const existing = await prisma.clientFollowUp.findUnique({
+    where: { id: followUpId },
+    include: { client: { select: { id: true, name: true, phone: true, email: true, address: true, city: true } } },
+  });
+  if (!existing) return { error: "Suivi introuvable", status: 404 };
+
+  const data = {};
+
+  for (const key of ["title", "source", "status", "priority", "contactName", "phone", "email", "service", "nextAction", "lostReason", "notes"]) {
+    const value = cleanOrNull(body[key]);
+    if (value !== undefined) data[key] = value;
+  }
+
+  if (body.clientId !== undefined) data.clientId = body.clientId ? Number(body.clientId) : null;
+
+  const estimateAmount = numberOrNull(body.estimateAmount);
+  if (estimateAmount !== undefined) data.estimateAmount = estimateAmount;
+
+  for (const key of ["estimateSentAt", "acceptedAt", "jobCompletedAt", "contactedAt", "visitDoneAt", "invoicedAt", "nextActionDate"]) {
+    const value = dateOrNull(body[key]);
+    if (value !== undefined) data[key] = value;
+  }
+
+  // Menu Contact : une seule commande garde contactedAt, les tentatives et les
+  // deux états temporaires cohérents. « voicemail » compte une nouvelle
+  // tentative; « waiting_photos » confirme le contact et démarre son délai.
+  if (body.contactState !== undefined) {
+    const contactState = String(body.contactState || "");
+    if (!CONTACT_MENU_STATES.includes(contactState)) {
+      return { error: "État de contact invalide", status: 400 };
+    }
+
+    const now = new Date();
+    if (contactState === "reached") {
+      data.contactedAt = existing.contactedAt || now;
+      data.contactStatus = null;
+      data.contactStatusAt = null;
+    } else if (contactState === "a1" || contactState === "a2") {
+      data.contactedAt = null;
+      data.contactAttempts = contactState === "a1" ? 1 : 2;
+      data.lastAttemptAt = now;
+      data.contactStatus = null;
+      data.contactStatusAt = null;
+    } else if (contactState === "voicemail") {
+      data.contactedAt = null;
+      data.contactAttempts = Math.min((existing.contactAttempts || 0) + 1, 9);
+      data.lastAttemptAt = now;
+      data.contactStatus = "voicemail";
+      data.contactStatusAt = now;
+    } else if (contactState === "waiting_photos") {
+      data.contactedAt = existing.contactedAt || now;
+      data.contactStatus = "waiting_photos";
+      data.contactStatusAt = now;
+    } else {
+      data.contactedAt = null;
+      data.contactAttempts = 0;
+      data.lastAttemptAt = null;
+      data.contactStatus = null;
+      data.contactStatusAt = null;
+    }
+
+    if (["reached", "waiting_photos"].includes(contactState) && existing.nextAction === "Appeler le client") {
+      data.nextAction = null;
+    }
+  }
+
+  // Issue finale (open/won/lost) — refonte suivi.
+  if (body.outcome !== undefined) {
+    data.outcome = ["won", "lost"].includes(body.outcome) ? body.outcome : "open";
+  }
+
+  // « Facturé » ne se coche pas à la main sans facture réelle : il faut au
+  // moins un bon passé facture (invoiced/sent/paid) lié à ce suivi. Le jalon
+  // se pose sinon tout seul quand le bon est facturé (sync automatique).
+  if (body.toggleMilestone === "invoicedAt" && body.on && !existing.invoicedAt) {
+    const invoicedWorkOrder = await prisma.workOrder.findFirst({
+      where: { followUpId, statut: { in: ["invoiced", "sent", "paid"] } },
+      select: { id: true },
+    });
+    if (!invoicedWorkOrder) {
+      return {
+        error: "Impossible: zero facture dans le systeme pour ce dossier. Facture d'abord le bon de travail.",
+        status: 400,
+      };
+    }
+  }
+
+  // Toggle d'un jalon depuis la liste à cases : { toggleMilestone: "visitDoneAt", on: true|false }.
+  // Cocher horodate (now) ; décocher remet à null. Idempotent si déjà dans cet état.
+  if (body.toggleMilestone && FOLLOW_UP_MILESTONE_KEYS.includes(body.toggleMilestone)) {
+    data[body.toggleMilestone] = body.on ? (existing[body.toggleMilestone] || new Date()) : null;
+    // Le rappel auto « Appeler le client » n'a plus de raison d'être une fois le contact fait.
+    if (body.toggleMilestone === "contactedAt" && body.on && existing.nextAction === "Appeler le client" && data.nextAction === undefined) {
+      data.nextAction = null;
+    }
+    if (body.contactState === undefined && body.toggleMilestone === "contactedAt") {
+      data.contactStatus = null;
+      data.contactStatusAt = null;
+    }
+  }
+
+  // Type de soumission piloté par le menu Soumission : "written" (écrite) | "phone"
+  // (verbale) | null (réinitialisée). L'écrite est aussi posée automatiquement côté
+  // bon de travail (voir follow-up-utils), ici c'est le réglage manuel.
+  if (body.estimateType !== undefined) {
+    data.estimateType = ["phone", "written"].includes(body.estimateType) ? body.estimateType : null;
+  }
+
+  // État de la visite piloté par le menu Visite : "todo" (à faire) | "done" (faite) |
+  // "rdv" (planifiée) | "anytime" (passage libre — client toujours sur place) |
+  // "none" (sans visite) | null.
+  if (body.visitStatus !== undefined) {
+    data.visitStatus = ["todo", "done", "none", "rdv", "anytime"].includes(body.visitStatus) ? body.visitStatus : null;
+  }
+
+  // Visite avec RDV : { visitRdv: { date: "YYYY-MM-DD", timeSlot: "9h" } }.
+  // Crée l'Appointment (même calendrier que le site public, un RDV par créneau),
+  // annule l'ancien RDV de visite s'il y en avait un, puis pose l'état "rdv".
+  let createdAppointment = null;
+  if (body.visitRdv) {
+    const rdvDate = String(body.visitRdv.date || "");
+    const rdvSlot = String(body.visitRdv.timeSlot || "");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(rdvDate) || !VISIT_TIME_SLOTS.includes(rdvSlot)) {
+      return { error: "Date ou plage horaire invalide", status: 400 };
+    }
+    const dateObj = new Date(`${rdvDate}T00:00:00.000Z`);
+    const taken = await prisma.appointment.findFirst({
+      where: { date: dateObj, timeSlot: rdvSlot, status: { not: "cancelled" } },
+      select: { id: true },
+    });
+    if (taken) {
+      return { error: "Cette plage horaire est déjà réservée. Choisissez-en une autre.", status: 409 };
+    }
+    await cancelVisitAppointment(existing); // ancien RDV de visite -> annulé (best effort)
+    try {
+      createdAppointment = await prisma.appointment.create({
+        data: {
+          clientId: existing.clientId || null,
+          name: existing.contactName || existing.client?.name || existing.title,
+          phone: existing.phone || existing.client?.phone || "—",
+          email: existing.email || existing.client?.email || null,
+          serviceType: existing.service || "Visite",
+          date: dateObj,
+          timeSlot: rdvSlot,
+          address: existing.client?.address || null,
+          city: existing.client?.city || null,
+          notes: `Visite planifiée depuis le suivi #${existing.id}`,
+          status: "confirmed",
+        },
+      });
+    } catch (err) {
+      if (err?.code === "P2002") {
+        return { error: "Cette plage horaire est déjà réservée. Choisissez-en une autre.", status: 409 };
+      }
+      throw err;
+    }
+    data.visitStatus = "rdv";
+    data.visitDoneAt = null;
+    data.visitScheduledAt = new Date(`${rdvDate}T12:00:00.000Z`);
+    data.visitTimeSlot = rdvSlot;
+  } else if (
+    existing.visitStatus === "rdv" &&
+    data.visitStatus !== undefined &&
+    data.visitStatus !== "rdv"
+  ) {
+    // On quitte l'état "rdv" : visite faite -> le RDV a eu lieu, on le laisse ;
+    // sinon (à faire / passage libre / sans visite) le RDV n'a plus lieu d'être.
+    if (data.visitStatus !== "done") {
+      await cancelVisitAppointment(existing);
+    }
+    data.visitScheduledAt = null;
+    data.visitTimeSlot = null;
+  }
+
+  // Horodate la coche de l'état de visite : les chronos SLA repartent de ce
+  // moment (et non du contactedAt possiblement vieux). Posé pour tout
+  // changement d'état, y compris le "rdv" du bloc visitRdv ci-dessus.
+  if (data.visitStatus !== undefined && data.visitStatus !== existing.visitStatus) {
+    data.visitStatusAt = new Date();
+  }
+
+  // Tentatives de contact sans réponse. { bumpAttempt: true } = +1 et horodate la
+  // tentative ; { resetAttempts: true } = remet à zéro. On accepte aussi une valeur
+  // directe contactAttempts (clampée >= 0).
+  if (body.bumpAttempt) {
+    data.contactAttempts = Math.min((existing.contactAttempts || 0) + 1, 9);
+    data.lastAttemptAt = new Date();
+  } else if (body.resetAttempts) {
+    data.contactAttempts = 0;
+    data.lastAttemptAt = null;
+  } else {
+    const attempts = numberOrNull(body.contactAttempts);
+    if (attempts !== undefined) {
+      data.contactAttempts = attempts === null ? 0 : Math.max(0, Math.min(Math.round(attempts), 9));
+      if (data.contactAttempts > (existing.contactAttempts || 0)) data.lastAttemptAt = new Date();
+    }
+  }
+  if (
+    body.contactState === undefined &&
+    (body.bumpAttempt || body.resetAttempts || body.contactAttempts !== undefined || body.contactedAt !== undefined)
+  ) {
+    data.contactStatus = null;
+    data.contactStatusAt = null;
+  }
+
+  // Cascade logique : poser un jalon plus avancé implique que le contact a eu
+  // lieu (on ne planifie pas une visite ni n'envoie une soumission sans avoir
+  // parlé au client) -> « Contacté » se coche tout seul au lieu de bloquer.
+  const impliesContact =
+    ["todo", "done", "rdv", "anytime"].includes(data.visitStatus) ||
+    ["visitDoneAt", "estimateSentAt", "acceptedAt", "jobCompletedAt", "invoicedAt"].some((k) => Boolean(data[k])) ||
+    data.outcome === "won";
+  if (impliesContact && !existing.contactedAt && data.contactedAt === undefined) {
+    data.contactedAt = new Date();
+    // Le rappel auto n'a plus de raison d'être une fois le contact implicite.
+    if (existing.nextAction === "Appeler le client" && data.nextAction === undefined) {
+      data.nextAction = null;
+    }
+  }
+  if (impliesContact && body.contactState === undefined) {
+    data.contactStatus = null;
+    data.contactStatusAt = null;
+  }
+
+  // Auto-horodatage legacy si un status est poussé directement.
+  if (body.status === "estimate_sent" && !existing.estimateSentAt && data.estimateSentAt === undefined) data.estimateSentAt = new Date();
+  if (body.status === "won" && !existing.acceptedAt && data.acceptedAt === undefined) data.acceptedAt = new Date();
+  if (body.status === "completed" && !existing.jobCompletedAt && data.jobCompletedAt === undefined) data.jobCompletedAt = new Date();
+
+  // Statut legacy dérivé des jalons (sauf si un status explicite est fourni) -> garde la sync WorkOrder cohérente.
+  const touchesMilestones =
+    body.toggleMilestone ||
+    ["contactedAt", "visitDoneAt", "estimateSentAt", "acceptedAt", "jobCompletedAt", "invoicedAt", "outcome"].some((k) => data[k] !== undefined);
+  if (touchesMilestones && body.status === undefined) {
+    data.status = deriveFollowUpStatus({ ...existing, ...data });
+  }
+
+  const followUp = await prisma.clientFollowUp.update({
+    where: { id: followUpId },
+    data,
+    include: {
+      client: {
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+          secondaryPhone: true,
+          email: true,
+          city: true,
+          _count: { select: { workOrders: true } },
+        },
+      },
+    },
+  });
+
+  if (data.status !== undefined) {
+    try {
+      await syncLatestWorkOrderFromFollowUpStatus(followUp);
+    } catch (err) {
+      console.error("[follow-ups] work-order sync error:", err?.message || err);
+    }
+  }
+
+  publishAdminEvent({
+    type: "follow_up.changed",
+    entityType: "follow_up",
+    entityId: followUp.id,
+    clientId: followUp.clientId,
+    actor,
+    origin,
+  });
+
+  // RDV de visite créé ou annulé -> le calendrier des rendez-vous doit se rafraîchir.
+  if (createdAppointment || (existing.visitStatus === "rdv" && data.visitScheduledAt === null)) {
+    publishAdminEvent({
+      type: "appointment.changed",
+      entityType: "appointment",
+      entityId: createdAppointment?.id,
+      clientId: followUp.clientId,
+      actor,
+      origin,
+    });
+  }
+
+  return {
+    followUp: serializeFollowUp(followUp),
+    raw: followUp,
+    existing,
+    dataKeys: Object.keys(data),
+    createdAppointment,
+  };
+}
