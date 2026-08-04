@@ -96,9 +96,15 @@ export default function AppDevicesPage() {
   }
 
   async function revoke(device) {
-    if (!confirm(`Révoquer « ${device.name} »? L'app cessera immédiatement de fonctionner sur ce téléphone.`)) return;
+    // Actif -> revocation (le jeton meurt, la trace reste). Revoque ou jamais
+    // active -> suppression reelle de la ligne.
+    const active = device.activatedAt && !device.revokedAt;
+    const message = active
+      ? `Révoquer « ${device.name} »? L'app cessera immédiatement de fonctionner sur ce téléphone.`
+      : `Supprimer « ${device.name} » de la liste? (l'accès est déjà inactif)`;
+    if (!confirm(message)) return;
     const res = await fetch(`/api/admin/app-devices/${device.id}`, { method: "DELETE" });
-    if (!res.ok) { setError("Révocation impossible."); return; }
+    if (!res.ok) { setError(active ? "Révocation impossible." : "Suppression impossible."); return; }
     load();
   }
 
@@ -282,14 +288,12 @@ export default function AppDevicesPage() {
                           : `${d.model || d.platform} · vu ${timeAgo(d.lastSeenAt)}`}
                     </p>
                   </div>
-                  {!d.revokedAt && (
-                    <button
-                      onClick={() => revoke(d)}
-                      className="shrink-0 text-red-400 hover:text-red-300 text-xs font-bold"
-                    >
-                      Révoquer
-                    </button>
-                  )}
+                  <button
+                    onClick={() => revoke(d)}
+                    className="shrink-0 text-red-400 hover:text-red-300 text-xs font-bold"
+                  >
+                    {d.activatedAt && !d.revokedAt ? "Révoquer" : "Supprimer"}
+                  </button>
                 </div>
               );
             })}
