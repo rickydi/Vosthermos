@@ -6,6 +6,7 @@ import {
   APP_CALL_DELAY_KEY,
   APP_CALL_ENABLED_KEY,
   APP_CALL_IGNORED_KEY,
+  APPEL_AUTO_PHOTO_SMS_KEY,
 } from "@/lib/settings-keys";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +19,7 @@ export async function GET(req) {
   if (!device) return NextResponse.json({ error: "Appareil non autorise" }, { status: 401 });
 
   const rows = await prisma.siteSetting.findMany({
-    where: { key: { in: [APP_CALL_ENABLED_KEY, APP_CALL_DELAY_KEY, APP_CALL_IGNORED_KEY] } },
+    where: { key: { in: [APP_CALL_ENABLED_KEY, APP_CALL_DELAY_KEY, APP_CALL_IGNORED_KEY, APPEL_AUTO_PHOTO_SMS_KEY] } },
     select: { key: true, value: true },
   });
   const map = Object.fromEntries(rows.map((r) => [r.key, r.value]));
@@ -39,6 +40,9 @@ export async function GET(req) {
     enabled: map[APP_CALL_ENABLED_KEY] !== "0",
     delaySeconds,
     ignoredNumbers,
+    // Pre-selection du « Demander ses photos par texto ? » sur la fiche de
+    // l'app — meme reglage global que la page /admin/appel.
+    photoSmsDefault: map[APPEL_AUTO_PHOTO_SMS_KEY] === "1",
     device: { id: device.id, name: device.name },
   }, { headers: { "Cache-Control": "no-store" } });
 }
