@@ -99,12 +99,17 @@ function BlocNotes() {
   );
 }
 
+// MEME liste que l'app mobile (ClientActivity/CallerActivity) : les deux se
+// mettent a jour ensemble. Selection MULTIPLE : un client appelle souvent pour
+// plusieurs choses a la fois (ex. thermos + calfeutrage).
 const SERVICES = [
   { key: "Vitre thermos", icon: "fa-snowflake" },
   { key: "Porte-patio", icon: "fa-door-open" },
+  { key: "Porte française", icon: "fa-door-closed" },
   { key: "Moustiquaire", icon: "fa-border-all" },
   { key: "Fenêtre", icon: "fa-window-maximize" },
   { key: "Calfeutrage", icon: "fa-fill-drip" },
+  { key: "Bois", icon: "fa-tree" },
   { key: "Autre", icon: "fa-question" },
 ];
 
@@ -113,7 +118,9 @@ function AppelContent() {
   const [tab, setTab] = useState("appel");
   const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
-  const [service, setService] = useState("");
+  // Selection MULTIPLE de services (le corps de requete reste une chaine :
+  // les choix sont joints par «, » a l enregistrement).
+  const [selectedServices, setSelectedServices] = useState([]);
   const [address, setAddress] = useState("");
   const [addressParts, setAddressParts] = useState(null);
   const [note, setNote] = useState("");
@@ -203,7 +210,7 @@ function AppelContent() {
         body: JSON.stringify({
           phone,
           name,
-          service,
+          service: selectedServices.join(", "),
           address,
           city: addressParts?.city || "",
           province: addressParts?.province || "",
@@ -237,7 +244,7 @@ function AppelContent() {
   }
 
   function resetForm() {
-    setPhone(""); setName(""); setService(""); setAddress(""); setAddressParts(null); setNote("");
+    setPhone(""); setName(""); setSelectedServices([]); setAddress(""); setAddressParts(null); setNote("");
     setError(""); setSaved(null);
     setLookup(null); setIsClient(null);
     const now = new Date();
@@ -468,9 +475,9 @@ function AppelContent() {
             <button
               key={s.key}
               type="button"
-              onClick={() => setService(service === s.key ? "" : s.key)}
+              onClick={() => setSelectedServices((prev) => (prev.includes(s.key) ? prev.filter((k) => k !== s.key) : [...prev, s.key]))}
               className={`h-14 rounded-2xl border text-base font-semibold transition-colors flex items-center justify-center gap-2 ${
-                service === s.key
+                selectedServices.includes(s.key)
                   ? "bg-sky-500/25 border-sky-400 text-sky-200"
                   : "admin-card admin-text-muted"
               }`}
