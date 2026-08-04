@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import { requireAdmin } from "@/lib/admin-auth";
 import { APK_PATH, getRelease, saveRelease } from "@/lib/app-release";
@@ -48,10 +49,33 @@ export async function PUT(req) {
   const version = req.headers.get("x-app-version") || "inconnue";
   const notes = req.headers.get("x-app-notes") || "";
   const buffer = Buffer.from(await req.arrayBuffer());
+
+  // Controle d'integrite OBLIGATOIRE. ModSecurity est configure en
+  // « ProcessPartial » sur ce serveur : au-dela de sa limite de corps, il TRONQUE
+  // la requete et la laisse passer. Un premier envoi a ainsi produit un APK
+  // ampute de 11 Mo a exactement 10 Mio, accepte avec un 200. Sans cette
+  // verification, on distribuerait une app corrompue sans jamais le savoir.
+  const expectedSha = (req.headers.get("x-app-sha256") || "").toLowerCase();
+  if (!expectedSha) {
+    return NextResponse.json({ error: "En-tete X-App-Sha256 manquant" }, { status: 400 });
+  }
+  const actualSha = crypto.createHash("sha256").update(buffer).digest("hex");
+  if (actualSha !== expectedSha) {
+    return NextResponse.json(
+      {
+        error: "Fichier corrompu ou tronque en transit — televersement refuse.",
+        received: buffer.length,
+        expectedSha,
+        actualSha,
+      },
+      { status: 400 },
+    );
+  }
+
   if (buffer.length < 100_000) {
     return NextResponse.json({ error: "Fichier trop petit pour etre un APK" }, { status: 400 });
   }
 
   await saveRelease(buffer, { version, notes });
-  return NextResponse.json({ ok: true, version, sizeBytes: buffer.length });
+  return NextResponse.json({ ok: true, version, sizeBytes: buffer.length, sha256: actualSha });
 }
