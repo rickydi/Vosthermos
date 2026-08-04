@@ -1,138 +1,26 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
-import { upsertClientFromLead } from "@/lib/upsert-client";
-import { APPEL_AUTO_PHOTO_SMS_KEY, sendPhotoRequestSms } from "@/lib/photo-request";
-
-function normalizePhone(phone) {
-  const digits = String(phone || "").replace(/\D/g, "");
-  // Retire le 1 nord-americain en tete si present (11 chiffres).
-  return digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
-}
-
-function buildCallSummary({ service, address, city, note }) {
-  const parts = ["📞 Appel reçu"];
-  if (service) parts.push(service);
-  if (address) parts.push(address);
-  else if (city) parts.push(city);
-  let summary = parts.join(" — ");
-  if (note) summary += `\n${note}`;
-  return summary;
-}
+import { recordCall } from "@/lib/record-call";
 
 export async function POST(req) {
   try {
-    const admin = await requireAdmin();
+    await requireAdmin();
     const body = await req.json();
 
-    const clientPhone = normalizePhone(body.phone);
-    if (clientPhone.length !== 10) {
-      return NextResponse.json({ error: "Numéro de téléphone invalide (10 chiffres requis)." }, { status: 400 });
+    // Logique partagee avec l app mobile (/api/app/call) : meme conversation,
+    // meme resume, meme regle de texto, meme gestion de la date.
+    const result = await recordCall(body);
+    if (result.error) {
+      return NextResponse.json({ error: result.error }, { status: result.status || 400 });
     }
 
-    const clientName = String(body.name || "").trim() || "Client (appel)";
-    const service = String(body.service || "").trim();
-    const address = String(body.address || "").trim();
-    const city = String(body.city || "").trim();
-    const postalCode = String(body.postalCode || "").trim();
-    const province = String(body.province || "").trim();
-    const note = String(body.note || "").trim();
-    const content = buildCallSummary({ service, address, city, note });
-
-    // Date de l'appel : « maintenant » par defaut, mais saisissable pour noter
-    // apres coup un appel de la veille. On refuse le futur (faute de frappe sur
-    // l'annee) et on borne a un an en arriere.
-    let calledAt = new Date();
-    if (body.calledAt) {
-      const parsed = new Date(body.calledAt);
-      if (Number.isNaN(parsed.getTime())) {
-        return NextResponse.json({ error: "Date d'appel invalide." }, { status: 400 });
-      }
-      if (parsed.getTime() > Date.now() + 5 * 60 * 1000) {
-        return NextResponse.json({ error: "La date de l'appel est dans le futur." }, { status: 400 });
-      }
-      if (parsed.getTime() < Date.now() - 366 * 24 * 3600 * 1000) {
-        return NextResponse.json({ error: "La date de l'appel remonte a plus d'un an." }, { status: 400 });
-      }
-      calledAt = parsed;
-    }
-
-    const existing = await prisma.chatConversation.findUnique({ where: { clientPhone } });
-
-    // PAS d'unreadCount ici : c'est NOUS qui saisissons l'appel, pas une demande
-    // entrante à traiter — le badge rouge du chat ne doit pas clignoter.
-    let conversation;
-    if (existing) {
-      conversation = await prisma.chatConversation.update({
-        where: { id: existing.id },
-        data: {
-          // Un appel note apres coup ne doit pas faire RECULER la conversation
-          // dans la liste du chat si un echange plus recent existe deja.
-          lastMessageAt: existing.lastMessageAt && existing.lastMessageAt > calledAt
-            ? existing.lastMessageAt
-            : calledAt,
-          isArchived: false,
-          // On garde le nom existant s'il est plus complet que la saisie rapide.
-          ...(existing.clientName === "Client (appel)" && clientName !== "Client (appel)"
-            ? { clientName }
-            : {}),
-        },
-      });
-    } else {
-      conversation = await prisma.chatConversation.create({
-        data: { clientName, clientPhone, source: "appel", unreadCount: 0, lastMessageAt: calledAt },
-      });
-    }
-
-    await prisma.chatMessage.create({
-      data: {
-        conversationId: conversation.id,
-        senderType: "client",
-        senderName: conversation.clientName,
-        content,
-        createdAt: calledAt,
-      },
+    return NextResponse.json({
+      ok: true,
+      id: result.conversationId,
+      existing: result.existing,
+      photoSms: result.photoSms,
     });
-
-    const client = await upsertClientFromLead({
-      name: conversation.clientName,
-      phone: clientPhone,
-      address: address || undefined,
-      city: city || undefined,
-      province: province || undefined,
-      postalCode: postalCode || undefined,
-      notes: note || undefined,
-      source: "appel",
-    });
-
-    // Demande de photos par texto. Le choix fait DANS la page d'appel prime sur
-    // l'option globale (Paramètres > Appels) : sans ce garde-fou, tout appel
-    // enregistré déclenchait un texto, y compris pour un vendeur ou un appel
-    // personnel. `sendPhotoSms` absent = on retombe sur l'option globale, pour
-    // ne rien changer aux appelants qui n'envoient pas ce champ.
-    let photoSms = null;
-    try {
-      let wanted;
-      if (body.sendPhotoSms === true || body.sendPhotoSms === false) {
-        wanted = body.sendPhotoSms;
-      } else {
-        const setting = await prisma.siteSetting.findUnique({
-          where: { key: APPEL_AUTO_PHOTO_SMS_KEY },
-          select: { value: true },
-        });
-        wanted = setting?.value === "1";
-      }
-      if (wanted && client) {
-        photoSms = (await sendPhotoRequestSms(client)) ? "sent" : "failed";
-      } else if (wanted && !client) {
-        photoSms = "failed";
-      }
-    } catch (err) {
-      console.error("[appels] photo sms error:", err?.message || err);
-      photoSms = "failed";
-    }
-
-    return NextResponse.json({ ok: true, id: conversation.id, existing: Boolean(existing), photoSms });
   } catch (error) {
     if (error?.message === "Unauthorized") {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });

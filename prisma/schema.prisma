@@ -15,31 +15,31 @@ model Category {
   order    Int        @default(0)
   parentId Int?
   parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
-  children   Category[]  @relation("CategoryTree")
-  products   Product[]
+  children Category[] @relation("CategoryTree")
+  products Product[]
 
   @@map("categories")
 }
 
 model Product {
-  id                    Int            @id @default(autoincrement())
-  sku                   String         @unique
+  id                    Int             @id @default(autoincrement())
+  sku                   String          @unique
   name                  String
   nameEn                String?
   description           String?
   descriptionEn         String?
-  detailedDescription   String?        @db.Text
-  detailedDescriptionEn String?        @db.Text
-  price                 Decimal        @db.Decimal(10, 2)
-  compareAtPrice      Decimal?       @db.Decimal(10, 2)
-  slug                String         @unique
-  availability        String         @default("InStock")
-  categoryId          Int?
-  category            Category?      @relation(fields: [categoryId], references: [id])
-  images              ProductImage[]
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
-  workOrderItems      WorkOrderItem[]
+  detailedDescription   String?         @db.Text
+  detailedDescriptionEn String?         @db.Text
+  price                 Decimal         @db.Decimal(10, 2)
+  compareAtPrice        Decimal?        @db.Decimal(10, 2)
+  slug                  String          @unique
+  availability          String          @default("InStock")
+  categoryId            Int?
+  category              Category?       @relation(fields: [categoryId], references: [id])
+  images                ProductImage[]
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  workOrderItems        WorkOrderItem[]
 
   @@map("products")
 }
@@ -55,19 +55,19 @@ model ProductImage {
 }
 
 model Order {
-  id        Int      @id @default(autoincrement())
-  stripeId  String   @unique
-  email     String
-  name      String
-  phone     String?
-  address   String?
-  city      String?
-  province  String?
+  id         Int      @id @default(autoincrement())
+  stripeId   String   @unique
+  email      String
+  name       String
+  phone      String?
+  address    String?
+  city       String?
+  province   String?
   postalCode String?
-  total     Decimal  @db.Decimal(10, 2)
-  status    String   @default("pending")
-  items     Json
-  createdAt DateTime @default(now())
+  total      Decimal  @db.Decimal(10, 2)
+  status     String   @default("pending")
+  items      Json
+  createdAt  DateTime @default(now())
 
   @@map("orders")
 }
@@ -124,14 +124,14 @@ model AdminActivityLog {
 }
 
 model AnalyticsSession {
-  id          Int                @id @default(autoincrement())
-  visitorId   String
-  device      String?
-  browser     String?
-  referrer    String?
-  city        String?
-  region      String?
-  country     String?
+  id                  Int                 @id @default(autoincrement())
+  visitorId           String
+  device              String?
+  browser             String?
+  referrer            String?
+  city                String?
+  region              String?
+  country             String?
   // Provenance payante / campagnes. gclid présent = clic Google Ads (auto-tagging).
   gclid               String?
   utmSource           String?
@@ -146,9 +146,9 @@ model AnalyticsSession {
   googleAdsCreativeId String?
   googleAdsNetwork    String?
   googleAdsDevice     String?
-  startedAt           DateTime           @default(now())
-  endedAt     DateTime?
-  pageViews   AnalyticsPageView[]
+  startedAt           DateTime            @default(now())
+  endedAt             DateTime?
+  pageViews           AnalyticsPageView[]
 
   @@index([visitorId])
   @@index([startedAt])
@@ -231,20 +231,20 @@ model ChatMessage {
 }
 
 model ChatNotifyMember {
-  id              Int     @id @default(autoincrement())
-  name            String
-  phone           String
-  isActive        Boolean @default(true)
-  schedule        Json?
+  id       Int     @id @default(autoincrement())
+  name     String
+  phone    String
+  isActive Boolean @default(true)
+  schedule Json?
 
   @@map("chat_notify_members")
 }
 
 model BlogNotifyMember {
-  id        Int     @id @default(autoincrement())
-  name      String
-  email     String
-  isActive  Boolean @default(true)
+  id       Int     @id @default(autoincrement())
+  name     String
+  email    String
+  isActive Boolean @default(true)
 
   @@map("blog_notify_members")
 }
@@ -295,10 +295,10 @@ model Appointment {
 }
 
 model SeoRanking {
-  id        String   @id @default(cuid())
-  city      String
-  cityName  String
-  keyword   String
+  id          String   @id @default(cuid())
+  city        String
+  cityName    String
+  keyword     String
   position    Int?
   impressions Int      @default(0) // volume de recherche (GSC) -> pondération de la position
   aiMention   Boolean  @default(false)
@@ -314,51 +314,51 @@ model SeoRanking {
 // ─── Terrain: Bons de travail ────────────────────────────────────
 
 model Technician {
-  id         Int         @id @default(autoincrement())
-  name       String
-  email      String?     @unique
-  phone      String?
-  photoUrl   String?
-  pin        String      // bcrypt hash du PIN 4 chiffres
-  isActive   Boolean     @default(true)
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  workOrders WorkOrder[]
+  id                  Int                  @id @default(autoincrement())
+  name                String
+  email               String?              @unique
+  phone               String?
+  photoUrl            String?
+  pin                 String // bcrypt hash du PIN 4 chiffres
+  isActive            Boolean              @default(true)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  workOrders          WorkOrder[]
   thermosMeasurements ThermosMeasurement[]
 
   @@map("technicians")
 }
 
 model Client {
-  id             Int          @id @default(autoincrement())
-  name           String
-  type           String       @default("particulier") // "particulier" | "gestionnaire"
-  company        String?
-  contactName    String?      @map("contact_name")
-  friendlyEmail  Boolean      @default(false) @map("friendly_email")
-  address        String?
-  city           String?
-  province       String       @default("QC")
-  postalCode     String?
-  phone          String?
-  secondaryPhone String?      @map("secondary_phone")
-  email          String?      @unique
-  notes          String?      @db.Text
-  passwordHash   String?
-  portalToken    String?      @unique
-  isPortalActive Boolean      @default(false)
-  paymentTermsDays Int        @default(30)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  workOrders     WorkOrder[]
-  units          ClientUnit[]
-  buildings      Building[]
-  managers       ManagerClient[]
-  followUps      ClientFollowUp[]
-  photos         ClientPhoto[]
-  appointments   Appointment[]
-  chatConversations ChatConversation[]
-  creditNotes    CreditNote[]
+  id                  Int                  @id @default(autoincrement())
+  name                String
+  type                String               @default("particulier") // "particulier" | "gestionnaire"
+  company             String?
+  contactName         String?              @map("contact_name")
+  friendlyEmail       Boolean              @default(false) @map("friendly_email")
+  address             String?
+  city                String?
+  province            String               @default("QC")
+  postalCode          String?
+  phone               String?
+  secondaryPhone      String?              @map("secondary_phone")
+  email               String?              @unique
+  notes               String?              @db.Text
+  passwordHash        String?
+  portalToken         String?              @unique
+  isPortalActive      Boolean              @default(false)
+  paymentTermsDays    Int                  @default(30)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  workOrders          WorkOrder[]
+  units               ClientUnit[]
+  buildings           Building[]
+  managers            ManagerClient[]
+  followUps           ClientFollowUp[]
+  photos              ClientPhoto[]
+  appointments        Appointment[]
+  chatConversations   ChatConversation[]
+  creditNotes         CreditNote[]
   thermosMeasurements ThermosMeasurement[]
   thermosOrders       ThermosOrder[]
 
@@ -369,57 +369,57 @@ model Client {
 }
 
 model ClientFollowUp {
-  id              Int       @id @default(autoincrement())
-  clientId        Int?
-  client          Client?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
-  title           String
-  source          String?
-  status          String    @default("to_call")
-  priority        String    @default("normal")
-  contactName     String?
-  phone           String?
-  email           String?
-  service         String?
-  estimateAmount  Decimal?  @db.Decimal(10, 2)
-  estimateSentAt  DateTime?
+  id                  Int                  @id @default(autoincrement())
+  clientId            Int?
+  client              Client?              @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  title               String
+  source              String?
+  status              String               @default("to_call")
+  priority            String               @default("normal")
+  contactName         String?
+  phone               String?
+  email               String?
+  service             String?
+  estimateAmount      Decimal?             @db.Decimal(10, 2)
+  estimateSentAt      DateTime?
   // Type de soumission : "written" (document système, auto) | "phone" (verbale) | null.
-  estimateType    String?
-  acceptedAt      DateTime?
-  jobCompletedAt  DateTime?
+  estimateType        String?
+  acceptedAt          DateTime?
+  jobCompletedAt      DateTime?
   // Jalons horodatés (refonte suivi Phase 0). estimateSentAt/acceptedAt/jobCompletedAt
   // existaient déjà ; on ajoute les manquants. outcome = issue finale (open/won/lost).
-  contactedAt     DateTime?
-  visitDoneAt     DateTime?
-  invoicedAt      DateTime?
+  contactedAt         DateTime?
+  visitDoneAt         DateTime?
+  invoicedAt          DateTime?
   // État de la visite : "todo" (à faire) | "done" (faite) | "rdv" (planifiée avec
   // rendez-vous) | "anytime" (passage libre — client toujours sur place) | "none"
   // (sans visite) | null.
-  visitStatus     String?
+  visitStatus         String?
   // Moment où l'état de visite a été coché : les chronos SLA repartent de la
   // coche (et non du vieux contactedAt), sinon « Visite à faire » clignote des
   // qu'on le pose sur un dossier contacté il y a longtemps.
-  visitStatusAt   DateTime?
+  visitStatusAt       DateTime?
   // Rendez-vous de visite (visitStatus="rdv") : date (à 12h UTC, comme nextActionDate)
   // + créneau ("9h".."16h", même liste que le calendrier public). Un Appointment
   // correspondant est créé/annulé par l'API follow-ups.
-  visitScheduledAt DateTime?
-  visitTimeSlot   String?
+  visitScheduledAt    DateTime?
+  visitTimeSlot       String?
   // Tentatives de contact restées sans réponse (suivi des relances).
-  contactAttempts Int       @default(0)
-  lastAttemptAt   DateTime?
+  contactAttempts     Int                  @default(0)
+  lastAttemptAt       DateTime?
   // État temporaire choisi dans le menu Contact : "voicemail" ou
   // "waiting_photos". Les états standards restent dérivés des champs ci-dessus.
-  contactStatus   String?
-  contactStatusAt DateTime?
-  outcome         String    @default("open")
-  nextAction      String?
-  nextActionDate  DateTime?
-  lostReason      String?
-  notes           String?   @db.Text
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  photos          ClientPhoto[]
-  workOrders      WorkOrder[]
+  contactStatus       String?
+  contactStatusAt     DateTime?
+  outcome             String               @default("open")
+  nextAction          String?
+  nextActionDate      DateTime?
+  lostReason          String?
+  notes               String?              @db.Text
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  photos              ClientPhoto[]
+  workOrders          WorkOrder[]
   thermosMeasurements ThermosMeasurement[]
   thermosOrders       ThermosOrder[]
 
@@ -449,17 +449,17 @@ model ClientPhoto {
 }
 
 model ClientUnit {
-  id          Int      @id @default(autoincrement())
+  id          Int           @id @default(autoincrement())
   clientId    Int
-  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  client      Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
   buildingId  Int?
-  building    Building? @relation(fields: [buildingId], references: [id], onDelete: SetNull)
+  building    Building?     @relation(fields: [buildingId], references: [id], onDelete: SetNull)
   code        String
   description String?
-  notes       String?  @db.Text
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  notes       String?       @db.Text
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
   openings    UnitOpening[]
 
   @@unique([clientId, code])
@@ -472,8 +472,8 @@ model Building {
   id        Int          @id @default(autoincrement())
   clientId  Int
   client    Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  code      String       // "A", "B", "C", "D"
-  name      String       // "Bâtiment A"
+  code      String // "A", "B", "C", "D"
+  name      String // "Bâtiment A"
   address   String?
   position  Int          @default(0)
   createdAt DateTime     @default(now())
@@ -489,8 +489,8 @@ model UnitOpening {
   id          Int        @id @default(autoincrement())
   unitId      Int
   unit        ClientUnit @relation(fields: [unitId], references: [id], onDelete: Cascade)
-  type        String     // "fenetre" | "porte" | "porte-patio" | "porte-francaise"
-  location    String     // "Salon · nord"
+  type        String // "fenetre" | "porte" | "porte-patio" | "porte-francaise"
+  location    String // "Salon · nord"
   description String?    @db.Text
   photoUrl    String?
   year        Int?
@@ -505,21 +505,21 @@ model UnitOpening {
 }
 
 model ManagerUser {
-  id                      Int                @id @default(autoincrement())
-  email                   String             @unique
-  firstName               String
-  lastName                String
-  phone                   String?
-  isActive                Boolean            @default(true)
-  notifyNewInvoice        Boolean            @default(true)
-  notifyWorkOrderScheduled Boolean           @default(true)
-  notifyInvoiceOverdue    Boolean            @default(true)
-  lastLoginAt             DateTime?
-  createdAt               DateTime           @default(now())
-  updatedAt               DateTime           @updatedAt
-  clients                 ManagerClient[]
-  sessions                ManagerSession[]
-  magicTokens             ManagerMagicToken[]
+  id                       Int                 @id @default(autoincrement())
+  email                    String              @unique
+  firstName                String
+  lastName                 String
+  phone                    String?
+  isActive                 Boolean             @default(true)
+  notifyNewInvoice         Boolean             @default(true)
+  notifyWorkOrderScheduled Boolean             @default(true)
+  notifyInvoiceOverdue     Boolean             @default(true)
+  lastLoginAt              DateTime?
+  createdAt                DateTime            @default(now())
+  updatedAt                DateTime            @updatedAt
+  clients                  ManagerClient[]
+  sessions                 ManagerSession[]
+  magicTokens              ManagerMagicToken[]
 
   @@index([email])
   @@map("manager_users")
@@ -530,7 +530,7 @@ model ManagerClient {
   manager     ManagerUser @relation(fields: [managerId], references: [id], onDelete: Cascade)
   clientId    Int
   client      Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  permissions String[]    @default(["view_work_orders","view_invoices","view_quotes","request_intervention","approve_quotes","manage_units","manage_openings"])
+  permissions String[]    @default(["view_work_orders", "view_invoices", "view_quotes", "request_intervention", "approve_quotes", "manage_units", "manage_openings"])
   createdAt   DateTime    @default(now())
 
   @@id([managerId, clientId])
@@ -567,17 +567,17 @@ model ManagerMagicToken {
 }
 
 model WorkOrder {
-  id                     Int             @id @default(autoincrement())
-  number                 String          @unique
+  id                     Int                  @id @default(autoincrement())
+  number                 String               @unique
   clientId               Int
-  client                 Client          @relation(fields: [clientId], references: [id])
+  client                 Client               @relation(fields: [clientId], references: [id])
   technicianId           Int?
-  technician             Technician?     @relation(fields: [technicianId], references: [id])
+  technician             Technician?          @relation(fields: [technicianId], references: [id])
   followUpId             Int?
-  followUp               ClientFollowUp? @relation(fields: [followUpId], references: [id], onDelete: SetNull)
-  appointmentId          Int?            @unique
-  appointment            Appointment?    @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
-  date                   DateTime        @db.Date
+  followUp               ClientFollowUp?      @relation(fields: [followUpId], references: [id], onDelete: SetNull)
+  appointmentId          Int?                 @unique
+  appointment            Appointment?         @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  date                   DateTime             @db.Date
   arrivalAt              DateTime?
   arrivalLat             Float?
   arrivalLng             Float?
@@ -586,30 +586,30 @@ model WorkOrder {
   interventionAddress    String?
   interventionCity       String?
   interventionPostalCode String?
-  description            String?         @db.Text
-  photos                 String[]        @default([])
+  description            String?              @db.Text
+  photos                 String[]             @default([])
   signatureUrl           String?
-  statut                 String          @default("draft")
-  notes                  String?         @db.Text
-  visibleAuClient        Boolean         @default(true)
-  totalPieces            Decimal         @default(0) @db.Decimal(10, 2)
-  totalLabor             Decimal         @default(0) @db.Decimal(10, 2)
-  laborRate              Decimal         @default(85) @db.Decimal(10, 2)
-  subtotal               Decimal         @default(0) @db.Decimal(10, 2)
-  tps                    Decimal         @default(0) @db.Decimal(10, 2)
-  tvq                    Decimal         @default(0) @db.Decimal(10, 2)
-  total                  Decimal         @default(0) @db.Decimal(10, 2)
-  quoteDepositPercent    Decimal?        @db.Decimal(5, 2)
-  quotePaymentSchedule    Json?
+  statut                 String               @default("draft")
+  notes                  String?              @db.Text
+  visibleAuClient        Boolean              @default(true)
+  totalPieces            Decimal              @default(0) @db.Decimal(10, 2)
+  totalLabor             Decimal              @default(0) @db.Decimal(10, 2)
+  laborRate              Decimal              @default(85) @db.Decimal(10, 2)
+  subtotal               Decimal              @default(0) @db.Decimal(10, 2)
+  tps                    Decimal              @default(0) @db.Decimal(10, 2)
+  tvq                    Decimal              @default(0) @db.Decimal(10, 2)
+  total                  Decimal              @default(0) @db.Decimal(10, 2)
+  quoteDepositPercent    Decimal?             @db.Decimal(5, 2)
+  quotePaymentSchedule   Json?
   invoiceIssuedAt        DateTime?
   invoiceSentAt          DateTime?
   paymentDueAt           DateTime?
   paidAt                 DateTime?
   paymentMethod          String?
-  paymentNotes           String?         @db.Text
+  paymentNotes           String?              @db.Text
   viewedByManagerAt      DateTime?
-  createdAt              DateTime        @default(now())
-  updatedAt              DateTime        @updatedAt
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
   items                  WorkOrderItem[]
   sections               WorkOrderSection[]
   payments               WorkOrderPayment[]
@@ -718,7 +718,7 @@ model Service {
   id             Int             @id @default(autoincrement())
   code           String          @unique
   name           String
-  category       String          // thermo | installation | ajustement | quincaillerie | vitre | autre
+  category       String // thermo | installation | ajustement | quincaillerie | vitre | autre
   price          Decimal         @db.Decimal(10, 2)
   description    String?         @db.Text
   isActive       Boolean         @default(true)
@@ -739,36 +739,36 @@ model Service {
 // de chaque thermos. `source` = technician | client | phone.
 // `accuracy` = final | client | approximate.
 model ThermosMeasurement {
-  id                   Int                    @id @default(autoincrement())
+  id                   Int                  @id @default(autoincrement())
   clientId             Int
-  client               Client                 @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  client               Client               @relation(fields: [clientId], references: [id], onDelete: Cascade)
   followUpId           Int?
-  followUp             ClientFollowUp?         @relation(fields: [followUpId], references: [id], onDelete: SetNull)
+  followUp             ClientFollowUp?      @relation(fields: [followUpId], references: [id], onDelete: SetNull)
   workOrderId          Int?
-  workOrder            WorkOrder?              @relation(fields: [workOrderId], references: [id], onDelete: SetNull)
+  workOrder            WorkOrder?           @relation(fields: [workOrderId], references: [id], onDelete: SetNull)
   technicianId         Int?
-  technician           Technician?             @relation(fields: [technicianId], references: [id], onDelete: SetNull)
+  technician           Technician?          @relation(fields: [technicianId], references: [id], onDelete: SetNull)
   parentId             Int?
-  parent               ThermosMeasurement?     @relation("MeasurementRevisions", fields: [parentId], references: [id], onDelete: SetNull)
-  revisions            ThermosMeasurement[]    @relation("MeasurementRevisions")
+  parent               ThermosMeasurement?  @relation("MeasurementRevisions", fields: [parentId], references: [id], onDelete: SetNull)
+  revisions            ThermosMeasurement[] @relation("MeasurementRevisions")
   source               String
-  status               String                  @default("draft")
-  accuracy             String                  @default("approximate")
-  revision             Int                     @default(1)
-  idempotencyKey       String?                 @unique
+  status               String               @default("draft")
+  accuracy             String               @default("approximate")
+  revision             Int                  @default(1)
+  idempotencyKey       String?              @unique
   data                 Json
-  windowCount          Int                     @default(0)
-  paneCount            Int                     @default(0)
-  publicTokenHash      String?                 @unique
-  publicTokenVersion   Int                     @default(0)
+  windowCount          Int                  @default(0)
+  paneCount            Int                  @default(0)
+  publicTokenHash      String?              @unique
+  publicTokenVersion   Int                  @default(0)
   publicTokenExpiresAt DateTime?
   requestedAt          DateTime?
   startedAt            DateTime?
   receivedAt           DateTime?
   validatedAt          DateTime?
-  aiAnalysisCount      Int                     @default(0)
-  createdAt            DateTime                @default(now())
-  updatedAt            DateTime                @updatedAt
+  aiAnalysisCount      Int                  @default(0)
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
   thermosOrders        ThermosOrder[]
 
   @@index([clientId, createdAt])
@@ -897,4 +897,30 @@ model ThermosOrderEvent {
 
   @@index([orderId, createdAt])
   @@map("thermos_order_events")
+}
+
+// ─── App mobile « Appels » ────────────────────────────────────────────────
+// Telephone d'un associe sur lequel tourne l'app Android maison. L'app detecte
+// l'appel entrant et interroge le serveur pour savoir qui appelle.
+//
+// Le jeton d'appareil ne donne PAS acces a l'admin : il porte un purpose que
+// getAdminSession() refuse, et n'ouvre que /api/app/* (lookup + enregistrement
+// d'appel). Un telephone perdu se revoque d'un clic sans toucher aux comptes.
+model AppDevice {
+  id                  Int       @id @default(autoincrement())
+  name                String // « Cellulaire d'Erik »
+  platform            String    @default("android")
+  model               String? // renvoye par l'app : « Pixel 10 », « SM-S928W »
+  appVersion          String? // version de l'APK installee, pour le suivi des maj
+  tokenHash           String    @unique // on ne stocke JAMAIS le jeton en clair
+  activationCode      String?   @unique // code court a usage unique, efface apres usage
+  activationExpiresAt DateTime?
+  activatedAt         DateTime?
+  lastSeenAt          DateTime?
+  revokedAt           DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([revokedAt])
+  @@map("app_devices")
 }
