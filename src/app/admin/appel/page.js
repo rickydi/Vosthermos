@@ -126,6 +126,11 @@ function AppelContent() {
   const [looking, setLooking] = useState(false);
   const [isClient, setIsClient] = useState(null); // null | true | false (numero inconnu)
   const [wantPhotoSms, setWantPhotoSms] = useState(false);
+  // Date de l'appel : « maintenant » dans l'immense majorité des cas, mais
+  // modifiable pour noter après coup un appel de la veille.
+  const [calledDate, setCalledDate] = useState("");
+  const [calledTime, setCalledTime] = useState("");
+  const [editingDate, setEditingDate] = useState(false);
 
   const phoneDigits = phone.replace(/\D/g, "");
   const phoneOk = phoneDigits.length === 10 || (phoneDigits.length === 11 && phoneDigits.startsWith("1"));
@@ -138,6 +143,15 @@ function AppelContent() {
   }, []);
 
   useEffect(() => { loadToday(); }, [loadToday]);
+
+  // Horodatage local posé au montage (jamais au SSR : évite tout écart
+  // d'hydratation et respecte le fuseau du téléphone).
+  useEffect(() => {
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, "0");
+    setCalledDate(`${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`);
+    setCalledTime(`${pad(now.getHours())}:${pad(now.getMinutes())}`);
+  }, []);
 
   // Valeur par defaut de la demande de photos (Parametres > Appels).
   useEffect(() => {
@@ -197,11 +211,23 @@ function AppelContent() {
           note,
           // Choix fait sur cette page : prime sur l'option globale.
           sendPhotoSms: wantPhotoSms,
+          // Construit dans le fuseau du téléphone, envoyé en ISO.
+          calledAt: calledDate && calledTime
+            ? new Date(`${calledDate}T${calledTime}`).toISOString()
+            : undefined,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erreur");
-      setSaved({ name: name.trim() || "Client (appel)", phone, existing: data.existing, photoSms: data.photoSms });
+      const todayStr = new Date().toISOString().slice(0, 10);
+      setSaved({
+        name: name.trim() || "Client (appel)",
+        phone,
+        existing: data.existing,
+        photoSms: data.photoSms,
+        // Sert a prevenir que l'appel n'apparaitra pas dans la liste du jour.
+        backdated: calledDate && calledDate !== todayStr ? calledDate : null,
+      });
       loadToday();
     } catch (e) {
       setError(e.message || "Erreur — réessayez");
@@ -214,6 +240,11 @@ function AppelContent() {
     setPhone(""); setName(""); setService(""); setAddress(""); setAddressParts(null); setNote("");
     setError(""); setSaved(null);
     setLookup(null); setIsClient(null);
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, "0");
+    setCalledDate(`${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`);
+    setCalledTime(`${pad(now.getHours())}:${pad(now.getMinutes())}`);
+    setEditingDate(false);
   }
 
   const tabBar = (
@@ -268,6 +299,13 @@ function AppelContent() {
         )}
         {saved.photoSms === "failed" && (
           <p className="text-amber-300 text-sm mb-2"><i className="fas fa-triangle-exclamation mr-1"></i>Le texto photos n&apos;est pas parti.</p>
+        )}
+        {saved.backdated && (
+          <p className="text-amber-300 text-sm mb-2">
+            <i className="fas fa-clock mr-1"></i>
+            Daté du {new Date(`${saved.backdated}T12:00`).toLocaleDateString("fr-CA", { day: "numeric", month: "long" })} —
+            il n&apos;apparaîtra donc pas dans la liste « Aujourd&apos;hui ».
+          </p>
         )}
         <p className="admin-text-muted text-sm mb-8">Il apparaît maintenant dans le chat et le suivi.</p>
         <button
@@ -469,6 +507,61 @@ function AppelContent() {
           className="mt-1.5 w-full px-4 py-3 rounded-2xl admin-card border text-lg admin-text focus:outline-none focus:border-sky-400 resize-none"
         />
       </label>
+
+      {/* Date de l'appel : repliee par defaut (c'est « maintenant » 99 fois sur
+          100), depliable pour noter apres coup l'appel de la veille. */}
+      <div className="mb-5">
+        {!editingDate ? (
+          <button
+            type="button"
+            onClick={() => setEditingDate(true)}
+            className="w-full flex items-center justify-between rounded-2xl admin-card border px-4 py-3 text-left hover:bg-white/5 transition-colors"
+          >
+            <span className="admin-text-muted text-sm">
+              <i className="fas fa-clock mr-2 text-sky-300"></i>
+              {calledDate
+                ? new Date(`${calledDate}T${calledTime || "00:00"}`).toLocaleString("fr-CA", {
+                    weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit",
+                  })
+                : "Maintenant"}
+            </span>
+            <span className="text-sky-300 text-xs font-bold">Modifier</span>
+          </button>
+        ) : (
+          <div className="rounded-2xl admin-card border p-4">
+            <p className="admin-text font-bold text-sm mb-3">
+              <i className="fas fa-clock mr-2 text-sky-300"></i>Date et heure de l&apos;appel
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                type="date"
+                value={calledDate}
+                onChange={(e) => setCalledDate(e.target.value)}
+                className="h-14 px-3 rounded-xl admin-card border admin-text focus:outline-none focus:border-sky-400"
+              />
+              <input
+                type="time"
+                value={calledTime}
+                onChange={(e) => setCalledTime(e.target.value)}
+                className="h-14 px-3 rounded-xl admin-card border admin-text focus:outline-none focus:border-sky-400"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const now = new Date();
+                const pad = (n) => String(n).padStart(2, "0");
+                setCalledDate(`${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`);
+                setCalledTime(`${pad(now.getHours())}:${pad(now.getMinutes())}`);
+                setEditingDate(false);
+              }}
+              className="mt-3 w-full h-11 rounded-xl admin-card border admin-text-muted text-sm font-bold hover:bg-white/5 transition-colors"
+            >
+              <i className="fas fa-rotate-left mr-2"></i>Remettre à maintenant
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* Demande de photos : decide appel par appel. L'option globale
           (Parametres > Appels) ne sert plus que de valeur par defaut — elle

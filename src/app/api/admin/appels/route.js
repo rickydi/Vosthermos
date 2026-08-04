@@ -39,6 +39,24 @@ export async function POST(req) {
     const note = String(body.note || "").trim();
     const content = buildCallSummary({ service, address, city, note });
 
+    // Date de l'appel : « maintenant » par defaut, mais saisissable pour noter
+    // apres coup un appel de la veille. On refuse le futur (faute de frappe sur
+    // l'annee) et on borne a un an en arriere.
+    let calledAt = new Date();
+    if (body.calledAt) {
+      const parsed = new Date(body.calledAt);
+      if (Number.isNaN(parsed.getTime())) {
+        return NextResponse.json({ error: "Date d'appel invalide." }, { status: 400 });
+      }
+      if (parsed.getTime() > Date.now() + 5 * 60 * 1000) {
+        return NextResponse.json({ error: "La date de l'appel est dans le futur." }, { status: 400 });
+      }
+      if (parsed.getTime() < Date.now() - 366 * 24 * 3600 * 1000) {
+        return NextResponse.json({ error: "La date de l'appel remonte a plus d'un an." }, { status: 400 });
+      }
+      calledAt = parsed;
+    }
+
     const existing = await prisma.chatConversation.findUnique({ where: { clientPhone } });
 
     // PAS d'unreadCount ici : c'est NOUS qui saisissons l'appel, pas une demande
@@ -48,7 +66,11 @@ export async function POST(req) {
       conversation = await prisma.chatConversation.update({
         where: { id: existing.id },
         data: {
-          lastMessageAt: new Date(),
+          // Un appel note apres coup ne doit pas faire RECULER la conversation
+          // dans la liste du chat si un echange plus recent existe deja.
+          lastMessageAt: existing.lastMessageAt && existing.lastMessageAt > calledAt
+            ? existing.lastMessageAt
+            : calledAt,
           isArchived: false,
           // On garde le nom existant s'il est plus complet que la saisie rapide.
           ...(existing.clientName === "Client (appel)" && clientName !== "Client (appel)"
@@ -58,7 +80,7 @@ export async function POST(req) {
       });
     } else {
       conversation = await prisma.chatConversation.create({
-        data: { clientName, clientPhone, source: "appel", unreadCount: 0 },
+        data: { clientName, clientPhone, source: "appel", unreadCount: 0, lastMessageAt: calledAt },
       });
     }
 
@@ -68,6 +90,7 @@ export async function POST(req) {
         senderType: "client",
         senderName: conversation.clientName,
         content,
+        createdAt: calledAt,
       },
     });
 
