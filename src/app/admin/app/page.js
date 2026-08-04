@@ -22,6 +22,7 @@ function timeAgo(value) {
 
 export default function AppDevicesPage() {
   const [devices, setDevices] = useState([]);
+  const [release, setRelease] = useState(null);
   const [settings, setSettings] = useState({ enabled: true, delaySeconds: 10, ignoredNumbers: "" });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -31,11 +32,15 @@ export default function AppDevicesPage() {
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch("/api/admin/app-devices", { cache: "no-store" });
-      if (!res.ok) throw new Error();
-      const data = await res.json();
+      const [devicesRes, releaseRes] = await Promise.all([
+        fetch("/api/admin/app-devices", { cache: "no-store" }),
+        fetch("/api/admin/app-release", { cache: "no-store" }),
+      ]);
+      if (!devicesRes.ok) throw new Error();
+      const data = await devicesRes.json();
       setDevices(data.devices || []);
       setSettings(data.settings || settings);
+      setRelease(releaseRes.ok ? await releaseRes.json() : null);
     } catch {
       setError("Chargement impossible.");
     } finally {
@@ -112,6 +117,37 @@ export default function AppDevicesPage() {
           {error}
         </p>
       )}
+
+      {/* Telechargement de l'app — premier geste sur un nouveau telephone, donc
+          en haut. L'APK est servi par le serveur et non par GitHub : les
+          artefacts d'un depot prive exigeraient un compte GitHub. */}
+      <div className="admin-card border rounded-xl p-5 mb-6">
+        <h2 className="admin-text font-bold mb-1">Installer l&apos;app</h2>
+        {release?.available ? (
+          <>
+            <p className="admin-text-muted text-sm mb-4">
+              Version {release.version} · {(release.sizeBytes / 1048576).toFixed(1)} Mo · déposée le{" "}
+              {new Date(release.uploadedAt).toLocaleDateString("fr-CA", { day: "numeric", month: "long", year: "numeric" })}
+            </p>
+            <a
+              href="/api/admin/app-release?download=1"
+              className="inline-flex items-center gap-2 px-5 py-3 bg-[var(--color-red)] text-white rounded-lg text-sm font-bold hover:opacity-90"
+            >
+              <i className="fas fa-download"></i>Télécharger l&apos;APK
+            </a>
+            <p className="admin-text-muted text-xs mt-3 leading-relaxed">
+              À ouvrir <strong>depuis le téléphone</strong> (cette page, connecté à l&apos;admin).
+              Android demandera d&apos;autoriser l&apos;installation depuis cette source, puis
+              l&apos;app guidera les 4 étapes.
+            </p>
+          </>
+        ) : (
+          <p className="admin-text-muted text-sm">
+            Aucune version déposée pour l&apos;instant. L&apos;APK arrive ici automatiquement
+            à chaque compilation du dépôt <span className="font-mono">vosthermos-app</span>.
+          </p>
+        )}
+      </div>
 
       {/* Code d'activation fraichement cree : affiche UNE fois, en gros. */}
       {created && (
