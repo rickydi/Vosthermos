@@ -4,8 +4,9 @@ import { sendSms } from "@/lib/twilio";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.vosthermos.com";
 
 // Clé site_settings : "1" = texter automatiquement la demande de photos au
-// client après l'enregistrement d'un appel (/admin/appel).
-export const APPEL_AUTO_PHOTO_SMS_KEY = "appel_auto_photo_sms";
+// client après l'enregistrement d'un appel (/admin/appel). Definie dans
+// settings-keys.js (sans dependance) pour rester importable cote client.
+export { APPEL_AUTO_PHOTO_SMS_KEY } from "@/lib/settings-keys";
 
 // Lien public de dépôt de photos (token JWT à purpose dédié, 7 jours —
 // getAdminSession refuse les tokens à purpose : aucun accès admin possible).

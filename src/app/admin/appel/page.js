@@ -1,7 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { formatPhone } from "@/lib/phone";
+import { APPEL_AUTO_PHOTO_SMS_KEY } from "@/lib/settings-keys";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 
 // Formate le numéro pendant la frappe : 5145551234 -> 514-555-1234.
@@ -106,7 +108,8 @@ const SERVICES = [
   { key: "Autre", icon: "fa-question" },
 ];
 
-export default function AppelPage() {
+function AppelContent() {
+  const searchParams = useSearchParams();
   const [tab, setTab] = useState("appel");
   const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
@@ -118,6 +121,11 @@ export default function AppelPage() {
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(null);
   const [today, setToday] = useState({ count: 0, calls: [] });
+  // Reconnaissance de l'appelant (page ouverte par la macro du cellulaire).
+  const [lookup, setLookup] = useState(null);   // null tant qu'on ne sait pas
+  const [looking, setLooking] = useState(false);
+  const [isClient, setIsClient] = useState(null); // null | true | false (numero inconnu)
+  const [wantPhotoSms, setWantPhotoSms] = useState(false);
 
   const phoneDigits = phone.replace(/\D/g, "");
   const phoneOk = phoneDigits.length === 10 || (phoneDigits.length === 11 && phoneDigits.startsWith("1"));
@@ -130,6 +138,45 @@ export default function AppelPage() {
   }, []);
 
   useEffect(() => { loadToday(); }, [loadToday]);
+
+  // Valeur par defaut de la demande de photos (Parametres > Appels).
+  useEffect(() => {
+    fetch(`/api/admin/settings?key=${APPEL_AUTO_PHOTO_SMS_KEY}`, { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => setWantPhotoSms(d?.value === "1"))
+      .catch(() => {});
+  }, []);
+
+  // La macro du cellulaire ouvre /admin/appel?tel=5145551234 apres 10 s d'appel.
+  // On identifie tout de suite l'appelant : un client connu n'a pas a etre
+  // confirme, la question ne se pose que sur un vrai inconnu.
+  useEffect(() => {
+    const tel = searchParams.get("tel");
+    if (!tel) return;
+    const digits = tel.replace(/\D/g, "").slice(-10);
+    if (digits.length !== 10) return;
+    setPhone(formatPhone(digits) || digits);
+    setLooking(true);
+    fetch(`/api/admin/appels/lookup?tel=${digits}`, { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        setLookup(data);
+        if (data?.known && data.client) {
+          setIsClient(true);
+          setName(data.client.contactName || data.client.name || "");
+          if (data.client.address) setAddress(data.client.address);
+          if (data.client.city) {
+            setAddressParts({
+              city: data.client.city,
+              province: data.client.province || "",
+              postalCode: data.client.postalCode || "",
+            });
+          }
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLooking(false));
+  }, [searchParams]);
 
   async function save() {
     if (!phoneOk || saving) return;
@@ -148,6 +195,8 @@ export default function AppelPage() {
           province: addressParts?.province || "",
           postalCode: addressParts?.postalCode || "",
           note,
+          // Choix fait sur cette page : prime sur l'option globale.
+          sendPhotoSms: wantPhotoSms,
         }),
       });
       const data = await res.json();
@@ -164,6 +213,7 @@ export default function AppelPage() {
   function resetForm() {
     setPhone(""); setName(""); setService(""); setAddress(""); setAddressParts(null); setNote("");
     setError(""); setSaved(null);
+    setLookup(null); setIsClient(null);
   }
 
   const tabBar = (
@@ -231,6 +281,70 @@ export default function AppelPage() {
     );
   }
 
+  // Numéro inconnu apporté par la macro du cellulaire : on demande AVANT de
+  // créer quoi que ce soit. Un « non » ne laisse aucune trace en base.
+  if (lookup && !lookup.known && isClient === null) {
+    return (
+      <div className="max-w-md mx-auto px-4 py-10 text-center">
+        {tabBar}
+        <div className="w-24 h-24 mx-auto rounded-full bg-sky-500/20 flex items-center justify-center mb-6">
+          <i className="fas fa-phone-volume text-4xl text-sky-300"></i>
+        </div>
+        <p className="admin-text-muted text-sm uppercase tracking-wider font-bold mb-1">Numéro inconnu</p>
+        <p className="text-sky-300 text-3xl font-extrabold mb-2">{phone}</p>
+        {lookup.conversation ? (
+          <p className="admin-text-muted text-sm mb-6">
+            Déjà vu dans le chat sous « {lookup.conversation.name || "sans nom"} », mais aucune fiche client.
+          </p>
+        ) : (
+          <p className="admin-text-muted text-sm mb-6">Aucune fiche à ce numéro.</p>
+        )}
+        <h1 className="admin-text text-xl font-extrabold mb-6">Est-ce un client Vosthermos?</h1>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => setIsClient(true)}
+            className="h-20 rounded-2xl bg-green-600 hover:bg-green-500 text-white text-xl font-bold transition-colors"
+          >
+            <i className="fas fa-check mr-2"></i>Oui
+          </button>
+          <button
+            onClick={() => setIsClient(false)}
+            className="h-20 rounded-2xl admin-card border admin-text text-xl font-bold transition-colors hover:bg-white/5"
+          >
+            <i className="fas fa-xmark mr-2"></i>Non
+          </button>
+        </div>
+        <p className="admin-text-muted text-xs mt-4">« Non » ne crée aucune fiche et n&apos;envoie aucun texto.</p>
+      </div>
+    );
+  }
+
+  // « Non » : rien n'a été enregistré, on le dit et on s'arrête là.
+  if (isClient === false) {
+    return (
+      <div className="max-w-md mx-auto px-4 py-10 text-center">
+        {tabBar}
+        <div className="w-20 h-20 mx-auto rounded-full admin-card border flex items-center justify-center mb-5">
+          <i className="fas fa-xmark text-3xl admin-text-muted"></i>
+        </div>
+        <h1 className="admin-text text-2xl font-extrabold mb-2">Appel ignoré</h1>
+        <p className="admin-text-muted text-sm mb-8">{phone} — aucune fiche créée, aucun texto envoyé.</p>
+        <button
+          onClick={() => setIsClient(true)}
+          className="w-full h-14 rounded-2xl admin-card border admin-text font-bold hover:bg-white/5 transition-colors mb-3"
+        >
+          <i className="fas fa-rotate-left mr-2"></i>Finalement, l&apos;enregistrer
+        </button>
+        <button
+          onClick={resetForm}
+          className="w-full h-14 rounded-2xl bg-sky-600 hover:bg-sky-500 text-white font-bold transition-colors"
+        >
+          <i className="fas fa-plus mr-2"></i>Nouvel appel
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-md mx-auto px-4 pb-16">
       {tabBar}
@@ -243,6 +357,45 @@ export default function AppelPage() {
         </h1>
         <p className="admin-text-muted text-sm mt-1">Le numéro suffit — le reste est optionnel.</p>
       </div>
+
+      {looking && (
+        <div className="mb-5 rounded-2xl admin-card border p-4 admin-text-muted text-sm">
+          <i className="fas fa-spinner fa-spin mr-2"></i>Identification de l&apos;appelant…
+        </div>
+      )}
+
+      {/* Client reconnu : on affiche qui appelle avant même de remplir quoi que
+          ce soit. Avant, l'information n'arrivait qu'après l'enregistrement. */}
+      {lookup?.known && lookup.client && (
+        <div className="mb-5 rounded-2xl border border-emerald-400/40 bg-emerald-500/10 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-emerald-300 text-[11px] font-bold uppercase tracking-wider">Client connu</p>
+              <p className="admin-text text-lg font-extrabold truncate">{lookup.client.name}</p>
+              {lookup.client.company && <p className="admin-text-muted text-xs">{lookup.client.company}</p>}
+              <p className="admin-text-muted text-xs mt-1">
+                {lookup.client.workOrderCount > 0
+                  ? `${lookup.client.workOrderCount} bon${lookup.client.workOrderCount > 1 ? "s" : ""}`
+                  : "aucun bon"}
+                {lookup.client.city ? ` · ${lookup.client.city}` : ""}
+                {lookup.client.clientSince ? ` · depuis ${new Date(lookup.client.clientSince).getFullYear()}` : ""}
+              </p>
+              {lookup.client.lastWorkOrder && (
+                <p className="admin-text-muted text-xs mt-1 truncate">
+                  Dernier : {lookup.client.lastWorkOrder.number}
+                  {lookup.client.lastWorkOrder.date ? ` · ${new Date(lookup.client.lastWorkOrder.date).toLocaleDateString("fr-CA", { month: "short", year: "numeric" })}` : ""}
+                </p>
+              )}
+            </div>
+            <a
+              href={`/admin/clients/${lookup.client.id}`}
+              className="shrink-0 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white hover:bg-emerald-500 transition-colors"
+            >
+              <i className="fas fa-folder-open mr-1"></i>Fiche
+            </a>
+          </div>
+        </div>
+      )}
 
       {/* Téléphone — le seul champ obligatoire */}
       <label className="block mb-5">
@@ -317,6 +470,38 @@ export default function AppelPage() {
         />
       </label>
 
+      {/* Demande de photos : decide appel par appel. L'option globale
+          (Parametres > Appels) ne sert plus que de valeur par defaut — elle
+          envoyait un texto a TOUS les appelants, vendeurs compris. */}
+      <div className="mb-5 rounded-2xl admin-card border p-4">
+        <p className="admin-text font-bold text-sm mb-1">
+          <i className="fas fa-camera mr-2 text-sky-300"></i>Demander ses photos par texto?
+        </p>
+        <p className="admin-text-muted text-xs mb-3">
+          Lien valide 7 jours pour qu&apos;il photographie sa fenêtre ou sa porte.
+        </p>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => setWantPhotoSms(true)}
+            className={`h-14 rounded-xl border font-bold transition-colors ${
+              wantPhotoSms ? "bg-sky-600 border-sky-400 text-white" : "admin-card admin-border admin-text-muted hover:bg-white/5"
+            }`}
+          >
+            <i className="fas fa-check mr-2"></i>Oui
+          </button>
+          <button
+            type="button"
+            onClick={() => setWantPhotoSms(false)}
+            className={`h-14 rounded-xl border font-bold transition-colors ${
+              !wantPhotoSms ? "bg-slate-600 border-slate-400 text-white" : "admin-card admin-border admin-text-muted hover:bg-white/5"
+            }`}
+          >
+            <i className="fas fa-xmark mr-2"></i>Non
+          </button>
+        </div>
+      </div>
+
       {error && (
         <p className="mb-4 px-4 py-3 rounded-xl bg-red-500/15 border border-red-500/40 text-red-300 font-semibold">
           {error}
@@ -360,5 +545,15 @@ export default function AppelPage() {
         )}
       </div>
     </div>
+  );
+}
+
+// useSearchParams impose une frontiere Suspense (la page lit ?tel=... envoye
+// par la macro du cellulaire).
+export default function AppelPage() {
+  return (
+    <Suspense fallback={<div className="max-w-md mx-auto px-4 py-16 text-center admin-text-muted"><i className="fas fa-spinner fa-spin mr-2"></i>Chargement…</div>}>
+      <AppelContent />
+    </Suspense>
   );
 }

@@ -82,19 +82,30 @@ export async function POST(req) {
       source: "appel",
     });
 
-    // Option (Paramètres > Appels) : texter automatiquement au client le lien
-    // pour envoyer ses photos dès que l'appel est enregistré.
+    // Demande de photos par texto. Le choix fait DANS la page d'appel prime sur
+    // l'option globale (Paramètres > Appels) : sans ce garde-fou, tout appel
+    // enregistré déclenchait un texto, y compris pour un vendeur ou un appel
+    // personnel. `sendPhotoSms` absent = on retombe sur l'option globale, pour
+    // ne rien changer aux appelants qui n'envoient pas ce champ.
     let photoSms = null;
     try {
-      const setting = await prisma.siteSetting.findUnique({
-        where: { key: APPEL_AUTO_PHOTO_SMS_KEY },
-        select: { value: true },
-      });
-      if (setting?.value === "1" && client) {
+      let wanted;
+      if (body.sendPhotoSms === true || body.sendPhotoSms === false) {
+        wanted = body.sendPhotoSms;
+      } else {
+        const setting = await prisma.siteSetting.findUnique({
+          where: { key: APPEL_AUTO_PHOTO_SMS_KEY },
+          select: { value: true },
+        });
+        wanted = setting?.value === "1";
+      }
+      if (wanted && client) {
         photoSms = (await sendPhotoRequestSms(client)) ? "sent" : "failed";
+      } else if (wanted && !client) {
+        photoSms = "failed";
       }
     } catch (err) {
-      console.error("[appels] auto photo sms error:", err?.message || err);
+      console.error("[appels] photo sms error:", err?.message || err);
       photoSms = "failed";
     }
 
