@@ -137,8 +137,21 @@ export default function AppDevicesPage() {
             </a>
             <p className="admin-text-muted text-xs mt-3 leading-relaxed">
               À ouvrir <strong>depuis le téléphone</strong> (cette page, connecté à l&apos;admin).
-              Android demandera d&apos;autoriser l&apos;installation depuis cette source, puis
-              l&apos;app guidera les 4 étapes.
+            </p>
+            <ol className="admin-text-muted text-xs mt-2 leading-relaxed list-decimal ml-4 space-y-1">
+              <li>
+                Le fichier se télécharge — <strong>touche ensuite la notification de Chrome</strong>{" "}
+                (ou ouvre Téléchargements) pour lancer l&apos;installation. Android ne peut pas
+                l&apos;enchaîner tout seul.
+              </li>
+              <li>Autoriser l&apos;installation depuis cette source, puis installer.</li>
+              <li>Ouvrir l&apos;app : elle guide les étapes une par une.</li>
+            </ol>
+            <p className="admin-text-muted text-xs mt-2 leading-relaxed">
+              <i className="fas fa-circle-info mr-1"></i>
+              Après cette première installation, les mises à jour se font
+              <strong> depuis l&apos;app</strong> (bouton « Vérifier les mises à jour ») — sans
+              repasser par cette page.
             </p>
           </>
         ) : (
