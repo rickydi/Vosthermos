@@ -220,7 +220,10 @@ export async function searchChatConversationIds(input, { limit = 500 } = {}) {
       v."lastMessageAt" DESC NULLS LAST
     LIMIT ${limit}
   `;
-  return rows.map((row) => Number(row.id));
+  // L'id des conversations est un cuid TEXTE : le passer dans Number() donnait
+  // NaN, et le `id: { in: [NaN] }` faisait planter toutes les requetes en aval
+  // (recherche du chat vide, onglet photos des fiches en erreur).
+  return rows.map((row) => String(row.id));
 }
 
 // Commandes fournisseur de thermos.
@@ -264,7 +267,9 @@ function digitPatterns(digitsList) {
     (digitsList || [])
       .map((value) => String(value || "").replace(/\D/g, ""))
       .filter((digits) => digits.length >= 7)
-      .map((digits) => `%${digits.slice(-10)}%`),
+      // 7 derniers chiffres : d'anciennes conversations et RDV sont stockes a
+      // 7 ou 9 chiffres (sans indicatif) — un motif de 10 ne les trouverait pas.
+      .map((digits) => `%${digits.slice(-7)}%`),
   )];
 }
 
@@ -296,5 +301,6 @@ export async function conversationIdsByPhoneDigits(digitsList) {
     SELECT id FROM chat_conversations
     WHERE vt_digits(coalesce("clientPhone", '')) LIKE ANY(${patterns})
   `;
-  return rows.map((row) => Number(row.id));
+  // cuid TEXTE — surtout pas Number() (NaN casserait les requetes en aval).
+  return rows.map((row) => String(row.id));
 }

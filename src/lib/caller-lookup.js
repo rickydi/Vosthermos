@@ -32,7 +32,8 @@ export async function lookupCaller(rawPhone) {
     `;
     const conversation = convRows[0]
       ? await prisma.chatConversation.findUnique({
-          where: { id: Number(convRows[0].id) },
+          // id = cuid TEXTE, jamais Number().
+          where: { id: String(convRows[0].id) },
           select: { id: true, clientName: true, lastMessageAt: true },
         })
       : null;
