@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireDevice } from "@/lib/app-device";
 import { serializeFollowUp } from "@/lib/follow-up-utils";
+import { conversationIdsByPhoneDigits } from "@/lib/search";
 
 export const dynamic = "force-dynamic";
 
@@ -47,6 +48,33 @@ export async function GET(req) {
       orderBy: { createdAt: "desc" },
     }));
 
+  // Photos du client (envoyees par lui via le lien texto, ou ajoutees a la
+  // fiche) : miniatures affichees au bas de l'ecran mobile.
+  const photos = await prisma.clientPhoto.findMany({
+    where: { clientId },
+    orderBy: { createdAt: "desc" },
+    take: 24,
+    select: { id: true, url: true, title: true, source: true, createdAt: true },
+  });
+
+  // Historique des appels : les entrees « 📞 Appel reçu » de ses conversations
+  // (retrouvees par sa fiche OU ses numeros — chiffres seuls).
+  const conversationIds = await conversationIdsByPhoneDigits([client.phone, client.secondaryPhone]);
+  const callMessages = await prisma.chatMessage.findMany({
+    where: {
+      content: { startsWith: "📞 Appel reçu" },
+      conversation: {
+        OR: [
+          { clientId },
+          ...(conversationIds.length ? [{ id: { in: conversationIds } }] : []),
+        ],
+      },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 12,
+    select: { id: true, content: true, createdAt: true },
+  });
+
   const lastOrder = client.workOrders?.[0] || null;
   return NextResponse.json({
     client: {
@@ -74,5 +102,18 @@ export async function GET(req) {
         : null,
     },
     followUp: followUp ? serializeFollowUp(followUp) : null,
+    photos: photos.map((photo) => ({
+      id: photo.id,
+      url: photo.url,
+      title: photo.title,
+      source: photo.source,
+      createdAt: photo.createdAt?.toISOString() || null,
+    })),
+    calls: callMessages.map((message) => ({
+      id: message.id,
+      at: message.createdAt?.toISOString() || null,
+      // « 📞 Appel reçu — Service — adresse\nnote » -> texte pret a afficher.
+      summary: String(message.content || "").replace(/^📞 Appel reçu\s*(—\s*)?/, "").trim() || "Appel",
+    })),
   }, { headers: { "Cache-Control": "no-store" } });
 }

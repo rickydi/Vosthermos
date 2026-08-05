@@ -10,9 +10,9 @@ export const dynamic = "force-dynamic";
 // memes evenements temps reel vers les onglets admin ouverts.
 //
 // Surface volontairement REDUITE : seuls les menus de la carte (contact,
-// visite, soumission, approbation) passent. Pas d'edition libre des champs ni
-// de creation de RDV depuis le telephone — ces gestes restent sur l'admin web.
-const ALLOWED_KEYS = new Set(["contactState", "toggleMilestone", "on", "visitStatus", "estimateType", "outcome"]);
+// visite avec ou sans RDV, soumission, approbation) passent. Pas d'edition
+// libre des champs — ces gestes restent sur l'admin web.
+const ALLOWED_KEYS = new Set(["contactState", "toggleMilestone", "on", "visitStatus", "estimateType", "outcome", "visitRdv"]);
 const ALLOWED_MILESTONES = new Set(["contactedAt", "visitDoneAt", "estimateSentAt", "acceptedAt"]);
 
 export async function PUT(req, { params }) {
