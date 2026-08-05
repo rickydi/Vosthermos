@@ -113,6 +113,20 @@ export async function recordCall(body = {}) {
     alreadyContacted: true,
   });
 
+  // Lier la conversation a la fiche : elle naissait sans clientId et le
+  // restait pour toujours — badges non lus, onglet chat de la fiche et
+  // historique d'appels devaient alors se rabattre sur le numero.
+  if (client?.id && conversation.clientId !== client.id) {
+    try {
+      conversation = await prisma.chatConversation.update({
+        where: { id: conversation.id },
+        data: { clientId: client.id },
+      });
+    } catch (err) {
+      console.error("[appels] liaison conversation-client:", err?.message || err);
+    }
+  }
+
   // Demande de photos par texto. Le choix fait dans l'interface prime sur
   // l'option globale (Parametres > Appels) : sans ce garde-fou, tout appel
   // enregistre declenchait un texto, y compris pour un vendeur.
