@@ -57,14 +57,21 @@ export async function upsertClientFromLead({
       existing = await prisma.client.findUnique({ where: { email: cleanEmail } });
     }
     if (!existing && phoneDigits) {
-      existing = await prisma.client.findFirst({
-        where: {
-          OR: [
-            { phone: { contains: phoneDigits.slice(-7) } },
-            { secondaryPhone: { contains: phoneDigits.slice(-7) } },
-          ],
-        },
-      });
+      // Comparaison sur les CHIFFRES (vt_digits) et non sur le texte brut :
+      // « 555-700-4327 » ne CONTIENT pas « 7004327 » a cause du tiret, si bien
+      // que l'ancien `contains` ne retrouvait presque jamais un client par son
+      // numero — chaque appel d'un client sans courriel creait un DOUBLON
+      // (23 groupes constates en base avant ce correctif).
+      const rows = await prisma.$queryRaw`
+        SELECT id FROM clients
+        WHERE vt_digits(coalesce(phone, '')) LIKE ${`%${phoneDigits}%`}
+           OR vt_digits(coalesce(secondary_phone, '')) LIKE ${`%${phoneDigits}%`}
+        ORDER BY "updatedAt" DESC
+        LIMIT 1
+      `;
+      if (rows[0]) {
+        existing = await prisma.client.findUnique({ where: { id: Number(rows[0].id) } });
+      }
     }
 
     const sourceNote = source ? `[auto: ${source} ${new Date().toISOString().slice(0, 10)}]` : null;
