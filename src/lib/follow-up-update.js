@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { serializeFollowUp, syncLatestWorkOrderFromFollowUpStatus } from "@/lib/follow-up-utils";
 import { deriveFollowUpStatus, FOLLOW_UP_MILESTONE_KEYS } from "@/lib/follow-up-columns";
+import { conversationIdsByPhoneDigits } from "@/lib/search";
 import { publishAdminEvent } from "@/lib/event-bus";
 
 // Mise a jour d'un suivi — logique extraite de /api/admin/follow-ups/[id] pour
@@ -328,6 +329,41 @@ export async function applyFollowUpUpdate({ followUpId, body, actor, origin }) {
       await syncLatestWorkOrderFromFollowUpStatus(followUp);
     } catch (err) {
       console.error("[follow-ups] work-order sync error:", err?.message || err);
+    }
+  }
+
+  // Un GESTE D'ETAT sur le suivi (contact, visite, soumission, approbation,
+  // jalon, RDV) prouve que la demande du client a ete traitee : la pastille
+  // « non lu » de ses conversations de chat tombe toute seule, sans avoir a
+  // ouvrir la conversation juste pour la faire taire. Une simple retouche de
+  // champ (note, montant...) ne compte pas comme un geste.
+  const isStateCommand =
+    body.contactState !== undefined ||
+    Boolean(body.toggleMilestone) ||
+    body.outcome !== undefined ||
+    body.visitStatus !== undefined ||
+    body.estimateType !== undefined ||
+    Boolean(body.visitRdv);
+  if (isStateCommand) {
+    try {
+      const conversationIds = await conversationIdsByPhoneDigits([
+        followUp.phone,
+        followUp.client?.phone,
+        followUp.client?.secondaryPhone,
+      ]);
+      const matchers = [
+        ...(followUp.clientId ? [{ clientId: followUp.clientId }] : []),
+        ...(conversationIds.length ? [{ id: { in: conversationIds } }] : []),
+      ];
+      if (matchers.length) {
+        await prisma.chatConversation.updateMany({
+          where: { unreadCount: { gt: 0 }, OR: matchers },
+          data: { unreadCount: 0 },
+        });
+      }
+    } catch (err) {
+      // Confort d'affichage seulement : ne doit jamais faire echouer la commande.
+      console.error("[follow-ups] lecture auto du chat:", err?.message || err);
     }
   }
 
