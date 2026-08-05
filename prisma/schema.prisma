@@ -924,3 +924,19 @@ model AppDevice {
   @@index([revokedAt])
   @@map("app_devices")
 }
+
+// Journal des appels RECUS (repondus), consigne par l'app mobile a chaque
+// appel — independant du fait que l'appel ait ete note ou non. C'est ce qui
+// permet a l'ecran client d'afficher « ce numero a appele le X a Y h » meme
+// quand personne n'a rempli la fiche.
+model CallEvent {
+  id          Int      @id @default(autoincrement())
+  phoneDigits String // 10 chiffres, cle de rapprochement
+  clientId    Int? // fiche identifiee au moment de l'appel, si unique
+  deviceId    Int? // quel telephone a recu l'appel
+  at          DateTime @default(now())
+
+  @@index([phoneDigits, at])
+  @@index([clientId, at])
+  @@map("call_events")
+}

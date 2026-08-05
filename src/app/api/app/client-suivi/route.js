@@ -57,23 +57,57 @@ export async function GET(req) {
     select: { id: true, url: true, title: true, source: true, createdAt: true },
   });
 
-  // Historique des appels : les entrees « 📞 Appel reçu » de ses conversations
-  // (retrouvees par sa fiche OU ses numeros — chiffres seuls).
-  const conversationIds = await conversationIdsByPhoneDigits([client.phone, client.secondaryPhone]);
-  const callMessages = await prisma.chatMessage.findMany({
-    where: {
-      content: { startsWith: "📞 Appel reçu" },
-      conversation: {
+  // Historique des appels = union de DEUX sources :
+  //   1. les appels NOTES (entrees « 📞 Appel reçu » de ses conversations) ;
+  //   2. les appels RECUS consignes par l'app (call_events), meme jamais notes
+  //      — c'est ce qui repond a « ce numero a appele 3 fois, dates ? ».
+  const phoneDigitsList = [client.phone, client.secondaryPhone]
+    .map((p) => String(p || "").replace(/\D/g, "").slice(-10))
+    .filter((p) => p.length === 10);
+  const conversationIds = await conversationIdsByPhoneDigits(phoneDigitsList);
+  const [callMessages, callEvents] = await Promise.all([
+    prisma.chatMessage.findMany({
+      where: {
+        content: { startsWith: "📞 Appel reçu" },
+        conversation: {
+          OR: [
+            { clientId },
+            ...(conversationIds.length ? [{ id: { in: conversationIds } }] : []),
+          ],
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 12,
+      select: { id: true, content: true, createdAt: true },
+    }),
+    prisma.callEvent.findMany({
+      where: {
         OR: [
           { clientId },
-          ...(conversationIds.length ? [{ id: { in: conversationIds } }] : []),
+          ...(phoneDigitsList.length ? [{ phoneDigits: { in: phoneDigitsList } }] : []),
         ],
       },
-    },
-    orderBy: { createdAt: "desc" },
-    take: 12,
-    select: { id: true, content: true, createdAt: true },
-  });
+      orderBy: { at: "desc" },
+      take: 12,
+      select: { id: true, at: true },
+    }),
+  ]);
+
+  // Fusion : un evenement « recu » a moins de 3 minutes d'un appel note est le
+  // MEME appel (l'evenement part a l'affichage, la note quelques instants plus
+  // tard) — on garde la version notee, plus parlante.
+  const noted = callMessages.map((message) => ({
+    id: `note-${message.id}`,
+    at: message.createdAt,
+    noted: true,
+    summary: String(message.content || "").replace(/^📞 Appel reçu\s*(—\s*)?/, "").trim() || "Appel",
+  }));
+  const rawEvents = callEvents
+    .filter((event) => !noted.some((n) => Math.abs(n.at.getTime() - event.at.getTime()) < 3 * 60 * 1000))
+    .map((event) => ({ id: `event-${event.id}`, at: event.at, noted: false, summary: "" }));
+  const mergedCalls = [...noted, ...rawEvents]
+    .sort((a, b) => b.at.getTime() - a.at.getTime())
+    .slice(0, 12);
 
   const lastOrder = client.workOrders?.[0] || null;
   return NextResponse.json({
@@ -109,11 +143,11 @@ export async function GET(req) {
       source: photo.source,
       createdAt: photo.createdAt?.toISOString() || null,
     })),
-    calls: callMessages.map((message) => ({
-      id: message.id,
-      at: message.createdAt?.toISOString() || null,
-      // « 📞 Appel reçu — Service — adresse\nnote » -> texte pret a afficher.
-      summary: String(message.content || "").replace(/^📞 Appel reçu\s*(—\s*)?/, "").trim() || "Appel",
+    calls: mergedCalls.map((call) => ({
+      id: call.id,
+      at: call.at?.toISOString() || null,
+      noted: call.noted,
+      summary: call.summary,
     })),
   }, { headers: { "Cache-Control": "no-store" } });
 }
