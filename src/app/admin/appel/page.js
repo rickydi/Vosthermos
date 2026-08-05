@@ -269,7 +269,7 @@ function AppelContent() {
         type="button"
         onClick={() => setTab("notes")}
         className={`h-14 rounded-2xl border text-lg font-bold transition-colors flex items-center justify-center gap-2 ${
-          tab === "notes" ? "bg-amber-500/25 border-amber-400 text-amber-200" : "admin-card admin-text-muted"
+          tab === "notes" ? "bg-emerald-500/25 border-emerald-400 text-emerald-200" : "admin-card admin-text-muted"
         }`}
       >
         <i className="fas fa-sticky-note text-sm"></i>Bloc-notes
