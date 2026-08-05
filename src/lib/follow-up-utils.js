@@ -288,6 +288,17 @@ export async function createOrTouchFollowUpFromWorkOrder({ workOrder, client, fo
     if (["invoiced", "sent", "paid"].includes(st) && !followUp.invoicedAt) ms.invoicedAt = workOrder.invoiceSentAt || workOrder.invoiceIssuedAt || new Date();
     const wantWon = ["quote_accepted", "scheduled", "in_progress", "completed", "invoiced", "sent", "paid"].includes(st);
     if (wantWon && followUp.outcome !== "won" && followUp.outcome !== "lost") ms.outcome = "won";
+    // Cascade logique (meme regle que la carte Suivi) : envoyer une soumission,
+    // planifier ou facturer implique qu'on a PARLE au client — « Contacté » se
+    // coche tout seul, et le rappel « Appeler le client » n'a plus de raison
+    // d'etre.
+    const impliesContact = ms.estimateSentAt || ms.acceptedAt || ms.jobCompletedAt || ms.invoicedAt || ms.visitDoneAt;
+    if (impliesContact && !followUp.contactedAt && !ms.contactedAt) {
+      ms.contactedAt = new Date();
+    }
+    if ((impliesContact || ms.contactedAt) && followUp.nextAction === "Appeler le client") {
+      ms.nextAction = defaultNextAction === "Appeler le client" ? null : defaultNextAction;
+    }
     // Une progression réelle du dossier remplace les états temporaires
     // « message vocal » / « attente photos » du menu Contact.
     if (Object.keys(ms).length && followUp.contactStatus) {

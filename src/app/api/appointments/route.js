@@ -103,6 +103,9 @@ export async function POST(request) {
       city: city?.trim() || null,
       notes: notes?.trim() || null,
       source: `rendez-vous ${serviceType.trim()}`,
+      // Un RDV pose = le contact est etabli (une rencontre est fixee) : le
+      // suivi ne doit pas rester « À contacter » avec un rappel d'appel.
+      alreadyContacted: true,
     });
 
     return NextResponse.json(appointment, { status: 201 });
