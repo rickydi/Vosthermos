@@ -40,6 +40,9 @@ export async function upsertClientFromLead({
   notes,
   source,
   service,
+  // true quand le lead vient d'un appel entrant auquel on a REPONDU : le suivi
+  // nait/passe « Contacté » au lieu de retomber « À contacter ».
+  alreadyContacted = false,
 } = {}) {
   try {
     const cleanName = name?.trim() || null;
@@ -100,7 +103,7 @@ export async function upsertClientFromLead({
           notes: mergedNotes,
         },
       });
-      await tryCreateFollowUpFromLead({ client: updated, source, notes, service });
+      await tryCreateFollowUpFromLead({ client: updated, source, notes, service, alreadyContacted });
       return updated;
     }
 
@@ -117,7 +120,7 @@ export async function upsertClientFromLead({
         notes: [sourceNote, notes].filter(Boolean).join("\n") || null,
       },
     });
-    await tryCreateFollowUpFromLead({ client: created, source, notes, service });
+    await tryCreateFollowUpFromLead({ client: created, source, notes, service, alreadyContacted });
     return created;
   } catch (err) {
     console.error("[upsertClientFromLead] error:", err?.message || err);

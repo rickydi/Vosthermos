@@ -108,6 +108,9 @@ export async function recordCall(body = {}) {
     postalCode: postalCode || undefined,
     notes: note || undefined,
     source: "appel",
+    // Le client vient de NOUS appeler et on lui a repondu : le contact est
+    // fait, le suivi ne doit pas naitre « À contacter ».
+    alreadyContacted: true,
   });
 
   // Demande de photos par texto. Le choix fait dans l'interface prime sur

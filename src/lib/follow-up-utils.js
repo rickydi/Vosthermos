@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import {
   DEFAULT_FOLLOW_UP_COLUMNS,
   FOLLOW_UP_COLUMNS_SETTINGS_KEY,
+  deriveFollowUpStatus,
   followUpStatusFromWorkOrderStatut,
   normalizeFollowUpColumns,
   workOrderStatutFromFollowUpStatus,
@@ -97,7 +98,7 @@ function serviceFromSource(source) {
   return null;
 }
 
-export async function createOrTouchFollowUpFromLead({ client, source, notes, service } = {}) {
+export async function createOrTouchFollowUpFromLead({ client, source, notes, service, alreadyContacted = false } = {}) {
   if (!client?.id) return null;
 
   const sourceText = cleanText(source) || "lead";
@@ -121,16 +122,28 @@ export async function createOrTouchFollowUpFromLead({ client, source, notes, ser
   });
 
   if (existing) {
+    const data = {
+      source: existing.source || sourceText,
+      contactName: existing.contactName || primaryContactName(client),
+      phone: existing.phone || primaryContactPhone(client),
+      email: existing.email || client.email || null,
+      service: existing.service || serviceText,
+      notes: appendNote(existing.notes, leadNote),
+    };
+    // Le client NOUS a appelé et on lui a répondu : le contact est fait. On ne
+    // laisse pas le dossier « À contacter », un éventuel « message vocal
+    // laissé » se résout (il a rappelé), et le rappel automatique « Appeler le
+    // client » n'a plus de raison d'être.
+    if (alreadyContacted && !existing.contactedAt) {
+      data.contactedAt = new Date();
+      data.contactStatus = null;
+      data.contactStatusAt = null;
+      if (existing.nextAction === "Appeler le client") data.nextAction = null;
+      data.status = deriveFollowUpStatus({ ...existing, contactedAt: data.contactedAt });
+    }
     return prisma.clientFollowUp.update({
       where: { id: existing.id },
-      data: {
-        source: existing.source || sourceText,
-        contactName: existing.contactName || primaryContactName(client),
-        phone: existing.phone || primaryContactPhone(client),
-        email: existing.email || client.email || null,
-        service: existing.service || serviceText,
-        notes: appendNote(existing.notes, leadNote),
-      },
+      data,
     });
   }
 
@@ -143,8 +156,13 @@ export async function createOrTouchFollowUpFromLead({ client, source, notes, ser
       phone: primaryContactPhone(client),
       email: client.email || null,
       service: serviceText,
-      nextAction: "Appeler le client",
       notes: leadNote || null,
+      // Appel entrant auquel on a répondu -> le suivi naît déjà « Contacté »,
+      // sans rappel « Appeler le client ». Les autres sources (formulaire,
+      // création admin) gardent le parcours normal.
+      ...(alreadyContacted
+        ? { contactedAt: new Date(), status: "called" }
+        : { nextAction: "Appeler le client" }),
     },
   });
 }
