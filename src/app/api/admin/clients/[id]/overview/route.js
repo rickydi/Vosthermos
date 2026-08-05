@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { serializeFollowUp, normalizePhoneDigits } from "@/lib/follow-up-utils";
+import { appointmentIdsByPhoneDigits, conversationIdsByPhoneDigits } from "@/lib/search";
 import { workOrderStatusLabel } from "@/lib/work-order-status";
 
 export const dynamic = "force-dynamic";
@@ -60,14 +61,21 @@ export async function GET(req, { params }) {
     }),
   ]);
 
+  // Chiffres seuls (vt_digits) : les RDV stockent 6 formats de numero
+  // differents, un `contains` brut en ratait la plupart.
+  const [appointmentIds, conversationIds] = await Promise.all([
+    appointmentIdsByPhoneDigits(phoneSuffixes),
+    conversationIdsByPhoneDigits(phoneSuffixes),
+  ]);
   const apptOr = [
+    { clientId },
     ...emails.map((e) => ({ email: { equals: e, mode: "insensitive" } })),
-    ...phoneSuffixes.map((s) => ({ phone: { contains: s } })),
+    ...(appointmentIds.length ? [{ id: { in: appointmentIds } }] : []),
   ];
   const chatOr = [
     { clientId },
     ...emails.map((e) => ({ clientEmail: { equals: e, mode: "insensitive" } })),
-    ...phoneSuffixes.map((s) => ({ clientPhone: { contains: s } })),
+    ...(conversationIds.length ? [{ id: { in: conversationIds } }] : []),
   ];
 
   const [appointments, chats] = await Promise.all([

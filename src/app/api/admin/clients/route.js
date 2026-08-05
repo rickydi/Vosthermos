@@ -87,7 +87,9 @@ export async function POST(req) {
         postalCode: body.postalCode || null,
         phone: body.phone || null,
         secondaryPhone: body.secondaryPhone || null,
-        email: body.email || null,
+        // Minuscules systematiques : la contrainte unique est sensible a la
+        // casse, « Jean@x.com » et « jean@x.com » creaient deux fiches.
+        email: body.email ? String(body.email).trim().toLowerCase() : null,
         notes: body.notes || null,
       },
     });

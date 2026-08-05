@@ -22,12 +22,20 @@ export async function lookupCaller(rawPhone) {
 
   if (!clientId) {
     // Pas de fiche, mais peut-etre une conversation de chat : ce n'est alors pas
-    // tout a fait un inconnu, et l'app doit pouvoir le dire.
-    const conversation = await prisma.chatConversation.findFirst({
-      where: { clientPhone: { contains: digits.slice(-7) } },
-      select: { id: true, clientName: true, lastMessageAt: true },
-      orderBy: { lastMessageAt: "desc" },
-    });
+    // tout a fait un inconnu, et l'app doit pouvoir le dire. Chiffres seuls
+    // (vt_digits), certains numeros de conversation etant stockes formates.
+    const convRows = await prisma.$queryRaw`
+      SELECT id FROM chat_conversations
+      WHERE vt_digits(coalesce("clientPhone", '')) LIKE ${`%${digits}%`}
+      ORDER BY "lastMessageAt" DESC NULLS LAST
+      LIMIT 1
+    `;
+    const conversation = convRows[0]
+      ? await prisma.chatConversation.findUnique({
+          where: { id: Number(convRows[0].id) },
+          select: { id: true, clientName: true, lastMessageAt: true },
+        })
+      : null;
     return {
       digits,
       known: false,

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
+import { conversationIdsByPhoneDigits } from "@/lib/search";
 import { changedFields, logAdminActivity } from "@/lib/admin-activity";
 import { staleUpdateResponse } from "@/lib/optimistic-lock";
 
@@ -94,7 +95,8 @@ export async function PUT(req, { params }) {
   if (body.postalCode !== undefined) data.postalCode = body.postalCode || null;
   if (body.phone !== undefined) data.phone = body.phone || null;
   if (body.secondaryPhone !== undefined) data.secondaryPhone = body.secondaryPhone || null;
-  if (body.email !== undefined) data.email = body.email || null;
+  // Minuscules systematiques (contrainte unique sensible a la casse).
+  if (body.email !== undefined) data.email = body.email ? String(body.email).trim().toLowerCase() : null;
   if (body.notes !== undefined) data.notes = body.notes || null;
   if (body.paymentTermsDays !== undefined) data.paymentTermsDays = Number(body.paymentTermsDays) || 30;
 
@@ -154,11 +156,12 @@ export async function DELETE(req, { params }) {
     const phoneDigits = [client?.phone, client?.secondaryPhone]
       .map((p) => String(p || "").replace(/\D/g, "").slice(-10))
       .filter((p) => p.length === 10);
+    const byDigits = await conversationIdsByPhoneDigits(phoneDigits);
     const candidates = await prisma.chatConversation.findMany({
       where: {
         OR: [
           { clientId },
-          ...phoneDigits.map((p) => ({ clientPhone: { contains: p.slice(-7) } })),
+          ...(byDigits.length ? [{ id: { in: byDigits } }] : []),
         ],
       },
       select: { id: true, clientId: true, clientPhone: true },

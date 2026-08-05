@@ -252,3 +252,49 @@ export function orderByIds(rows, ids) {
   const byId = new Map(rows.map((row) => [row.id, row]));
   return ids.map((id) => byId.get(id)).filter(Boolean);
 }
+
+// ─── Rapprochement téléphonique par CHIFFRES ────────────────────────────────
+// Les numéros sont stockés dans des formats libres (« 514-825-8411 »,
+// « (450)632-8283 », espaces, poste…) : un `contains` sur le texte brut rate
+// tout numéro dont les derniers chiffres sont coupés par la ponctuation. Ces
+// résolveurs renvoient des IDs via vt_digits, à réinjecter dans un `id: { in }`.
+
+function digitPatterns(digitsList) {
+  return [...new Set(
+    (digitsList || [])
+      .map((value) => String(value || "").replace(/\D/g, ""))
+      .filter((digits) => digits.length >= 7)
+      .map((digits) => `%${digits.slice(-10)}%`),
+  )];
+}
+
+export async function clientIdsByPhoneDigits(digitsList) {
+  const patterns = digitPatterns(digitsList);
+  if (!patterns.length) return [];
+  const rows = await prisma.$queryRaw`
+    SELECT id FROM clients
+    WHERE vt_digits(coalesce(phone, '')) LIKE ANY(${patterns})
+       OR vt_digits(coalesce(secondary_phone, '')) LIKE ANY(${patterns})
+  `;
+  return rows.map((row) => Number(row.id));
+}
+
+export async function appointmentIdsByPhoneDigits(digitsList) {
+  const patterns = digitPatterns(digitsList);
+  if (!patterns.length) return [];
+  const rows = await prisma.$queryRaw`
+    SELECT id FROM appointments
+    WHERE vt_digits(coalesce(phone, '')) LIKE ANY(${patterns})
+  `;
+  return rows.map((row) => Number(row.id));
+}
+
+export async function conversationIdsByPhoneDigits(digitsList) {
+  const patterns = digitPatterns(digitsList);
+  if (!patterns.length) return [];
+  const rows = await prisma.$queryRaw`
+    SELECT id FROM chat_conversations
+    WHERE vt_digits(coalesce("clientPhone", '')) LIKE ANY(${patterns})
+  `;
+  return rows.map((row) => Number(row.id));
+}

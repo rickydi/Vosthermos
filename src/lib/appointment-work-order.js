@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { clientIdsByPhoneDigits } from "@/lib/search";
 import { createOrTouchFollowUpFromWorkOrder } from "@/lib/follow-up-utils";
 import { upsertClientFromLead } from "@/lib/upsert-client";
 import { composeDateTime, generateWorkOrderNumber, withWorkOrderNumberRetry } from "@/lib/work-order-utils";
@@ -38,16 +39,16 @@ async function findClientForAppointment(appointment) {
 
   const suffix = phoneSuffix(appointment?.phone);
   if (suffix) {
-    const byPhone = await prisma.client.findFirst({
-      where: {
-        OR: [
-          { phone: { contains: suffix } },
-          { secondaryPhone: { contains: suffix } },
-        ],
-      },
-      orderBy: { updatedAt: "desc" },
-    });
-    if (byPhone) return byPhone;
+    // Chiffres seuls (vt_digits) : le `contains` brut ratait les numeros
+    // formates et rattachait le RDV a une NOUVELLE fiche au lieu de l'existante.
+    const ids = await clientIdsByPhoneDigits([suffix]);
+    if (ids.length) {
+      const byPhone = await prisma.client.findFirst({
+        where: { id: { in: ids } },
+        orderBy: { updatedAt: "desc" },
+      });
+      if (byPhone) return byPhone;
+    }
   }
 
   return upsertClientFromLead({

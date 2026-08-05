@@ -4,7 +4,13 @@ import { requireAdmin } from "@/lib/admin-auth";
 import { FOLLOW_UP_TERMINAL_STATUSES, normalizePhoneDigits, serializeFollowUp } from "@/lib/follow-up-utils";
 import { logAdminActivity } from "@/lib/admin-activity";
 import { publishAdminEvent } from "@/lib/event-bus";
-import { orderByIds, searchFollowUpIds } from "@/lib/search";
+import {
+  appointmentIdsByPhoneDigits,
+  clientIdsByPhoneDigits,
+  conversationIdsByPhoneDigits,
+  orderByIds,
+  searchFollowUpIds,
+} from "@/lib/search";
 
 export const dynamic = "force-dynamic";
 
@@ -148,36 +154,37 @@ async function attachCentralActivity(followUps) {
   // (predicats OR sur une seule table = aucune jointure), puis filtrer work_orders par
   // clientId IN (...) = une seule condition, zero jointure superflue.
   const matchedClientIds = new Set(clientIds);
-  if (emails.length || phoneSuffixes.length) {
+  if (emails.length) {
     const matchedClients = await prisma.client.findMany({
-      where: {
-        OR: [
-          ...emails.map((email) => ({ email: { equals: email, mode: "insensitive" } })),
-          ...phoneSuffixes.map((suffix) => ({ phone: { contains: suffix } })),
-          ...phoneSuffixes.map((suffix) => ({ secondaryPhone: { contains: suffix } })),
-        ],
-      },
+      where: { OR: emails.map((email) => ({ email: { equals: email, mode: "insensitive" } })) },
       select: { id: true },
     });
     for (const c of matchedClients) matchedClientIds.add(c.id);
   }
+  // Chiffres seuls (vt_digits) : un `contains` sur « 514-825-8411 » ne trouve
+  // pas « 8258411 » a cause du tiret — les bons/RDV/chats rattaches par numero
+  // manquaient a l'appel pour tout numero stocke formate.
+  for (const id of await clientIdsByPhoneDigits(phoneSuffixes)) matchedClientIds.add(id);
   const allClientIds = [...matchedClientIds];
 
   const clientOr = allClientIds.length ? [{ clientId: { in: allClientIds } }] : [];
 
-  const clientMatchOr = [];
-  if (clientIds.length) clientMatchOr.push({ id: { in: clientIds } });
-  for (const email of emails) clientMatchOr.push({ email: { equals: email, mode: "insensitive" } });
-  for (const suffix of phoneSuffixes) clientMatchOr.push({ phone: { contains: suffix } });
-  for (const suffix of phoneSuffixes) clientMatchOr.push({ secondaryPhone: { contains: suffix } });
+  const [appointmentIds, conversationIds] = await Promise.all([
+    appointmentIdsByPhoneDigits(phoneSuffixes),
+    conversationIdsByPhoneDigits(phoneSuffixes),
+  ]);
 
-  const contactOr = [];
-  for (const email of emails) contactOr.push({ email: { equals: email, mode: "insensitive" } });
-  for (const suffix of phoneSuffixes) contactOr.push({ phone: { contains: suffix } });
+  const contactOr = [
+    ...(allClientIds.length ? [{ clientId: { in: allClientIds } }] : []),
+    ...emails.map((email) => ({ email: { equals: email, mode: "insensitive" } })),
+    ...(appointmentIds.length ? [{ id: { in: appointmentIds } }] : []),
+  ];
 
-  const chatOr = [];
-  for (const email of emails) chatOr.push({ clientEmail: { equals: email, mode: "insensitive" } });
-  for (const suffix of phoneSuffixes) chatOr.push({ clientPhone: { contains: suffix } });
+  const chatOr = [
+    ...(allClientIds.length ? [{ clientId: { in: allClientIds } }] : []),
+    ...emails.map((email) => ({ clientEmail: { equals: email, mode: "insensitive" } })),
+    ...(conversationIds.length ? [{ id: { in: conversationIds } }] : []),
+  ];
 
   const [workOrders, appointments, chats, openings, clientPhotos] = await Promise.all([
     clientOr.length ? prisma.workOrder.findMany({
@@ -237,10 +244,11 @@ async function attachCentralActivity(followUps) {
       orderBy: { lastMessageAt: "desc" },
       take: 500,
     }) : [],
-    clientMatchOr.length ? prisma.unitOpening.findMany({
+    allClientIds.length ? prisma.unitOpening.findMany({
       where: {
         photoUrl: { not: null },
-        unit: { client: { OR: clientMatchOr } },
+        // allClientIds couvre deja ids directs + courriels + chiffres.
+        unit: { clientId: { in: allClientIds } },
       },
       select: {
         id: true,
@@ -640,17 +648,24 @@ export async function POST(req) {
     const email = cleanEmail(body.email);
     const suffix = normalizePhoneDigits(phone);
     if (suffix || email) {
-      const matches = await prisma.client.findMany({
-        where: {
-          OR: [
-            ...(email ? [{ email: { equals: email, mode: "insensitive" } }] : []),
-            ...(suffix ? [{ phone: { contains: suffix.slice(-7) } }, { secondaryPhone: { contains: suffix.slice(-7) } }] : []),
-          ],
-        },
-        select: { id: true, name: true, phone: true, secondaryPhone: true, email: true },
-        take: 2,
-      });
-      if (matches.length === 1) client = matches[0];
+      // Chiffres seuls (vt_digits) : le `contains` brut ratait les numeros
+      // formates. On garde la regle : rattacher seulement si le match est UNIQUE.
+      const candidateIds = new Set(suffix ? await clientIdsByPhoneDigits([suffix]) : []);
+      if (email) {
+        const byEmail = await prisma.client.findMany({
+          where: { email: { equals: email, mode: "insensitive" } },
+          select: { id: true },
+          take: 2,
+        });
+        for (const c of byEmail) candidateIds.add(c.id);
+      }
+      const ids = [...candidateIds];
+      if (ids.length === 1) {
+        client = await prisma.client.findUnique({
+          where: { id: ids[0] },
+          select: { id: true, name: true, phone: true, secondaryPhone: true, email: true },
+        });
+      }
     }
     if (!client) {
       const newName = clean(body.contactName) || clean(body.title) || "Client";
